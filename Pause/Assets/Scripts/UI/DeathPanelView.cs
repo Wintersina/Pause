@@ -127,8 +127,22 @@ public class DeathPanelView : MonoBehaviour, IPointerDownHandler
 
     // Card-local columns: labels start right of the accent bar, values end
     // with the same inset from the right edge on every row.
-    const float LabelLeft = -CardWidth * .5f + 44f;
-    const float ValueRight = CardWidth * .5f - 44f;
+    // (instance: the cards are as wide as the world's button column, which
+    // is the frame's inner span less the clearances; CardWidth is the widest.)
+    // The inset tightens a little as the card narrows (shrink gaps, not text).
+    float SideInset { get { return Mathf.Clamp(44f - (CardWidth - cardW) * .1f, 34f, 44f); } }
+    float LabelLeft { get { return -cardW * .5f + SideInset; } }
+    float ValueRight { get { return cardW * .5f - SideInset; } }
+    // The cards' width for a world's frame: the button column's width.
+    public static float CardWidthFor(int world) { return 2f * ButtonHalfSpan(world); }
+    public static Rect[] CardRectsFor(int world)
+    {
+        float w = CardWidthFor(world);
+        var r = new Rect[CardRects.Length];
+        for (int i = 0; i < r.Length; i++) r[i] = new Rect(-w * .5f, CardRects[i].y, w, CardRects[i].height);
+        return r;
+    }
+    float cardW = CardWidth;
 
     // The panel grew by 116 for the SPACE DOCK row (a button plus a 16 gap)
     // and by 76 for the KILLED BY card (64 plus a 12 gap); everything above
@@ -261,6 +275,7 @@ public class DeathPanelView : MonoBehaviour, IPointerDownHandler
         view.results = results;
         view.font = dustText.font;
         view.stackShift = StackShift(HudSkin.CurrentWorld);
+        view.cardW = CardWidthFor(HudSkin.CurrentWorld);
 
         // MENU leaves to the start menu, so it wears the quick actions' home glyph.
         Sprite replayGlyph = HudSkin.ReplayGlyph(HudSkin.CurrentWorld);
@@ -375,14 +390,14 @@ public class DeathPanelView : MonoBehaviour, IPointerDownHandler
             // Celebratory bloom behind the score card ...
             bestGlow = NewImage("NewBestGlow", panel, Load("dp_glow"), new Color(Gold.r, Gold.g, Gold.b, 0f));
             bestGlow.type = Image.Type.Sliced;
-            var c = Shifted(CardRects[0]);
+            var c = Shifted(CardRectsFor(HudSkin.CurrentWorld)[0]);
             Place(bestGlow.rectTransform, new Rect(c.xMin - 20f, c.yMin - 20f, c.width + 40f, c.height + 40f));
             bestGlow.rectTransform.SetSiblingIndex(cards[0].GetSiblingIndex());
 
             // ... and a gold "NEW BEST" capsule in the sub-label slot.
             var p = NewImage("NewBest", cards[0], Load("dp_pill"), Gold);
             p.type = Image.Type.Sliced;
-            Place(p.rectTransform, Centered(LabelLeft + 72f, -20f, 144f, 32f));
+            Place(p.rectTransform, Centered(LabelLeft + 62f, -20f, 124f, 32f));
             var label = NewText("Label", p.rectTransform, "NEW BEST", 17, AkiraPalette.Ink, TextAnchor.MiddleCenter);
             Stretch(label.rectTransform);
             pill = p.rectTransform;
@@ -391,7 +406,7 @@ public class DeathPanelView : MonoBehaviour, IPointerDownHandler
 
     RectTransform CardBody(int index, Color accent)
     {
-        var rect = Shifted(CardRects[index]);
+        var rect = Shifted(CardRectsFor(HudSkin.CurrentWorld)[index]);
         var go = new GameObject("Card" + index, typeof(RectTransform), typeof(CanvasGroup));
         go.transform.SetParent(panel, false);
         var card = (RectTransform)go.transform;
@@ -404,7 +419,7 @@ public class DeathPanelView : MonoBehaviour, IPointerDownHandler
         bg.type = Image.Type.Sliced;
         Stretch(bg.rectTransform);
         var bar = NewImage("Accent", card, Load("dp_bar"), accent);
-        Place(bar.rectTransform, Centered(-CardWidth * .5f + 20f, 0f, 14f, rect.height - 30f));
+        Place(bar.rectTransform, Centered(-cardW * .5f + 20f, 0f, 14f, rect.height - 30f));
         return card;
     }
 
@@ -428,7 +443,7 @@ public class DeathPanelView : MonoBehaviour, IPointerDownHandler
             var row = new GameObject("Row" + i, typeof(RectTransform));
             row.transform.SetParent(card, false);
             var rt = (RectTransform)row.transform;
-            Place(rt, Centered(0f, y, CardWidth - 40f, BreakdownRowHeight));
+            Place(rt, Centered(0f, y, cardW - 40f, BreakdownRowHeight));
 
             var label = NewText("Label", rt, BreakdownLabels[i], 17, Bone, TextAnchor.MiddleLeft);
             Place(label.rectTransform, new Rect(LabelLeft, -BreakdownRowHeight * .5f, 200f, BreakdownRowHeight));
@@ -461,15 +476,15 @@ public class DeathPanelView : MonoBehaviour, IPointerDownHandler
 
         // Measured once, here (the panel is built per death): padding stays constant, the text
         // shrinks then wraps, and the card grows to fit instead of the text filling the box.
-        float inner = DeathNameLayout.InnerWidth(CardWidth);
+        float inner = DeathNameLayout.InnerWidth(cardW);
         var lay = DeathNameLayout.Compute(killed.preferredWidth, KilledFontSize, KilledMinFontSize,
                                           hurt.preferredWidth, HurtFontSize, HurtMinFontSize, inner);
         float h = lay.cardHeight;
-        card.sizeDelta = new Vector2(CardWidth, h);
+        card.sizeDelta = new Vector2(cardW, h);
         var bar = card.Find("Accent") as RectTransform;
         if (bar != null) bar.sizeDelta = new Vector2(bar.sizeDelta.x, h - 30f);
 
-        float left = -CardWidth * .5f + DeathNameLayout.PadLeft;
+        float left = -cardW * .5f + DeathNameLayout.PadLeft;
         float gap = lay.killedLines > 0 && lay.hurtLines > 0 ? DeathNameLayout.LineGap : 0f;
         float top = (lay.killedHeight + lay.hurtHeight + gap) * .5f;   // block centred in the card
         killed.fontSize = lay.killedFont;
@@ -502,7 +517,7 @@ public class DeathPanelView : MonoBehaviour, IPointerDownHandler
         var row = new GameObject(LoopsRowName, typeof(RectTransform));
         row.transform.SetParent(card, false);
         var rt = (RectTransform)row.transform;
-        Place(rt, Centered(0f, y, CardWidth - 40f, BreakdownRowHeight));
+        Place(rt, Centered(0f, y, cardW - 40f, BreakdownRowHeight));
 
         var label = NewText("Label", rt, "LOOPS", 17, Gold, TextAnchor.MiddleLeft);
         Place(label.rectTransform, new Rect(LabelLeft, -BreakdownRowHeight * .5f, 200f, BreakdownRowHeight));

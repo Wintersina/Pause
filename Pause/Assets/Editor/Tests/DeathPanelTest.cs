@@ -110,6 +110,16 @@ public static class DeathPanelTest
             float top = DeathPanelView.BannerTop(w);
             Check(tag + "frame top inset is measured (> 20 units): " + DeathPanelView.FrameTopInset(w).ToString("F1"), DeathPanelView.FrameTopInset(w) > 20f);
             Check(tag + "banner top (" + top.ToString("F1") + ") is below the frame's top inset (" + frameInner.ToString("F1") + ")", top <= frameInner - DeathPanelView.BannerGap + .01f);
+            // The cards share the buttons' column edges, inside the frame's inner span.
+            var cr = DeathPanelView.CardRectsFor(w);
+            bool cardsInside = true, sameEdges = true;
+            foreach (var c in cr)
+            {
+                cardsInside &= c.xMin >= -DeathPanelView.BorderSpan(w) + .01f && c.xMax <= DeathPanelView.BorderSpan(w) - .01f;
+                sameEdges &= Mathf.Abs(c.xMin - rs[2].xMin) < .01f && Mathf.Abs(c.xMax - rs[2].xMax) < .01f;
+            }
+            Check(tag + "every card's edges are inside the frame's inner span (" + DeathPanelView.BorderSpan(w) + ")", cardsInside);
+            Check(tag + "cards and buttons share the same column edges", sameEdges);
             Check(tag + "the stack shift is not negative and under 60", DeathPanelView.StackShift(w) >= 0f && DeathPanelView.StackShift(w) < 60f);
             Check(tag + "SPACE DOCK stays above the frame's bottom inset", rs[2].yMin >= DeathPanelView.FrameInnerBottom(w) + DeathPanelView.ButtonClearance - .01f);
             Check(tag + "the banner stays inside the panel", top <= DeathPanelView.Height * .5f);
