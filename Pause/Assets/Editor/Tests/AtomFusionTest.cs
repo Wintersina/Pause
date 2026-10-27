@@ -645,7 +645,6 @@ public static class AtomFusionTest
         collisionDetection.atomCheck = true;
         collisionDetection.invTimer = 5.8f;
         var pull = MagnetPull.Begin(ship);
-        pull.Synced = true;
         var layer = fx.LayerOf(FusionId.Vacuum);
 
         AtomFusions.Tick(.01f);
@@ -679,7 +678,7 @@ public static class AtomFusionTest
         // death / GameStateReset end it cleanly
         collisionDetection.atomCheck = true;
         collisionDetection.invTimer = 5f;
-        pull.Elapsed = 0f;
+        MagnetPull.Begin(ship);
         AtomFusions.Tick(.05f);
         bool back = fx.IsPlaying(FusionId.Singularity);   // the singularity window is still open
         buttonClicks.playerDied = true;
@@ -690,10 +689,10 @@ public static class AtomFusionTest
         buttonClicks.playerDied = false;
 
         // no allocation while looping
-        pull.Elapsed = 0f;
+        MagnetPull.Begin(ship);
         for (int w = 0; w < 20; w++) AtomFusions.Tick(.05f);
         long before = System.GC.GetAllocatedBytesForCurrentThread();
-        for (int n = 0; n < 2000; n++) { pull.Elapsed = 0f; AtomFusions.Tick(.016f); }
+        for (int n = 0; n < 2000; n++) { MagnetPull.Begin(ship); AtomFusions.Tick(.016f); }
         long bytes = System.GC.GetAllocatedBytesForCurrentThread() - before;
         Check("2000 looping frames allocate nothing (" + bytes + " bytes)", bytes == 0);
 
