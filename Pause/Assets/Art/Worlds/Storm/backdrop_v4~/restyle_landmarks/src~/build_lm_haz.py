@@ -188,6 +188,7 @@ def fill_thunder():
         s = by["anvil_tower_0%d" % k]; y = H - s["y"] - s["h"]; c = lm[y:y + 256, s["x"]:s["x"] + 256].copy()
         v = c[..., :3].max(-1); b = c[..., 2] - c[..., 0]
         m = np.clip((v - .62) / .25, 0, 1) * np.clip((b + .02) / .1, 0, 1)
+        c[..., :3] *= .8      # WorldBackdropTest: atlas art under the .66 brightness ceiling as drawn (the strike flash brightens it at runtime)
         c[..., 3] *= m; sheet[:, k * 256:(k + 1) * 256] = c
     to_img(sheet).save(DST / "thunder.png")
 

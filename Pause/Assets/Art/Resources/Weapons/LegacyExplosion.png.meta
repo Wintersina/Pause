@@ -82,7 +82,7 @@ TextureImporter:
   maxTextureSize: 2048
   textureSettings:
     serializedVersion: 2
-    filterMode: 0
+    filterMode: 1
     aniso: 1
     mipBias: 0
     wrapU: 1
@@ -102,7 +102,7 @@ TextureImporter:
   alphaUsage: 1
   alphaIsTransparency: 1
   spriteTessellationDetail: -1
-  textureType: 8
+  textureType: 0
   textureShape: 1
   singleChannelComponent: 0
   flipbookRows: 1
@@ -120,11 +120,50 @@ TextureImporter:
     maxTextureSize: 2048
     resizeAlgorithm: 0
     textureFormat: -1
+    textureCompression: 2
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
     textureCompression: 0
     compressionQuality: 50
     crunchedCompression: 0
     allowsAlphaSplitting: 0
     overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Android
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: 48
+    textureCompression: 1
+    compressionQuality: 100
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 1
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: iOS
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: 48
+    textureCompression: 1
+    compressionQuality: 100
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 1
     ignorePlatformSupport: 0
     androidETC2FallbackOverride: 0
     forceMaximumCompressionQuality_BC6H_BC7: 0
@@ -499,6 +538,12 @@ TextureImporter:
     nameFileIdTable:
       LegacyExplosion_0: 21300000
       LegacyExplosion_1: 21300002
+      LegacyExplosion_10: 21300020
+      LegacyExplosion_11: 21300022
+      LegacyExplosion_12: 21300024
+      LegacyExplosion_13: 21300026
+      LegacyExplosion_14: 21300028
+      LegacyExplosion_15: 21300030
       LegacyExplosion_2: 21300004
       LegacyExplosion_3: 21300006
       LegacyExplosion_4: 21300008
@@ -507,12 +552,6 @@ TextureImporter:
       LegacyExplosion_7: 21300014
       LegacyExplosion_8: 21300016
       LegacyExplosion_9: 21300018
-      LegacyExplosion_10: 21300020
-      LegacyExplosion_11: 21300022
-      LegacyExplosion_12: 21300024
-      LegacyExplosion_13: 21300026
-      LegacyExplosion_14: 21300028
-      LegacyExplosion_15: 21300030
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 
