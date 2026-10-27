@@ -7,7 +7,7 @@ using UnityEngine;
 // to hold it. Short names keep the original look (nominal size, base card height).
 public static class DeathNameLayout
 {
-    public const float PadLeft = 40f, PadRight = 40f;   // card edge to text (left clears the accent bar)
+    public const float PadLeft = 44f, PadRight = 48f;   // card edge to text (left clears the accent bar)
     public const float PadV = 6f, LineGap = 3f;
     public const float LineHeightFactor = 1.05f;
     public const float MinHeight = 64f, MaxHeight = 84f;
