@@ -54,19 +54,18 @@ public class DeveloperOptions : MonoBehaviour
         // Stacked above the start-world row (it used to sit at -223, on top
         // of the Credits (then LeaderBoard) button at -233).
         bossRow = Clone(template, parent, "DeveloperBossRush",
-                        new Vector2(0f, 47f), new Vector2(420f, RowH), ToggleBossRush);
+                        new Vector2(-140f, 47f), new Vector2(270f, RowH), ToggleBossRush);
         bossLabel = Label(bossRow);
 
         // Fusion test: cycles the combos; the spawner then releases only that
-        // combo's atoms (FusionTestMode). The slot above the sound row.
+        // combo's atoms (FusionTestMode). Shares the boss rush row (half each),
+        // so the Options stack gets no taller.
         fusionRow = Clone(template, parent, "DeveloperFusionTest",
-                          new Vector2(0f, FusionRowY), new Vector2(560f, RowH), StepFusion);
+                          new Vector2(140f, 47f), new Vector2(270f, RowH), StepFusion);
         fusionLabel = Label(fusionRow);
 
         Refresh();
     }
-
-    public const float FusionRowY = 237f;
 
     void StepFusion()
     {

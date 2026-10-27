@@ -58,7 +58,7 @@ public static class FusionTestMode
 
     public static string Label(int i)
     {
-        return "FUSION TEST  " + (i == Off ? "OFF" : AtomFusionTable.All[i].name);
+        return "FUSION TEST\n" + (i == Off ? "OFF" : AtomFusionTable.All[i].name);
     }
 
     // How many of the combo's atoms the spawner can release (the pickups: Mending / Shell are ship powers).

@@ -621,8 +621,8 @@ public static class AtomFusionTest
             for (int i = 0; i < all.Length; i++) FusionFx.Play(all[i].id);
             for (int k = 0; k < 12; k++) AtomFusions.Tick(.06f);
         }
-        long bytes = System.GC.GetAllocatedBytesForCurrentThread() - before;
-        Check("6000 triggers and their flipbooks allocate nothing (" + bytes + " bytes)", bytes == 0);
+        long fxBytes = System.GC.GetAllocatedBytesForCurrentThread() - before;
+        Check("6000 triggers and their flipbooks allocate nothing (" + fxBytes + " bytes)", fxBytes == 0);
         Check("... and create no objects (renderers " + fx.transform.childCount + " = " + children + ", builds " + FusionFx.Builds + ")",
               fx.transform.childCount == children && FusionFx.Builds == builds && children == all.Length);
 
@@ -733,6 +733,7 @@ public static class AtomFusionTest
 
         // a test firing is not progress: the codex records nothing
         PlayerPrefs.SetInt(DeveloperUnlocks.EnabledKey, 1);
+        PlayerPrefs.DeleteKey(FusionDiscoveryStore.PrefsKey);
         FusionDiscoveryStore.Reload();
         var ship = NewShip();
         AtomFusions.EnabledOverride = true;
