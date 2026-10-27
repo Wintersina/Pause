@@ -15,7 +15,8 @@ using UnityEngine;
 //   page (FusionDiscoveryStore), and a big callout lifted above the ship
 //   (ScoreHud.ShowCallout, one slot: replaced, never stacked) -- the two-line
 //   "SHIELD + HEAL / BLOOM!", "CHAIN xN" on a re-trigger, or on the very
-//   first time "NEW COMBO DISCOVERED / BLOOM!", bigger. No sounds.
+//   first time "NEW COMBO DISCOVERED / BLOOM!", bigger, plus the fusion's
+//   own flipbook around the ship (FusionFx). No sounds.
 //
 //   Never in the tutorial, never in the kill cam's replay, never once the
 //   pilot is dead. Bosses and elites are never insta-killed: the effects only
@@ -93,7 +94,7 @@ public static class AtomFusions
         bloomLastHeart = singularityLastHeart = -99f;
         novaArmed = aftershockArmed = false;
         RestoreAftershock();
-        if (shipGo != null && Enabled) FusionMotes.Attach(shipGo);
+        if (shipGo != null && Enabled) { FusionMotes.Attach(shipGo); FusionFx.Build(shipGo); }
     }
 
     // The world's running clock (collisionDetection's running frames).
@@ -108,6 +109,7 @@ public static class AtomFusions
         if (!shield) EndShieldBound();
         if (!MagnetPull.MagnetRunning && dustStormUntil > clock) { dustStormUntil = 0f; state.EndCurrent(FusionId.DustStorm); }
         state.Expire(clock);
+        FusionFx.Advance(dt);
     }
 
     static bool ShieldUp => collisionDetection.atomCheck && collisionDetection.invTimer > 0f;
@@ -160,7 +162,8 @@ public static class AtomFusions
         LastFusion = f;
         LastChain = r.chain;
         Apply(f);
-        bool first = FusionDiscoveryStore.RecordFiring(f.id, r.chain, FusionDiscoveryStore.Today());
+        FusionFx.Play(f.id);   // its own flipbook, on the ship
+        bool first = !FusionTestMode.Active && FusionDiscoveryStore.RecordFiring(f.id, r.chain, FusionDiscoveryStore.Today());   // a dev fusion test records nothing
         if (first)
         {
             Discoveries++;

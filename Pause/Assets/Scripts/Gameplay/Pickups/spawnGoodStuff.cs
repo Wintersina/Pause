@@ -156,6 +156,14 @@ public class spawnGoodStuff : MonoBehaviour {
                 spawnMidStar(i, randomStarPos);
             }  
         }
+        // DEV: a fusion combo picked in Options (FusionTestMode, developer mode only):
+        // only that combo's atoms, steadily, instead of the normal allowances.
+        if (FusionTestMode.Active)
+        {
+            AtomKind devKind;
+            if (FusionTestMode.Due(dt, out devKind)) spawnDevAtom(devKind);
+            return;
+        }
         // Blue atoms used to arrive every 6-9 seconds, which made a shield and
         // boost routine. They are now a scarce, per-planet allowance.
         int reserve = blueGuaranteeUsed ? 0 : 1;   // always hold one back for the end
@@ -229,6 +237,28 @@ public class spawnGoodStuff : MonoBehaviour {
         // A power-up refund (PowerUpRefund): the guaranteed drop its use
         // meter earned, after the same atom spacing as any atom.
         if (PowerUpRefund.Due && AtomSpacing.Ready) spawnRefund();
+    }
+
+    // One atom of the dev fusion test's combo (no allowance, no boss limits).
+    void spawnDevAtom(AtomKind kind)
+    {
+        Vector3 pos = new Vector3(Random.Range(-RailInset.PickupLaneHalf, RailInset.PickupLaneHalf), transform.position.y, transform.rotation.z);
+        switch (kind)
+        {
+            case AtomKind.Shield: spawnAtom(); break;
+            case AtomKind.Pause: spawnRedAtom(); break;
+            case AtomKind.Capacitor: if (cooldownAtom != null) spawnCooldownAtom(); break;
+            case AtomKind.Magnet: if (magnetAtom != null) spawnMagnetAtom(); break;
+            case AtomKind.Heal:
+                {
+                    Vector2 half = Vector2.one * HealAtom.TargetDiameter * .5f;
+                    Vector3 at = SpawnSpace.PickupSpot(new Vector3(pos.x, CameraFit.ViewTop + .5f, 0f), half, -RailInset.PickupLaneHalf, RailInset.PickupLaneHalf);
+                    SpawnFootprint.Attach(HealAtom.Spawn(at), half, SpawnLayer.Pickup);
+                    AtomSpacing.Released();
+                    AtomSpawnBias.Released(AtomKind.Heal);
+                }
+                break;
+        }
     }
 
     // The partner AtomSpawnBias asked for: pulled forward out of that atom's

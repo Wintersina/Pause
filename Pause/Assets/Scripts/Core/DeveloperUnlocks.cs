@@ -57,6 +57,7 @@ public static class DeveloperUnlocks
     public static void SetEnabled(bool enabled)
     {
         bool was = Enabled;
+        if (!enabled) FusionTestMode.Reset();   // the dev fusion test never outlives developer mode
         if (enabled && !was) SnapshotProgress();
         PlayerPrefs.SetInt(EnabledKey, enabled ? 1 : 0);
         if (enabled)
