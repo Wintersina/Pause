@@ -11,6 +11,7 @@ using UnityEngine;
 //     it pays, fills the secret meter and counts for achievements exactly as
 //     if flown into.
 //
+//   * (rocks and asteroids, tag Astr, are hazards like plain enemies and come with them)
 //   * WHILE THE BLUE-ATOM SHIELD IS ALSO UP (MagnetCombo.EnemyPullActive,
 //     read live from collisionDetection.atomCheck, so the order the two were
 //     caught in never matters): every plain enemy on screen is sucked in
@@ -20,7 +21,7 @@ using UnityEngine;
 //     switched back on) and fly on.
 //
 //     Never pulled: bosses, elites, what elites fly (drones, boulders), hostile
-//     shots and beams, rail mines, rocks / asteroids, backdrop scenery, and
+//     shots and beams, rail mines (their mount owns them), backdrop scenery, and
 //     nothing at all in the tutorial.
 //
 //   RANGE: everything inside MagnetCombo.PullRect (90% of the visible rect's
@@ -60,8 +61,9 @@ public class MagnetPull : MonoBehaviour
         bool elite = enemy && go.TryGetComponent(out EliteShip _);
         bool boss = enemy && !elite && (go.TryGetComponent(out BossTarget _) || go.TryGetComponent(out BossActor _) ||
                                         go.TryGetComponent(out IShipAttackTarget _));
-        return MagnetCombo.Classify(t.Scenery, pickup, pickup && IsDust(go), !pickup && go.CompareTag("Astr"), enemy,
-                                    boss, elite, enemy && t.Mother != null,
+        bool rock = !pickup && go.CompareTag("Astr");
+        return MagnetCombo.Classify(t.Scenery, pickup, pickup && IsDust(go), rock, enemy,
+                                    boss, elite, (enemy || rock) && t.Mother != null,
                                     enemy && (t.IsShotHitbox || RunScore.IsHostileShot(go)),
                                     enemy && go.TryGetComponent(out RailMineMount _));
     }
@@ -203,12 +205,12 @@ public class MagnetPull : MonoBehaviour
             if (!combo && !go.CompareTag("pickUp")) continue;   // magnet alone: only goodies, skip the lookups
             var kind = KindOf(t);
             if (!MagnetCombo.Pulls(kind, true, shield, tutorial)) continue;
-            if (kind == MagnetCombo.Kind.Enemy)
+            if (kind == MagnetCombo.Kind.Enemy || kind == MagnetCombo.Kind.Rock)
             {
                 if (!inField) continue;
                 Vector2 d = at - p;
                 if (d.sqrMagnitude <= StopDistance * StopDistance) continue;
-                Lock(go, enemies, ref enemyCount);
+                LockHazard(go, enemies, ref enemyCount);
                 go.transform.position = Vector3.MoveTowards(p, at, enemySpeed * dt);
                 DraggedLast++;
                 continue;
@@ -225,6 +227,13 @@ public class MagnetPull : MonoBehaviour
     {
         if (count >= into.Length) count = Compact(into, count);   // collected / destroyed bodies free their slots
         if (count < into.Length) count = HazardMovers.Disable(go, into, count);
+    }
+
+    // A pulled hazard: its own mover is switched off (a Space field rock drives itself, FieldAsteroid).
+    static void LockHazard(GameObject go, Behaviour[] into, ref int count)
+    {
+        if (count >= into.Length) count = Compact(into, count);
+        if (count < into.Length) count = HazardMovers.DisableRock(go, into, count);
     }
 
     static int Compact(Behaviour[] list, int count)
