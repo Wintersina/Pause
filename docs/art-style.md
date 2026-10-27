@@ -335,9 +335,9 @@ The ground of a restyled world is **pixel art with painted-level detail**: Codex
 into crisp hard-edged pixel clusters on a consistent 4 px cell grid in a limited palette. It must never ship as a
 smooth, photographic or airbrushed image. The old 512 x 1024 tiles read as flat, repeated and blurry. Done:
 Storm (`Worlds/Storm/Backdrop3`, PRs #329-#331; cloud seas, painted soft, not yet put through the pixel pass), Desert
-v3 salt flat, v1 day dunes and v4 night dunes (PRs #335, #336, #338; pixel pass applied). Not yet restyled (still 512 x 1024, a queue
-item, in progress by other agents): Ember, Verdant, Frost and Tide are being upgraded to 896 x 1792, and Desert v2 canyon and ruins is being
-rebuilt (`art/desert-canyon-ruins-rework`). Verdant also gets a very light mist overlay.
+v3 salt flat, v1 day dunes and v4 night dunes (PRs #335, #336, #338; pixel pass applied) and v2 canyon and ruins (`art/desert-canyon-ruins-rework`:
+layered sandstone mesas, fallen arches, columns and ruins, a cobbled wadi and a few small teal oases ringed by palms, drawn on the 4 px grid by `oasis.py`).
+Not yet restyled (still 512 x 1024, a queue item, in progress by other agents): Ember, Verdant, Frost and Tide are being upgraded to 896 x 1792. Verdant also gets a very light mist overlay.
 
 - **Minimum size (standard, 2026-10).** EVERY world's ground layers are at least **896 x 1792 per layer** (Space's sky
   is 896 x 1792; the Storm and Desert tiles at 1024 x 2048 also meet it), always with the crisp pixel-art look.

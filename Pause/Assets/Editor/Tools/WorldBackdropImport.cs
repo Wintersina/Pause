@@ -110,7 +110,7 @@ public class WorldBackdropImport : AssetPostprocessor
     // Storm's v1 / v2 ground tiles are 1024x2048 (2x the other worlds' 512x1024, "HD neon pixel art"): they keep every pixel
     // (max size 2048 on every platform), draw 170.67 px per unit (a tile is still 6 units wide), take ASTC 6x6 on phones
     // (0.93 MB each; 4x4 would be 8 bpp = 2 MB each) and the sparse flow strips a plain quad.
-    // 2026-10: Desert's hi-res pixel-art grounds (v1 day dunes, v3 salt flat, v4 night dunes; the v2 canyon follows) are the same 1024x2048 format.
+    // 2026-10: Desert's hi-res pixel-art grounds (v1 day dunes, v2 canyon and ruins, v3 salt flat, v4 night dunes) are the same 1024x2048 format.
     public static bool IsStormHdTile(string path, bool tile)
     {
         return tile && (path.Contains("/Worlds/Storm/Backdrop3/") || IsDesertHdGround(path));
@@ -118,7 +118,7 @@ public class WorldBackdropImport : AssetPostprocessor
 
     public static bool IsDesertHdGround(string path)
     {
-        return path.Contains("/Worlds/Desert/Backdrop3/v1/") || path.Contains("/Worlds/Desert/Backdrop3/v3/") || path.Contains("/Worlds/Desert/Backdrop3/v4/");
+        return path.Contains("/Worlds/Desert/Backdrop3/v1/") || path.Contains("/Worlds/Desert/Backdrop3/v2/") || path.Contains("/Worlds/Desert/Backdrop3/v3/") || path.Contains("/Worlds/Desert/Backdrop3/v4/");
     }
 
     public static bool IsTile(string path)

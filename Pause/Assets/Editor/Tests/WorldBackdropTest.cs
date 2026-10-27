@@ -53,7 +53,7 @@ public static class WorldBackdropTest
     const float PixelGridSeamTolerance = 0.06f;
     static float SeamLimit(string asset)
     {
-        return System.Text.RegularExpressions.Regex.IsMatch(asset.Replace('\\', '/'), "/Desert/Backdrop3/v[134]/(sky|far|mid)\\.png$") ? PixelGridSeamTolerance : SeamTolerance;
+        return System.Text.RegularExpressions.Regex.IsMatch(asset.Replace('\\', '/'), "/Desert/Backdrop3/v[1234]/(sky|far|mid)\\.png$") ? PixelGridSeamTolerance : SeamTolerance;
     }
     // The guide's sky ramps (docs/art-style.md 1.3) peak at ~#123248 / #143430,
     // so the opaque sky averages up to ~0.12 relative luminance.

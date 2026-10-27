@@ -1,7 +1,7 @@
 """Desert painted-ground overlay ('flow'): a transparent 1024x2048 strip of wind-blown grit streaks and a few sun glints,
 seamless on both axes (every mark wraps). One per variant.
 
-Usage: python3 build_flow.py <variant: salt|dunes|night> <out flow.png>
+Usage: python3 build_flow.py <variant: salt|dunes|night|canyon> <out flow.png>
 """
 import sys
 import numpy as np
@@ -9,10 +9,11 @@ from PIL import Image
 
 W, H = 1024, 2048
 KIND = sys.argv[1]
-rng = np.random.default_rng({"salt": 7, "dunes": 11, "night": 13}[KIND])
+rng = np.random.default_rng({"salt": 7, "dunes": 11, "night": 13, "canyon": 17}[KIND])
 img = np.zeros((H, W, 4), np.float32)
 PAL = {"salt": [(236, 228, 206), (214, 200, 170), (190, 226, 224)],
        "dunes": [(232, 206, 150), (214, 178, 112), (240, 226, 190)],
+       "canyon": [(228, 196, 140), (206, 168, 108), (238, 218, 176)],
        "night": [(150, 188, 224), (110, 160, 200), (204, 226, 244)]}[KIND]
 LEAN = .22          # wind-blown grit drifts sideways (dy per dx), not like rain
 
@@ -33,7 +34,7 @@ for _ in range(90 if KIND == "salt" else 110):
         a = amax * min(1, i / 10, (ln - i) / 14)          # fade in / out along the streak
         for t in range(thick):
             put(x0 + i, y0 + int(i * LEAN) + t, col, a)
-for _ in range(330 if KIND == "salt" else 240 if KIND == "night" else 160):       # glints (salt crystals / sun on sand)
+for _ in range(330 if KIND == "salt" else 240 if KIND == "night" else 130 if KIND == "canyon" else 160):       # glints (salt crystals / sun on sand)
     x, y = int(rng.integers(0, W)), int(rng.integers(0, H))
     col = (255, 250, 232) if KIND != "night" else (214, 236, 255)
     a = float(rng.uniform(110, 210))
