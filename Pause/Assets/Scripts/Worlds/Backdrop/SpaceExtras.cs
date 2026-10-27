@@ -24,7 +24,6 @@ public partial class SpaceDirector
     public const int TwinkleCount = 10, NebulaCount = 3, DebrisCount = 7;
     public const string OutpostPrefix = "outpost_";
     public const float OutpostDiscShare = 0.78f;      // the outpost cells' disc, as a share of the cell
-    public const float OutpostShare = 0.25f;          // far-field planets (not the opening one) drawn as an outpost moon
     // The outpost moons' art is modest in resolution (a 250 px disc; the moons were approved at that size): they are only ever the FAR
     // field, small on screen. Nearer planets (and every hero) use the hi-res giants.
     public const int OutpostMaxTier = 1;              // Tiers[0] deep, Tiers[1] far

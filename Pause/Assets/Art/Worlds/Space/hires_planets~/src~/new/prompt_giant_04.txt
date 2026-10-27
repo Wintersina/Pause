@@ -1,0 +1,14 @@
+Use your built-in image generation tool (do not draw with scripts, do not edit pixels, do not post-process) to create ONE planet for a portrait 2D space shooter backdrop. Save the generated image into the current directory with the exact filename given at the end, then reply OK.
+
+Reference image 1 is the quality and style bar: a complete planet disc, sharp high-resolution neon pixel art with discrete pixel clusters, rich detail across the whole face. Match that rendering style, level of detail and crispness, but with the new subject below.
+
+Hard requirements:
+- A SQUARE image, one single complete planet seen as a perfect sphere (orthographic view, a perfectly round disc) centered, filling about 90% of the image width, on a genuinely transparent background.
+- Lighting: soft key light from the upper right with the terminator darkening toward the lower left, a thin cyan-blue atmospheric rim glow on the lit right limb, visible dim ambient on the shadow side.
+- The surface is the planet turning on its axis, so it is seen as a rotating globe: the surface detail should be horizontal bands/continents/features that read well when slid sideways around the sphere, evenly detailed across the central part of the disc, no single huge feature exactly at the poles, no rings, no moons, no stations.
+- No outlines or borders around the planet, no text, no stars, no background glow outside the disc, no watermark.
+- Keep overall brightness moderate and dark enough to sit behind a game: dark to mid values, bright accents small. Absolutely NO purple, violet, magenta or pink anywhere; the shadow side is deep navy or the planet's own dark hue instead.
+
+Subject:
+EMBER world planet: a dark basalt-black cracked crust planet with glowing orange-red lava rivers in the fissures and a few glowing ember-orange vents, ash-grey plains. Colours: charcoal, rust, glowing orange. Keep the red lava a warm orange-red, not pink.
+Filename: giant_04_new.png

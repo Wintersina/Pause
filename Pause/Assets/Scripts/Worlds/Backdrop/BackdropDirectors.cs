@@ -87,6 +87,49 @@ public partial class SpaceDirector : BackdropDirector
         new Color(0.66f, 0.90f, 1.00f), // teal
         new Color(0.92f, 0.76f, 1.00f), // violet
     };
+    // The six world planets (Codex: giant_00 Storm, 02 Tide, 04 Ember, 07 Verdant, 09 Frost, 11 Desert) keep
+    // their own colours: the indigo / violet tints above would push Frost lilac and Desert pink. Same length
+    // as PlanetTints, so the seeded stream is unchanged; blue stays near 1 so brightness depends on the tier.
+    static readonly Color[] WorldPlanetTints =
+    {
+        new Color(1.00f, 1.00f, 1.00f),
+        new Color(0.90f, 0.92f, 0.96f),
+        new Color(0.80f, 0.86f, 0.94f),
+        new Color(0.94f, 0.95f, 0.98f),
+    };
+    public static readonly string[] WorldPlanetCells =
+        { "giant_00", "giant_02", "giant_04", "giant_07", "giant_09", "giant_11" };
+    public static bool IsWorldPlanet(Sprite s)
+    {
+        return s != null && System.Array.IndexOf(WorldPlanetCells, s.name) >= 0;
+    }
+    // EVEN spawning, no favourites: a planet is drawn uniformly from ONE pool holding every planet cell once
+    // (the 12 giants incl. the six world planets, the reference planet, 4 neon, 3 halo and, in the far field only,
+    // the 2 outposts), so each cell has the same chance per spawn: 1/20 near, 1/22 far. Per-kind shares follow
+    // from the cell counts (giants 12/20 = 60%, neon 20%, halo 15%, reference 5%). The run-start planet draws
+    // kind by those same counts (OpeningWeights), then a cell uniformly, so it is even per cell too. Rocks and
+    // rock moons are already uniform over their own cells. Nothing repeats back to back.
+    public static Sprite[] EvenPlanetPool(Sprite[] giants, Sprite[] reference, Sprite[] neon, Sprite[] halo, Sprite[] outposts)
+    {
+        var list = new List<Sprite>();
+        foreach (var set in new[] { giants, reference, neon, halo, outposts })
+            if (set != null) list.AddRange(set);
+        return list.ToArray();
+    }
+    // The cell a repeat steps to: the next one in the pool (no extra random call).
+    public static Sprite NoRepeat(Sprite[] pool, Sprite pick, Sprite last)
+    {
+        if (pick != last || pool.Length < 2) return pick;
+        return pool[(System.Array.IndexOf(pool, pick) + 1) % pool.Length];
+    }
+    Sprite[] planetPool, planetPoolFar;     // EvenPlanetPool without / with the outposts
+    Sprite lastPlanetSprite, lastRockSprite;
+    void EnsurePlanetPools()
+    {
+        if (planetPool != null) return;
+        planetPool = EvenPlanetPool(giant, referencePlanet, neonPlanets, haloPlanets, null);
+        planetPoolFar = HasOutposts ? EvenPlanetPool(giant, referencePlanet, neonPlanets, haloPlanets, outpostArt) : planetPool;
+    }
     static readonly Color StationTint = new Color(0.82f, 0.82f, 0.90f);
     static readonly Color RockTint = new Color(0.85f, 0.85f, 0.95f);
 
@@ -524,22 +567,19 @@ public partial class SpaceDirector : BackdropDirector
         var pool = n.kind == Planet ? planets : n.kind == Station ? stations : planetoids;
         var p = pool.Spawn();
         if (p == null) return false;
+        EnsurePlanetPools();
         Sprite[] art = n.kind == Planet
-            ? (opening && openingArt != null ? openingArt
-               : referencePlanet.Length > 0 && !opening && Chance(0.16) ? referencePlanet
-               : neonPlanets.Length > 0 && !opening && Chance(0.45) ? neonPlanets
-               : haloPlanets.Length > 0 && !opening && Chance(0.28) ? haloPlanets : giant)
+            ? (opening && openingArt != null ? openingArt : !opening && n.tier <= OutpostMaxTier ? planetPoolFar : planetPool)
             : n.kind == Station ? StationArt(n.ring, n.size)
             // Codex's asteroids drift on their own now (SpaceAsteroidDrift); the
             // coin that used to pick them is still tossed (and ignored) so the
             // director's seeded stream -- the station / planet sequence -- is
             // unchanged.
             : (asteroids[0] != null && n.size >= MiniBelow && Chance(0.55) ? RockArt(n.size) : RockArt(n.size));
-        // Space backdrop redo: now and then a planet is a ringed / lit-city planet (own
-        // random stream: the seeded planet and station sequence is unchanged).
-        if (n.kind == Planet && !opening && n.tier <= OutpostMaxTier && HasOutposts && xrng.NextDouble() < OutpostShare) art = outpostArt;
         if (art.Length == 0) { p.Show(false); return true; }
         Sprite selected = Pick(art);
+        if (n.kind == Planet) { selected = NoRepeat(art, selected, lastPlanetSprite); lastPlanetSprite = selected; }
+        else if (n.kind == Planetoid) { selected = NoRepeat(art, selected, lastRockSprite); lastRockSprite = selected; }
         Dress(p, selected, n.kind, n.tier, n.size, 0, planetClass);
         p.edge = n.edge;
         if (p.smoke != null)
@@ -558,9 +598,11 @@ public partial class SpaceDirector : BackdropDirector
         // no spin -- they blink instead (SpaceStationLights). Codex's
         // reference planet is the one body that turns slowly in the picture.
         p.phase = n.kind == Station ? 0f : Rand(-14f, 14f);
-        if (art == referencePlanet) p.spin = Rand(0.35f, 0.55f) * (Chance(0.5) ? 1f : -1f);
-        Color body = n.kind == Planet ? Pick(PlanetTints) : n.kind == Station ? StationTint : RockTint;
-        if (opening && openingTinted) body = openingTint;
+        if (n.kind == Planet && System.Array.IndexOf(referencePlanet, selected) >= 0) p.spin = Rand(0.35f, 0.55f) * (Chance(0.5) ? 1f : -1f);
+        bool worldArt = n.kind == Planet && IsWorldPlanet(selected);
+        Color[] tints = worldArt ? WorldPlanetTints : PlanetTints;
+        Color body = n.kind == Planet ? Pick(tints) : n.kind == Station ? StationTint : RockTint;
+        if (opening && openingTinted) body = worldArt ? tints[System.Math.Max(0, System.Array.IndexOf(PlanetTints, openingTint))] : openingTint;
         p.color = Lit(body, tier);
         if (planetClass) planetSide = x < 0f ? -1 : 1;
         else structureSide = x < 0f ? -1 : 1;

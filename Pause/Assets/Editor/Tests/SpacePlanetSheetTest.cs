@@ -41,6 +41,7 @@ public static class SpacePlanetSheetTest
         CheckImport();
         CheckShader();
         CheckHires();
+        CheckWorldPlanets();
         Debug.Log("[PLANETSHEET] failures: " + failures);
         return failures;
     }
@@ -184,6 +185,112 @@ public static class SpacePlanetSheetTest
         Check("planet surface repeat " + period.ToString("F2") + " rad covers the turning face " + face.ToString("F2") + " rad",
               period >= face);
         Object.DestroyImmediate(mat);
+    }
+
+    // The six world planets (Storm, Tide, Ember, Verdant, Frost, Desert) are cells of the same "giant" frame
+    // set the spawner draws from (SpaceDirector picks uniformly from it, with no per-cell reserve), so every
+    // one is reachable; each is a sphere the shader can turn, its disc is opaque and round, and no violet or
+    // pink (hue 260-340 at real saturation and brightness) hides in it.
+    static void CheckWorldPlanets()
+    {
+        foreach (string file in new[] { "anim", BackdropCatalog.AtlasAnimHires })
+        {
+            string png = Dir + file + ".png";
+            if (!File.Exists(png)) continue;
+            var tex = LoadPng(png);
+            string text = File.ReadAllText(Dir + file + ".json");
+            var atlas = new BackdropAtlas(tex, Json(text));
+            var giants = atlas.Frames("giant");
+            var names = new List<string>();
+            foreach (var g in giants) names.Add(g.name);
+            bool reach = true, sphere = true, round = true, clean = true;
+            foreach (string cell in SpaceDirector.WorldPlanetCells)
+            {
+                Sprite s = atlas.Get(cell);
+                reach &= s != null && names.Contains(cell);
+                if (s == null) continue;
+                sphere &= SpaceDirector.IsSphere(s) && SpaceDirector.IsWorldPlanet(s);
+                UnityEngine.Rect r = s.textureRect;
+                int x0 = (int)r.x, y0 = (int)r.y, w = (int)r.width, h = (int)r.height;
+                var px = tex.GetPixels32();
+                int inside = 0, opaque = 0, violet = 0;
+                for (int y = 0; y < h; y++)
+                    for (int x = 0; x < w; x++)
+                    {
+                        float nx = (x + .5f - w / 2f) / (w / 2f), ny = (y + .5f - h / 2f) / (h / 2f);
+                        float rr = Mathf.Sqrt(nx * nx + ny * ny);
+                        Color32 c = px[(y0 + y) * tex.width + x0 + x];
+                        if (rr < 0.9f) { inside++; if (c.a > 250) opaque++; }
+                        float H, S, V;
+                        Color.RGBToHSV(c, out H, out S, out V);
+                        if (c.a > 200 && S > 0.35f && V > 0.25f && H > 260f / 360f && H < 340f / 360f) violet++;
+                    }
+                round &= opaque > inside * 0.995f;
+                clean &= violet < w * h * 0.002f;
+            }
+            Check(file + ": the six world planets are in the giant set the spawner draws from (" + giants.Length + " giants)",
+                  reach && giants.Length >= 12);
+            // Even spawning: every planet cell has the same chance (SpaceDirector.EvenPlanetPool, no favourites).
+            if (file == "anim") CheckEvenSpawns(giants);
+            Check(file + ": the six world planets are spheres the BackdropPlanet shader turns", sphere);
+            Check(file + ": each world planet's disc is opaque and round", round);
+            Check(file + ": no violet or pink in the world planets", clean);
+            atlas.Destroy();
+            Object.DestroyImmediate(tex);
+        }
+    }
+
+    static Sprite[] Cells(string atlasName, string prefix)
+    {
+        var tex = LoadPng(Dir + atlasName + ".png");
+        var atlas = new BackdropAtlas(tex, Json(File.ReadAllText(Dir + atlasName + ".json")));
+        return atlas.Frames(prefix);
+    }
+
+    // Every planet cell (12 giants incl. the six world planets, the reference planet, neon, halo and the far-field
+    // outposts) is drawn with the same chance per spawn, nothing repeats back to back, and the run-start planet is
+    // even per cell too.
+    static void CheckEvenSpawns(Sprite[] giants)
+    {
+        var tex1 = new Texture2D(4, 4);
+        Sprite reference = Sprite.Create(tex1, new UnityEngine.Rect(0, 0, 4, 4), Vector2.one * .5f);
+        reference.name = "reference_planet";
+        Sprite[] neon = Cells("neon_frames", "neon_planet"), halo = Cells("extras", "halo_planet"), outposts = Cells("outposts", "outpost");
+        var near = SpaceDirector.EvenPlanetPool(giants, new[] { reference }, neon, halo, null);
+        var far = SpaceDirector.EvenPlanetPool(giants, new[] { reference }, neon, halo, outposts);
+        Check("the planet pool holds every cell once: " + near.Length + " near (12 giants + 1 reference + " + neon.Length +
+              " neon + " + halo.Length + " halo), " + far.Length + " far (+ " + outposts.Length + " outposts)",
+              near.Length == giants.Length + 1 + neon.Length + halo.Length && far.Length == near.Length + outposts.Length &&
+              new HashSet<Sprite>(far).Count == far.Length);
+        foreach (var pool in new[] { near, far })
+        {
+            var rng = new System.Random(20261026);
+            var counts = new Dictionary<Sprite, int>();
+            int n = 200000, repeats = 0;
+            Sprite last = null;
+            for (int i = 0; i < n; i++)
+            {
+                Sprite pick = SpaceDirector.NoRepeat(pool, pool[rng.Next(pool.Length)], last);
+                if (pick == last) repeats++;
+                last = pick;
+                int c; counts.TryGetValue(pick, out c); counts[pick] = c + 1;
+            }
+            float even = 1f / pool.Length, worst = 0f;
+            foreach (var c in pool) { int k; counts.TryGetValue(c, out k); worst = Mathf.Max(worst, Mathf.Abs(k / (float)n - even)); }
+            Check("pool of " + pool.Length + ": every cell within 15% of 1/N over " + n + " spawns (worst " +
+                  (worst / even).ToString("P1") + " off, six world planets each ~" + even.ToString("P1") + ")", worst < 0.15f * even);
+            Check("pool of " + pool.Length + ": no cell repeats back to back (" + repeats + ")", repeats == 0);
+        }
+        // the opening: kind by cell count, then a cell in the kind: the same chance per cell as a spawn
+        int[] cc = SpaceDirector.OpeningCellCounts;
+        bool counted = cc[1] == giants.Length && cc[2] == 1 && cc[3] == neon.Length && cc[4] == halo.Length;
+        Check("the opening's cell counts match the art (" + cc[1] + " giants, " + cc[2] + " reference, " + cc[3] + " neon, " + cc[4] + " halo)", counted);
+        float w1 = SpaceDirector.OpeningWeights[1] / cc[1];
+        bool evenOpening = true;
+        for (int k = 2; k < cc.Length; k++) evenOpening &= Mathf.Abs(SpaceDirector.OpeningWeights[k] / cc[k] - w1) < 1e-5f;
+        Check("the opening planet is even per cell (" + w1.ToString("P2") + " each; none " + SpaceDirector.OpeningWeights[0].ToString("P0") + ")",
+              evenOpening && Mathf.Abs(SpaceDirector.OpeningWeights[0] + w1 * (cc[1] + cc[2] + cc[3] + cc[4]) - 1f) < 1e-4f);
+        Object.DestroyImmediate(tex1);
     }
 
     // An installed hi-res re-render must be a drop-in for anim.
