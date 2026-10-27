@@ -730,6 +730,8 @@ public class SecretPowerController : MonoBehaviour
             bool rock = go.CompareTag("Astr");
             if (!rock && !go.CompareTag("Enimey")) continue;
             if (go.TryGetComponent(out BossTarget _) || go.TryGetComponent(out BossActor _) || RunScore.IsHostileShot(go)) continue;
+            // a backdrop rock (tagged Astr, registered as scenery: a weapon target that can never touch the ship) is not a body in the lane
+            if (t.Scenery) continue;
             Vector2 d = t.transform.position - at;
             float dist = d.magnitude;
             if (dist >= bubbleRadius + t.Radius * .5f) continue;
