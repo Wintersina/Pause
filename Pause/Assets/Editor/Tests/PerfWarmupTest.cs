@@ -4,8 +4,7 @@ using UnityEngine;
 // The mid-run hitch removals (perf/warm-art): a world's lazily loaded art is
 // warmed as the world begins and held until the next, the pieces that attach
 // to the ship wait for its announcement instead of scanning the scene every
-// frame, and the elite shot landings rely on the project's automatic physics
-// transform sync.
+// frame, and the elite shot landings rely on the simulation step's own transform sync.
 //   scripts/unity-batch.sh -executeMethod AllTests.RunSuites -suites PerfWarmupTest
 public static class PerfWarmupTest
 {
@@ -202,13 +201,9 @@ public static class PerfWarmupTest
     // ---- elite shot landings: the explicit physics sync was redundant ----
     static void Physics()
     {
-        // The project auto-syncs transforms before every physics query, and the simulation step syncs them
-        // itself: a landed shot's collider is seen without a manual Physics2D.SyncTransforms. The removal
-        // stands only while that setting holds.
-        Check("Physics2D.autoSyncTransforms is on (Physics2DSettings)", Physics2D.autoSyncTransforms);
+        // The simulation step syncs transforms itself (auto sync is off since perf-pass, see PerfPassTest): a landed
+        // shot's collider is seen by the trigger step without a manual Physics2D.SyncTransforms.
         string src = TestHarness.StripComments(System.IO.File.ReadAllText("Assets/Scripts/Gameplay/Elites/EliteShots.cs"));
         Check("EliteShots makes no manual Physics2D.SyncTransforms call", !src.Contains("Physics2D.SyncTransforms"));
-        string proj = System.IO.File.ReadAllText("ProjectSettings/Physics2DSettings.asset");
-        Check("the project file holds the setting (m_AutoSyncTransforms: 1)", proj.Contains("m_AutoSyncTransforms: 1"));
     }
 }

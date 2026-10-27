@@ -29,8 +29,16 @@ using UnityEngine.SceneManagement;
 [DefaultExecutionOrder(31000)]   // after everything that moves or animates a sprite
 public sealed class KillCamRecorder : MonoBehaviour
 {
-    // 40 frames a game second: every frame of the 24 fps art, and the replay blends between them.
-    public const float MinGap = 1f / 40f;
+    // 24 frames a game second: every frame of the 24 fps art, and the replay blends between them
+    // (it was 40; the art never changes faster than 24, and a capture is the costly part of the tape).
+    public const float MinGap = 1f / 24f;
+    // The walk is cached: the renderers (inactive pooled ones too) are gathered once, then every
+    // RefreshEvery captures (~.17 s of play), and again the moment a spawner calls Invalidate().
+    // The gathering happens on the frame before a capture is due, so no frame carries walk + capture.
+    public const int RefreshEvery = 4;
+    // Phones with less RAM than this, or a GPU budget below LowGraphicsMemoryMb, tape at LowEndMinGap (20 Hz).
+    public const int LowSystemMemoryMb = 3600, LowGraphicsMemoryMb = 1024;
+    public const float LowEndMinGap = 1f / 20f;
     public const int FrameCap = 128;           // 3.2 s at MinGap (the replay needs LiveWindow + DeathTail, 2.3 s)
     // ~1070 sprites a frame over the 2.3 s the replay needs: a busy board, the
     // elites' full-height dotted telegraphs (a hail wall's lanes are ~1000 dots) included.
@@ -45,6 +53,22 @@ public sealed class KillCamRecorder : MonoBehaviour
     // Only what a camera drew last frame is recorded (edit-mode tests, where nothing renders, turn this off).
     public static bool RequireVisible = true;
 
+    // The tape's gap on this device: MinGap, or LowEndMinGap on a low-end phone (documented thresholds above).
+    public static float Gap(int systemMemoryMb, int graphicsMemoryMb)
+    {
+        bool low = (systemMemoryMb > 0 && systemMemoryMb < LowSystemMemoryMb) || (graphicsMemoryMb > 0 && graphicsMemoryMb < LowGraphicsMemoryMb);
+        return low ? LowEndMinGap : MinGap;
+    }
+    public static float DeviceGap = Gap(SystemInfo.systemMemorySize, SystemInfo.graphicsMemorySize);
+    float gap { get { return DeviceGap; } }
+
+    // Spawners that Instantiate (not pool) a new sprite call this; the next capture gathers afresh.
+    public static void Invalidate() { var r = Instance; if (r != null) r.cacheValid = false; }
+    // Diagnostics for tests: how many full walks have run.
+    public int Gathers { get; private set; }
+    bool cacheValid, pregathered;
+    int capturesSinceGather;
+
     // The blast renderers (TargetExplosion's pooled flipbooks, LegacyExplosionFx):
     // their entries carry KillCamEntry.Blast so the replay can keep the
     // collision beat clear of the death's explosion (KillCamStage.ContactRule).
@@ -54,7 +78,7 @@ public sealed class KillCamRecorder : MonoBehaviour
     public static void TagBlast(SpriteRenderer sr, bool on)
     {
         if (sr == null) return;
-        if (on) blasts.Add(sr.GetInstanceID());
+        if (on) { blasts.Add(sr.GetInstanceID()); Invalidate(); }   // (a blast just switched on or was built: the next capture walks afresh)
         else blasts.Remove(sr.GetInstanceID());
     }
 
@@ -134,6 +158,8 @@ public sealed class KillCamRecorder : MonoBehaviour
         lastAt = impactAt = -1f;
         tailing = false;
         scrollQuad.Clear();
+        cacheValid = pregathered = false;
+        found.Clear();
         // drop the references so a finished run's sprites can unload
         System.Array.Clear(ring, 0, ring.Length);
         System.Array.Clear(meshRing, 0, meshRing.Length);
@@ -160,9 +186,14 @@ public sealed class KillCamRecorder : MonoBehaviour
     {
         if (dt <= 0f) return;
         clock += dt;
-        if (lastAt >= 0f && clock - lastAt < MinGap) return;
-        lastAt = clock;
-        Capture(clock);
+        if (lastAt >= 0f && clock - lastAt < gap)
+        {
+            // not due: if the next capture will need a fresh walk, do it now, so the capture frame stays light
+            if (!pregathered && (!cacheValid || capturesSinceGather + 1 >= RefreshEvery) && clock - lastAt >= gap * .5f) { Gather(true); pregathered = true; }
+            return;
+        }
+        lastAt = clock - lastAt < 2f * gap && lastAt >= 0f ? lastAt + gap : clock;   // (paced on the gap, not on the frame grid: 24 Hz on average at 60 fps)
+        CaptureCached(clock);
     }
 
     // One step of the death tail: `dt` of the crash's clock (0: held, nothing).
@@ -171,9 +202,9 @@ public sealed class KillCamRecorder : MonoBehaviour
         if (!tailing || dt <= 0f) return;
         clock += dt;
         if (clock - impactAt >= KillCamClip.DeathTail) tailing = false;   // (this last frame is still kept)
-        if (tailing && lastAt >= 0f && clock - lastAt < MinGap) return;
+        if (tailing && lastAt >= 0f && clock - lastAt < gap) return;
         lastAt = clock;
-        Capture(clock);
+        CaptureCached(clock);
     }
 
     // The fatal hit (DeathCrash.Play, before the hull is hidden): the collision
@@ -235,8 +266,11 @@ public sealed class KillCamRecorder : MonoBehaviour
 
     // ---- the walk ----
 
-    void Gather()
+    void Gather(bool inactiveToo = false)
     {
+        Gathers++;
+        cacheValid = inactiveToo;   // (only the runtime walk, which takes inactive renderers too, is kept)
+        capturesSinceGather = 0;
         found.Clear();
         int sceneCount = SceneManager.sceneCount;
         for (int s = 0; s < sceneCount; s++)
@@ -247,8 +281,8 @@ public sealed class KillCamRecorder : MonoBehaviour
             for (int i = 0; i < roots.Count; i++)
             {
                 var root = roots[i];
-                if (root == null || !root.activeInHierarchy) continue;
-                root.GetComponentsInChildren(false, scratch);
+                if (root == null) continue;
+                root.GetComponentsInChildren(inactiveToo, scratch);   // (the cache takes inactive ones too: pooled sprites are in it before they switch on)
                 found.AddRange(scratch);
             }
         }
@@ -274,8 +308,22 @@ public sealed class KillCamRecorder : MonoBehaviour
     // Records one frame at clip time `at` (public for tests and previews).
     public void Capture(float at)
     {
-        if (cam == null) cam = Camera.main;
         Gather();
+        CaptureFrom(at);
+    }
+
+    // The runtime capture: reuses the gathered renderers unless the cache is stale.
+    void CaptureCached(float at)
+    {
+        if (!cacheValid || (!pregathered && capturesSinceGather + 1 >= RefreshEvery)) Gather(true);
+        if (pregathered) pregathered = false;   // (this capture is the first on the fresh walk)
+        else capturesSinceGather++;
+        CaptureFrom(at);
+    }
+
+    void CaptureFrom(float at)
+    {
+        if (cam == null) cam = Camera.main;
         if (frames == FrameCap) DropOldest();
         int slot = (head + frames) % FrameCap;
         int start = entryWrite, n = 0;
@@ -283,7 +331,7 @@ public sealed class KillCamRecorder : MonoBehaviour
         for (int i = 0; i < found.Count; i++)
         {
             var r = found[i];
-            if (r == null || !r.enabled || r.forceRenderingOff || (RequireVisible && !r.isVisible)) continue;
+            if (r == null || !r.enabled || !r.gameObject.activeInHierarchy || r.forceRenderingOff || (RequireVisible && !r.isVisible)) continue;
             var sr = r as SpriteRenderer;
             if (sr != null)
             {
@@ -325,7 +373,6 @@ public sealed class KillCamRecorder : MonoBehaviour
                 mn++;
             }
         }
-        found.Clear();
         fTime[slot] = at;
         fCam[slot] = cam != null ? (Vector2)cam.transform.position : Vector2.zero;
         fFirst[slot] = start;

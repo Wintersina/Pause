@@ -155,6 +155,7 @@ public class TutorialWall : MonoBehaviour
         if (first == null) { Destroy(holder); return null; }
         float w = FallbackPieceWidth, hh = FallbackPieceHalfHeight;
         var col = first.GetComponentInChildren<Collider2D>();
+        if (col != null || ship != null) Physics2D.SyncTransforms();   // (auto sync is off: bounds follow the last sync)
         if (col != null) { w = Mathf.Max(.2f, col.bounds.size.x); hh = Mathf.Max(.1f, col.bounds.extents.y); }
         wall.pieceWidth = w;
         wall.pieceHalfHeight = hh;

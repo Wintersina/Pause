@@ -587,6 +587,7 @@ public static class AttackBudgetScenarios
             if (!brain.isActiveAndEnabled) return;
             // the body: harmful only while it dashes (a lunge) or runs out the bottom
             var col = brain.GetComponentInChildren<Collider2D>();
+            if (col != null) Physics2D.SyncTransforms();
             float r = col != null ? Mathf.Max(.2f, (col.bounds.extents.x + col.bounds.extents.y) * .5f * .9f) : .4f;
             bool dash = (brain.State == EnemyBrain.Phase.Release && b.attack == EnemyAttack.Lunge) ||
                         (brain.IsPilot && brain.Stage == EnemyBrain.PilotStage.Exiting && brain.LeftBy == PilotExit.Run);

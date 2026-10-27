@@ -84,7 +84,7 @@ public static class PlayField
     {
         get
         {
-            var cam = Camera.main;
+            var cam = CameraFit.Main;
             float bottom = CameraFit.ViewBottom, height = CameraFit.ViewTop - bottom;
             int w = ScreenInfo.Width, h = ScreenInfo.Height;
             Rect safe = ScreenInfo.SafeArea;

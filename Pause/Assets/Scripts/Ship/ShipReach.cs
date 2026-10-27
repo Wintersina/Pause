@@ -88,7 +88,7 @@ public static class ShipReach
     public static float FingerOffsetX { get { return PerchDistance * PerchSettings.SinTilt; } }
     public static float MmToWorld(float mm)
     {
-        var cam = Camera.main;
+        var cam = CameraFit.Main;
         float viewH = cam != null && cam.orthographic ? 2f * cam.orthographicSize : 2f * CameraFit.AuthoredSize;
         return MmToWorld(mm, ScreenInfo.Dpi, ScreenInfo.Height, viewH);
     }

@@ -260,7 +260,7 @@ public class Planetfall : MonoBehaviour
     {
         if (def == null) return null;
         var art = PlanetfallArt.Load(def);
-        var shader = Resources.Load<Shader>(ShaderPath);
+        var shader = WorldArtPreload.Load<Shader>(ShaderPath);
         if (!art.Complete || shader == null)
         {
             Debug.LogWarning("[Planetfall] art or shader missing for world " + def.world + "; opening a portal instead");

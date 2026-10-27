@@ -36,13 +36,13 @@ public class PlanetfallArt
     void LoadAll()
     {
         string f = Def.folder;
-        PlanetTex = Resources.Load<Texture2D>(f + Def.planet);
-        LimbTex = Resources.Load<Texture2D>(f + Def.limb);
-        DeckTex = Resources.Load<Texture2D>(f + Def.deck);
-        DeckDarkTex = Resources.Load<Texture2D>(f + Def.deckDark);
-        EntryTex = Resources.Load<Texture2D>(f + Def.entryFx);
-        BurstTex = Resources.Load<Texture2D>(f + Def.burst);
-        StreaksTex = Resources.Load<Texture2D>(f + Def.streaks);
+        PlanetTex = WorldArtPreload.Load<Texture2D>(f + Def.planet);
+        LimbTex = WorldArtPreload.Load<Texture2D>(f + Def.limb);
+        DeckTex = WorldArtPreload.Load<Texture2D>(f + Def.deck);
+        DeckDarkTex = WorldArtPreload.Load<Texture2D>(f + Def.deckDark);
+        EntryTex = WorldArtPreload.Load<Texture2D>(f + Def.entryFx);
+        BurstTex = WorldArtPreload.Load<Texture2D>(f + Def.burst);
+        StreaksTex = WorldArtPreload.Load<Texture2D>(f + Def.streaks);
         Complete = PlanetTex != null && LimbTex != null && DeckTex != null && DeckDarkTex != null &&
                    EntryTex != null && BurstTex != null && StreaksTex != null &&
                    Def.entryFrames > 0 && Def.burstFrames > 0;

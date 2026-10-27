@@ -93,6 +93,7 @@ public class MarketingAutopilot : MonoBehaviour
     Collider2D NearestEnemy(float shipY)
     {
         Collider2D best = null; float bestD = float.MaxValue;
+        Physics2D.SyncTransforms();   // (auto sync is off)
         int n = Physics2D.OverlapBoxNonAlloc(new Vector2(0f, shipY + 3f), new Vector2(7.5f, 8f), 0f, buffer);
         for (int i = 0; i < n; i++)
         {
@@ -108,6 +109,7 @@ public class MarketingAutopilot : MonoBehaviour
 
     bool HostileAheadInLane(float shipY)
     {
+        Physics2D.SyncTransforms();   // (auto sync is off)
         int n = Physics2D.OverlapBoxNonAlloc(new Vector2(curX, shipY + 1.9f), new Vector2(1.5f, 2.2f), 0f, buffer);
         for (int i = 0; i < n; i++)
         {
@@ -240,6 +242,7 @@ public class MarketingAutopilot : MonoBehaviour
     {
         float cost = 0f;
         var centre = new Vector2(x, shipY + 2f);
+        Physics2D.SyncTransforms();   // (auto sync is off)
         int n = Physics2D.OverlapBoxNonAlloc(new Vector2(0f, shipY + 2.2f), new Vector2(7.5f, 6.4f), 0f, buffer);
         for (int i = 0; i < n; i++)
         {

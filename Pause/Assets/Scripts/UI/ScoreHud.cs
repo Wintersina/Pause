@@ -665,8 +665,9 @@ public class ScoreHud : MonoBehaviour
     Vector2 ToCanvas(Vector3 world)
     {
         Vector2 size = canvasRect.rect.size;
-        if (float.IsNaN(world.x) || Camera.main == null) return new Vector2(0f, size.y * .12f);
-        Vector2 screen = Camera.main.WorldToScreenPoint(world);
+        var mainCam = CameraFit.Main;
+        if (float.IsNaN(world.x) || mainCam == null) return new Vector2(0f, size.y * .12f);
+        Vector2 screen = mainCam.WorldToScreenPoint(world);
         Camera uiCam = canvas.renderMode == RenderMode.ScreenSpaceOverlay ? null : canvas.worldCamera;
         Vector2 local;
         if (!RectTransformUtility.ScreenPointToLocalPointInRectangle(canvasRect, screen, uiCam, out local))

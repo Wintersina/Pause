@@ -79,7 +79,7 @@ public class ClearTarget : MonoBehaviour
     {
         Bounds b;
         var col = go.GetComponent<Collider2D>();
-        if (col != null && col.enabled) b = col.bounds;
+        if (col != null && col.enabled) { Physics2D.SyncTransforms(); b = col.bounds; }   // (auto sync is off: bounds follow the last sync)
         else
         {
             var r = go.GetComponentInChildren<Renderer>();

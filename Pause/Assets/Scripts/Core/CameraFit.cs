@@ -107,6 +107,26 @@ public class CameraFit : MonoBehaviour
         }
     }
 
+    // Camera.main, looked up once a frame in play (it was asked for by several per-frame readers: ViewTop /
+    // ViewBottom, the rails, the chasers, the HUD). Out of play it is Camera.main itself, so tests that swap
+    // cameras see the swap at once; a camera destroyed or disabled mid-frame is looked up again.
+    static Camera mainCam;
+    static int mainFrame = -1;
+    public static Camera Main
+    {
+        get
+        {
+            if (!Application.isPlaying) return Camera.main;
+            int f = Time.frameCount;
+            if (f != mainFrame || mainCam == null || !mainCam.isActiveAndEnabled)
+            {
+                mainCam = Camera.main;
+                mainFrame = f;
+            }
+            return mainCam;
+        }
+    }
+
     // The main camera's visible top / bottom edge in world units, for
     // anything that must enter or leave just off screen: the view grows with
     // the screen's height (gameplay: 6.6 half-height at 16:9, ~9.9 at 9:24), so a
@@ -116,7 +136,7 @@ public class CameraFit : MonoBehaviour
     {
         get
         {
-            var c = Camera.main;
+            var c = Main;
             return c != null && c.orthographic ? c.transform.position.y + c.orthographicSize : 5f;
         }
     }
@@ -125,7 +145,7 @@ public class CameraFit : MonoBehaviour
     {
         get
         {
-            var c = Camera.main;
+            var c = Main;
             return c != null && c.orthographic ? c.transform.position.y - c.orthographicSize : -5f;
         }
     }

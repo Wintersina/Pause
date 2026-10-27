@@ -240,6 +240,7 @@ public static class AchievementTracker
         if (!Achievements.Real) return;
         AchievementStore.AddCounter(AchievementCatalog.CBlinks, 1);
         if (!DodgeProbeEnabled || AchievementStore.IsUnlocked(AchievementCatalog.Find("pause_perfect_dodge")) || dodgeAt >= 0f) return;
+        Physics2D.SyncTransforms();   // (auto sync is off)
         int n = Physics2D.OverlapCircle(from, DodgeRadius, dodgeFilter, dodgeHits);
         for (int i = 0; i < n; i++)
         {

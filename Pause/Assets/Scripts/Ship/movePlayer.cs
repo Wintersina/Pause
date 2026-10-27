@@ -155,8 +155,8 @@ public class movePlayer : MonoBehaviour
 
                 if (TouchInput.IsPressed)
                 {
-                    fingerPos = Camera.main.ScreenToWorldPoint(new Vector3(TouchInput.Position.x, TouchInput.Position.y, 0));
-                    textPos = Camera.main.WorldToScreenPoint(transform.position);
+                    fingerPos = CameraFit.Main.ScreenToWorldPoint(new Vector3(TouchInput.Position.x, TouchInput.Position.y, 0));
+                    textPos = CameraFit.Main.WorldToScreenPoint(transform.position);
                 }
                 else
                     teleported = true;

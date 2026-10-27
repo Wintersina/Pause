@@ -274,6 +274,7 @@ public class ShipHitbox : MonoBehaviour
             pickupFilter = new ContactFilter2D();
             pickupFilter.useTriggers = true;
         }
+        Physics2D.SyncTransforms();   // (auto sync is off: the pickups and the hull moved this frame)
         int n = Physics2D.OverlapCircle(transform.position, Radius, pickupFilter, nearby);
         int caught = 0;
         for (int i = 0; i < n; i++)

@@ -116,7 +116,7 @@ public class BackdropTile
         root.localPosition = new Vector3(0f, 0f, z);
         if (layer.wrapBlend > 0f)
         {
-            var shader = Resources.Load<Shader>(WrapShader);
+            var shader = WorldArtPreload.Load<Shader>(WrapShader);
             if (shader != null)
             {
                 wrapMat = new Material(shader) { name = "SkyWrap_" + layer.name };
