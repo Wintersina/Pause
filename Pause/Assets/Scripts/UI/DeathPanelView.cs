@@ -192,8 +192,8 @@ public class DeathPanelView : MonoBehaviour, IPointerDownHandler
         view.font = dustText.font;
 
         // MENU leaves to the start menu, so it wears the quick actions' home glyph.
-        Sprite replayGlyph = QuickActionGlyph(PauseQuickActions.ReplayIconPath);
-        Sprite menuGlyph = QuickActionGlyph(PauseQuickActions.HomeIconPath);
+        Sprite replayGlyph = HudSkin.ReplayGlyph(HudSkin.CurrentWorld);
+        Sprite menuGlyph = HudSkin.HomeGlyph(HudSkin.CurrentWorld);
 
         // The old scene dialog: retire it once its parts have been moved out.
         Transform legacyDialog = dustText.transform;
@@ -234,7 +234,7 @@ public class DeathPanelView : MonoBehaviour, IPointerDownHandler
         Place(panel, PanelRect);
         panelGroup = go.GetComponent<CanvasGroup>();
 
-        var frame = NewImage("Frame", panel, Load("dp_panel"), Color.white);
+        var frame = NewImage("Frame", panel, HudSkin.DeathPanel(HudSkin.CurrentWorld), Color.white);
         frame.type = Image.Type.Sliced;
         frame.raycastTarget = true;
         var r = PanelRect;

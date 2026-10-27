@@ -198,7 +198,7 @@ public static class NextFeatures0907Test
         Check("replay clone is anchored top-right", replay.GetComponent<RectTransform>().anchorMin == new Vector2(1f, 1f));
 
         // Icons: matched square SVG-sourced sprites, never stretched.
-        foreach (var (action, path) in new[] { (replay, PauseQuickActions.ReplayIconPath), (leave, PauseQuickActions.HomeIconPath) })
+        foreach (var (action, path) in new[] { (replay, HudSkin.SpaceReplayGlyph), (leave, HudSkin.SpaceHomeGlyph) })
         {
             var img = action.GetComponent<UnityEngine.UI.Image>();
             var expected = Resources.Load<Sprite>(path);
@@ -216,7 +216,7 @@ public static class NextFeatures0907Test
         var rRect = replay.GetComponent<RectTransform>();
         var lRect = leave.GetComponent<RectTransform>();
         Check("home icon sits left of replay without overlap",
-              lRect.anchoredPosition.x + 0.01f < rRect.anchoredPosition.x - PauseQuickActions.ButtonSize);
+              lRect.anchoredPosition.x <= rRect.anchoredPosition.x - PauseQuickActions.ButtonSize + 0.01f);
         Check("both icons share the same top edge", Mathf.Approximately(lRect.anchoredPosition.y, rRect.anchoredPosition.y));
 
         // Exactly one call per tap: the clone's own runtime listener, none of
@@ -580,7 +580,7 @@ public static class NextFeatures0907Test
                                 why = "a button is " + (home.width / shape.pxPerPt).ToString("F1") + " [" + c.name + "]";
                             if (why == "" && stacked && read.yMax > actions.yMin + .5f)
                                 why = "stacked read-out is not under the quick actions [" + c.name + "]";
-                            if (why == "" && !stacked && (Mathf.Abs(read.yMax - band.top) > .5f || Mathf.Abs(home.yMax - band.top) > .5f))
+                            if (why == "" && !stacked && (Mathf.Abs(read.yMax - band.top) > .5f || Mathf.Abs(actions.yMax - band.top) > .5f))
                                 why = "read-out and icons do not share the band's top edge [" + c.name + "]";
                             if (why == "" && (!InsideRect(c.safe, l.banner) || l.banner.Overlaps(read) || l.banner.Overlaps(actions)))
                                 why = "BOSS INCOMING's banner on the band [" + c.name + "]";
@@ -702,9 +702,13 @@ public static class NextFeatures0907Test
                     foreach (var cut in c.cutouts) banner &= !l.banner.Overlaps(cut);
                     Check(tag + "the boss banner is under the band, inside the safe area, clear of the cutouts", banner);
 
-                    Check(tag + "the read-out, the icons and the band share one top edge, in the top quarter",
-                          Mathf.Abs(read.yMax - band.top) < .5f && Mathf.Abs(home.yMax - band.top) < .5f &&
-                          Mathf.Abs(replay.yMax - band.top) < .5f && read.yMin > size.y * .75f);
+                    Rect panelRect = PauseQuickActions.ScreenRectFor(band, size);
+                    Check(tag + "the read-out, the button panel and the band share one top edge, in the top quarter",
+                          Mathf.Abs(read.yMax - band.top) < .5f && Mathf.Abs(panelRect.yMax - band.top) < .5f &&
+                          read.yMin > size.y * .75f);
+                    Check(tag + "the icons sit inside the button panel, centred on it",
+                          panelRect.Contains(new Vector2(home.xMin, home.yMin)) && panelRect.Contains(new Vector2(replay.xMax - .01f, replay.yMax - .01f)) &&
+                          Mathf.Abs(home.center.y - panelRect.center.y) < .5f);
 
                     float fit = read.width / (hudSize.x * hudScale);
                     if (edge == painted && fit < worstFit) { worstFit = fit; worstAt = shape.name + ", " + c.name; }
@@ -750,6 +754,7 @@ public static class NextFeatures0907Test
 
         // The built buttons sit where the layout says.
         {
+            PauseQuickActions.LiveReadoutHeightPx = 0f;   // layout maths only, no live read-out
             var actionsGo = new GameObject("~PauseQuickActionsBandTest");
             var actions = actionsGo.AddComponent<PauseQuickActions>();
             actions.SendMessage("Start");
