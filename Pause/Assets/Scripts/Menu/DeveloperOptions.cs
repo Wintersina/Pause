@@ -5,7 +5,8 @@ using UnityEngine.UI;
 // mode switch and, while it is on, a start-world picker and the BOSS RUSH
 // switch: ON (every run's end-of-level boss arrives a few seconds in) or
 // FINAL (straight to the end of the final world's boss and the portal back
-// round; see BossDev).
+// round; see BossDev), and a FUSION TEST button (cycles the combos; only that
+// combo's atoms spawn: FusionTestMode).
 //
 // Built at runtime from the screen's own "Tutorial" button, so it shares the
 // screen's font, size and transparent-button look; the labels are tinted
@@ -17,8 +18,8 @@ public class DeveloperOptions : MonoBehaviour
 
     const float RowH = 88f;   // rows are 90 apart (47, -43, -133)
 
-    Text toggleLabel, worldLabel, bossLabel;
-    GameObject worldRow, bossRow;
+    Text toggleLabel, worldLabel, bossLabel, fusionLabel;
+    GameObject worldRow, bossRow, fusionRow;
 
     void Start()
     {
@@ -53,9 +54,22 @@ public class DeveloperOptions : MonoBehaviour
         // Stacked above the start-world row (it used to sit at -223, on top
         // of the Credits (then LeaderBoard) button at -233).
         bossRow = Clone(template, parent, "DeveloperBossRush",
-                        new Vector2(0f, 47f), new Vector2(420f, RowH), ToggleBossRush);
+                        new Vector2(-140f, 47f), new Vector2(270f, RowH), ToggleBossRush);
         bossLabel = Label(bossRow);
 
+        // Fusion test: cycles the combos; the spawner then releases only that
+        // combo's atoms (FusionTestMode). Shares the boss rush row (half each),
+        // so the Options stack gets no taller.
+        fusionRow = Clone(template, parent, "DeveloperFusionTest",
+                          new Vector2(140f, 47f), new Vector2(270f, RowH), StepFusion);
+        fusionLabel = Label(fusionRow);
+
+        Refresh();
+    }
+
+    void StepFusion()
+    {
+        FusionTestMode.Step();
         Refresh();
     }
 
@@ -116,6 +130,8 @@ public class DeveloperOptions : MonoBehaviour
         if (toggleLabel != null) toggleLabel.text = "DEVELOPER  " + (on ? "ON" : "OFF");
         if (worldRow != null) worldRow.SetActive(on);
         if (bossRow != null) bossRow.SetActive(on);
+        if (fusionRow != null) fusionRow.SetActive(on);
+        if (fusionLabel != null) fusionLabel.text = FusionTestMode.Label(FusionTestMode.Selected);
         if (bossLabel != null)
             bossLabel.text = BossDev.RushLabel(BossDev.RushMode);
         if (worldLabel != null)

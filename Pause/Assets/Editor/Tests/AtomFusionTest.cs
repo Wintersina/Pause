@@ -19,6 +19,9 @@ using Object = UnityEngine.Object;
 //   * the run glue: effects (Stasis, Bloom, Dust Storm, Aftershock, Overclock),
 //     nothing in the tutorial, callout words;
 //   * no allocation in the per-frame paths;
+//   * the dev FUSION TEST selector (Options, developer mode): cycles the combos + OFF, spawns only
+//     that combo's atoms, does nothing with developer mode off, resets with it;
+//   * every fusion has its OWN flipbook (FusionFx), pooled: nothing allocated per trigger;
 //   * the COMBOS codex tab: locked rows are "???" silhouettes, found ones show stats.
 //
 //   Unity -batchmode -quit -projectPath Pause -executeMethod AtomFusionTest.Run
@@ -56,6 +59,8 @@ public static class AtomFusionTest
             Complements();
             RunEffects();
             NoAllocation();
+            FusionFlipbooks();
+            DevFusionTest();
             CodexTab();
         }
         finally
@@ -534,6 +539,213 @@ public static class AtomFusionTest
         Object.DestroyImmediate(ship);
         Check("the rules allocate nothing per call (" + state + " bytes over 2000 catches)", state == 0);
         Check("the per-frame tick and queries allocate nothing (" + run + " bytes over 1000 frames)", run == 0);
+    }
+
+    // ---- each fusion's own flipbook (FusionFx) ---------------------------------------------
+
+    static void FusionFlipbooks()
+    {
+        var all = AtomFusionTable.All;
+        // art: one strip per fusion, nine frames, every file different
+        var seen = new HashSet<string>();
+        bool allArt = true, distinct = true;
+        for (int i = 0; i < all.Length; i++)
+        {
+            allArt &= FusionFx.HasArt(all[i].id);
+            string path = "Assets/Art/Resources/Fusion/" + all[i].key + ".png";
+            if (!System.IO.File.Exists(path)) { allArt = false; continue; }
+            var bytes = System.IO.File.ReadAllBytes(path);
+            distinct &= seen.Add(System.Convert.ToBase64String(System.Security.Cryptography.SHA1.Create().ComputeHash(bytes)));
+        }
+        Check("every fusion has its own " + FusionFx.FrameCount + "-frame flipbook strip (" + all.Length + " of them)", allArt);
+        Check("no two fusions share an effect (all " + seen.Count + " strips differ)", distinct && seen.Count == all.Length);
+
+        EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
+        var ship = new GameObject("~fxShip", typeof(SpriteRenderer));
+        ship.transform.position = new Vector3(1f, -3f, 0f);
+        AtomFusions.EnabledOverride = true;
+        AtomFusions.BeginRun(ship);
+        var fx = FusionFx.Instance;
+        Check("the run builds the effect layers once", fx != null);
+        if (fx == null) { AtomFusions.EnabledOverride = null; Object.DestroyImmediate(ship); return; }
+
+        // a real trigger plays that fusion's flipbook (and only that one)
+        AtomFusions.OnAtom(AtomKind.Pause, Vector3.zero);
+        var r = AtomFusions.OnAtom(AtomKind.Capacitor, Vector3.zero);
+        int playing = 0;
+        for (int i = 0; i < all.Length; i++) if (fx.IsPlaying(all[i].id)) playing++;
+        Check("OVERCLOCK fires: its flipbook plays on the ship, no other",
+              r.Fired && r.fusion.id == FusionId.Overclock && fx.IsPlaying(FusionId.Overclock) && playing == 1);
+        var layer = fx.LayerOf(FusionId.Overclock);
+        Check("... centred on the ship, behind the hull, restrained alpha",
+              layer.enabled && Vector2.Distance(layer.transform.position, ship.transform.position) < .01f &&
+              layer.sortingOrder < ship.GetComponent<SpriteRenderer>().sortingOrder && layer.color.a <= .85f);
+        Check("... and small enough to leave the lane readable (<= 5.2 u wide)", layer.bounds.size.x <= 5.25f);
+
+        // the world's clock: a frozen world holds the frame, a running one steps it and ends it
+        int f0 = fx.FrameOf(FusionId.Overclock);
+        AtomFusions.Tick(0f);
+        Check("a paused world (dt 0) holds the frame", fx.FrameOf(FusionId.Overclock) == f0);
+        AtomFusions.Tick(.3f);
+        Check("a running world steps the flipbook", fx.FrameOf(FusionId.Overclock) > f0);
+        AtomFusions.Tick(1f);
+        Check("it ends after one play (" + (FusionFx.FrameCount / FusionFx.Fps).ToString("0.00") + " s) and hides", !fx.IsPlaying(FusionId.Overclock) && !layer.enabled);
+
+        // every fusion plays its own layer
+        bool own = true;
+        for (int i = 0; i < all.Length; i++)
+        {
+            FusionFx.Play(all[i].id);
+            own &= fx.IsPlaying(all[i].id) && fx.LayerOf(all[i].id).sprite != null && fx.LayerOf(all[i].id).sprite.texture.name == all[i].key;
+        }
+        Check("each of the " + all.Length + " fusions plays a layer of its own art", own);
+        bool distinctLayers = true;
+        for (int i = 0; i < all.Length; i++) for (int j = i + 1; j < all.Length; j++) distinctLayers &= fx.LayerOf(all[i].id) != fx.LayerOf(all[j].id);
+        Check("... on separate pooled renderers", distinctLayers);
+
+        // off (kill cam replay / dead pilot): dark at once
+        AtomFusions.EnabledOverride = false;
+        typeof(FusionFx).GetMethod("LateUpdate", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).Invoke(fx, null);
+        bool dark = true;
+        for (int i = 0; i < all.Length; i++) dark &= !fx.LayerOf(all[i].id).enabled && !fx.IsPlaying(all[i].id);
+        Check("fusions off (kill cam / death): every effect goes dark", dark);
+        AtomFusions.EnabledOverride = true;
+
+        // no allocation per trigger: the same layers are re-used, nothing is created
+        int builds = FusionFx.Builds;
+        int children = fx.transform.childCount;
+        for (int w = 0; w < 20; w++) { for (int i = 0; i < all.Length; i++) FusionFx.Play(all[i].id); AtomFusions.Tick(.1f); }   // warm
+        long before = System.GC.GetAllocatedBytesForCurrentThread();
+        for (int n = 0; n < 500; n++)
+        {
+            for (int i = 0; i < all.Length; i++) FusionFx.Play(all[i].id);
+            for (int k = 0; k < 12; k++) AtomFusions.Tick(.06f);
+        }
+        long fxBytes = System.GC.GetAllocatedBytesForCurrentThread() - before;
+        Check("6000 triggers and their flipbooks allocate nothing (" + fxBytes + " bytes)", fxBytes == 0);
+        Check("... and create no objects (renderers " + fx.transform.childCount + " = " + children + ", builds " + FusionFx.Builds + ")",
+              fx.transform.childCount == children && FusionFx.Builds == builds && children == all.Length);
+
+        AtomFusions.EnabledOverride = null;
+        Object.DestroyImmediate(ship);
+    }
+
+    // ---- the dev fusion test (FusionTestMode) -------------------------------------------------
+
+    static GameObject Inert(string name)
+    {
+        var go = new GameObject(name);
+        go.SetActive(false);
+        return go;
+    }
+
+    // Steps a real spawnGoodStuff for `seconds`; returns the clone names' counts (atoms by prefab name).
+    static Dictionary<string, int> SimulateSpawner(int seed, float seconds)
+    {
+        EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
+        Random.InitState(seed);
+        var go = new GameObject("~spawnGoodStuffFusionTest");
+        go.transform.position = new Vector3(0f, 6.5f, 0f);
+        var sp = go.AddComponent<spawnGoodStuff>();
+        sp.smStar = Inert("smStar1"); sp.midStar = Inert("LargeStar1"); sp.Atom = Inert("atom3a"); sp.redAtom = Inert("pauseAtom");
+        var inst = System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance;
+        typeof(spawnGoodStuff).GetMethod("Start", inst).Invoke(sp, null);
+        var step = typeof(spawnGoodStuff).GetMethod("spawn", inst, null, new[] { typeof(float) }, null);
+        var args = new object[] { .1f };
+        for (int i = 0; i < Mathf.RoundToInt(seconds / .1f); i++) step.Invoke(sp, args);
+        var counts = new Dictionary<string, int>();
+        foreach (var t in Object.FindObjectsByType<Transform>(FindObjectsInactive.Include, FindObjectsSortMode.None))
+        {
+            if (t == null || !t.name.EndsWith("(Clone)")) continue;
+            string n = t.name.Substring(0, t.name.Length - 7);
+            counts[n] = (counts.ContainsKey(n) ? counts[n] : 0) + 1;
+        }
+        return counts;
+    }
+
+    static int Count(Dictionary<string, int> d, string k) { return d.ContainsKey(k) ? d[k] : 0; }
+
+    static void DevFusionTest()
+    {
+        int n = AtomFusionTable.Count;
+        // the selector: every combo in table order, then OFF, then round again
+        int pos = FusionTestMode.Off;
+        bool cycle = true;
+        for (int i = 0; i < n; i++) { pos = FusionTestMode.Next(pos, n); cycle &= pos == i; }
+        pos = FusionTestMode.Next(pos, n);
+        cycle &= pos == FusionTestMode.Off && FusionTestMode.Next(pos, n) == 0;
+        Check("the selector cycles through all " + n + " combos, then OFF, then round again", cycle && FusionTestMode.Positions == n + 1);
+        bool labels = FusionTestMode.Label(FusionTestMode.Off).EndsWith("OFF");
+        for (int i = 0; i < n; i++) labels &= FusionTestMode.Label(i).EndsWith(AtomFusionTable.All[i].name);
+        Check("the button shows the current combo's name (OFF for normal spawning)", labels);
+
+        // Step() walks the same ring and starts off
+        FusionTestMode.Reset();
+        Check("it starts OFF (never persisted: a restart is OFF too)", FusionTestMode.Selected == FusionTestMode.Off);
+        FusionTestMode.Step();
+        Check("Step moves to the first combo", FusionTestMode.Selected == 0);
+
+        // developer mode OFF: selected but never applied
+        PlayerPrefs.SetInt(DeveloperUnlocks.EnabledKey, 0);
+        FusionTestMode.SetForTest((int)FusionId.Stasis);
+        AtomKind k;
+        Check("developer mode off: the selection is not active and releases nothing", !FusionTestMode.Active && !FusionTestMode.Due(10f, out k));
+        var off = SimulateSpawner(7, 120f);
+        FusionTestMode.Reset();
+        var normal = SimulateSpawner(7, 120f);
+        bool same = off.Count == normal.Count;
+        foreach (var kv in normal) same &= Count(off, kv.Key) == kv.Value;
+        Check("developer mode off: spawning is exactly the normal rules (same seed, same atoms)", same);
+
+        // developer mode ON: only the combo's atoms, each of them
+        PlayerPrefs.SetInt(DeveloperUnlocks.EnabledKey, 1);
+        bool onlyRight = true, eachSeen = true;
+        for (int i = 0; i < n; i++)
+        {
+            var f = AtomFusionTable.All[i];
+            FusionTestMode.SetForTest(i);
+            var seen = new HashSet<AtomKind>();
+            for (int t = 0; t < 12; t++)
+            {
+                AtomKind kind;
+                if (!FusionTestMode.Due(FusionTestMode.AtomGap + .01f, out kind)) { onlyRight = false; continue; }
+                seen.Add(kind);
+                onlyRight &= f.Uses(kind) && AtomFusionTable.IsPickup(kind);
+            }
+            for (int a = 0; a < f.atoms.Length; a++) if (AtomFusionTable.IsPickup(f.atoms[a])) eachSeen &= seen.Contains(f.atoms[a]);
+        }
+        Check("developer mode on: every combo releases only its own pickup atoms", onlyRight);
+        Check("... and every pickup atom of the combo comes round", eachSeen);
+
+        // the real spawner: STASIS (pause + shield) -> only blue and red atoms (stars still fall)
+        FusionTestMode.SetForTest((int)FusionId.Stasis);
+        var test = SimulateSpawner(7, 120f);
+        int blue = Count(test, "atom3a"), red = Count(test, "pauseAtom");
+        int others = 0;
+        foreach (var kv in test) if (kv.Key.EndsWith("Atom") || kv.Key.StartsWith("atom")) if (kv.Key != "atom3a" && kv.Key != "pauseAtom") others += kv.Value;
+        Check("the spawner releases STASIS's atoms often (blue " + blue + ", pause " + red + " in 120 s) and no other atom (" + others + ")",
+              blue >= 10 && red >= 10 && others == 0);
+
+        // developer mode going off puts it back to OFF
+        FusionTestMode.SetForTest(3);
+        DeveloperUnlocks.SetEnabled(false);
+        Check("switching developer mode off resets the test to OFF", FusionTestMode.Selected == FusionTestMode.Off && !FusionTestMode.Active);
+
+        // a test firing is not progress: the codex records nothing
+        PlayerPrefs.SetInt(DeveloperUnlocks.EnabledKey, 1);
+        PlayerPrefs.DeleteKey(FusionDiscoveryStore.PrefsKey);
+        FusionDiscoveryStore.Reload();
+        var ship = NewShip();
+        AtomFusions.EnabledOverride = true;
+        AtomFusions.BeginRun(ship);
+        FusionTestMode.SetForTest((int)FusionId.Overclock);
+        AtomFusions.OnAtom(AtomKind.Pause, Vector3.zero);
+        var fired = AtomFusions.OnAtom(AtomKind.Capacitor, Vector3.zero);
+        Check("a fusion fired in the dev test is not recorded in the codex", fired.Fired && !FusionDiscoveryStore.IsDiscovered(FusionId.Overclock));
+        AtomFusions.EnabledOverride = null;
+        FusionTestMode.Reset();
+        PlayerPrefs.SetInt(DeveloperUnlocks.EnabledKey, 0);
+        Object.DestroyImmediate(ship);
     }
 
     // ---- the codex tab -----------------------------------------------------------------

@@ -51,6 +51,7 @@ public class HealAtomSpawner : MonoBehaviour
             timer = firstChanceAfter;
         }
 
+        if (FusionTestMode.Active) return;   // dev fusion test: spawnGoodStuff releases the combo's atoms itself
         if (spawnedThisWorld >= maxPerWorld) return;
         if (buttonClicks.playerDied) return;
 
