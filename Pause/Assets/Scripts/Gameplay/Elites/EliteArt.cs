@@ -85,6 +85,22 @@ public static class EliteArt
 
     public static bool HasExtra(EliteDef def, Extra e) => ExtraFrames(def, e) != null;
 
+    // Every Resources path this elite reads lazily when it spawns (its strip,
+    // the companions that continue it, its optional extras): ArtWarm loads
+    // them ahead so the spawn is no stall. Missing optional strips are
+    // harmless to ask for.
+    public static void WarmPaths(EliteDef def, List<string> into)
+    {
+        if (def == null || into == null || string.IsNullOrEmpty(def.key)) return;
+        string path = StripPath(def);
+        into.Add(path);
+        foreach (string suffix in Companions) into.Add(path + suffix);
+        into.Add(ExtraPath(def, Extra.Lights));
+        into.Add(ExtraPath(def, Extra.Death));
+        into.Add(ExtraPath(def, Extra.Parked));
+        into.Add(ExtraPath(def, Extra.Liftoff));
+    }
+
     // count 0: as many square cells as the strip holds.
     static Sprite[] Load(string path, EliteDef def, int count)
     {

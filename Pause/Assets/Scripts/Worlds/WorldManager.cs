@@ -433,6 +433,7 @@ public class WorldManager : MonoBehaviour
         WorldMusic.Apply(shown);
         WorldBackdrop.Apply(shown, false);
         ApplyDifficulty(Current);
+        ArtWarm.Begin(CurrentIndex);   // the boss, elite and boulder sheets, loaded in the calm start instead of at first use
         // The walls' Start may run before or after this one; both set it.
         moveBackGround.speed = RunStartSpeed(moveBackGround.speed);
         var entryKind = WorldEntry.Begin(entryPlan, CurrentIndex);
@@ -590,6 +591,7 @@ public class WorldManager : MonoBehaviour
         WorldPainter.Apply(theme);
         WorldMusic.Apply(theme);
         WorldBackdrop.Apply(theme, true);
+        ArtWarm.Begin(CurrentIndex);   // under the clouds: its boss, elites and boulders load before they are wanted
         return theme.displayName;
     }
 
@@ -655,6 +657,7 @@ public class WorldManager : MonoBehaviour
         WorldPainter.Apply(theme);
         WorldMusic.Apply(theme);
         WorldBackdrop.Apply(theme, true);
+        ArtWarm.Begin(CurrentIndex);   // the next world's lazy art, loaded now rather than at its boss's entrance
         if (showBanner) WorldBanner.Show(banner);
         Codex.Discover(Codex.WorldId(CurrentIndex));
         AchievementTracker.OnWorldEntered(CurrentIndex);
@@ -713,6 +716,7 @@ public class WorldManager : MonoBehaviour
         WorldPainter.Apply(theme);
         WorldMusic.Apply(theme);
         WorldBackdrop.Apply(theme, true);
+        ArtWarm.Begin(CurrentIndex);
         ApplyDifficulty(theme);
         WorldBanner.Show(theme.displayName);
     }

@@ -473,23 +473,42 @@ public static class ShipPowerBootstrap
     }
 }
 
-// The ship prefab is instantiated a frame or two after the scene loads, so poll
-// briefly rather than assuming it already exists.
+// The ship prefab is instantiated a frame or two after the scene loads: it
+// announces itself (ShipSpawn), and this waits for that instead of scanning
+// the scene every frame, giving up after a while as before. Only gameS1's
+// ship (movePlayer) carries powers. Out of play (edit-mode suites, where no
+// Start runs) a frame still looks it up.
 public class ShipPowerAttach : MonoBehaviour
 {
     float giveUp = 5f;
+    bool done;
+    public bool Done { get { return done; } }
+
+    void OnEnable()
+    {
+        ShipSpawn.Spawned += OnShip;
+        if (ShipSpawn.Live != null) OnShip(ShipSpawn.Live);
+    }
+
+    void OnDisable() { ShipSpawn.Spawned -= OnShip; }
+
+    void OnShip(GameObject player)
+    {
+        if (done || player == null || player.GetComponent<movePlayer>() == null) return;
+        if (player.GetComponent<ShipPowerController>() == null)
+            player.AddComponent<ShipPowerController>();
+        done = true;   // gone on the next frame (never destroyed from inside an event or OnEnable)
+    }
 
     void Update()
     {
-        var player = Object.FindFirstObjectByType<movePlayer>();
-        if (player != null)
+        if (!done && ShipSpawn.Live != null) OnShip(ShipSpawn.Live);
+        if (!done && !Application.isPlaying)
         {
-            if (player.GetComponent<ShipPowerController>() == null)
-                player.gameObject.AddComponent<ShipPowerController>();
-            Destroy(gameObject);
-            return;
+            var player = Object.FindFirstObjectByType<movePlayer>();
+            if (player != null) OnShip(player.gameObject);
         }
-
+        if (done) { if (Application.isPlaying) Destroy(gameObject); else DestroyImmediate(gameObject); return; }
         giveUp -= Time.unscaledDeltaTime;
         if (giveUp <= 0f) Destroy(gameObject);
     }

@@ -123,32 +123,45 @@ public class ShipLivesIndicator : HeartOrbit
     }
 }
 
-// Attaches the indicator to the player ship once it exists, matching the
-// same poll-until-found pattern used by ShipThruster/ShipPowerController.
+// Attaches the indicator to the player ship once it exists: gameS1's ship
+// (movePlayer) or the tutorial's (movePlayerInTut, the tutorial flies with
+// orbiting hearts too). The ship announces itself (ShipSpawn) a frame or two
+// after the scene loads; this waits for that instead of scanning the scene
+// every frame, and gives up after a while as before. Out of play (edit-mode
+// suites, where no Start runs) a frame still looks the ship up.
 public class ShipLivesIndicatorAttach : MonoBehaviour
 {
     float giveUp = 6f;
+    bool done;
+    public bool Done { get { return done; } }
+
+    void OnEnable()
+    {
+        ShipSpawn.Spawned += OnShip;
+        if (ShipSpawn.Live != null) OnShip(ShipSpawn.Live);
+    }
+
+    void OnDisable() { ShipSpawn.Spawned -= OnShip; }
+
+    void OnShip(GameObject player)
+    {
+        if (done || player == null) return;
+        if (player.GetComponent<ShipLivesIndicator>() == null)
+            player.AddComponent<ShipLivesIndicator>();
+        done = true;   // gone on the next frame (never destroyed from inside an event or OnEnable)
+    }
 
     void Update()
     {
-        // gameS1's ship (movePlayer) or the tutorial's (movePlayerInTut): the
-        // tutorial flies with orbiting hearts too.
-        GameObject player = null;
-        var main = Object.FindFirstObjectByType<movePlayer>();
-        if (main != null) player = main.gameObject;
-        else
+        if (!done && ShipSpawn.Live != null) OnShip(ShipSpawn.Live);
+        if (!done && !Application.isPlaying)
         {
-            var tut = Object.FindFirstObjectByType<movePlayerInTut>();
-            if (tut != null) player = tut.gameObject;
+            var main = Object.FindFirstObjectByType<movePlayer>();
+            var tut = main == null ? Object.FindFirstObjectByType<movePlayerInTut>() : null;
+            var player = main != null ? main.gameObject : tut != null ? tut.gameObject : null;
+            if (player != null) OnShip(player);
         }
-        if (player != null)
-        {
-            if (player.GetComponent<ShipLivesIndicator>() == null)
-                player.AddComponent<ShipLivesIndicator>();
-            Destroy(gameObject);
-            return;
-        }
-
+        if (done) { if (Application.isPlaying) Destroy(gameObject); else DestroyImmediate(gameObject); return; }
         giveUp -= Time.unscaledDeltaTime;
         if (giveUp <= 0f) Destroy(gameObject);
     }

@@ -382,6 +382,8 @@ public static class TutorialPolishTest
         attach.SendMessage("Update");
         var indicator = ship.GetComponent<ShipLivesIndicator>();
         Check("the hearts indicator attaches to the tutorial ship", indicator != null);
+        // out of play the attacher looks the ship up itself and is gone the same frame
+        Check("the attacher removes itself once the ship is found", attach == null);
         if (indicator != null)
         {
             Own(indicator, "Start");
@@ -442,7 +444,7 @@ public static class TutorialPolishTest
         typeof(collisionDetection).GetMethod("OnTriggerEnter2D", Inst).Invoke(cd, new object[] { rock.GetComponent<Collider2D>() });
         Check("even a hit on the last heart cannot kill the tutorial", !buttonClicks.playerDied && collisionDetection.lifeCounter == collisionDetection.MAXLIFE - 1);
         Object.DestroyImmediate(rock);
-        Object.DestroyImmediate(attach.gameObject);
+        if (attach != null) Object.DestroyImmediate(attach.gameObject);
         collisionDetection.lifeCounter = 0;
         PlayerInvuln.Reset();
         Cleanup();

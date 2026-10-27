@@ -55,6 +55,19 @@ public static class CoverBoulderArt
 
     public static bool Has(int world) { return Load(CoverBoulderTable.For(world).folder) != null; }
 
+    // Every Resources path world `world`'s boulders read lazily at the first
+    // boulder (the manifest, the intact sheet, the break strip, the storm fx):
+    // ArtWarm loads them ahead so that first boulder is no stall.
+    public static void WarmPaths(int world, List<string> into)
+    {
+        var e = CoverBoulderTable.For(world);
+        if (e == null || !e.enabled || string.IsNullOrEmpty(e.folder) || into == null) return;
+        into.Add(e.folder + "/manifest");
+        into.Add(e.folder + "/boulder");
+        into.Add(e.folder + "/break");
+        into.Add(e.folder + "/fx");
+    }
+
     // The Storm boulder's effects atlas (Resources/Boulders/Storm/fx.png, scripts/tools/storm_fx_atlas.py): wisps 0-3, arcs 4-6, shadow 7, rain 8-11, hail 12-14.
     static Sprite[] fxSprites;
     public static Sprite[] FxSprites(string folder)
