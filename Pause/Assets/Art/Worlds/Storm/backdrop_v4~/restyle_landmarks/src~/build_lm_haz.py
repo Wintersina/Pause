@@ -21,6 +21,20 @@ def cells(a, cols, rows):
     h, w = a.shape[:2]; ch, cw = h // rows, w // cols
     return [a[r * ch:(r + 1) * ch, c * cw:(c + 1) * cw] for r in range(rows) for c in range(cols)]
 
+def cells_cc(a, cols, rows):
+    """Like cells(), but every painted object is cut out WHOLE by its connected component (a cloud whose wisps cross the 2x2 grid line used
+    to be sliced flat there); each object goes to the grid slot holding its centroid. Pixels of neighbouring objects are masked out."""
+    from scipy import ndimage as ndi
+    h, w = a.shape[:2]; al = a[..., 3] > .06
+    lab, n = ndi.label(ndi.binary_dilation(al, iterations=6))
+    sz = ndi.sum(al, lab, range(1, n + 1)); out = [None] * (cols * rows)
+    for i in range(n):
+        if sz[i] < .03 * sz.max(): continue
+        m = lab == i + 1; cy, cx = ndi.center_of_mass(m); k = min(rows - 1, int(cy * rows / h)) * cols + min(cols - 1, int(cx * cols / w))
+        c = a.copy(); c[..., 3] *= m
+        if out[k] is None or sz[i] > out[k][0]: out[k] = (sz[i], c)
+    return [o[1] if o else cells(a, cols, rows)[k] for k, o in enumerate(out)]
+
 def bbox(a, thr=.06):
     ys, xs = np.where(a[..., 3] > thr)
     return ys.min(), ys.max() + 1, xs.min(), xs.max() + 1
@@ -83,7 +97,7 @@ def fill_landmarks():
     for sname, names in maps.items():
         if not (SRC / (sname + ".png")).exists():
             print("missing", sname); continue
-        for n, c in zip(names, [despeckle(x) for x in cells(load(sname), 2, 2)]):
+        for n, c in zip(names, [despeckle(x) for x in (cells_cc if sname in ('lm_anvils', 'lm_docks') else cells)(load(sname), 2, 2)]):   # masts: two structures touch, the grid cut is clean there
             if n == "turbine_raft_00" and (SRC / "tr_raft.png").exists(): c = despeckle(load("tr_raft"))      # bare hubs: the fans are the rotors atlas
             if n == "relay_dish_00" and (SRC / "dish_mast.png").exists(): c = despeckle(load("dish_mast"))   # bare mount: the dish is its own turning sprite
             s = by[n]; box = (s["x"], H - s["y"] - s["h"], s["x"] + s["w"], H - s["y"])

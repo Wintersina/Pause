@@ -342,6 +342,7 @@ public static class AllTests
         ("FrostBackdropTest", FrostBackdropTest.Execute),
         ("BackdropAnchorTest", BackdropAnchorTest.Execute),
         ("BackdropCellBleedTest", BackdropCellBleedTest.Execute),
+        ("StormCloudCutTest", StormCloudCutTest.Execute),
         ("BackdropResolutionTest", BackdropResolutionTest.Execute),
         ("EnemyResolutionTest", EnemyResolutionTest.Execute),
         ("FrameStillsTest", FrameStillsTest.Execute),
