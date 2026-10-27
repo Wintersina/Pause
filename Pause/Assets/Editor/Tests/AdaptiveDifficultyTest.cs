@@ -7,7 +7,7 @@ using UnityEngine;
 //      frozen during authored beats, reset on run start / revive, deterministic, world change blends to neutral
 //   2  multiplier bounds, held = neutral, dust never under its floor, recovery only when struggling
 //   3  spawners consult the multiplier (enemy Roll, rails excluded); elites/bosses/held ignore it
-//   4  tutorial / Paragon / flag off = no effect
+//   4  tutorial / Paragon = no effect
 public static class AdaptiveDifficultyTest
 {
     static int fails;
@@ -36,7 +36,6 @@ public static class AdaptiveDifficultyTest
         finally
         {
             AdaptiveDifficulty.Reset();
-            FeatureFlags.Set(FeatureFlags.AdaptiveDifficulty, true);
             LoopDifficulty.Reset();
             BossEncounter.ResetRun();
         }
@@ -188,10 +187,7 @@ public static class AdaptiveDifficultyTest
         AdaptiveDifficulty.BeginRun(true, false);
         AdaptiveDifficulty.HeldOverride = false;
         AdaptiveDifficulty.Meter.Force(1f);
-        Check("a normal run: on by default", FeatureFlags.DefaultOf(FeatureFlags.AdaptiveDifficulty) && AdaptiveDifficulty.On && AdaptiveDifficulty.EnemyScale > 1f);
-        FeatureFlags.Set(FeatureFlags.AdaptiveDifficulty, false);
-        Check("flag off: everything neutral", AdaptiveDifficulty.EnemyScale == 1f && AdaptiveDifficulty.DustScale == 1f && AdaptiveDifficulty.LaneFollow == 0f);
-        FeatureFlags.Set(FeatureFlags.AdaptiveDifficulty, true);
+        Check("a normal run: on", AdaptiveDifficulty.On && AdaptiveDifficulty.EnemyScale > 1f);
         AdaptiveDifficulty.BeginRun(true, false);
         Check("a new run resets the flow", AdaptiveDifficulty.Meter.Flow == 0f);
     }

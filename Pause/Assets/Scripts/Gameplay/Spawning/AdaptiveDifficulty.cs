@@ -15,9 +15,6 @@ public static class AdaptiveDifficulty
 
     public static readonly PerformanceMeter Meter = new PerformanceMeter();
 
-    // Developer switch (Options > feature flags). Default ON.
-    public static bool Enabled { get { return FeatureFlags.IsOn(FeatureFlags.AdaptiveDifficulty); } }
-
     // Per-run gate, decided at run start: off in the tutorial/practice and for
     // the premium Paragon ship. Tests may set it directly.
     public static bool RunActive;
@@ -41,7 +38,7 @@ public static class AdaptiveDifficulty
 
     public static void Reset() { Meter.Reset(); RunActive = false; HeldOverride = null; lastLoggedEnemy = lastLoggedDust = 1f; lastWorld = -1; }
 
-    public static bool On { get { return RunActive && Enabled; } }
+    public static bool On { get { return RunActive; } }
 
     // An authored beat (boss, elite fight, planetfall, lift-off, portal wait,
     // a world's entry) is running: the meter stands still and the multipliers
@@ -100,7 +97,6 @@ public static class AdaptiveDifficulty
         else if (world != lastWorld) { lastWorld = world; Meter.OnWorldChange(); }
         Meter.Frozen = Held;
         Meter.Tick(dt, chain, maxLife - lifeCounter, maxLife);
-        if (!Enabled) return;
         float e = EnemyScale, d = DustScale;
         if (Mathf.Abs(e - lastLoggedEnemy) > LogStep || Mathf.Abs(d - lastLoggedDust) > LogStep)
         {

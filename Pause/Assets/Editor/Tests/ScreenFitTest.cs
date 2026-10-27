@@ -113,7 +113,7 @@ public static class ScreenFitTest
     }
 
     // First screen of slices 2..4 (4 slices of ~15-21 s each in the gate lane; re-measure with the [FITTIME] log lines).
-    static readonly string[] SliceStarts = { "codex-music", "options-flags", "tutorial" };
+    static readonly string[] SliceStarts = { "codex-music", "options-start-world", "tutorial" };
     static int IndexOf(string id)
     {
         for (int i = 0; i < ScreenFitScreens.All.Length; i++) if (ScreenFitScreens.All[i].id == id) return i;

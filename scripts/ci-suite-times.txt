@@ -110,7 +110,7 @@ EntryAnimTest 2.3
 ExhaustSkinTest 37.3
 ExhaustStyleTest 2.8
 ExplosionV2Test 2.2
-FeatureFlagOptionsTest 2.0
+OptionsScreenTest 1.0
 FrameElitesDamagedTest 0.9
 FrameRateBootstrapTest 0.0
 FrameStillsTest 0.2
@@ -143,7 +143,6 @@ NextFeatures0907Test 4.0
 NoAdsGuardTest 3.4
 NoPinkOutsideSpaceTest 5.4
 OpenPortalTest 30.5
-ParagonFlagTest 0.7
 PausedLabelTest 12.2
 PauseGlowTest 0.3
 PewSoundTest 0.2

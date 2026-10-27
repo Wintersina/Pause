@@ -136,6 +136,9 @@ public static class PremiumShipTest
     static void Gate()
     {
         Check("a fresh save does not own it", !ShipId.IsOwned(P) && PremiumShips.ComingSoon(P));
+        Check("it is in the berths, last, and in the codex",
+              SpaceDock.BayOrder.Length == 16 && SpaceDock.BayOrder[15] == P &&
+              System.Linq.Enumerable.Any(CodexCatalogue.All, e => e.id == CodexCatalogue.ShipPrefix + "Paragon"));
         Check("no dust price: it sorts after every dust ship in the dock",
               SpaceDock.SlotOf(P) == ShipId.Count - 1 && PremiumShips.DustPurchasable(1) && !PremiumShips.DustPurchasable(P));
         PlayerPrefs.SetFloat(StarDustLedger.CurrencyKey, 1e9f);

@@ -240,12 +240,7 @@ public static class TestHarness
             // the key itself is put back on Dispose like every other pref.
             PlayerPrefs.SetInt(DeveloperUnlocks.EnabledKey, 0);
 
-            // The suites written for the full 16-ship roster run with Paragon's
-            // feature flag on (explicitly, whatever its default). The
-            // suite that tests the flag itself (ParagonFlagTest) turns it off.
-            FeatureFlags.Set(FeatureFlags.ParagonShip, true);
-
-            // Likewise every ship starts in its stock skin: suites that check
+            // Every ship starts in its stock skin: suites that check
             // the hull art read the stock sheet's source pixels, and a skin
             // equipped in the Mac player would otherwise show up here. (Put
             // back on Dispose with the other prefs.)
@@ -497,7 +492,6 @@ public static class TestHarness
             Codex.PrefsKey, Codex.NewKey, Codex.AckKey, Codex.PaidKey, DamageLog.KilledKey, DamageLog.HurtKey, KillCamArchive.PrefsKey,
             FusionDiscoveryStore.PrefsKey, FusionDiscoveryStore.UnseenKey,
         };
-        foreach (var flag in FeatureFlags.All) keys.Add(FeatureFlags.KeyOf(flag.name));
         for (int i = 0; i <= shopingShips.RosterTotal; i++) keys.Add("boughtship" + i);
 
         // Hull skins: equipped index, ownership, and developer-mode equips.

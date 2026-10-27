@@ -93,7 +93,7 @@ public sealed class WindVisuals
         return WeatherWind.Sample(p, at, HazardTarget.Hostile, WeatherWind.Clock, env, WeatherWind.Side, Mathf.Max(WeatherWind.Fade, .0001f));
     }
 
-    public void Draw(float dt, bool on, int worldIndex)
+    public void Draw(float dt, int worldIndex)
     {
         var cam = Camera.main;
         if (cam != null && cam.orthographic)
@@ -104,7 +104,7 @@ public sealed class WindVisuals
         }
         var prof = WeatherWind.Profile;
         if (worldIndex != world) Reseed(worldIndex);
-        float target = on && prof != null && !WeatherLayer.Quiet ? 1f : 0f;
+        float target = prof != null && !WeatherLayer.Quiet ? 1f : 0f;
         fade = Mathf.MoveTowards(fade, target, (dt > 0f ? dt : 0f) * .8f);
         if (prof == null || fade <= 0f)
         {

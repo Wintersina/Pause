@@ -152,16 +152,14 @@ public sealed class WorldHazards : MonoBehaviour
 
     void LateUpdate()
     {
-        bool hazardsOn = FeatureFlags.IsOn(FeatureFlags.WorldHazards);
-        bool weatherOn = FeatureFlags.IsOn(FeatureFlags.WorldWeather);
         float dt = Time.deltaTime;
         bool flying = WorldManager.Flying;
-        if (hazardsOn && flying && dt > 0f && !Disabled) Step(dt);
-        else if (!hazardsOn && AnyActive) { ClearAll(); PlayerOffset = Vector2.zero; }
-        Visuals.Draw(fields, hazardsOn);
+        if (flying && dt > 0f && !Disabled) Step(dt);
+        Visuals.Draw(fields);
         DazedSparks.Draw(Time.time);
-        Wind.Draw(flying ? dt : 0f, hazardsOn && weatherOn, world >= 0 ? world : (WorldManager.Instance != null ? WorldManager.SpawnWorld : 0));
-        Weather.Step(flying ? dt : 0f, weatherOn, world >= 0 ? world : (WorldManager.Instance != null ? WorldManager.SpawnWorld : 0), fields);
+        int shownWorld = world >= 0 ? world : (WorldManager.Instance != null ? WorldManager.SpawnWorld : 0);
+        Wind.Draw(flying ? dt : 0f, shownWorld);
+        Weather.Step(flying ? dt : 0f, shownWorld, fields);
     }
 
     // ---- one running frame (dt explicit: tests and simulations step it by hand) ----
