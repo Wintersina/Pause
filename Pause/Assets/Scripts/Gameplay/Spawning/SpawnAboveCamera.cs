@@ -31,7 +31,7 @@ public class SpawnAboveCamera : MonoBehaviour
 
     void Update()
     {
-        var cam = Camera.main;
+        var cam = CameraFit.Main;
         if (ScreenInfo.Width != lastScreenW || ScreenInfo.Height != lastScreenH
             || (cam != null && cam.orthographic && !Mathf.Approximately(cam.orthographicSize, lastCamSize)))
             Reposition();
@@ -39,7 +39,7 @@ public class SpawnAboveCamera : MonoBehaviour
 
     void Reposition()
     {
-        var cam = Camera.main;
+        var cam = CameraFit.Main;
         if (cam == null || !cam.orthographic) return;
 
         lastScreenW = ScreenInfo.Width;

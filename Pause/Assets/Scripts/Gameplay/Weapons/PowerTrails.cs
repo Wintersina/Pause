@@ -94,9 +94,9 @@ public class PowerTrailSprite : MonoBehaviour
     // the HUD cannot be found).
     public static Vector3 CounterWorldPosition(Vector3 fallbackFrom)
     {
-        var cam = Camera.main;
+        var cam = CameraFit.Main;
         Vector3 w = fallbackFrom;
-        var go = GameObject.Find("PauseCounter") ?? GameObject.Find("PausesRemainingText");
+        var go = SceneLookup.Active("PauseCounter") ?? SceneLookup.Active("PausesRemainingText");
         if (cam != null)
         {
             Vector3 screen = new Vector3(Screen.width * .5f, Screen.height * .94f, 0f);

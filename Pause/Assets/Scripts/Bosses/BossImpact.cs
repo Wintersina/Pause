@@ -188,7 +188,7 @@ public class BossImpact : MonoBehaviour
         UndoShake();
         float m = ShakeNow;
         if (m < .002f) return;
-        var cam = Camera.main;
+        var cam = CameraFit.Main;
         if (cam == null) return;
         // high-frequency, slightly flatter vertically: a kick, not a wobble
         shakeApplied = new Vector3(Mathf.Sin(shakeClock * 97f), Mathf.Cos(shakeClock * 71f) * .8f, 0f) * m;

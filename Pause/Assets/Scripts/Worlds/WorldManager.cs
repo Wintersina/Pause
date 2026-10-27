@@ -428,6 +428,7 @@ public class WorldManager : MonoBehaviour
         // (ShowEntryWorld); Space's portal arrival and every other start
         // show the world at once. A replay (a pinned world) has none.
         var entryPlan = WorldEntry.Plan(CurrentIndex, PinnedReplayWorld >= 0);
+        WorldArtPreload.RunStarted(CurrentIndex, entryPlan == WorldEntry.Kind.Planetfall);
         var shown = entryPlan == WorldEntry.Kind.Planetfall ? Worlds[0] : Current;
         WorldPainter.Apply(shown);
         WorldMusic.Apply(shown);

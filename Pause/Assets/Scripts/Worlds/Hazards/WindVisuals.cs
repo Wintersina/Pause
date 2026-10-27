@@ -95,7 +95,7 @@ public sealed class WindVisuals
 
     public void Draw(float dt, int worldIndex)
     {
-        var cam = Camera.main;
+        var cam = CameraFit.Main;
         if (cam != null && cam.orthographic)
         {
             top = cam.transform.position.y + cam.orthographicSize;

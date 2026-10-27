@@ -6,6 +6,8 @@ public class AtomSpin : MonoBehaviour
 {
     [Range(-180f, 180f)] public float degreesPerSecond = 32f;
 
+    SpriteRenderer sr;
+
     void Update()
     {
         transform.Rotate(0f, 0f, degreesPerSecond * Time.deltaTime);
@@ -16,7 +18,8 @@ public class AtomSpin : MonoBehaviour
         // Atoms are spawned in the play lane, but their visible lobes used to
         // extend through the side rails on narrow layouts. Clamp their full
         // rendered width inside the safe lane after any movement scripts run.
-        var sprite = GetComponent<SpriteRenderer>();
+        if (sr == null) sr = GetComponent<SpriteRenderer>();   // looked up once, not every frame
+        var sprite = sr;
         float halfWidth = sprite != null ? sprite.bounds.extents.x : 0.18f;
         float limit = Mathf.Max(0f, RailInset.Lane(Lane) - halfWidth);
         var p = transform.position;

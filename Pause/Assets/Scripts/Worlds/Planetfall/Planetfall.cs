@@ -355,7 +355,7 @@ public class Planetfall : MonoBehaviour
     {
         UndoShake();
         if (state != Stage.Descent || !WorldManager.Flying || shake < .002f) return;
-        var c = Camera.main;
+        var c = CameraFit.Main;
         if (c == null) return;
         shakeApplied = new Vector3(Mathf.Sin(t * 71f), Mathf.Cos(t * 53f) * .7f, 0f) * shake;
         c.transform.position += shakeApplied;
