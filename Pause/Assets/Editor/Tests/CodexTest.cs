@@ -2622,7 +2622,7 @@ public static class CodexTest
         var entry = Codex.Find(CodexCatalogue.MirageMineId);
         Check("Mirage Mine entry uses the still, not the dormant frame", entry != null && entry.Sprite == sprite);
         var anim = CodexAnimations.For(entry);
-        Check("Mirage Mine codex row shows the still (no dormant animation override)", anim != null && anim.idle != null && anim.idle.Length == 1 && anim.idle[0] == sprite && anim.tells == null);
+        Check("Mirage Mine's arming tell ends on the firing still", anim != null && anim.HasTell && Array.IndexOf(anim.tells[0], sprite) == anim.tells[0].Length - 1);
     }
 
     static Rect Inset(Rect r, float by) { return Rect.MinMaxRect(r.xMin + by, r.yMin + by, r.xMax - by, r.yMax - by); }
