@@ -410,10 +410,8 @@ public static class AtomFusionTest
         collisionDetection.lifeCounter = 3;
         AtomFusions.OnAtom(AtomKind.Heal, Vector3.zero);
         var bl = AtomFusions.OnAtom(AtomKind.Shield, Vector3.zero);
-        int healsBefore = AtomFusions.BloomHeals;
         for (int i = 0; i < FusionTuning.BloomKillsPerHeart; i++) AtomFusions.OnShieldKill();
         int afterFirst = collisionDetection.lifeCounter;
-        int healsBefore = AtomFusions.BloomHeals;
         for (int i = 0; i < FusionTuning.BloomKillsPerHeart; i++) AtomFusions.OnShieldKill();   // inside the min gap: banked, not paid
         int sameMoment = collisionDetection.lifeCounter;
         AtomFusions.Tick(FusionTuning.BloomMinHeartGap + .01f);
