@@ -101,6 +101,7 @@ public class ScoreHud : MonoBehaviour
         var c = speedText.GetComponentInParent<Canvas>();
         hud.canvas = c != null ? c.rootCanvas : null;
         hud.canvasRect = hud.canvas != null ? (RectTransform)hud.canvas.transform : null;
+        hud.StartPrewarm();
         return hud;
     }
 
@@ -161,7 +162,70 @@ public class ScoreHud : MonoBehaviour
         hud.canvasRect = hud.canvas != null ? (RectTransform)hud.canvas.transform : null;
         hud.shown = RunScore.Total;
         hud.lastTarget = RunScore.Total;
+        hud.StartPrewarm();
         return hud;
+    }
+
+    // ---- first-use warm-up ----
+    //
+    // The popup pool and the font glyphs every popup / fusion callout draws used to be made on the first pickup:
+    // BuildPopups (12 Text + Outline objects) and, for a dynamic font, the rasterising of each new (character,
+    // size) into the font atlas -- "SHIELD" at 28, "NEW COMBO DISCOVERED" and the fusion names at 40 / 46 -- on
+    // the frame the word first shows. Now the pool is built as the HUD attaches and the glyphs are requested one
+    // size per frame (a handful of ms spread over ~a dozen frames, inside the run's calm start).
+    public static readonly int[] PrewarmSizes = { 22, 26, 28, 30, 32, 34, 36, 38, 40, 44, 46 };
+    const string PrewarmBase = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789+-x!.,:%/'&()";
+    static string prewarmChars;
+    int prewarmStep;
+    bool prewarmStarted;
+    public static int GlyphRequests { get; private set; }   // (size, string) requests made so far (tests)
+    public bool PrewarmDone { get { return prewarmStep > PrewarmSizes.Length; } }
+    public bool PoolBuilt { get { return popups != null; } }
+
+    static string PrewarmChars()
+    {
+        if (prewarmChars != null) return prewarmChars;
+        var seen = new System.Collections.Generic.HashSet<char>(PrewarmBase);
+        var sb = new System.Text.StringBuilder(PrewarmBase);
+        var all = AtomFusionTable.All;
+        for (int i = 0; i < all.Length; i++)
+            foreach (string w in new[] { all[i].name, all[i].recipe, AtomFusions.DiscoveryLine })
+                foreach (char c in w) if (c != '\n' && seen.Add(c)) sb.Append(c);
+        prewarmChars = sb.ToString();
+        return prewarmChars;
+    }
+
+    void StartPrewarm()
+    {
+        if (canvasRect == null) return;
+        if (popups == null) BuildPopups();
+        if (!Application.isPlaying || prewarmStarted) return;   // edit-mode suites drive PrewarmStep themselves
+        prewarmStarted = true;
+        StartCoroutine(PrewarmRoutine());
+    }
+
+    System.Collections.IEnumerator PrewarmRoutine()
+    {
+        yield return null;
+        while (!PrewarmDone)
+        {
+            PrewarmStep();
+            yield return null;
+        }
+    }
+
+    // One frame's share: the pool (step 0 already done) then one size's glyphs. Idempotent once done.
+    public void PrewarmStep()
+    {
+        if (PrewarmDone) return;
+        if (popups == null && canvasRect != null) BuildPopups();
+        int i = prewarmStep++;
+        if (i >= PrewarmSizes.Length) return;
+        if (font == null || !font.dynamic || canvas == null) return;
+        // a UI Text rasterises at fontSize * the canvas scale
+        int px = Mathf.Max(1, Mathf.RoundToInt(PrewarmSizes[i] * canvas.scaleFactor));
+        font.RequestCharactersInTexture(PrewarmChars(), px, FontStyle.Bold);
+        GlyphRequests++;
     }
 
     // A right-anchored badge Text on `row` (idempotent).
