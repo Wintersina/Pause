@@ -67,6 +67,7 @@ public static class ParagonPurchase
     public static bool RequestBuy()
     {
         if (!Available || Buying || ShipId.IsOwned(PremiumShips.Paragon)) return false;
+        if (ShipUnlocks.IsLocked(PremiumShips.Paragon)) return false;   // own enough ships first (restore never comes through here)
         Buying = true;
         LaunchFlow();
         return true;

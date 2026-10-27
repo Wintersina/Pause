@@ -876,6 +876,16 @@ public class DockPopup : MonoBehaviour
             SetButtonText("LAUNCH");
             buttonImage.color = DockArt.Cyan;
         }
+        else if (ShipUnlocks.IsLocked(index) && (!PremiumShips.IsPremium(index) || ParagonPurchase.Available))
+        {
+            // Not enough ships owned yet (ShipUnlocks): the button names the
+            // requirement and does nothing; no price, no dust is taken.
+            CurrentMode = Mode.Locked;
+            ShowStatus("LOCKED");
+            dustIcon.gameObject.SetActive(false);
+            SetButtonText(ShipUnlocks.LockedButtonText(index));
+            buttonImage.color = AkiraPalette.GunHi;
+        }
         else if (PremiumShips.IsPremium(index) && ParagonPurchase.Available)
         {
             // A real-money ship with its store price loaded: the button shows it

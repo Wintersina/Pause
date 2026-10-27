@@ -243,6 +243,7 @@ public static class AllTests
         ("RosterCleanupTest", RosterCleanupTest.Execute),
         ("PremiumShipTest", PremiumShipTest.Execute),
         ("OptionsScreenTest", OptionsScreenTest.Execute),
+        ("ShipUnlocksTest", ShipUnlocksTest.Execute),
         ("ScoringTest", ScoringTest.Execute),
         ("ScoreBonusTest", ScoreBonusTest.Execute),
         ("ScoreMultiplierTest", ScoreMultiplierTest.Execute),

@@ -602,6 +602,12 @@ public class SpaceDock : MonoBehaviour
     {
         if (Launching || index < 1 || index >= bays.Length) return;
         if (IsOwned(index)) { ShowPopup(index); return; }
+        // The last three berths stay shut until enough ships are owned (ShipUnlocks): no purchase, no dust taken.
+        if (ShipUnlocks.IsLocked(index))
+        {
+            popup.ShowMessage(ShipUnlocks.LockedMessage(index), DockArt.Warn, 1.4f);
+            return;
+        }
         // Premium ships are real-money only (PremiumShips); the dock never sells one for dust.
         if (PremiumShips.IsPremium(index))
         {

@@ -35,7 +35,7 @@ public static class DockNews
             new Item
             {
                 id = ParagonId,
-                when = () => ParagonPurchase.Available && !ShipId.IsOwned(PremiumShips.Paragon),
+                when = () => ParagonPurchase.Available && !ShipId.IsOwned(PremiumShips.Paragon) && !ShipUnlocks.IsLocked(PremiumShips.Paragon),
                 text = () => "GET THE PARAGON SHIP, THE PREMIUM PILOT" + PriceSuffix(ParagonPurchase.Price),
                 tap = () => ParagonPurchase.RequestBuy(),
             },
