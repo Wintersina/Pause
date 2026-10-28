@@ -683,7 +683,9 @@ public sealed class BossWaveVoice
         // the speed that lands the gap corridor's centre at the ship row on a beat
         float dist = Mathf.Max(1f, Vector2.Distance(from, target));
         float rs = (float)(dist / (kk * spb - late));
-        float arc = m.kind == WaveKind.Fan ? Mathf.Max(step, m.arc) : 180f;
+        // a wide lane (LaneMetrics.Density) fans further out at the same step: the gap corridor and the step between
+        // bullets are the phone's, only the arc grows (still the downward half only, below)
+        float arc = m.kind == WaveKind.Fan ? Mathf.Max(step, m.arc * Mathf.Max(1f, host.LaneDensity)) : 180f;
         var sh = Shot();
         int fired = 0;
         for (int side = -1; side <= 1; side += 2)

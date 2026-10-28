@@ -34,6 +34,8 @@ public static class SpawnLane
     // Heavies keep their centre within +/-HeavyMaxX: half a ~1.1 u heavy
     // further out still clears a rail mine's inner edge (2.35 - 0.31).
     public const float HeavyMaxX = 1.45f;
+    // ... on this screen: further out with the rails on a wide screen (LaneMetrics.Widen; HeavyMaxX on phones).
+    public static float HeavyMaxXLive => LaneMetrics.Widen(HeavyMaxX);
 
     const int Candidates = 8;
 
@@ -92,7 +94,7 @@ public static class SpawnLane
     // How far from the centre line def's centre may spawn.
     public static float MaxX(EnemyDef def, float scale = 1f)
     {
-        return def.role == EnemyRole.Big ? HeavyMaxX : LaneHalf - HalfExtents(def, scale).x;
+        return def.role == EnemyRole.Big ? HeavyMaxXLive : LaneHalf - HalfExtents(def, scale).x;
     }
 
     // The x spans of every live hazard (chasers aside) overlapping [y0, y1].

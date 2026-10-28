@@ -164,7 +164,7 @@ public class spawnGoodStuffTut: MonoBehaviour {
         // aimed at the pilot: it rushes down the ship's own lane
         var tut = FindFirstObjectByType<movePlayerInTut>();
         float aim = tut != null ? tut.transform.position.x : 0f;
-        float x = Mathf.Clamp(aim + Random.Range(-.5f, .5f), -1.2f, 1.2f);
+        float x = Mathf.Clamp(aim + Random.Range(-.5f, .5f), -LaneMetrics.Widen(1.2f), LaneMetrics.Widen(1.2f));
         Vector3 pos = new Vector3(x, transform.position.y, transform.rotation.z);
         GameObject atom;
         if (kind == TutorialAtom.Green) atom = HealAtom.Spawn(pos);

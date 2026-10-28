@@ -398,7 +398,7 @@ public class BossProjectile : MonoBehaviour, IHostileShot
 
         // off screen: past the view's edge (it grows on tall screens), never
         // nearer than the authored -6.5 / 7.5
-        if (p.y < Mathf.Min(-6.5f, viewBottom - 1f) || p.y > Mathf.Max(7.5f, viewTop + 1f) || Mathf.Abs(p.x) > 4.2f)
+        if (p.y < Mathf.Min(-6.5f, viewBottom - 1f) || p.y > Mathf.Max(7.5f, viewTop + 1f) || Mathf.Abs(p.x) > LaneMetrics.Widen(4.2f))
         {
             EndReason = 1;
             Recycle();

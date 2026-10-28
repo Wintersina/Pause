@@ -37,7 +37,8 @@ using UnityEngine;
 //   SIDES   +/-HalfWidth: the hull's side (ShipScale.HullHalfWidth) just
 //           reaches the rails' drawn inner edge (BossRails.InnerEdge), never
 //           over it. The rails move out where the screen has room
-//           (RailInset), and the reach with them.
+//           (RailInset), and on a screen wider than a phone's view to the
+//           screen's edges (LaneMetrics), and the reach with them.
 //
 // The range follows the live camera and safe area every frame (a foldable
 // folding, a rotation): it is a pure function of them, so it changes

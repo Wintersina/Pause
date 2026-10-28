@@ -244,6 +244,7 @@ public static class AllTests
         ("RailMinePacingTest", RailMinePacingTest.Execute),
         ("RailsRollTest", RailsRollTest.Execute),
         ("RailsShipSizeTest", RailsShipSizeTest.Execute),
+        ("LaneWidthTest", LaneWidthTest.Execute),
         ("RailsVettingTest", RailsVettingTest.Execute),
         ("RamKillTest", RamKillTest.Execute),
         ("RedAtomFreeShotTest", RedAtomFreeShotTest.Execute),

@@ -29,6 +29,9 @@ public sealed class PatternSim : IMusicPatternHost
     public Vector2 player = new Vector2(0f, -3.2f);
     public Vector2[] emitters = { new Vector2(0f, 3.4f), new Vector2(-1.4f, 3.2f), new Vector2(1.4f, 3.2f), new Vector2(0f, 3.0f) };
     public float boltR = .13f, shardR = .12f;
+    // The lane's width over a phone's (LaneMetrics.Density) and the view's half-width: 1 / the phone's by default.
+    public float laneDensity = 1f;
+    public float viewHalfWidth = CameraFit.GameplayHalfWidth;
     public float floorY = -6.5f;
     // Where shots start (tests): every Fire is measured against the emitters as they are at that instant and the view.
     public float viewTop = 5f;
@@ -55,6 +58,7 @@ public sealed class PatternSim : IMusicPatternHost
     public int MusicShotCapacity => cap;
     public float RailEdge => railEdge;
     public float ShipHalfWidth => shipHalf;
+    public float LaneDensity => laneDensity;
     public float SpawnTop => spawnTop;
     public float ZoneBottom => zoneBottom;
     public float ZoneTop => zoneTop;
@@ -63,6 +67,17 @@ public sealed class PatternSim : IMusicPatternHost
     public void EmittedFrom(int part, float holdSeconds) { if (part >= 0 && part < emittedParts.Length) emittedParts[part]++; }
     public int marks;
     public void Mark(Vector2 a, Vector2 b, float halfWidth, float seconds) { marks++; }
+
+    // The stage on a w x h screen's lane (tests at several aspects): the rails, the ship's reach and the view pushed
+    // out by LaneMetrics.WideExtraFor, the density by LaneMetrics.DensityFor. A phone leaves the stage as it was.
+    public void FitLane(float w, float h)
+    {
+        float extra = LaneMetrics.WideExtraFor(w, h);
+        railEdge += extra;
+        shipHalf += extra;
+        viewHalfWidth = LaneMetrics.ViewHalfWidthFor(w, h);
+        laneDensity = LaneMetrics.DensityFor(w, h);
+    }
 
     public void Reset()
     {
@@ -83,7 +98,7 @@ public sealed class PatternSim : IMusicPatternHost
         float best = float.MaxValue;
         for (int i = 0; i < emitters.Length; i++) best = Mathf.Min(best, (emitters[i] - at).magnitude);
         if (best > worstEmitterDist) worstEmitterDist = best;
-        if (at.y > viewTop || Mathf.Abs(at.x) > CameraFit.GameplayHalfWidth) offView++;
+        if (at.y > viewTop || Mathf.Abs(at.x) > viewHalfWidth) offView++;
         var then = ps.then;
         ps.then *= k;
         Spawn(at, velocity * k, ps.style == BossShotStyle.Bolt ? boltR : shardR, ref ps);
@@ -186,7 +201,7 @@ public sealed class PatternSim : IMusicPatternHost
                 }
             }
             s.p = p;
-            if (p.y < floorY || p.y > spawnTop + 1.5f || Mathf.Abs(p.x) > 4.2f) { s.alive = false; live--; }
+            if (p.y < floorY || p.y > spawnTop + 1.5f || Mathf.Abs(p.x) > railEdge + 1.6f) { s.alive = false; live--; }
         }
         bouncyLive = 0;
         for (int i = 0; i < cap; i++) if (shots[i].alive && shots[i].bouncy) bouncyLive++;

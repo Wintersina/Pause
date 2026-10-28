@@ -76,7 +76,8 @@ public static class EnemyDensity
     public static float MaxPilotLoad(float hud, int world)
     {
         world = Mathf.Clamp(world, 0, PilotLoadAtLowSpeed.Length - 1);
-        return Mathf.Lerp(PilotLoadAtLowSpeed[world], PilotLoadAtHighSpeed[world], K(hud))
+        // (x LaneMetrics.Density: a wider lane holds proportionally more pilots; 1 on phones)
+        return Mathf.Lerp(PilotLoadAtLowSpeed[world], PilotLoadAtHighSpeed[world], K(hud)) * LaneMetrics.Density
                + LoopRules.PilotLoadBonus(RunLoop.Index) + PortalPressure.PilotLoadBonus;
     }
 
@@ -118,7 +119,8 @@ public static class EnemyDensity
         if (Disabled) return float.MaxValue;
         float authored = Mathf.Lerp(ThreatsAtLowSpeed, ThreatsAtHighSpeed, K(hud)) + LoopRules.ThreatBonus(RunLoop.Index);
         // a portal kept waiting raises it, up to the body cap (PortalPressure)
-        return PortalPressure.Ceiling(authored, ViewScale);
+        // (the stretch of board counted: the view's height (ViewScale) x the lane's width (LaneMetrics.Density, 1 on phones))
+        return PortalPressure.Ceiling(authored, ViewScale * LaneMetrics.Density);
     }
 
     // Bodies in play (in the view or about to enter it) plus weighted shots.

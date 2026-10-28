@@ -18,7 +18,8 @@ using Object = UnityEngine.Object;
 //               drawing above / below its centre and the spawn rows' ship
 //               gap grow with it
 //   INSET       RailInset moves the rails out on tall phones and tablets and
-//               leaves 16:9 (and 16:10, landscape) exactly as before; the
+//               leaves 16:9 (and 16:10) exactly as before (screens wider than a
+//               phone's view: LaneWidthTest); the
 //               drawn inner edge, BossRails.InnerEdge and the lanes follow
 //   REACH       at 9:16, 9:19.5, 9:21 and 3:4 in every world the ship's
 //               side reaches the rails' inner edge and never crosses it;
@@ -177,10 +178,14 @@ public static class RailsShipSizeTest
         Debug.Log("[RSS] rail shift per side: 9:16 " + F(s916) + ", iPhone SE " + F(sSE) + ", 16:10 " + F(s1610) + ", 18:9 " + F(s20) +
                   ", 19.5:9 " + F(s195) + ", 21:9 " + F(s21) + ", 3:4 " + F(sIpad) + ", landscape " + F(sLand));
         float B = RailInset.BaseShift, Full = RailInset.BaseShift + RailInset.MaxShift;
-        Check("16:9 phones and 16:10 tablets get the base widening only (" + F(B) + ") and landscape none", Mathf.Approximately(s916, B) && Mathf.Approximately(sSE, B) && Mathf.Approximately(s1610, B) && sLand == 0f);
+        // (a screen wider than a phone's view -- 3:4 by 0.03 u, landscape by far more -- also gets LaneMetrics' wide extra:
+        // the rails go to its edges; LaneWidthTest checks those)
+        Check("16:9 phones and 16:10 tablets get the base widening only (" + F(B) + "); landscape full room + the wide extra",
+              Mathf.Approximately(s916, B) && Mathf.Approximately(sSE, B) && Mathf.Approximately(s1610, B) &&
+              Mathf.Approximately(sLand, Full + LaneMetrics.WideExtraFor(1920, 1080)) && LaneMetrics.WideExtraFor(1920, 1080) > 1f);
         Check("20:9 moves them out fully too (" + F(RailInset.ShiftFor(1080, 2400)) + ")", Mathf.Approximately(RailInset.ShiftFor(1080, 2400), Full));
-        Check("19.5:9, 21:9 and 3:4 move the rails out by the full " + Full + " u",
-              Mathf.Approximately(s195, Full) && Mathf.Approximately(s21, Full) && Mathf.Approximately(sIpad, Full));
+        Check("19.5:9, 21:9 and 3:4 move the rails out by the full " + Full + " u (3:4 + its " + F(LaneMetrics.WideExtraFor(1620, 2160)) + " u wide extra)",
+              Mathf.Approximately(s195, Full) && Mathf.Approximately(s21, Full) && Mathf.Approximately(sIpad, Full + LaneMetrics.WideExtraFor(1620, 2160)));
         // the widened flight lane: 8-12% wider than the old layout on every portrait screen
         float oldHalf = BossRails.ReinforcedInnerEdge;
         Check("lane widening vs the pre-widen layout is 8-12% on 16:9 (" + F(B / oldHalf * 100f) + "%) and on tall phones (" + F(RailInset.BaseShift / (oldHalf + RailInset.MaxShift) * 100f) + "%)",

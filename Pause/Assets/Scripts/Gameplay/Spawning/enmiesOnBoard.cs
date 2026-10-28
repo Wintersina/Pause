@@ -433,7 +433,7 @@ public class enmiesOnBoard : MonoBehaviour {
             // to the middle of the lane (SpawnLane.HeavyMaxX), clear of the
             // walls and the rail mines.
             case SlotKind.Big:
-                return TrySpawnDef(EnemyRoster.Pick(world, EnemyRole.Big), Random.Range(-SpawnLane.HeavyMaxX, SpawnLane.HeavyMaxX));
+                return TrySpawnDef(EnemyRoster.Pick(world, EnemyRole.Big), Random.Range(-SpawnLane.HeavyMaxXLive, SpawnLane.HeavyMaxXLive));
             case SlotKind.Alien: return TrySpawnDef(EnemyRoster.One(world, EnemyRole.Alien), x);
             case SlotKind.Extra: return TrySpawnExtra();
             case SlotKind.Mine: return TrySpawnMine();
@@ -630,7 +630,7 @@ public class enmiesOnBoard : MonoBehaviour {
         float wallX = wall != null ? wall.transform.position.x : (left ? -3.15f : 3.15f);
         float inner, outer;
         float railX = wall != null && WorldPainter.VisibleRailEdges(wall, out inner, out outer)
-            ? RailMineArt.MountX(inner, world) : RailMineArt.FallbackRailX;
+            ? RailMineArt.MountX(inner, world) : LaneMetrics.Widen(RailMineArt.FallbackRailX);
         var cam = CameraFit.Main;
         float visibleLimit = cam != null && cam.orthographic
             ? cam.orthographicSize * cam.aspect - .30f : railX;
@@ -648,7 +648,10 @@ public class enmiesOnBoard : MonoBehaviour {
     // means shorter delays -- more spawns per minute, on every active type
     // at once, not just the ones a phase newly unlocks.
     //
-    // Roll() also multiplies in LoopDifficulty.DensityScale: x1 on a first
+    // Roll() also divides by LaneMetrics.Density (x1 on every phone; a wider
+    // lane on a foldable / tablet / window spawns in proportion to its width,
+    // up to x2 -- see LaneMetrics for the formula), and multiplies in
+    // LoopDifficulty.DensityScale: x1 on a first
     // pass, x1.1 / x1.2 / x1.3 on later loops (LoopRules.DensityScale;
     // WorldManager sets it), and PortalPressure.DensityScale: x1 except while
     // a portal is open and waiting, when it climbs without limit. However
@@ -704,7 +707,8 @@ public class enmiesOnBoard : MonoBehaviour {
         return Random.Range(range.x, range.y) / Mathf.Max(0.1f, DensityMultiplier() * LoopDifficulty.DensityScale)
                / Mathf.Max(0.1f, EnemyDensity.RateScale(EnemyDensity.Hud) * PortalPressure.DensityScale)
                / Mathf.Max(0.1f, RunFactor())
-               / (adaptive ? AdaptiveDifficulty.EnemyScale : 1f);   // pilot's flow, x0.75..x1.25 (rails stay out: they are rides)
+               / (adaptive ? AdaptiveDifficulty.EnemyScale : 1f)   // pilot's flow, x0.75..x1.25 (rails stay out: they are rides)
+               / LaneMetrics.Density;                              // a wide lane: spawns in proportion to its width (1 on phones)
     }
 
     // A fast start's spawn make-up (EnemyDensity.RunLengthFactor); 1 without a world.
@@ -881,7 +885,7 @@ public class enmiesOnBoard : MonoBehaviour {
             return pick == null || TrySpawnPrefab(pick, x);
         }
         var def = ChooseExtraDef(EnemyRoster.CurrentWorld, astroidSelector);
-        if (def != null && def.role == EnemyRole.Big) x = Mathf.Clamp(x, -SpawnLane.HeavyMaxX, SpawnLane.HeavyMaxX);
+        if (def != null && def.role == EnemyRole.Big) x = Mathf.Clamp(x, -SpawnLane.HeavyMaxXLive, SpawnLane.HeavyMaxXLive);
         return TrySpawnDef(def, x);
     }
 
