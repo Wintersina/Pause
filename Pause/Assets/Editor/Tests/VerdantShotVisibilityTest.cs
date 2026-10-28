@@ -208,13 +208,13 @@ public static class VerdantShotVisibilityTest
 
     static void Wiggle()
     {
-        Check("old / new homing: 70 / 80 / 90 deg/s halved to 35 / 40 / 45",
-              VerdantShotTuning.HomeSpore <= VerdantShotTuning.OldHomeSpore * .5f + .01f && VerdantShotTuning.HomeOvergrowth <= VerdantShotTuning.OldHomeOvergrowth * .5f + .01f &&
-              VerdantShotTuning.HomeStorm <= VerdantShotTuning.OldHomeStorm * .5f + .01f && VerdantShotTuning.HomeSpore >= 25f);
-        Check("fan tilt (amp) cut to half or less, still a visible tilt (3..4 deg)",
-              VerdantShotTuning.FanAmpOvergrowth <= VerdantShotTuning.OldFanAmpOvergrowth * .5f + .01f && VerdantShotTuning.FanAmpStorm <= VerdantShotTuning.OldFanAmpStorm * .5f + .01f &&
-              VerdantShotTuning.FanAmpStorm >= 3f);
-        Check("the flip is slower than the old 2 ticks", VerdantShotTuning.FlipTicks[0] > VerdantShotTuning.OldFlipTicks && VerdantShotTuning.FlipTicks.Length == 2);
+        Check("homing cut to 40 % or less of the old 70 / 80 / 90 deg/s (25 / 28 / 32), still a real steer",
+              VerdantShotTuning.HomeSpore <= VerdantShotTuning.OldHomeSpore * .4f && VerdantShotTuning.HomeOvergrowth <= VerdantShotTuning.OldHomeOvergrowth * .4f &&
+              VerdantShotTuning.HomeStorm <= VerdantShotTuning.OldHomeStorm * .4f && VerdantShotTuning.HomeSpore >= 20f);
+        Check("fan tilt (amp) cut to 40 % or less of the old 8 / 7 deg, still a tilt (>= 2)",
+              VerdantShotTuning.FanAmpOvergrowth <= VerdantShotTuning.OldFanAmpOvergrowth * .4f && VerdantShotTuning.FanAmpStorm <= VerdantShotTuning.OldFanAmpStorm * .4f &&
+              VerdantShotTuning.FanAmpStorm >= 2f);
+        Check("the flip is a third of the old rate (>= 6 ticks, was 2)", VerdantShotTuning.FlipTicks[0] >= 3 * VerdantShotTuning.OldFlipTicks && VerdantShotTuning.FlipTicks.Length == 2);
         var slots = BossPatternTables.For(2);
         bool wired = true; int seeds = 0;
         foreach (var slot in slots)

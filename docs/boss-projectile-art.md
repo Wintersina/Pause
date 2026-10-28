@@ -134,10 +134,10 @@ User: the three Bloom Queen shots (Verdant_attackshots.png: thorn row 1, spore c
 
 | knob | old | new |
 |---|---|---|
-| seeds homing (spore seeds / overgrowth / thorn storm) | 70 / 80 / 90 deg/s | 35 / 40 / 45 deg/s |
+| seeds homing (spore seeds / overgrowth / thorn storm) | 70 / 80 / 90 deg/s | 25 / 28 / 32 deg/s (~36 %) |
 | homing steering | hard clamp, whips round the ship | eased over the last 12 deg, stops within 0.9 u of the ship (`BossProjectile.HomeTurn`) |
-| fan tilt amp (overgrowth thorns / thorn storm gourds) | 8 / 7 deg | 4 / 3.5 deg |
-| art flip | 2 ticks (12 swaps/s) | 4 ticks (6 swaps/s) |
+| fan tilt amp (overgrowth thorns / thorn storm gourds) | 8 / 7 deg | 2.8 / 2.4 deg (~35 %) |
+| art flip | 2 ticks (12 swaps/s) | 6 ticks (4 swaps/s) |
 
 Damage, rates, counts, speeds, the roster and the song's wave gap sweep are unchanged. No shot oscillates laterally on a sine; there is no spawn-angle jitter or camera shake on these shots.
 

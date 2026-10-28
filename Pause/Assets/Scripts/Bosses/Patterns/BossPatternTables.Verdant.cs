@@ -4,21 +4,21 @@ using UnityEngine;
 
 // THE BLOOM QUEEN'S SHOT WIGGLE, tuned down (user feedback: "wiggles the attacks too much"). Where it came from and what each knob was:
 //   homing seeds (spore seeds / overgrowth / thorn storm): turned 70 / 80 / 90 deg/s toward the ship for ~1.8 s with no easing, so a seed
-//     that reached the ship whipped from side to side (and its sprite spun with it)            -> now 35 / 40 / 45 deg/s, eased, stops near the ship
-//   fan tilt (overgrowth thorns amp 8, thorn storm gourds amp 7): the fan rocks +-amp every volley, a zigzag of tilted fans -> now 4 / 3.5
+//     that reached the ship whipped from side to side (and its sprite spun with it)            -> now 25 / 28 / 32 deg/s (~36 %), eased, stops near the ship
+//   fan tilt (overgrowth thorns amp 8, thorn storm gourds amp 7): the fan rocks +-amp every volley, a zigzag of tilted fans -> now 2.8 / 2.4 (~35 %)
 //   art flip: the two drawings swapped every 2 ticks (12 swaps a second, a shimmer); frame b is now the same body with only the core
-//     brightening, swapped every 4 ticks (6 a second)
+//     brightening, swapped every 6 ticks (4 a second)
 // Damage, rates, counts, speeds and the roster are untouched. Wave bullets (art 1 walls / fans) fly straight; their gap sweep is the
 // song's, and is left alone (BossWaves).
 public static class VerdantShotTuning
 {
     public const float OldHomeSpore = 70f, OldHomeOvergrowth = 80f, OldHomeStorm = 90f, OldFanAmpOvergrowth = 8f, OldFanAmpStorm = 7f;
     public const int OldFlipTicks = 2;
-    public const float HomeSpore = 35f, HomeOvergrowth = 40f, HomeStorm = 45f;
-    public const float FanAmpOvergrowth = 4f, FanAmpStorm = 3.5f;
+    public const float HomeSpore = 25f, HomeOvergrowth = 28f, HomeStorm = 32f;
+    public const float FanAmpOvergrowth = 2.8f, FanAmpStorm = 2.4f;
     public const float HomeEaseDeg = 12f;        // the turn eases out over the last 12 degrees to the ship
     public const float HomeStopDist = .9f;       // a seed this close to the ship stops steering
-    public static readonly int[] FlipTicks = { 4, 4 };
+    public static readonly int[] FlipTicks = { 6, 6 };
 }
 public static partial class BossPatternTables
 {
