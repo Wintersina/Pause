@@ -477,17 +477,27 @@ Converter conventions:
 
 ## Cloud shadows (backdrop)
 
-Frost, Verdant, Ember, Tide and Desert carry 2-4 slow, soft cloud shadows drifting over the ground (`CloudShadows.cs`,
-`CloudShadowLayer`). **None in Space (the Space loop after Desert included) and none in Storm** (its own thunderheads).
+Frost, Verdant, Ember, Tide and Desert carry 2-3 BIG, slow cloud shadows hovering over the ground (`CloudShadows.cs`,
+`CloudShadowArt.cs`, shader `Shaders/Resources/BackdropShaders/CloudShadow.shader`). **None in Space (the Space loop after
+Desert included) and none in Storm** (its own thunderheads).
 
-- Pixel art, not blur: one procedural 512x512 atlas (three blob shapes, five stepped alpha levels, 4x4 ordered dither on the
-  rims), point-filtered, quad snapped to a 4-art-pixel cell grid (the ground tiles are 896 px wide).
+- Cloud-like, still pixel art: a procedural 1024x512 one-channel density atlas (built once, a slice a frame through
+  `WorldArtPreload`) holds six fractal-noise shapes: two cumulus (lobes, billowy domain-warped rim, satellite wisps), two
+  stratocumulus (broken rolls with clear lanes) and two thin cirrus streaks, each up to 384 cells across (a cell is 4 art pixels:
+  the ground tiles are 896 px wide). The shader multiplies the density by two slowly scrolling noise samples (the cloud morphs
+  while it drifts), then draws it as a stepped alpha (5 levels, ordered 4x4 Bayer dither on the rims) on cells snapped to the
+  grid: no blur.
+- Size / coverage: about 30-45% of the view is shadowed at a time, with clear lit gaps. The per-world `budget` (the sum of the
+  out shadows' full ink shares) gates spawns; Frost gets the largest. Over 4 minutes the coverage is held by `CloudShadowTest`.
 - Tint is a dark *saturated* version of the ground colour per world (deep blue Frost, deep green Verdant, umber-red Ember,
   deep teal Tide, umber Desert), never black, never pink. Core opacity caps: Frost .50, Verdant .48, Ember .46, Tide .50,
   Desert .50 (hard ceiling `CloudShadowLayer.HardCap` = .5); the planet's night-side variants take `nightCapMul` of that.
+- Motion: slow own drift per world plus the ground's scroll x 1.2 (they float above the ground), fade in over 4 s off-screen,
+  frozen while paused.
 - Sorting: above EVERY ground-plane layer of the world (tiles, strips, landmarks, docks, pipes, lamps), below the weather
   layers (mist, wisps, ceiling, snow, grit) and far below gameplay (order 0: enemies, elites, shots, pickups, ship) and the HUD.
-- Cost: 2-4 pooled SpriteRenderers, one material, one cached texture, zero allocation per frame. Low-end phones
-  (KillCamRecorder thresholds) get 2; under 2.5 GB RAM none. Kill switch `CloudShadowLayer.Enabled`.
+- Cost: 2-3 pooled SpriteRenderers, one material, one cached atlas (512 KB) + 128x128 detail map, zero allocation per frame.
+  Low-end phones (KillCamRecorder thresholds) get 2 smaller shapes at a lower budget; under 2.5 GB RAM none.
+  Kill switch `CloudShadowLayer.Enabled`.
 - The layer is only built in play: edit-mode art measurements (luminance, lane, dock, mask) never include it.
-- Tests: `CloudShadowTest`. Preview: `CloudShadowPreview.Run` (`CLOUD_SHADOW_DIR`).
+- Tests: `CloudShadowTest`. Preview: `CloudShadowPreview.Run` (`CLOUD_SHADOW_DIR`, `CLOUD_FROST_CAND`).

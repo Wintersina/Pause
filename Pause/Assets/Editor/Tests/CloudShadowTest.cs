@@ -28,11 +28,15 @@ public static class CloudShadowTest
         fails = 0;
         using var sandbox = new TestHarness.Sandbox();
         var tier = CloudShadowLayer.DeviceTier;
+        CloudShadowLayer.TestSeed = 7;                  // the same shadows every run
         try
         {
             Worlds();
             EditModeExcluded();
             Caps();
+            Shapes();
+            Coverage();
+            Rendering();
             Sorting();
             Motion();
             Pause();
@@ -43,6 +47,7 @@ public static class CloudShadowTest
         finally
         {
             CloudShadowLayer.ForceInEditMode = false;
+            CloudShadowLayer.TestSeed = 0;
             CloudShadowLayer.Enabled = true;
             CloudShadowLayer.DeviceTier = tier;
             Time.timeScale = 1f;
@@ -80,7 +85,7 @@ public static class CloudShadowTest
         {
             var wb = Fresh(w);
             var cs = wb.Current != null ? wb.Current.CloudShadows : null;
-            Check(w + ": has cloud shadows (" + (cs != null ? cs.Count : 0) + ")", CloudShadowLayer.Has(w) && cs != null && cs.Count >= 2 && cs.Count <= CloudShadowLayer.MaxShadows);
+            Check(w + ": has cloud shadows (" + (cs != null ? cs.Count : 0) + ")", CloudShadowLayer.Has(w) && cs != null && cs.Count >= 2 && cs.Count <= 3);
             if (cs == null) continue;
             Run(wb, 20f);
             Check(w + ": some shadow is out and visible after 20 s (" + cs.ActiveCount + ")", cs.ActiveCount >= 1 && VisibleCount(cs) >= 1);
@@ -149,17 +154,148 @@ public static class CloudShadowTest
             Check(w + ": renderers share one material and one texture",
                   SharedMaterial(cs) && snapped);
         }
-        var tex = CloudShadowArt.Texture;
-        Check("the shadow atlas is stepped: " + CloudShadowArt.AlphaLevels + " alpha levels (<= " + (CloudShadowArt.Steps + 1) + "), point-filtered",
-              CloudShadowArt.AlphaLevels >= 3 && CloudShadowArt.AlphaLevels <= CloudShadowArt.Steps + 1 && tex.filterMode == FilterMode.Point);
-        Check("the atlas is built once and cached", ReferenceEquals(CloudShadowArt.Shapes(), CloudShadowArt.Shapes()) && CloudShadowArt.Texture == tex);
+        var mask = CloudShadowArt.Mask;
+        Check("the mask atlas is one " + CloudShadowArt.Size + "x" + CloudShadowArt.Height + " point-filtered texture, built once and cached",
+              mask.width == CloudShadowArt.Size && mask.filterMode == FilterMode.Point && ReferenceEquals(CloudShadowArt.Shapes(), CloudShadowArt.Shapes()) && CloudShadowArt.Mask == mask);
+    }
+
+    // The shader's stepped alpha (CloudShadowLayer.Quantize mirrors it): a ramp lands on a handful of levels, the rims dither.
+    static void Quantised()
+    {
+        var levels = new System.Collections.Generic.HashSet<int>();
+        for (int i = 0; i <= 100; i++)
+            for (int c = 0; c < 16; c++) levels.Add(Mathf.RoundToInt(CloudShadowLayer.Quantize(i / 100f, c & 3, c >> 2) * 1000f));
+        Check("a density ramp quantises to " + levels.Count + " alpha levels (" + CloudShadowArt.Steps + " steps + 0)", levels.Count == CloudShadowArt.Steps + 1);
+        int lo = 0, hi = 0;
+        for (int c = 0; c < 16; c++)
+        {
+            float q = CloudShadowLayer.Quantize(.5f, c & 3, c >> 2);
+            if (q < .5f) lo++; else hi++;
+        }
+        Check("a half-way density dithers across a 4x4 block (" + lo + " below / " + hi + " above the step)", lo >= 4 && hi >= 4);
+        bool bayer = true;
+        var seen = new bool[16];
+        for (int y = 0; y < 4; y++) for (int x = 0; x < 4; x++) seen[CloudShadowLayer.Bayer4(x, y)] = true;
+        foreach (bool b in seen) bayer &= b;
+        Check("the dither is a full 4x4 Bayer matrix", bayer);
+        bool capped = true;
+        for (int i = 0; i <= 100; i++) capped &= CloudShadowLayer.Quantize(i / 100f, i, i * 3) <= 1f && CloudShadowLayer.Quantize(i / 100f, i, i * 3) >= 0f;
+        Check("the stepped alpha stays within 0..1 (the vertex alpha, <= the cap, scales it)", capped);
+    }
+
+    // The shapes are cloud outlines: irregular boundaries, several lobes, ink that fills part of the rect, not a blob.
+    static void Shapes()
+    {
+        Quantised();
+        string[] kinds = { "cumulus", "stratocumulus", "cirrus" };
+        for (int i = 0; i < CloudShadowArt.ShapeCount; i++)
+        {
+            int k = CloudShadowArt.ShapeKind(i);
+            float ink = CloudShadowArt.Ink(i), iso = CloudShadowArt.Isoperimetric(i);
+            int lobes = CloudShadowArt.Lobes(i);
+            bool ok = ink >= (k == 2 ? .08f : .3f) && ink <= .75f && iso >= 3f && (k == 2 || lobes >= 2);
+            Check("shape " + i + " (" + kinds[k] + " " + CloudShadowArt.ShapeW(i) + "x" + CloudShadowArt.ShapeH(i) + "): ink " + ink.ToString("F2") + " of its rect, outline P^2/4piA " + iso.ToString("F1") +
+                  " (a disc or square is 1.3), " + lobes + " lobes", ok);
+        }
+        Check("the shapes are big: the cumulus are 320 cells wide (~1.45 screen widths), the stratocumulus 384", CloudShadowArt.ShapeW(0) == 320 && CloudShadowArt.ShapeW(1) == 320 && CloudShadowArt.ShapeW(2) == 384 && CloudShadowArt.ShapeCount == 6);
+    }
+
+    // Coverage: over a 4-minute run the shadows hold their world's share of the view, never above the ceiling, never a uniform veil
+    // (clear lit gaps remain), and the quads' own area stays bounded.
+    static void Coverage()
+    {
+        foreach (string w in With)
+        {
+            var wb = Fresh(w);
+            var cs = wb.Current.CloudShadows;
+            float sum = 0f, max = 0f, min = 1f, maxQuad = 0f;
+            int n = 0, empty = 0;
+            for (float t = 0f; t < 240f; t += Dt)
+            {
+                wb.Step(Dt);
+                if (((int)(t / Dt)) % 120 != 0) continue;
+                float c = cs.Coverage();
+                if (t >= 20f) { sum += c; n++; min = Mathf.Min(min, c); if (c < .03f) empty++; }
+                max = Mathf.Max(max, c);
+                // the fill cost: each drawn quad's rect over the view (transparent corners included), in screens
+                float quad = 0f;
+                float hwv = wb.Current.HalfWidth, hhv = wb.Current.HalfHeight;
+                for (int i = 0; i < cs.Count; i++)
+                {
+                    if (!cs.IsActive(i) || cs.Renderer(i).color.a <= 0f) continue;
+                    var pos = cs.Position(i);
+                    float ox = Mathf.Max(0f, Mathf.Min(pos.x + cs.HalfExtent(i), hwv) - Mathf.Max(pos.x - cs.HalfExtent(i), -hwv));
+                    float oy = Mathf.Max(0f, Mathf.Min(pos.y + cs.HalfExtentY(i), hhv) - Mathf.Max(pos.y - cs.HalfExtentY(i), -hhv));
+                    quad += ox * oy / (4f * hwv * hhv);
+                }
+                maxQuad = Mathf.Max(maxQuad, quad);
+            }
+            float mean = sum / n;
+            Check(w + ": coverage averages " + mean.ToString("F2") + " (budget " + cs.Budget.ToString("F2") + ", range " + min.ToString("F2") + " .. " + max.ToString("F2") + "), ceiling " + CloudShadowLayer.MaxCoverage,
+                  mean >= (w == "Frost" ? .26f : .2f) && mean <= .55f && max <= CloudShadowLayer.MaxCoverage && empty <= n / 6);
+            Check(w + ": the lit gaps stay (never a veil: peak coverage " + max.ToString("F2") + " < 0.6) and the quads' summed area is bounded (" + maxQuad.ToString("F2") + " screens <= 2.0)", max < .6f && maxQuad <= 2.0f);
+        }
+        Check("Frost has the largest budget", CloudShadowLayer.Looks[0].world == "Frost" && CloudShadowLayer.Looks[0].budget >= MaxCover());
+    }
+
+    static float MaxCover()
+    {
+        float m = 0f;
+        foreach (var l in CloudShadowLayer.Looks) m = Mathf.Max(m, l.budget);
+        return m;
+    }
+
+    // What the GPU draws: with only the shadows visible over white, the picture holds a few stepped levels, not a smooth gradient.
+    static void Rendering()
+    {
+        var wb = Fresh("Desert");
+        var set = wb.Current;
+        var cs = set.CloudShadows;
+        Run(wb, 8f);
+        // one quad alone: a quad's alpha is constant, so it lands on a handful of levels (two quads would add their overlaps)
+        bool kept = false;
+        for (int i = 0; i < cs.Count; i++)
+        {
+            if (cs.IsActive(i) && !kept) { kept = true; continue; }
+            cs.Renderer(i).enabled = false;
+        }
+        var hidden = new System.Collections.Generic.List<Renderer>();
+        foreach (var r in set.Root.GetComponentsInChildren<Renderer>(true))
+            if (!r.transform.IsChildOf(cs.Root) && r.enabled) { r.enabled = false; hidden.Add(r); }
+        var cam = Camera.main;
+        cam.clearFlags = CameraClearFlags.SolidColor;
+        cam.backgroundColor = Color.white;
+        const int w = 270, h = 600;
+        var rt = new RenderTexture(w, h, 24, RenderTextureFormat.ARGB32, RenderTextureReadWrite.sRGB);
+        var tex = new Texture2D(w, h, TextureFormat.RGB24, false);
+        var prevTarget = cam.targetTexture; var prevActive = RenderTexture.active;
+        cam.targetTexture = rt;
+        cam.Render();
+        RenderTexture.active = rt;
+        tex.ReadPixels(new Rect(0, 0, w, h), 0, 0);
+        cam.targetTexture = prevTarget; RenderTexture.active = prevActive;
+        var px = tex.GetPixels32();
+        Object.DestroyImmediate(tex); Object.DestroyImmediate(rt);
+        foreach (var r in hidden) if (r != null) r.enabled = true;
+        var levels = new System.Collections.Generic.HashSet<int>();
+        int dark = 0, white = 0;
+        float darkest = 1f;
+        foreach (var c in px)
+        {
+            levels.Add(c.r);
+            if (c.r >= 250) white++; else dark++;
+            darkest = Mathf.Min(darkest, c.r / 255f);
+        }
+        Check("rendered over white: " + levels.Count + " distinct shades (stepped: <= " + (CloudShadowArt.Steps + 2) + " for one shadow), " + dark + " shadowed / " + white + " lit pixels, darkest " + darkest.ToString("F2") + " >= " + (1f - cs.Peak).ToString("F2") + " (the cap)",
+              levels.Count >= 2 && levels.Count <= CloudShadowArt.Steps + 2 && dark > 0 && white > 0 && darkest >= 1f - cs.Peak - .03f);
+        cam.clearFlags = CameraClearFlags.Skybox;
     }
 
     static bool SharedMaterial(CloudShadowLayer cs)
     {
-        var m = cs.Renderer(0).sharedMaterial;
-        for (int i = 1; i < cs.Count; i++) if (cs.Renderer(i).sharedMaterial != m) return false;
-        return m != null;
+        var m = cs.SharedMaterial;
+        for (int i = 0; i < cs.Count; i++) if (cs.Renderer(i).sharedMaterial != m) return false;
+        return m != null && m.shader != null && m.shader.name == "Pause/CloudShadow";
     }
 
     static void Sorting()
@@ -284,6 +420,17 @@ public static class CloudShadowTest
         CloudShadowLayer.DeviceTier = CloudShadowLayer.Tier.Low;
         int low = Fresh("Tide").Current.CloudShadows.Count;
         Check("low-end tier shows fewer shadows (" + low + " vs " + full + ")", low == CloudShadowLayer.LowEndCount && low < full);
+        {
+            var wl = Fresh("Frost");
+            var cl = wl.Current.CloudShadows;
+            bool small = true;
+            for (float t = 0f; t < 240f; t += Dt)
+            {
+                wl.Step(Dt);
+                for (int i = 0; i < cl.Count; i++) if (cl.IsActive(i)) small &= CloudShadowArt.ShapeH(cl.Shape(i)) <= 192;
+            }
+            Check("low-end tier draws only the smaller shapes (<= 192 cells tall) at " + cl.Budget.ToString("F2") + " cover (Frost's " + CloudShadowLayer.Looks[0].budget.ToString("F2") + ")", small && cl.LowEnd && cl.Budget < CloudShadowLayer.Looks[0].budget);
+        }
         CloudShadowLayer.DeviceTier = CloudShadowLayer.Tier.Off;
         Check("off tier builds no layer", Fresh("Tide").Current.CloudShadows == null);
         CloudShadowLayer.DeviceTier = CloudShadowLayer.Tier.Full;

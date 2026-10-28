@@ -82,6 +82,7 @@ public static class WorldArtPreload
     // One frame: collect finished requests, keep MaxInFlight going.
     public static void Pump()
     {
+        if (CloudShadowArt.Pending) CloudShadowArt.Pump(Application.isPlaying ? 1.5f : float.MaxValue);
         for (int i = inFlight.Count - 1; i >= 0; i--)
         {
             var r = inFlight[i];
@@ -219,7 +220,11 @@ public static class WorldArtPreload
             Request<Sprite>(tileFolder + layer.texture);
         }
         if (wrap) Request<Shader>(BackdropTile.WrapShader);
-        if (Application.isPlaying && CloudShadowLayer.Enabled && CloudShadowLayer.Has(spec.world)) CloudShadowArt.Shapes();   // the cloud-shadow atlas is procedural: build it now, not mid-play
+        if (Application.isPlaying && CloudShadowLayer.Enabled && CloudShadowLayer.Has(spec.world))
+        {
+            Request<Shader>(CloudShadowLayer.ShaderName);
+            CloudShadowArt.Request();   // the cloud-shadow masks are procedural: built a slice a frame (Pump), not mid-play
+        }
         foreach (var atlas in AtlasesOf(spec.world))
         {
             Request<Texture2D>(folder + atlas);
@@ -336,7 +341,7 @@ public sealed class WorldArtPreloadRunner : MonoBehaviour
     void Update()
     {
         WorldArtPreload.Pump();
-        if (WorldArtPreload.Done) enabled = false;
+        if (WorldArtPreload.Done && !CloudShadowArt.Pending) enabled = false;
     }
 
     void OnDestroy()
