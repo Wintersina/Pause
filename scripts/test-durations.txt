@@ -197,6 +197,7 @@ AchievementCatalogTest 0.2
 BackdropCellClipTest 0.2
 CinematicEarlyClearTest 0.2
 CodexMusicTest 0.2
+CodexShipBulletsTest 1.0
 DesertRosterTest 0.2
 HeartLossFxTest 0.2
 MenuBackdropTest 0.2

@@ -74,6 +74,7 @@ public static class AllTests
         ("KillCamTest", KillCamTest.Execute),
         ("KillCamTelegraphTest", KillCamTelegraphTest.Execute),
         ("CodexMusicTest", CodexMusicTest.Execute),
+        ("CodexShipBulletsTest", CodexShipBulletsTest.Execute),
         ("MenuMusicTest", MenuMusicTest.Execute),
         ("CodexBackdropTest", CodexBackdropTest.Execute),
         ("CodexVettingTest", CodexVettingTest.Execute),

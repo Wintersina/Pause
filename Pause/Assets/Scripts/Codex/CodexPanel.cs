@@ -368,6 +368,9 @@ public class CodexPanel : MonoBehaviour
     Image detailFrame, detailFrameEdge, detailMask, detailArt;
     CodexAnimator detailAnim;
     Mask detailMaskComp;
+    CodexBulletMarks loreMarks;
+    const float LoreLeft = 30f;
+    public const int LoreMaxSize = 26, BulletLoreMaxSize = 30;
     Text detailName, detailPillLabel, detailSubtitle, detailLore, detailIndex;
     Image detailPill, detailLoreCard, detailLoreEdge;
     RectTransform detailArtBox;
@@ -971,11 +974,13 @@ public class CodexPanel : MonoBehaviour
         detailLore.verticalOverflow = VerticalWrapMode.Truncate;
         detailLore.resizeTextForBestFit = true;
         detailLore.resizeTextMinSize = 15;   // CodexUi.TextUnits: the smallest type that still clears 7 dp on the floor scale
-        detailLore.resizeTextMaxSize = 26;
+        detailLore.resizeTextMaxSize = LoreMaxSize;
         var lrt = detailLore.rectTransform;
         CodexUi.Stretch(lrt);
-        lrt.offsetMin = new Vector2(30f, LoreBottom);
+        lrt.offsetMin = new Vector2(LoreLeft, LoreBottom);
         lrt.offsetMax = new Vector2(-34f, -20f);
+        loreMarks = detailLore.gameObject.AddComponent<CodexBulletMarks>();
+        loreMarks.Prepare();
         BuildTally();
     
         // the sub-tab row (INFO | BACKDROPS) and the world's backdrop gallery under it
@@ -1723,6 +1728,18 @@ public class CodexPanel : MonoBehaviour
         tallyValues[2].color = killed > 0 ? CodexUi.Body : CodexUi.Muted;
     }
 
+    // A bullet list (ships): the lore text is inset by the marker gutter and the markers follow its lines.
+    void SetLoreBulleted(bool on)
+    {
+        var lrt = detailLore.rectTransform;
+        lrt.offsetMin = new Vector2(LoreLeft + (on ? CodexBulletMarks.Gutter : 0f), lrt.offsetMin.y);
+        // A bullet list reads a step larger where there is room (best fit still shrinks it to fit a narrow phone, never below the floor).
+        detailLore.resizeTextMaxSize = on ? BulletLoreMaxSize : LoreMaxSize;
+        loreMarks.SetBulleted(on);
+    }
+
+    public CodexBulletMarks LoreMarks { get { return loreMarks; } }
+
     public void ShowDetail(CodexEntry entry)
     {
         if (entry == null) return;
@@ -1738,6 +1755,7 @@ public class CodexPanel : MonoBehaviour
         string sub = found ? entry.Subtitle : null;
         detailSubtitle.text = sub ?? string.Empty;
         detailSubtitle.gameObject.SetActive(sub != null);
+        SetLoreBulleted(found && CodexCatalogue.IsBulleted(entry));
         detailLore.text = found ? DetailText(entry) : LockedHint;
         PaintTally(entry, found);
         detailLore.color = found ? CodexUi.Body : CodexUi.Muted;

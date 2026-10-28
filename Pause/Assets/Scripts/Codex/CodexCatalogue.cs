@@ -245,13 +245,38 @@ public static class CodexCatalogue
             string lore;
             if (!ShipLore.TryGetValue(key, out lore))
                 lore = "A hull from the space dock, ready to carry a lost pilot a little closer to home.";
-            lore += "\n\n" + LoadoutLore(index) + "\n" + LivesLore(index) + "\n" + ColoursLore(index);
+            lore = string.Join("\n", ShipBullets(lore, index));
             list.Add(new CodexEntry(ShipPrefix + key, ShipId.NameOf(index), CodexCategory.Ships,
                 () => ShipHullArt.StockRest(index), lore));
         }
 
         list.InsertRange(RosterInsertIndex(list), RosterEntries());
         return list.ToArray();
+    }
+
+    // A ship's page is a bullet list, one paragraph (one "\n") per bullet: its description (a bullet per
+    // sentence), then the spec lines -- attack, secret power, hearts, colours, upgrades, start speed. The text is
+    // the same words as before, only cut into bullets; CodexBulletMarks draws the markers.
+    public static string[] ShipBullets(string description, int ship)
+    {
+        var bullets = new List<string>();
+        foreach (string sentence in description.Split(new[] { ". " }, System.StringSplitOptions.RemoveEmptyEntries))
+        {
+            string s = sentence.Trim().TrimEnd('.');
+            if (s.Length > 0) bullets.Add(s);
+        }
+        string spec = LoadoutLore(ship) + "\n" + LivesLore(ship) + "\n" + ColoursLore(ship);
+        foreach (string line in spec.Split('\n')) if (line.Length > 0) bullets.Add(line);
+        return bullets.ToArray();
+    }
+
+    // Off only while the preview tool renders the old paragraph page for a before / after comparison.
+    public static bool BulletsEnabled = true;
+
+    // Whether an entry's lore is shown as a bullet list.
+    public static bool IsBulleted(CodexEntry e)
+    {
+        return BulletsEnabled && e != null && e.category == CodexCategory.Ships;
     }
 
     // What the ship fights with, from ShipLoadoutTable: its attack (fires when

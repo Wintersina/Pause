@@ -72,6 +72,65 @@ public static class CodexPreview
         EditorApplication.Exit(code);
     }
 
+    // The SHIPS detail page before (the old paragraph) and after (bullets) for NeonComet, the ship with the
+    // longest page and Paragon, at 480 x 854 and 1080 x 2340: ships-<ship>-<WxH>-<before|after>.png
+    //   Unity -batchmode -projectPath <abs>/Pause -executeMethod CodexPreview.RunShips
+    public static void RunShips()
+    {
+        string dir = Environment.GetEnvironmentVariable("PAUSE_CODEX_PREVIEW_DIR");
+        if (string.IsNullOrEmpty(dir)) dir = "/private/tmp";
+        Directory.CreateDirectory(dir);
+        int code = 0;
+        try
+        {
+            using (new TestHarness.Sandbox())
+            {
+                EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
+                DeveloperUnlocks.SetEnabled(true);
+                Codex.Reload();
+                var panel = CodexPanel.Open(null);
+                panel.SkipAnimations();
+                int longest = ShipId.All.OrderByDescending(s => Codex.Find(CodexCatalogue.ShipPrefix + ShipId.KeyOf(s)).lore.Length).First();
+                var ships = new[] { ShipId.Starter, longest, 16 }.Distinct().ToArray();
+                foreach (int ship in ships)
+                {
+                    var e = Codex.Find(CodexCatalogue.ShipPrefix + ShipId.KeyOf(ship));
+                    foreach (var size in new[] { new Vector2Int(480, 854), new Vector2Int(1080, 2340), new Vector2Int(1536, 2048) })
+                    {
+                        foreach (bool after in new[] { false, true })
+                        {
+                            CodexCatalogue.BulletsEnabled = after;
+                            var shown = e;
+                            if (!after)
+                            {
+                                // the old paragraph page: the description, a blank line, the spec lines
+                                var bullets = e.lore.Split('\n');
+                                int spec = (CodexCatalogue.LoadoutLore(ship) + "\n" + CodexCatalogue.LivesLore(ship) + "\n" + CodexCatalogue.ColoursLore(ship)).Split('\n').Length;
+                                int d = bullets.Length - spec;
+                                string old = string.Join(". ", bullets.Take(d)) + ".\n\n" + string.Join("\n", bullets.Skip(d));
+                                shown = new CodexEntry(e.id, e.name, e.category, () => e.Sprite, old);
+                            }
+                            float sf = size.x / 800f;
+                            var tex = Capture(panel, size.x, size.y, () => { panel.ShowCategory(CodexCategory.Ships); panel.SkipAnimations(); panel.ShowDetail(shown); panel.SkipAnimations(); }, 1, sf);
+                            File.WriteAllBytes(Path.Combine(dir, "ships-" + ShipId.KeyOf(ship) + "-" + size.x + "x" + size.y + "-" + (after ? "after" : "before") + ".png"), tex.EncodeToPNG());
+                            UnityEngine.Object.DestroyImmediate(tex);
+                        }
+                    }
+                }
+                CodexCatalogue.BulletsEnabled = true;
+                panel.Close();
+                panel.SkipAnimations();
+                DeveloperUnlocks.SetEnabled(false);
+            }
+        }
+        catch (Exception e)
+        {
+            Debug.LogException(e);
+            code = 1;
+        }
+        EditorApplication.Exit(code);
+    }
+
     // The ACHIEVEMENTS tab on a 1170 x 2532 phone (800 x 1732 canvas units), in the
     // states a player sees, into $PAUSE_CODEX_PREVIEW_DIR (default /private/tmp):
     //   achievements-<n>-<what>.png
