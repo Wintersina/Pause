@@ -66,6 +66,7 @@ CloakShieldTest 3.0
 CodexAchievementsTabTest 31.5
 CodexBackdropTest 13.4
 CodexMusicTest 0.5
+CodexShipBulletsTest 1.0
 CodexNewDotsTest 150.3
 CodexVettingTest 31.3
 CodexWhiteSpriteTest 65.0

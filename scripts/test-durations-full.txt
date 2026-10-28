@@ -166,6 +166,7 @@ AsteroidColliderTest 0.2
 BackdropCellClipTest 0.2
 BossLaserArtTest 0.2
 CodexMusicTest 0.2
+CodexShipBulletsTest 1.0
 CreditsTest 0.2
 DeathPanelTest 0.2
 DesertRosterTest 0.2
