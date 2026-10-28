@@ -145,6 +145,21 @@ public class ShipSpinDrift : MonoBehaviour
         return sr;
     }
 
+    // The Ninja's blade-arc ring (its boost drawing is a pale, near-white
+    // circle) is not drawn while the blue-atom shield is up on the flying
+    // player ship: the shield is the only outline then. The sprite and frame
+    // bookkeeping carry on, so the ring is back the moment the shield ends.
+    // Ninja only (the UFO's ring of light stays), and not for the dock or
+    // title traffic (spinHull false).
+    public bool RingHiddenByShield
+    {
+        get
+        {
+            return spinHull && ShipExhaustStyle.For(ShipIndex).kind == ExhaustKind.SpinBlades &&
+                   boostHolder != null && boostHolder.activeInHierarchy;
+        }
+    }
+
     bool Flying
     {
         get
@@ -173,7 +188,7 @@ public class ShipSpinDrift : MonoBehaviour
         }
         Apply(false);
         bool on = powered && ShipExhaust.UsesSpinDrift(ShipIndex);
-        ring.enabled = on;
+        ring.enabled = on && !RingHiddenByShield;
         wake.enabled = on && flying;
     }
 
