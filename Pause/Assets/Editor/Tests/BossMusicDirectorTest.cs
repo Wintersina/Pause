@@ -15,7 +15,12 @@ public static class BossMusicDirectorTest
         {
             Maps();
             foreach (int world in new[] { 0, 1, 2, 3, 4, 5, 6 }) WholeSong(world);
-            Dynamics();
+            // the director's own response to the music (sections, look-ahead, resume) on manual songs, without the
+            // difficulty ladder: its floor holds a breakdown at the Kraken's / Drake's least intensity (BossDifficultyTest)
+            bool ladder = BossDifficulty.Enabled;
+            BossDifficulty.Enabled = false;
+            try { Dynamics(); }
+            finally { BossDifficulty.Enabled = ladder; }
             Actor();
         }
         finally { BeatClock.Now = oldNow; }

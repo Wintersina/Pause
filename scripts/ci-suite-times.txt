@@ -41,6 +41,7 @@ BoostJetTest 0.0
 BossAttackShotArtTest 0.2
 BossAttackTest 34.0
 BossDamageTest 173.8
+BossDifficultyTest 60.0
 BossEncounterTest 42.6
 BossEntranceTest 31.0
 BossEscapeClockTest 30.1

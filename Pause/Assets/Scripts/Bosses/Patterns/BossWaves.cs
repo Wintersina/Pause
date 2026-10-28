@@ -522,7 +522,8 @@ public sealed class BossWaveVoice
         var src = SourceFor(m, row && altWall);
         var player = host.Player;
         float scale = host.ShotSpeedScale;
-        float nominal = style.speed * (1f + .12f * Mathf.Clamp01(intensity)) * scale;
+        // (x the boss's place on the difficulty ladder: BossDifficulty.shotSpeedScale; the gap chain plans with it)
+        float nominal = style.speed * (1f + .12f * Mathf.Clamp01(intensity)) * BossDifficulty.ShotSpeed(world) * scale;
         float r = style.style == BossShotStyle.Bolt ? .13f : .12f;
         float mult = GapMultiple(world, intensity);
         float clear = mult * 2f * PatternSim.ShipRadius;

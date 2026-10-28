@@ -128,7 +128,17 @@ public static class BossWaveTest
         Check("Iron Kraken bullets ramp breakdown/drive/build/drop (" + quiet + "/" + mid + "/" + high + "/" + peak + ")", quiet > 0 && mid > quiet && high > mid && peak > high);
     }
 
+    // (the director's response to the SONG, so without the difficulty ladder: BossDifficulty's floor would hold the
+    // Kraken's breakdown at its drive's intensity; BossDifficultyTest measures the ladder on top of this)
     static int Count(int world, float energy, string kind)
+    {
+        bool ladder = BossDifficulty.Enabled;
+        BossDifficulty.Enabled = false;
+        try { return CountRaw(world, energy, kind); }
+        finally { BossDifficulty.Enabled = ladder; }
+    }
+
+    static int CountRaw(int world, float energy, string kind)
     {
         var sim = new PatternSim { cap = 256 };
         var music = new Manual { Moment = new MusicMoment { energy = energy, bass = energy, accent = energy, kind = kind } };
