@@ -19,6 +19,7 @@ public static class MenuNav
     // Test seams: how an async load starts, and which scene is the active one.
     public static System.Func<string, AsyncOperation> StartAsync = name => SceneManager.LoadSceneAsync(name);
     public static System.Func<string> ActiveScene = () => SceneManager.GetActiveScene().name;
+    public static System.Action<AsyncOperation, System.Action> OnComplete = (op, done) => op.completed += _ => done();
     public static System.Func<bool> Playing = () => Application.isPlaying;
     public static System.Action<string> LoadSync = name => SceneManager.LoadScene(name);
 
@@ -43,7 +44,7 @@ public static class MenuNav
         Loading = true;
         Pending = scene;
         AsyncLoads++;
-        op.completed += _ => Finish();
+        OnComplete(op, Finish);
     }
 
     static void Finish() { Loading = false; Pending = null; }
@@ -65,6 +66,7 @@ public static class MenuNav
         StartAsync = name => SceneManager.LoadSceneAsync(name);
         ActiveScene = () => SceneManager.GetActiveScene().name;
         Playing = () => Application.isPlaying;
+        OnComplete = (op, done) => op.completed += _ => done();
         LoadSync = name => SceneManager.LoadScene(name);
     }
 }

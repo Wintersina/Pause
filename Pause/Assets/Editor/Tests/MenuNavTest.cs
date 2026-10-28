@@ -30,6 +30,7 @@ public static class MenuNavTest
     static void Routing()
     {
         MenuNav.Reset();
+        MenuNav.OnComplete = (op, done) => { };
         var asyncNames = new System.Collections.Generic.List<string>();
         var syncNames = new System.Collections.Generic.List<string>();
         MenuNav.Playing = () => true;
@@ -43,6 +44,7 @@ public static class MenuNavTest
         Check("a second tap while one load is pending is ignored", asyncNames.Count == 1 && syncNames.Count == 0);
 
         MenuNav.Reset();
+        MenuNav.OnComplete = (op, done) => { };
         asyncNames.Clear();
         MenuNav.Playing = () => true;
         MenuNav.StartAsync = n => { asyncNames.Add(n); return new AsyncOperation(); };
@@ -69,6 +71,7 @@ public static class MenuNavTest
 
         // the real BackNavigator default goes through MenuNav
         MenuNav.Reset();
+        MenuNav.OnComplete = (op, done) => { };
         MenuNav.Playing = () => true;
         MenuNav.ActiveScene = () => "creditsS7";
         int started = 0;
