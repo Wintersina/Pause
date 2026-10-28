@@ -64,8 +64,19 @@ public static class SpinWindTest
             drift.Step(1f / 24f);
             Check(who + " lit boost holder switches to the boost drift", drift.ShowingBoost &&
                   drift.Ring.sprite.name.StartsWith(index + "_RingBoost"));
+            // The Ninja's white boost ring is hidden under its shield; the UFO's ring stays.
+            bool ninja = ShipExhaustStyle.For(index).kind == ExhaustKind.SpinBlades;
+            Check(who + " ring under a lit shield: " + (ninja ? "hidden" : "still drawn"),
+                  drift.Ring.enabled == !ninja && drift.Wake.enabled == drift.Wake.enabled);
+            Check(who + " shield timing constants unchanged",
+                  ShipShield.AnticipationTime == .08f && ShipShield.ZipTime == .18f && ShipShield.ExpireWindow == 1.5f);
+            ship.GetComponent<ShipSpinDrift>().spinHull = false;
+            drift.Step(1f / 24f);
+            Check(who + " non-player (dock/traffic) ring is never hidden", drift.Ring.enabled);
+            ship.GetComponent<ShipSpinDrift>().spinHull = true;
             holder.SetActive(false);
             drift.Step(1f / 24f);
+            Check(who + " ring is back when the shield ends", drift.Ring.enabled);
             Check(who + " drift drops back when the boost ends", !drift.ShowingBoost);
 
             drift.powered = false;
