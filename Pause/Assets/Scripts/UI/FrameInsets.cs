@@ -14,8 +14,8 @@ public static class FrameInsets
     const int Threshold = 60;      // summed RGB difference from the fill
     const float Percentile = .6f;
     // Pixel depths measured from the shipped art: Space, Frost, Verdant, Ember, Tide, Storm, Desert.
-    static readonly int[] TopFallback = { 67, 102, 81, 87, 95, 107, 104 };
-    static readonly int[] BottomFallback = { 61, 117, 100, 87, 108, 121, 82 };
+    static readonly int[] TopFallback = { 67, 83, 81, 87, 95, 107, 104 };
+    static readonly int[] BottomFallback = { 61, 83, 100, 87, 108, 121, 82 };
 
     public static int MeasureTopPixels(Texture2D t, out bool ok) { return Measure(t, true, out ok); }
     public static int MeasureBottomPixels(Texture2D t, out bool ok) { return Measure(t, false, out ok); }

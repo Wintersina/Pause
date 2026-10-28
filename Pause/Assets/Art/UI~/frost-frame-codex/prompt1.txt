@@ -1,0 +1,13 @@
+Image generation job: a new FROST death-panel frame for the mobile shooter Pause. Make TWO candidate images and save them in the current directory as frost_frame_A.png and frost_frame_B.png.
+
+Reference images (attached): ref_frost_current.png is today's Frost frame (its colours and ice look are right, but its inner opening has irregular crystal corners and icicles hanging INTO the opening, which we are replacing). ref_ember.png and ref_tide.png show the clean frame style of the other worlds (crisp neon pixel art, same line weight, flat dark opening).
+
+Requirements for each candidate:
+- Portrait frame, exactly 600 x 900 pixels, RGBA PNG, transparent outside the frame's outer edge, hard pixel-art edges (no blur, no anti-aliased gradients, no photoreal shading).
+- The frame is a plain RECTANGLE ring: straight, clean inner edges, square inner corners. The opening (the inside) is a perfect axis-aligned rectangle filled with one flat opaque dark navy colour RGB(14, 31, 55), nothing protruding into it: no icicles, crystals, glints or ornaments inside the opening at all.
+- Ring thickness: the side bars about 50-56 px thick, the top and bottom bars about 70-80 px thick, measured from the outer edge to the opening. Same thickness all the way along each bar so the opening edge is straight.
+- Look: icy blue / white pixel-art ice, bright cyan-blue neon edge line against the opening side like the current Frost frame, pale frost highlights, deep blue shading. A few small ice crystals and frost glints along the OUTER edge and the four outer corners only, plus a gentle fringe of short icicles hanging only on the outside of the bottom bar / outer top edge. Everything ornamental stays on the outside of the ring; the inner side of the ring is a clean straight lit edge.
+- Colours must stay recognisably Frost (ice blue, white, deep navy), same saturation family as ref_frost_current.png.
+- Candidate A: calm, mostly smooth ice slab bar with sparse small crystals at the corners. Candidate B: a bit richer, a faceted crystal-cluster at each outer corner and small crystals spaced along the outer edge.
+- No text, no drop shadow, no glow outside the sprite.
+Save the two PNGs, then reply with one line per file.

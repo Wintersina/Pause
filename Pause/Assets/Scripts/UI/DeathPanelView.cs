@@ -88,6 +88,34 @@ public class DeathPanelView : MonoBehaviour, IPointerDownHandler
     // fit's 12-unit side margin, which is why it stays at or under 8 (the widest it can be at 480x854).
     static readonly float[] FrameExtraHalf = { 0f, 0f, 0f, 0f, 0f, 0f, 8f };
     public static float FrameExtra(int world) { return FrameExtraHalf[Mathf.Clamp(world, 0, FrameExtraHalf.Length - 1)]; }
+    // Every plate (banner, cards, buttons) is a rectangle with a PlateCut-unit 45 degree cut at its top-left and
+    // bottom-right corners, the buttons' shipped cut (30 px at 200 ppu). The banner is a plain rectangle, so it must
+    // clear every frame's inner corners: FrameCornerCut is the leg (units) of the 45 degree cut each frame's inner
+    // opening makes at its corners, measured from the frame sprites (the dark opening flood-filled from the centre, the
+    // corner region's area turned into the equivalent 45 degree triangle's leg; sprite px x 0.667), and SideInnerPx how
+    // deep the side border art reaches in on the middle rows (sprite px; 0.667 units each).
+    // Space, Frost, Verdant, Ember, Tide, Storm, Desert.
+    static readonly float[] FrameCornerCut = { 26f, 0f, 38f, 24f, 34f, 10f, 16f };
+    static readonly float[] SideInnerPx = { 35f, 58f, 52f, 53f, 62f, 59f, 87f };
+    public const float PlateCut = 15f;
+    const float BorderPxToUnits = 100f / 83.33f / FrameBorderScale;
+    const float BannerShadow = 8f, BannerMinHalf = 215f;
+    // Half the width of the frame's dark opening on the middle rows.
+    static float OpeningHalf(int world) { return FrameWidth(world) * .5f - SideInnerPx[Mathf.Clamp(world, 0, 6)] * BorderPxToUnits; }
+    // The banner (body + drop shadow) spans the opening less BannerGap each side, and further in where the frame's
+    // corner cut would meet its square top-right corner (the cut TL / BR corners clear diagonally).
+    public static float BannerSpanHalf(int world)
+    {
+        float gapY = FrameInnerTop(world) - BannerTop(world);
+        float cut = FrameCornerCut[Mathf.Clamp(world, 0, 6)];
+        float gapX = Mathf.Max(BannerGap, cut + BannerGap * 1.41421356f - gapY);
+        return Mathf.Clamp(OpeningHalf(world) - gapX, BannerMinHalf, 320f);
+    }
+    static Sprite CutBanner(int world)
+    {
+        float half = BannerSpanHalf(world);
+        return DeathPanelShapes.Banner(2f * half - BannerShadow, BannerHeight - BannerShadow, BannerShadow, PlateCut);
+    }
     // The frame sprite's drawn size for a world (panel body plus glow plus the world's extra width).
     public static float FrameWidth(int world) { return Width + 2f * GlowMargin + 2f * FrameExtra(world); }
     public const float FrameHeight = Height + 2f * GlowMargin;
@@ -354,8 +382,9 @@ public class DeathPanelView : MonoBehaviour, IPointerDownHandler
     void BuildHeader()
     {
         // The Akira title-card stripe: a red slab behind the heading.
-        slab = NewImage("TitleSlab", panel, Load("dp_slab"), Color.white);
-        Place(slab.rectTransform, Shifted(Centered(0f, HeaderRect.center.y, 640f, BannerHeight)));
+        int w = HudSkin.CurrentWorld;
+        slab = NewImage("TitleSlab", panel, CutBanner(w), Color.white);
+        Place(slab.rectTransform, Shifted(Centered(0f, HeaderRect.center.y, 2f * BannerSpanHalf(w), BannerHeight)));
 
         var title = NewText("Title", panel, "FLIGHT COMPLETE", 40, Bone, TextAnchor.MiddleCenter);
         Place(title.rectTransform, Shifted(HeaderRect));
@@ -436,7 +465,7 @@ public class DeathPanelView : MonoBehaviour, IPointerDownHandler
 
         // The card is drawn in its final colours; the accent is a slanted
         // slab down its left edge (dp_bar, tinted).
-        var bg = NewImage("Background", card, Load("dp_card"), Color.white);
+        var bg = NewImage("Background", card, DeathPanelShapes.MirroredCard(Load("dp_card")), Color.white);
         bg.type = Image.Type.Sliced;
         Stretch(bg.rectTransform);
         var bar = NewImage("Accent", card, Load("dp_bar"), accent);
