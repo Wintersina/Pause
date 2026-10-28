@@ -81,10 +81,22 @@ public class DeathPanelView : MonoBehaviour, IPointerDownHandler
     public const float ButtonColumnGap = 24f;
     // Space, Frost, Verdant, Ember, Tide, Storm, Desert (units).
     static readonly float[] BorderHalfSpan = { 335f, 273f, 310f, 316f, 296f, 319f, 299f };
-    public static float BorderSpan(int world) { return BorderHalfSpan[Mathf.Clamp(world, 0, BorderHalfSpan.Length - 1)]; }
+    // Extra frame half-width per world (units): the frame is drawn this much wider on each side
+    // (its borders keep their size, the art simply moves outward) so its icicles, vines, coral or
+    // worm-head corners clear the cards; the content stays exactly where it was.
+    // The fit (ComputeFit) does not count it, so the text scale stays as it was: the extra comes out of the
+    // fit's 12-unit side margin, which is why it stays at or under 8 (the widest it can be at 480x854).
+    static readonly float[] FrameExtraHalf = { 0f, 0f, 0f, 0f, 0f, 0f, 8f };
+    public static float FrameExtra(int world) { return FrameExtraHalf[Mathf.Clamp(world, 0, FrameExtraHalf.Length - 1)]; }
+    // The frame sprite's drawn size for a world (panel body plus glow plus the world's extra width).
+    public static float FrameWidth(int world) { return Width + 2f * GlowMargin + 2f * FrameExtra(world); }
+    public const float FrameHeight = Height + 2f * GlowMargin;
+    // Distance from the centre line to the frame's inner edge on the button rows (the widened frame included).
+    public static float BorderSpan(int world) { return BaseBorderSpan(world) + FrameExtra(world); }
+    static float BaseBorderSpan(int world) { return BorderHalfSpan[Mathf.Clamp(world, 0, BorderHalfSpan.Length - 1)]; }
     public static float ButtonHalfSpan(int world)
     {
-        float inner = BorderSpan(world);
+        float inner = BaseBorderSpan(world);   // content width does not follow the frame's extra width
         return Mathf.Min(CardWidth * .5f, inner - ButtonClearance - ButtonGlowPad);
     }
     public const float ReplayY = -208f, DockY = -310f;
@@ -334,8 +346,9 @@ public class DeathPanelView : MonoBehaviour, IPointerDownHandler
         frame.pixelsPerUnitMultiplier = FrameBorderScale;
         frame.raycastTarget = true;
         var r = PanelRect;
-        Place(frame.rectTransform, new Rect(r.xMin - GlowMargin, r.yMin - GlowMargin,
-                                            r.width + 2f * GlowMargin, r.height + 2f * GlowMargin));
+        float extra = FrameExtra(HudSkin.CurrentWorld);
+        Place(frame.rectTransform, new Rect(r.xMin - GlowMargin - extra, r.yMin - GlowMargin,
+                                            r.width + 2f * GlowMargin + 2f * extra, r.height + 2f * GlowMargin));
     }
 
     void BuildHeader()

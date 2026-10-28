@@ -909,6 +909,8 @@ public static class ScreenFitScreens
     }
 
     // The flight-complete panel on one world's frame (not part of All).
+    public static System.Func<int, DeathPanelView.Results> DeathSample;
+    public static System.Action<int, float> DeathMeasured;   // (world, screen pixels per canvas unit)
     public static FitScreen DeathOn(int world)
     {
         return new FitScreen { id = "game-death-" + world, scene = "gameS1", title = "Flight complete panel, world " + world, gameplayView = true, fullBleed = true, stage = r => Game(r, GameShot.Death, world) };
@@ -1104,11 +1106,13 @@ public static class ScreenFitScreens
                         bosses = 99999, worlds = 99999, deathCombo = 99999, deathComboKills = 99,
                         killCount = 999, dustCount = 999, atomCount = 99, teleportCount = 99, bossCount = 9, worldCount = 9,
                     };
-                    var viewPanel = DeathPanelView.Build(canvas.transform, best, run, dust, replay, menu, new DeathPanelView.Results
+                    var resultsToShow = new DeathPanelView.Results
                     {
                         score = 9999999, bestScore = 9999999, newBest = true, ranked = true, parts = parts,
                         dustAtStart = 99987.65f, dustWon = 12.34f,
-                    });
+                    };
+                    if (DeathSample != null) resultsToShow = DeathSample(world);
+                    var viewPanel = DeathPanelView.Build(canvas.transform, best, run, dust, replay, menu, resultsToShow);
                     rig.Sync();
                     PlaceHudBand(rig, styler, false);
                     Call(viewPanel, "Fit");
@@ -1123,6 +1127,7 @@ public static class ScreenFitScreens
                             line += " " + slotName + " " + rig.PixelRect(pr.Find(slotName) as RectTransform);
                         line += " card0 " + rig.PixelRect(pr.Find("Card0") as RectTransform);
                         Debug.Log(line);
+                        if (DeathMeasured != null) DeathMeasured(world, fr.width / (pr.Find("Frame") as RectTransform).rect.width);
                     }
                     if (System.Environment.GetEnvironmentVariable("DEATH_FRAME_ONLY") == "1")
                     {
@@ -1135,7 +1140,7 @@ public static class ScreenFitScreens
         }
         Canvas.ForceUpdateCanvases();
         WorldChecks(rig, false);
-        DevBadge(rig);
+        if (DeathSample == null) DevBadge(rig);
     }
 
     // An open portal kept waiting past its grace (PortalPressure): the portal
