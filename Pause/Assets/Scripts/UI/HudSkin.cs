@@ -105,6 +105,54 @@ public static class HudSkin
         new Color32(0, 0, 0, 0),           // Storm
         new Color32(0, 0, 0, 0),           // Desert
     };
+    // The holo glass behind each glyph: a backing disc that is NOT see-through (PlateAlpha) so the
+    // backdrop cannot eat the strokes, plus a thin rim in the world's tint. Dark glass for the light
+    // tints; the two bright-backdrop worlds (dark navy / forest strokes) get frosted light glass.
+    // Order = world index (Space, Frost, Verdant, Ember, Tide, Storm, Desert).
+    public const float PlateAlpha = .82f;
+    static readonly Color[] PlateFills =
+    {
+        new Color32(4, 16, 30, 255),       // Space
+        new Color32(232, 244, 255, 255),   // Frost
+        new Color32(232, 248, 226, 255),   // Verdant
+        new Color32(30, 10, 4, 255),       // Ember
+        new Color32(2, 26, 32, 255),       // Tide
+        new Color32(10, 12, 34, 255),      // Storm
+        new Color32(32, 20, 4, 255),       // Desert
+    };
+    public static Color PlateFill(int world) { return PlateFills[Mathf.Clamp(world, 0, PlateFills.Length - 1)]; }
+    // The rim is the glyph's own tint, so the plate reads as one holographic part with the line.
+    public static Color PlateRim(int world) { return IconTint(world); }
+
+    // One shared texture holds both plate sprites (disc on the left, thin ring on the right), so a
+    // button's plate and rim draw in one batch. Built once, never per frame.
+    const int PlateTile = 128;
+    static Sprite plateDisc, plateRing;
+    static void EnsurePlate()
+    {
+        if (plateDisc != null && plateRing != null) return;
+        var tex = new Texture2D(PlateTile * 2, PlateTile, TextureFormat.RGBA32, false);
+        tex.name = "hud_plate";
+        tex.wrapMode = TextureWrapMode.Clamp;
+        tex.filterMode = FilterMode.Bilinear;
+        var px = new Color32[PlateTile * 2 * PlateTile];
+        float c = (PlateTile - 1) * .5f, r = PlateTile * .5f - 1.5f, ring = 5f;
+        for (int y = 0; y < PlateTile; y++)
+            for (int x = 0; x < PlateTile; x++)
+            {
+                float d = Mathf.Sqrt((x - c) * (x - c) + (y - c) * (y - c));
+                float disc = Mathf.Clamp01(r - d + .5f);
+                float rim = Mathf.Clamp01(Mathf.Min(r - d + .5f, d - (r - ring) + .5f));
+                px[y * PlateTile * 2 + x] = new Color32(255, 255, 255, (byte)Mathf.RoundToInt(disc * 255f));
+                px[y * PlateTile * 2 + PlateTile + x] = new Color32(255, 255, 255, (byte)Mathf.RoundToInt(rim * 255f));
+            }
+        tex.SetPixels32(px); tex.Apply(false, true);
+        plateDisc = Sprite.Create(tex, new Rect(0, 0, PlateTile, PlateTile), new Vector2(.5f, .5f), 100f);
+        plateRing = Sprite.Create(tex, new Rect(PlateTile, 0, PlateTile, PlateTile), new Vector2(.5f, .5f), 100f);
+    }
+    public static Sprite PlateDisc { get { EnsurePlate(); return plateDisc; } }
+    public static Sprite PlateRing { get { EnsurePlate(); return plateRing; } }
+
     public static Color IconTint(int world) { return IconTints[Mathf.Clamp(world, 0, IconTints.Length - 1)]; }
     public static Color IconHalo(int world) { return IconHalos[Mathf.Clamp(world, 0, IconHalos.Length - 1)]; }
     public static string DeathPanelPath(int world) { return Dir(world) + "dp_panel"; }
