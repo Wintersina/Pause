@@ -177,10 +177,101 @@ public class shopingShips : MonoBehaviour {
         return new[] { SpriteFor(index, 0), SpriteFor(index, 1), SpriteFor(index, 2) };
     }
 
+    // Snaps the read-out to the true saved balance and ends any count-up.
     public void RefreshStarDust()
     {
+        countingUp = false;
         if (starDust == null) return;
-        starDust.text = "\u2726  STAR DUST   " + PlayerPrefs.GetFloat(StarDustLedger.CurrencyKey).ToString("N0");
+        SetShown(PlayerPrefs.GetFloat(StarDustLedger.CurrencyKey));
+    }
+
+    void SetShown(float value)
+    {
+        starDust.text = "\u2726  STAR DUST   " + Mathf.Max(0f, value).ToString("N0");
+    }
+
+    // ------------------------------------------------- purchase count-up
+
+    const float CountUpSeconds = 1.3f, PopupSeconds = 1.5f, PopupRise = 70f;
+
+    bool countingUp;
+    float countFrom, countStart;
+    readonly List<Text> popups = new List<Text>();
+    readonly List<float> popupStarts = new List<float>();
+
+    // Star dust was just bought and is already in the saved balance: float a
+    // "+amount" up from the read-out and count the total up to it. A second
+    // purchase mid-count restarts from the number on screen. Unscaled time, so
+    // it runs while paused; the end always lands on the saved balance.
+    public void ShowPurchase(int amount)
+    {
+        if (starDust == null || !isActiveAndEnabled) { RefreshStarDust(); return; }
+        float saved = PlayerPrefs.GetFloat(StarDustLedger.CurrencyKey);
+        countFrom = countingUp ? CountValue(Time.unscaledTime, saved) : Mathf.Max(0f, saved - amount);
+        countStart = Time.unscaledTime;
+        countingUp = true;
+        SetShown(countFrom);
+
+        var go = new GameObject("+dust", typeof(RectTransform), typeof(Text));
+        go.transform.SetParent(starDust.transform.parent, false);
+        var t = go.GetComponent<Text>();
+        t.font = starDust.font;
+        t.fontSize = starDust.fontSize + 12;
+        t.alignment = TextAnchor.MiddleCenter;
+        t.color = DockArt.Gold;
+        t.raycastTarget = false;
+        t.text = "+" + amount.ToString("N0");
+        var rt = t.rectTransform;
+        var src = starDust.rectTransform;
+        rt.anchorMin = src.anchorMin;
+        rt.anchorMax = src.anchorMax;
+        rt.pivot = src.pivot;
+        rt.sizeDelta = src.sizeDelta;
+        rt.anchoredPosition = src.anchoredPosition + new Vector2(0f, -40f);
+        popups.Add(t);
+        popupStarts.Add(Time.unscaledTime);
+    }
+
+    float CountValue(float now, float saved)
+    {
+        float k = Mathf.Clamp01((now - countStart) / CountUpSeconds);
+        float eased = 1f - (1f - k) * (1f - k) * (1f - k);   // ease-out
+        return Mathf.Lerp(countFrom, saved, eased);
+    }
+
+    void Update()
+    {
+        float now = Time.unscaledTime;
+        if (countingUp && starDust != null)
+        {
+            if (now - countStart >= CountUpSeconds) RefreshStarDust();
+            else SetShown(Mathf.Round(CountValue(now, PlayerPrefs.GetFloat(StarDustLedger.CurrencyKey))));
+        }
+        for (int i = popups.Count - 1; i >= 0; i--)
+        {
+            float k = (now - popupStarts[i]) / PopupSeconds;
+            var t = popups[i];
+            if (t == null) { popups.RemoveAt(i); popupStarts.RemoveAt(i); continue; }
+            if (k >= 1f) { Destroy(t.gameObject); popups.RemoveAt(i); popupStarts.RemoveAt(i); continue; }
+            // A quick pop (grow past 1, settle), then a steady rise and fade.
+            float pop = k < .15f ? Mathf.Lerp(.6f, 1.2f, k / .15f) : Mathf.Lerp(1.2f, 1f, Mathf.Clamp01((k - .15f) / .15f));
+            t.rectTransform.localScale = Vector3.one * pop;
+            var pos = t.rectTransform.anchoredPosition;
+            t.rectTransform.anchoredPosition = new Vector2(pos.x, popupBaseY(t) + PopupRise * k);
+            t.color = AkiraPalette.WithAlpha(DockArt.Gold, k < .6f ? 1f : 1f - (k - .6f) / .4f);
+        }
+    }
+
+    // The popup's start height is its rest position; the read-out's own y is
+    // not moved, so derive it from the read-out each frame.
+    float popupBaseY(Text t) { return starDust.rectTransform.anchoredPosition.y - 40f; }
+
+    void OnDisable()
+    {
+        if (countingUp) RefreshStarDust();
+        foreach (var t in popups) if (t != null) Destroy(t.gameObject);
+        popups.Clear();
+        popupStarts.Clear();
     }
 
     public static void turnOffCanves()
