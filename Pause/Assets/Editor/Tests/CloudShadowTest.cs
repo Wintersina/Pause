@@ -29,6 +29,7 @@ public static class CloudShadowTest
         using var sandbox = new TestHarness.Sandbox();
         var tier = CloudShadowLayer.DeviceTier;
         CloudShadowLayer.TestSeed = 7;                  // the same shadows every run
+        CloudShadowLayer.DeviceTier = CloudShadowLayer.Tier.Full;   // a small CI runner reports low-end memory: measure the full tier
         try
         {
             Worlds();
