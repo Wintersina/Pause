@@ -701,6 +701,7 @@ public class BossActor : MonoBehaviour, IMusicPatternHost
     float IPatternHost.ShotSpeedScale => BossConfig.ShotScale;
     float IPatternHost.RailEdge => BossRails.InnerEdge;
     float IPatternHost.ShipHalfWidth => ShipReach.HalfWidth;
+    float IPatternHost.LaneDensity => LaneMetrics.Density;
     float IPatternHost.SpawnTop => CameraFit.ViewTop + .15f;
     float IPatternHost.ZoneBottom => ShipReach.BottomFor(PlayField.Live);
     float IPatternHost.ZoneTop => Mathf.Min(ShipReach.TopFor(PlayField.Live), BossConfig.ShipCeilingFor(PlayField.Live, boss));
@@ -714,10 +715,11 @@ public class BossActor : MonoBehaviour, IMusicPatternHost
         // a boss shot starts on the boss, never off the screen (a muzzle above the view would be a bug in the table
         // or the boss's rest height): counted, and pulled back to the view's edge so it is at least seen leaving
         float top = CameraFit.ViewTop - .05f;
-        if (at.y > top || Mathf.Abs(at.x) > CameraFit.GameplayHalfWidth)
+        float sideX = LaneMetrics.ViewHalfWidth;   // the view's side on this screen
+        if (at.y > top || Mathf.Abs(at.x) > sideX)
         {
             if (OffscreenSpawns++ == 0) Debug.LogWarning("[BOSS] shot spawned outside the view at " + at + " (BossWaveTest asserts this never happens)");
-            at = new Vector2(Mathf.Clamp(at.x, -CameraFit.GameplayHalfWidth, CameraFit.GameplayHalfWidth), Mathf.Min(at.y, top));
+            at = new Vector2(Mathf.Clamp(at.x, -sideX, sideX), Mathf.Min(at.y, top));
         }
         // straight shots reach the ship's rows in the same time on every screen (BossConfig.ShotScale); a bomb's flight is
         // already worked out to its spot, and a mine stands still
@@ -862,8 +864,8 @@ public class BossActor : MonoBehaviour, IMusicPatternHost
     // (never all of them: one is always clear, a different one each volley).
     void Lob(BossProjectilePool pool, Vector3 from)
     {
-        int slots = Mathf.Clamp(BossConfig.LaneSlots, 2, laneOrder.Length);
-        int hits = Mathf.Clamp(current.count, 1, slots - 1);
+        int slots = Mathf.Clamp(BossConfig.LiveLaneSlots, 2, laneOrder.Length);
+        int hits = Mathf.Clamp(LaneMetrics.ScaleCount(current.count), 1, slots - 1);
         for (int i = 0; i < slots; i++) laneOrder[i] = i;
         for (int i = 0; i < slots - 1; i++)
         {
@@ -899,12 +901,13 @@ public class BossActor : MonoBehaviour, IMusicPatternHost
 
     public static float LaneX(int slot)
     {
-        int slots = Mathf.Max(2, BossConfig.LaneSlots);
-        float w = BossConfig.LaneHalfWidth * 2f / slots;
-        return -BossConfig.LaneHalfWidth + w * (slot + .5f);
+        int slots = Mathf.Max(2, BossConfig.LiveLaneSlots);
+        float half = BossConfig.LiveLaneHalfWidth;
+        float w = half * 2f / slots;
+        return -half + w * (slot + .5f);
     }
 
-    public static float LaneWidth => BossConfig.LaneHalfWidth * 2f / Mathf.Max(2, BossConfig.LaneSlots);
+    public static float LaneWidth => BossConfig.LiveLaneHalfWidth * 2f / Mathf.Max(2, BossConfig.LiveLaneSlots);
 
     // Starts every laser of the attack (their sight lines run through the
     // tell) and returns how long after the tell the last one is gone.

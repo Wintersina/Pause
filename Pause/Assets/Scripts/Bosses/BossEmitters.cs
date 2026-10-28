@@ -140,7 +140,8 @@ public static class BossRails
 
     static float measured = -1f;
 
-    public static float InnerEdge => measured > 0f ? measured : AuthoredInnerEdge;
+    // (Unmeasured: the authored edge, pushed out on a wide screen with the rails: LaneMetrics.WideExtra, 0 on phones.)
+    public static float InnerEdge => measured > 0f ? measured : AuthoredInnerEdge + LaneMetrics.WideExtra;
 
     // The reinforced rails' drawn inner edge as WorldPainter lays them out
     // (every world matches Frost's: 3.15 + 1.7875 * (.5 - 583 / 725)), before
@@ -175,9 +176,14 @@ public static class BossRails
             if (r != null && r.enabled)
                 edge = Mathf.Min(edge, WorldPainter.VisibleRailEdges(right, out inner, out outer) ? inner : r.bounds.min.x);
         }
-        // a sane wall only: the ship's own clamp (2.4) is always inside it
-        if (edge != float.MaxValue && edge > 2.3f && edge < 4f) measured = edge;
+        // a sane wall only: the ship's own clamp (2.4) is always inside it, and
+        // it is never further out than the widest lane LaneMetrics lays out
+        if (edge != float.MaxValue && edge > 2.3f && edge < MaxSaneEdge) measured = edge;
     }
 
     public static void Reset() { measured = -1f; }
+
+    // The widest drawn inner edge any screen gets (LaneMetrics.MaxWideExtra
+    // past the widest phone lane), plus slack.
+    public const float MaxSaneEdge = LaneMetrics.ReferenceLaneHalf + LaneMetrics.MaxWideExtra + .5f;
 }

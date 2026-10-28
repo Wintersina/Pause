@@ -344,7 +344,9 @@ public sealed class CodexBackdropViewer : MonoBehaviour
 
     void ViewExtents(out float halfW, out float halfH)
     {
-        halfW = CameraFit.GameplayHalfWidth;
+        // what the run itself shows at this shape: a phone's width (and the height that goes with it), or on a wide
+        // viewer the authored height and the wider view (CameraFit.GameplayViewHalfWidth; the lane widens with it)
+        halfW = CameraFit.GameplayViewHalfWidth(new Vector2(Mathf.Max(1, rtW), Mathf.Max(1, rtH)));
         halfH = halfW * (float)rtH / Mathf.Max(1, rtW);
     }
 

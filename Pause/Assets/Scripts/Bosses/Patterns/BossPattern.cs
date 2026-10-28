@@ -125,6 +125,9 @@ public interface IPatternHost
     void EmittedFrom(int part, float holdSeconds) => Emitted();
     void Mark(Vector2 a, Vector2 b, float halfWidth, float seconds);   // a telegraph (a == b: a spot)
     float ShotSpeedScale => 1f;             // what Fire multiplies a velocity by (BossConfig.ShotScale in the game)
+    // The lane's width over a phone's (LaneMetrics.Density: 1 on phones, up to 2 on wide screens): fans, rain and mines
+    // carry this many times their authored shots, at the authored pitch, so a wide lane is as busy and every gap stays.
+    float LaneDensity => 1f;
 }
 
 public sealed class BossPatternRunner
@@ -488,13 +491,15 @@ public sealed class BossPatternRunner
             {
                 int n = s.alternate ? 1 : PartCount(s);
                 float rot = s.amp * ((k % 2 == 0) ? 1f : -1f);
+                // a wide lane: more shots at the same angular pitch, so the fan spreads further across the lane and
+                // the space between two shots never shrinks (FanShape; 1x on phones)
+                FanShape(s, host.LaneDensity, out int c, out float spread);
                 for (int q = 0; q < n; q++)
                 {
                     var from = Part(s, s.alternate ? k : q);
-                    int c = Mathf.Max(1, s.count);
                     for (int j = 0; j < c; j++)
                     {
-                        float off = c == 1 ? 0f : -s.spread * .5f + s.spread * j / (c - 1);
+                        float off = c == 1 ? 0f : -spread * .5f + spread * j / (c - 1);
                         Fire(i, from, s.baseDeg + off + rot, s.speed);
                     }
                 }
@@ -555,7 +560,8 @@ public sealed class BossPatternRunner
                 int nl = Mathf.Clamp(Mathf.RoundToInt(host.RailEdge * 2f / Mathf.Max(.3f, s.pitch)), 3, lanes.Length);
                 for (int l = 0; l < nl; l++) lanes[l] = l;
                 for (int l = nl - 1; l > 0; l--) { int j = rng.Next(l + 1); int t = lanes[l]; lanes[l] = lanes[j]; lanes[j] = t; }
-                int c = Mathf.Clamp(s.count, 1, nl - Mathf.Max(1, s.free));
+                // (the lane count already grows with the lane; the drops grow with it, the free lanes stay free)
+                int c = Mathf.Clamp(LaneMetrics.ScaleCount(s.count, host.LaneDensity), 1, nl - Mathf.Max(1, s.free));
                 float w = host.RailEdge * 2f / nl;
                 float y0 = FormY(s), spray = Spray(s);
                 for (int d = 0; d < c; d++)
@@ -655,12 +661,28 @@ public sealed class BossPatternRunner
         }
     }
 
+    // A fan on a lane `density` times a phone's: count x density shots (at least the authored count) at the authored
+    // angular pitch, its spread never past MaxFanSpread (still the downward half, never the whole lane: a fan only
+    // covers its own arc and the space between two of its shots is the authored one at every aspect).
+    public const float MaxFanSpread = 150f;
+    public static void FanShape(PatternStream s, float density, out int count, out float spread)
+    {
+        count = Mathf.Max(1, s.count);
+        spread = s.spread;
+        if (count < 2 || density <= 1f || s.spread <= 0f) return;
+        float pitch = s.spread / (count - 1);
+        int want = LaneMetrics.ScaleCount(count, density);
+        int fit = Mathf.Max(count, 1 + Mathf.FloorToInt(Mathf.Max(s.spread, MaxFanSpread) / pitch + 1e-3f));
+        count = Mathf.Min(want, fit);
+        spread = pitch * (count - 1);
+    }
+
     public const float MineThrow = .45f;   // seconds a mine flies from the boss to its spot
 
     // `count` mines on marked spots: inside the ship's zone, `clear` from the ship, `minSep` from each other.
     void PlaceMines(int i, PatternStream s, Vector2 player, float tell)
     {
-        int want = Mathf.Min(MaxSpots, Mathf.Max(1, s.count));
+        int want = Mathf.Min(MaxSpots, Mathf.Max(1, LaneMetrics.ScaleCount(s.count, host.LaneDensity)));
         int n = 0;
         float half = host.ShipHalfWidth + .1f;
         float clear2 = s.gap * s.gap, sep2 = s.minSep * s.minSep;

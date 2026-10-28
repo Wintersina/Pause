@@ -180,8 +180,14 @@ public static class BossConfig
     // Lobbed shots (Frost's hail) split the playfield (the ship's x clamp,
     // +/-2.4) into this many columns and rain on all but one, aimed to be
     // over their column by LobTargetY (where the ship usually flies).
+    // (Authored for the phone lane; on a wide screen the columns span the
+    // wider lane and there are more of them, LaneMetrics.Density times as
+    // many, so a column keeps its width and one is still always clear.)
     public static int LaneSlots = 5;
     public static float LaneHalfWidth = 2.4f;
+    public const int MaxLaneSlots = 16;
+    public static float LiveLaneHalfWidth => LaneMetrics.Widen(LaneHalfWidth);
+    public static int LiveLaneSlots => Mathf.Clamp(LaneMetrics.ScaleCount(LaneSlots), 2, MaxLaneSlots);
     // (-3.2 in the authored 10 u view: ShipRowShare of the way up any view.)
     public static float LobTargetY => FitToView ? PlayField.Live.At(ShipRowShare) : -3.2f;
     public static float LobJitter = .15f;

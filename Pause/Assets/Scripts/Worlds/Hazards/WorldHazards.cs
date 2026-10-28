@@ -233,12 +233,12 @@ public sealed class WorldHazards : MonoBehaviour
         switch (def.shape)
         {
             case HazardShape.Swirl:
-                f.centre = new Vector2(Rand(-1.4f, 1.4f), bottom + viewH * Rand(.4f, .66f));
+                f.centre = new Vector2(Rand(-LaneMetrics.Widen(1.4f), LaneMetrics.Widen(1.4f)), bottom + viewH * Rand(.4f, .66f));   // (wider with a wide lane)
                 f.vel = new Vector2(f.side * def.speed * .45f, -.1f * def.speed);
                 f.liveFor = def.live;
                 break;
             case HazardShape.Column:
-                f.centre = new Vector2(Rand(-1.6f, 1.6f), bottom);
+                f.centre = new Vector2(Rand(-LaneMetrics.Widen(1.6f), LaneMetrics.Widen(1.6f)), bottom);
                 f.vel = new Vector2(f.side * .15f, 0f);
                 f.liveFor = def.live;
                 break;
@@ -298,12 +298,12 @@ public sealed class WorldHazards : MonoBehaviour
                 {
                     case HazardShape.Swirl:
                         f.centre += f.vel * dt;
-                        float lim = 2.0f;
+                        float lim = LaneMetrics.Widen(2.0f);
                         if (Mathf.Abs(f.centre.x) > lim) { f.centre.x = Mathf.Sign(f.centre.x) * lim; f.vel.x = -f.vel.x; }
                         f.centre.y = Mathf.Clamp(f.centre.y, f.viewBottom + 2f, f.viewTop - 2f);
                         break;
                     case HazardShape.Column:
-                        f.centre.x = Mathf.Clamp(f.centre.x + f.vel.x * dt, -2f, 2f);
+                        f.centre.x = Mathf.Clamp(f.centre.x + f.vel.x * dt, -LaneMetrics.Widen(2f), LaneMetrics.Widen(2f));
                         break;
                     case HazardShape.Sweep:
                         f.sweepX = -f.side * (f.laneHalf + f.def.size * .5f) + f.side * f.def.speed * liveT;

@@ -155,6 +155,9 @@ public class CameraFit : MonoBehaviour
 
     // World units from the centre line to the screen's side edge in the
     // gameplay scenes, for a screen of this size (what Apply arrives at).
+    // Wider than GameplayHalfWidth on a screen wider than a phone (a
+    // foldable, a tablet, a window): LaneMetrics moves the rails and the
+    // whole lane out into that extra width.
     public static float GameplayViewHalfWidth(Vector2 screen)
     {
         if (screen.x <= 0f || screen.y <= 0f) return GameplayHalfWidth;

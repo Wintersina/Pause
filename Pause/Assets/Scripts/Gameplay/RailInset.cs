@@ -19,8 +19,12 @@ using UnityEngine;
 //   tablets and foldables' inner screens
 //                 r from 3:2 (no shift) to 4:3 (full shift) and squarer
 //                 -- a physically big screen;
-//   in between (16:9 and 16:10-ish phones and tablets) and landscape: the
-//                 authored layout, exactly as before.
+//   in between (16:9 and 16:10-ish phones and tablets): the authored
+//                 layout plus BaseShift, exactly as before.
+//   wider than a phone's view (a foldable's inner screen, a square or
+//                 landscape window): full room plus LaneMetrics.WideExtra,
+//                 so the rails sit at the screen's edges and the lane
+//                 takes the extra width (LaneMetrics has the rule).
 //
 // Everything that knows the lane -- WorldPainter (the rails themselves, so
 // BossRails.InnerEdge and the HUD inside the rails follow), ShipReach (the
@@ -50,10 +54,20 @@ public static class RailInset
     // Tools only: false drops BaseShift (the before shot of the lane widening).
     public static bool WidenLane = true;
 
-    // World units the rails move out on a w x h screen.
+    // World units the rails move out on a w x h screen: the room-based shift
+    // above plus, on a screen wider than a phone's view, LaneMetrics.WideExtra
+    // (the rails then sit against the screen's edges, the lane takes the room).
     public static float ShiftFor(float w, float h)
     {
-        if (!Enabled || w <= 0f || h <= 0f || h < w) return 0f;   // no screen / landscape
+        if (!Enabled || w <= 0f || h <= 0f) return 0f;   // no screen
+        return RoomShiftFor(w, h) + LaneMetrics.WideExtraFor(w, h);
+    }
+
+    // The room-based part alone (phones and tablets; a landscape screen,
+    // squarer than any tablet, counts as full room).
+    public static float RoomShiftFor(float w, float h)
+    {
+        if (!Enabled || w <= 0f || h <= 0f) return 0f;
         float r = h / w;
         float tall = Mathf.InverseLerp(TallStart, TallFull, r);
         float wide = Mathf.InverseLerp(WideStart, WideFull, r);
@@ -65,8 +79,10 @@ public static class RailInset
 
     public static float ShiftFor(Vector2 screen) { return ShiftFor(screen.x, screen.y); }
 
-    // The live screen (ScreenInfo: the device, or a test's override).
-    public static float Shift { get { return ShiftFor(ScreenInfo.Width, ScreenInfo.Height); } }
+    // The live screen (ScreenInfo: the device, or a test's override). The
+    // batch editor with no override (LaneMetrics.HasDevice false: a 640x480
+    // window no player sees) keeps the authored layout, 0, as it always had.
+    public static float Shift { get { return LaneMetrics.HasDevice ? ShiftFor(ScreenInfo.Width, ScreenInfo.Height) : 0f; } }
 
     // An authored lane half-width (written for the authored rails) on this screen.
     public static float Lane(float authoredHalfWidth) { return authoredHalfWidth + Shift; }

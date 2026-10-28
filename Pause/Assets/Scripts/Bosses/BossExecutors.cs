@@ -123,7 +123,7 @@ public static class BossExecutors
             spec.world = boss.World;
             // the crack of every other ring on the other side of the ship, so one place is not safe for both
             Vector2 target = player;
-            if (k % 2 == 1) target.x = Mathf.Clamp(player.x + (player.x >= 0f ? -1f : 1f) * 1.8f, -2.1f, 2.1f);
+            if (k % 2 == 1) target.x = Mathf.Clamp(player.x + (player.x >= 0f ? -1f : 1f) * 1.8f, -LaneMetrics.Widen(2.1f), LaneMetrics.Widen(2.1f));
             var blast = AttackBlast.Arm(spec, muzzle, target, tell, boss.gameObject);
             if (blast != null) blast.Follow(boss.transform, local);
             Add(into, ref n, blast);
@@ -132,14 +132,16 @@ public static class BossExecutors
 
     sealed class StrikeExecutor : VolleyExecutor
     {
-        static readonly float[] lanes = new float[4];
+        static readonly float[] lanes = new float[8];
 
         protected override void ArmVolley(BossActor boss, BossAttack a, int k, float tell, Vector3 player, AttackHazard[] into, ref int n)
         {
             var spec = a.strike;
             spec.world = boss.World;
             spec.ride = 0f;
-            int count = StrikeLanes.Pick(player.x, Mathf.Clamp(a.count, 1, lanes.Length), a.spacing, BossRails.DrawnInnerEdge,
+            // a wide lane takes more columns (LaneMetrics.Density), each still MinLaneSpacing from the next
+            int want = Mathf.Clamp(a.count, 1, 4);
+            int count = StrikeLanes.Pick(player.x, Mathf.Clamp(LaneMetrics.ScaleCount(want), 1, lanes.Length), a.spacing, BossRails.DrawnInnerEdge,
                                          spec.hitHalf > 0f ? spec.hitHalf : .18f, lanes);
             for (int i = 0; i < count; i++) Add(into, ref n, AttackStrike.Arm(spec, lanes[i], player.y, tell, boss.gameObject));
         }
@@ -199,7 +201,7 @@ public static class BossExecutors
             spec.ride = 0f;
             // each whip is aimed ONCE, now, at where the ship is; the second sweeps the other side of the lane (a re-step, not a sprint)
             Vector2 target = player;
-            if (k % 2 == 1) target.x = Mathf.Clamp(player.x + (player.x >= 0f ? -1f : 1f) * a.spacing, -2.1f, 2.1f);
+            if (k % 2 == 1) target.x = Mathf.Clamp(player.x + (player.x >= 0f ? -1f : 1f) * a.spacing, -LaneMetrics.Widen(2.1f), LaneMetrics.Widen(2.1f));
             var lash = AttackLash.Arm(spec, muzzle, target, tell, boss.gameObject);
             if (lash != null) lash.Follow(boss.transform, local);
             Add(into, ref n, lash);
