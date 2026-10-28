@@ -123,3 +123,22 @@ Format: `Resources/Bosses/<Key>_attackshots.png` (256 x 128*N, 2 frames per row)
 Tests: `BossAttackShotArtTest` (plumbing, table ids, file format, animation, no two attacks/bosses share a sprite, readability, pale-rim scan of beam bodies / vine lash / trunk), `BossLaserArtTest` now covers all 7 kits, `NoPinkOutsideSpaceTest` scans the new files.
 
 Known gaps: the bomb burst shards, the themed hazards (surf wave, eruption columns, tidal wall rings) and the free-fall shots of the legacy tables still use the shared pair or procedural drawing; the Tide flare cells have the kraken's nozzle cut away (the boss draws its own beak).
+
+## Verdant attack shots: visibility and calm (2026-10-27)
+
+User: the three Bloom Queen shots (Verdant_attackshots.png: thorn row 1, spore cloud row 2, gourd row 3) were hard to see and "wiggled too much".
+
+**Root cause of the sprite wiggle.** The two frames of every shot were drawn 40-44 px apart inside their 128 px cells (frame a right of centre, frame b left), so the drawing hopped about 0.2 u sideways on every flip (12 times a second). Now both frames are centred on the hit centre and share one silhouette; only the hot core flows down the shot.
+
+**Path / steering wiggle (`VerdantShotTuning`, BossPatternTables.Verdant.cs):**
+
+| knob | old | new |
+|---|---|---|
+| seeds homing (spore seeds / overgrowth / thorn storm) | 70 / 80 / 90 deg/s | 25 / 28 / 32 deg/s (~36 %) |
+| homing steering | hard clamp, whips round the ship | eased over the last 12 deg, stops within 0.9 u of the ship (`BossProjectile.HomeTurn`) |
+| fan tilt amp (overgrowth thorns / thorn storm gourds) | 8 / 7 deg | 2.8 / 2.4 deg (~35 %) |
+| art flip | 2 ticks (12 swaps/s) | 6 ticks (4 swaps/s) |
+
+Damage, rates, counts, speeds, the roster and the song's wave gap sweep are unchanged. No shot oscillates laterally on a sine; there is no spawn-angle jitter or camera shake on these shots.
+
+**Visibility.** Bright mint-mist backdrops (mean luminance ~.35) only let near-black or near-white pixels hold 3:1, so the regrade (`Art/Resources/Bosses/src~/verdant_attackshots_regrade.py`, from `Verdant_attackshots_orig.png`) paints a near-black body with an amber / lime-yellow / orange core that climbs fast to cream, drawn 1.15-1.3x larger about the centre (hitbox unchanged). No outline, no pink. `VerdantShotVisibilityTest` measures pixels at 3:1 over 4 variants x 6 scroll offsets x 2 frames x 24 placements (worst case: thorn 16-24 -> 137-148 px, spore 208-222 -> 191-200, gourd 223-238 -> 163-176).
