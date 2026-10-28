@@ -290,6 +290,17 @@ public class BossProjectile : MonoBehaviour, IHostileShot
 
     int FirstCell => style == BossShotStyle.Bolt ? BossArt.Bolt0 : BossArt.Shard0;
 
+    // One homing step: the turn (degrees) toward a target `delta` degrees off, at most `maxTurn`. The Bloom Queen's seeds steer SOFTLY
+    // (VerdantShotTuning): the turn eases out over the last EaseDeg degrees and stops once the seed is within HomeStopDist of the ship,
+    // so a seed that has caught up flies on straight instead of whipping round the ship (the old wiggle).
+    public static float HomeTurn(float delta, float maxTurn, float dist, bool soft)
+    {
+        float turn = Mathf.Clamp(delta, -maxTurn, maxTurn);
+        if (!soft) return turn;
+        if (dist < VerdantShotTuning.HomeStopDist) return 0f;
+        return turn * Mathf.Clamp01(Mathf.Abs(delta) / VerdantShotTuning.HomeEaseDeg);
+    }
+
     public void Step(float dt)
     {
         if (!Active) return;
@@ -314,7 +325,7 @@ public class BossProjectile : MonoBehaviour, IHostileShot
                 Vector2 to = pool.PlayerPos - (Vector2)transform.position;
                 float cur = Mathf.Atan2(velocity.y, velocity.x) * Mathf.Rad2Deg;
                 float want = Mathf.Atan2(to.y, to.x) * Mathf.Rad2Deg;
-                float turn = Mathf.Clamp(Mathf.DeltaAngle(cur, want), -homeDeg * dt, homeDeg * dt);
+                float turn = HomeTurn(Mathf.DeltaAngle(cur, want), homeDeg * dt, to.magnitude, boss != null && boss.artKey == "Verdant");
                 float h = (cur + turn) * Mathf.Deg2Rad;
                 velocity = new Vector2(Mathf.Cos(h), Mathf.Sin(h)) * sp;
                 Face();
@@ -376,7 +387,7 @@ public class BossProjectile : MonoBehaviour, IHostileShot
             }
         }
         transform.position = p;
-        int frame = BossArt.FrameAt(BossArt.ShotTicks, age, true);
+        int frame = BossArt.FrameAt(art > 0 && boss != null && boss.artKey == "Verdant" ? VerdantShotTuning.FlipTicks : BossArt.ShotTicks, age, true);
         sr.sprite = Drawing(frame);
         if (rimmed) glow.sprite = frame == 0 ? rim0 : rim1;   // the rim follows the drawing
         Pulse();

@@ -134,6 +134,7 @@ public static class AllTests
         ("BossFreeShotAtomsTest", BossFreeShotAtomsTest.Execute),
         ("BossHealAtomCapTest", BossHealAtomCapTest.Execute),
         ("BossVerdantBulletScaleTest", BossVerdantBulletScaleTest.Execute),
+        ("VerdantShotVisibilityTest", VerdantShotVisibilityTest.Execute),
         ("BossRedAtomCapTest", BossRedAtomCapTest.Execute),
         ("BossIntroTest", BossIntroTest.Execute),
         ("BossWarningTest", BossWarningTest.Execute),

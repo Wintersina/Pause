@@ -1,6 +1,25 @@
 using UnityEngine;
 
 // Verdant: its rotation (see BossPatternTables).
+
+// THE BLOOM QUEEN'S SHOT WIGGLE, tuned down (user feedback: "wiggles the attacks too much"). Where it came from and what each knob was:
+//   homing seeds (spore seeds / overgrowth / thorn storm): turned 70 / 80 / 90 deg/s toward the ship for ~1.8 s with no easing, so a seed
+//     that reached the ship whipped from side to side (and its sprite spun with it)            -> now 35 / 40 / 45 deg/s, eased, stops near the ship
+//   fan tilt (overgrowth thorns amp 8, thorn storm gourds amp 7): the fan rocks +-amp every volley, a zigzag of tilted fans -> now 4 / 3.5
+//   art flip: the two drawings swapped every 2 ticks (12 swaps a second, a shimmer); frame b is now the same body with only the core
+//     brightening, swapped every 4 ticks (6 a second)
+// Damage, rates, counts, speeds and the roster are untouched. Wave bullets (art 1 walls / fans) fly straight; their gap sweep is the
+// song's, and is left alone (BossWaves).
+public static class VerdantShotTuning
+{
+    public const float OldHomeSpore = 70f, OldHomeOvergrowth = 80f, OldHomeStorm = 90f, OldFanAmpOvergrowth = 8f, OldFanAmpStorm = 7f;
+    public const int OldFlipTicks = 2;
+    public const float HomeSpore = 35f, HomeOvergrowth = 40f, HomeStorm = 45f;
+    public const float FanAmpOvergrowth = 4f, FanAmpStorm = 3.5f;
+    public const float HomeEaseDeg = 12f;        // the turn eases out over the last 12 degrees to the ship
+    public const float HomeStopDist = .9f;       // a seed this close to the ship stops steering
+    public static readonly int[] FlipTicks = { 4, 4 };
+}
 public static partial class BossPatternTables
 {
     // ------------------------------------------------------------ 3. Bloom Queen: seeds that home, vines
@@ -12,15 +31,15 @@ public static partial class BossPatternTables
             { kind = StreamKind.Aimed, emitters = E("Stinger"), duration = 1.5f, interval = .24f, count = 3, spread = 14f, speed = 4.1f, art = 1, style = BossShotStyle.Bolt }), true),
             Legacy("vine lash", "lash", 1, 2.6f, 1f),
             Slot("spore seeds", 2, 1, 1.0f, 1.2f, P("spore seeds", new PatternStream
-            { kind = StreamKind.Seeds, emitters = E("PetalL", "PetalR"), duration = 4.2f, interval = .65f, count = 5, spread = 80f, speed = 2.4f, homeDeg = 70f, homeSeconds = 1.7f, art = 2, style = BossShotStyle.Shard })),
+            { kind = StreamKind.Seeds, emitters = E("PetalL", "PetalR"), duration = 4.2f, interval = .65f, count = 5, spread = 80f, speed = 2.4f, homeDeg = VerdantShotTuning.HomeSpore, homeSeconds = 1.7f, art = 2, style = BossShotStyle.Shard })),
             Legacy("trunk toss", "roll", 3, 3.0f, 1.2f),
             Slot("overgrowth", 3, 1, 1.0f, 1.2f, P("overgrowth",
-                new PatternStream { kind = StreamKind.Seeds, emitters = E("PetalUL", "PetalUR"), duration = 4.4f, interval = .75f, count = 4, spread = 80f, speed = 2.4f, homeDeg = 80f, homeSeconds = 1.8f, art = 2, style = BossShotStyle.Shard },
-                new PatternStream { kind = StreamKind.Fan, emitters = E("PetalL", "PetalR"), start = .5f, duration = 3.8f, interval = .8f, count = 5, spread = 100f, amp = 8f, speed = 2.9f, art = 1, style = BossShotStyle.Bolt, rail = BossRailMode.Bounce, bounces = 1 })),
+                new PatternStream { kind = StreamKind.Seeds, emitters = E("PetalUL", "PetalUR"), duration = 4.4f, interval = .75f, count = 4, spread = 80f, speed = 2.4f, homeDeg = VerdantShotTuning.HomeOvergrowth, homeSeconds = 1.8f, art = 2, style = BossShotStyle.Shard },
+                new PatternStream { kind = StreamKind.Fan, emitters = E("PetalL", "PetalR"), start = .5f, duration = 3.8f, interval = .8f, count = 5, spread = 100f, amp = VerdantShotTuning.FanAmpOvergrowth, speed = 2.9f, art = 1, style = BossShotStyle.Bolt, rail = BossRailMode.Bounce, bounces = 1 })),
             Slot("thorn storm", 3, 0, .9f, 1.2f, P("thorn storm",
                 new PatternStream { kind = StreamKind.Aimed, emitters = E("Stinger"), duration = 4.4f, interval = .27f, count = 3, spread = 16f, speed = 5.1f, art = 1, style = BossShotStyle.Bolt },
-                new PatternStream { kind = StreamKind.Seeds, emitters = E("PetalL", "PetalR"), start = .6f, duration = 3.6f, interval = 1.0f, count = 3, spread = 60f, speed = 2.4f, homeDeg = 90f, homeSeconds = 1.8f, art = 2, style = BossShotStyle.Shard },
-                new PatternStream { kind = StreamKind.Fan, emitters = E("PetalUL", "PetalUR"), start = 1.0f, duration = 3.0f, interval = .8f, count = 5, spread = 110f, amp = 7f, speed = 2.7f, art = 3, style = BossShotStyle.Shard })),
+                new PatternStream { kind = StreamKind.Seeds, emitters = E("PetalL", "PetalR"), start = .6f, duration = 3.6f, interval = 1.0f, count = 3, spread = 60f, speed = 2.4f, homeDeg = VerdantShotTuning.HomeStorm, homeSeconds = 1.8f, art = 2, style = BossShotStyle.Shard },
+                new PatternStream { kind = StreamKind.Fan, emitters = E("PetalUL", "PetalUR"), start = 1.0f, duration = 3.0f, interval = .8f, count = 5, spread = 110f, amp = VerdantShotTuning.FanAmpStorm, speed = 2.7f, art = 3, style = BossShotStyle.Shard })),
         };
     }
 }
