@@ -207,6 +207,7 @@ public class BackdropTile
     }
 
     public int RendererCount { get { return copies.Count; } }
+    public Transform CopyTransform(int i) { return copies[i].transform; }   // tests: where a copy is drawn
 }
 
 // One pooled set piece or particle. `body` is a child so a piece can spin or

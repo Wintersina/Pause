@@ -12,9 +12,14 @@ using UnityEngine;
 // variant this advances the real WorldBackdrop for longer than a full loop
 // of the host tile and asserts that every stationary piece of an anchored
 // layer keeps a constant offset to its host tile (drift < 0.01 world units),
-// and that each anchored layer shares its host's exact rate. Pieces that
-// move on their own by design (ships under way: vx / vy) and free-floating
-// ambient layers (snow, mist, wisps, aurora, gusts) are not anchored.
+// and that each anchored layer shares its host's exact rate. NO anchored
+// piece may carry a velocity of its own (Frost's icebreaker and convoy used to
+// creep over the ice at up to 0.3 u in 6 s: they are pinned like the rest),
+// and the host tile itself must be drawn from the same travel (its copies keep
+// a constant ground phase through every wrap) at the size its current art
+// gives (no hard-coded 512 / 1024 / 896 sizes). Free-floating ambient layers
+// (snow, mist, wisps, aurora, gusts, cloud shadows, the flow strip) and the
+// Desert worms (creatures under the sand) are deliberately not anchored.
 //
 //   Unity -batchmode -quit -projectPath <abs>/Pause -executeMethod BackdropAnchorTest.Run
 public static class BackdropAnchorTest
@@ -118,6 +123,8 @@ public static class BackdropAnchorTest
                 foreach (var l in spec.layers)
                 {
                     if (l.name != pool.name || string.IsNullOrEmpty(l.pinTo)) continue;
+                    // Desert's sand worms are creatures crawling under the sand (they ride the ground frame on a heading of their own): left independent
+                    if (set.Director is DesertDirector dd && pool == dd.Worms) continue;
                     BackdropTile host = null;
                     foreach (var t in set.Tiles) if (t.layer.name == l.pinTo) host = t;
                     if (host != null) pools.Add(new KeyValuePair<BackdropPool, BackdropTile>(pool, host));
@@ -130,17 +137,37 @@ public static class BackdropAnchorTest
             BackdropTile mid = null;
             foreach (var t in set.Tiles) if (t.layer.name == "mid") mid = t;
             double startTravel = mid != null ? mid.travel : 0;
+            int selfMoving = 0;
+            double phase0 = double.NaN, worstPhase = 0;
+            {
+                // the tile's size comes from its current sprite and the view, never from a constant
+                Check(world + " v" + v + ": mid tile drawn at width " + (mid != null ? mid.TileWidth : 0f).ToString("F2") + " = the view plus overscan (" + (set.HalfWidth * 2f * 1.02f).ToString("F2") + ")",
+                      mid != null && Mathf.Abs(mid.TileWidth - set.HalfWidth * 2f * 1.02f) < .01f);
+            }
             double loop = mid != null && mid.TileHeight > 0 ? mid.TileHeight : 12;
             int steps = Mathf.CeilToInt((float)(loop / (30f * (WorldBackdrop.BaseSpeed + Speed) * spec.Rate("mid"))) * 1.2f / Dt) + 30;
             for (int i = 0; i < steps; i++)
             {
                 wb.Step(Dt);
+                if (mid != null)
+                {
+                    // ground phase of the first tile copy: (its bottom edge + travel) mod tile height is constant
+                    var copy = mid.CopyTransform(0);
+                    double h = mid.TileHeight;
+                    double ph = (copy.localPosition.y - mid.TileHeight * .5f + mid.travel) % h;
+                    if (ph < 0) ph += h;
+                    if (double.IsNaN(phase0)) phase0 = ph;
+                    double d0 = System.Math.Abs(ph - phase0);
+                    d0 = System.Math.Min(d0, h - d0);
+                    if (d0 > worstPhase) worstPhase = d0;
+                }
                 foreach (var kv in pools)
                 {
                     foreach (var p in kv.Key.items)
                     {
                         Track tr;
-                        if (!p.active || p.parent != null || p.vx != 0f || p.vy != 0f || p.age <= 0f)
+                        if (p.active && p.parent == null && (p.vx != 0f || p.vy != 0f)) selfMoving++;
+                        if (!p.active || p.parent != null || p.age <= 0f)
                         {
                             if (tracks.TryGetValue(p, out tr)) tr.seen = false;
                             continue;
@@ -157,6 +184,8 @@ public static class BackdropAnchorTest
             }
             double travelled = mid != null ? mid.travel - startTravel : 0;
             Check(world + " v" + v + ": ground scrolled over a full loop (" + travelled.ToString("F1") + " >= " + loop.ToString("F1") + ")", travelled >= loop);
+            Check(world + " v" + v + ": no anchored piece moves on its own (" + selfMoving + " frames)", selfMoving == 0);
+            Check(world + " v" + v + ": mid tile ground phase constant through wraps (" + worstPhase.ToString("F5") + " < 0.001)", worstPhase < .001);
             Check(world + " v" + v + ": anchored pieces observed (" + observed + ")", observed > 0);
             Check(world + " v" + v + ": anchored overlay drift " + worst.ToString("F4") + " < " + MaxDrift, worst < MaxDrift);
             Object.DestroyImmediate(wb.gameObject);

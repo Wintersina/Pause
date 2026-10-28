@@ -568,10 +568,8 @@ public class FrostDirector : PlanetDirector
     }
 
     // Pinned pieces: placed from their ground coordinate every frame, so they
-    // stay on their spot of the mid tile. A ship under way (icebreaker,
-    // convoy) moves its ground spot on its own, but only while the ground
-    // ahead still suits it (open water for an icebreaker, sheet ice for the
-    // convoy) and is free: it never sails onto a quay or into another piece.
+    // stay on their spot of the mid tile: nothing here has a velocity of its
+    // own, the ships and the convoy included (BackdropAnchorTest holds every piece to it).
     void StepPinned(BackdropPool pool, PieceRule[] rules, float dt)
     {
         for (int i = 0; i < pool.items.Count; i++)
@@ -579,7 +577,6 @@ public class FrostDirector : PlanetDirector
             var p = pool.items[i];
             if (!p.active) continue;
             p.age += dt;
-            if (p.vx != 0f || p.vy != 0f) Steam(p, rules[i], dt);
             p.y = planner.Y(p.gy);
             Place(p);
             if (p.y < GroundDespawnY(p, ambient))
@@ -591,27 +588,6 @@ public class FrostDirector : PlanetDirector
             }
             Tinted(p, tintGround, 1f);
         }
-    }
-
-    void Steam(BackdropPiece p, PieceRule rule, float dt)
-    {
-        float nx = p.x + p.vx * dt;
-        double ngy = p.gy + p.vy * dt;
-        float rx = GroundPlanner.HalfX(rule, p.size), ry = GroundPlanner.HalfY(rule, p.size);
-        // look a little ahead (a quarter of the footprint) so it stops short, not on the edge
-        float ax = nx + Mathf.Sign(p.vx) * (p.vx != 0f ? rx * .25f : 0f);
-        double agy = ngy + System.Math.Sign(p.vy) * (p.vy != 0f ? ry * .25f : 0f);
-        if (nx < XMin(p.size) || nx > XMax(p.size) || !planner.Accepts(rule, nx, ngy, p.size) || !planner.Accepts(rule, ax, agy, p.size) ||
-            !planner.Free(nx, ngy, rx, ry, p.footprint))
-        {
-            p.vx = 0f;
-            p.vy = 0f;
-            return;
-        }
-        planner.Release(p.footprint);
-        p.footprint = planner.Claim(nx, ngy, rx, ry);
-        p.x = nx;
-        p.gy = ngy;
     }
 
     // ------------------------------------------------------------ ground --
@@ -670,9 +646,8 @@ public class FrostDirector : PlanetDirector
             if (p == null) return false;
             lastFamily = fam;
             p.kind = fam;
-            // the ships under way move a little on their own
-            if (fam == FrostTuning.FamIcebreaker) p.vy = GRand(.04f, .08f);
-            else if (fam == FrostTuning.FamConvoy) { float dir = p.body.localScale.x; p.vx = .05f * dir; p.vy = .05f; }
+            // The icebreaker and the convoy are PINNED like every other landmark: they used to creep over the ice on a velocity of
+            // their own (up to 0.3 u in 6 s), which read as a vehicle sliding over the ground it stands on.
             ambient.Attach(p, name, groundRng);
             return true;
         }
