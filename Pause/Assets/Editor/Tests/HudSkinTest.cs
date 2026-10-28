@@ -49,7 +49,6 @@ public static class HudSkinTest
         }
 
         SharedIcons();
-        Plates();
         Layout();
         Debug.Log("[HSK] failures: " + fails);
         return fails;
@@ -77,50 +76,6 @@ public static class HudSkinTest
             float l = .2126f * Mathf.GammaToLinearSpace(tint.r) + .7152f * Mathf.GammaToLinearSpace(tint.g) + .0722f * Mathf.GammaToLinearSpace(tint.b);
             bool brightBackdrop = w == 1 || w == 2;   // Frost clouds, Verdant foliage
             Check(name + ": icon tint " + (brightBackdrop ? "dark" : "light") + " for its backdrop (luma " + l.ToString("0.00") + ")", brightBackdrop ? l < .1f : l > .6f);
-        }
-    }
-
-    static float Lum(Color c)
-    {
-        return .2126f * Mathf.GammaToLinearSpace(c.r) + .7152f * Mathf.GammaToLinearSpace(c.g) + .0722f * Mathf.GammaToLinearSpace(c.b);
-    }
-
-    // The in-run glyphs must not read as see-through: opaque strokes, a mostly opaque backing plate and
-    // rim behind them (still holo: world tint + rim), and a stroke-vs-plate contrast of at least 3:1 even
-    // when the backdrop behind the plate is pure black or pure white (the plate is PlateAlpha opaque).
-    static void Plates()
-    {
-        Check("glyph stroke alpha is fully opaque", PauseQuickActions.GlyphAlpha >= .99f);
-        Check("backing plate is at least 75% opaque", HudSkin.PlateAlpha >= .75f && HudSkin.PlateAlpha <= 1f);
-        Check("plate and rim sprites exist", HudSkin.PlateDisc != null && HudSkin.PlateRing != null);
-        Check("plate and rim share one texture (one batch)", HudSkin.PlateDisc.texture == HudSkin.PlateRing.texture);
-        foreach (string leaf in new[] { HudSkin.SharedHomePath, HudSkin.SharedReplayPath })
-        {
-            var tex = Resources.Load<Sprite>(leaf);
-            if (tex == null) continue;
-            float max = 0f;
-            var rt = RenderTexture.GetTemporary(tex.texture.width, tex.texture.height, 0, RenderTextureFormat.ARGB32);
-            Graphics.Blit(tex.texture, rt);
-            var prev = RenderTexture.active; RenderTexture.active = rt;
-            var copy = new Texture2D(tex.texture.width, tex.texture.height, TextureFormat.RGBA32, false);
-            copy.ReadPixels(new Rect(0, 0, copy.width, copy.height), 0, 0); copy.Apply();
-            RenderTexture.active = prev; RenderTexture.ReleaseTemporary(rt);
-            foreach (var px in copy.GetPixels32()) max = Mathf.Max(max, px.a / 255f);
-            Object.DestroyImmediate(copy);
-            Check(leaf + " has fully opaque stroke pixels", max >= .99f);
-        }
-        for (int w = 0; w < HudSkin.WorldCount; w++)
-        {
-            string name = WorldManager.Worlds[w].displayName;
-            var tint = HudSkin.IconTint(w); var fill = HudSkin.PlateFill(w);
-            Check(name + ": holo kept: rim is the world tint", HudSkin.PlateRim(w) == tint);
-            float lt = Lum(tint), lf = Lum(fill);
-            foreach (float backdrop in new[] { 0f, 1f })
-            {
-                float eff = HudSkin.PlateAlpha * lf + (1f - HudSkin.PlateAlpha) * backdrop;
-                float hi = Mathf.Max(lt, eff) + .05f, lo = Mathf.Min(lt, eff) + .05f;
-                Check(name + ": stroke vs plate over a " + (backdrop > .5f ? "white" : "black") + " backdrop >= 3:1 (" + (hi / lo).ToString("0.0") + ")", hi / lo >= 3f);
-            }
         }
     }
 

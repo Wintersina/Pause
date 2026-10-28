@@ -264,23 +264,20 @@ public class PauseQuickActions : MonoBehaviour
     void ApplySkin()
     {
         skinWorld = HudSkin.CurrentWorld;
-        SetGlyph(replayClone, HudSkin.ReplayGlyph(skinWorld), HudSkin.HudReplay(skinWorld), skinWorld);
-        SetGlyph(leaveClone, HudSkin.HomeGlyph(skinWorld), HudSkin.HudHome(skinWorld), skinWorld);
+        SetGlyph(replayClone, HudSkin.ReplayGlyph(skinWorld), HudSkin.HudReplay(skinWorld), skinWorld, ReplayGlyphDrop);
+        SetGlyph(leaveClone, HudSkin.HomeGlyph(skinWorld), HudSkin.HudHome(skinWorld), skinWorld, 0f);
     }
 
     // tapSprite stays on the (invisible) tap square; the Glyph child draws the thin hollow art.
-    static void SetGlyph(GameObject go, Sprite tapSprite, Sprite drawn, int world)
+    static void SetGlyph(GameObject go, Sprite tapSprite, Sprite drawn, int world, float drop)
     {
         if (go == null || tapSprite == null) return;
         var image = go.GetComponent<Image>();
         if (image != null) image.sprite = tapSprite;
         var glyph = GlyphImage(go);
         if (glyph == null) return;
-        var fill = PlateImage(go, PlateName);
-        if (fill != null) { fill.sprite = HudSkin.PlateDisc; var f = HudSkin.PlateFill(world); f.a = HudSkin.PlateAlpha; fill.color = f; }
-        var rim = PlateImage(go, RimName);
-        if (rim != null) { rim.sprite = HudSkin.PlateRing; var r = HudSkin.PlateRim(world); r.a = .9f; rim.color = r; }
         glyph.sprite = drawn != null ? drawn : tapSprite;
+        ((RectTransform)glyph.transform).anchoredPosition = new Vector2(0f, -drop);
         var tint = HudSkin.IconTint(world); tint.a = GlyphAlpha;
         glyph.color = tint;
         // the optional soft halo for worlds whose backdrop is too busy for the line alone
@@ -305,29 +302,12 @@ public class PauseQuickActions : MonoBehaviour
     // Image stays the full-size (invisible) tap target and holds the sprite.
     public const float GlyphScale = .8f;
     const string GlyphName = "Glyph";
-    // The holo backing: a mostly opaque tinted disc and a thin rim, behind the glyph (siblings drawn first).
-    public const string PlateName = "GlyphPlate", RimName = "GlyphRim";
-    public const float PlateScale = .94f;   // of the tap square, so it never grows past the button
 
-    public static Image PlateImage(GameObject go, string name)
-    {
-        var child = go.transform.Find(name);
-        return child != null ? child.GetComponent<Image>() : null;
-    }
-
-    static void EnsurePlate(GameObject go, string name)
-    {
-        if (PlateImage(go, name) != null) return;
-        var g = new GameObject(name, typeof(RectTransform), typeof(Image));
-        g.transform.SetParent(go.transform, false);
-        var rt = (RectTransform)g.transform;
-        rt.anchorMin = rt.anchorMax = rt.pivot = new Vector2(.5f, .5f);
-        rt.anchoredPosition = Vector2.zero;
-        rt.sizeDelta = new Vector2(ButtonSize, ButtonSize) * PlateScale;
-        var img = g.GetComponent<Image>();
-        img.preserveAspect = true;
-        img.raycastTarget = false;
-    }
+    // The two sprites have different art bounds on their 256 px tiles: the house's drawn bottom is row 230,
+    // the replay arrow's 214. The replay glyph is drawn this many canvas units lower so the two drawn
+    // bottoms share one baseline (side by side).
+    public const int HomeArtBottomRow = 230, ReplayArtBottomRow = 214, GlyphTile = 256;
+    public const float ReplayGlyphDrop = (HomeArtBottomRow - ReplayArtBottomRow) / (float)GlyphTile * ButtonSize * GlyphScale;
 
     static Image GlyphImage(GameObject go)
     {
@@ -433,9 +413,7 @@ public class PauseQuickActions : MonoBehaviour
         {
             image.type = Image.Type.Simple;
             image.preserveAspect = true;
-            EnsurePlate(go, PlateName);
-            EnsurePlate(go, RimName);
-            EnsureGlyph(go);   // created last: drawn over the plate
+            EnsureGlyph(go);
             image.color = Color.clear;   // the tap square; the Glyph child draws
             // Default rect-based raycast (not alpha-tested): taps anywhere in
             // the square count, matching IsScreenPointOnAction.
@@ -450,6 +428,9 @@ public class PauseQuickActions : MonoBehaviour
             colors.highlightedColor = Color.white;
             colors.selectedColor = Color.white;
             colors.pressedColor = new Color(1f, .86f, .82f, 1f);
+            // the template's default disabled colour is half transparent; the glyph must never fade, whatever the button's state
+            colors.disabledColor = Color.white;
+            colors.colorMultiplier = 1f;
             button.colors = colors;
             var glyph = GlyphImage(go);
             if (glyph != null) button.targetGraphic = glyph;
