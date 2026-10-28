@@ -195,6 +195,23 @@ public static class NextFeatures0907Test
         Check("quick-action leave clone exists", leave != null);
         if (replay == null || leave == null) { Object.DestroyImmediate(go); return; }
 
+        // Never transparent: the glyph is alpha 1 in every button state, no fade group above it, and nothing else is drawn behind it.
+        foreach (var action in new[] { replay, leave })
+        {
+            var glyph = action.transform.Find("Glyph");
+            var gi = glyph != null ? glyph.GetComponent<UnityEngine.UI.Image>() : null;
+            var gb = action.GetComponent<UnityEngine.UI.Button>();
+            Check(action.name + " glyph image exists", gi != null);
+            if (gi != null) Check(action.name + " glyph colour alpha is 1", gi.color.a >= .999f);
+            if (gb != null)
+                Check(action.name + " every button state keeps alpha 1 (normal, highlighted, pressed, selected, disabled)",
+                      gb.colors.normalColor.a >= .999f && gb.colors.highlightedColor.a >= .999f && gb.colors.pressedColor.a >= .999f &&
+                      gb.colors.selectedColor.a >= .999f && gb.colors.disabledColor.a >= .999f && gb.colors.colorMultiplier >= .999f);
+            Check(action.name + " has no CanvasGroup fade above it", action.GetComponentInParent<CanvasGroup>() == null || action.GetComponentInParent<CanvasGroup>().alpha >= .999f);
+            if (gi != null) Check(action.name + " glyph offset: replay drops to the home baseline, home stays centred",
+                Mathf.Abs(((RectTransform)gi.transform).anchoredPosition.y - (action == replay ? -PauseQuickActions.ReplayGlyphDrop : 0f)) < .01f);
+            Check(action.name + " draws only its glyph (no plate, ring or disc)", action.transform.childCount == 1 && glyph != null);
+        }
         Check("replay clone is anchored top-right", replay.GetComponent<RectTransform>().anchorMin == new Vector2(1f, 1f));
 
         // Icons: matched square SVG-sourced sprites, never stretched.

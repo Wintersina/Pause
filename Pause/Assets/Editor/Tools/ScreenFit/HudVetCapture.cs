@@ -11,7 +11,7 @@ public static class HudVetCapture
     {
         string dir = Environment.GetEnvironmentVariable("SCREEN_FIT_DIR") ?? "Builds/HudVet";
         string[] names = { "space", "frost", "verdant", "ember", "tide", "storm", "desert" };
-        var devices = new[] { FitDevice.Find("and-480x854"), FitDevice.Find("and-720x1280"), FitDevice.Find("and-1080x2340-notch") };
+        var devices = new[] { FitDevice.Find("and-480x854"), FitDevice.Find("and-720x1280"), FitDevice.Find("and-1080x2340-notch"), FitDevice.Find("flip7-1080x2520") };
         using (new TestHarness.Sandbox())
         {
             for (int w = 0; w < names.Length; w++)
