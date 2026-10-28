@@ -352,9 +352,9 @@ public class BossIntroUI : MonoBehaviour
         flashLeft = ticks * BossArt.Tick;
     }
 
-    public void HitFlash(Color tint)
+    public void HitFlash(Color tint, float alpha = .35f)
     {
-        Flash(tint, 2, .35f);
+        Flash(tint, 2, alpha);
     }
 
     void Update()

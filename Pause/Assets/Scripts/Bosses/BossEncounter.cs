@@ -437,7 +437,11 @@ public class BossEncounter : MonoBehaviour
     // own once-per-BossFriendlyFireGap limit. Player weapons go through TakePlayerHit.
     public void OnShipAttackHit(float weight, Vector3 at) => ApplyHit(weight, at, true);
 
-    float lastFlashAt = -99f;
+    float lastFlashAt = -99f, lastOverlayAt = -99f;
+    // Full-screen hit tint: min gap between tints (<= 3 a second), peak alpha for a light stream hit / a heavy hit.
+    public const float OverlayGap = .34f, OverlayLightAlpha = .10f, OverlayHeavyAlpha = .35f;
+    public int OverlayFlashes { get; private set; }
+    public float OverlayPeak { get; private set; }
 
     // `payHitPoints` false: the weight only banks (inside the hit window).
     void ApplyHit(float weight, Vector3 at, bool payHitPoints)
@@ -454,14 +458,25 @@ public class BossEncounter : MonoBehaviour
         {
             if (heartLost) actor.SetHearts(heartsLeft, at);
             // a stream of light hits flashes the boss at most every BossTarget.FxGap (damage is unaffected)
-            bool lightHit = weight < .5f && !heartLost && !kill && Application.isPlaying;
-            if (!lightHit || Time.unscaledTime - lastFlashAt >= BossTarget.FxGap)
+            bool throttle = Application.isPlaying || BossImpact.ClockOverride != null;
+            bool lightHit = weight < .5f && !heartLost && !kill && throttle;
+            float now = BossImpact.ClockNow;
+            if (!lightHit || now - lastFlashAt >= BossTarget.FxGap)
             {
-                lastFlashAt = Time.unscaledTime;
+                lastFlashAt = now;
                 actor.Flash(Mathf.Lerp(.55f, 1f, BossImpact.Intensity(weight)));
             }
+            // The full-screen tint: at most ~3 a second (photosensitivity), a stream of light hits (sentries,
+            // gatling) a faint one, a heart or the kill always.
+            if (!throttle || heartLost || kill || now - lastOverlayAt >= OverlayGap)
+            {
+                lastOverlayAt = now;
+                float a = weight < .5f && !heartLost && !kill ? OverlayLightAlpha : OverlayHeavyAlpha;
+                OverlayFlashes++;
+                OverlayPeak = Mathf.Max(OverlayPeak, a);
+                if (ui != null) ui.HitFlash(boss.flash, a);
+            }
         }
-        if (ui != null) ui.HitFlash(boss.flash);
         // themed burst, shake (BossImpact): scaled by the hit's weight
         BossImpact.Hit(boss.artKey, at, weight, heartLost, kill);
     }
