@@ -34,6 +34,7 @@ public static class DeathPanelTest
         CheckStaticLayout();
         CheckFrameClearance();
         CheckFit();
+        CheckDustFormat();
         CheckUnscaledTime();
 
         EditorSceneManager.OpenScene("Assets/Scenes/gameS1.unity", OpenSceneMode.Single);
@@ -229,6 +230,27 @@ public static class DeathPanelTest
 
     // ---- Source checks: everything animated on unscaled time ----
 
+    // Display-only star dust format: separators, two decimals, same digits as the old F2.
+    static void CheckDustFormat()
+    {
+        var table = new (float v, string s)[]
+        {
+            (0f, "0.00"), (0.004f, "0.00"), (0.01f, "0.01"), (0.994f, "0.99"), (0.996f, "1.00"), (2.5f, "2.50"),
+            (109.7f, "109.70"), (999.99f, "999.99"), (1000f, "1,000.00"), (1234.5f, "1,234.50"), (1276f, "1,276.00"),
+            (16696.5f, "16,696.50"), (59999f, "59,999.00"), (159986.7f, "159,986.70"), (1234567.5f, "1,234,567.50"),
+            (-1234.5f, "-1,234.50"),
+        };
+        foreach (var (v, s) in table)
+            Check("dust format " + v + " -> " + s + " (got '" + DeathPanelView.Dust(v) + "')", DeathPanelView.Dust(v) == s);
+        // Rounding must match the old F2 digits exactly.
+        for (int i = 0; i < 400; i++)
+        {
+            float v = i * 0.0125f + i * 37.003f;
+            string old = v.ToString("F2", System.Globalization.CultureInfo.InvariantCulture);
+            Check("dust format keeps F2 digits at " + v, DeathPanelView.Dust(v).Replace(",", "") == old);
+        }
+    }
+
     static void CheckUnscaledTime()
     {
         var scaled = new Regex(@"Time\.(time|deltaTime|fixedDeltaTime|smoothDeltaTime)\b|WaitForSeconds\(");
@@ -265,7 +287,7 @@ public static class DeathPanelTest
         var view = DeathPanelView.Build(canvas.transform, best, run, dust, replay, menu, new DeathPanelView.Results
         {
             score = 9999999, bestScore = 9999999, newBest = true, ranked = true, parts = parts,
-            dustAtStart = 99987.65f, dustWon = 12.34f,
+            dustAtStart = 99987.70f, dustWon = 59999f, dustBonus = 19999f,
         });
         view.Skip();
         Canvas.ForceUpdateCanvases();
@@ -298,9 +320,11 @@ public static class DeathPanelTest
                   pts != null && pts.text == "+" + RunScore.Format(points[i]) &&
                   row.Find("Label").GetComponent<Text>().text == labels[i]);
         }
-        Check("star dust earned shows +12.34 (got '" + dust.text + "')", dust.text == "+12.34");
+        Check("star dust earned shows +59,999.00 (got '" + dust.text + "')", dust.text == "+59,999.00");
+        var bonusText = panel.Find("Card2/ScoreBonus");
+        Check("score bonus shows 19,999.00", bonusText != null && bonusText.GetComponent<Text>().text == "SCORE BONUS  +19,999.00");
         var total = dust.transform.parent.Find("Total").GetComponent<Text>();
-        Check("total sits on its own line (got '" + total.text + "')", total.text == "TOTAL  99999.99" && !dust.text.Contains("\n"));
+        Check("total sits on its own line (got '" + total.text + "')", total.text == "TOTAL  159,986.70" && !dust.text.Contains("\n"));
 
         var panelRect = DeathPanelView.PanelRect;
         foreach (var t in new[] { best, dust })
@@ -438,7 +462,7 @@ public static class DeathPanelTest
         view.ApplyAt(.3f);
         Check("mid-intro state is not final", !view.IntroFinished);
         view.Skip();
-        Check("a second skip settles again", view.IntroFinished && dust.text == "+12.34" && best.text == "9,999,999");
+        Check("a second skip settles again", view.IntroFinished && dust.text == "+59,999.00" && best.text == "9,999,999");
 
         // The quick-action hit test must still be callable.
         bool threw = false;
