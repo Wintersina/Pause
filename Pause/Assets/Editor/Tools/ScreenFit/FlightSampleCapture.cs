@@ -77,9 +77,8 @@ public static class FlightSampleCapture
         Directory.CreateDirectory(dir);
         ScreenFitScreens.DeathSample = Sample;
         using (new TestHarness.Sandbox())
-        foreach (var pass in new[] { "before", "after" })
+        foreach (var pass in new[] { Environment.GetEnvironmentVariable("FLIGHT_PASS") ?? "after" })
         {
-            DeathPanelView.CornerCutDisabled = pass == "before";
             Directory.CreateDirectory(Path.Combine(dir, pass));
             for (int w = 0; w < Names.Length; w++)
                 foreach (var d in devices)
