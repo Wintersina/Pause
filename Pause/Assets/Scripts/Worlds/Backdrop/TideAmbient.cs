@@ -50,8 +50,8 @@ public static class TideAmbientCatalog
         ("flare", "flames", 10f, .82f, 1f, false), ("flare_b", "flames", 10f, .78f, 1f, false), ("burn", "flames_2", 8f, .62f, 1f, true),
         ("steam_vent", "leaks", 7f, .56f, 1.3f, false), ("bubble_stream", "leaks", 8f, .65f, 1.2f, false),
         ("pipe_drip", "leaks", 6f, .55f, 1f, false), ("plankton_glow", "leaks_2", 6f, .42f, 1f, true),
-        ("beacon_mint", "lights", 4f, .85f, 1.4f, true), ("beacon_pink", "lights", 4f, .55f, 1.4f, true),
-        ("strobe_white", "lights", 5f, .66f, 1.2f, true), ("window_lights", "lights", 5f, .5f, 1f, true),
+        ("beacon_mint", "lights", BlinkFps, .85f, 1.4f, true), ("beacon_pink", "lights", BlinkFps, .55f, 1.4f, true),
+        ("strobe_white", "lights", BlinkFps, .66f, 1.2f, true), ("window_lights", "lights", 5f, .5f, 1f, true),
         ("searchlight_sweep", "lights_2", 8f, .35f, 1f, true), ("lighthouse_beam", "lights_2", 7f, .37f, 1f, true),
         ("wave_crest_a", "surf", 8f, .46f, 1f, true), ("wave_crest_b", "surf", 8f, .46f, 1f, true),
         ("foam_ring", "surf_2", 8f, .46f, 1f, true), ("ripple", "surf_2", 8f, .46f, 1f, true),
@@ -148,7 +148,7 @@ public static class TideAmbientCatalog
                 var s = Specs[i];
                 Vector2 anchor = s.centred ? new Vector2(128f, 128f) : new Vector2(128f, 236f);
                 foreach (var m in data.loops) if (m.name == s.name) anchor = new Vector2(m.x, m.y);
-                loops[i] = new FrostAmbientCatalog.Loop { name = s.name, atlas = s.atlas, fps = s.fps, alpha = s.alpha, scale = s.scale, anchor = anchor };
+                loops[i] = new FrostAmbientCatalog.Loop { name = s.name, atlas = s.atlas, fps = s.fps, alpha = s.alpha, scale = s.scale, anchor = anchor, spread = Blinks(s.name) ? BlinkSpread : 0f };
             }
             var bindings = new List<FrostAmbientCatalog.Binding>();
             foreach (var p in data.pieces)
@@ -173,6 +173,13 @@ public static class TideAmbientCatalog
     }
 
     public const int MaxPerPiece = 4;
+
+    // A lamp is a plain glow point (no lantern frame) that blinks on its own: 4 frames (dark, rising, lit, fading) at
+    // BlinkFps +- BlinkSpread, so each light's period is 4 / fps = 1.3 .. 3.1 s, never in step, and its bright frame
+    // lasts a quarter of that (<= 0.8 s, well under 1 Hz).
+    public const float BlinkFps = 2.2f, BlinkSpread = .4f;
+    public static float BlinkPeriodMin { get { return 4f / (BlinkFps * (1f + BlinkSpread)); } }
+    public static float BlinkPeriodMax { get { return 4f / (BlinkFps * (1f - BlinkSpread)); } }
 
     // Drop the cached data (after re-measuring in the editor, after installing run C; tests).
     public static void Reload() { data = null; byName = null; table = null; installed = null; }
