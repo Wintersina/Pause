@@ -81,6 +81,12 @@ public class PickupBurst : MonoBehaviour
         return Create();
     }
 
+    // A pooled pickup starting a new life is not the one that was just caught.
+    public static void Forget(GameObject pickup)
+    {
+        if (pickup != null && pickup.GetInstanceID() == lastPickup) lastPickup = 0;
+    }
+
     public static GameObject Play(GameObject pickup)
     {
         PickupKind kind;

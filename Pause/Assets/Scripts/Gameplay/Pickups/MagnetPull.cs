@@ -241,7 +241,8 @@ public class MagnetPull : MonoBehaviour
         int n = 0;
         for (int i = 0; i < count; i++)
         {
-            if (list[i] != null) list[n++] = list[i];
+            // (a pooled pickup that went back to its pool is gone, like a destroyed one)
+            if (list[i] != null && !(list[i].TryGetComponent(out PooledObject pooled) && pooled.IsFree)) list[n++] = list[i];
         }
         for (int i = n; i < count; i++) list[i] = null;
         return n;

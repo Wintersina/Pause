@@ -1,4 +1,5 @@
 using UnityEngine;
+using System.Collections.Generic;
 using System.Collections;
 
 public class spawnGoodStuff : MonoBehaviour {
@@ -58,6 +59,7 @@ public class spawnGoodStuff : MonoBehaviour {
         resetBlueBudget();
         AtomSpacing.Reset();
         AtomSpawnBias.Reset();
+        Prewarm();
 	
 	}
 
@@ -253,7 +255,7 @@ public class spawnGoodStuff : MonoBehaviour {
                 {
                     Vector2 half = Vector2.one * HealAtom.TargetDiameter * .5f;
                     Vector3 at = SpawnSpace.PickupSpot(new Vector3(pos.x, CameraFit.ViewTop + .5f, 0f), half, -RailInset.PickupLaneHalf, RailInset.PickupLaneHalf);
-                    SpawnFootprint.Attach(HealAtom.Spawn(at), half, SpawnLayer.Pickup);
+                    SpawnFootprint.Attach(HealAtom.SpawnPooled(at), half, SpawnLayer.Pickup);
                     AtomSpacing.Released();
                     AtomSpawnBias.Released(AtomKind.Heal);
                 }
@@ -374,7 +376,7 @@ public class spawnGoodStuff : MonoBehaviour {
         if (!BossEncounter.TryReserveHealAtom()) return;   // boss fight: max 2 heal atoms
         Vector2 half = Vector2.one * HealAtom.TargetDiameter * .5f;
         Vector3 at = SpawnSpace.PickupSpot(new Vector3(Random.Range(-RailInset.PickupLaneHalf, RailInset.PickupLaneHalf), CameraFit.ViewTop + .5f, 0f), half, -RailInset.PickupLaneHalf, RailInset.PickupLaneHalf);
-        SpawnFootprint.Attach(HealAtom.Spawn(at), half, SpawnLayer.Pickup);
+        SpawnFootprint.Attach(HealAtom.SpawnPooled(at), half, SpawnLayer.Pickup);
         AtomSpacing.Released();
         AtomSpawnBias.Released(AtomKind.Heal);
     }
@@ -409,13 +411,53 @@ public class spawnGoodStuff : MonoBehaviour {
     // off it. Soft both ways -- on a packed board it keeps its spot.
     GameObject Place(GameObject prefab, Vector3 pos)
     {
+        var spec = SpecFor(prefab);
+        pos = SpawnSpace.PickupSpot(pos, spec.half, -RailInset.PickupLaneHalf, RailInset.PickupLaneHalf);
+        // pooled (PrefabPool): built and dressed once per instance, then reused
+        return PrefabPool.Get(prefab, pos, transform.rotation, spec.dress);
+    }
+
+    // What a prefab needs to spawn as a pickup, worked out once: its footprint and how an instance
+    // is dressed (the in-game scale, the soft halo, the footprint, an atom's spin).
+    sealed class PickupSpec
+    {
+        public Vector2 half;
+        public System.Action<GameObject> dress;
+    }
+    static readonly Dictionary<GameObject, PickupSpec> specs = new Dictionary<GameObject, PickupSpec>();
+    static readonly PickupSpec NoPrefab = new PickupSpec { half = Vector2.one * .2f };
+
+    static PickupSpec SpecFor(GameObject prefab)
+    {
+        if (prefab == null) return NoPrefab;
+        PickupSpec spec;
+        if (specs.TryGetValue(prefab, out spec) && spec.dress != null) return spec;
         // star dust flies PickupArt.StarDustScale bigger: its footprint too
-        Vector2 half = prefab != null ? SpawnSpace.BodyHalf(prefab) * PickupArt.InGameScale(prefab) : Vector2.one * .2f;
-        pos = SpawnSpace.PickupSpot(pos, half, -RailInset.PickupLaneHalf, RailInset.PickupLaneHalf);
-        var go = Instantiate(prefab, pos, transform.rotation) as GameObject;
-        PickupArt.ApplyInGameScale(go, prefab);
-        PickupGlow.Dress(go);   // star dust's soft halo (atoms: AtomSpin.AddTo)
-        SpawnFootprint.Attach(go, half, SpawnLayer.Pickup);
-        return go;
+        Vector2 half = SpawnSpace.BodyHalf(prefab) * PickupArt.InGameScale(prefab);
+        spec = new PickupSpec { half = half };
+        spec.dress = go =>
+        {
+            PickupArt.ApplyInGameScale(go, prefab);
+            PickupGlow.Dress(go);   // star dust's soft halo (atoms: AtomSpin.AddTo)
+            SpawnFootprint.Attach(go, half, SpawnLayer.Pickup);
+            PickupKind kind;
+            if (PickupArt.TryKindOf(go, out kind) && PickupGlow.IsAtom(kind)) AtomSpin.AddTo(go);   // (the callers add it too: a no-op then)
+        };
+        specs[prefab] = spec;
+        return spec;
+    }
+
+    // Scene start: the pools hold a few instances of every pickup, so the first spawns build nothing.
+    // (No-op outside play.)
+    void Prewarm()
+    {
+        if (!PrefabPool.Enabled) return;
+        PrefabPool.Prewarm(smStar, 12, SpecFor(smStar).dress);
+        PrefabPool.Prewarm(midStar, 6, SpecFor(midStar).dress);
+        PrefabPool.Prewarm(Atom, 1, SpecFor(Atom).dress);
+        PrefabPool.Prewarm(redAtom, 1, SpecFor(redAtom).dress);
+        PrefabPool.Prewarm(cooldownAtom, 1, SpecFor(cooldownAtom).dress);
+        PrefabPool.Prewarm(magnetAtom, 1, SpecFor(magnetAtom).dress);
+        HealAtom.Prewarm(1);
     }
 }

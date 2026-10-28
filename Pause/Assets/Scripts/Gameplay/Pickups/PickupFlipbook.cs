@@ -2,7 +2,7 @@ using UnityEngine;
 
 // Steps a sprite through a frame table on *scaled* time: when the world
 // freezes (timeScale 0, finger lifted) the pickups freeze with it.
-public class PickupFlipbook : MonoBehaviour
+public class PickupFlipbook : MonoBehaviour, IPoolReset
 {
     public PickupKind kind;
 
@@ -60,6 +60,14 @@ public class PickupFlipbook : MonoBehaviour
             target = own;
         }
         Show(0);
+    }
+
+    // A reused pickup starts its idle loop from the first frame again.
+    public void OnPoolAcquire()
+    {
+        clock = 0f;
+        if (frames != null) Show(0);
+        PickupBurst.Forget(gameObject);   // (a burst is not skipped as "the pickup just caught": same instance, new life)
     }
 
     void Update()

@@ -15,7 +15,7 @@ using UnityEngine;
 // does; there is no per-frame work here.
 [ExecuteAlways]
 [DisallowMultipleComponent]
-public class SpawnFootprint : MonoBehaviour
+public class SpawnFootprint : MonoBehaviour, IPoolReset
 {
     public SpawnLayer layer = SpawnLayer.Enemy;
     public Vector2 half = new Vector2(.3f, .3f);
@@ -29,6 +29,14 @@ public class SpawnFootprint : MonoBehaviour
     public float SoftX { get; internal set; }
     public float SoftV => softV;   // (tests / probes)
     bool registered;
+
+    // A pooled pickup's footprint starts over (no steering history); layer and half are the same body's.
+    public void OnPoolAcquire()
+    {
+        yielded = false;
+        softV = 0f;
+        SoftX = 0f;
+    }
 
     public IMovementFootprint Plan => Held ? null : plan;
 

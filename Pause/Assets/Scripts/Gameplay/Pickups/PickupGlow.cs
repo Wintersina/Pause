@@ -20,7 +20,7 @@ using UnityEngine;
 // in code once; Update only writes a scale, a rotation and a colour: no
 // allocation per frame. Runs on the world's scaled clock, so the breath
 // freezes with the world when the finger lifts (score.pauseCounter freeze).
-public class PickupGlow : MonoBehaviour
+public class PickupGlow : MonoBehaviour, IPoolReset
 {
     // ---- tuning ----
     public const float HaloDiameter = 2.3f;     // x the atom's body diameter
@@ -121,6 +121,13 @@ public class PickupGlow : MonoBehaviour
     void Update()
     {
         Advance(Time.deltaTime);
+    }
+
+    // A reused pickup breathes from the start again.
+    public void OnPoolAcquire()
+    {
+        age = 0f;
+        Apply();
     }
 
     // Exposed for tests and previews: advance by dt seconds of world time.
