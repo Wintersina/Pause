@@ -6,36 +6,37 @@ Usage: tide_lights_repaint.py <Backdrop3 dir>"""
 import json, sys, math
 from PIL import Image
 
-B = 4                       # pixel-art block, in cell pixels
-# name -> (core, glow, halo colours, halo radius in blocks)
+# name -> (core, glow, halo colours, halo radius in cell pixels)
 LAMPS = {
-    "beacon_mint":  ((226, 255, 246), (104, 232, 204), (38, 150, 138), 8),
-    "beacon_pink":  ((255, 240, 204), (255, 190, 84), (196, 118, 30), 8),   # an amber navigation lamp (no pink outside Space)
-    "strobe_white": ((244, 255, 255), (186, 232, 240), (84, 160, 184), 9),
+    "beacon_mint":  ((226, 255, 246), (104, 232, 204), (38, 150, 138), 34),
+    "beacon_pink":  ((255, 240, 204), (255, 190, 84), (196, 118, 30), 34),   # an amber navigation lamp (no pink outside Space)
+    "strobe_white": ((244, 255, 255), (186, 232, 240), (84, 160, 184), 38),
 }
-FRAMES = [.14, .5, 1.0, .5]     # dark, rising, lit, fading (peak vs dimmest well over 4x)
+FRAMES = [.22, .55, 1.0, .55]   # dark, rising, lit, fading (peak vs dimmest well over 4x)
+# Real per-texel resolution (BackdropResolutionTest rejects block upscales): a smooth radial falloff plus a
+# +-1 level hash dither, so neighbouring texels differ.
+
+def mix(a, b, t): return tuple(a[i] + (b[i] - a[i]) * t for i in range(3))
+def hsh(x, y): return ((x * 73856093) ^ (y * 19349663)) % 3 - 1
 
 def lamp(name, k):
     core, glow, halo, R = LAMPS[name]
-    n = 256 // B
     img = Image.new("RGBA", (256, 256), (0, 0, 0, 0))
     px = img.load()
-    c = n / 2 - .5
-    for gy in range(n):
-        for gx in range(n):
-            r = math.hypot(gx - c, gy - c)
+    for y in range(256):
+        for x in range(256):
+            r = math.hypot(x + .5 - 128, y + .5 - 128)
             if r > R: continue
-            if r <= 1.1: col, a = core, 1.0
-            elif r <= 2.6: col, a = glow, .8
+            if r <= 3.5: col, a = core, 1.0
+            elif r <= 9: t = (r - 3.5) / 5.5; col, a = mix(core, glow, t), 1.0 - .25 * t
             else:
-                t = 1 - (r - 2.6) / (R - 2.6)
-                a = round(t * t * 5) / 5 * .55          # stepped, radially monotone
-                col = halo if t < .55 else glow
-                if a <= 0: continue
-            if a * k <= .02: continue
-            for y in range(B):
-                for x in range(B):
-                    px[gx * B + x, gy * B + y] = col + (int(255 * min(1, a * k)),)
+                t = (r - 9) / (R - 9)
+                a = .75 * (1 - t) ** 2.2
+                col = mix(glow, halo, min(1, t * 1.4))
+            a *= k
+            if a <= .012: continue
+            d = hsh(x, y) if a < .9 else 0
+            px[x, y] = tuple(max(0, min(255, int(c) + d)) for c in col) + (max(1, min(255, int(255 * a) + d)),)
     return img
 
 d = sys.argv[1]
