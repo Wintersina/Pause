@@ -601,8 +601,12 @@ public static class ShipReachTest
                   P(f.ShareOf(highest)) + ")", muzzles && capped);
             Check(id + ": the boss's cell, at the top of its sway, is " + BossConfig.BossTopMargin + " u under the HUD band",
                   Mathf.Abs(y + reach + BossConfig.BossTopMargin - f.bandBottom) < 1e-3f || y <= f.At(.5f) + 1e-3f);
+            // (a screen wider than a phone's view -- a foldable's inner screen, a tablet -- has the authored 10 u height and a
+            // wider lane (LaneMetrics): the score read-out no longer shrinks to share the lane and its band is a little taller, so
+            // the boss rests a touch lower there: still the upper part, 58%+)
+            bool wide = LaneMetrics.WideExtraFor(d.w, d.h) > .1f;
             Check(id + ": ... in the upper part of the screen (" + P(f.ShareOf(y)) + ") and fully visible",
-                  f.ShareOf(y) > .6f && y + reach < f.safeTop && y - reach > f.bottom);
+                  f.ShareOf(y) > (wide ? .58f : .6f) && y + reach < f.safeTop && y - reach > f.bottom);
             float unit = f.Height / d.h;
             bool cut = true;
             foreach (var c in d.Cutouts)
