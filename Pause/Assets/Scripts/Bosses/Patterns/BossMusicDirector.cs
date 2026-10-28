@@ -173,7 +173,10 @@ public sealed class BossMusicDirector
         if (held && !double.IsNaN(pendingAccent)) pendingAccent = double.NaN;
         // the accent landing on this sixteenth IS its wave (one firing per sixteenth: one part, one drawing)
         bool accentHere = !double.IsNaN(pendingAccent) && scheduled >= pendingAccent && Room(48);
-        bool waveHere = ((WaveRhythm.Mask(moment.kind, Intensity) >> bar) & 1) != 0;
+        // a wave the boss is already telling (its part charging on the beat before: Forecast, from the last sixteenth's
+        // intensity) fires even if this beat's new energy dropped its sixteenth from the rhythm: a tell is a promise
+        bool told = Telling && !double.IsNaN(nextWaveBeat) && Math.Abs(scheduled - nextWaveBeat) < 1e-6;
+        bool waveHere = told || ((WaveRhythm.Mask(moment.kind, Intensity) >> bar) & 1) != 0;
         if (held && waveHere) HeldWaves++;
         // (a wave leaving on this sixteenth arrives k beats on: it must be down before the special lands, a quarter beat clear)
         waves.MaxTravelBeats = double.IsNaN(ArriveBeforeBeat) ? int.MaxValue : (int)Math.Floor(ArriveBeforeBeat - scheduled - .25 + 1e-9);
