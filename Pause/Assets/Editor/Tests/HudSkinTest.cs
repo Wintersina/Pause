@@ -74,8 +74,9 @@ public static class HudSkinTest
             var tint = HudSkin.IconTint(w);
             Check(name + ": has an opaque icon tint", tint.a > .99f);
             float l = .2126f * Mathf.GammaToLinearSpace(tint.r) + .7152f * Mathf.GammaToLinearSpace(tint.g) + .0722f * Mathf.GammaToLinearSpace(tint.b);
-            bool brightBackdrop = w == 1 || w == 2;   // Frost clouds, Verdant foliage
-            Check(name + ": icon tint " + (brightBackdrop ? "dark" : "light") + " for its backdrop (luma " + l.ToString("0.00") + ")", brightBackdrop ? l < .1f : l > .6f);
+            // Frost and Verdant wear a neon colour (HudButtonsTest measures it against their backdrops); every other world a light one
+            bool neon = w == 1 || w == 2;
+            Check(name + ": icon tint " + (neon ? "neon" : "light") + " for its backdrop (luma " + l.ToString("0.00") + ")", neon ? l > .45f : l > .6f);
         }
     }
 

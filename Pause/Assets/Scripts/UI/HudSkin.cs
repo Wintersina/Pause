@@ -79,15 +79,21 @@ public static class HudSkin
     public static string HudHomePath(int world) { return SharedHomePath; }
     public static string HudReplayPath(int world) { return SharedReplayPath; }
 
-    // Per-world glyph colour, picked from each backdrop's measured brightness
-    // (Tools/hud_icons.py; HudVetCapture renders): bright backdrops (Frost clouds,
-    // Verdant foliage) get a dark saturated tint, the mid/dark ones a light tint.
+    // Per-world glyph colour. Frost and Verdant (brighter, cloud-shadowed backdrops) wear a neon colour with a dark halo; the rest are picked from each backdrop's measured brightness
+    // (Tools/hud_icons.py; HudVetCapture renders): the other worlds' mid/dark backdrops get a light tint.
     // Order = world index (Space, Frost, Verdant, Ember, Tide, Storm, Desert).
+    // The neon glyph colours of the two worlds whose backdrops swallowed a dark tint, and the dark soft shadow that hugs
+    // their strokes (UI Outline, no ring / disc) so the neon separates from bright cloud and from dark shadowed patches alike.
+    public static readonly Color32 FrostNeon = new Color32(200, 255, 30, 255);
+    public static readonly Color32 VerdantNeon = new Color32(255, 236, 0, 255);
+    public static readonly Color32 NeonHalo = new Color32(2, 8, 22, 235);
+    public const float DefaultHaloDistance = 1.5f, NeonHaloDistance = 2f;
+
     static readonly Color[] IconTints =
     {
         new Color32(190, 240, 255, 255),   // Space
-        new Color32(12, 34, 92, 255),      // Frost
-        new Color32(8, 54, 22, 255),       // Verdant
+        FrostNeon,                         // Frost: neon lime (the dark navy vanished into Frost's dark cloud gaps, ~1:1)
+        VerdantNeon,                       // Verdant: neon yellow (forest green vanished into the jungle)
         new Color32(255, 232, 196, 255),   // Ember
         new Color32(255, 255, 255, 255),   // Tide
         new Color32(228, 232, 255, 255),   // Storm
@@ -98,14 +104,16 @@ public static class HudSkin
     static readonly Color[] IconHalos =
     {
         new Color32(0, 0, 0, 0),           // Space
-        new Color32(255, 255, 255, 0),     // Frost
-        new Color32(255, 255, 255, 0),     // Verdant
+        NeonHalo,                          // Frost
+        NeonHalo,                          // Verdant
         new Color32(0, 0, 0, 0),           // Ember
         new Color32(6, 28, 30, 150),       // Tide
         new Color32(0, 0, 0, 0),           // Storm
         new Color32(0, 0, 0, 0),           // Desert
     };
     public static Color IconTint(int world) { return IconTints[Mathf.Clamp(world, 0, IconTints.Length - 1)]; }
+    // Reach of the halo's shadow, canvas units.
+    public static float IconHaloDistance(int world) { return world == 1 || world == 2 ? NeonHaloDistance : DefaultHaloDistance; }
     public static Color IconHalo(int world) { return IconHalos[Mathf.Clamp(world, 0, IconHalos.Length - 1)]; }
     public static string DeathPanelPath(int world) { return Dir(world) + "dp_panel"; }
     public static string HomeGlyphPath(int world) { var f = Folder(world); return f == null ? SpaceHomeGlyph : f + "qa_home_glyph"; }
