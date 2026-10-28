@@ -130,7 +130,7 @@ public class SpaceDock : MonoBehaviour
 
     void OnSupportRewarded(int amount)
     {
-        if (shop != null) shop.RefreshStarDust();
+        if (shop != null) shop.ShowPurchase(amount);
     }
 
     // BackNavigator layer. While launching, Back is swallowed (the choice is
