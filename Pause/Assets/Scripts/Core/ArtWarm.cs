@@ -52,6 +52,7 @@ public static class ArtWarm
     {
         Forget();
         World = world;
+        FirstUseWarm.QueueWorld(world);   // the death panel's frame for this world, measured in the calm start
         var paths = new List<string>();
         Paths(world, paths);
         foreach (var p in paths) if (!string.IsNullOrEmpty(p) && queued.Add(p)) queue.Add(p);

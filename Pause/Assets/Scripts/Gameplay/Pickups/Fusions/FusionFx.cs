@@ -140,28 +140,49 @@ public sealed partial class FusionFx : MonoBehaviour
         MakeOverlays(hull);
     }
 
-    // Slice every strip once (frames are 1:1 pixel cells, point filtered).
+    // Slice every strip once (frames are 1:1 pixel cells, point filtered). Each strip is sliced on its own
+    // (PrewarmStrip, one a frame from FirstUseWarm in the menu idle), so the run's Build only finishes the strips
+    // the warm-up has not reached; a strip the art lacks is looked for once.
+    static bool[] triedStrip;
+
+    public static int StripCount { get { return AtomFusionTable.All.Length; } }
+
+    public static bool StripReady(int i)
+    {
+        return frames != null && i >= 0 && i < frames.Length && frames[i] != null && frames[i].Length > 0 && frames[i][0] != null;
+    }
+
+    public static void PrewarmStrip(int i) { Strip(i); }
+
+    // Tests: forget the sliced strips so a warm-up can be seen doing them.
+    public static void ResetStripsForTests() { frames = null; triedStrip = null; }
+
+    static Sprite[] Strip(int i)
+    {
+        var all = AtomFusionTable.All;
+        if (frames == null || frames.Length != all.Length) { frames = new Sprite[all.Length][]; triedStrip = new bool[all.Length]; }
+        var have = frames[i];
+        if (have != null && have.Length > 0 && have[0] != null) return have;
+        if (triedStrip[i] && have == null) return null;
+        triedStrip[i] = true;
+        var tex = Resources.Load<Texture2D>(Folder + all[i].key);
+        if (tex == null) return null;
+        tex.filterMode = FilterMode.Point;
+        int cell = tex.height;
+        int n = Mathf.Min(FrameCount, tex.width / cell);
+        var s = new Sprite[n];
+        for (int k = 0; k < n; k++)
+        {
+            s[k] = Sprite.Create(tex, new Rect(k * cell, 0f, cell, cell), new Vector2(.5f, .5f), cell, 0, SpriteMeshType.FullRect);
+            s[k].name = "Fx_" + all[i].key + "_" + k;
+        }
+        frames[i] = s;
+        return s;
+    }
+
     static Sprite[][] Frames()
     {
-        if (frames != null && frames[0] != null && frames[0].Length > 0 && frames[0][0] != null) return frames;
-        var all = AtomFusionTable.All;
-        var set = new Sprite[all.Length][];
-        for (int i = 0; i < all.Length; i++)
-        {
-            var tex = Resources.Load<Texture2D>(Folder + all[i].key);
-            if (tex == null) continue;
-            tex.filterMode = FilterMode.Point;
-            int cell = tex.height;
-            int n = Mathf.Min(FrameCount, tex.width / cell);
-            var s = new Sprite[n];
-            for (int k = 0; k < n; k++)
-            {
-                s[k] = Sprite.Create(tex, new Rect(k * cell, 0f, cell, cell), new Vector2(.5f, .5f), cell, 0, SpriteMeshType.FullRect);
-                s[k].name = "Fx_" + all[i].key + "_" + k;
-            }
-            set[i] = s;
-        }
-        frames = set;
+        for (int i = 0; i < AtomFusionTable.All.Length; i++) Strip(i);
         return frames;
     }
 
