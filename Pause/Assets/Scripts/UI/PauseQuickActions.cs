@@ -287,7 +287,8 @@ public class PauseQuickActions : MonoBehaviour
         {
             if (outline == null) outline = glyph.gameObject.AddComponent<Outline>();
             outline.effectColor = halo;
-            outline.effectDistance = new Vector2(1.5f, -1.5f);
+            float reach = HudSkin.IconHaloDistance(world);
+            outline.effectDistance = new Vector2(reach, -reach);
             outline.useGraphicAlpha = true;
             outline.enabled = true;
         }

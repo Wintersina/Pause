@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
 
@@ -27,6 +28,7 @@ public static class HudButtonsTest
         fails = 0;
         Designs();
         Baseline();
+        Neon();
         Layout();
         Debug.Log("[HBT] failures: " + fails);
         return fails;
@@ -51,6 +53,96 @@ public static class HudButtonsTest
         Check("glyph alpha constant is 1", PauseQuickActions.GlyphAlpha >= .999f);
         for (int w = 0; w < HudSkin.WorldCount; w++)
             Check(WorldManager.Worlds[w].displayName + ": icon tint is fully opaque", HudSkin.IconTint(w).a >= .999f);
+    }
+
+
+    // ---- Frost and Verdant: neon glyphs that read against the (brighter, cloud-shadowed) backdrops ----
+
+    static bool Same(Color a, Color32 b) { return ((Color32)a).Equals(b); }
+
+    static float Luma(Color c)
+    {
+        return .2126f * Mathf.GammaToLinearSpace(c.r) + .7152f * Mathf.GammaToLinearSpace(c.g) + .0722f * Mathf.GammaToLinearSpace(c.b);
+    }
+    static float Contrast(float a, float b) { return (Mathf.Max(a, b) + .05f) / (Mathf.Min(a, b) + .05f); }
+
+    // Mean / darkest 1% / lightest 1% luminance of a world's backdrop tiles (every variant's sky, mid and far), computed from the PNGs once.
+    static readonly Dictionary<string, float[]> tileStats = new Dictionary<string, float[]>();
+    static float[] BackdropTones(string world)
+    {
+        float[] cached;
+        if (tileStats.TryGetValue(world, out cached)) return cached;
+        var lums = new List<float>();
+        var tex = new Texture2D(2, 2, TextureFormat.RGBA32, false);
+        for (int v = 1; v <= 4; v++)
+            foreach (var layer in new[] { "sky", "mid", "far" })
+            {
+                string path = "Assets/Art/Backgrounds/Resources/Worlds/" + world + "/Backdrop3/v" + v + "/" + layer + ".png";
+                if (!File.Exists(path)) continue;
+                tex.LoadImage(File.ReadAllBytes(path));
+                var px = tex.GetPixels32();
+                for (int i = 0; i < px.Length; i += 11)
+                    if (px[i].a > 200) lums.Add(Luma(px[i]));
+            }
+        Object.DestroyImmediate(tex);
+        lums.Sort();
+        float sum = 0f; foreach (var l in lums) sum += l;
+        int n = lums.Count;
+        cached = n == 0 ? new float[] { .5f, .5f, .5f } : new[] { sum / n, lums[Mathf.Clamp((int)(n * .01f), 0, n - 1)], lums[Mathf.Clamp((int)(n * .99f), 0, n - 1)] };
+        tileStats[world] = cached;
+        return cached;
+    }
+
+    static void Neon()
+    {
+        // the new constants
+        Check("Frost glyph is the neon lime constant", Same(HudSkin.IconTint(1), HudSkin.FrostNeon) && HudSkin.FrostNeon.Equals(new Color32(200, 255, 30, 255)));
+        Check("Verdant glyph is the neon yellow constant", Same(HudSkin.IconTint(2), HudSkin.VerdantNeon) && HudSkin.VerdantNeon.Equals(new Color32(255, 236, 0, 255)));
+        // every other world keeps its tint and halo exactly
+        var tints = new Dictionary<int, Color32>
+        {
+            { 0, new Color32(190, 240, 255, 255) }, { 3, new Color32(255, 232, 196, 255) }, { 4, new Color32(255, 255, 255, 255) },
+            { 5, new Color32(228, 232, 255, 255) }, { 6, new Color32(255, 238, 176, 255) },
+        };
+        foreach (var kv in tints)
+        {
+            Check(WorldManager.Worlds[kv.Key].displayName + ": tint unchanged", Same(HudSkin.IconTint(kv.Key), kv.Value));
+            Color32 haloWas = kv.Key == 4 ? new Color32(6, 28, 30, 150) : new Color32(0, 0, 0, 0);
+            Check(WorldManager.Worlds[kv.Key].displayName + ": halo unchanged", Same(HudSkin.IconHalo(kv.Key), haloWas));
+            Check(WorldManager.Worlds[kv.Key].displayName + ": halo reach unchanged", Mathf.Approximately(HudSkin.IconHaloDistance(kv.Key), 1.5f));
+        }
+        // fully opaque, hollow glyph (alpha 1), a dark soft halo hugging the stroke, no backing graphic
+        foreach (int w in new[] { 1, 2 })
+        {
+            string name = WorldManager.Worlds[w].displayName;
+            Color tint = HudSkin.IconTint(w), halo = HudSkin.IconHalo(w);
+            Check(name + ": neon glyph is fully opaque", tint.a >= .999f && PauseQuickActions.GlyphAlpha >= .999f);
+            Check(name + ": neon is saturated and bright (not a pastel or a dark tint)", Luma(tint) > .45f && Mathf.Max(tint.r, tint.g, tint.b) >= .9f && Mathf.Min(tint.r, tint.g, tint.b) <= .2f);
+            Check(name + ": halo is dark and nearly opaque (hugs the strokes)", halo.a >= .8f && Luma(halo) < .02f);
+            Check(name + ": halo reach is a thin stroke hug (<= 2.5 canvas units)", HudSkin.IconHaloDistance(w) > 1.5f && HudSkin.IconHaloDistance(w) <= 2.5f);
+            Check(name + ": no pink or magenta outside Space", !(tint.r > .6f && tint.b > .5f && tint.g < .5f * Mathf.Min(tint.r, tint.b)));
+
+            // contrast of the glyph against the backdrop's tones (tile art, cached): mean and darkest patches >= 4.5:1; the lightest
+            // patches are held apart by the halo hugging the stroke (glyph against halo >= 4.5:1), and the glyph vs lightest >= 2:1
+            float[] tones = BackdropTones(name);
+            float g = Luma(tint);
+            Check(name + ": glyph vs backdrop mean >= 4.5:1 (" + Contrast(g, tones[0]).ToString("0.0") + ")", Contrast(g, tones[0]) >= 4.5f);
+            Check(name + ": glyph vs darkest 1% >= 4.5:1 (" + Contrast(g, tones[1]).ToString("0.0") + ")", Contrast(g, tones[1]) >= 4.5f);
+            Check(name + ": glyph vs lightest 1% of the tile art >= 2:1 (" + Contrast(g, tones[2]).ToString("0.0") + ")", Contrast(g, tones[2]) >= 2f);
+            Check(name + ": glyph vs its own halo >= 4.5:1 (" + Contrast(g, Luma(halo)).ToString("0.0") + ")", Contrast(g, Luma(halo)) >= 4.5f);
+            Check(name + ": halo vs the lightest patch is kept out of the glyph's colour (halo darker than the lightest tone)", Luma(halo) < tones[2]);
+        }
+        // no backing disc / ring / plate: the glyph is one Image child (+ at most an Outline), and the source adds nothing else
+        string src = File.ReadAllText("Assets/Scripts/UI/PauseQuickActions.cs");
+        Check("PauseQuickActions adds only the Outline halo to the glyph (no backing disc / ring)", CountOf(src, "AddComponent<") == 2 && src.Contains("AddComponent<Outline>()"));
+        Check("glyph child is a single Image (typeof(RectTransform), typeof(Image))", src.Contains("new GameObject(GlyphName, typeof(RectTransform), typeof(Image))"));
+    }
+
+    static int CountOf(string s, string what)
+    {
+        int n = 0, i = 0;
+        while ((i = s.IndexOf(what, i, System.StringComparison.Ordinal)) >= 0) { n++; i += what.Length; }
+        return n;
     }
 
     // Drawn art bottoms on the 256 px tiles, measured from the PNGs' alpha (the constants in PauseQuickActions must match).

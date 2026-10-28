@@ -860,6 +860,80 @@ public static class ScreenFitScreens
         VetLayers(rig, styler, world);
     }
 
+    // HUD glyph contrast sweep (HudContrastCapture): per variant x cloud shadows on/off x scroll offset, writes the bare backdrop
+    // (_D) and the full HUD (_F) plus the glyphs' pixel rects. SCREEN_FIT_DIR = output folder.
+    public static FitScreen HudContrast(int world)
+    {
+        return new FitScreen { id = "hud-contrast-" + world, scene = "gameS1", title = "HUD contrast sweep, world " + world, gameplayView = true, fullBleed = true, stage = r => HudContrastStage(r, world) };
+    }
+
+    static void HudContrastStage(ScreenFitRig rig, int world)
+    {
+        var styler = WorldBase(rig, world, true, false);
+        string[] names = { "space", "frost", "verdant", "ember", "tide", "storm", "desert" };
+        string dir = System.Environment.GetEnvironmentVariable("SCREEN_FIT_DIR") ?? "Builds/HudContrast";
+        string sub = System.IO.Path.Combine(dir, rig.W + "x" + rig.H);
+        System.IO.Directory.CreateDirectory(sub);
+        score.pauseCounter = 99;
+        moveBackGround.speed = 9.99f;
+        var row = SceneUtil.FindAny(ScoreHud.RowName);
+        if (row != null) row.GetComponent<Text>().text = ScoreHud.Label(1234567);
+        styler.SendMessage("Update");
+        rig.Sync();
+        PlaceHudBand(rig, styler, false);
+        Canvas.ForceUpdateCanvases();
+
+        var glyphs = new System.Collections.Generic.List<Image>();
+        foreach (var im in UnityEngine.Object.FindObjectsByType<Image>(FindObjectsInactive.Exclude, FindObjectsSortMode.None))
+            if (im.gameObject.name == "Glyph") glyphs.Add(im);
+        var rects = new System.Text.StringBuilder();
+        foreach (var g in glyphs)
+        {
+            Rect pr = rig.PixelRect(g.rectTransform);
+            rects.AppendLine(g.transform.parent.name + " " + pr.xMin.ToString("0.0") + " " + pr.yMin.ToString("0.0") + " " + pr.xMax.ToString("0.0") + " " + pr.yMax.ToString("0.0"));
+        }
+        System.IO.File.WriteAllText(System.IO.Path.Combine(sub, names[world] + "_glyphs.txt"), rects.ToString());
+
+        var hideTexts = new System.Collections.Generic.List<Text>();
+        foreach (var t in styler.HudRoot.GetComponentsInChildren<Text>(true)) hideTexts.Add(t);
+        var frames = new System.Collections.Generic.List<Image>();
+        var board = styler.HudRoot.Find("SkinFrame");
+        if (board != null) frames.Add(board.GetComponent<Image>());
+        var qa = UnityEngine.Object.FindFirstObjectByType<PauseQuickActions>();
+        var pf = typeof(PauseQuickActions).GetField("panelImage", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+        if (qa != null && pf != null && pf.GetValue(qa) is Image pi) frames.Add(pi);
+        var all = new System.Collections.Generic.List<Behaviour>();
+        all.AddRange(hideTexts); all.AddRange(frames); all.AddRange(glyphs);
+        var was = new System.Collections.Generic.Dictionary<Behaviour, bool>();
+        foreach (var b in all) was[b] = b.enabled;
+
+        CloudShadowLayer.ForceInEditMode = true;
+        foreach (bool shadows in new[] { false, true })
+            for (int v = 1; v <= 4; v++)
+            {
+                CloudShadowLayer.Enabled = shadows;
+                BackdropVariants.For(names[world] == "frost" ? "Frost" : "Verdant").Force = v;
+                var old = UnityEngine.Object.FindFirstObjectByType<WorldBackdrop>();
+                if (old != null) UnityEngine.Object.DestroyImmediate(old.gameObject);
+                var wb = new GameObject("~WorldBackdrop").AddComponent<WorldBackdrop>();
+                wb.Show(WorldManager.Worlds[world].displayName, false);
+                for (int i = 0; i < (shadows ? 330 : 30); i++) wb.Step(Dt);
+                Debug.Log("[HCR] " + names[world] + " v" + v + " shadows=" + shadows + " variant=" + wb.Current.Variant + " cloud=" + (wb.Current.CloudShadows != null));
+                for (int off = 0; off < 4; off++)
+                {
+                    if (off > 0) for (int i = 0; i < 97; i++) wb.Step(Dt);
+                    string stem = System.IO.Path.Combine(sub, names[world] + "_v" + v + "_s" + (shadows ? 1 : 0) + "_o" + off);
+                    foreach (var b in all) b.enabled = false;
+                    Canvas.ForceUpdateCanvases();
+                    var d = rig.Capture(0, false); System.IO.File.WriteAllBytes(stem + "_D.png", d.EncodeToPNG()); UnityEngine.Object.DestroyImmediate(d);
+                    foreach (var b in all) b.enabled = was[b];
+                    Canvas.ForceUpdateCanvases();
+                    var f = rig.Capture(0, false); System.IO.File.WriteAllBytes(stem + "_F.png", f.EncodeToPNG()); UnityEngine.Object.DestroyImmediate(f);
+                }
+            }
+        CloudShadowLayer.Enabled = true;
+    }
+
     // Writes the layers the gap measurement needs, next to the final frame:
     //   <name>_layer_D  backdrop only            <name>_layer_B  frames, no text / icons
     //   <name>_layer_T  text + icons, no frames
