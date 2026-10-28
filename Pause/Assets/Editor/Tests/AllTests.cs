@@ -54,6 +54,7 @@ public static class AllTests
         ("FirstUseHitchTest", FirstUseHitchTest.Execute),
         ("FirstUseWarmTest", FirstUseWarmTest.Execute),
         ("PerfPassTest", PerfPassTest.Execute),
+        ("HostileHitsPlayerTest", HostileHitsPlayerTest.Execute),
         ("PerfPass2Test", PerfPass2Test.Execute),
         ("AccountCloudSaveTest", AccountCloudSaveTest.Execute),
         ("AccountSignInTest", AccountSignInTest.Execute),
