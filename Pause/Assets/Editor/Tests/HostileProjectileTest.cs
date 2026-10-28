@@ -296,7 +296,18 @@ public static class HostileProjectileTest
     static void ContrastOverEveryWorld()
     {
         string[] worlds = { "Space", "Frost", "Verdant", "Ember" };
-        for (int w = 0; w <= worlds.Length; w++)
+        // Ember's ground is one of four variants and its set pieces / scroll phase differ run to run, so a single random
+        // sample made this check flaky on CI (3 px one run, 7 the next). Measure the worst case instead: every Ember variant
+        // at six scroll offsets (steps of backdrop time), each with a fixed seed; every other world keeps its one sample.
+        var plan = new List<(int w, int variant, int steps)>();
+        for (int pw = 0; pw <= worlds.Length; pw++)
+        {
+            if (pw < worlds.Length && worlds[pw] == "Ember")
+                foreach (int pv in new[] { 1, 2, 3, 4 })
+                    foreach (int ps in new[] { 600, 1200, 1800, 2400, 3000, 3600 }) plan.Add((pw, pv, ps));
+            else plan.Add((pw, 0, 600));
+        }
+        foreach (var (w, forceVariant, steps) in plan)
         {
             bool flare = w == worlds.Length;   // a bright flare filling the view
             var cam = Fresh(flare ? 3 : w);
@@ -316,8 +327,11 @@ public static class HostileProjectileTest
             {
                 backdrop = new GameObject("~Backdrop");
                 var wb = backdrop.AddComponent<WorldBackdrop>();
+                if (forceVariant > 0) BackdropVariants.For(worlds[w]).Force = forceVariant;
+                Random.InitState(7000 + w * 31 + forceVariant * 7 + steps);
                 wb.Show(worlds[w], false);
-                for (int i = 0; i < 600; i++) wb.Step(1f / 60f);   // set pieces in
+                BackdropVariants.For(worlds[w]).Force = 0;
+                for (int i = 0; i < steps; i++) wb.Step(1f / 60f);   // set pieces in
             }
 
             var pool = new BossProjectilePool(40, 1);
@@ -385,7 +399,7 @@ public static class HostileProjectileTest
                 outlined++;
                 smallRoundGlows += glow.sprite == HostileGlow.Halo ? 1 : 0;
             }
-            string name = flare ? "a bright flare" : worlds[w];
+            string name = flare ? "a bright flare" : worlds[w] + (forceVariant > 0 ? " v" + forceVariant + " @" + steps : "");
             string smallLine = "an outlined elite / enemy shot stands out of " + name + ": at least " + fewestSmall + " px at " + MinContrast +
                                ":1 against the backdrop behind it, over " + outlined + " shots (need " + MinStandOutPixels + ")";
             Check("elite and enemy shots over " + name + " wear no circular glow: " + smallRoundGlows + " of " + outlined + " carry the round halo",
@@ -642,6 +656,9 @@ public static class HostileProjectileTest
     // (elite / enemy shots: 116 px). The lane itself stays calm, the bright lava is in the side bands and around it, so
     // only a boss shot drifting over a lava patch is affected; the rim and art still show there. Ember only; every other
     // world and every other shot kind keeps 16.
+    // 2026-10-28: the check now measures the worst case (every variant at six scroll offsets); the weak spot was a pale ash
+    // plume drifting behind a shot (2 to 3 px), fixed by drawing Ember's smoke dimmed (EmberAmbient.SmokeTone) and capping
+    // v2/v3's lava peaks; the worst of the 24 samples is now 12 px (the floor stays 4).
     public const int EmberBossMinStandOutPixels = 4;
 
     // Pixels within `half` of c (a square) whose luminance in fg stands
