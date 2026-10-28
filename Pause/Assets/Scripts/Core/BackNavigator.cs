@@ -56,7 +56,7 @@ public static class BackNavigator
     // Raised when the first home back arms quitting (the toast listens).
     public static event Action QuitArmed;
 
-    static void DefaultLoadScene(string scene) { SceneManager.LoadScene(scene); }
+    static void DefaultLoadScene(string scene) { MenuNav.Load(scene); }
     static void DefaultQuit() { Application.Quit(); }
     static RuntimePlatform DefaultPlatform() { return Application.platform; }
     static int editFrames;

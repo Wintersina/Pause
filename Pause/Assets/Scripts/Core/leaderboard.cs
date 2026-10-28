@@ -8,7 +8,7 @@ public class leaderboard : MonoBehaviour {
 	// button's slot; the leaderboard moved to the home screen). The home
 	// music plays on through (MenuMusic) and Back returns to Options.
 	public const string CreditsScene = "creditsS7";
-	public static System.Action<string> LoadScene = name => UnityEngine.SceneManagement.SceneManager.LoadScene(name);
+	public static System.Action<string> LoadScene = name => MenuNav.Load(name);
 	public void credits () {
         LoadScene(CreditsScene);
 	}
@@ -17,7 +17,7 @@ public class leaderboard : MonoBehaviour {
         // Replaying used to skip this, so the tutorial ran as a real run: it
         // paid real star dust and handed out 5 pauses instead of 50.
         startMenu.PrepareTutorialRun();
-        UnityEngine.SceneManagement.SceneManager.LoadScene("tutorialS5");
+        MenuNav.Load("tutorialS5");
     }
 	
 }

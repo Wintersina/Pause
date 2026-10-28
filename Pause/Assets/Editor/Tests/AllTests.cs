@@ -344,6 +344,7 @@ public static class AllTests
         ("ExplosionV2Test", ExplosionV2Test.Execute),
         ("WorldBackdropTest", WorldBackdropTest.Execute),
         ("MenuBackdropTest", MenuBackdropTest.Execute),
+        ("MenuNavTest", MenuNavTest.Execute),
         ("HomeLayoutTest", HomeLayoutTest.Execute),
         ("FrostBackdropTest", FrostBackdropTest.Execute),
         ("CloudShadowTest", CloudShadowTest.Execute),

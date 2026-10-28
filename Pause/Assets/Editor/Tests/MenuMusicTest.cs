@@ -113,7 +113,7 @@ public static class MenuMusicTest
             Check("Back from credits goes to Options (a carried scene)", MenuMusic.Carries(BackNavigator.OptionsScene));
             Check("Options' Credits button loads a carried scene", MenuMusic.Carries(leaderboard.CreditsScene));
             Check("the Options scene is the one startMenu.achivements loads",
-                  System.IO.File.ReadAllText("Assets/Scripts/Menu/startMenu.cs").Contains("LoadScene(\"" + MenuMusic.OptionsScene + "\")"));
+                  System.IO.File.ReadAllText("Assets/Scripts/Menu/startMenu.cs").Contains("MenuNav.Load(\"" + MenuMusic.OptionsScene + "\")"));
             Check("Options and Credits ship no music source of their own",
                   !System.IO.File.ReadAllText("Assets/Scenes/leaderboardS3.unity").Contains("AudioSource:")
                   && !System.IO.File.ReadAllText("Assets/Scenes/creditsS7.unity").Contains("AudioSource:"));

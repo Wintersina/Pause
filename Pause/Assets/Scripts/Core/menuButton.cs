@@ -39,7 +39,7 @@ public class menuButton : MonoBehaviour {
         }
         else
         {
-            SceneManager.LoadScene("tutorialS5");
+            MenuNav.Load("tutorialS5");
         }
     }
     // BACK (UnityEvent-wired): one level up via BackNavigator -- in the dock

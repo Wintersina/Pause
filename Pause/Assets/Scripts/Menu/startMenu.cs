@@ -192,12 +192,12 @@ public class startMenu : MonoBehaviour {
             youAreInTutorial = false;
             moveBackGround.speed = 0f;
             score.totalCurrency = 0;
-            SceneManager.LoadScene("gameS1"); // start and load scene 1
+            MenuNav.Load("gameS1"); // start and load scene 1
         }
         else
         {
             PrepareTutorialRun();
-            SceneManager.LoadScene("tutorialS5");
+            MenuNav.Load("tutorialS5");
         }
     }
 
@@ -214,7 +214,7 @@ public class startMenu : MonoBehaviour {
     // The Options button (the scene still calls it by its old name).
     public void achivements()
     {
-        SceneManager.LoadScene("leaderboardS3");
+        MenuNav.Load("leaderboardS3");
     }
     // LEADERBOARD (moved here from Options): the in-game rankings panel over
     // the home screen; its "View all" opens the store's own screen.
@@ -224,7 +224,7 @@ public class startMenu : MonoBehaviour {
     }
     public void shop()
     {
-        SceneManager.LoadScene("shopS6");
+        MenuNav.Load("shopS6");
     }
     // The Quit button: a deliberate quit, so no confirmation (never on iOS).
     public void quit()
