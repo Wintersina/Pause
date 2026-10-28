@@ -60,6 +60,7 @@ public static class TideBackdropTest
             Affinity();
             Emitters();
             RunC();
+            Lamps();
             Weather();
             Clouds();
             Brightness();
@@ -607,6 +608,47 @@ public static class TideBackdropTest
             if (d > 255f * 6f) moved++;
         }
         return union == 0 ? 0f : moved / (float)union;
+    }
+
+    // The blinking lamps are plain glow points: a round core and halo, no frame / cage / box / ring, each on its own period.
+    static void Lamps()
+    {
+        int notRadial = 0, wide = 0, pinkish = 0, spreadBad = 0;
+        string worst = "";
+        foreach (var l in TideAmbientCatalog.Table.loops)
+        {
+            if (!TideAmbientCatalog.Blinks(l.name) || !TideAmbientCatalog.Present(l.name)) continue;
+            if (l.spread < .3f) spreadBad++;
+            foreach (var fr in LoopFrames(l.name))
+            {
+                int n = (int)Mathf.Sqrt(fr.Length);
+                // mean alpha per radius ring around the cell centre must never rise going outwards, and nothing sits beyond 60 px
+                var sum = new float[n]; var cnt = new int[n];
+                for (int y = 0; y < n; y++)
+                    for (int x = 0; x < n; x++)
+                    {
+                        var c = fr[y * n + x];
+                        float r = Mathf.Sqrt((x + .5f - n / 2f) * (x + .5f - n / 2f) + (y + .5f - n / 2f) * (y + .5f - n / 2f));
+                        int ri = Mathf.Min(n - 1, (int)r);
+                        sum[ri] += c.a; cnt[ri]++;
+                        if (c.a > 8 && r > 60f) wide++;
+                        if (c.a > 40 && c.r > c.g + 40 && c.b > c.g + 10) pinkish++;
+                    }
+                float prev = float.MaxValue;
+                for (int i = 0; i < 60; i++)
+                {
+                    float m = cnt[i] > 0 ? sum[i] / cnt[i] : 0f;
+                    if (m > prev + .5f) { notRadial++; worst = l.name + " ring " + i; }
+                    prev = m;
+                }
+            }
+        }
+        Check("lamp frames are a round glow: alpha falls off monotonically from the centre, no frame, bars or rings (" + notRadial + " rises " + worst + ")", notRadial == 0);
+        Check("lamp glows stay within 60 px of their centre and are never pink (" + wide + " far px, " + pinkish + " pink px)", wide == 0 && pinkish == 0);
+        Check("every blinking lamp loop jitters its rate +-" + (TideAmbientCatalog.BlinkSpread * 100f).ToString("F0") + "% per light so none blink in step (" + spreadBad + " narrow)", spreadBad == 0);
+        float pmin = TideAmbientCatalog.BlinkPeriodMin, pmax = TideAmbientCatalog.BlinkPeriodMax;
+        Check("blink periods run " + pmin.ToString("F2") + " .. " + pmax.ToString("F2") + " s: gentle (bright phase <= 1 Hz) and irregular (>= 2x spread)",
+              pmin >= 1.2f && pmax <= 3.3f && pmax / pmin >= 2f);
     }
 
     static void RunC()

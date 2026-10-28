@@ -155,6 +155,7 @@ public static class FrostAmbientCatalog
     {
         public string name, atlas;
         public float fps, alpha, scale;
+        public float spread;        // per-light fps jitter (0 = the default +-10%); Tide's lamps use a wide one so no two blink in step
         public float tone;          // colour multiplier of the drawn loop (0 = untouched, 1): darkens light plumes (Ember's ash smoke, so shots stay readable over it)
         public Vector2 anchor;      // cell pixels from the top-left
     }
@@ -406,7 +407,8 @@ public class AmbientEmitters
             slot.loop = li;
             slot.boost = Table.lifted(loop.atlas) ? 1f : -1f;
             slot.frames = frames[li];
-            slot.fps = loop.fps * (.9f + .2f * (float)rng.NextDouble());
+            float spr = loop.spread > 0f ? loop.spread : .1f;
+            slot.fps = loop.fps * (1f - spr + 2f * spr * (float)rng.NextDouble());
             slot.alpha = loop.alpha * e.alpha;
             slot.tone = loop.tone > 0f ? loop.tone : 1f;
             slot.phase = (float)rng.NextDouble() * slot.frames.Length / Mathf.Max(.01f, slot.fps);
