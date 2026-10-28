@@ -233,7 +233,7 @@ public static class CloudShadowTest
             }
             float mean = sum / n;
             Check(w + ": coverage averages " + mean.ToString("F2") + " (budget " + cs.Budget.ToString("F2") + ", range " + min.ToString("F2") + " .. " + max.ToString("F2") + "), ceiling " + CloudShadowLayer.MaxCoverage,
-                  mean >= (w == "Frost" ? .26f : .2f) && mean <= .55f && max <= CloudShadowLayer.MaxCoverage && empty <= n / 6);
+                  mean >= (w == "Frost" ? .34f : .3f) && mean <= .55f && max <= CloudShadowLayer.MaxCoverage && empty <= n / 6);
             Check(w + ": the lit gaps stay (never a veil: peak coverage " + max.ToString("F2") + " < 0.6) and the quads' summed area is bounded (" + maxQuad.ToString("F2") + " screens <= 2.0)", max < .6f && maxQuad <= 2.0f);
         }
         Check("Frost has the largest budget", CloudShadowLayer.Looks[0].world == "Frost" && CloudShadowLayer.Looks[0].budget >= MaxCover());

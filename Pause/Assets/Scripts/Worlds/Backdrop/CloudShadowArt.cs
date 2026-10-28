@@ -231,8 +231,8 @@ public static class CloudShadowArt
         }
         float warp = (Fbm(x * .011f + 3f, y * .011f, 3, d.seed) - .5f) * 2.4f;
         float b = Billow(x * .034f + warp, y * .034f + warp * .7f, 4, d.seed + 5);
-        float F = L + (b - .5f) * .9f * Mathf.Clamp01(L * 1.7f + .25f);
-        return Smooth(0f, .4f, F);
+        float F = L + (b - .5f) * 1.6f * Mathf.Clamp01(L * 1.7f + .25f);
+        return Smooth(-.12f, .4f, F);
     }
 
     static float Strato(Def d, int x, int y)
@@ -256,7 +256,7 @@ public static class CloudShadowArt
         f1 = Mathf.Sqrt(f1);
         float roll = 1f - Smooth(.22f, .78f, f1);
         float pat = roll * (.7f + .6f * Fbm(x * .04f, y * .04f, 3, d.seed + 7));
-        return E * Smooth(.1f, .4f, pat);
+        return E * Smooth(0f, .3f, pat);
     }
 
     static float Cirrus(Def d, int x, int y)

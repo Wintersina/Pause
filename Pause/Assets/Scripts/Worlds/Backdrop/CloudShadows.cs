@@ -71,6 +71,7 @@ public sealed class CloudShadowLayer
         public float cap;            // peak draw alpha of the shadow core (<= HardCap)
         public float nightCapMul;    // on the planet's night side
         public int count;
+        public bool big;             // only the big shapes (no cirrus): the most shadow (Frost)
         public float budget;         // spawn budget: the sum of the out shadows' full ink shares of the view (gates spawns; coverage measured in tests)
         public float speed;          // own drift, world units / s
         public float dir;
@@ -78,9 +79,9 @@ public sealed class CloudShadowLayer
 
     public static readonly Look[] Looks =
     {
-        new Look { world = "Frost",   color = new Color(.01f, .04f, .12f), cap = .50f, nightCapMul = .6f,  count = 3, budget = 1.15f, speed = .08f, dir = 200f },
-        new Look { world = "Verdant", color = new Color(.00f, .07f, .02f), cap = .48f, nightCapMul = .5f,  count = 3, budget = .8f, speed = .07f, dir = 330f },
-        new Look { world = "Ember",   color = new Color(.12f, .02f, .01f), cap = .46f, nightCapMul = .6f,  count = 3, budget = .8f, speed = .09f, dir = 155f },
+        new Look { world = "Frost",   color = new Color(.01f, .04f, .12f), cap = .50f, nightCapMul = .6f,  count = 3, big = true, budget = 1.3f, speed = .08f, dir = 200f },
+        new Look { world = "Verdant", color = new Color(.00f, .07f, .02f), cap = .48f, nightCapMul = .5f,  count = 3, budget = .95f, speed = .07f, dir = 330f },
+        new Look { world = "Ember",   color = new Color(.12f, .02f, .01f), cap = .46f, nightCapMul = .6f,  count = 3, budget = .95f, speed = .09f, dir = 155f },
         new Look { world = "Tide",    color = new Color(.00f, .05f, .11f), cap = .50f, nightCapMul = .6f,  count = 3, budget = .95f, speed = .10f, dir = 25f },
         new Look { world = "Desert",  color = new Color(.11f, .045f, .01f), cap = .50f, nightCapMul = .55f, count = 3, budget = .95f, speed = .08f, dir = 20f },
     };
@@ -252,6 +253,7 @@ public sealed class CloudShadowLayer
     int PickShape()
     {
         float r = Rand();
+        if (look.big && !low) return r < .28f ? 0 : r < .56f ? 1 : r < .78f ? 2 : 3;
         if (low) return r < .4f ? 3 : r < .75f ? 4 : 5;
         return r < .22f ? 0 : r < .44f ? 1 : r < .62f ? 2 : r < .8f ? 3 : r < .9f ? 4 : 5;
     }
@@ -269,12 +271,17 @@ public sealed class CloudShadowLayer
         return best;
     }
 
-    // Is the strip just above the view, where a new shadow of this shape would come in, free of the one before it?
+    // Would a new shadow of this shape, coming in over the top edge, keep clear of the ones out (YieldTarget would not make it yield)?
     bool TopClear(int shape)
     {
-        float entryBottom = halfH + .2f;
+        float yn = halfH + CloudShadowArt.ShapeH(shape) * cell * .5f * .45f;
+        float wn = CloudShadowArt.ShapeW(shape) * cell * .5f;
         for (int j = 0; j < count; j++)
-            if (slots[j].active && slots[j].y + slots[j].halfH > entryBottom + .4f * CloudShadowArt.ShapeH(shape) * cell && slots[j].y - slots[j].halfH < entryBottom + CloudShadowArt.ShapeH(shape) * cell) return false;
+        {
+            if (!slots[j].active) continue;
+            float r = (slots[j].half + wn) * .72f;
+            if (Mathf.Abs(yn - slots[j].y) < r * .95f) return false;
+        }
         return true;
     }
 
@@ -334,8 +341,8 @@ public sealed class CloudShadowLayer
             float px = Range(-halfW, halfW), py = Range(-halfH, halfH);
             if (fromTop)
             {
-                // the ground scrolls down: the shadow comes in over the top edge, centred anywhere across the view, just clear of it
-                py = halfH + s.halfH + .2f;
+                // the ground scrolls down: the shadow comes in over the top edge, centred anywhere across the view
+                py = halfH + s.halfH * .45f;      // about half of it already over the view: the fade-in (FadeSeconds) hides its arrival
                 px *= .45f;
             }
             else if (!initial)
@@ -409,13 +416,13 @@ public sealed class CloudShadowLayer
             {
                 if (dt > 0f)
                 {
-                    if (!s.hasWait) { s.wait = Range(.5f, 2.5f); s.hasWait = true; }
+                    if (!s.hasWait) { s.wait = Range(.3f, 1.2f); s.hasWait = true; }
                     s.wait -= dt;
                     if (s.wait <= 0f)
                     {
                         int shape = BestFit(PickShape());
                         // spawn only while the shadows already out leave room (the clear lit gaps) -- but never leave the view without one
-                        if (!TopClear(shape)) s.wait = Range(.4f, 1f);
+                        if (!TopClear(shape)) s.wait = Range(.3f, .7f);
                         else if (!AnyInView() || Predicted() + InkShare(shape) <= cover * 1.15f) Spawn(i, false, shape);
                         else s.wait = Range(.7f, 1.6f);
                     }
@@ -444,7 +451,7 @@ public sealed class CloudShadowLayer
         }
     }
 
-    public const float CrowdOn = .42f, CrowdOff = .35f;    // coverage hysteresis of the ceiling guard (MaxCoverage .6 is the hard bound)
+    public const float CrowdOn = .48f, CrowdOff = .40f;    // coverage hysteresis of the ceiling guard (MaxCoverage .6 is the hard bound)
 
     // the bit of the youngest active slot not yet in `mask` (0 when all are)
     int Youngest(int mask)
