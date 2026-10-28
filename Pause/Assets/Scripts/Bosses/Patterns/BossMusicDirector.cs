@@ -243,6 +243,10 @@ public sealed class BossMusicDirector
     // boss can tell it on the beat before.
     void Forecast(IBeatSource music, double now, long tick)
     {
+        // A wave already being told keeps its sixteenth: a tell runs up to a beat, and a new beat's energy (or a ramp
+        // step on a bar line) inside it must not re-plan the wave away from the beat the boss is charging for (Step
+        // fires the told sixteenth even if the rhythm no longer has it). A special's hold still cancels it.
+        if (Telling && !double.IsNaN(nextWaveBeat) && now < nextWaveBeat && !HeldAt(nextWaveBeat)) { UpdateTell(now); return; }
         var moment = music is IMusicBeatSource arranged ? arranged.MusicNow : new MusicMoment { energy = .5f, bass = .5f, accent = .5f, kind = "drive" };
         float intensity = Preparing ? BossDifficulty.Shape(world, Mathf.Clamp01(moment.energy * .75f + moment.bass * .15f), rampClock) : Intensity;
         int mask = WaveRhythm.Mask(moment.kind, intensity);
