@@ -155,6 +155,7 @@ public static class FrostAmbientCatalog
     {
         public string name, atlas;
         public float fps, alpha, scale;
+        public float tone;          // colour multiplier of the drawn loop (0 = untouched, 1): darkens light plumes (Ember's ash smoke, so shots stay readable over it)
         public Vector2 anchor;      // cell pixels from the top-left
     }
 
@@ -297,7 +298,7 @@ public class AmbientEmitters
     {
         public SpriteRenderer sr;
         public Sprite[] frames;
-        public float fps, alpha, phase, boost;
+        public float fps, alpha, phase, boost, tone;
         public bool on;
         public int loop;
         public Vector2 host;          // the host's point, body-local units
@@ -407,6 +408,7 @@ public class AmbientEmitters
             slot.frames = frames[li];
             slot.fps = loop.fps * (.9f + .2f * (float)rng.NextDouble());
             slot.alpha = loop.alpha * e.alpha;
+            slot.tone = loop.tone > 0f ? loop.tone : 1f;
             slot.phase = (float)rng.NextDouble() * slot.frames.Length / Mathf.Max(.01f, slot.fps);
             slot.sr.sprite = slot.frames[0];
             Material m = plumeMat != null && Table.lifted(loop.atlas) ? plumeMat : plainMat;
@@ -511,7 +513,7 @@ public class AmbientEmitters
                     int n = slot.frames.Length;
                     int f = (int)((p.age + slot.phase) * slot.fps) % n;
                     slot.sr.sprite = slot.frames[f];
-                    slot.sr.color = new Color(1f, 1f, 1f, Mathf.Min(1f, slot.alpha * a * (slot.boost < 0f ? boost : 1f)));
+                    slot.sr.color = new Color(slot.tone, slot.tone * (slot.tone < 1f ? .94f : 1f), slot.tone * (slot.tone < 1f ? .88f : 1f), Mathf.Min(1f, slot.alpha * a * (slot.boost < 0f ? boost : 1f)));
                     if (!slot.sr.enabled) slot.sr.enabled = true;
                 }
             }

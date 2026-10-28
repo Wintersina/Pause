@@ -48,6 +48,15 @@ public static class EmberAmbientCatalog
         ("strobe_white", "lights", 4f, .8f, 1.2f),
     };
 
+    // The light ash smoke and steam plumes are drawn dimmed (a warm dark grey): a boss shot (fire-coloured by design) drifting
+    // over a pale plume lost its 3:1 contrast (HostileProjectileTest measured 2 to 3 px against the 4 px floor), a dark ash
+    // plume keeps every shot readable. Ember only; flames, fountains and lights keep their own colour.
+    public const float SmokeTone = .42f, SteamTone = .55f;
+    static float Tone(string loop)
+    {
+        return loop == "steam_vent" ? SteamTone : loop == "smoke_a" || loop == "smoke_b" || loop == "eruptsmoke_a" || loop == "eruptsmoke_b" ? SmokeTone : 0f;
+    }
+
     // Rising plumes: the loops whose base must sit on their emitter point.
     public static bool Plume(string loop)
     {
@@ -90,7 +99,7 @@ public static class EmberAmbientCatalog
                 var s = Specs[i];
                 Vector2 anchor = new Vector2(128f, 236f);
                 foreach (var m in data.loops) if (m.name == s.name) anchor = new Vector2(m.x, m.y);
-                loops[i] = new FrostAmbientCatalog.Loop { name = s.name, atlas = s.atlas, fps = s.fps, alpha = s.alpha, scale = s.scale, anchor = anchor };
+                loops[i] = new FrostAmbientCatalog.Loop { name = s.name, atlas = s.atlas, fps = s.fps, alpha = s.alpha, scale = s.scale, tone = Tone(s.name), anchor = anchor };
             }
             var bindings = new List<FrostAmbientCatalog.Binding>();
             foreach (var p in data.pieces)

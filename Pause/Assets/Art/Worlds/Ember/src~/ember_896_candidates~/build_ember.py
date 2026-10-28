@@ -12,7 +12,8 @@ S = 1008
 MED = {"v1": .36, "v2": .36, "v3": .37, "v4": .31}
 LANE = .62
 SHOULDER = .35
-CAPS = {"v1": .46, "v2": .50, "v3": .47, "v4": .36}   # = the old art's brightest lava, so fire-coloured boss shots keep standing out
+import os
+CAPS = {"v1": .46, "v2": float(os.environ.get("C2", .50)), "v3": float(os.environ.get("C3", .47)), "v4": .36}   # = the old art's brightest lava, so fire-coloured boss shots keep standing out
 V1_FACTOR = {"mid": .88, "far": .74, "sky": .72}   # v1 as-drawn caps (WorldBackdropTest)
 
 def pixelate(rgb, cell=1, colors=160):
@@ -128,6 +129,5 @@ def main():
             g = grade(np.ascontiguousarray(layer), v, role); g[-1] = g[0]
             Image.fromarray(np.dstack([g, np.full(g.shape[:2], 255, np.uint8)]), "RGBA").save(out / v / f"{role}.png")
         # flow keeps its variant digit
-        flow(v[1:]).save(out / v / "flow.png")
         print("built", v)
 main()
