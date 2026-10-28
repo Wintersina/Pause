@@ -118,7 +118,10 @@ public class SecretPowerController : MonoBehaviour
     public float LastDashDirection { get; private set; }
 
     public const string ShellAuraName = "~ShellAura";
-    const float ShellScale = 1.08f, ShellAlpha = .85f;
+    const float ShellScale = 1.08f;
+    // Hard Shell dome opacity: the old .85 made 20% less transparent (x1.2 = 1.02, clamped to 1). The art's own
+    // pixel alpha still keeps the hull, enemies and shots readable through it.
+    public const float ShellAlphaWas = .85f, ShellAlphaBoost = 1.2f, ShellAlpha = 1f;
     public const string BubbleDomeName = "~BubbleDome";
     public static readonly Color BubbleTint = new Color(.45f, .8f, 1f, .55f);
 
