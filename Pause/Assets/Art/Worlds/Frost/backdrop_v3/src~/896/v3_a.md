@@ -1,0 +1,11 @@
+You are making ONE game-art ground painting for "Pause", a vertical phone-portrait 2D shooter, FROST world (an arctic ice planet, orthographic top-down aerial view): the REFINERY: a snowfield industrial plant seen from above: pipework runs, round tanks, cooling towers, rail lines and gantries, frozen ponds, snow-dusted rocky ridges and fir-like spires.
+
+Reference image 1 is the OLD low-resolution, very dark version of this exact ground (shown here already brightened). REPAINT IT at much higher native resolution with RICHER pixel-level detail: KEEP THE SAME COMPOSITION (every building, pipe, quay, floe, pond and ridge stays in the same place and shape, running off every edge exactly as in the reference: no vignette, no border), but add real detail: readable ice facets, snow drifts, cracks, rivets, panel seams, small fine props.
+
+BRIGHTNESS AND PALETTE: paint it clearly LIGHTER and more readable than the reference: snow and ice in cool whites and pale blues (frost white, ice blue, steel blue, slate), metal in steel grey-blue with only small touches of desaturated brass, water in deep blue (not black). Average value about 0.38, brightest snow never above 0.85. Cool blue-white family only. No dark fog, no dark overlay, no vignette, no black voids, no dithered checkerboard or screen-door grid texture.
+
+STYLE: crisp hi-res PIXEL ART: hard-edged pixel clusters on a consistent small pixel grid (art pixels of about 2 by 2 output pixels), limited smooth-free colour ramps, NO anti-aliased blur, NO soft airbrushed gradients, NO photographic blur, NO outlines or black borders around objects. ABSOLUTELY NO pink, magenta or purple. The central 40 percent of the width stays calm and lower in contrast (a clear lane): the busiest detail and biggest shapes are in the outer 30 percent on each side.
+
+HARD NO: horizon, sky, ships flying, UI, text, frame, watermark, people, animals. Do not edit any other file, do not commit.
+Paint ONE opaque SQUARE image at the largest size the tool allows (about 1254x1254) and save it to the exact output path at the end.
+Output: write the final PNG to /Users/sina/Developer/Pause-worktrees/frost-896/Pause/Assets/Art/Worlds/Frost/backdrop_v3/src~/896/v3_a.png
