@@ -1,0 +1,10 @@
+Redo, with exact geometry. Attached: cand1_A.png and cand1_B.png are your previous two candidates (the look is right, we like both) but their top and bottom bars are far too thick, so the frame does not fit the panel. ref_frost_current.png is today's Frost frame, ref_tide.png / ref_ember.png the other worlds.
+
+Produce two new files in the current directory, frost_frame_A2.png and frost_frame_B2.png: the same two looks (A = calm smooth ice slab with sparse crystals; B = richer faceted crystal clusters at the corners and small crystals along the outer edge), exactly 600 x 900 px RGBA, hard pixel-art edges, transparent outside the frame.
+
+GEOMETRY, measured in pixels from the top-left of the 600 x 900 canvas, to be followed exactly:
+- The opening is the axis-aligned rectangle x = 58 .. 541, y = 84 .. 815 (inclusive), a single flat opaque colour RGB(14, 31, 55), perfectly straight edges, square corners, nothing inside it.
+- Everything that is not the opening, inside the frame's outer silhouette, is the ice frame. So the frame is only 58 px thick on the left and right and only 84 px thick on the top and bottom, INCLUDING all crystals, snow caps and icicles: nothing of the frame may extend more than 84 px from the top / bottom canvas edge or more than 58 px from the left / right canvas edge, and nothing may enter the opening.
+- Make the bars slimmer to fit: a bright cyan-blue neon edge line along the opening edge (about 4 px), then ice body, then the outer ornaments (small crystals, frost glints, a short icicle fringe hanging down on the outside of the BOTTOM edge only, short enough to stay inside the 84 px). Corner crystal clusters sit on the outer corners and stay within the 58 x 84 corner blocks, so they are smaller than in the first candidates.
+- Keep the colours, the pixel-art line weight and the ice look of the first candidates.
+Save both PNGs; after saving, verify with Python that the opening is exactly one colour and that no non-opening pixel lies inside it, and fix anything off. Reply with one line per file.
