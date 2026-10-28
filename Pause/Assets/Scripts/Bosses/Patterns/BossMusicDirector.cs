@@ -14,6 +14,7 @@ public sealed class BossMusicDirector
 {
     readonly IPatternHost host;
     readonly IMusicPatternHost budget;
+    readonly int world;
     readonly BossWaveVoice waves;
     readonly bool accentWave, accentFan;
     readonly BossPatternRunner accent = new BossPatternRunner();
@@ -34,6 +35,13 @@ public sealed class BossMusicDirector
     public double LastScheduledBeat { get; private set; }
     public double LastLateBeats { get; private set; }
     public float Intensity { get; private set; }
+    public float RawIntensity { get; private set; }   // the song's own, before BossDifficulty shaped it
+    public float FightSeconds => gameClock;           // game seconds the director has run
+    // The ramp's clock (BossDifficulty): gameClock as it was on the last bar line the director played. The ramp level
+    // only moves on a bar line, so the rhythm a wave was told on (the beat before it) is the rhythm it fires on: a
+    // level creeping across a mask's threshold mid-bar would move the bar's waves off the sixteenths already told.
+    public float RampClock => rampClock;
+    float rampClock;
     public bool Preparing { get; private set; }
     public int Pose { get; private set; }
     public PatternStream Signature => signatureShape;
@@ -53,6 +61,7 @@ public sealed class BossMusicDirector
     double nextWaveBeat = double.NaN, lastWaveBeat = double.NegativeInfinity;
     public const double TellBeats = 1.0;
     // The first beat the director's waves start on (two beats after the song was first heard; the specials count from it).
+    // A boss with BossDifficulty.beatSyncFromStart starts on the first beat that leaves its one-beat tell instead.
     public double StartBeat => startBeat;
 
     // THE HOLD for a special attack (BossSpecials): from this beat on no wave leaves, no accent is planned and no wave is
@@ -68,6 +77,7 @@ public sealed class BossMusicDirector
     public BossMusicDirector(int world, BossDef boss, IPatternHost host)
     {
         this.host = host;
+        this.world = world;
         budget = host as IMusicPatternHost;
         var shapes = BossMusicVoices.For(world, boss);
         pulseShape = shapes[0]; signatureShape = shapes[1]; accentShape = shapes[2];
@@ -115,7 +125,9 @@ public sealed class BossMusicDirector
         if (!ReferenceEquals(source, music))
         {
             source = music;
-            startBeat = Math.Ceiling(now) + 2;
+            // the initial musical warning: two beats of calm after the song is first heard, or (the last bosses, hard from
+            // the first bar) only the one-beat tell: the first wave leaves on the first beat at least TellBeats away
+            startBeat = BossDifficulty.SyncFromStart(world) ? Math.Ceiling(now + TellBeats - 1e-6) : Math.Ceiling(now) + 2;
             lastTick = (long)Math.Floor(now * 4);
             pendingAccent = double.NaN;
             Preparing = true;
@@ -137,7 +149,10 @@ public sealed class BossMusicDirector
         if (late > allowedLate) return;
 
         var moment = music is IMusicBeatSource arranged ? arranged.MusicNow : new MusicMoment { energy = .5f, bass = .5f, accent = .5f, kind = "drive" };
-        Intensity = Mathf.Clamp01(moment.energy * .75f + moment.bass * .15f + Mathf.Clamp01(progress) * .1f);
+        // the song's intensity, shaped by the boss's place on the difficulty ladder (ramp-up, floor: BossDifficulty)
+        RawIntensity = Mathf.Clamp01(moment.energy * .75f + moment.bass * .15f + Mathf.Clamp01(progress) * .1f);
+        if ((((tick - 4L * music.DownbeatBeat) % WaveRhythm.TicksPerBar) + WaveRhythm.TicksPerBar) % WaveRhythm.TicksPerBar == 0) rampClock = gameClock;
+        Intensity = BossDifficulty.Shape(world, RawIntensity, rampClock);
         bool peak = moment.kind == "drop" || moment.kind == "peak";
         long nextPhrase = tick / 64; // four bars, continuous even through clip wraps
         if (nextPhrase != phrase || moment.section != section)
@@ -226,7 +241,7 @@ public sealed class BossMusicDirector
     void Forecast(IBeatSource music, double now, long tick)
     {
         var moment = music is IMusicBeatSource arranged ? arranged.MusicNow : new MusicMoment { energy = .5f, bass = .5f, accent = .5f, kind = "drive" };
-        float intensity = Preparing ? Mathf.Clamp01(moment.energy * .75f + moment.bass * .15f) : Intensity;
+        float intensity = Preparing ? BossDifficulty.Shape(world, Mathf.Clamp01(moment.energy * .75f + moment.bass * .15f), rampClock) : Intensity;
         int mask = WaveRhythm.Mask(moment.kind, intensity);
         nextWaveBeat = double.NaN;
         long from = Preparing ? (long)Math.Ceiling(startBeat * 4 - 1e-8) : tick + 1;

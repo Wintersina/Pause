@@ -42,6 +42,34 @@ The waves are the whole fight's texture, but a boss's signature attacks live in 
 
 `BossSpecialsTest` proves the scheduling on a manual clock and on the real actor with the real hazard pools (every boss: the special goes live within a frame of a bar line, no wave arrives after the landing or leaves while it is live, the drawings are the special's), the pause rules, and measures the dodge bot (DodgeBot through the real `BossEncounter` on the real song clock) with the waves alone, specials every 8 bars and every 4 — the `[SPECIALS] <boss> dodge bot` lines of the log are the numbers behind `Bars`.
 
+## Difficulty ladder (`BossDifficulty`)
+
+The song's intensity (`energy * .75 + bass * .15 + progress * .1`) used to be the whole difficulty, so the ladder ran on the songs' arrangements: the Dune-Eater's quiet intro held the final boss at one wave a bar for its first ~28 s, while the Bloom Queen's song opens hot. `BossDifficulty` (one table, `Scripts/Bosses/Patterns/BossDifficulty.cs`) now shapes it per boss, in game seconds since the fight began:
+
+```
+level(t)  = rampSeconds <= 0 ? 1 : lerp(startIntensity, 1, smoothstep(t / rampSeconds))
+intensity = min(level, max(raw, intensityFloor * level))
+```
+
+| Boss | Ramp | Start level | Floor | Wave speed | Beat sync from start |
+| --- | ---: | ---: | ---: | ---: | --- |
+| Void Archon | song (~40 s) | song (.17) | none | x1.00 | no (2-beat warning) |
+| Hoarfrost Leviathan | 20 s | .45 | .30 | x1.00 | no |
+| Bloom Queen | 14 s | .55 | .40 | x1.02 | no |
+| Cinder Drake | 9 s | .65 | .50 | x1.04 | no |
+| Iron Kraken | 5 s | .80 | .58 | x1.06 | no |
+| Tempest Engine | none | 1 | .66 | x1.08 | yes |
+| Dune-Eater | none | 1 | .72 | x1.10 | yes |
+
+- Boss 1 keeps the song alone (`songRamp`): its fight is exactly what it was.
+- The floor is the attack-rate knob: >= .25 two waves a bar, >= .45 three, >= .62 a wave on every beat. Every floor stays under .75, where a wave stops showing its gap telegraph.
+- With `beatSyncFromStart` the director's first wave leaves on the first beat that leaves its one-beat tell, not after two beats of calm; with the floor over .62 every beat is in the rhythm, so the first wave and every one after it are on the beat.
+- The attack rotation is untouched: every boss keeps its phase structure (phase 1 its first attacks, the specials as their `minPhase` unlocks them; loops add their own head start, `LoopRules`, as before). The ladder works only through the waves' intensity, speed and start.
+- The ramp level moves only on bar lines (`BossMusicDirector.RampClock`), so the rhythm a wave is told on is the rhythm it fires on.
+- Bullet counts and hearts are not knobs: denser means more waves on the beat inside the director's pool budget, and every boss keeps 10 hearts.
+
+`BossDifficultyTest` enforces the ladder (each knob monotonic, boss 1 the identity, the last two without a ramp), measures each boss's real song from the fight's first frame old against new (the `[DIFFICULTY] TABLE` log lines), the dodgeability of the first 30 s (flood fill, gap widths) and the projectile budget of a whole fight.
+
 ## Pauses and load
 
 The song keeps advancing during a pause. The director skips elapsed subdivisions and cancels expired accent plans on resume, without replaying missed bullets. Musical warning markers expire with unscaled audio time, including during pauses. No firing occurs while gameplay is frozen.
