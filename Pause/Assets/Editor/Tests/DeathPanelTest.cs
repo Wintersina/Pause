@@ -32,6 +32,7 @@ public static class DeathPanelTest
         using var sandbox = new TestHarness.Sandbox();
 
         CheckStaticLayout();
+        CheckFrameClearance();
         CheckFit();
         CheckUnscaledTime();
 
@@ -40,6 +41,49 @@ public static class DeathPanelTest
 
         Debug.Log("[DPT] failures: " + fails);
         return fails;
+    }
+
+    // ---- Frame art vs content, measured from the real frame sprites ----
+
+    // The least gap (canvas units) the frame's painted art (icicles, vines, coral, the worm head ...)
+    // may leave beside the cards and the REPLAY / MENU row: 18 units = 24 px at 1080 wide (9 dp), 11.6 px
+    // at 480x854, about what the cleanest worlds (Space, Ember, Storm, Verdant) have today.
+    const float MinSideClearance = 18f;
+    // Worlds whose frame is drawn wider than the plain 680 + glow (Desert's worm head bulged into the cards).
+    const int WidenedWorld = 6;
+    const float WidenedExtraMax = 8f;   // the fit keeps its 12-unit side margin: 8 is all the 480x854 phone can spare
+
+    static void CheckFrameClearance()
+    {
+        string[] names = { "Space", "Frost", "Verdant", "Ember", "Tide", "Storm", "Desert" };
+        for (int w = 0; w < names.Length; w++)
+        {
+            string tag = names[w] + ": ";
+            float extra = DeathPanelView.FrameExtra(w);
+            if (w == WidenedWorld)
+                Check(tag + "frame is a little wider (extra " + extra + " per side, 0 < extra <= " + WidenedExtraMax + ")", extra > 0f && extra <= WidenedExtraMax);
+            else
+                Check(tag + "frame keeps its original width (" + DeathPanelView.FrameWidth(w) + ")", extra == 0f && Mathf.Approximately(DeathPanelView.FrameWidth(w), 720f));
+
+            var sprite = HudSkin.DeathPanel(w);
+            float shift = DeathPanelView.StackShift(w);
+            var cards = DeathPanelView.CardRectsFor(w);
+            var btn = DeathPanelView.ButtonRects(w);
+            // [score, breakdown, star dust, killed by] shifted with the stack, then REPLAY and MENU.
+            var rects = new Rect[6];
+            for (int i = 0; i < 4; i++) rects[i] = new Rect(cards[i].x, cards[i].y - shift, cards[i].width, cards[i].height);
+            rects[4] = btn[0]; rects[5] = btn[1];
+            float least = float.MaxValue;
+            for (int i = 0; i < rects.Length; i++)
+            {
+                float l = FrameInsets.SideClearance(sprite, DeathPanelView.FrameBorderScale, DeathPanelView.FrameWidth(w), DeathPanelView.FrameHeight, rects[i], true);
+                float r = FrameInsets.SideClearance(sprite, DeathPanelView.FrameBorderScale, DeathPanelView.FrameWidth(w), DeathPanelView.FrameHeight, rects[i], false);
+                if (float.IsNaN(l) || float.IsNaN(r)) { least = float.NaN; break; }
+                least = Mathf.Min(least, l, r);
+            }
+            Check(tag + "frame art stays >= " + MinSideClearance + " units from the cards and buttons (least " + least.ToString("F1") + ")",
+                  !float.IsNaN(least) && least >= MinSideClearance);
+        }
     }
 
     // ---- The layout constants themselves ----
@@ -151,6 +195,7 @@ public static class DeathPanelTest
         var cases = new[]
         {
             ("tall phone 1080x2340", new Rect(-400f, -866f, 800f, 1733f), (Rect?)null),
+            ("low-dpi phone 480x854", new Rect(-374f, -665f, 748f, 1330f), (Rect?)null),
             ("9:22 phone 1080x2640", new Rect(-400f, -978f, 800f, 1956f), (Rect?)null),
             ("9:24 phone 1080x2880", new Rect(-400f, -1067f, 800f, 2133f), (Rect?)null),
             ("Z Fold cover 968x2376", new Rect(-400f, -982f, 800f, 1964f), (Rect?)null),
@@ -167,6 +212,13 @@ public static class DeathPanelTest
             float h = (DeathPanelView.Height + 2f * DeathPanelView.GlowMargin) * scale;
             var visual = new Rect(centre.x - w * .5f, centre.y - h * .5f, w, h);
             Check(name + ": panel and glow fit the safe area", Contains(safe, visual));
+            // and so does every world's frame with its extra width (the glow may use part of the 12-unit margin)
+            for (int fw = 0; fw < 7; fw++)
+            {
+                float fwid = DeathPanelView.FrameWidth(fw) * scale;
+                Check(name + ": world " + fw + " frame (with extra width) fits the safe area",
+                      Contains(safe, new Rect(centre.x - fwid * .5f, centre.y - h * .5f, fwid, h)));
+            }
             Check(name + ": never scaled above 1", scale <= 1f);
             if (blocker.HasValue)
                 Check(name + ": clears the quick actions", !blocker.Value.Overlaps(visual));
