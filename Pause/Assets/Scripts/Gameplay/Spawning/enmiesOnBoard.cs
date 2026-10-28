@@ -626,12 +626,12 @@ public class enmiesOnBoard : MonoBehaviour {
     // WorldManager (so EnemyRoster.CurrentWorld is Space), name the world they stage.
     public static float WorldRailX(bool left, int world)
     {
-        GameObject wall = GameObject.Find(left ? "leftPipe" : "rightPipe");
+        GameObject wall = SceneLookup.Active(left ? "leftPipe" : "rightPipe");
         float wallX = wall != null ? wall.transform.position.x : (left ? -3.15f : 3.15f);
         float inner, outer;
         float railX = wall != null && WorldPainter.VisibleRailEdges(wall, out inner, out outer)
             ? RailMineArt.MountX(inner, world) : RailMineArt.FallbackRailX;
-        var cam = Camera.main;
+        var cam = CameraFit.Main;
         float visibleLimit = cam != null && cam.orthographic
             ? cam.orthographicSize * cam.aspect - .30f : railX;
         float safeLimit = Mathf.Max(.65f, Mathf.Min(railX, visibleLimit));
@@ -989,7 +989,7 @@ public class enmiesOnBoard : MonoBehaviour {
             return true;
         }
 
-        var cam = Camera.main;
+        var cam = CameraFit.Main;
         float bottomY = cam != null && cam.orthographic
             ? cam.transform.position.y - cam.orthographicSize - 1f
             : transform.position.y - 12f;

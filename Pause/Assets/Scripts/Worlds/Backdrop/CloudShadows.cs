@@ -49,9 +49,7 @@ public sealed class CloudShadowLayer
     public static Tier TierFor(int systemMemoryMb, int graphicsMemoryMb)
     {
         if (systemMemoryMb > 0 && systemMemoryMb < OffSystemMemoryMb) return Tier.Off;
-        bool low = (systemMemoryMb > 0 && systemMemoryMb < KillCamRecorder.LowSystemMemoryMb) ||
-                   (graphicsMemoryMb > 0 && graphicsMemoryMb < KillCamRecorder.LowGraphicsMemoryMb);
-        return low ? Tier.Low : Tier.Full;
+        return PerfTier.IsLowEnd(systemMemoryMb, graphicsMemoryMb) ? Tier.Low : Tier.Full;
     }
     public static Tier DeviceTier = TierFor(SystemInfo.systemMemorySize, SystemInfo.graphicsMemorySize);
 

@@ -205,7 +205,7 @@ public class CameraKick : MonoBehaviour
     public static void Kick(float amount)
     {
         if (amount <= 0f || Time.timeScale <= 0f || !Application.isPlaying) return;
-        var cam = Camera.main;
+        var cam = CameraFit.Main;
         if (cam == null) return;
         var kick = cam.GetComponent<CameraKick>();
         if (kick == null) kick = cam.gameObject.AddComponent<CameraKick>();

@@ -30,6 +30,12 @@ public static class WorldArtPreload
     static readonly HashSet<string> asked = new HashSet<string>();
     static readonly HashSet<string> missing = new HashSet<string>();   // asked for and not installed: answered null from the cache too
 
+    // The planetfall's procedural textures (PlanetfallProc) still being drawn, a fixed pixel budget per Pump.
+    static bool warmProc;
+    // A run-start hold (BeginRunStart) lives through the menu -> gameS1 scene load.
+    public static bool Pinned { get; private set; }
+    public const string RunStartPrefix = "start:";
+
     public static string Key { get; private set; }
     // The backdrop world the held art is for (Next): the swap that shows it lets go of the hold.
     public static string Target { get; private set; }
@@ -39,7 +45,7 @@ public static class WorldArtPreload
     public static int Queued { get { return queue.Count; } }
     public static int InFlight { get { return inFlight.Count; } }
     public static int HeldCount { get { return held.Count; } }
-    public static bool Done { get { return queue.Count == 0 && inFlight.Count == 0; } }
+    public static bool Done { get { return queue.Count == 0 && inFlight.Count == 0 && !warmProc; } }
     public static bool Holds(string path, System.Type type) { return held.ContainsKey(K(type, path)); }
 
     static string K(System.Type t, string path) { return t.Name + ":" + path; }
@@ -91,6 +97,11 @@ public static class WorldArtPreload
             inFlightKey.RemoveAt(i);
             inFlightItem.RemoveAt(i);
         }
+        if (warmProc)
+        {
+            if (!Application.isPlaying) PlanetfallProc.Ensure();
+            if (!PlanetfallProc.Step()) warmProc = false;
+        }
         bool sync = !Application.isPlaying || SyncLoader != null;
         while (queue.Count > 0 && (sync || inFlight.Count < MaxInFlight))
         {
@@ -125,8 +136,38 @@ public static class WorldArtPreload
         if (Key == key) Clear();
     }
 
+    // The backdrop swap to `world` has used what was preloaded: let go of the hold, unless it is for another world
+    // (the run's Space sky is swapped in first while the starting planet's art is still on its way).
+    public static void Swapped(string world)
+    {
+        if (Target != null && Target != world) return;
+        Clear();
+    }
+
+    // A scene finished loading (GameStateReset): the hold goes, except a run-start hold (BeginRunStart) on its way
+    // into the game scene, which is kept once and then unpinned.
+    public static void SceneLoaded(string scene, bool single)
+    {
+        if (!single) return;
+        if (Pinned && scene == "gameS1") { Pinned = false; return; }
+        Clear();
+        if (scene == MenuScene && Application.isPlaying) MenuPreload();
+    }
+
+    // The home screen preloads the art of the planet the next PLAY will begin on, so the run start does not load it.
+    // The start world can change in the menu (Options -> START WORLD); WorldManager.Start lets go of a hold that turns
+    // out to be for another world, and the game then loads what it needs synchronously, as it always did.
+    public const string MenuScene = "startS4";
+
+    static void MenuPreload()
+    {
+        try { BeginRunStart(WorldManager.RunStartWorld(true)); }
+        catch (System.Exception e) { Debug.LogWarning("[WorldArtPreload] menu preload skipped: " + e.Message); }
+    }
+
     public static void Clear()
     {
+        Pinned = false;
         queue.Clear();
         inFlight.Clear();
         inFlightKey.Clear();
@@ -136,6 +177,14 @@ public static class WorldArtPreload
         missing.Clear();
         Key = null;
         Target = null;
+    }
+
+    // The pump's scene is going away: the hold goes with it, except a run-start hold, which keeps what it already
+    // has (the unfinished loads are dropped; their art is loaded synchronously at the swap, as before).
+    public static void RunnerGone()
+    {
+        if (!Pinned) { Clear(); return; }
+        queue.Clear(); inFlight.Clear(); inFlightKey.Clear(); inFlightItem.Clear();
     }
 
     // Tests.
@@ -165,12 +214,17 @@ public static class WorldArtPreload
         foreach (var layer in spec.layers)
         {
             if (layer.kind == BackdropCatalog.Kind.Pieces) continue;
-            if (spec.world == "Space" && layer.name == "sky") continue;   // the sky is picked by SpaceSkySelection at the swap
             if (layer.wrapBlend > 0f) wrap = true;
+            if (spec.world == "Space" && layer.name == "sky") continue;   // the sky is picked by SpaceSkySelection at the swap
             Request<Sprite>(tileFolder + layer.texture);
         }
         if (wrap) Request<Shader>(BackdropTile.WrapShader);
         if (Application.isPlaying && CloudShadowLayer.Enabled && CloudShadowLayer.Has(spec.world)) CloudShadowArt.Shapes();   // the cloud-shadow atlas is procedural: build it now, not mid-play
+        foreach (var atlas in AtlasesOf(spec.world))
+        {
+            Request<Texture2D>(folder + atlas);
+            Request<TextAsset>(folder + atlas);
+        }
         Request<Shader>(BackdropGrade.ShaderName);
         Request<Texture2D>(folder + BackdropCatalog.AtlasFx);
         Request<TextAsset>(folder + BackdropCatalog.AtlasFx);
@@ -178,8 +232,74 @@ public static class WorldArtPreload
         Request<TextAsset>(folder + BackdropCatalog.AtlasAnimHires, folder + BackdropCatalog.AtlasAnim);
     }
 
+    // The menu, for a run that will begin on `world` with its planetfall (WorldEntry): the planet's backdrop and its
+    // planetfall art are loaded now, a frame apart, and held through the scene load into the game, so
+    // Planetfall.SpawnEntry and the swap under the clouds find them (zero synchronous loads on the happy path).
+    // Skipped on a low-end phone (the hold is tens of MB for as long as the menu is up) and when nothing is to be
+    // preloaded. WorldManager.Start lets go of a hold that is for another world.
+    public static bool BeginRunStart(int world)
+    {
+        return Application.isPlaying && QueueRunStart(world);
+    }
+
+    // BeginRunStart without the play-mode guard (edit-mode suites drive it).
+    public static bool QueueRunStart(int world)
+    {
+        if (PerfTier.LowEnd) return false;
+        if (WorldEntry.Plan(world, false) != WorldEntry.Kind.Planetfall) return false;
+        var def = PlanetfallCatalog.For(world - 1, world, false);
+        if (def == null || world < 0 || world >= WorldManager.Worlds.Length) return false;
+        string name = WorldManager.Worlds[world].displayName;
+        bool started = Begin(RunStartKey(world), () =>
+        {
+            var spec = BackdropCatalog.For(name);
+            Target = spec.world;
+            QueuePlanetfall(def);
+            QueueBackdrop(spec);
+        });
+        if (started) Pinned = true;
+        return started;
+    }
+
+    // WorldManager.Start: the run begins on `world`. A hold from the menu for another world (the pilot changed the
+    // start world, a developer jump, a replay) goes; a planetfall start with no menu hold preloads its own planet now,
+    // so the clouds' swap (ShowEntryWorld, a few seconds on) is a cache hit.
+    public static void RunStarted(int world, bool planetfall)
+    {
+        if (Key != null && Key.StartsWith(RunStartPrefix) && Key != RunStartKey(world)) Clear();
+        if (!planetfall || !Application.isPlaying || Key == RunStartKey(world)) return;
+        Begin(RunStartKey(world), () =>
+        {
+            var spec = BackdropCatalog.For(WorldManager.Worlds[world].displayName);
+            Target = spec.world;
+            QueueBackdrop(spec);
+        });
+    }
+
+    public static string RunStartKey(int world) { return RunStartPrefix + world; }
+
+    // The piece atlases (sprite sheet + manifest) each world's directors ask for when the backdrop is built. They were
+    // loaded synchronously inside the swap (up to 17 atlases for Tide); PerfPass2Test.EveryWorldSwapIsPreloaded builds
+    // every world's set and fails when a director starts asking for one that is not listed here. An atlas listed but
+    // not installed is simply remembered as missing. (The fx / anim atlases are queued by QueueBackdrop itself.)
+    public static string[] AtlasesOf(string world)
+    {
+        switch (world)
+        {
+            case "Space": return new[] { "extras", "neon_frames", "asteroid_fx", "twinkle", "nebula", "debris", "wrecks", "outposts", "docks" };
+            case "Frost": return new[] { "landmarks", "sites", "weather", "smoke", "steam", "fire_lights", "beacons", "aurora", "docks" };
+            case "Verdant": return new[] { "landmarks", "pipes", "fires", "sites", "weather", "lights", "smoke", "wildfire", "firesmoke", "leaks" };
+            case "Ember": return new[] { "landmarks", "pipes", "fires", "sites", "weather", "lights", "smoke", "lavafire", "eruption", "leaks", "docks" };
+            case "Tide": return new[] { "landmarks", "pipes", "fires", "sites", "weather", "smoke", "smoke_2", "flames", "flames_2", "leaks", "leaks_2", "lights", "lights_2", "surf", "surf_2", "surf_3", "surf_4", "docks" };
+            case "Storm": return new[] { "landmarks", "sites", "weather", "lightning", "docks", "rotors", "thunder" };
+            case "Desert": return new[] { "landmarks", "pipes", "fires", "sites", "docks", "weather", "smoke", "dust", "dust_2", "dust_3", "shimmer", "shimmer_2", "leaks", "lights", "lights_2", "worm", "worm_giant" };
+            default: return new string[0];
+        }
+    }
+
     public static void QueuePlanetfall(PlanetfallDef def)
     {
+        warmProc = true;   // the ring / reticle / vignette / plume textures, drawn in slices alongside the loads
         string f = def.folder;
         foreach (var n in new[] { def.planet, def.limb, def.deck, def.deckDark, def.entryFx, def.burst, def.streaks })
             Request<Texture2D>(f + n);
@@ -221,6 +341,9 @@ public sealed class WorldArtPreloadRunner : MonoBehaviour
 
     void OnDestroy()
     {
-        if (live == this) { live = null; WorldArtPreload.Clear(); }
+        if (live != this) return;
+        live = null;
+        WorldArtPreload.RunnerGone();
     }
 }
+

@@ -117,7 +117,7 @@ public static class ShipTargets
     // camera: an unbounded rect, so everything counts.
     public static Rect View(float margin = 0f)
     {
-        var cam = Camera.main;
+        var cam = CameraFit.Main;
         if (cam == null || !cam.orthographic)
             return new Rect(-1e5f, -1e5f, 2e5f, 2e5f);
         float h = cam.orthographicSize, w = h * cam.aspect;

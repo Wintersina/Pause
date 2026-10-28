@@ -199,6 +199,8 @@ public static class WorldPainter
     // reach well into the lane (to about 2.26 on Frost and Verdant, 1.87 on
     // Space and Ember) while the drawn rail starts near 2.61 in every world.
     // False if the wall is not showing one of the reinforced rails.
+    static readonly string[] RailWorlds = { "Space", "Frost", "Verdant", "Ember", "Tide", "Storm" };
+
     public static bool VisibleRailEdges(GameObject wall, out float inner, out float outer)
     {
         inner = outer = 0f;
@@ -207,7 +209,7 @@ public static class WorldPainter
         var tex = mat != null ? mat.mainTexture : null;
         if (tex == null) return false;
         string world = null;
-        foreach (string w in new[] { "Space", "Frost", "Verdant", "Ember", "Tide", "Storm" })
+        foreach (string w in RailWorlds)
             if (RailTextureName(w) == tex.name) world = w;
         if (world == null) return false;
         RailBounds(world, out float min, out float max);

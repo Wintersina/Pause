@@ -227,7 +227,7 @@ public sealed class WorldHazards : MonoBehaviour
         if (def.artRow >= 0 && !f.hazArtHeld) { HazardArt.Acquire(def.world); f.hazArtHeld = true; }
         float top = CameraFit.ViewTop, bottom = CameraFit.ViewBottom;
         f.viewTop = top; f.viewBottom = bottom;
-        var cam = Camera.main;
+        var cam = CameraFit.Main;
         f.laneHalf = cam != null && cam.orthographic ? cam.orthographicSize * cam.aspect + .5f : 4f;
         float viewH = top - bottom;
         switch (def.shape)

@@ -82,7 +82,7 @@ public sealed class WeatherLayer
     // One frame. dt 0 while the world is frozen (nothing moves, nothing flickers).
     public void Step(float dt, int worldIndex, HazardField[] fields)
     {
-        var cam = Camera.main;
+        var cam = CameraFit.Main;
         if (cam != null && cam.orthographic)
         {
             top = cam.transform.position.y + cam.orthographicSize;

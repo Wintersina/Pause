@@ -479,7 +479,7 @@ public partial class DeathCrash : MonoBehaviour
         UndoShake();
         if (!animating || Held) return;
         if (shake < .002f) return;
-        var cam = Camera.main;
+        var cam = CameraFit.Main;
         if (cam == null) return;
         shakeApplied = new Vector3(Mathf.Sin(shakeClock * 83f), Mathf.Cos(shakeClock * 61f) * .7f, 0f) * shake;
         cam.transform.position += shakeApplied;

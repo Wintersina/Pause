@@ -354,7 +354,7 @@ public class ShipPowerController : MonoBehaviour
             return;
         }
         if (!BeginCinematic()) return;
-        onScreenAtStart = ClearTarget.CountOnScreen(Camera.main);
+        onScreenAtStart = ClearTarget.CountOnScreen(CameraFit.Main);
         // nothing on screen: there is nothing to "clear", so the state keeps its ordinary hold
         // rather than ending on the very first frame (CheckCleared)
         runner.Fire();
@@ -410,7 +410,7 @@ public class ShipPowerController : MonoBehaviour
     {
         if (!CinematicClearActive || CinematicExiting) return;
         if (onScreenAtStart <= 0) return;
-        if (ClearTarget.CountOnScreen(Camera.main) > 0) return;
+        if (ClearTarget.CountOnScreen(CameraFit.Main) > 0) return;
         PowerFx.Ring(transform.position, 1.4f, ShipExhaust.TintFor(shipIndex) * new Color(1f, 1f, 1f, .55f), .3f);
         BeginExit(early: true);
     }

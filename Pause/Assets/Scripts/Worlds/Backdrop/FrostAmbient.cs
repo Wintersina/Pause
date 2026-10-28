@@ -56,12 +56,32 @@ public class BackdropVariants
         System.Array.Clear(known, 0, known.Length);
     }
 
+    // The ground sets that SHIP, by world (bit v-1 = variant v): known without touching the disk, so the first Pick /
+    // Reserve of a run (WorldManager.OpenPortal, a planetfall) no longer loads up to four sky textures just to learn
+    // they exist. A variant not listed here is still probed from disk the old way (so dropping a new v<N>/ folder in
+    // works, and a missing one is skipped); BackdropVariantsManifestTest (PerfPassTest) fails when this list and the
+    // Resources folders disagree in either direction.
+    const int AllFour = 0xF;
+    public static readonly string[] ShippedWorlds = { "Frost", "Verdant", "Ember", "Desert", "Tide", "Storm" };
+    public static int ShippedMask(string world)
+    {
+        for (int i = 0; i < ShippedWorlds.Length; i++) if (ShippedWorlds[i] == world) return AllFour;
+        return 0;
+    }
+    // Sky probes that really loaded a texture (tests).
+    public static int DiskProbes { get; private set; }
+    public static void ResetCounters() { DiskProbes = 0; }
+
     // Is variant `v` on disk (its sky tile resolves)?
     public bool Installed(int v)
     {
         if (v < 1 || v > MaxVariants) return false;
+        if (known[v] == 0 && (ShippedMask(World) & (1 << (v - 1))) != 0) known[v] = 1;
         if (known[v] == 0)
+        {
+            DiskProbes++;
             known[v] = WorldArtPreload.Load<Sprite>(BackdropCatalog.TileFolder(World, v) + "sky") != null ? 1 : -1;
+        }
         return known[v] > 0;
     }
 

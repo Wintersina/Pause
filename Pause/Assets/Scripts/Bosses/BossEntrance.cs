@@ -84,7 +84,8 @@ public static class BossEmergence
     {
         float top = CameraFit.ViewTop, bottom = CameraFit.ViewBottom;
         float halfW = HalfWidth();
-        float cx = Camera.main != null ? Camera.main.transform.position.x : 0f;
+        var mainCam = CameraFit.Main;
+        float cx = mainCam != null ? mainCam.transform.position.x : 0f;
         LandingSites.Gather(sites);
         int best = -1;
         float bestScore = float.NegativeInfinity;
@@ -145,7 +146,7 @@ public static class BossEmergence
 
     static float HalfWidth()
     {
-        var c = Camera.main;
+        var c = CameraFit.Main;
         if (c != null && c.orthographic) return c.orthographicSize * c.aspect;
         return CameraFit.GameplayHalfWidth;
     }
@@ -206,7 +207,7 @@ public sealed class BossShockwave
     // From `p` past the farthest corner of the view.
     public static float ReachFrom(Vector3 p)
     {
-        var c = Camera.main;
+        var c = CameraFit.Main;
         float top = CameraFit.ViewTop, bottom = CameraFit.ViewBottom;
         float cx = c != null ? c.transform.position.x : 0f;
         float hw = c != null && c.orthographic ? c.orthographicSize * c.aspect : CameraFit.GameplayHalfWidth;
