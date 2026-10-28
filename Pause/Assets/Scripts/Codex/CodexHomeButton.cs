@@ -173,6 +173,7 @@ public class CodexHomeButton : MonoBehaviour
             image.type = templateImage.type;
             image.color = templateImage.color;
         }
+        CutCornerShape.Apply(image);   // same plate as the other home rows
         image.raycastTarget = true;
 
         button = gameObject.GetComponent<Button>() ?? gameObject.AddComponent<Button>();
