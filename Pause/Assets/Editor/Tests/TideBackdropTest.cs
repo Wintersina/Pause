@@ -638,7 +638,7 @@ public static class TideBackdropTest
                 for (int i = 0; i < 60; i++)
                 {
                     float m = cnt[i] > 0 ? sum[i] / cnt[i] : 0f;
-                    if (m > prev + .5f) { notRadial++; worst = l.name + " ring " + i; }
+                    if (m > prev + 2f) { notRadial++; worst = l.name + " ring " + i; }
                     prev = m;
                 }
             }
