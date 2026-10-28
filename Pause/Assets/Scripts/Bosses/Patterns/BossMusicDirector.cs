@@ -173,7 +173,10 @@ public sealed class BossMusicDirector
         if (held && !double.IsNaN(pendingAccent)) pendingAccent = double.NaN;
         // the accent landing on this sixteenth IS its wave (one firing per sixteenth: one part, one drawing)
         bool accentHere = !double.IsNaN(pendingAccent) && scheduled >= pendingAccent && Room(48);
-        bool waveHere = ((WaveRhythm.Mask(moment.kind, Intensity) >> bar) & 1) != 0;
+        // a wave the boss is already telling (its part charging on the beat before: Forecast, from the last sixteenth's
+        // intensity) fires even if this beat's new energy dropped its sixteenth from the rhythm: a tell is a promise
+        bool told = Telling && !double.IsNaN(nextWaveBeat) && Math.Abs(scheduled - nextWaveBeat) < 1e-6;
+        bool waveHere = told || ((WaveRhythm.Mask(moment.kind, Intensity) >> bar) & 1) != 0;
         if (held && waveHere) HeldWaves++;
         // (a wave leaving on this sixteenth arrives k beats on: it must be down before the special lands, a quarter beat clear)
         waves.MaxTravelBeats = double.IsNaN(ArriveBeforeBeat) ? int.MaxValue : (int)Math.Floor(ArriveBeforeBeat - scheduled - .25 + 1e-9);
@@ -240,6 +243,10 @@ public sealed class BossMusicDirector
     // boss can tell it on the beat before.
     void Forecast(IBeatSource music, double now, long tick)
     {
+        // A wave already being told keeps its sixteenth: a tell runs up to a beat, and a new beat's energy (or a ramp
+        // step on a bar line) inside it must not re-plan the wave away from the beat the boss is charging for (Step
+        // fires the told sixteenth even if the rhythm no longer has it). A special's hold still cancels it.
+        if (Telling && !double.IsNaN(nextWaveBeat) && now < nextWaveBeat && !HeldAt(nextWaveBeat)) { UpdateTell(now); return; }
         var moment = music is IMusicBeatSource arranged ? arranged.MusicNow : new MusicMoment { energy = .5f, bass = .5f, accent = .5f, kind = "drive" };
         float intensity = Preparing ? BossDifficulty.Shape(world, Mathf.Clamp01(moment.energy * .75f + moment.bass * .15f), rampClock) : Intensity;
         int mask = WaveRhythm.Mask(moment.kind, intensity);
