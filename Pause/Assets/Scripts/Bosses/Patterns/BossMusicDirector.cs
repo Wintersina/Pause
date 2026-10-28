@@ -36,7 +36,12 @@ public sealed class BossMusicDirector
     public double LastLateBeats { get; private set; }
     public float Intensity { get; private set; }
     public float RawIntensity { get; private set; }   // the song's own, before BossDifficulty shaped it
-    public float FightSeconds => gameClock;           // game seconds the director has run (the ramp's clock)
+    public float FightSeconds => gameClock;           // game seconds the director has run
+    // The ramp's clock (BossDifficulty): gameClock as it was on the last bar line the director played. The ramp level
+    // only moves on a bar line, so the rhythm a wave was told on (the beat before it) is the rhythm it fires on: a
+    // level creeping across a mask's threshold mid-bar would move the bar's waves off the sixteenths already told.
+    public float RampClock => rampClock;
+    float rampClock;
     public bool Preparing { get; private set; }
     public int Pose { get; private set; }
     public PatternStream Signature => signatureShape;
@@ -146,7 +151,8 @@ public sealed class BossMusicDirector
         var moment = music is IMusicBeatSource arranged ? arranged.MusicNow : new MusicMoment { energy = .5f, bass = .5f, accent = .5f, kind = "drive" };
         // the song's intensity, shaped by the boss's place on the difficulty ladder (ramp-up, floor: BossDifficulty)
         RawIntensity = Mathf.Clamp01(moment.energy * .75f + moment.bass * .15f + Mathf.Clamp01(progress) * .1f);
-        Intensity = BossDifficulty.Shape(world, RawIntensity, gameClock);
+        if ((((tick - 4L * music.DownbeatBeat) % WaveRhythm.TicksPerBar) + WaveRhythm.TicksPerBar) % WaveRhythm.TicksPerBar == 0) rampClock = gameClock;
+        Intensity = BossDifficulty.Shape(world, RawIntensity, rampClock);
         bool peak = moment.kind == "drop" || moment.kind == "peak";
         long nextPhrase = tick / 64; // four bars, continuous even through clip wraps
         if (nextPhrase != phrase || moment.section != section)
@@ -235,7 +241,7 @@ public sealed class BossMusicDirector
     void Forecast(IBeatSource music, double now, long tick)
     {
         var moment = music is IMusicBeatSource arranged ? arranged.MusicNow : new MusicMoment { energy = .5f, bass = .5f, accent = .5f, kind = "drive" };
-        float intensity = Preparing ? BossDifficulty.Shape(world, Mathf.Clamp01(moment.energy * .75f + moment.bass * .15f), gameClock) : Intensity;
+        float intensity = Preparing ? BossDifficulty.Shape(world, Mathf.Clamp01(moment.energy * .75f + moment.bass * .15f), rampClock) : Intensity;
         int mask = WaveRhythm.Mask(moment.kind, intensity);
         nextWaveBeat = double.NaN;
         long from = Preparing ? (long)Math.Ceiling(startBeat * 4 - 1e-8) : tick + 1;

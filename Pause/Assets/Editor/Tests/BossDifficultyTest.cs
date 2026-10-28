@@ -4,8 +4,8 @@ using UnityEngine;
 // The boss difficulty ladder (BossDifficulty): one table, enforced as a ladder, measured on the real songs.
 //
 //   1 table      seven rows in world order; every knob non-decreasing in difficulty from boss 1 to boss 7 (ramp seconds
-//                non-increasing, the start level, floor, wave speed, unlock head start and beat-sync non-decreasing);
-//                boss 1 is today's fight (the song alone: Shape is the identity, speed x1, no head start, the old start);
+//                non-increasing, the start level, floor, wave speed and beat-sync non-decreasing);
+//                boss 1 is today's fight (the song alone: Shape is the identity, speed x1, the old start);
 //                the last two have no ramp and sync from the start; every floor stays under the gap-telegraph line (.75)
 //   2 ramp       the ramp level at the fight's first frame is under 1 for bosses 1..5 and rises smoothly (no step over
 //                a quarter second bigger than .08) to 1 at rampSeconds; it is 1 from the first frame for the last two
@@ -17,12 +17,11 @@ using UnityEngine;
 //                wave of the first ten seconds is on the beat grid with at least the floor's intensity, and none of
 //                them arrives at the ship's row in the first second; bosses 2..5 open capped by the ramp
 //   5 fairness   the first 30 s of every boss on the new ladder: the omniscient flood fill never runs out of reachable
-//                cells, every gap is at least WaveGaps.MinMultiple ship widths
+//                cells, every gap is at least WaveGaps.MinMultiple ship widths, every tell answered within two beats
 //   6 caps       a whole 120 s fight of every boss on the new ladder: no shot dropped, the peak within the pool,
 //                and the director allocates nothing per frame
 //   7 speed      a wave of the last boss falls shotSpeedScale times as fast as without the ladder
-//   8 unlocks    the last two bring their phase-2 specials from the start; boss 1 none; a later loop takes the larger
-//                head start (LoopRules or the ladder), never their sum
+//   8 rotation   the ladder has no unlock knob: each boss's phase structure stays as authored (BossThemedTest)
 //   9 seeds      the same fight twice gives the same waves (deterministic)
 public static class BossDifficultyTest
 {
@@ -46,7 +45,7 @@ public static class BossDifficultyTest
             for (int w = 0; w < 7; w++) Fairness(w);
             for (int w = 0; w < 7; w++) Caps(w);
             Speed();
-            Unlocks();
+            Rotation();
             Seeds();
         }
         finally { BeatClock.Now = oldNow; BossDifficulty.Enabled = was; }
@@ -59,21 +58,19 @@ public static class BossDifficultyTest
     {
         var rows = BossDifficulty.Rows;
         Check("seven rows, one per boss in world order (" + rows.Length + ")", rows.Length == 7 && BossPatternTables.Bosses == 7);
-        bool ramp = true, start = true, floor = true, speed = true, head = true, sync = true;
+        bool ramp = true, start = true, floor = true, speed = true, sync = true;
         for (int w = 1; w < rows.Length; w++)
         {
             ramp &= rows[w].rampSeconds <= rows[w - 1].rampSeconds;
             start &= rows[w].startIntensity >= rows[w - 1].startIntensity;
             floor &= rows[w].intensityFloor >= rows[w - 1].intensityFloor;
             speed &= rows[w].shotSpeedScale >= rows[w - 1].shotSpeedScale;
-            head &= rows[w].unlockHeadStart >= rows[w - 1].unlockHeadStart;
             sync &= !rows[w - 1].beatSyncFromStart || rows[w].beatSyncFromStart;
         }
         Check("ramp seconds never grow up the ladder (" + Join(r => r.rampSeconds) + ")", ramp);
         Check("the ramp's start level never falls up the ladder (" + Join(r => r.startIntensity) + ")", start);
         Check("the intensity floor never falls up the ladder (" + Join(r => r.intensityFloor) + ")", floor);
         Check("the wave speed never falls up the ladder (" + Join(r => r.shotSpeedScale) + ")", speed);
-        Check("the unlock head start never falls up the ladder (" + Join(r => r.unlockHeadStart) + ")", head);
         Check("beat sync from the start, once on, stays on up the ladder", sync);
         bool last = true;
         for (int w = 5; w < 7; w++) last &= rows[w].rampSeconds == 0f && rows[w].startIntensity == 1f && rows[w].beatSyncFromStart && !rows[w].songRamp;
@@ -89,8 +86,8 @@ public static class BossDifficultyTest
         bool identity = true;
         for (float t = 0f; t <= 130f; t += 2.5f)
             for (float raw = 0f; raw <= 1.001f; raw += .05f) identity &= BossDifficulty.Shape(0, raw, t) == raw;
-        Check("boss 1 (" + a.boss + ") is unchanged: the song alone (Shape is the identity), speed x1, no head start, the old start",
-              a.songRamp && identity && BossDifficulty.ShotSpeed(0) == 1f && BossDifficulty.HeadStart(0) == 0f && !BossDifficulty.SyncFromStart(0));
+        Check("boss 1 (" + a.boss + ") is unchanged: the song alone (Shape is the identity), speed x1, the old start",
+              a.songRamp && identity && BossDifficulty.ShotSpeed(0) == 1f && !BossDifficulty.SyncFromStart(0));
         bool onlyFirst = true;
         for (int w = 1; w < 7; w++) onlyFirst &= !rows[w].songRamp;
         Check("only boss 1 keeps the song's own ramp", onlyFirst);
@@ -157,7 +154,7 @@ public static class BossDifficultyTest
         public int waves, offGrid, offHalf, gapFails, empty, peak, dropped, frames;
         public double startNow, startBeat, firstBeat = double.NaN, maxLate;
         public float firstGame = -1f, firstArrival = -1f, firstIntensity, minIntensity = 1f, sumIntensity, maxOverLevel;
-        public int earlyArrivals, lowIntensity;
+        public int earlyArrivals, lowIntensity, tells, unanswered;
         public long alloc;
         public long hash = 17;
         public float spb;
@@ -184,7 +181,8 @@ public static class BossDifficultyTest
             var d = new BossMusicDirector(world, boss, sim);
             if (reach) sim.TrackBegin(sim.player);
             float dt = 1f / fps;
-            int seen = 0;
+            int seen = 0, emitted = 0;
+            double pendingTell = double.NaN;
             float need = WaveGaps.MinMultiple * 2f * PatternSim.ShipRadius - 1e-3f;
             var row = BossDifficulty.For(world);
             for (int f = 0; f * dt < seconds; f++)
@@ -198,6 +196,10 @@ public static class BossDifficultyTest
                 if (f > 0) fi.alloc += GC.GetAllocatedBytesForCurrentThread() - a0;
                 if (f == 0) { fi.startBeat = d.StartBeat; fi.spb = (float)clock.SecondsPerBeat; }
                 fi.frames++;
+                // every tell is answered: a wave (or the accent on its sixteenth) leaves within two beats of the told beat
+                if (d.Emissions != emitted) { emitted = d.Emissions; pendingTell = double.NaN; }
+                if (d.Telling && double.IsNaN(pendingTell) && !double.IsNaN(d.NextWaveBeat)) { fi.tells++; pendingTell = d.NextWaveBeat; }
+                if (!double.IsNaN(pendingTell) && clock.BeatNow > pendingTell + 2) { fi.unanswered++; pendingTell = double.NaN; }
                 if (d.Waves.Waves != seen && d.Waves.LastBullets > 0)
                 {
                     seen = d.Waves.Waves;
@@ -211,8 +213,8 @@ public static class BossDifficultyTest
                     if (d.Waves.LastArrival < 1f) fi.earlyArrivals++;
                     fi.minIntensity = Mathf.Min(fi.minIntensity, d.Intensity);
                     fi.sumIntensity += d.Intensity;
-                    if (ladder && d.Intensity < row.intensityFloor * BossDifficulty.RampLevel(world, d.FightSeconds) - 1e-4f) fi.lowIntensity++;
-                    if (ladder && !row.songRamp) fi.maxOverLevel = Mathf.Max(fi.maxOverLevel, d.Intensity - BossDifficulty.RampLevel(world, d.FightSeconds));
+                    if (ladder && d.Intensity < row.intensityFloor * BossDifficulty.RampLevel(world, d.RampClock) - 1e-4f) fi.lowIntensity++;
+                    if (ladder && !row.songRamp) fi.maxOverLevel = Mathf.Max(fi.maxOverLevel, d.Intensity - BossDifficulty.RampLevel(world, d.RampClock));
                     fi.hash = fi.hash * 31 + (long)Math.Round(beat * 4) * 7 + Mathf.RoundToInt(d.Waves.LastGapCenter * 1000f);
                 }
                 if (reach)
@@ -290,6 +292,8 @@ public static class BossDifficultyTest
         var f = Play(w, 30, true, true);
         Check(Names[w] + ": first 30 s on the ladder, " + f.waves + " waves: never a moment with no reachable cell (empty frames " + f.empty + "), every gap >= " + WaveGaps.MinMultiple + " ship widths",
               f.waves > 10 && f.empty == 0 && f.gapFails == 0);
+        Check(Names[w] + ": first 30 s on the ladder: every tell is followed by bullets within two beats (" + f.tells + " tells, " + f.unanswered + " unanswered)",
+              f.tells > 10 && f.unanswered == 0);
     }
 
     // ---- 6 the projectile budget over a whole fight
@@ -322,23 +326,13 @@ public static class BossDifficultyTest
               Mathf.Abs(fast / Mathf.Max(.01f, plain) - BossDifficulty.For(6).shotSpeedScale) < .005f);
     }
 
-    // ---- 8 the unlocks
-    static void Unlocks()
+    // ---- 8 the rotation is the boss's own: the ladder never unlocks an attack early (BossThemedTest's phase structure)
+    static void Rotation()
     {
-        for (int w = 5; w < 7; w++)
-        {
-            var boss = BossCatalog.ForWorld(w);
-            int phase2 = Array.FindAll(boss.attacks, a => a.minPhase <= 2).Length;
-            Check(Names[w] + ": the phase-2 attacks from the start (" + BossCatalog.UnlockedAttacks(boss, BossDifficulty.HeadStart(w)) + " of " + phase2 + ")",
-                  BossCatalog.UnlockedAttacks(boss, BossDifficulty.HeadStart(w)) == phase2);
-        }
-        var space = BossCatalog.ForWorld(0);
-        Check("Space: only the phase-1 attacks at the start", BossCatalog.UnlockedAttacks(space, BossDifficulty.HeadStart(0)) == Array.FindAll(space.attacks, a => a.minPhase <= 1).Length);
-        bool larger = true;
-        for (int w = 0; w < 7; w++)
-            for (int loop = 0; loop < 4; loop++)
-                larger &= Mathf.Max(LoopRules.BossHeadStart(loop), BossDifficulty.HeadStart(w)) < 2f / 3f;
-        Check("a later loop takes the larger head start, never the sum: no boss starts in its last third", larger);
+        bool none = true;
+        foreach (var f in typeof(BossDifficultyRow).GetFields())
+            none &= f.Name.IndexOf("unlock", StringComparison.OrdinalIgnoreCase) < 0 && f.Name.IndexOf("HeadStart", StringComparison.OrdinalIgnoreCase) < 0;
+        Check("the ladder has no unlock knob: every boss keeps its phase-1 / phase-2 / phase-3 attacks as authored", none);
     }
 
     // ---- 9 deterministic

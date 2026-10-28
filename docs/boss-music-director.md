@@ -51,20 +51,21 @@ level(t)  = rampSeconds <= 0 ? 1 : lerp(startIntensity, 1, smoothstep(t / rampSe
 intensity = min(level, max(raw, intensityFloor * level))
 ```
 
-| Boss | Ramp | Start level | Floor | Wave speed | Unlock head start | Beat sync from start |
-| --- | ---: | ---: | ---: | ---: | ---: | --- |
-| Void Archon | song (~40 s) | song (.17) | none | x1.00 | 0 | no (2-beat warning) |
-| Hoarfrost Leviathan | 20 s | .45 | .30 | x1.00 | 0 | no |
-| Bloom Queen | 14 s | .55 | .40 | x1.02 | 0 | no |
-| Cinder Drake | 9 s | .65 | .50 | x1.04 | .10 | no |
-| Iron Kraken | 5 s | .80 | .58 | x1.06 | .20 | no |
-| Tempest Engine | none | 1 | .66 | x1.08 | 1/3 | yes |
-| Dune-Eater | none | 1 | .72 | x1.10 | 1/3 | yes |
+| Boss | Ramp | Start level | Floor | Wave speed | Beat sync from start |
+| --- | ---: | ---: | ---: | ---: | --- |
+| Void Archon | song (~40 s) | song (.17) | none | x1.00 | no (2-beat warning) |
+| Hoarfrost Leviathan | 20 s | .45 | .30 | x1.00 | no |
+| Bloom Queen | 14 s | .55 | .40 | x1.02 | no |
+| Cinder Drake | 9 s | .65 | .50 | x1.04 | no |
+| Iron Kraken | 5 s | .80 | .58 | x1.06 | no |
+| Tempest Engine | none | 1 | .66 | x1.08 | yes |
+| Dune-Eater | none | 1 | .72 | x1.10 | yes |
 
 - Boss 1 keeps the song alone (`songRamp`): its fight is exactly what it was.
 - The floor is the attack-rate knob: >= .25 two waves a bar, >= .45 three, >= .62 a wave on every beat. Every floor stays under .75, where a wave stops showing its gap telegraph.
 - With `beatSyncFromStart` the director's first wave leaves on the first beat that leaves its one-beat tell, not after two beats of calm; with the floor over .62 every beat is in the rhythm, so the first wave and every one after it are on the beat.
-- The unlock head start reaches the specials (and the timed fallback); a later loop takes the larger of its own head start (`LoopRules.BossHeadStart`) and the ladder's, never the sum. Loops otherwise scale as before.
+- The attack rotation is untouched: every boss keeps its phase structure (phase 1 its first attacks, the specials as their `minPhase` unlocks them; loops add their own head start, `LoopRules`, as before). The ladder works only through the waves' intensity, speed and start.
+- The ramp level moves only on bar lines (`BossMusicDirector.RampClock`), so the rhythm a wave is told on is the rhythm it fires on.
 - Bullet counts and hearts are not knobs: denser means more waves on the beat inside the director's pool budget, and every boss keeps 10 hearts.
 
 `BossDifficultyTest` enforces the ladder (each knob monotonic, boss 1 the identity, the last two without a ramp), measures each boss's real song from the fight's first frame old against new (the `[DIFFICULTY] TABLE` log lines), the dodgeability of the first 30 s (flood fill, gap widths) and the projectile budget of a whole fight.

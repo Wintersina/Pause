@@ -418,9 +418,6 @@ public class BossActor : MonoBehaviour, IMusicPatternHost
     int loop;
     public float CooldownScale => LoopRules.BossCooldownScale(loop);
     public float PatternHeadStart => LoopRules.BossHeadStart(loop);
-    // The progress the unlocks read ahead by: the later loop's head start or the boss's place on the difficulty
-    // ladder (BossDifficulty.unlockHeadStart: the last bosses bring their phase-2 specials from the start), the larger.
-    public float UnlockHeadStart => Mathf.Max(PatternHeadStart, BossDifficulty.HeadStart(World));
 
     void EnsureBodyHitbox()
     {
@@ -487,7 +484,7 @@ public class BossActor : MonoBehaviour, IMusicPatternHost
             else
             {
                 // between specials: is the next one's tell due this frame? (its landing re-times its tell and volleys)
-                var special = specialRunning ? null : specials.Due(beatSource, realDt, progress01 + UnlockHeadStart);
+                var special = specialRunning ? null : specials.Due(beatSource, realDt, progress01 + PatternHeadStart);
                 // the director plans its waves round the coming special's hold, and keeps its clock running through the
                 // special itself (held: nothing leaves; no backlog when the hold lifts)
                 musicDirector.HoldFromBeat = specials.HoldFromBeat;
@@ -519,7 +516,7 @@ public class BossActor : MonoBehaviour, IMusicPatternHost
         {
             case AttackPhase.Cooldown:
                 if (phaseTimer > 0f) return;
-                int unlocked = Mathf.Max(1, BossCatalog.UnlockedAttacks(boss, progress01 + UnlockHeadStart));
+                int unlocked = Mathf.Max(1, BossCatalog.UnlockedAttacks(boss, progress01 + PatternHeadStart));
                 attackIndex = ForcedAttack >= 0 && ForcedAttack < boss.attacks.Length
                     ? ForcedAttack : (attackIndex + 1) % unlocked;
                 Launch(boss.attacks[attackIndex], player, pool, beatSource, progress01);
