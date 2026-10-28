@@ -95,7 +95,7 @@ public static class CodexPreview
                 foreach (int ship in ships)
                 {
                     var e = Codex.Find(CodexCatalogue.ShipPrefix + ShipId.KeyOf(ship));
-                    foreach (var size in new[] { new Vector2Int(480, 854), new Vector2Int(1080, 2340) })
+                    foreach (var size in new[] { new Vector2Int(480, 854), new Vector2Int(1080, 2340), new Vector2Int(1536, 2048) })
                     {
                         foreach (bool after in new[] { false, true })
                         {

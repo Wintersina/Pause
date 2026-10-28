@@ -151,6 +151,8 @@ public static class CodexShipBulletsTest
                 if (t.rectTransform.offsetMin.x < 30f + CodexBulletMarks.Gutter - .5f) bad.Add(ShipId.KeyOf(ship) + " gutter missing");
                 panel.ShowGrid();
             }
+            Check(name + ": the bullet page may grow past the paragraph size (max " + CodexPanel.BulletLoreMaxSize + " > " + CodexPanel.LoreMaxSize + "), floor unchanged at " + panel.DetailLore.resizeTextMinSize,
+                  CodexPanel.BulletLoreMaxSize > CodexPanel.LoreMaxSize && panel.DetailLore.resizeTextMinSize == 15);
             Check(name + ": every ship page fits at >= " + CodexPanel.ReadableLore + " (smallest " + worstSize + ") with its markers" +
                   (bad.Count > 0 ? " (" + string.Join("; ", bad) + ")" : ""), bad.Count == 0);
 

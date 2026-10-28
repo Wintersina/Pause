@@ -370,6 +370,7 @@ public class CodexPanel : MonoBehaviour
     Mask detailMaskComp;
     CodexBulletMarks loreMarks;
     const float LoreLeft = 30f;
+    public const int LoreMaxSize = 26, BulletLoreMaxSize = 30;
     Text detailName, detailPillLabel, detailSubtitle, detailLore, detailIndex;
     Image detailPill, detailLoreCard, detailLoreEdge;
     RectTransform detailArtBox;
@@ -973,7 +974,7 @@ public class CodexPanel : MonoBehaviour
         detailLore.verticalOverflow = VerticalWrapMode.Truncate;
         detailLore.resizeTextForBestFit = true;
         detailLore.resizeTextMinSize = 15;   // CodexUi.TextUnits: the smallest type that still clears 7 dp on the floor scale
-        detailLore.resizeTextMaxSize = 26;
+        detailLore.resizeTextMaxSize = LoreMaxSize;
         var lrt = detailLore.rectTransform;
         CodexUi.Stretch(lrt);
         lrt.offsetMin = new Vector2(LoreLeft, LoreBottom);
@@ -1732,6 +1733,8 @@ public class CodexPanel : MonoBehaviour
     {
         var lrt = detailLore.rectTransform;
         lrt.offsetMin = new Vector2(LoreLeft + (on ? CodexBulletMarks.Gutter : 0f), lrt.offsetMin.y);
+        // A bullet list reads a step larger where there is room (best fit still shrinks it to fit a narrow phone, never below the floor).
+        detailLore.resizeTextMaxSize = on ? BulletLoreMaxSize : LoreMaxSize;
         loreMarks.SetBulleted(on);
     }
 
