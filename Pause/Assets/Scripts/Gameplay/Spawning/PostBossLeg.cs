@@ -2,8 +2,9 @@ using UnityEngine;
 
 // The way to the next planet after a boss is down: the portal is open and the ship only has to reach it. The world's
 // rocks (enmiesOnBoard's four rock slots) come back through this leg VERY light so that reach is easy: a rock at most
-// every MinGap..MaxGap seconds (about a fifth of the ordinary rate), never more than MaxOnBoard in play, and PortalPressure's
-// rising spawn rate does not touch them. Enemies, rail mines, elites and the pressure on everything else are unchanged; the
+// every MinGap..MaxGap seconds (about a fifth of the ordinary rate), never more than MaxOnBoard in play. The calm is for the
+// way to the portal, not for staying: once PortalPressure's grace is over it fades with the pressure's Level (CalmFadeAt) and is
+// gone, the rocks at their ordinary rate and cap, by CalmEndLevel (the anti-stall: a pilot who lingers gets the whole board). Enemies, rail mines, elites and the pressure on everything else are unchanged; the
 // Space asteroid field and the cover boulders already hold off while a portal waits.
 //
 // Begins when the boss is over (WorldManager.OnBossOver) and ends the moment the portal is flown, closed or the scene resets
@@ -15,6 +16,22 @@ public static class PostBossLeg
     public const float MinGap = 5f, MaxGap = 8f;
     // Rocks in play at once, counted from the view's top edge down.
     public const int MaxOnBoard = 1;
+
+    // ---- tunables: the calm fading while the pilot lingers ----
+    // The pressure Level (PortalPressure.LevelAt: 10 s each after the 8 s grace) at which the leg's calm is entirely gone.
+    // 6 = about 68 s after the portal opened, with the other dials still short of their caps. 0 or less: the calm ends with the grace.
+    public static float CalmEndLevel = 6f;
+    // Rocks in play allowed above MaxOnBoard when the fade is nearly complete (the ordinary board holds about four).
+    public const int FadeExtraOnBoard = 3;
+    // Kill switch: false keeps the calm for the whole wait, as before.
+    public static bool FadeWithPressure = true;
+
+    // 0 = the full calm, 1 = none: monotonic in the pressure's Level, which is 0 until the grace is over.
+    public static float CalmFadeAt(float level)
+    {
+        if (!FadeWithPressure || level <= 0f) return 0f;
+        return Mathf.Clamp01(level / Mathf.Max(.01f, CalmEndLevel));
+    }
 
     public static bool Active { get; private set; }
     static float cooldown;
@@ -41,8 +58,10 @@ public static class PostBossLeg
     public static bool AdmitRock(int rocksInPlay)
     {
         if (!Active) return true;
-        if (cooldown > 0f || rocksInPlay >= MaxOnBoard) return false;
-        cooldown = Random.Range(MinGap, MaxGap);
+        float fade = CalmFadeAt(PortalPressure.Level);
+        if (fade >= 1f) return true;   // the calm is over: ordinary rocks
+        if (cooldown > 0f || rocksInPlay >= MaxOnBoard + Mathf.FloorToInt(fade * FadeExtraOnBoard)) return false;
+        cooldown = Random.Range(MinGap, MaxGap) * (1f - fade);
         return true;
     }
 

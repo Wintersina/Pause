@@ -261,6 +261,17 @@ a half more bodies). Bodies are capped for 60 fps; when the caps are reached (ab
 row guard that guarantees a ship-wide gap shrinks to nothing, so rows can close. Staying is eventually
 fatal. The speed cap applies throughout (natural speed climbs from the boss's 20 toward 35 as usual).
 
+### Anti-stall: the post-boss calm fades (PostBossLeg)
+
+Lingering at the open portal (or the planetfall that stands in for it) was already pressed by every dial above and
+pays nothing after the grace. The one thing that did not follow the pressure was the post-boss "light rocks only" calm
+(`PostBossLeg`). It now fades with the pressure's Level: none during the grace, then `CalmFadeAt(Level)` =
+`clamp01(Level / CalmEndLevel)`; the rock gap shrinks by `(1 - fade)`, the rocks allowed in play grow from
+`MaxOnBoard` 1 by up to `FadeExtraOnBoard` 3, and at `CalmEndLevel` 6 (about 68 s after the portal opened) rocks
+are ordinary. Kill switch `PostBossLeg.FadeWithPressure`. Unchanged and by design: the lift-off interlude is a
+finite calm (`LiftoffTimeline.GatewayAt`) that always ends in the gateway, and the final world (Desert) has no portal
+at all (its lift-off interlude ends in `StartLoop`), so neither can be lingered in.
+
 ### Anti-farm
 
 After the grace the run **earns nothing until the portal is flown**: no points from distance, kills,

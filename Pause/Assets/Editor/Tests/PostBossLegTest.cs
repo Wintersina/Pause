@@ -4,6 +4,7 @@ using UnityEngine;
 //   * outside the leg every rock slot is admitted, whatever is in play
 //   * a boss being over begins it; the first rock waits, then at most one is admitted per gap, never more than MaxOnBoard in play
 //   * over a long stretch the leg admits a small share of what the four rock slots ask for, far under the ordinary rate
+//   * lingering: the calm fades monotonically with the pressure's Level (none in the grace) and is gone by CalmEndLevel
 //   * flying the portal (or closing it, or a reset) ends it: the next world admits every rock again
 //
 //   scripts/unity-batch.sh -executeMethod AllTests.RunSuites -suites PostBossLegTest
@@ -29,6 +30,7 @@ public static class PostBossLegTest
             SparseOverTime();
             NormalInTheNextWorld();
             EndsWithoutAPortal();
+            CalmFadesWhileLingering();
         }
         finally { PostBossLeg.End(); PortalPressure.Reset(); }
         Debug.Log("[PBL] failures: " + fails);
@@ -103,5 +105,47 @@ public static class PostBossLegTest
         PostBossLeg.Begin();
         PortalPressure.Close(false);
         Check("closing with no portal ends the leg too", !PostBossLeg.Active);
+    }
+
+    // Anti-stall: a pilot who stays at the open portal loses the calm as the pressure climbs.
+    static void CalmFadesWhileLingering()
+    {
+        PortalPressure.Reset();
+        PostBossLeg.Begin();
+        PortalPressure.Open(1);
+        Check("no fade before the grace is over", PostBossLeg.CalmFadeAt(PortalPressure.Level) == 0f);
+        PortalPressure.Tick(PortalPressure.GraceSeconds - .1f);
+        Check("none in the grace, whatever the clock", PostBossLeg.CalmFadeAt(PortalPressure.Level) == 0f);
+        float last = 0f; bool monotonic = true;
+        for (int i = 0; i < 400; i++)
+        {
+            PortalPressure.Tick(.5f);
+            float f = PostBossLeg.CalmFadeAt(PortalPressure.Level);
+            if (f < last - 1e-6f || f < 0f || f > 1f) monotonic = false;
+            last = f;
+        }
+        Check("the fade is monotonic and within 0..1", monotonic);
+        Check("the calm is gone by CalmEndLevel", PostBossLeg.CalmFadeAt(PostBossLeg.CalmEndLevel) >= 1f && last >= 1f);
+        Check("gone within 90 s of the portal opening",
+              PostBossLeg.CalmFadeAt(PortalPressure.LevelAt(90f)) >= 1f);
+        Check("still half calm at Level 3", Mathf.Abs(PostBossLeg.CalmFadeAt(3f) - .5f) < .01f);
+        Check("a rock is admitted with rocks already in play once the calm is gone", PostBossLeg.AdmitRock(10));
+        Check("past the calm every ask is admitted (150 in 60 s)", Admitted(60f, 3) == 150);
+        // half way: more than the full calm, fewer than the ordinary rate
+        PortalPressure.Reset();
+        PostBossLeg.Begin();
+        PortalPressure.Open(1);
+        PortalPressure.Tick(PortalPressure.GraceSeconds + PortalPressure.LevelSeconds * 3f);
+        int half = Admitted(60f, 0);
+        Check("half way admits more rocks than the full calm (" + half + ")", half > 12 * 60 / 120);
+        Check("half way admits fewer than ordinary (" + half + ")", half < 150);
+        // the portal flown / reset: the leg's state is neutral again
+        PortalPressure.Close(true);
+        Check("flying the portal resets the fade", PostBossLeg.CalmFadeAt(PortalPressure.Level) == 0f && !PostBossLeg.Active);
+        // kill switch
+        PostBossLeg.FadeWithPressure = false;
+        try { Check("kill switch keeps the calm", PostBossLeg.CalmFadeAt(99f) == 0f); }
+        finally { PostBossLeg.FadeWithPressure = true; }
+        PortalPressure.Reset();
     }
 }
