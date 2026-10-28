@@ -739,7 +739,15 @@ public class DeathPanelView : MonoBehaviour, IPointerDownHandler
 
     public static string ScoreBonusLabel(float bonus)
     {
-        return "SCORE BONUS  +" + bonus.ToString("F2", System.Globalization.CultureInfo.InvariantCulture);
+        return "SCORE BONUS  +" + Dust(bonus);
+    }
+
+    // Display-only star dust string: comma thousands, always two decimals
+    // (the ledger keeps hundredths), culture-invariant. Same digits as the
+    // old "F2"; stored values are untouched.
+    public static string Dust(float v)
+    {
+        return v.ToString("#,##0.00", System.Globalization.CultureInfo.InvariantCulture);
     }
 
     // The star dust card's sub-label becomes the score bonus line when the
@@ -754,7 +762,7 @@ public class DeathPanelView : MonoBehaviour, IPointerDownHandler
         AddOutline(bonusLine.gameObject, Ink, 1.5f);
         bonusCentre = Shifted(CardRects[2].center + new Vector2(LabelLeft + 90f, -20f));
         bonusBurst = BuildBurst("BonusBurst", Gold);
-        bonusPopup = NewText(BonusPopupName, panel, "+" + results.dustBonus.ToString("F2", System.Globalization.CultureInfo.InvariantCulture) + " ★",
+        bonusPopup = NewText(BonusPopupName, panel, "+" + Dust(results.dustBonus) + " ★",
                              26, Gold, TextAnchor.MiddleCenter);
         Place(bonusPopup.rectTransform, Centered(bonusCentre.x, bonusCentre.y, 160f, 34f));
         AddOutline(bonusPopup.gameObject, Ink, 2f);
@@ -878,8 +886,8 @@ public class DeathPanelView : MonoBehaviour, IPointerDownHandler
         if (cents != shownDustCents)
         {
             shownDustCents = cents;
-            dustValue.text = "+" + (cents / 100f).ToString("F2");
-            dustTotal.text = "TOTAL  " + (results.dustAtStart + cents / 100f).ToString("F2");
+            dustValue.text = "+" + Dust(cents / 100f);
+            dustTotal.text = "TOTAL  " + Dust(results.dustAtStart + cents / 100f);
         }
 
         if (pill != null)

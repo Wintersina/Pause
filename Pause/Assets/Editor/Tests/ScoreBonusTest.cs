@@ -227,7 +227,7 @@ public static class ScoreBonusTest
         Check("settled: SCORE BONUS +1.50 ('" + text.text + "'), EARNED +3.25 includes it ('" + dust.text + "')",
               text.text == "SCORE BONUS  +1.50" && dust.text == "+3.25");
         var total = dust.transform.parent.Find("Total").GetComponent<Text>();
-        Check("the total includes it ('" + total.text + "')", total.text == "TOTAL  99990.90");
+        Check("the total includes it ('" + total.text + "')", total.text == "TOTAL  99,990.90");
         Check("the popup is gone once settled", !popup.gameObject.activeSelf);
         var sub = view.Panel.Find("Card2/Sub");
         Check("it takes the sub-label's place", sub == null || !sub.gameObject.activeSelf);
