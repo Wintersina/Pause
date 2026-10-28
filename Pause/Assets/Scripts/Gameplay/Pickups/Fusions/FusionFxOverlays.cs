@@ -57,15 +57,71 @@ public sealed partial class FusionFx
         return Sprite.Create(tex, new Rect(0, 0, size, size), new Vector2(.5f, .5f), ppu, 0, SpriteMeshType.FullRect);
     }
 
+    // The ring is a 256 x 256 CPU loop (~65 k pixels through a delegate): built a few rows at a time by FirstUseWarm in
+    // the menu idle (PrewarmOverlay, RingRowsPerStep rows a step), and whatever is left is finished by BuildSprites.
+    public const int RingSize = 256, RingRowsPerStep = 32;
+    public const int OverlayWarmSteps = 1 + RingSize / RingRowsPerStep;   // the dot + bar, then the ring's chunks
+    static Texture2D ringTex;
+    static Color32[] ringPx;
+    static int ringRow;
+
+    static float RingAlpha(float u, float v) { return 1f - Mathf.Clamp01(Mathf.Abs(Mathf.Sqrt(u * u + v * v) - .985f) / .012f); }
+
+    public static bool OverlaySpritesReady { get { return dotSprite != null && dotSprite.texture != null && barSprite != null && barSprite.texture != null && ringSprite != null && ringSprite.texture != null; } }
+
+    // Paints up to `rows` more rows of the ring; true once the sprite exists.
+    static bool RingStep(int rows)
+    {
+        if (ringSprite != null && ringSprite.texture != null) return true;
+        if (ringPx == null || ringTex == null)
+        {
+            ringTex = new Texture2D(RingSize, RingSize, TextureFormat.RGBA32, false) { name = "~FusionRing", filterMode = FilterMode.Bilinear, wrapMode = TextureWrapMode.Clamp };
+            ringPx = new Color32[RingSize * RingSize];
+            ringRow = 0;
+        }
+        int end = Mathf.Min(RingSize, ringRow + rows);
+        for (int y = ringRow; y < end; y++)
+            for (int x = 0; x < RingSize; x++)
+            {
+                float u = (x + .5f) / RingSize * 2f - 1f, v = (y + .5f) / RingSize * 2f - 1f;
+                ringPx[y * RingSize + x] = new Color32(255, 255, 255, (byte)(Mathf.Clamp01(RingAlpha(u, v)) * 255f));
+            }
+        ringRow = end;
+        if (ringRow < RingSize) return false;
+        ringTex.SetPixels32(ringPx);
+        ringTex.Apply(false, true);
+        ringSprite = Sprite.Create(ringTex, new Rect(0, 0, RingSize, RingSize), new Vector2(.5f, .5f), 128f, 0, SpriteMeshType.FullRect);
+        ringPx = null;
+        ringTex = null;
+        return true;
+    }
+
+    // Step 0 of FirstUseWarm's overlay warm-up makes the two 16 px sprites, steps 1.. the ring's chunks.
+    public static void PrewarmOverlay(int step)
+    {
+        if (step <= 0) { BuildSmall(); return; }
+        RingStep(RingRowsPerStep);
+    }
+
+    static void BuildSmall()
+    {
+        // a soft round dot, 1 u across at scale 1
+        if (dotSprite == null || dotSprite.texture == null)
+            dotSprite = MakeSprite("~FusionDot", 16, (u, v) => 1f - Mathf.Clamp01((Mathf.Sqrt(u * u + v * v) - .55f) / .45f), 16f, FilterMode.Bilinear);
+        // a band: bright core fading to nothing at its top and bottom edges, 1 u square at scale 1
+        if (barSprite == null || barSprite.texture == null)
+            barSprite = MakeSprite("~FusionBar", 16, (u, v) => 1f - Mathf.Abs(v), 16f, FilterMode.Bilinear);
+    }
+
+    // Tests: forget the generated sprites so a warm-up can be seen building them.
+    public static void ResetOverlaySpritesForTests() { dotSprite = ringSprite = barSprite = null; ringPx = null; ringTex = null; ringRow = 0; }
+    public static int RingRowsPainted { get { return ringSprite != null && ringSprite.texture != null ? RingSize : ringRow; } }
+
     static void BuildSprites()
     {
-        if (dotSprite != null && dotSprite.texture != null) return;
-        // a soft round dot, 1 u across at scale 1
-        dotSprite = MakeSprite("~FusionDot", 16, (u, v) => 1f - Mathf.Clamp01((Mathf.Sqrt(u * u + v * v) - .55f) / .45f), 16f, FilterMode.Bilinear);
+        BuildSmall();
         // a thin circle (about 2 px of 128), radius 1 u at scale 1
-        ringSprite = MakeSprite("~FusionRing", 256, (u, v) => 1f - Mathf.Clamp01(Mathf.Abs(Mathf.Sqrt(u * u + v * v) - .985f) / .012f), 128f, FilterMode.Bilinear);
-        // a band: bright core fading to nothing at its top and bottom edges, 1 u square at scale 1
-        barSprite = MakeSprite("~FusionBar", 16, (u, v) => 1f - Mathf.Abs(v), 16f, FilterMode.Bilinear);
+        RingStep(RingSize);
     }
 
     SpriteRenderer NewOverlay(string name, Sprite sprite, SpriteRenderer hull)

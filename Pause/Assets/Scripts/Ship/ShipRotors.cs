@@ -67,6 +67,24 @@ public class ShipRotors : MonoBehaviour
                            (CellSize - y - (r.y + r.h * .5f)) / r.pixelsPerUnit);
     }
 
+    // FirstUseWarm: the ship's rotor data (a few hundred bytes) and, when it has rotors, the blade sheet.
+    public static void QueueWarm(int id)
+    {
+        string key = ShipId.ArtKeyOf(id);
+        if (string.IsNullOrEmpty(key)) return;
+        FirstUseWarm.Add("rotors:data:" + key, DataPath(key), typeof(TextAsset), () =>
+        {
+            if (Load(key) == null) return;
+            FirstUseWarm.Add("rotors:sheet:" + key, SpritePath(key), typeof(Texture2D), () => SpritesFor(key));
+        });
+    }
+
+    public static bool SheetReady(string key)
+    {
+        Sprite[] pair;
+        return sprites.TryGetValue(key, out pair) && pair != null && pair[0] != null;
+    }
+
     // ------------------------------------------------------------ sprites
     static readonly Dictionary<string, Sprite[]> sprites = new Dictionary<string, Sprite[]>();
 

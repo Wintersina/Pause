@@ -106,6 +106,33 @@ public static class ShipFxArt
         return cells;
     }
 
+    // FirstUseWarm: the flown ship's attack strip, its secret power's strip and the shared badge atlas, each read
+    // off-thread and sliced in its own frame. (The Special skin's own _special strips and the ships' extra
+    // attack_* strips are not warmed: they are rare, 4096 x 256 each.)
+    public static void QueueWarm(int ship)
+    {
+        int id = ShipId.IsValid(ship) ? ship : ShipId.Starter;
+        QueueStrip(id, "attack");
+        string power = PowerStripName(ShipLoadoutTable.PowerFor(id));
+        if (power != null) QueueStrip(id, power);
+        FirstUseWarm.Add("fxart:meter", "Weapons/SecretMeter", typeof(Texture2D), () => Meter());
+    }
+
+    static void QueueStrip(int id, string suffix)
+    {
+        string key = Key(keys, id, suffix, "");
+        FirstUseWarm.Add("fxart:" + key, "Weapons/Powers2/" + key, typeof(Texture2D), () => Load(key));
+    }
+
+    public static bool StripReady(int ship, string suffix)
+    {
+        Sprite[] cells;
+        int id = ShipId.IsValid(ship) ? ship : ShipId.Starter;
+        return strips.TryGetValue(Key(keys, id, suffix, ""), out cells) && cells != null && cells[0] != null;
+    }
+
+    public static bool MeterSheetReady { get { return meterSheet != null && meterSheet[0] != null; } }
+
     static Sprite[] Slice(string file)
     {
         var tex = Resources.Load<Texture2D>("Weapons/" + file);

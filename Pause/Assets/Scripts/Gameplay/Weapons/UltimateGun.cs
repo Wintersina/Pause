@@ -488,6 +488,18 @@ public class UltimateGun : MonoBehaviour
         return env;
     }
 
+    // FirstUseWarm: the roster sheet (read off-thread) and the flown ship's tile, cut in its own frame.
+    public static void QueueWarm(int ship)
+    {
+        FirstUseWarm.Add("gun:" + ship, "ShipArt/Guns/ship_gun_roster", typeof(Texture2D), () => GunSpriteFor(ship));
+    }
+
+    public static bool GunReady(int ship)
+    {
+        int slot = Mathf.Clamp(ship <= 0 ? 0 : ship - 1, 0, 15);
+        return gunSprites[slot] != null;
+    }
+
     static readonly Sprite[] gunSprites = new Sprite[16];
     static Sprite GunSpriteFor(int shipIndex)
     {

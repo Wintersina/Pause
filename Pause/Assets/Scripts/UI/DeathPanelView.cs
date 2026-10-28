@@ -217,7 +217,9 @@ public class DeathPanelView : MonoBehaviour, IPointerDownHandler
     static readonly Color Muted = AkiraPalette.Muted;
     static readonly Color Bone = AkiraPalette.Bone;
 
-    const string SpriteRoot = "DeathPanel/";
+    public const string SpriteRoot = "DeathPanel/";
+    // The sprites the panel builds with (FirstUseWarm reads them ahead of the first death).
+    public static readonly string[] WarmSprites = { "dp_slab", "dp_sparkle", "dp_divider", "dp_glow", "dp_pill", "dp_card", "dp_bar", "dp_button" };
     const int SparklesPerBurst = 10;
 
     // ---- Built state (all cached; nothing is looked up per frame) ----
@@ -1115,6 +1117,10 @@ public class DeathPanelView : MonoBehaviour, IPointerDownHandler
     // copy with a less opaque fill. The ink rim and the accent slab stay solid.
     public const float ButtonFillAlpha = .62f;
     static Sprite translucentButton, translucentSource;
+
+    // FirstUseWarm: the Blit + ReadPixels + GetPixels32 copy of the button frame, done before the first death.
+    public static void PrewarmButton() { TranslucentButtonSprite(Load("dp_button")); }
+    public static bool ButtonReady { get { return translucentButton != null && translucentSource != null; } }
 
     static Sprite TranslucentButtonSprite(Sprite source)
     {

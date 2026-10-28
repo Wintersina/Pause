@@ -245,6 +245,7 @@ public class collisionDetection : MonoBehaviour {
         // does the same when it swaps in a world's own sting).
         WorldMusic.Prewarm(boostSound.clip);
         BoostJet.Prewarm();   // the jet spool-up's clip + source, ready before the first pickup
+        FirstUseWarm.QueueSession(); FirstUseWarm.QueueShip(flown);   // the rest of the first-use art, one step a frame (no-ops once the menu idle did it)
 
         shield = ShipShield.For(gameObject).Visual;
 

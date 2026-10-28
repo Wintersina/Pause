@@ -110,6 +110,26 @@ public static class PewSound
         return srcRun[slot];
     }
 
+    // FirstUseWarm: both clips loaded off-thread, then (one frame later) decoded and the voices made, so the first
+    // enemy shot of a run does none of it. Plays nothing.
+    public static void QueueWarm()
+    {
+        FirstUseWarm.Add("pew:laser", LaserPath, typeof(AudioClip), null);
+        FirstUseWarm.Add("pew:gun", GunPath, typeof(AudioClip), null);
+        FirstUseWarm.Add("pew:ready", Prewarm);
+    }
+
+    public static bool Resident { get { return loaded && laser != null && gun != null && voices != null && voices[0] != null; } }
+
+    public static void Prewarm()
+    {
+        if (!Application.isPlaying) return;
+        EnsureClips();
+        if (laser != null && laser.loadState == AudioDataLoadState.Unloaded) laser.LoadAudioData();
+        if (gun != null && gun.loadState == AudioDataLoadState.Unloaded) gun.LoadAudioData();
+        Voice();
+    }
+
     static void EnsureClips()
     {
         if (loaded && (laser != null || gun != null)) return;

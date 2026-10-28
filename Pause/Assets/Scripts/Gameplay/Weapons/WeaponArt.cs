@@ -90,6 +90,26 @@ public static class WeaponArt
         return sheet;
     }
 
+    // FirstUseWarm: the ship's weapon sheet (shots, muzzle, impact) read off-thread, then sliced in one frame.
+    public static void QueueWarm(int ship)
+    {
+        string key = WeaponStyleTable.For(ship).artKey;
+        FirstUseWarm.Add("weapon:" + key, "Weapons/" + key, typeof(Texture2D), () => Sheet(ship));
+    }
+
+    public static void QueueWarmExplosions()
+    {
+        FirstUseWarm.Add("weapon:explosions", "Weapons/Explosions", typeof(Texture2D), () => Explosions());
+    }
+
+    public static bool SheetReady(int ship)
+    {
+        Sprite[] sheet;
+        return sheets.TryGetValue(WeaponStyleTable.For(ship).artKey, out sheet) && sheet != null && sheet[0] != null;
+    }
+
+    public static bool ExplosionsReady { get { return explosionSheet != null && explosionSheet[0] != null; } }
+
     static Sprite Get(int ship, int at, int count, int i)
     {
         return Sheet(ship)[at + Mathf.Clamp(i, 0, count - 1)];
