@@ -58,8 +58,12 @@ public static class DesertTuning
     // worlds' thin shot outlines). Undarkened, the brightest enemy tone (the sun-white light) read
     // 6.8:1 (v1) and 5.9:1 (v3) against the rendered lane, under the 7:1 guard; the entries below
     // bring every set to >= 7:1 and the night side below the day.
+    // 2026-10-27 ("nice, clear and bright, no blackness tint"): the sets are drawn as bright as the unchanged
+    // bounds allow. Measured ceilings (full lane): v1 ~1.06 (mid value p90 <= .50), v2 ~1.13 (same), v3 1.0 (mid
+    // luminance <= .31), v4 held <= v1 (night never brighter than the day); the baked centre dip of the mid layers
+    // (and the v4 sky) was levelled in the art, shadows only, so the crests keep their painted values.
     public static float Brightness = 1f;
-    public static readonly float[] VariantBrightness = { 1f, .93f, .95f, .8f, .93f };   // index = variant (0 none)
+    public static readonly float[] VariantBrightness = { 1f, 1.05f, 1.12f, 1f, 1.05f };   // index = variant (0 none)
     public static readonly bool[] Night = { false, false, false, false, true };
     public static float NightLightBoost = 1.3f;
     public static float PlumeShare = 1f;
