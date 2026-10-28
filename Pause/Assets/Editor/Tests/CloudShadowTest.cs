@@ -82,6 +82,10 @@ public static class CloudShadowTest
     {
         CloudShadowLayer.ForceInEditMode = true;
         Check("the table holds exactly Frost, Verdant, Ember, Tide, Desert (" + CloudShadowLayer.Looks.Length + ")", CloudShadowLayer.Looks.Length == With.Length);
+        foreach (var look in CloudShadowLayer.Looks)
+            if (look.world == "Ember")
+                Check("Ember's clouds carry the shade (its ground has no baked centre band): dark umber (red > green > blue), core cap " + look.cap.ToString("F2") + " >= .5, big shapes, Frost-like cover " + look.budget.ToString("F2") + " >= 1.1",
+                      look.color.r > look.color.g && look.color.g > look.color.b && look.cap >= .5f && look.big && look.budget >= 1.1f);
         foreach (string w in With)
         {
             var wb = Fresh(w);

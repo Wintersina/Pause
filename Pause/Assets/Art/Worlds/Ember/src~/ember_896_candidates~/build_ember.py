@@ -11,9 +11,11 @@ S = 1008
 # median value target of the mid, lava shoulder start, cap
 MED = {"v1": .36, "v2": .36, "v3": .37, "v4": .31}
 LANE = .62
+import json
+LANE_T = json.loads(os.environ.get("LANE_T", '{"v1":0.2,"v2":0.2,"v3":0.2,"v4":0.15}'))
 SHOULDER = .35
-import os
-CAPS = {"v1": .46, "v2": float(os.environ.get("C2", .50)), "v3": float(os.environ.get("C3", .47)), "v4": .36}   # = the old art's brightest lava, so fire-coloured boss shots keep standing out
+import os, json
+CAPS = json.loads(os.environ.get("CAPS", '{"v1":0.46,"v2":0.38,"v3":0.38,"v4":0.36}'))   # = the old art's brightest lava, so fire-coloured boss shots keep standing out
 V1_FACTOR = {"mid": .88, "far": .74, "sky": .72}   # v1 as-drawn caps (WorldBackdropTest)
 
 def pixelate(rgb, cell=1, colors=160):
@@ -79,32 +81,21 @@ def box_mean(a, k):
 def grade(u8, v, role):
     rgb = u8.astype(np.float32) / 255
     val = rgb.max(-1, keepdims=True)
-    med = float(np.median(val))
-    target = MED[v] - {"mid": 0, "far": .03, "sky": .06}[role]
+    if role == "mid":
+        c = val[:, int(W * .3):int(W * .7)]
+        med = float(np.median(c)); target = LANE_T[v]
+    else:
+        med = float(np.median(val)); target = MED[v] - {"mid": 0, "far": .03, "sky": .06}[role]
     gain = target / max(med, 1e-3)
     nv = val * gain
     # lava shoulder: compress everything above SHOULDER, hard cap
     nv = np.where(nv > SHOULDER, SHOULDER + (nv - SHOULDER) * .40, nv)
     nv = np.minimum(nv, CAPS[v])
     rgb = rgb * (nv / np.maximum(val, 1e-6))
-    if role == "mid":
-        x = np.arange(W)[None, :] / (W - 1) - .5
-        calm = np.broadcast_to(np.exp(-(x / .2) ** 2)[..., None], (H, W, 1)).astype(np.float32)
-        local = box_mean(rgb, 49)
-        rgb = local + (rgb - local) * (1 - .30 * calm)
-        cap = 1 - .25 * calm
-        mxv = rgb.max(-1, keepdims=True)
-        rgb = rgb * np.minimum(1.0, (cap * .75 + .25) / np.maximum(mxv, 1e-6))
-        # the play lane (the readability guard: enemy body 2.0:1 -> lane median luminance <= ~.026, value ~.21): darker in the
-        # central 54% of the width, smooth ramp to the full-bright side bands
-        ax = np.abs(x)
-        t = np.clip((ax - .27) / .10, 0, 1); t = t * t * (3 - 2 * t)
-        lane = (LANE + (1 - LANE) * t)[..., None]
-        rgb = rgb * np.broadcast_to(lane, (H, W, 1)).astype(np.float32)
-    else:
+    if role != "mid":
         gray = rgb.mean(-1, keepdims=True)
         rgb = gray + (rgb - gray) * (.85 if role == "far" else .75)
-    if v == "v1": rgb = rgb * V1_FACTOR[role]
+    if v == "v1" and role != "mid": rgb = rgb * V1_FACTOR[role]
     return np.clip(np.rint(rgb * 255), 0, 255).astype(np.uint8)
 
 def flow(v):

@@ -21,7 +21,7 @@ using UnityEngine;
 //   weather (Atmosphere / Cloud layers) and far below gameplay (order 0: enemies, elites, shots, pickups, the ship) and the HUD.
 //
 // HOW DARK  Each shadow's draw alpha is  peak x fade x suppress x setAlpha, every factor in 0..1, and the shader's stepped alpha is <= 1
-//   (written to the vertex alpha, the only place the cap is applied: PeakAlpha), so no pixel is darker than `Cap` (<= HardCap, 0.5).
+//   (written to the vertex alpha, the only place the cap is applied: PeakAlpha), so no pixel is darker than `Cap` (<= HardCap, 0.55).
 //   Two shadows keep apart (the younger of two overlapping ones fades), so cores never stack. Night-side variants (Spec.Night)
 //   take NightCapMul of the cap so the backdrop never goes black.
 //
@@ -40,7 +40,7 @@ public sealed class CloudShadowLayer
     public static bool Enabled = true;               // kill switch
     public static bool ForceInEditMode;              // tests / previews only
     public static int TestSeed;                      // tests: a fixed seed for the shadows' random choices (0 = random)
-    public const float HardCap = 0.5f;               // no shadow is ever drawn darker than this (alpha)
+    public const float HardCap = 0.55f;              // no shadow is ever drawn darker than this (alpha)
     public const int MaxShadows = 3;
     public const int LowEndCount = 2;
     public const int OffSystemMemoryMb = 2500;       // below this much RAM: no shadows at all
@@ -81,7 +81,9 @@ public sealed class CloudShadowLayer
     {
         new Look { world = "Frost",   color = new Color(.01f, .04f, .12f), cap = .50f, nightCapMul = .6f,  count = 3, big = true, budget = 1.3f, speed = .08f, dir = 200f },
         new Look { world = "Verdant", color = new Color(.00f, .07f, .02f), cap = .48f, nightCapMul = .5f,  count = 3, budget = .95f, speed = .07f, dir = 330f },
-        new Look { world = "Ember",   color = new Color(.12f, .02f, .01f), cap = .46f, nightCapMul = .6f,  count = 3, budget = .95f, speed = .09f, dir = 155f },
+        // Ember: no baked centre band in the ground any more (2026-10-27), so its clouds carry the shade: big shapes only, Frost-like cover,
+        // a very dark red-brown umber core up to .55 (the layer sorts below every enemy, shot, the ship and the HUD), night side a bit dimmer.
+        new Look { world = "Ember",   color = new Color(.07f, .025f, .012f), cap = .55f, nightCapMul = .7f,  count = 3, big = true, budget = 1.2f, speed = .09f, dir = 155f },
         new Look { world = "Tide",    color = new Color(.00f, .05f, .11f), cap = .50f, nightCapMul = .6f,  count = 3, budget = .95f, speed = .10f, dir = 25f },
         new Look { world = "Desert",  color = new Color(.11f, .045f, .01f), cap = .50f, nightCapMul = .55f, count = 3, budget = .95f, speed = .08f, dir = 20f },
     };
