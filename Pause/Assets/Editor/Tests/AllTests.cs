@@ -267,6 +267,7 @@ public static class AllTests
         ("ScreenFitTest4", ScreenFitTest.Slice4),
         ("PlayerZoneTopTest", PlayerZoneTopTest.Execute),
         ("ShipHitboxTest", ShipHitboxTest.Execute),
+        ("TurtleShellAlphaTest", TurtleShellAlphaTest.Execute),
         ("ShipReachTest", ShipReachTest.Execute),
         ("PowersReworkTest", PowersReworkTest.Execute),
         ("ShipAttacksTest", ShipAttacksTest.Execute),
