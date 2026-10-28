@@ -77,11 +77,14 @@ public static class FlightSampleCapture
         Directory.CreateDirectory(dir);
         ScreenFitScreens.DeathSample = Sample;
         using (new TestHarness.Sandbox())
+        foreach (var pass in new[] { "before", "after" })
         {
+            DeathPanelView.CornerCutDisabled = pass == "before";
+            Directory.CreateDirectory(Path.Combine(dir, pass));
             for (int w = 0; w < Names.Length; w++)
                 foreach (var d in devices)
                 {
-                    var shot = ScreenFitRunner.Run(ScreenFitScreens.DeathOn(w), d, Path.Combine(dir, Names[w] + "_" + d.w + "x" + d.h + ".png"), 0);
+                    var shot = ScreenFitRunner.Run(ScreenFitScreens.DeathOn(w), d, Path.Combine(dir, pass + "/" + Names[w] + "_" + d.w + "x" + d.h + ".png"), 0);
                     Debug.Log("[FLIGHTSHOT] " + Names[w] + " " + d.id + " err=" + shot.error + " failures=" + shot.failures + " minTextPt=" + shot.minTextPt.ToString("F1") + " (" + shot.minTextName + ")");
                     foreach (var f in shot.findings) if (!f.waived) Debug.Log("[FLIGHTFIND] " + Names[w] + " " + d.id + " " + f.kind + " " + f.element + ": " + f.detail);
                 }
