@@ -30,9 +30,20 @@ public class MenuStyler : MonoBehaviour
             var label = button.GetComponentInChildren<Text>(true);
             if (label == null) continue;
             StyleLabel(label);
+            if (SceneManager.GetActiveScene().name == HomeScene) StylePlate(button);
             CelPress.AddTo(button.gameObject);
             if (button.name == PrimaryButton) styler.primary.Add(label);
         }
+    }
+
+    public const string HomeScene = "startS4";
+
+    // The home menu's pressed plate (the red tint over the button's own
+    // Image) is the game's cut-corner rectangle: TL + BR chamfer.
+    public static void StylePlate(Button button)
+    {
+        var image = button != null ? button.targetGraphic as Image : null;
+        if (image != null) CutCornerShape.Apply(image);
     }
 
     public static void StyleLabel(Text label)
