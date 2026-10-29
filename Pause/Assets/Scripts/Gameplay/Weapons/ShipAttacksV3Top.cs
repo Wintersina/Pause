@@ -76,6 +76,7 @@ public partial class ShipAttackRunner
     void StepTopObjects(float dt)
     {
         if (frozenCount > 0) StepFrozen(dt);
+        if (chilledCount > 0) StepChill(dt);   // Jade Phantom's chill (ShipSignatures2.cs)
         if (sentries != null) StepSentries(dt);
         if (bolts != null) StepBolts(dt);
         if (warheads != null) StepWarheads(dt);
@@ -100,6 +101,7 @@ public partial class ShipAttackRunner
         if (frozen != null)
             for (int i = 0; i < frozen.Length; i++) if (frozen[i].on) ReleaseFrozen(frozen[i], true);
         frozenCount = 0;
+        StopChill();
         if (sentries != null)
             for (int i = 0; i < sentries.Length; i++)
             {
@@ -400,6 +402,8 @@ public partial class ShipAttackRunner
                 if (run != null) HitOnce(run.hit, t.gameObject, ShatterSplashWeight);
                 else ShipAttackHits.Hit(t.gameObject, ship);
             }
+            // Jade Phantom's chill (level 2+): what stands just outside the splash stops for a moment
+            ChillAround(at, splash, run != null ? run.loadout : loadout);
         }
     }
 
@@ -427,6 +431,10 @@ public partial class ShipAttackRunner
         public AttackSprite sprite;
         public Vector3 from, to;
         public float t, delay, fireClock, life, rate, weight, reach;
+        public int pierce;            // enemies a bolt carries on to (ShipSignatures2.SentryPierce)
+        public bool drift;            // drifts along with the ship (ShipSignatures2.SentryDriftLevel)
+        public Vector3 home;          // where it deployed
+        public float anchorX;         // the ship's x at the deploy
     }
 
     class Bolt
@@ -438,6 +446,7 @@ public partial class ShipAttackRunner
         public ClearTarget clear;
         public Vector3 from;
         public float t, dur, weight;
+        public int pierce;   // enemies it can still carry on to after this one
     }
 
     Sentry[] sentries;
@@ -490,6 +499,10 @@ public partial class ShipAttackRunner
             s.rate = rate;
             s.weight = (run.quick ? 1f / n : 1f) / (rate * life);
             s.reach = l.range;
+            s.pierce = ShipSignatures2.SentryPierceAt(l.weaponLevel);
+            s.drift = ShipSignatures2.SentriesDriftAt(l.weaponLevel);
+            s.home = s.to;
+            s.anchorX = transform.position.x;
             made++;
         }
         if (made == 0) run.Stop();
@@ -540,6 +553,7 @@ public partial class ShipAttackRunner
                     s.t = 0f;
                     break;
                 case 3:
+                    if (s.drift) DriftSentry(s, dt);
                     s.fireClock += dt;
                     float gap = 1f / s.rate;
                     while (s.fireClock >= gap)
@@ -583,6 +597,7 @@ public partial class ShipAttackRunner
         b.t = 0f;
         b.dur = Mathf.Max(.05f, Vector2.Distance(muzzle, to) / SentryBoltSpeed);
         b.weight = s.weight;
+        b.pierce = s.pierce;
         b.sprite = AttackPool.Sprite().Play(AttackSprite.Source.AttackLoop, ship, muzzle, Vector3.one * .7f, BoltAngle(muzzle, to),
             ShipFxArt.LoopTicks, true, 0f, null, Vector3.zero, 70).Strip("attack_shot", 0, true);
         SentryBolts++;
@@ -621,8 +636,11 @@ public partial class ShipAttackRunner
             var go = b.target;
             var run = b.run;
             float w = b.weight;
+            int pierceLeft = b.pierce;
+            bool special = IsSpecial(go);
             EndBolt(b);
             ShipAttackHits.Hit(go, ship, w, ref run.budget);
+            if (pierceLeft > 0 && !special) ContinueBolt(run, to, go, pierceLeft, w);
         }
     }
 

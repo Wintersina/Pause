@@ -19,6 +19,10 @@ using UnityEngine;
 // BossConfig.HitInvulnerableSeconds, paces the rest). Shot counts stay well
 // under AttackPool.MaxProjectiles.
 //
+// Some ships also unlock a signature effect with a level (ShipSignatures2.cs: Jade Phantom, Gold Warden,
+// Paranoid, Saboteur): it is named at the end of the unlocking step's label, and its numbers live next to
+// the effect, not in the tracks.
+//
 // The one place for the numbers: change a track here and the runner
 // (ShipAttackRunner), the charge timer (ShipPowerController) and the dock's
 // weapon row (DockPopup) all follow.
@@ -75,13 +79,13 @@ public static class ShipWeaponUpgrades
         /*  3 Solar Fang   */ new[] { Up("THICKER BAND", width: .3f), Cd(.15f), Up("+1 WAVE", shots: 1), Cd(.20f) },
         /*  4 Crimson Halo */ new[] { Cd(.15f), Up("WIDER RAIL", width: .14f), Cd(.20f, ShipSignatures.HaloPierceNote), Up("+2 SIDE RAILS", shots: 2) },
         /*  5 Ion Lancer   */ new[] { Up("LONGER SWEEP", duration: .3f), Cd(.15f), Up("+1 PASS", shots: 1), Cd(.20f, ShipSignatures.IonCrossNote) },
-        /*  6 Jade Phantom */ new[] { Up("SHATTER SPLASH", width: .8f), Cd(.15f), Up("BIGGER SPLASH", width: .4f), Cd(.20f) },
-        /*  7 Gold Warden  */ new[] { Up("+1 SENTRY", shots: 1), Cd(.15f), Up("LONGER SENTRIES", duration: .9f), Cd(.20f) },
+        /*  6 Jade Phantom */ new[] { Up("SHATTER SPLASH", width: .8f), ShipSignatures2.Tag(Cd(.15f), "CHILL"), Up("BIGGER SPLASH", width: .4f), ShipSignatures2.Tag(Cd(.20f), "DEEP CHILL") },
+        /*  7 Gold Warden  */ new[] { Up("+1 SENTRY", shots: 1), ShipSignatures2.Tag(Cd(.15f), "PIERCE"), Up("LONGER SENTRIES", duration: .9f), ShipSignatures2.Tag(Cd(.20f), "DRIFT") },
         /*  8 Lightning    */ new[] { Up("+1 JAVELIN", shots: 1), Cd(.15f), Up("+1 JAVELIN", shots: 1), Cd(.20f) },   // 3 -> 4 -> 5 lanes (SkyJavelinLanes)
         /*  9 Ligher       */ new[] { Up("LONGER BURN", duration: BlowtorchStepSeconds), Cd(.15f), Up("BIGGER, LONGER FLAME", duration: BlowtorchStepSeconds, range: .6f, width: 6f), Cd(.20f) },
-        /* 10 Paranoid     */ new[] { Up("+1 MARK", shots: 1), Cd(.15f), Up("+1 MARK", shots: 1), Cd(.20f) },
+        /* 10 Paranoid     */ new[] { Up("+1 MARK", shots: 1), ShipSignatures2.Tag(Cd(.15f), "BIG BLAST"), Up("+1 MARK", shots: 1), ShipSignatures2.Tag(Cd(.20f), "HUGE BLAST") },
         /* 11 Ninja        */ new[] { Up("+1 STAR", shots: 1), StarCd("+1 STAR", .15f), Up("+1 STAR", shots: 1), StarCd("+1 STAR", .20f) },   // 2 stars (front + rear) -> 6
-        /* 12 Saboteur     */ new[] { Up("+1 MINE", shots: 1), Cd(.15f), Up("+1 MINE", shots: 1), Cd(.20f) },
+        /* 12 Saboteur     */ new[] { Up("+1 MINE", shots: 1), ShipSignatures2.Tag(Cd(.15f), "BIG BLAST"), Up("+1 MINE", shots: 1), ShipSignatures2.Tag(Cd(.20f), "CHAIN BLAST") },
         /* 13 UFO          */ new[] { Up("+1 PIERCE", maxHits: 1), CdPlus(.15f, ShipSignaturesG3.UfoBlastMildLabel), Up("+1 GRAB", shots: 1), CdPlus(.20f, ShipSignaturesG3.UfoBlastFullLabel) },
         /* 14 Dove         */ new[] { Up("WIDER GUST", width: 12f), CdPlus(.15f, ShipSignaturesG3.DoveReturnMildLabel), Up("LONGER GUST", range: 1.5f), CdPlus(.20f, ShipSignaturesG3.DoveReturnFullLabel) },
         /* 15 Turtle       */ new[] { Up("LONGER THROW", duration: 1.5f), CdPlus(.15f, ShipSignaturesG3.DiscMildLabel), Up("BIGGER DISC", range: .14f, speed: 1.5f), CdPlus(.20f, ShipSignaturesG3.DiscFullLabel) },

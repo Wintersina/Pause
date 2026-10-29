@@ -34,6 +34,8 @@ public class AttackV3
     public readonly float[] at = new float[Max];
     public readonly int[] phase = new int[Max];
     public readonly int[] n = new int[Max];
+    // Proximity Mines: seconds until a mine set off by a neighbour's blast goes (0 = not set off; ShipSignatures2.MineChainLevel)
+    public readonly float[] chain = new float[Max];
     public readonly System.Collections.Generic.List<GameObject> hit2 = new System.Collections.Generic.List<GameObject>(16);
     // Gale Wings' returned shots (a hostile shot the gust turned): position, velocity, drawing.
     public const int ReturnMax = 16;
@@ -63,6 +65,7 @@ public class AttackV3
         }
         hit2.Clear();
         for (int i = 0; i < starHit.Length; i++) starHit[i].Clear();
+        System.Array.Clear(chain, 0, Max);
         for (int i = 0; i < ReturnMax; i++) { rFx[i] = null; rAge[i] = 0f; }
         rCount = 0;
         eye = null;
@@ -258,6 +261,7 @@ public partial class ShipAttackRunner
         Vector3 eyePos = Nose + Vector3.up * EyeAhead;
         float gaze = Mathf.Max(.1f, l.duration);
         float w = 1f / Mathf.Max(1, l.shots);
+        float blast = ShipSignatures2.EyeBlastAt(l.weaponLevel);   // grows with the weapon level (Paranoid's signature)
         if (v.count < l.shots && v.count < AttackV3.Max && run.t <= gaze + .05f)
         {
             // the gaze sweeps its cone left to right; whatever it passes over is marked
@@ -289,7 +293,7 @@ public partial class ShipAttackRunner
             if (t == null || !t.isActiveAndEnabled) { Resolve(v, i); continue; }   // gone already
             if (run.t < v.at[i] + MarkDelay) continue;
             Vector3 at = t.transform.position;
-            Burst(run, at, EyeBlast * 2f, "mark");   // the mark burst, sized to the blast so its reach reads
+            Burst(run, at, blast * 2f, "mark");   // the mark burst, sized to the blast so its reach reads
             ShipTargets.Collect(targets);
             for (int k = 0; k < targets.Count; k++)
             {
@@ -299,7 +303,8 @@ public partial class ShipAttackRunner
                 for (int m = 0; m < v.count && !waiting; m++) waiting = v.phase[m] == 0 && v.tgt[m] == n;
                 if (waiting) continue;
                 Vector2 d = n.transform.position - at;
-                float r = EyeBlast + n.Radius * .5f;
+                // a boss or an elite keeps the level 0 reach: a bigger blast never stacks extra hits on them
+                float r = (Special(n.gameObject) ? EyeBlast : blast) + n.Radius * .5f;
                 if (d.sqrMagnitude > r * r) continue;
                 if (ShipAttackHits.Hit(n.gameObject, ship, w * EyeSplash, ref run.budget)) kills++;
             }
@@ -477,6 +482,8 @@ public partial class ShipAttackRunner
         var l = run.loadout;
         Rect view = ShipTargets.View();
         float w = 1f / Mathf.Max(1, l.shots);
+        float blastR = ShipSignatures2.MineBlastAt(l.weaponLevel);   // Saboteur's signature: bigger from level 2 ...
+        bool chains = ShipSignatures2.MinesChainAt(l.weaponLevel);   // ... and chaining from level 4
         ShipTargets.Collect(targets);
         int live = 0, kills = 0;
         for (int i = 0; i < v.count; i++)
@@ -500,7 +507,13 @@ public partial class ShipAttackRunner
             live++;
             if (v.phase[i] != 2) continue;
             bool trip = false;
-            for (int k = 0; k < targets.Count && !trip; k++)
+            if (v.chain[i] > 0f)
+            {
+                // set off by a neighbour's blast: goes a beat later
+                v.chain[i] -= dt;
+                trip = v.chain[i] <= 0f;
+            }
+            else for (int k = 0; k < targets.Count && !trip; k++)
             {
                 var t = targets[k];
                 if (t == null || !t.isActiveAndEnabled || !ShipTargets.IsThreat(t)) continue;
@@ -511,13 +524,24 @@ public partial class ShipAttackRunner
             if (!trip) continue;
             Vector3 at = v.pos[i];
             Fizzle(v, i);
-            Burst(run, at, 1.8f);
+            Burst(run, at, 1.8f * blastR / MineBlast);   // the burst drawing follows the blast radius
+            if (chains)
+            {
+                // the blast sets off the armed mines near it, a beat apart (each still blows for its own share)
+                for (int j = 0; j < v.count; j++)
+                {
+                    if (j == i || v.phase[j] != 2 || v.chain[j] > 0f) continue;
+                    if (((Vector2)(v.pos[j] - at)).sqrMagnitude > ShipSignatures2.MineChainReach * ShipSignatures2.MineChainReach) continue;
+                    v.chain[j] = ShipSignatures2.MineChainDelay;
+                }
+            }
             for (int k = 0; k < targets.Count; k++)
             {
                 var t = targets[k];
                 if (t == null || !t.isActiveAndEnabled) continue;
                 Vector2 d = t.transform.position - at;
-                float r = MineBlast + t.Radius * .5f;
+                // a boss or an elite keeps the level 0 reach
+                float r = (Special(t.gameObject) ? MineBlast : blastR) + t.Radius * .5f;
                 if (d.sqrMagnitude > r * r) continue;
                 if (ShipAttackHits.Hit(t.gameObject, ship, w, ref run.budget)) kills++;
             }
