@@ -3,7 +3,8 @@ using UnityEngine;
 // The v3 main attacks of the cheaper hulls (ShipAttackRunner, partial): each one a verb of its own.
 //
 //   ArcaneEye       Paranoid   an eye opens ahead of the nose, gazes up its cone and runes MARK targets
-//                              (they ride them); 0.8 s later every mark detonates and kills its target
+//                              (they ride them); 0.8 s later every mark detonates and kills its target, and the
+//                              blast (EyeBlast) also hits whatever stands near it at half weight
 //   HeatWave        Solar Fang a thin wall of heat the width of the screen rolls up from the nose, burning
 //                              everything it passes once
 //   BoomerangStar   Ninja      a shuriken thrown on an ellipse that comes back to the ship, hitting on the
@@ -87,6 +88,9 @@ public partial class ShipAttackRunner
 {
     // ARCANE EYE (Paranoid)
     public const float EyeAhead = .7f, MarkDelay = .8f;
+    // A detonation also hits everything within EyeBlast (+ half the neighbour's radius, like MineBlast) of the
+    // marked target at EyeSplash of the weapon hit. Still-waiting marks are skipped: they take their own full hit.
+    public const float EyeBlast = 1.2f, EyeSplash = .5f;
     // HEAT WAVE (Solar Fang)
     public const int WaveSegments = 5;
     // BOOMERANG STAR (Ninja)
@@ -257,7 +261,20 @@ public partial class ShipAttackRunner
             if (t == null || !t.isActiveAndEnabled) { Resolve(v, i); continue; }   // gone already
             if (run.t < v.at[i] + MarkDelay) continue;
             Vector3 at = t.transform.position;
-            Burst(run, at, 1.1f, "mark");
+            Burst(run, at, EyeBlast * 2f, "mark");   // the mark burst, sized to the blast so its reach reads
+            ShipTargets.Collect(targets);
+            for (int k = 0; k < targets.Count; k++)
+            {
+                var n = targets[k];
+                if (n == null || n == t || !n.isActiveAndEnabled || ShipAttackHits.AlreadyHit(n.gameObject)) continue;
+                bool waiting = false;   // a mark still counting down takes its own full hit instead of a splash
+                for (int m = 0; m < v.count && !waiting; m++) waiting = v.phase[m] == 0 && v.tgt[m] == n;
+                if (waiting) continue;
+                Vector2 d = n.transform.position - at;
+                float r = EyeBlast + n.Radius * .5f;
+                if (d.sqrMagnitude > r * r) continue;
+                if (ShipAttackHits.Hit(n.gameObject, ship, w * EyeSplash, ref run.budget)) kills++;
+            }
             if (ShipAttackHits.Hit(t.gameObject, ship, w, ref run.budget)) kills++;
             Resolve(v, i);
         }
