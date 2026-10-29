@@ -570,7 +570,8 @@ public static class ShipSkinsTest
         Check("owned swatches have a check, locked ones a price",
               popup.swatches[0].check.enabled && popup.swatches[1].check.enabled && !popup.swatches[1].price.enabled &&
               !popup.swatches[2].check.enabled && popup.swatches[2].price.enabled &&
-              popup.swatches[2].price.text == "300" && popup.swatches[4].price.text == "750" && popup.swatches[2].dust.enabled);
+              popup.swatches[2].price.text == Mathf.RoundToInt(ShipSkins.PriceOf(3, 2)).ToString("N0") &&
+              popup.swatches[4].price.text == Mathf.RoundToInt(ShipSkins.PriceOf(3, 4)).ToString("N0") && popup.swatches[2].dust.enabled);
         Check("swatches are in the skin's own colours",
               popup.swatches[1].body.color == ShipSkins.Get(3, 1).primary && popup.swatches[4].stripe.enabled &&
               !popup.swatches[2].stripe.enabled);
@@ -601,7 +602,7 @@ public static class ShipSkinsTest
         popup.Press();
         var message = popup.transform.Find("Panel/Body/Message").GetComponent<Text>();
         Check("an unaffordable skin shakes NEED n MORE",
-              message.enabled && message.text == "NEED 650 MORE" && !PlayerPrefs.HasKey("skinOwned3_4") &&
+              message.enabled && message.text == "NEED " + Mathf.CeilToInt(ShipSkins.PriceOf(3, 4) - 100f).ToString("N0") + " MORE" && !PlayerPrefs.HasKey("skinOwned3_4") &&
               Mathf.Approximately(PlayerPrefs.GetFloat(StarDustLedger.CurrencyKey), 100f));
 
         // Back: revert preview, then deselect, then home
@@ -629,16 +630,17 @@ public static class ShipSkinsTest
         // buy with enough dust
         dock.Select(3);
         popup.TapSwatch(2);
-        PlayerPrefs.SetFloat(StarDustLedger.CurrencyKey, 1000f);
+        float leftOver = 300f;
+        PlayerPrefs.SetFloat(StarDustLedger.CurrencyKey, ShipSkins.PriceOf(3, 2) + leftOver);
         saves = PrefsSaver.SaveCount;
         popup.Press();
         Check("BUY on a previewed skin deducts once, owns, equips and saves",
-              Mathf.Approximately(PlayerPrefs.GetFloat(StarDustLedger.CurrencyKey), 700f) &&
+              Mathf.Approximately(PlayerPrefs.GetFloat(StarDustLedger.CurrencyKey), leftOver) &&
               PlayerPrefs.GetInt("skinOwned3_2") == 1 && PlayerPrefs.GetInt("shipSkin3") == 2 &&
               PrefsSaver.SaveCount > saves && dock.bays[3].Skin == 2 && !dock.PreviewingSkin);
         dock.Buy(3);
         dock.BuySkin(3, 2);
-        Check("buying again never charges twice", Mathf.Approximately(PlayerPrefs.GetFloat(StarDustLedger.CurrencyKey), 700f));
+        Check("buying again never charges twice", Mathf.Approximately(PlayerPrefs.GetFloat(StarDustLedger.CurrencyKey), leftOver));
         Check("only the shown skin sheets stay decoded", ShipHullArt.LoadedSkinSheets == 1);
 
         // dev mode in the dock

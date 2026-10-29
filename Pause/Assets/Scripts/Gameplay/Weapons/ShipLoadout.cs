@@ -175,7 +175,7 @@ public static class ShipLoadoutTable
             PowerTrigger.PickupsOnScreen, 4, 0f,
             shots: 3, duration: 6f, range: 6f, speed: 1.5f),   // speed = shots a second per pod (was 3; halved)
         // 8 Lightning (950)
-        Row(8, ShipAttack.SkyJavelins, "SKY JAVELINS", "Three rockets climb to the top, then javelins strike down three lanes; colours add lanes up to five.",
+        Row(8, ShipAttack.SkyJavelins, "SKY JAVELINS", "Rockets climb, then javelins strike down three lanes; colours add lanes up to five.",
             SecretPower.Thunderclap, "THUNDERCLAP", "Lightning strikes everything within 2.6 dead, bosses take half a hit.",
             PowerTrigger.HazardsNearShip, 2, 2.0f,
             shots: 3, width: .32f, range: 1.2f, speed: 26f),
@@ -185,7 +185,7 @@ public static class ShipLoadoutTable
             PowerTrigger.EnemyClosing, 2, 2.4f,
             duration: 5f, range: 2.7f, width: 24f),
         // 10 Paranoid (1450)
-        Row(10, ShipAttack.ArcaneEye, "ARCANE EYE", "An eye marks four targets ahead; each mark detonates in a small blast that hits its neighbours too.",
+        Row(10, ShipAttack.ArcaneEye, "ARCANE EYE", "An eye marks four targets; each mark detonates in a small blast that hits its neighbours.",
             SecretPower.TimeBubble, "TIME BUBBLE", "A dome shoves hazards out and blocks bullets for 2.5 s when it crowds you.",
             PowerTrigger.HazardsNearShip, 3, 2.6f,
             shots: 4, duration: .6f, range: 9f, width: 40f),
@@ -205,19 +205,19 @@ public static class ShipLoadoutTable
             PowerTrigger.HazardsNearShip, 2, 3.5f,
             maxHits: 1, range: 9f, speed: 15f),
         // 14 Dove (2900)
-        Row(14, ShipAttack.GaleWings, "GALE WINGS", "A gust shoves enemies up and turns enemy and boss shots back at them, harder and in pairs with colours.",
+        Row(14, ShipAttack.GaleWings, "GALE WINGS", "A gust shoves enemies and turns shots back at them, harder and in pairs with colours.",
             SecretPower.Mending, "MENDING", "Repairs one heart in a burst of feathers as soon as the hull is damaged.",
             PowerTrigger.HullDamaged, 1, 0f,
             width: 60f, range: 6f),
         // 15 Turtle (3600)
-        Row(15, ShipAttack.ThrownDisc, "SHELL DISC", "A shell is thrown and ricochets off enemies and walls, with more bounces and a spark trail with colours.",
+        Row(15, ShipAttack.ThrownDisc, "SHELL DISC", "A shell ricochets off enemies and walls; colours add bounces and a spark trail.",
             SecretPower.HardShell, "HARD SHELL", "A shell shows on the hull for up to 8 s and shatters on the next hit.",
             PowerTrigger.HazardInLane, 1, 3.4f,
             duration: 4f, range: .42f, speed: 9f, maxHits: 8),
         // 16 Paragon (premium, real-money IAP: PremiumShips). Its signature extras (timed mini-warheads
         // and a shield, both on timers) are PremiumShips tiers; this row is its ultimate and its timed
         // shield power. range: the nuke's flight height (share of the screen); duration: its fuse.
-        Row(16, ShipAttack.Nuke, "NUKE", "A warhead climbs, blinks, then detonates: a red shockwave clears the screen, with a bigger fireball and a second warhead with colours.",
+        Row(16, ShipAttack.Nuke, "NUKE", "A warhead's red shockwave clears the screen; colours add fireball size and a 2nd warhead.",
             SecretPower.AegisShield, "AEGIS SHIELD", "Raises the shield on its own every 8 s (quicker with every skin).",
             PowerTrigger.Always, 0, 0f,
             duration: .6f, range: .55f, speed: 14f),
