@@ -1,6 +1,6 @@
 using UnityEngine;
 
-// The player-facing START WORLD setting (Options > START <WORLD>).
+// The player-facing START WORLD setting (hangar: START <WORLD> under the SPACE DOCK title, DockStartWorld).
 //
 // Once the player has finished a level -- beaten a world's boss and flown on,
 // which is what raises highestWorld above Space -- they can start every run
@@ -9,7 +9,7 @@ using UnityEngine;
 // also synced in the cloud progress snapshot.
 //
 // Unset means "the furthest planet reached" (the rule before this setting
-// existed). Choosing the furthest world in Options clears the key again, so a
+// existed). Choosing the furthest world in the hangar clears the key again, so a
 // newly unlocked world is picked up automatically; choosing an earlier world
 // pins it. A stored value above highestWorld (a progress restore or cloud sync
 // that lowered it) is clamped when read.
@@ -78,15 +78,12 @@ public static class PlayerStartWorld
             .displayName.ToUpperInvariant();
     }
 
-    public const string LockedLabel = "START WORLD  LOCKED";
-    public const string LockedHint = "BEAT A WORLD'S BOSS TO UNLOCK";
-
     // ---- the one-time hint ----------------------------------------------------
     // The first time the pilot reaches a world they have never been to, a small
     // toast tells them the START WORLD option now exists. Once ever (not per
     // world), local to the device (not in the cloud snapshot).
     public const string HintKey = "startWorldHintShown";
-    public const string HintText = "You can now change your default starter world in Options.";
+    public const string HintText = "You can now change your default starter world in the hangar.";
 
     public static bool HintShown { get { return PlayerPrefs.GetInt(HintKey, 0) == 1; } }
 

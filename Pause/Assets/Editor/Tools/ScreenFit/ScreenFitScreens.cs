@@ -316,7 +316,6 @@ public static class ScreenFitScreens
         LeaderboardService.Instance = service;
         rig.Sync();
         Add<DeveloperOptions>("~DeveloperOptions");
-        Add<StartWorldOptions>("~StartWorldOptions");
         Add<SoundOptions>("~SoundOptions");
         SafeAreaClamp.AttachAll("leaderboardS3");
         rig.Sync();   // it may change the canvas scaler

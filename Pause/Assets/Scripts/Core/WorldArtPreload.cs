@@ -156,7 +156,7 @@ public static class WorldArtPreload
     }
 
     // The home screen preloads the art of the planet the next PLAY will begin on, so the run start does not load it.
-    // The start world can change in the menu (Options -> START WORLD); WorldManager.Start lets go of a hold that turns
+    // The start world can change in the menu (hangar START WORLD); WorldManager.Start lets go of a hold that turns
     // out to be for another world, and the game then loads what it needs synchronously, as it always did.
     public const string MenuScene = "startS4";
 
