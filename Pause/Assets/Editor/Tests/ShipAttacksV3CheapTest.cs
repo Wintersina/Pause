@@ -175,7 +175,7 @@ public static class ShipAttacksV3CheapTest
         FreshScene();
         var c = Ship(10);
         var foes = new List<GameObject>();
-        for (int i = 0; i < 6; i++) foes.Add(Hazard(-1.5f + i * .6f, 1f + (i % 3) * .8f));
+        for (int i = 0; i < 6; i++) foes.Add(Hazard(-2.5f + i, 1f + (i % 2) * 1.5f));   // spaced beyond the blast
         int kills = ShipAttackHits.Kills;
         c.Runner.Fire();
         Steps(c.Runner, .7f);
@@ -185,6 +185,40 @@ public static class ShipAttacksV3CheapTest
         Check("and the eye closes", c.Runner.ActiveRuns == 0);
         Teardown(c);
         foreach (var f in foes) if (f != null) Object.DestroyImmediate(f);
+
+        // The blast: neighbours in reach take half weight once; the marked target the full hit; out of reach, nothing.
+        FreshScene();
+        c = Ship(10);
+        var marked = Boss(3f, 1.5f);
+        var near = Boss(3.9f, 1.5f);      // outside the cone (never marked), .9 from the mark
+        var far = Boss(4.6f, 1.5f);       // outside the cone, 1.6 from the mark
+        foreach (var b in new[] { near, far }) b.GetComponent<ClearTarget>().SetRadius(.3f);
+        c.Runner.Fire();
+        Steps(c.Runner, 2f);
+        Check("the marked target takes the full hit once (weight " + marked.weight.ToString("F3") + ", " + marked.hits + " hits)",
+              marked.hits == 1 && Mathf.Abs(marked.weight - .25f) < 1e-3f);
+        Check("a neighbour inside the blast takes one half-weight hit (weight " + near.weight.ToString("F3") + ", " + near.hits + " hits)",
+              near.hits == 1 && Mathf.Abs(near.weight - .125f) < 1e-3f);
+        Check("one outside the blast radius is untouched", far.hits == 0);
+        Teardown(c);
+        Object.DestroyImmediate(marked.gameObject);
+        Object.DestroyImmediate(near.gameObject);
+        Object.DestroyImmediate(far.gameObject);
+
+        // Two marks next to each other: each takes its own full hit and no splash on top.
+        FreshScene();
+        c = Ship(10);
+        var m1 = Boss(3f, 1.5f);
+        var m2 = Boss(2.6f, 2.4f);
+        foreach (var b in new[] { m1, m2 }) b.GetComponent<ClearTarget>().SetRadius(.3f);
+        c.Runner.Fire();
+        Steps(c.Runner, 2f);
+        Check("two adjacent marks each take exactly one full hit (" + m1.hits + "/" + m1.weight.ToString("F3") + ", " +
+              m2.hits + "/" + m2.weight.ToString("F3") + ")",
+              m1.hits == 1 && m2.hits == 1 && Mathf.Abs(m1.weight - .25f) < 1e-3f && Mathf.Abs(m2.weight - .25f) < 1e-3f);
+        Teardown(c);
+        Object.DestroyImmediate(m1.gameObject);
+        Object.DestroyImmediate(m2.gameObject);
 
         FreshScene();
         c = Ship(10);

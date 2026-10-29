@@ -182,7 +182,7 @@ public static class ShipLoadoutTable
             PowerTrigger.EnemyClosing, 2, 2.4f,
             duration: 2.8f, range: 2.7f, width: 24f),
         // 10 Paranoid (1450)
-        Row(10, ShipAttack.ArcaneEye, "ARCANE EYE", "An eye marks four targets ahead; the marks detonate.",
+        Row(10, ShipAttack.ArcaneEye, "ARCANE EYE", "An eye marks four targets ahead; each mark detonates in a small blast that hits its neighbours too.",
             SecretPower.TimeBubble, "TIME BUBBLE", "A dome shoves hazards out and blocks bullets for 2.5 s when it crowds you.",
             PowerTrigger.HazardsNearShip, 3, 2.6f,
             shots: 4, duration: .6f, range: 9f, width: 40f),
