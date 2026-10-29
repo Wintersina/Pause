@@ -66,8 +66,7 @@ public static class DustEconomyTest
         Check("elites pay through AwardRewardDust", File.ReadAllText("Assets/Scripts/Gameplay/Elites/EliteFx.cs").Contains("score.AwardRewardDust(def.Dust)"));
         Check("base reward constants unchanged", ScoreRules.EliteDownDust == BaseElite && Mathf.Approximately(ScoreRules.DustPerDistance, BaseFlightPerDistance) &&
               ScoreRules.ScoreDustPerSqrtPoint == BaseBonusPerSqrt && ScoreRules.ScoreDustCap == BaseBonusCap);
-        Check("shop prices / skin costs unchanged",
-              shopingShips.Prices[2] == 700f && ShipSkins.KindPrices[1] == 300f && ShipSkins.KindPrices[2] == 750f);
+        Check("shop prices unchanged", shopingShips.Prices[2] == 700f);
         int mid = ShipId.Starter, mid2 = 0, last = 0, para = 0;
         foreach (int id in ShipId.All)
         {
@@ -78,10 +77,11 @@ public static class DustEconomyTest
             if (id != mid && !PremiumShips.IsPremium(id) && SpaceDock.RowOf(id) > 1 && SpaceDock.RowOf(id) < SpaceDock.RowOf(last)) { mid2 = id; break; }
         Check("skin 1 (the leftmost colour) costs 50 on the starter and a mid-row ship; skin 2 and the Special keep their prices",
               mid2 != 0 && ShipSkins.PriceOf(mid, 1) == 50f && ShipSkins.PriceOf(mid2, 1) == 50f &&
-              ShipSkins.PriceOf(mid, 2) == 300f && ShipSkins.PriceOf(mid2, 2) == 300f &&
-              ShipSkins.PriceOf(mid, ShipSkins.Special) == 750f && SkinHearts.GainIfBought(mid, 1) == 1);
+              ShipSkins.PriceOf(mid, 2) == ShipSkins.PriceOf(ShipSkinKind.Palette, SpaceDock.RowOf(mid)) &&
+              ShipSkins.PriceOf(mid2, 2) == ShipSkins.PriceOf(ShipSkinKind.Palette, SpaceDock.RowOf(mid2)) &&
+              ShipSkins.PriceOf(mid, ShipSkins.Special) == ShipSkins.PriceOf(ShipSkinKind.Special, SpaceDock.RowOf(mid)) && SkinHearts.GainIfBought(mid, 1) == 1);
         Check("last-row ships and Paragon keep normal prices",
-              ShipSkins.PriceOf(last, 1) == 300f && para != 0 && ShipSkins.PriceOf(para, 1) == PremiumShips.SkinPrice);
+              ShipSkins.PriceOf(last, 1) == ShipSkins.PriceOf(ShipSkinKind.Palette, SpaceDock.RowOf(last)) && para != 0 && ShipSkins.PriceOf(para, 1) == PremiumShips.SkinPrice);
     }
 
     struct Totals { public float pickup, flight, kills, elites, bonus; public float Reward { get { return flight + kills + elites + bonus; } } }

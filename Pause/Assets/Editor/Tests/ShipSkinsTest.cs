@@ -94,9 +94,7 @@ public static class ShipSkinsTest
 
     static void Table()
     {
-        Check("prices: stock free, palette 300, special 750",
-              ShipSkins.PriceOf(ShipSkinKind.Stock) == 0f && ShipSkins.PriceOf(ShipSkinKind.Palette) == 300f &&
-              ShipSkins.PriceOf(ShipSkinKind.Special) == 750f);
+        Prices();
         foreach (int id in ShipId.All)
         {
             string who = id + " " + ShipId.NameOf(id);
@@ -282,6 +280,51 @@ public static class ShipSkinsTest
                 Object.DestroyImmediate(png);
             }
         }
+    }
+
+    // ------------------------------------------------------------- prices
+
+    // Standard ships in dock order (row, then ship price, then id).
+    static List<int> StandardInDockOrder()
+    {
+        var ids = new List<int>();
+        foreach (int id in ShipId.All) if (!PremiumShips.IsPremium(id)) ids.Add(id);
+        ids.Sort((a, b) => System.Array.IndexOf(SpaceDock.BayOrder, a).CompareTo(System.Array.IndexOf(SpaceDock.BayOrder, b)));
+        return ids;
+    }
+
+    static void Prices()
+    {
+        int gold = ShipId.FromKey("GoldWarden");
+        Check("Gold Warden: later colours 1000, the Special 2500",
+              gold > 0 && ShipSkins.PriceOf(gold, 2) == 1000f && ShipSkins.PriceOf(gold, 3) == 1000f &&
+              ShipSkins.PriceOf(gold, ShipSkins.Special) == 2500f);
+        Check("stock is free for every kind and row",
+              ShipSkins.PriceOf(ShipSkinKind.Stock, 1) == 0f && ShipSkins.PriceOf(ShipSkinKind.Stock, 5) == 0f);
+        var order = StandardInDockOrder();
+        float prevPalette = 0f, prevSpecial = 0f;
+        bool monoPalette = true, monoSpecial = true, positive = true, specialOver = true, firstOk = true;
+        foreach (int id in order)
+        {
+            int row = SpaceDock.RowOf(id);
+            float pal = ShipSkins.PriceOf(ShipSkinKind.Palette, row), sp = ShipSkins.PriceOf(ShipSkinKind.Special, row);
+            monoPalette &= pal >= prevPalette; monoSpecial &= sp >= prevSpecial;
+            positive &= pal > 0f && sp > 0f && ShipSkins.PriceOf(id, 2) == pal && ShipSkins.PriceOf(id, ShipSkins.Special) == sp;
+            specialOver &= sp >= pal;
+            firstOk &= ShipSkins.PriceOf(id, 1) == (ShipSkins.FirstColourDiscounted(id) ? ShipSkins.FirstColourPrice : pal);
+            prevPalette = pal; prevSpecial = sp;
+        }
+        Check("palette prices never fall along the dock order", monoPalette);
+        Check("special prices never fall along the dock order", monoSpecial);
+        Check("every standard ship has positive palette and special prices", positive);
+        Check("special >= palette for every standard ship", specialOver);
+        Check("the first colour is 50 where discounted, the row price elsewhere", firstOk);
+        Check("the earliest ship is cheaper than the last",
+              ShipSkins.PriceOf(order[0], 2) < ShipSkins.PriceOf(order[order.Count - 1], 2));
+        foreach (int id in ShipId.All)
+            if (PremiumShips.IsPremium(id))
+                Check("premium ship skins stay at PremiumShips.SkinPrice",
+                      ShipSkins.PriceOf(id, 1) == PremiumShips.SkinPrice && ShipSkins.PriceOf(id, ShipSkins.Special) == PremiumShips.SkinPrice);
     }
 
     // ------------------------------------------------------------- economy
