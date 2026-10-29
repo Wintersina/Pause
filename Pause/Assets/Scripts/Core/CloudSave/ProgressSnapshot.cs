@@ -74,6 +74,9 @@ public class ProgressSnapshot
     // Codex entries whose 5 star dust unlock reward was collected (Codex.PaidKey). Additive, no schema
     // bump: an older blob lacks it (= nothing collected there). Merged by union; a restore never shrinks the local set.
     public string[] codexPaid = new string[0];
+    // The one-time Codex back-pay already ran (Codex.BackPaidKey). Additive: an older blob lacks it (false). Merged
+    // by OR and never cleared by a restore, so a second device or an account switch cannot pay it again.
+    public bool codexBackPaid;
     // How often each codex entry killed / hurt the pilot (DamageLog: "id:n,id:n"). Additive, no schema bump: an
     // older blob lacks both (= no counts). Merged per id by the larger count; a restore never lowers a tally.
     public string codexKilled = "";
@@ -170,6 +173,7 @@ public class ProgressSnapshot
         s.codexNew = IdList(PlayerPrefs.GetString(Codex.NewKey, ""));
         s.codexNewAck = IdList(PlayerPrefs.GetString(Codex.AckKey, ""));
         s.codexPaid = IdList(PlayerPrefs.GetString(Codex.PaidKey, ""));
+        s.codexBackPaid = Codex.BackPayDone;
         s.codexKilled = DamageLog.MergeMax(PlayerPrefs.GetString(DamageLog.KilledKey, ""), "");
         s.codexHurt = DamageLog.MergeMax(PlayerPrefs.GetString(DamageLog.HurtKey, ""), "");
         s.fusionLog = FusionDiscoveryStore.Normalize(PlayerPrefs.GetString(FusionDiscoveryStore.PrefsKey, ""));
@@ -229,6 +233,7 @@ public class ProgressSnapshot
         var paidNow = new HashSet<string>(IdList(PlayerPrefs.GetString(Codex.PaidKey, "")));
         paidNow.UnionWith(codexPaid ?? new string[0]);
         WriteIds(Codex.PaidKey, IdList(paidNow));
+        if (codexBackPaid) PlayerPrefs.SetInt(Codex.BackPaidKey, 1);   // never cleared: the back-pay stays once-only
         WriteTally(DamageLog.KilledKey, DamageLog.MergeMax(PlayerPrefs.GetString(DamageLog.KilledKey, ""), codexKilled));
         WriteTally(DamageLog.HurtKey, DamageLog.MergeMax(PlayerPrefs.GetString(DamageLog.HurtKey, ""), codexHurt));
         WriteTally(FusionDiscoveryStore.PrefsKey, FusionDiscoveryStore.Normalize(fusionLog));

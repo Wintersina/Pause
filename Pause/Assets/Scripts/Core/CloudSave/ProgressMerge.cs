@@ -89,6 +89,7 @@ public static class ProgressMerge
             codexNew = fresh,
             codexNewAck = acked,
             codexPaid = MergePaid(local, cloud),
+            codexBackPaid = local.codexBackPaid || cloud.codexBackPaid,
             codexKilled = DamageLog.MergeMax(local.codexKilled, cloud.codexKilled),
             codexHurt = DamageLog.MergeMax(local.codexHurt, cloud.codexHurt),
             fusionLog = FusionDiscoveryStore.Merge(local.fusionLog, cloud.fusionLog),

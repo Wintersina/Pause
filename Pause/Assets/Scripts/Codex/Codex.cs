@@ -25,6 +25,8 @@ using UnityEngine.SceneManagement;
 //
 // The tutorial is practice: nothing met in tutorialS5 counts.
 //
+// Star dust: CodexPayout.For(entry) is paid on the first discovery and, for older saves, once in a lump (PayBackOnce).
+//
 // Developer mode (DeveloperUnlocks.Enabled) shows every entry as discovered
 // but never writes PrefsKey; turning it off brings back the real set.
 public static class Codex
@@ -38,14 +40,23 @@ public static class Codex
     public const string AchievementAckPrefix = "ach:";
 
     // UNLOCK REWARDS. Discovering a codex entry (not the Pilot's Log, which is free from the start) earns
-    // UnlockReward star dust that the player COLLECTS in the Codex (never auto-paid). The saved state is one id
+    // CodexPayout star dust, paid on the first discovery (see below); the leftovers are COLLECTed in the Codex. The saved state is one id
     // list, PaidKey: the entries whose reward was collected. An entry is "pending" while it is in the real
     // discovered set (PrefsKey) and not in PaidKey, so the pending state derives from the save and survives
     // restarts. Saves that predate the rewards have no PaidKey: everything they already discovered is pending
     // once (each old entry is claimable one time; nothing is paid automatically). Developer mode
     // shows no rewards and cannot collect (its discoveries are not real).
     public const string PaidKey = "codexPaid";
+    // The Credits song's flat reward (a track is not an entry). Entries pay CodexPayout.For(entry).
     public const int UnlockReward = 5;
+    // First-discovery payout: a new entry now pays its CodexPayout straight away (Discover), and is marked in
+    // PaidKey in the same write, so PaidKey stays the one guard against paying an entry twice (a re-contact, a
+    // cloud merge, a restore: paid ids are only ever unioned). What is still pending (discovered, unpaid) is only
+    // what no payment has reached: entries arriving through a cloud restore from an older build, or saves that
+    // predate payouts and are not back-paid yet; those stay claimable with COLLECT.
+    // BackPaidKey: set (1) once the one-time back-pay below ran, synced with the cloud save (ProgressSnapshot
+    // codexBackPaid, merged by OR), never cleared by a restore.
+    public const string BackPaidKey = "codexBackPaid";
 
     // Raised whenever a NEW marker appears or is cleared (the home bubble listens).
     public static event Action NewChanged;
@@ -163,6 +174,8 @@ public static class Codex
         seenOrder.Add(id);
         PlayerPrefs.SetString(PrefsKey, string.Join(",", seenOrder));
         var found = Find(id);
+        // Star dust for the first discovery, marked paid in the same write (see PaidKey).
+        PayDiscovery(found);
         if (found.category != CodexCategory.Log)
         {
             LoadNew();
@@ -502,23 +515,89 @@ public static class Codex
         if (!RewardsActive) return 0;
         EnsureLoaded();
         var done = Paid();
-        int count = 0;
+        int dust = 0;
         foreach (var e in Entries)
         {
             if (e.category == CodexCategory.Log || !seen.Contains(e.id) || done.Contains(e.id) || !pick(e)) continue;
             done.Add(e.id);
-            count++;
+            dust += CodexPayout.For(e);
         }
-        if (count == 0) return 0;
-        var sorted = new List<string>(done);
-        sorted.Sort(StringComparer.Ordinal);
-        PlayerPrefs.SetString(PaidKey, string.Join(",", sorted));
-        int dust = count * UnlockReward;
+        if (dust == 0) return 0;
+        WritePaid(done);
         StarDustLedger.Grant(dust);
         PrefsSaver.SaveNow();
         RaiseNewChanged();
         return dust;
     }
+
+    // Credits one newly discovered entry: the mark and the dust go into PlayerPrefs together (the caller saves).
+    static void PayDiscovery(CodexEntry entry)
+    {
+        int dust = CodexPayout.For(entry);
+        if (dust <= 0) return;
+        var done = Paid();
+        if (!done.Add(entry.id)) return;
+        WritePaid(done);
+        StarDustLedger.Grant(dust);
+    }
+
+    static void WritePaid(HashSet<string> done)
+    {
+        var sorted = new List<string>(done);
+        sorted.Sort(StringComparer.Ordinal);
+        PlayerPrefs.SetString(PaidKey, string.Join(",", sorted));
+    }
+
+    // Star dust waiting in one entry / one tab / everywhere (derived from the save).
+    public static int PendingDust(CodexEntry entry) { return IsRewardPending(entry) ? CodexPayout.For(entry) : 0; }
+
+    public static int PendingDustIn(CodexCategory category)
+    {
+        if (!RewardsActive) return 0;
+        EnsureLoaded();
+        var done = Paid();
+        int n = 0;
+        foreach (var e in Entries)
+            if (e.category == category && e.category != CodexCategory.Log && seen.Contains(e.id) && !done.Contains(e.id)) n += CodexPayout.For(e);
+        return n;
+    }
+
+    // ---------------------------------------------------------------------
+    // One-time back-pay
+    // ---------------------------------------------------------------------
+
+    public static bool BackPayDone { get { return PlayerPrefs.GetInt(BackPaidKey, 0) != 0; } }
+
+    // First launch after payouts exist: pays, in one lump, every entry the save already discovered (including the
+    // ones derived from progress: owned ships, worlds reached) that has not been paid, then sets BackPaidKey so it
+    // never runs again. A fresh save pays 0 (and still sets the flag). Developer mode and the tutorial neither pay
+    // nor set the flag (their discoveries are not real). Returns the dust paid (0: nothing, or already done).
+    public static int PayBackOnce()
+    {
+        if (BackPayDone || DeveloperUnlocks.Enabled || InTutorial()) return 0;
+        EnsureLoaded();
+        var done = Paid();
+        int dust = 0;
+        foreach (var e in Entries)
+        {
+            if (e.category == CodexCategory.Log || done.Contains(e.id) || !IsDiscovered(e)) continue;
+            done.Add(e.id);
+            dust += CodexPayout.For(e);
+        }
+        if (dust > 0)
+        {
+            WritePaid(done);
+            StarDustLedger.Grant(dust);
+        }
+        PlayerPrefs.SetInt(BackPaidKey, 1);
+        PrefsSaver.SaveNow();
+        RaiseNewChanged();
+        return dust;
+    }
+
+    public const string BackPayHeading = "CODEX REWARD";
+
+    static string BackPayText(int dust) { return "+" + dust + " STAR DUST FOR YOUR CODEX"; }
 
     static void EnsureLoaded()
     {
@@ -554,6 +633,12 @@ public static class Codex
     {
         Reload();
         Prewarm();
+        // The one-time back-pay, on the home screen, with a single popup for the lump sum.
+        if (Application.isPlaying && scene.name == BackNavigator.HomeScene)
+        {
+            int dust = PayBackOnce();
+            if (dust > 0) CodexToast.Announce(BackPayHeading, BackPayText(dust), null);
+        }
     }
 
     // Builds the catalogue lookup and parses the saved discoveries now (scene

@@ -40,7 +40,7 @@ public static class CodexNewDotsTest
         try
         {
             // candidates: undiscovered, listed, non-log entries in two categories
-            var open = Codex.Entries.Where(e => e.category != CodexCategory.Log && !e.secret).ToList();
+            var open = Codex.Entries.Where(e => e.category != CodexCategory.Log && !e.secret && CodexPayout.For(e) == CodexPayout.Atom).ToList();   // all 5-dust entries, so the amounts below are flat
             var cats = open.Select(e => e.category).Distinct().ToList();
             var catA = cats.First(c => open.Count(e => e.category == c && !IsOwnedKind(e)) >= 2);
             var catB = cats.First(c => c != catA && open.Any(e => e.category == c && !IsOwnedKind(e)));
@@ -48,7 +48,7 @@ public static class CodexNewDotsTest
             var inB = open.First(e => e.category == catB && !IsOwnedKind(e));
             var log = Codex.Entries.First(e => e.category == CodexCategory.Log);
 
-            Check("the reward is 5 star dust", Codex.UnlockReward == 5);
+            Check("the candidates pay 5 star dust each", inA.All(e => CodexPayout.For(e) == 5) && CodexPayout.For(inB) == 5);
 
             // ---- old save: discoveries from before the feature (no PaidKey) are claimable once, never auto-paid ----
             PlayerPrefs.SetString(Codex.PrefsKey, inA[0].id + "," + inB.id + ",music_world_ember,bd_frost_2");
@@ -82,8 +82,8 @@ public static class CodexNewDotsTest
             int raised = 0;
             System.Action count = () => raised++;
             Codex.NewChanged += count;
-            Codex.Discover(inA[0].id); Codex.Discover(inA[1].id); Codex.Discover(inB.id);
-            Codex.Discover(inB.id);   // a repeat contact adds nothing
+            Inject(inA[0].id); Inject(inA[1].id); Inject(inB.id);   // discoveries no payment reached (a cloud restore from an older build): pending, claimable
+            Inject(inB.id);   // a repeat adds nothing
             Codex.NewChanged -= count;
             Check("discover: exactly one pending reward per entry (3), nothing paid yet",
                   Codex.PendingIn(catA) == 2 && Codex.PendingIn(catB) == 1 && Codex.PendingTotal == 3 && Dust() == 100f && raised >= 3);
@@ -155,7 +155,7 @@ public static class CodexNewDotsTest
             PlayerPrefs.SetFloat(StarDustLedger.CurrencyKey, 100f);
 
             // ---- the cloud save carries it, merges by union and never un-collects ----
-            Codex.Discover(inA[0].id); Codex.Discover(inB.id);
+            Inject(inA[0].id); Inject(inB.id);
             Codex.CollectReward(inA[0].id);
             var snap = ProgressSnapshot.Capture(1);
             Check("snapshot: carries the collected id only", snap.codexPaid.Length == 1 && snap.codexPaid[0] == inA[0].id);
@@ -204,7 +204,7 @@ public static class CodexNewDotsTest
 
             // dots sit inside their card / tab on every layout
             bool inside = true;
-            Codex.Discover(open.First(e => e.category == catA && !Codex.IsDiscovered(e) && !IsOwnedKind(e)).id);
+            Inject(open.First(e => e.category == catA && !Codex.IsDiscovered(e) && !IsOwnedKind(e)).id);
             foreach (var safe in new[] { new Rect(-400f, -640f, 800f, 1280f), new Rect(-400f, -1067f, 800f, 2133f), new Rect(-1138f, -640f, 2276f, 1280f), new Rect(-380f, -700f, 760f, 1500f) })
             {
                 panel.ApplyLayout(safe);
@@ -380,6 +380,14 @@ public static class CodexNewDotsTest
     }
 
     // ships and worlds are discovered by ownership / progress, not by Discover()
+    // Marks an entry discovered in the save WITHOUT paying it (what a cloud restore of an older build's save does).
+    static void Inject(string id)
+    {
+        string cur = PlayerPrefs.GetString(Codex.PrefsKey, "");
+        if (!("," + cur + ",").Contains("," + id + ",")) PlayerPrefs.SetString(Codex.PrefsKey, cur.Length == 0 ? id : cur + "," + id);
+        Codex.OnExternalChange();
+    }
+
     static bool IsOwnedKind(CodexEntry e) { return e.category == CodexCategory.Ships || e.category == CodexCategory.Worlds; }
 
     static int CardOf(CodexPanel panel, string id)
