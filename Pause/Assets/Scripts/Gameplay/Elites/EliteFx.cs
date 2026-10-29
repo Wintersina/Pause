@@ -348,7 +348,9 @@ public static class EliteRewards
     {
         Paid++;
         var def = ship.Def;
-        LastPoints = RunScore.OnElite(ship.Position, def.Score);
+        // (times the running kill chain, except an elite the death crash's domino broke: its DOMINO multiplier is its own)
+        bool chained = EliteShip.LastKillCause != EliteDamage.Domino && !DeathCrash.Running;
+        LastPoints = RunScore.OnElite(ship.Position, def.Score, chained);
         LastDust = score.AwardRewardDust(def.Dust);
         Codex.Discover(ship.gameObject);
         SecretPowerController.OnKill();
