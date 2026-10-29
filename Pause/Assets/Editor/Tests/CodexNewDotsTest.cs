@@ -4,8 +4,8 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
-// Codex unlock rewards and their yellow notification bubbles. Discovering an entry (not the Pilot's Log) earns 5
-// star dust that must be COLLECTED: exactly one pending reward per discovery, paid exactly once, never automatically.
+// Codex unlock rewards and their yellow notification bubbles. Every find (entries, logs, combos, songs, backdrops) earns
+// star dust that must be COLLECTED: exactly one pending reward per find, paid exactly once, never automatically.
 // The bubbles (a category tab, the ACHIEVEMENTS tab, the home Codex button, an entry card) derive from the saved
 // state: opening a tab or an entry never clears them, only collecting does, each tab independently, and they
 // survive a reload. Saves that predate the rewards make everything already discovered claimable once.
@@ -50,18 +50,25 @@ public static class CodexNewDotsTest
 
             Check("the candidates pay 5 star dust each", inA.All(e => CodexPayout.For(e) == 5) && CodexPayout.For(inB) == 5);
 
-            // ---- old save: discoveries from before the feature (no PaidKey) are claimable once, never auto-paid ----
+            // ---- old save: finds from before are claimable once (ids already in the paid list stay collected), never auto-paid ----
             PlayerPrefs.SetString(Codex.PrefsKey, inA[0].id + "," + inB.id + ",music_world_ember,bd_frost_2");
+            PlayerPrefs.SetString(Codex.PaidKey, LogIds());
+            Codex.Reload();
+            Check("old save: the two entries, the song and the backdrop are pending, nothing auto-paid",
+                  Codex.IsRewardPending(inA[0]) && Codex.IsRewardPending(inB) && Codex.IsExtraPending("music_world_ember") && Codex.IsExtraPending("bd_frost_2") &&
+                  Codex.PendingTotal == 4 && Dust() == 100f && CodexHomeButton.Total() == 4);
+            Check("old save: ids already in the paid list (the logs) stay collected", !Codex.IsRewardPending(log) && Codex.CollectReward(log.id) == 0 && Dust() == 100f);
+            Check("old save: collect all pays the entries, the song and the backdrop once, then nothing",
+                  Codex.CollectAllRewards() == 10 + CodexPayout.Track + CodexPayout.Backdrop && Dust() == 110f + CodexPayout.Track + CodexPayout.Backdrop &&
+                  Codex.CollectAllRewards() == 0 && Codex.PendingTotal == 0);
+            float afterOld = Dust();
+            Codex.Reload();
+            Check("old save: collected stays collected after a reload", Codex.PendingTotal == 0 && Codex.IsRewardCollected(inA[0].id) && Codex.CollectReward(inB.id) == 0 && Dust() == afterOld);
             PlayerPrefs.DeleteKey(Codex.PaidKey);
             Codex.Reload();
-            Check("old save: both old entries are pending (tracks and backdrops are not entries), nothing auto-paid",
-                  Codex.IsRewardPending(inA[0]) && Codex.IsRewardPending(inB) && Codex.PendingTotal == 2 && Dust() == 100f && CodexHomeButton.Total() == 2);
-            Check("old save: the Pilot's Log never pays", !Codex.IsRewardPending(log) && Codex.CollectReward(log.id) == 0 && Dust() == 100f);
-            Check("old save: collect all pays 2 x 5 once, then nothing", Codex.CollectAllRewards() == 10 && Dust() == 110f && Codex.CollectAllRewards() == 0 && Dust() == 110f && Codex.PendingTotal == 0);
-            Codex.Reload();
-            Check("old save: collected stays collected after a reload", Codex.PendingTotal == 0 && Codex.IsRewardCollected(inA[0].id) && Codex.CollectReward(inB.id) == 0 && Dust() == 110f);
+            Check("an old save with no paid list at all: the logs are pending too (a find like any other)", Codex.IsRewardPending(log.id) && Codex.PendingIn(CodexCategory.Log) >= 2);
             PlayerPrefs.SetString(Codex.PrefsKey, "");
-            PlayerPrefs.DeleteKey(Codex.PaidKey);
+            PlayerPrefs.SetString(Codex.PaidKey, LogIds());   // the free Log entries are already collected here, so the counts below are exact
             PlayerPrefs.SetFloat(StarDustLedger.CurrencyKey, 100f);
             Codex.Reload();
 
@@ -142,15 +149,15 @@ public static class CodexNewDotsTest
 
             // ---- developer mode shows and pays nothing ----
             PlayerPrefs.SetString(Codex.PrefsKey, inA[0].id + "," + inB.id + ",music_world_ember");
-            PlayerPrefs.DeleteKey(Codex.PaidKey);
+            PlayerPrefs.SetString(Codex.PaidKey, LogIds());   // the free Log entries are already collected here, so the counts below are exact
             Codex.Reload();
             DeveloperUnlocks.SetEnabled(true);
             Check("developer mode: nothing pending, nothing collectable", Codex.PendingTotal == 0 && Codex.CollectAllRewards() == 0 && Dust() == 115f);
             DeveloperUnlocks.SetEnabled(false);
-            Check("developer mode off: the real pending rewards are back", Codex.PendingTotal == 2);
+            Check("developer mode off: the real pending rewards are back (2 entries + the song)", Codex.PendingTotal == 3);
             Codex.CollectAllRewards();
             PlayerPrefs.SetString(Codex.PrefsKey, "");
-            PlayerPrefs.DeleteKey(Codex.PaidKey);
+            PlayerPrefs.SetString(Codex.PaidKey, LogIds());   // the free Log entries are already collected here, so the counts below are exact
             Codex.Reload();
             PlayerPrefs.SetFloat(StarDustLedger.CurrencyKey, 100f);
 
@@ -158,7 +165,7 @@ public static class CodexNewDotsTest
             Inject(inA[0].id); Inject(inB.id);
             Codex.CollectReward(inA[0].id);
             var snap = ProgressSnapshot.Capture(1);
-            Check("snapshot: carries the collected id only", snap.codexPaid.Length == 1 && snap.codexPaid[0] == inA[0].id);
+            Check("snapshot: carries the collected id only (not the pending one)", snap.codexPaid.Contains(inA[0].id) && !snap.codexPaid.Contains(inB.id));
             var other = ProgressSnapshot.Capture(2);
             other.codexPaid = new[] { inB.id };
             var merged = ProgressMerge.Merge(snap, other);
@@ -172,8 +179,53 @@ public static class CodexNewDotsTest
             Codex.Reload();
             Check("restoring a merged save: both collected", Codex.PendingTotal == 0);
             PlayerPrefs.SetString(Codex.PrefsKey, "");
-            PlayerPrefs.DeleteKey(Codex.PaidKey);
+            PlayerPrefs.SetString(Codex.PaidKey, LogIds());   // the free Log entries are already collected here, so the counts below are exact
             Codex.Reload();
+
+            // ---- combos, songs and backdrops: the same pending dot + COLLECT on their tabs, rows and cards ----
+            PlayerPrefs.DeleteKey(FusionDiscoveryStore.PrefsKey);
+            FusionDiscoveryStore.Reload();
+            FusionDiscoveryStore.RecordFiring(FusionId.Bloom, 1, 20261026);   // a combo found (nothing pays by itself)
+            var bloomDef = AtomFusionTable.All[(int)FusionId.Bloom];
+            string bloomId = CodexPayout.FusionPayId(bloomDef);
+            Inject("music_world_ember"); Inject("bd_frost_2");
+            panel.Refresh();
+            Check("extras: a found combo, song and backdrop are pending, nothing paid",
+                  Codex.IsFusionPending(bloomDef) && Codex.IsExtraPending("music_world_ember") && Codex.IsExtraPending("bd_frost_2") && Codex.PendingTotal == 3 &&
+                  Dust() == 100f && home.BadgeShown == "3");
+            Check("extras: the COMBOS and MUSIC tabs carry a dot, and so does WORLDS (its backdrops)",
+                  panel.TabNewDot(CodexPanel.CombosTab).gameObject.activeSelf && panel.TabNewDot(CodexPanel.MusicTab).gameObject.activeSelf &&
+                  panel.TabNewDot(CodexPanel.TabOfCategory(CodexCategory.Worlds)).gameObject.activeSelf);
+            panel.ShowCombos();
+            int bi = System.Array.IndexOf(AtomFusionTable.All, bloomDef);
+            Check("combos tab: bar reads COLLECT ALL + the combo, the row has its dot and COLLECT chip",
+                  panel.CollectTabFrame.gameObject.activeSelf && panel.CollectTabLabel.text == "COLLECT ALL +" + CodexPayout.FusionPair &&
+                  panel.Combos.RowDot(bi).gameObject.activeSelf && panel.Combos.RowCollectFrame(bi).gameObject.activeSelf &&
+                  panel.Combos.RowCollectLabel(bi).text == "COLLECT +" + CodexPayout.FusionPair);
+            panel.Combos.RowCollectButton(bi).onClick.Invoke();
+            Check("combos tab: the row's COLLECT pays the combo once, clears its dot, tab dot and the bubble count",
+                  Dust() == 100f + CodexPayout.FusionPair && !panel.Combos.RowDot(bi).gameObject.activeSelf && !panel.TabNewDot(CodexPanel.CombosTab).gameObject.activeSelf &&
+                  home.BadgeShown == "2" && Codex.CollectReward(bloomId) == 0 && Dust() == 100f + CodexPayout.FusionPair);
+            panel.ShowMusic();
+            int mi = panel.Music.RowIndexOf("music_world_ember");
+            Check("music tab: bar reads COLLECT ALL +5, the song's row shows its dot and chip",
+                  panel.CollectTabLabel.text == "COLLECT ALL +" + CodexPayout.Track && mi >= 0 && panel.Music.RowDot(mi).gameObject.activeSelf && panel.Music.RowCollectFrame(mi).gameObject.activeSelf);
+            panel.CollectTabButton.onClick.Invoke();
+            Check("music tab: COLLECT ALL pays the song once and clears the dot",
+                  Dust() == 100f + CodexPayout.FusionPair + CodexPayout.Track && !panel.TabNewDot(CodexPanel.MusicTab).gameObject.activeSelf && !panel.Music.RowDot(mi).gameObject.activeSelf && home.BadgeShown == "1");
+            panel.ShowCategory(CodexCategory.Worlds);
+            Check("worlds tab: COLLECT ALL covers the backdrop (+5), then a reload still shows it collected",
+                  panel.CollectTabLabel.text == "COLLECT ALL +" + CodexPayout.Backdrop);
+            panel.CollectTabButton.onClick.Invoke();
+            Codex.Reload();
+            Check("worlds tab: backdrop paid once, nothing pending anywhere, bubble hidden",
+                  Dust() == 100f + CodexPayout.FusionPair + CodexPayout.Track + CodexPayout.Backdrop && Codex.PendingTotal == 0 && !home.BadgeVisible);
+            PlayerPrefs.SetString(Codex.PrefsKey, "");
+            PlayerPrefs.SetString(Codex.PaidKey, LogIds());
+            PlayerPrefs.DeleteKey(FusionDiscoveryStore.PrefsKey);
+            FusionDiscoveryStore.Reload();
+            Codex.Reload();
+            PlayerPrefs.SetFloat(StarDustLedger.CurrencyKey, 100f);
 
             // ---- ACHIEVEMENTS: dot while claimable, viewing does not clear, claiming does ----
             AchievementStore.ResetAll();
@@ -193,7 +245,7 @@ public static class CodexNewDotsTest
             panel.OnAchievementsChanged();   // what the achievements view does after a claim
             panel.Refresh();
             Check("achievements: the dot and the bubble clear when it is claimed", !panel.TabNewDot(CodexPanel.AchievementsTab).gameObject.activeSelf && CodexHomeButton.Total() == before - 1 && !home.BadgeVisible);
-            Check("music tab never carries a dot", !panel.TabNewDot(CodexPanel.MusicTab).gameObject.activeSelf);
+            Check("music tab carries no dot while no song is waiting", !panel.TabNewDot(CodexPanel.MusicTab).gameObject.activeSelf);
 
             // no touches caught, on every visible card and tab
             panel.ShowCategory(catA);
@@ -267,7 +319,7 @@ public static class CodexNewDotsTest
         // every entry discovered for real (not developer mode, so the rewards are pending everywhere): the fullest grids
         DeveloperUnlocks.SetEnabled(false);
         PlayerPrefs.SetString(Codex.PrefsKey, string.Join(",", Codex.Entries.Select(e => e.id)));
-        PlayerPrefs.DeleteKey(Codex.PaidKey);
+        PlayerPrefs.SetString(Codex.PaidKey, LogIds());   // the free Log entries are already collected here, so the counts below are exact
         Codex.Reload();
         var panel = CodexPanel.Open(null);
         rig.Sync();
@@ -387,6 +439,8 @@ public static class CodexNewDotsTest
         if (!("," + cur + ",").Contains("," + id + ",")) PlayerPrefs.SetString(Codex.PrefsKey, cur.Length == 0 ? id : cur + "," + id);
         Codex.OnExternalChange();
     }
+
+    static string LogIds() { return string.Join(",", Codex.Entries.Where(e => e.category == CodexCategory.Log).Select(e => e.id)); }
 
     static bool IsOwnedKind(CodexEntry e) { return e.category == CodexCategory.Ships || e.category == CodexCategory.Worlds; }
 

@@ -28,9 +28,9 @@ public sealed class CodexMusicView
     sealed class Row
     {
         public RectTransform rt;
-        public Image frame, edge, chip;
-        public Text title, sub, chipLabel;
-        public Button button;
+        public Image frame, edge, chip, dot, collectFrame;
+        public Text title, sub, chipLabel, collectLabel;
+        public Button button, collectButton;
         public CodexTrack track;
     }
 
@@ -65,6 +65,10 @@ public sealed class CodexMusicView
     public Text RowSub(int i) { return rows[i].sub; }
     public Text RowChip(int i) { return rows[i].chipLabel; }
     public Image RowEdge(int i) { return rows[i].edge; }
+    public Image RowDot(int i) { return rows[i].dot; }
+    public Button RowCollectButton(int i) { return rows[i].collectButton; }
+    public Text RowCollectLabel(int i) { return rows[i].collectLabel; }
+    public Image RowCollectFrame(int i) { return rows[i].collectFrame; }
     public RectTransform RowRect(int i) { return rows[i].rt; }
     public int RowIndexOf(string id)
     {
@@ -166,6 +170,10 @@ public sealed class CodexMusicView
         r.chipLabel = Label("Label", r.chip.rectTransform, 22, 12, CodexUi.Ink, TextAnchor.MiddleCenter, 0f);
         CodexUi.Stretch(r.chipLabel.rectTransform);
         var o = r.chipLabel.GetComponent<Outline>(); if (o != null) Object.Destroy(o);
+        // a heard song's star dust waits here until COLLECT (it takes the PLAY chip's place meanwhile)
+        r.collectFrame = CodexUi.NewCollectChip("Collect", r.rt, font, out r.collectButton, out r.collectLabel);
+        r.collectButton.onClick.AddListener(() => OnCollectClicked(index));
+        r.dot = CodexUi.NewRewardDot(r.rt);
         return r;
     }
 
@@ -205,6 +213,7 @@ public sealed class CodexMusicView
             r.rt.sizeDelta = new Vector2(w, RowHeight);
             float chipW = Mathf.Min(170f, w * .26f), chipH = RowHeight - 2f * InsetY;
             CodexUi.Place(r.chip.rectTransform, CodexUi.Centered(w * .5f - InsetX - chipW * .5f, 0f, chipW, chipH));
+            CodexUi.Place(r.collectFrame.rectTransform, CodexUi.Centered(w * .5f - InsetX - chipW * .5f, 0f, chipW, chipH));
             float textW = w - chipW - InsetX * 2f - 12f;
             float left = -w * .5f + InsetX;
             float lineH = RowHeight * .5f - InsetY - 2f;
@@ -272,7 +281,11 @@ public sealed class CodexMusicView
             r.sub.color = playing ? CodexUi.Title : CodexUi.Muted;
             r.edge.color = playing ? CodexUi.Select : unlocked ? CodexUi.Accent : CodexUi.Locked;
             r.frame.color = unlocked ? Color.white : new Color(.7f, .7f, .8f, 1f);
-            r.chip.gameObject.SetActive(unlocked);
+            bool pending = Codex.IsRewardPending(r.track.id);
+            r.dot.gameObject.SetActive(pending);
+            r.collectFrame.gameObject.SetActive(pending);
+            if (pending) r.collectLabel.text = "COLLECT +" + Codex.PendingDust(r.track.id);
+            r.chip.gameObject.SetActive(unlocked && !pending);
             r.chip.color = playing ? CodexUi.Select : CodexUi.Accent;
             r.chipLabel.text = playing ? "STOP" : "PLAY";
             r.chipLabel.color = playing ? CodexUi.Body : CodexUi.Ink;
@@ -287,6 +300,13 @@ public sealed class CodexMusicView
         stopButton.interactable = now != null;
         stopFrame.color = now != null ? CodexUi.Select : CodexUi.Locked;
         stopLabel.color = now != null ? CodexUi.Body : CodexUi.Muted;
+    }
+
+    void OnCollectClicked(int index)
+    {
+        if (index < 0 || index >= shownCount || rows[index].track == null) return;
+        panel.AfterCollect(Codex.CollectReward(rows[index].track.id));
+        Paint();
     }
 
     void OnRowClicked(int index)

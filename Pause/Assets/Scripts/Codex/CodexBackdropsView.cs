@@ -23,11 +23,11 @@ public sealed class CodexBackdropsView
     sealed class Card
     {
         public RectTransform rt;
-        public Image frame, edge, lockIcon;
+        public Image frame, edge, lockIcon, dot, collectFrame;
         public RawImage thumb;
         public RectTransform thumbBox;
-        public Text name;
-        public Button button;
+        public Text name, collectLabel;
+        public Button button, collectButton;
         public CodexBackdrop backdrop;
     }
 
@@ -72,6 +72,10 @@ public sealed class CodexBackdropsView
     public RectTransform CardRect(int i) { return cards[i].rt; }
     public RawImage CardThumb(int i) { return cards[i].thumb; }
     public Image CardLock(int i) { return cards[i].lockIcon; }
+    public Image CardDot(int i) { return cards[i].dot; }
+    public Button CardCollectButton(int i) { return cards[i].collectButton; }
+    public Text CardCollectLabel(int i) { return cards[i].collectLabel; }
+    public Image CardCollectFrame(int i) { return cards[i].collectFrame; }
     public Text HeaderLabel(int i) { return headers[i].label; }
     public Text HeaderCounter(int i) { return headers[i].counter; }
     public RectTransform HeaderRect(int i) { return headers[i].rt; }
@@ -205,6 +209,10 @@ public sealed class CodexBackdropsView
         c.lockIcon = CodexUi.NewImage("Lock", c.rt, CodexUi.CodexSprite("cx_lock"), CodexUi.Select);
         c.lockIcon.preserveAspect = true;
         CodexUi.Isolate(c.lockIcon.gameObject);
+        // a seen backdrop's star dust waits here until COLLECT (over the lower part of its picture)
+        c.collectFrame = CodexUi.NewCollectChip("Collect", c.rt, font, out c.collectButton, out c.collectLabel);
+        c.collectButton.onClick.AddListener(() => OnCollectClicked(index));
+        c.dot = CodexUi.NewRewardDot(c.rt);
         return c;
     }
 
@@ -270,6 +278,7 @@ public sealed class CodexBackdropsView
             CodexUi.Place(c.thumbBox, CodexUi.Centered(0f, ch * .5f - 12f - art * .5f, art, art));
             CodexUi.Place(c.name.rectTransform, CodexUi.Centered(0f, -ch * .5f + 6f + CodexPanel.CardNameHeight * .5f, cw - 20f, CodexPanel.CardNameHeight));
             CodexUi.Place(c.lockIcon.rectTransform, CodexUi.Centered(cw * .5f - 24f, ch * .5f - 24f, 24f, 24f));
+            CodexUi.Place(c.collectFrame.rectTransform, CodexUi.Centered(0f, ch * .5f - 12f - art + 34f, art - 16f, 52f));
         }
         content.sizeDelta = new Vector2(0f, shownCards > 0 ? y + CodexPanel.GridInset : 0f);
     }
@@ -337,6 +346,10 @@ public sealed class CodexBackdropsView
             c.edge.color = unlocked ? CodexUi.Accent : CodexUi.Locked;
             c.lockIcon.gameObject.SetActive(!unlocked);
             c.button.interactable = unlocked;
+            bool pending = Codex.IsRewardPending(c.backdrop.id);
+            c.dot.gameObject.SetActive(pending);
+            c.collectFrame.gameObject.SetActive(pending);
+            if (pending) c.collectLabel.text = "COLLECT +" + Codex.PendingDust(c.backdrop.id);
             if (unlocked)
             {
                 var tex = Resources.Load<Texture2D>(c.backdrop.ThumbResource);
@@ -367,6 +380,13 @@ public sealed class CodexBackdropsView
         for (int i = 0; i < shownCards; i++) if (CodexBackdrops.IsUnlocked(cards[i].backdrop)) seen++;
         stripCount.text = (worldFilter < 0 ? CodexBackdrops.UnlockedCount + " / " + CodexBackdrops.ListedCount : seen + " / " + shownCards) + "  SEEN";
         stripLine.text = IdleLine;
+    }
+
+    void OnCollectClicked(int index)
+    {
+        if (index < 0 || index >= shownCards || cards[index].backdrop == null) return;
+        panel.AfterCollect(Codex.CollectReward(cards[index].backdrop.id));
+        Paint();
     }
 
     void OnCardClicked(int index)
