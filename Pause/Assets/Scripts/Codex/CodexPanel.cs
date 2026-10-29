@@ -864,12 +864,12 @@ public class CodexPanel : MonoBehaviour
         collectTabButton.interactable = tabShown;
         collectTabFrame.color = tabShown ? CodexHomeButton.BubbleYellow : CodexUi.Locked;
         collectTabLabel.color = tabShown ? CodexUi.Ink : CodexUi.Muted;
-        collectTabLabel.text = tabShown ? "COLLECT ALL +" + tabPending * Codex.UnlockReward : "COLLECT ALL";
+        collectTabLabel.text = tabShown ? "COLLECT ALL +" + Codex.PendingDustIn(category) : "COLLECT ALL";
         collectBarText.text = tabShown ? tabPending + " TO COLLECT" : "NOTHING TO COLLECT";
 
         bool entryShown = inDetail && detailEntry != null && !OtherViewOpen && Codex.IsRewardPending(detailEntry);
         collectDetailFrame.gameObject.SetActive(entryShown);
-        if (entryShown) collectDetailLabel.text = "COLLECT +" + Codex.UnlockReward;
+        if (entryShown) collectDetailLabel.text = "COLLECT +" + Codex.PendingDust(detailEntry);
 
         bool watch = inDetail && detailEntry != null && !OtherViewOpen && !entryShown &&
                      detailEntry.id == KillCamArchive.CodexId && KillCamArchive.HasRecord;

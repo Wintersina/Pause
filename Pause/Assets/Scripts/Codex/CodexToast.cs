@@ -98,6 +98,9 @@ public class CodexToast : MonoBehaviour
         float left = -Width * .5f + 34f + iconSize + 14f;
         float textWidth = Width * .5f - 24f - left;
         heading = CodexUi.NewText("Heading", box, font, EntryHeading, 15, CodexUi.Accent, TextAnchor.MiddleLeft);
+        heading.resizeTextForBestFit = true;
+        heading.resizeTextMinSize = 10;
+        heading.resizeTextMaxSize = 15;
         CodexUi.Place(heading.rectTransform, new Rect(left, 2f, textWidth, 24f));
         nameText = CodexUi.NewText("Name", box, font, "", 24, CodexUi.Title, TextAnchor.MiddleLeft);
         nameText.horizontalOverflow = HorizontalWrapMode.Wrap;
@@ -120,7 +123,9 @@ public class CodexToast : MonoBehaviour
     public void Enqueue(CodexEntry entry)
     {
         if (entry == null) return;
-        Push(new Item { heading = EntryHeading, entry = entry });
+        // The first discovery paid its star dust (Codex.Discover): say how much, in the same small popup.
+        int dust = CodexPayout.For(entry);
+        Push(new Item { heading = dust > 0 ? EntryHeading + "   +" + dust + " STAR DUST" : EntryHeading, entry = entry });
     }
 
     void Push(Item item)
