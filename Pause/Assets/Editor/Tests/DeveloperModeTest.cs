@@ -25,6 +25,10 @@ public static class DeveloperModeTest
         RealProgressSurvives();
         OffWhileOffKeepsProgress();
         DevBuildDefault();
+        ReleaseLeftover();
+        NoSnapshotLeftover();
+        DevBuildUnchanged();
+        CloudSnapshotWhileOn();
 
         Debug.Log("[DM] failures: " + failures);
         return failures;
@@ -121,6 +125,91 @@ public static class DeveloperModeTest
         Check("switching off while already off keeps newer real progress",
               PlayerPrefs.GetInt(WorldManager.PrefsHighestWorld) == 2);
         Clean();
+    }
+
+    static void SeedRealProgress()
+    {
+        Clean();
+        for (int i = 1; i < shopingShips.RosterTotal; i++) PlayerPrefs.DeleteKey("boughtship" + i);
+        PlayerPrefs.SetInt(WorldManager.PrefsHighestWorld, 1);
+        PlayerPrefs.SetInt(WorldManager.PrefsCurrentWorld, 1);
+        PlayerPrefs.SetString("HasDoneTut", "true");
+        PlayerPrefs.SetString("boughtship3", "True");
+    }
+
+    static void CleanShips()
+    {
+        for (int i = 1; i < shopingShips.RosterTotal; i++) PlayerPrefs.DeleteKey("boughtship" + i);
+        PlayerPrefs.DeleteKey("HasDoneTut");
+        Clean();
+    }
+
+    // A release build (available == false) finding the mode left on.
+    static void ReleaseLeftover()
+    {
+        SeedRealProgress();
+        PlayerPrefs.DeleteKey("HasDoneTut");   // real player had not finished the tutorial
+        DeveloperUnlocks.SetEnabled(true);     // the earlier developer build
+        DeveloperUnlocks.SelectWorld(2);
+        int paragon = PremiumShips.Paragon;
+        Check("setup: developer mode granted Paragon", PlayerPrefs.GetString("boughtship" + paragon) == "True");
+
+        Check("a developer build does not restore", !DeveloperUnlocks.RestoreLeftoverIfUnavailable(true));
+        Check("still on after the dev-build call", PlayerPrefs.GetInt(DeveloperUnlocks.EnabledKey) == 1);
+
+        Check("release startup found leftover state", DeveloperUnlocks.RestoreLeftoverIfUnavailable(false));
+        Check("flag cleared", PlayerPrefs.GetInt(DeveloperUnlocks.EnabledKey, 0) == 0);
+        Check("Paragon no longer owned", !PlayerPrefs.HasKey("boughtship" + paragon));
+        Check("genuine ship 3 kept", PlayerPrefs.GetString("boughtship3") == "True");
+        Check("other ships rolled back", !PlayerPrefs.HasKey("boughtship7"));
+        Check("world progress restored", PlayerPrefs.GetInt(WorldManager.PrefsHighestWorld) == 1);
+        Check("current world restored", PlayerPrefs.GetInt(WorldManager.PrefsCurrentWorld) == 1);
+        Check("tutorial flag restored (absent)", !PlayerPrefs.HasKey("HasDoneTut"));
+        Check("developer start-world pick cleared", !PlayerPrefs.HasKey(DeveloperUnlocks.SelectedWorldKey));
+        Check("idempotent: second run finds nothing", !DeveloperUnlocks.RestoreLeftoverIfUnavailable(false));
+        Check("real progress survives the second run", PlayerPrefs.GetInt(WorldManager.PrefsHighestWorld) == 1);
+        CleanShips();
+    }
+
+    static void NoSnapshotLeftover()
+    {
+        CleanShips();
+        PlayerPrefs.SetInt(DeveloperUnlocks.EnabledKey, 1);   // flag with no snapshot at all
+        PlayerPrefs.SetString("boughtship5", "True");          // genuine purchase
+        PlayerPrefs.SetInt(WorldManager.PrefsHighestWorld, 2);
+        Check("no snapshot: leftover found", DeveloperUnlocks.RestoreLeftoverIfUnavailable(false));
+        Check("no snapshot: flag cleared", PlayerPrefs.GetInt(DeveloperUnlocks.EnabledKey, 0) == 0);
+        Check("no snapshot: genuine ownership untouched", PlayerPrefs.GetString("boughtship5") == "True");
+        Check("no snapshot: world progress untouched", PlayerPrefs.GetInt(WorldManager.PrefsHighestWorld) == 2);
+        CleanShips();
+    }
+
+    static void DevBuildUnchanged()
+    {
+        SeedRealProgress();
+        DeveloperUnlocks.SetEnabled(true);
+        DeveloperUnlocks.RestoreLeftoverIfUnavailable(DeveloperUnlocks.Available);   // Available is true here
+        Check("dev build: mode stays on", PlayerPrefs.GetInt(DeveloperUnlocks.EnabledKey) == 1);
+        Check("dev build: everything stays unlocked", PlayerPrefs.GetString("boughtship7") == "True");
+        DeveloperUnlocks.SetEnabled(false);
+        Check("dev build: switching off still restores", !PlayerPrefs.HasKey("boughtship7") &&
+              PlayerPrefs.GetString("boughtship3") == "True");
+        CleanShips();
+    }
+
+    // The cloud snapshot taken while developer mode is on holds only real progress.
+    static void CloudSnapshotWhileOn()
+    {
+        SeedRealProgress();
+        DeveloperUnlocks.SetEnabled(true);
+        var snap = ProgressSnapshot.Capture(1);
+        var owned = new System.Collections.Generic.List<int>(snap.boughtShips);
+        Check("cloud snapshot keeps the genuine ship", owned.Contains(3));
+        Check("cloud snapshot has no developer-granted ship", !owned.Contains(7));
+        Check("cloud snapshot has no Paragon", !owned.Contains(PremiumShips.Paragon));
+        Check("cloud snapshot has real highest world", snap.highestWorld == 1);
+        DeveloperUnlocks.SetEnabled(false);
+        CleanShips();
     }
 
     static void DevBuildDefault()
