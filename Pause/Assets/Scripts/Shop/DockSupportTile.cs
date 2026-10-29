@@ -1,8 +1,8 @@
 using UnityEngine;
 
-// A "SUPPORT THE DEV" berth in the space dock's rack: one per support pack
+// A support-pack berth in the space dock's rack: one per support pack
 // (SupportPurchase.Packs), parked in the slots after the ships. It shows the
-// pack's icon, "SUPPORT THE DEV", what it pays and Play's localized price, and
+// pack's icon, what it pays and Play's localized price, and
 // a tap starts that pack's purchase. SpaceDock shows a tile only while Play has
 // a price for its pack (Android with a store), so iOS, the editor and a device
 // without Play never see one.
@@ -13,10 +13,13 @@ using UnityEngine;
 public class DockSupportTile : MonoBehaviour
 {
     public static string IconResource(SupportPurchase.Pack p) { return "Vfx/" + p.productId + "_ui"; }
+    // The payout line (+850 STAR DUST) is the tile's headline: about 60% larger than before,
+    // still inside the 1.62-unit-wide berth.
+    public const float AmountHeight = .12f;
     const float IconExtent = .64f;   // world units, the longest edge at full size
 
     public SupportPurchase.Pack pack;
-    TextMesh title, amount, price;
+    TextMesh amount, price;
     SpriteRenderer icon;
     string shownPrice;
 
@@ -55,11 +58,9 @@ public class DockSupportTile : MonoBehaviour
             float k = (fallback ? .5f : IconExtent) * IconScale(p) / Mathf.Max(extent, .0001f);
             icon.transform.localScale = new Vector3(k, k, 1f);
         }
-        title = Text("Title", font, new Vector3(0f, -.2f, 0f), .075f, DockArt.Cyan);
-        title.text = "SUPPORT THE DEV";
-        amount = Text("Amount", font, new Vector3(0f, -.34f, 0f), .075f, DockArt.Gold);
+        amount = Text("Amount", font, new Vector3(0f, -.30f, 0f), AmountHeight, DockArt.Gold);
         amount.text = p.label;
-        price = Text("Price", font, new Vector3(0f, -.553f, 0f), .078f, AkiraPalette.WithAlpha(AkiraPalette.Bone, .95f));
+        price = Text("Price", font, new Vector3(0f, -.52f, 0f), .09f, AkiraPalette.WithAlpha(AkiraPalette.Bone, .95f));
         plate.sortingOrder = DockBay.OrderBay;
         Refresh();
     }
