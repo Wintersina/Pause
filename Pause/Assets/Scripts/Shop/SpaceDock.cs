@@ -334,6 +334,9 @@ public class SpaceDock : MonoBehaviour
             var go = SceneUtil.FindAny(name);
             if (go != null && go.transform is RectTransform) header.Add((RectTransform)go.transform);
         }
+        var startWorld = SceneUtil.FindAny(DockStartWorld.Name);
+        var startRow = startWorld != null ? startWorld.GetComponent<DockStartWorld>() : null;
+        if (startRow != null && startRow.Row != null) header.Add((RectTransform)startRow.Row.transform);
         foreach (string name in new[] { "PlayButton", "BackButton", DockNewsTicker.Name })
         {
             var go = SceneUtil.FindAny(name);
@@ -859,6 +862,7 @@ public class SpaceDock : MonoBehaviour
         }
         if (canvas == null) return;
         DockNewsTicker.Build(canvas.transform);
+        DockStartWorld.Build(canvas.transform);
         PlaceFooter("BackButton", canvas.transform, -1);
         PlaceFooter("PlayButton", canvas.transform, 1);
 
@@ -930,6 +934,7 @@ public class SpaceDock : MonoBehaviour
     {
         Place("starDustText", DustY, true);
         Place("~DockInstruction", InstructionY, true);
+        Place(DockStartWorld.Name, DockStartWorld.Y, true);
         var newsGo = SceneUtil.FindAny(DockNewsTicker.Name);
         var news = newsGo != null ? newsGo.GetComponent<DockNewsTicker>() : null;
         var newsCanvas = newsGo != null ? newsGo.GetComponentInParent<Canvas>() : null;

@@ -63,8 +63,6 @@ public static class SoundMuteTest
             var dev = new GameObject("~DeveloperOptions").AddComponent<DeveloperOptions>();
             dev.SendMessage("Start");
         }
-        var sw = new GameObject("~StartWorldOptions").AddComponent<StartWorldOptions>();
-        sw.SendMessage("Start");
         var o = new GameObject("~SoundOptions").AddComponent<SoundOptions>();
         o.SendMessage("Start");
     }

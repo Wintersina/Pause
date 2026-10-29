@@ -3,9 +3,9 @@ using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.UI;
 
-// The player-facing START WORLD setting: Options row (StartWorldOptions), its
+// The player-facing START WORLD setting: hangar row (DockStartWorld, the hangar picker), its
 // persisted choice (PlayerStartWorld) and the run start that follows
-// (WorldManager.RunStartWorld). The real Options buttons are clicked through
+// (WorldManager.RunStartWorld). The real hangar buttons are clicked through
 // their onClick, then a run is started in the order Unity runs it
 // (score.Awake -> WorldManager Awake -> Start) with a stale saved current
 // world, as a restarted game has.
@@ -57,24 +57,21 @@ public static class PlayerStartWorldTest
         PlayerPrefs.SetInt(WorldManager.PrefsCurrentWorld, highest);
     }
 
-    static StartWorldOptions options;
+    static DockStartWorld options;
 
-    // The Options screen as the player opens it (it loads fresh each visit).
-    static StartWorldOptions OpenOptions()
+    // The hangar's picker as the player meets it (the dock builds it fresh each visit).
+    static DockStartWorld OpenOptions()
     {
-        EditorSceneManager.OpenScene("Assets/Scenes/leaderboardS3.unity", OpenSceneMode.Single);
-        if (DeveloperUnlocks.Available)
-        {
-            var dev = new GameObject("~DeveloperOptions").AddComponent<DeveloperOptions>();
-            dev.SendMessage("Start");
-        }
-        options = new GameObject("~StartWorldOptions").AddComponent<StartWorldOptions>();
-        options.SendMessage("Start");
+        EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
+        var canvas = new GameObject("Canvas", typeof(Canvas), typeof(CanvasScaler));
+        canvas.GetComponent<Canvas>().renderMode = RenderMode.ScreenSpaceOverlay;
+        options = DockStartWorld.Build(canvas.transform);
         return options;
     }
 
     static GameObject Obj(string name) { return SceneUtil.FindAny(name); }
     static bool Shown(string name) { var g = Obj(name); return g != null && g.activeInHierarchy; }
+    static bool PickerShown { get { return options != null && options.Row != null && options.Row.activeInHierarchy; } }
 
     static string Label(string name)
     {
@@ -171,11 +168,9 @@ public static class PlayerStartWorldTest
     {
         Progress(0);
         OpenOptions();
-        Check("fresh: no picker row", !Shown(StartWorldOptions.RowName));
-        Check("fresh: locked row shown", Shown(StartWorldOptions.LockedName));
-        Check("fresh: locked label", Label(StartWorldOptions.LockedName) == PlayerStartWorld.LockedLabel);
-        var locked = Obj(StartWorldOptions.LockedName).GetComponent<Button>();
-        Check("fresh: locked row is not tappable", locked != null && !locked.interactable);
+        Check("fresh: no picker in the hangar", !PickerShown);
+        Click(DockStartWorld.NextName);   // even a stray tap changes nothing
+        Check("fresh: a locked picker saves nothing", !PlayerPrefs.HasKey(PlayerStartWorld.Key));
         Check("fresh: condition says locked", !PlayerStartWorld.Unlocked && PlayerStartWorld.Chosen() == -1);
         ExpectRun("fresh: ", 0, "furthest planet");
 
@@ -195,21 +190,15 @@ public static class PlayerStartWorldTest
         Check("beating the first world raises highestWorld", Highest == 1);
         End(wm);
         OpenOptions();
-        Check("unlocked: picker row shown", Shown(StartWorldOptions.RowName));
-        Check("unlocked: locked row gone", !Shown(StartWorldOptions.LockedName));
-        Check("unlocked: row reads '" + PlayerStartWorld.Label(1) + "' (" + Label(StartWorldOptions.NameName) + ")",
-              Label(StartWorldOptions.NameName) == "START  " + Name(1).ToUpperInvariant());
-        Check("unlocked: arrows read < and >", Label(StartWorldOptions.PrevName) == "<" && Label(StartWorldOptions.NextName) == ">");
-        var row = (RectTransform)Obj(StartWorldOptions.RowName).transform;
-        var tut = (RectTransform)Obj("Tutorial").transform;
-        var lb = (RectTransform)Obj("CreditsButton").transform;
-        Check("row sits above LeaderBoard and clear of it",
-              row.anchoredPosition.y - RowHalf() >= lb.anchoredPosition.y + lb.sizeDelta.y * .5f - .01f &&
-              row.parent == tut.parent);
-        Check("row is centred and inside the 800-unit canvas", Mathf.Abs(row.anchoredPosition.x) < .01f && row.sizeDelta.x <= 800f);
+        Check("unlocked: picker shown", PickerShown);
+        Check("unlocked: row reads '" + PlayerStartWorld.Label(1) + "' (" + Label(DockStartWorld.LabelName) + ")",
+              Label(DockStartWorld.LabelName) == "START  " + Name(1).ToUpperInvariant());
+        Check("unlocked: arrows read < and >", Label(DockStartWorld.PrevName) == "<" && Label(DockStartWorld.NextName) == ">");
+        var row = (RectTransform)options.Row.transform;
+        Check("row is centred and no wider than a small canvas", Mathf.Abs(row.anchoredPosition.x) < .01f && row.sizeDelta.x <= 480f);
+        Check("pure rule: visible when unlocked and not developer", DockStartWorld.Visible(true, false) &&
+              !DockStartWorld.Visible(false, false) && !DockStartWorld.Visible(true, true));
     }
-
-    static float RowHalf() { return 44f; }
 
     // Every reached world is selectable with the real buttons and starts the run there.
     static void EveryUnlockedWorld()
@@ -223,12 +212,12 @@ public static class PlayerStartWorldTest
             var seen = new System.Collections.Generic.HashSet<int>();
             for (int step = 0; step < count * 2 + 1; step++)
             {
-                Click(step < count ? StartWorldOptions.NextName : (step < count * 2 ? StartWorldOptions.PrevName : StartWorldOptions.NameName));
+                Click(step < count ? DockStartWorld.NextName : (step < count * 2 ? DockStartWorld.PrevName : DockStartWorld.LabelName));
                 int shown = PlayerStartWorld.Selected;
                 seen.Add(shown);
                 string tag = "highest " + Name(highest) + " step " + step + ": ";
                 Check(tag + "selection <= highest (" + shown + ")", shown >= 0 && shown <= highest);
-                Check(tag + "row reads " + PlayerStartWorld.Label(shown), Label(StartWorldOptions.NameName) == PlayerStartWorld.Label(shown));
+                Check(tag + "row reads " + PlayerStartWorld.Label(shown), Label(DockStartWorld.LabelName) == PlayerStartWorld.Label(shown));
                 Check(tag + "pref " + (shown == highest ? "cleared (follows furthest)" : "saved"),
                       shown == highest ? !PlayerPrefs.HasKey(PlayerStartWorld.Key) : PlayerPrefs.GetInt(PlayerStartWorld.Key, -1) == shown);
             }
@@ -239,8 +228,8 @@ public static class PlayerStartWorldTest
             {
                 // Select through the real buttons: walk to it.
                 OpenOptions();
-                for (int guard = 0; guard < count && PlayerStartWorld.Selected != pick; guard++) Click(StartWorldOptions.NextName);
-                Check("highest " + Name(highest) + " pick " + Name(pick) + ": row shows it", Label(StartWorldOptions.NameName) == PlayerStartWorld.Label(pick));
+                for (int guard = 0; guard < count && PlayerStartWorld.Selected != pick; guard++) Click(DockStartWorld.NextName);
+                Check("highest " + Name(highest) + " pick " + Name(pick) + ": row shows it", Label(DockStartWorld.LabelName) == PlayerStartWorld.Label(pick));
                 string tag = "highest " + Name(highest) + " pick " + Name(pick) + ": ";
                 ExpectRun(tag, pick, pick == highest ? "furthest planet" : "player start world");
             }
@@ -254,7 +243,7 @@ public static class PlayerStartWorldTest
         PlayerPrefs.SetInt(PlayerStartWorld.Key, 3);
         Check("clamp: choice 3 with highest 1 reads as 1", PlayerStartWorld.Selected == 1);
         OpenOptions();
-        Check("clamp: row shows the furthest reached", Label(StartWorldOptions.NameName) == PlayerStartWorld.Label(1));
+        Check("clamp: row shows the furthest reached", Label(DockStartWorld.LabelName) == PlayerStartWorld.Label(1));
         ExpectRun("clamp: ", 1, "player start world");
 
         Progress(3);
@@ -357,8 +346,8 @@ public static class PlayerStartWorldTest
     {
         Progress(3);
         OpenOptions();
-        Click(StartWorldOptions.PrevName);
-        Click(StartWorldOptions.PrevName);
+        Click(DockStartWorld.PrevName);
+        Click(DockStartWorld.PrevName);
         int chosen = PlayerStartWorld.Selected;
         Check("persist: stepped back two worlds", chosen == 1);
         PlayerPrefs.Save();
@@ -366,12 +355,12 @@ public static class PlayerStartWorldTest
         RunLoop.Reset();
         options = null;
         OpenOptions();   // a restarted game: Options built fresh
-        Check("persist: reopened row still reads " + Name(chosen), Label(StartWorldOptions.NameName) == PlayerStartWorld.Label(chosen));
+        Check("persist: reopened row still reads " + Name(chosen), Label(DockStartWorld.LabelName) == PlayerStartWorld.Label(chosen));
         ExpectRun("persist: ", chosen, "player start world");
         // Choosing the furthest again follows future progress.
         OpenOptions();
-        Click(StartWorldOptions.PrevName);   // 1 -> 0 -> wraps? step back from 1 to 0
-        Click(StartWorldOptions.PrevName);   // wraps to the furthest (3)
+        Click(DockStartWorld.PrevName);   // 1 -> 0 -> wraps? step back from 1 to 0
+        Click(DockStartWorld.PrevName);   // wraps to the furthest (3)
         Check("persist: wrapped to the furthest world", PlayerStartWorld.Selected == 3 && !PlayerPrefs.HasKey(PlayerStartWorld.Key));
         PlayerPrefs.SetInt(WorldManager.PrefsHighestWorld, Last);
         Check("follows the furthest world once more is unlocked", PlayerStartWorld.Selected == Last);
@@ -420,26 +409,21 @@ public static class PlayerStartWorldTest
         Check("merge takes the newer side's choice", ProgressMerge.Merge(local, cloud).startWorld == 3);
     }
 
-    // With developer mode on the player row steps aside for the dev picker.
+    // With developer mode on the hangar picker steps aside for the dev picker.
     static void DeveloperHidesTheRow()
     {
         if (!DeveloperUnlocks.Available) return;
         Progress(2);
         PlayerPrefs.SetInt(PlayerStartWorld.Key, 0);
         OpenOptions();
-        Check("dev off: player row shown", Shown(StartWorldOptions.RowName));
-        float y = ((RectTransform)Obj(StartWorldOptions.RowName).transform).anchoredPosition.y;
-        var toggle = Obj("DeveloperToggle");
-        Check("player row does not sit on the developer switch",
-              toggle != null && Mathf.Abs(((RectTransform)toggle.transform).anchoredPosition.y - y) >= 88f);
-        Click("DeveloperToggle");
-        options.SendMessage("Update");
-        Check("dev on: player row hidden, dev picker shown", !Shown(StartWorldOptions.RowName) && Shown("DeveloperStartWorld"));
+        Check("dev off: picker shown", PickerShown);
+        PlayerPrefs.SetInt(DeveloperUnlocks.EnabledKey, 1);
+        options.Refresh();
+        Check("dev on: picker hidden", !PickerShown);
         Check("dev on: no player choice applies", WorldManager.RunStartSource(true) != "player start world");
-        Click("DeveloperToggle");
-        options.SendMessage("Update");
-        Check("dev off again: player row back, choice kept", Shown(StartWorldOptions.RowName) && PlayerStartWorld.Selected == 0 &&
-              Highest == 2);
+        PlayerPrefs.SetInt(DeveloperUnlocks.EnabledKey, 0);
+        options.Refresh();
+        Check("dev off again: picker back, choice kept", PickerShown && PlayerStartWorld.Selected == 0 && Highest == 2);
         options = null;
     }
 }

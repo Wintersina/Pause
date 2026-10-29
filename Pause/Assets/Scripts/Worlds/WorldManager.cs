@@ -383,7 +383,7 @@ public class WorldManager : MonoBehaviour
         return DeveloperUnlocks.StartWorld(startAtHighestUnlocked);
     }
 
-    // The player's own START WORLD choice (Options) decides the run, below the
+    // The player's own START WORLD choice (hangar) decides the run, below the
     // replay pin and the developer pick.
     static bool UsesPlayerStartWorld(bool startAtHighestUnlocked)
     {
@@ -405,7 +405,7 @@ public class WorldManager : MonoBehaviour
     {
         // Unlocks are permanent: once a planet has been reached, later runs
         // start there rather than replaying the earlier worlds. Developer mode
-        // can pin a start world from Options instead. Replay restarts the
+        // can pin a start world from the hangar instead. Replay restarts the
         // world the pilot died in (RunStartWorld).
         string source = RunStartSource(startAtHighestUnlocked);
         spaceLegWorld = -1;
