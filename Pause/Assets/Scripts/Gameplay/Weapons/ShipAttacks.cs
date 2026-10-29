@@ -253,8 +253,15 @@ public partial class ShipAttackRunner : MonoBehaviour
             var t = targets[i];
             if (t == null || !t.isActiveAndEnabled) continue;
             if (InRailLine(t.transform.position, t.Radius, nose, l.width, nose.y + len))
+            {
+                Vector3 at = t.transform.position;
                 if (ShipAttackHits.Hit(t.gameObject, ship, 1f, ref run.budget)) kills++;
+                if (ShipSignatures.HaloPierces(l))   // signature: a spark at every target the slug passes through
+                    AttackPool.Sprite().Play(AttackSprite.Source.AttackBurst, ship, at, Vector3.one * .45f, 0f,
+                        ShipFxArt.BurstTicks, false, 0f, null, Vector3.zero, 71);
+            }
         }
+        if (ShipSignatures.HaloPierces(l)) HaloPierce(nose, len, l.width);
     }
 
     public static bool InRailLine(Vector3 p, float radius, Vector3 nose, float halfWidth, float top)
@@ -295,9 +302,10 @@ public partial class ShipAttackRunner : MonoBehaviour
             case ShipAttack.CometStreak:
                 while (run.fired < l.shots && run.t >= run.fired * .16f)
                 {
-                    Launch(run, AttackProjectile.Kind.Straight, Nose,
+                    var streak = Launch(run, AttackProjectile.Kind.Straight, Nose,
                            Quaternion.Euler(0f, 0f, -StreakAngle(run.fired)) * Vector3.up, l.speed, l.width, .8f, null,
                            1f / Mathf.Max(1, l.shots));
+                    if (streak != null) streak.SetPierce(ShipSignatures.CometPierce(l, run.fired));   // signature: later streaks pierce
                     run.fired++;
                 }
                 if (run.fired >= l.shots) run.active = false;
@@ -387,6 +395,7 @@ public partial class ShipAttackRunner : MonoBehaviour
                 ShipFxArt.BurstTicks, false, 0f, null, Vector3.zero, 71);
             run.hit.Add(t.gameObject);
             ShipAttackHits.Hit(t.gameObject, ship, 1f, ref run.budget);
+            ViperJolt(run, to, t.gameObject);   // signature: the jump stuns the enemies around it
             run.point = to;
             run.hops++;
             run.next += .06f;
@@ -954,6 +963,7 @@ public class AttackProjectile : MonoBehaviour
     Transform target;
     GameObject lastSpecial;
     int hops;
+    int pierceLeft;        // Straight: enemies it can still pass through (ShipSignatures.CometPierce)
     Vector3 rocketTo;      // Rocket: where the javelin manifests
     float rocketStopY;     // ...and where it will strike down to
 
@@ -987,6 +997,12 @@ public class AttackProjectile : MonoBehaviour
     public void SetRocket(Vector3 top, float stopY) { rocketTo = top; rocketStopY = stopY; }
     public int Hops => hops;
 
+    // A Straight shot that passes through `n` enemies before it stops (never a boss or elite). Drawn a little
+    // larger while it still can, so a piercing streak reads at a glance.
+    public void SetPierce(int n) { pierceLeft = Mathf.Max(0, n); Draw(0f); }
+    public int PierceLeft => pierceLeft;
+    const float PierceDrawScale = 1.25f;
+
     public void Build()
     {
         var bodyGo = new GameObject("Body", typeof(SpriteRenderer));
@@ -1017,6 +1033,7 @@ public class AttackProjectile : MonoBehaviour
         age = travelled = 0f;
         lastSpecial = null;
         hops = 0;
+        pierceLeft = 0;
         StopAtY = float.MinValue;
         transform.position = at;
         if (!Active) Flying.Add(this);
@@ -1080,8 +1097,17 @@ public class AttackProjectile : MonoBehaviour
                     if (hit != null)
                     {
                         var struckGo = hit.gameObject;
+                        bool special = struckGo.GetComponent<IShipAttackTarget>() != null;
                         Strike(struckGo);
-                        if (kind == Kind.Homing || kind == Kind.Straight) { Finish(true); return; }
+                        if (kind == Kind.Straight && pierceLeft > 0 && !special)
+                        {
+                            // signature pierce: on through this enemy (it is gone or about to be), a spark where it passed
+                            pierceLeft--;
+                            lastSpecial = struckGo;
+                            AttackPool.Sprite().Play(AttackSprite.Source.AttackBurst, ship, struckGo.transform.position,
+                                Vector3.one * .35f, 0f, ShipFxArt.BurstTicks, false, 0f, null, Vector3.zero, 71);
+                        }
+                        else if (kind == Kind.Homing || kind == Kind.Straight) { Finish(true); return; }
                     }
                 }
                 break;
@@ -1147,7 +1173,7 @@ public class AttackProjectile : MonoBehaviour
         // a Sky Javelins rocket draws the ship's "attack_shot" strip, every other shot (comet, javelin) its attack loop
         Sprite sprite = kind == Kind.Rocket ? ShipFxArt.Extra(ship, "attack_shot", frame % ShipFxArt.LoopFrames) : null;
         body.sprite = sprite != null ? sprite : ShipFxArt.AttackLoop(ship, frame);
-        body.transform.localScale = Vector3.one * size;
+        body.transform.localScale = Vector3.one * size * (pierceLeft > 0 ? PierceDrawScale : 1f);
         body.transform.up = dir;
     }
 

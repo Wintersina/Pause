@@ -34,9 +34,10 @@ public static class ShipWeaponUpgrades
 {
     public const int MaxLevel = ShipSkins.PerShip - 1;
 
-    static WeaponStep Cd(float cut)
+    // `note`: the signature effect (ShipSignatures) this step also unlocks, appended to the label.
+    static WeaponStep Cd(float cut, string note = null)
     {
-        return new WeaponStep { cooldownCut = cut, label = "-" + Mathf.RoundToInt(cut * 100f) + "% COOLDOWN" };
+        return new WeaponStep { cooldownCut = cut, label = ShipSignatures.Note("-" + Mathf.RoundToInt(cut * 100f) + "% COOLDOWN", note) };
     }
 
     // A "+1 star" step that also trims the cooldown (the Ninja adds a star at every colour).
@@ -63,11 +64,11 @@ public static class ShipWeaponUpgrades
     static readonly WeaponStep[][] tracks =
     {
         null,
-        /*  1 Neon Comet   */ new[] { Up("+1 STREAK", shots: 1), Cd(.15f), Up("+1 STREAK", shots: 1), Cd(.20f) },
-        /*  2 Volt Viper   */ new[] { Up("+2 JUMPS", maxHits: 2), Cd(.15f), Up("+2 JUMPS", maxHits: 2, width: .5f), Cd(.20f) },
+        /*  1 Neon Comet   */ new[] { Up("+1 STREAK", shots: 1), Cd(.15f, ShipSignatures.CometExtrasPierceNote), Up("+1 STREAK", shots: 1), Cd(.20f, ShipSignatures.CometAllPierceNote) },
+        /*  2 Volt Viper   */ new[] { Up("+2 JUMPS", maxHits: 2), Cd(.15f), Up(ShipSignatures.Note("+2 JUMPS", ShipSignatures.ViperStunNote), maxHits: 2, width: .5f), Cd(.20f, ShipSignatures.ViperLongStunNote) },
         /*  3 Solar Fang   */ new[] { Up("THICKER BAND", width: .3f), Cd(.15f), Up("+1 WAVE", shots: 1), Cd(.20f) },
-        /*  4 Crimson Halo */ new[] { Cd(.15f), Up("WIDER RAIL", width: .14f), Cd(.20f), Up("+2 SIDE RAILS", shots: 2) },
-        /*  5 Ion Lancer   */ new[] { Up("LONGER SWEEP", duration: .3f), Cd(.15f), Up("+1 PASS", shots: 1), Cd(.20f) },
+        /*  4 Crimson Halo */ new[] { Cd(.15f), Up("WIDER RAIL", width: .14f), Cd(.20f, ShipSignatures.HaloPierceNote), Up("+2 SIDE RAILS", shots: 2) },
+        /*  5 Ion Lancer   */ new[] { Up("LONGER SWEEP", duration: .3f), Cd(.15f), Up("+1 PASS", shots: 1), Cd(.20f, ShipSignatures.IonCrossNote) },
         /*  6 Jade Phantom */ new[] { Up("SHATTER SPLASH", width: .8f), Cd(.15f), Up("BIGGER SPLASH", width: .4f), Cd(.20f) },
         /*  7 Gold Warden  */ new[] { Up("+1 SENTRY", shots: 1), Cd(.15f), Up("LONGER SENTRIES", duration: .9f), Cd(.20f) },
         /*  8 Lightning    */ new[] { Up("+1 JAVELIN", shots: 1), Cd(.15f), Up("+1 JAVELIN", shots: 1), Cd(.20f) },   // 3 -> 4 -> 5 lanes (SkyJavelinLanes)
@@ -112,6 +113,7 @@ public static class ShipWeaponUpgrades
     {
         int id = Has(l.shipId) ? l.shipId : ShipId.Starter;
         level = Mathf.Clamp(level, 0, MaxLevel);
+        l.weaponLevel = level;
         for (int i = 1; i <= level; i++)
         {
             var s = tracks[id][i - 1];

@@ -79,6 +79,9 @@ public struct ShipLoadout
 {
     public int shipId;
     public ShipAttack attack;
+    // The weapon level this loadout was built at (ShipWeaponUpgrades.Apply); the signature effects
+    // (ShipSignatures) unlock from it. 0 for a base row.
+    public int weaponLevel;
     public SecretPower power;
     public PowerTrigger trigger;
     public int triggerCount;
