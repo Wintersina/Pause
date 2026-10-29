@@ -282,6 +282,7 @@ public static class AllTests
         ("ShipAttacksTest", ShipAttacksTest.Execute),
         ("ShipAttacksV3CheapTest", ShipAttacksV3CheapTest.Execute),
         ("ShipAttackSparkTest", ShipAttackSparkTest.Execute),
+        ("ShipSignaturesG3Test", ShipSignaturesG3Test.Execute),
         ("HomingTargetTest", HomingTargetTest.Execute),
         ("ShipDamageTest", ShipDamageTest.Execute),
         ("ShipLivesIndicatorTest", ShipLivesIndicatorTest.Execute),

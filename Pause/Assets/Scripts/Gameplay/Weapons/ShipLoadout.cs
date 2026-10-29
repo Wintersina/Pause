@@ -200,24 +200,24 @@ public static class ShipLoadoutTable
             PowerTrigger.EnemiesOnScreen, 3, 0f,
             shots: 4),
         // 13 UFO (2400)
-        Row(13, ShipAttack.AbductHurl, "ABDUCT & HURL", "Lifts the nearest enemy and hurls it into the crowd.",
+        Row(13, ShipAttack.AbductHurl, "ABDUCT & HURL", "Lifts the nearest enemy and hurls it into the crowd, and with colours it blasts on impact.",
             SecretPower.TractorPull, "TRACTOR PULL", "Pulls nearby enemies and debris in for 1.8 s, and kills drop star dust.",
             PowerTrigger.HazardsNearShip, 2, 3.5f,
             maxHits: 1, range: 9f, speed: 15f),
         // 14 Dove (2900)
-        Row(14, ShipAttack.GaleWings, "GALE WINGS", "A gust shoves enemies up and turns enemy and boss shots back at them.",
+        Row(14, ShipAttack.GaleWings, "GALE WINGS", "A gust shoves enemies up and turns enemy and boss shots back at them, harder and in pairs with colours.",
             SecretPower.Mending, "MENDING", "Repairs one heart in a burst of feathers as soon as the hull is damaged.",
             PowerTrigger.HullDamaged, 1, 0f,
             width: 60f, range: 6f),
         // 15 Turtle (3600)
-        Row(15, ShipAttack.ThrownDisc, "SHELL DISC", "A shell is thrown and ricochets off enemies and walls.",
+        Row(15, ShipAttack.ThrownDisc, "SHELL DISC", "A shell is thrown and ricochets off enemies and walls, with more bounces and a spark trail with colours.",
             SecretPower.HardShell, "HARD SHELL", "A shell shows on the hull for up to 8 s and shatters on the next hit.",
             PowerTrigger.HazardInLane, 1, 3.4f,
             duration: 4f, range: .42f, speed: 9f, maxHits: 8),
         // 16 Paragon (premium, real-money IAP: PremiumShips). Its signature extras (timed mini-warheads
         // and a shield, both on timers) are PremiumShips tiers; this row is its ultimate and its timed
         // shield power. range: the nuke's flight height (share of the screen); duration: its fuse.
-        Row(16, ShipAttack.Nuke, "NUKE", "A warhead climbs, blinks, then detonates: a red shockwave clears the screen.",
+        Row(16, ShipAttack.Nuke, "NUKE", "A warhead climbs, blinks, then detonates: a red shockwave clears the screen, with a bigger fireball and a second warhead with colours.",
             SecretPower.AegisShield, "AEGIS SHIELD", "Raises the shield on its own every 8 s (quicker with every skin).",
             PowerTrigger.Always, 0, 0f,
             duration: .6f, range: .55f, speed: 14f),
