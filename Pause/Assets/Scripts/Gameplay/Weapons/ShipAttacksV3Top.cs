@@ -729,11 +729,32 @@ public partial class ShipAttackRunner
         w.flight = FallSeconds;
         w.fell = false;
         w.fuse = l.duration * (run.quick ? .7f : 1f);
-        w.weight = 1f;
+        w.weight = ShipSignaturesG3.NukeWarheadWeight(l.weaponLevel);
         w.hit.Clear();
         AttackPool.Sprite().Play(AttackSprite.Source.AttackBurst, ship, nose, Vector3.one * .4f, 0f,
             ShipFxArt.BurstTicks, false, 0f, transform, Vector3.up * noseOffset, 71);
         SpawnFalling(w, .6f);
+        // Paragon signature (top level): a second full warhead drops a moment later, on the other side of the first
+        // (ShipSignaturesG3); the two share one hit on a boss.
+        if (ShipSignaturesG3.NukeWarheads(l.weaponLevel) < 2) return;
+        var w2 = FreeWarhead();
+        if (w2 == null) return;
+        float mid = (view.xMin + view.xMax) * .5f;
+        float x2 = Mathf.Clamp(w.to.x + (w.to.x > mid ? -1f : 1f) * ShipSignaturesG3.NukeSecondOffset, view.xMin + .8f, view.xMax - .8f);
+        w2.on = true;
+        w2.mini = false;
+        w2.stage = 0;
+        w2.run = run;
+        w2.to = new Vector3(x2, w.to.y, 0f);
+        w2.from = w2.to + (w.from - w.to);
+        w2.t = 0f;
+        w2.delay = ShipSignaturesG3.NukeSecondDelay;
+        w2.flight = FallSeconds;
+        w2.fell = false;
+        w2.sprite = null;
+        w2.fuse = w.fuse;
+        w2.weight = w.weight;
+        w2.hit.Clear();
     }
 
     // The falling warhead drawing (nose down), at its start point. The one place a warhead sprite is made.
@@ -815,7 +836,7 @@ public partial class ShipAttackRunner
                     if (w.t < w.delay) break;
                     w.stage = 1;
                     w.t = 0f;
-                    SpawnFalling(w, .3f);
+                    SpawnFalling(w, w.mini ? .3f : .6f);
                     break;
                 case 1:
                     {
@@ -856,7 +877,9 @@ public partial class ShipAttackRunner
         w.t = 0f;
         if (!w.mini) w.maxRadius = FarthestCorner(w.center);
         float scale = w.maxRadius / ShockArtRadius;
-        AttackPool.Sprite().Play(AttackSprite.Source.AttackBurst, ship, w.center, Vector3.one * (w.mini ? .7f : 1.6f), 0f,
+        // Paragon signature: a bigger core flash and mushroom from the mild level (ShipSignaturesG3)
+        float blast = w.mini || w.run == null ? 1f : ShipSignaturesG3.NukeBlastScale(w.run.loadout.weaponLevel);
+        AttackPool.Sprite().Play(AttackSprite.Source.AttackBurst, ship, w.center, Vector3.one * (w.mini ? .7f : 1.6f * blast), 0f,
             ShipFxArt.BurstTicks, false, 0f, null, Vector3.zero, 71);
         w.ring = AttackPool.Sprite().Play(AttackSprite.Source.AttackLoop, ship, w.center, Vector3.one * scale, 0f,
             ShockTicks, false, 0f, null, Vector3.zero, 70).Strip("attack_shockwave", 0, true);
@@ -866,8 +889,8 @@ public partial class ShipAttackRunner
             // the mushroom cloud: the one deliberate exception to the restraint rule (the cheat ship). Its stem
             // base is the bottom-centre of the cell, so it stands on the detonation point; behind enemies and
             // shots (their sorting orders start at 2) and at 0.8 alpha, so it never hides a threat.
-            w.mush = AttackPool.Sprite().Play(AttackSprite.Source.AttackLoop, ship, w.center + Vector3.up * MushroomSize * .5f,
-                Vector3.one * MushroomSize, 0f, ShockTicks, false, 0f, null, Vector3.zero, 1)
+            w.mush = AttackPool.Sprite().Play(AttackSprite.Source.AttackLoop, ship, w.center + Vector3.up * MushroomSize * blast * .5f,
+                Vector3.one * MushroomSize * blast, 0f, ShockTicks, false, 0f, null, Vector3.zero, 1)
                 .Strip("attack_mushroom", 0, false).Alpha(MushroomAlpha);
         }
         if (w.mini) MiniDetonations++;

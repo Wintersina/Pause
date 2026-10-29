@@ -448,7 +448,7 @@ public partial class ShipAttackRunner : MonoBehaviour
     void StepThrow(AttackRun run, float dt)
     {
         var l = run.loadout;
-        bool leaving = run.hops >= l.maxHits || run.t >= l.duration;
+        bool leaving = run.hops >= l.maxHits + ShipSignaturesG3.DiscExtraBounces(l.weaponLevel) || run.t >= l.duration;
         Rect view = ShipTargets.View(-.2f);
         Vector3 p = run.point + run.dir * l.speed * dt;
         bool wall = false;
@@ -460,6 +460,13 @@ public partial class ShipAttackRunner : MonoBehaviour
             else if (p.y > view.yMax) { p.y = view.yMax; run.dir.y = -Mathf.Abs(run.dir.y); wall = true; }
         }
         run.point = p;
+        // Turtle signature (top level): a trail of small sparks behind the disc (run.fired counts them)
+        if (!leaving && ShipSignaturesG3.DiscTrail(l.weaponLevel) && run.t >= run.fired * ShipSignaturesG3.DiscTrailEvery)
+        {
+            run.fired = Mathf.Max(run.fired + 1, (int)(run.t / ShipSignaturesG3.DiscTrailEvery));
+            AttackPool.Sprite().Play(AttackSprite.Source.AttackBurst, ship, p, Vector3.one * ShipSignaturesG3.DiscTrailScale, 0f,
+                ShipFxArt.BurstTicks, false, 0f, null, Vector3.zero, 73);
+        }
         if (wall) DiscBounce(run, p);
         if (run.disc != null && run.disc.Active) run.disc.transform.position = p;
 
@@ -503,7 +510,8 @@ public partial class ShipAttackRunner : MonoBehaviour
     void DiscBounce(AttackRun run, Vector3 at)
     {
         run.hops++;
-        AttackPool.Sprite().Play(AttackSprite.Source.AttackBurst, ship, at, Vector3.one * .7f, 0f,
+        // the spark per bounce is bigger from the Turtle's mild signature level (ShipSignaturesG3)
+        AttackPool.Sprite().Play(AttackSprite.Source.AttackBurst, ship, at, Vector3.one * ShipSignaturesG3.DiscSparkScale(run.loadout.weaponLevel), 0f,
             ShipFxArt.BurstTicks, false, 0f, null, Vector3.zero, 73);
     }
 

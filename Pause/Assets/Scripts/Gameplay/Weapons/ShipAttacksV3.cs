@@ -639,8 +639,10 @@ public partial class ShipAttackRunner
                     if (!SegmentHits(prev, now, t.transform.position, HurlRadius + t.Radius * .7f, out along)) continue;
                     run.hit.Add(t.gameObject);
                     bool boss = Special(t.gameObject);
-                    Burst(run, t.transform.position, .9f);
+                    Vector3 impact = t.transform.position;
+                    Burst(run, impact, .9f);
                     ShipAttackHits.Hit(t.gameObject, ship, 1f, ref run.budget);
+                    if (!boss) HurlBlast(v, impact);
                     if (boss || --v.n[g] <= 0) done = true;
                 }
                 if (done) EndGrab(v, g, true);
@@ -715,6 +717,30 @@ public partial class ShipAttackRunner
         }
     }
 
+    // UFO signature (ShipSignaturesG3): from the mild level the hurled body goes off at every enemy it strikes,
+    // killing the ordinary enemies around the impact. Bosses and elites are skipped (no extra hit), so the total on them is unchanged.
+    readonly System.Collections.Generic.List<ClearTarget> blastBuffer = new System.Collections.Generic.List<ClearTarget>(32);
+
+    void HurlBlast(AttackV3 v, Vector3 at)
+    {
+        float radius = ShipSignaturesG3.UfoBlastRadius(v.owner.loadout.weaponLevel);
+        if (radius <= 0f) return;
+        Burst(v.owner, at, radius * 1.8f);
+        ShipTargets.Collect(blastBuffer);   // its own list: the caller is walking `targets`
+        for (int i = 0; i < blastBuffer.Count; i++)
+        {
+            var t = blastBuffer[i];
+            if (t == null || !t.isActiveAndEnabled || t.Scenery || !ShipTargets.IsThreat(t) || IsHeld(v, t)) continue;
+            var go = t.gameObject;
+            if (Special(go) || RunScore.IsHostileShot(go)) continue;
+            Vector2 d = t.transform.position - at;
+            float reach = radius + t.Radius * .5f;
+            if (d.sqrMagnitude > reach * reach) continue;
+            float spare = 1f;
+            ShipAttackHits.Hit(go, ship, 1f, ref spare);
+        }
+    }
+
     // Held bodies are placed after every other mover has had its turn this frame.
     void LateUpdate()
     {
@@ -779,14 +805,25 @@ public partial class ShipAttackRunner
             if (s == null || (Object)s == null || !s.ShotShovable || s.ShotMass == HostileShots.Fixed) continue;
             Vector2 p = s.ShotPosition;
             if (!InGust(origin, p, s.ShotRadius, l.range, front, l.width)) continue;
-            int k = v.rCount++;
-            v.rPos[k] = p;
-            v.rVel[k] = GaleReturn(origin, p, hasBoss, boss);
-            v.rAge[k] = 0f;
-            v.rFx[k] = AttackPool.Sprite().Play(AttackSprite.Source.AttackLoop, ship, p, Vector3.one * .6f, 0f,
-                ShipFxArt.LoopTicks, true, 0f, null, Vector3.zero, 71).Owned(run);
+            Vector2 vel = GaleReturn(origin, p, hasBoss, boss);
+            AddReturn(run, v, p, vel);
+            // Dove signature (top level): every turned shot comes back as a pair, fanned either side
+            if (ShipSignaturesG3.DoveTwins(l.weaponLevel) && v.rCount < AttackV3.ReturnMax)
+                AddReturn(run, v, p, (Vector2)(Quaternion.Euler(0f, 0f, ((i & 1) == 0 ? 1f : -1f) * ShipSignaturesG3.DoveTwinSpread) * (Vector3)vel));
             s.ShotPop(p);
         }
+    }
+
+    // One returned shot: position, velocity and drawing (bigger with the Dove's weapon level).
+    void AddReturn(AttackRun run, AttackV3 v, Vector2 p, Vector2 vel)
+    {
+        int k = v.rCount++;
+        v.rPos[k] = p;
+        v.rVel[k] = vel;
+        v.rAge[k] = 0f;
+        v.rFx[k] = AttackPool.Sprite().Play(AttackSprite.Source.AttackLoop, ship, p,
+            Vector3.one * ShipSignaturesG3.DoveReturnScale(run.loadout.weaponLevel), 0f,
+            ShipFxArt.LoopTicks, true, 0f, null, Vector3.zero, 71).Owned(run);
     }
 
     // The returned shots fly; the first target one meets takes the crash and the shot pops. Anything hostile in
@@ -813,7 +850,7 @@ public partial class ShipAttackRunner
                 crashed = true;
                 Burst(run, t.transform.position, .8f);
                 bool boss = t.TryGetComponent(out BossTarget _) || t.TryGetComponent(out BossActor _);
-                if (ShipAttackHits.Hit(t.gameObject, ship, boss ? ReturnBossWeight : ReturnWeight, ref run.budget)) kills++;
+                if (ShipAttackHits.Hit(t.gameObject, ship, boss ? ReturnBossWeight : ShipSignaturesG3.DoveReturnWeight(run.loadout.weaponLevel), ref run.budget)) kills++;
             }
             bool gone = crashed || v.rAge[j] >= ReturnSeconds || (view.width < 100f && !view.Contains(now));
             if (!gone) continue;

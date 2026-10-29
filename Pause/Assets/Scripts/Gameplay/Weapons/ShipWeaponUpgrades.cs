@@ -45,6 +45,12 @@ public static class ShipWeaponUpgrades
         return new WeaponStep { label = label, shots = 1, cooldownCut = cut };
     }
 
+    // A cooldown step that also unlocks a signature effect (ShipSignaturesG3); the numbers are Cd's.
+    static WeaponStep CdPlus(float cut, string extra)
+    {
+        return new WeaponStep { cooldownCut = cut, label = "-" + Mathf.RoundToInt(cut * 100f) + "% COOLDOWN + " + extra };
+    }
+
     static WeaponStep Up(string label, int shots = 0, int maxHits = 0, float duration = 0f,
                          float range = 0f, float width = 0f, float speed = 0f)
     {
@@ -75,11 +81,11 @@ public static class ShipWeaponUpgrades
         /* 10 Paranoid     */ new[] { Up("+1 MARK", shots: 1), Cd(.15f), Up("+1 MARK", shots: 1), Cd(.20f) },
         /* 11 Ninja        */ new[] { Up("+1 STAR", shots: 1), StarCd("+1 STAR", .15f), Up("+1 STAR", shots: 1), StarCd("+1 STAR", .20f) },   // 2 stars (front + rear) -> 6
         /* 12 Saboteur     */ new[] { Up("+1 MINE", shots: 1), Cd(.15f), Up("+1 MINE", shots: 1), Cd(.20f) },
-        /* 13 UFO          */ new[] { Up("+1 PIERCE", maxHits: 1), Cd(.15f), Up("+1 GRAB", shots: 1), Cd(.20f) },
-        /* 14 Dove         */ new[] { Up("WIDER GUST", width: 12f), Cd(.15f), Up("LONGER GUST", range: 1.5f), Cd(.20f) },
-        /* 15 Turtle       */ new[] { Up("LONGER THROW", duration: 1.5f), Cd(.15f), Up("BIGGER DISC", range: .14f, speed: 1.5f), Cd(.20f) },
+        /* 13 UFO          */ new[] { Up("+1 PIERCE", maxHits: 1), CdPlus(.15f, ShipSignaturesG3.UfoBlastMildLabel), Up("+1 GRAB", shots: 1), CdPlus(.20f, ShipSignaturesG3.UfoBlastFullLabel) },
+        /* 14 Dove         */ new[] { Up("WIDER GUST", width: 12f), CdPlus(.15f, ShipSignaturesG3.DoveReturnMildLabel), Up("LONGER GUST", range: 1.5f), CdPlus(.20f, ShipSignaturesG3.DoveReturnFullLabel) },
+        /* 15 Turtle       */ new[] { Up("LONGER THROW", duration: 1.5f), CdPlus(.15f, ShipSignaturesG3.DiscMildLabel), Up("BIGGER DISC", range: .14f, speed: 1.5f), CdPlus(.20f, ShipSignaturesG3.DiscFullLabel) },
         // 16 Paragon: four skins like every ship. Its tiers' mini-warheads, shield, hearts and speed are PremiumShips.
-        /* 16 Paragon      */ new[] { Up("FASTER WARHEAD", speed: 6f), Cd(.15f), Up("FASTER WARHEAD", speed: 8f), Cd(.20f) },
+        /* 16 Paragon      */ new[] { Up("FASTER WARHEAD", speed: 6f), CdPlus(.15f, ShipSignaturesG3.NukeMildLabel), Up("FASTER WARHEAD", speed: 8f), CdPlus(.20f, ShipSignaturesG3.NukeFullLabel) },
     };
 
     public static bool Has(int shipId) { return shipId > 0 && shipId < tracks.Length && tracks[shipId] != null; }
@@ -112,6 +118,7 @@ public static class ShipWeaponUpgrades
     {
         int id = Has(l.shipId) ? l.shipId : ShipId.Starter;
         level = Mathf.Clamp(level, 0, MaxLevel);
+        l.weaponLevel = level;
         for (int i = 1; i <= level; i++)
         {
             var s = tracks[id][i - 1];
