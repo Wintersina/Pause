@@ -113,6 +113,33 @@ public static class DeveloperUnlocks
         return true;
     }
 
+    // A release build (available == false) that finds the mode left on by an
+    // earlier developer build (`adb install -r` keeps PlayerPrefs) must undo what
+    // that mode wrote: the unlocked-everything ownership, worlds and tutorial
+    // flag live under the REAL keys, and Enabled is false here so nothing else
+    // would ever restore them. Puts the snapshot of real progress back, clears
+    // the flag and the developer-only choices. Without a snapshot the real keys
+    // are left untouched (a genuine purchase can't be told from a granted one)
+    // and only the flag is cleared. Idempotent: the flag is gone afterwards.
+    // Returns true if it found leftover state. Pure over PlayerPrefs plus the
+    // `available` argument, so tests can run it without a release binary.
+    public static bool RestoreLeftoverIfUnavailable(bool available)
+    {
+        if (available) return false;
+        if (PlayerPrefs.GetInt(EnabledKey, 0) != 1) return false;
+        bool hasSnapshot = PlayerPrefs.HasKey(ExistsKey("HasDoneTut")) ||
+                           PlayerPrefs.HasKey(ExistsKey(WorldManager.PrefsHighestWorld));
+        if (hasSnapshot) RestoreProgress();
+        else Debug.Log("[DeveloperUnlocks] leftover developer flag with no snapshot: ownership left untouched");
+        FusionTestMode.Reset();
+        PlayerPrefs.DeleteKey(EnabledKey);
+        PlayerPrefs.DeleteKey(SelectedWorldKey);
+        ShipSkins.ClearDeveloperChoices();
+        PlayerPrefs.Save();
+        Debug.Log("[DeveloperUnlocks] release build: leftover developer mode undone (snapshot " + (hasSnapshot ? "restored" : "missing") + ")");
+        return true;
+    }
+
     public static void SelectWorld(int index)
     {
         PlayerPrefs.SetInt(SelectedWorldKey, Mathf.Clamp(index, 0, WorldManager.Worlds.Length - 1));
@@ -213,6 +240,8 @@ public static class DeveloperUnlockBootstrap
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
     static void ApplyBuildDefault()
     {
+        // Earliest hook: before any shop, dock, world or cloud-sync read of prefs.
+        DeveloperUnlocks.RestoreLeftoverIfUnavailable(DeveloperUnlocks.Available);
 #if PAUSE_DEV
         if (DeveloperUnlocks.ApplyDevBuildDefault(DeveloperUnlocks.CurrentBuildId))
             Debug.Log("[DeveloperUnlocks] developer build: mode switched on by default");
