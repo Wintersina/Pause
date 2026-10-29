@@ -246,6 +246,7 @@ public static class AllTests
         ("LaneWidthTest", LaneWidthTest.Execute),
         ("RailsVettingTest", RailsVettingTest.Execute),
         ("RamKillTest", RamKillTest.Execute),
+        ("BlowtorchDurationTest", BlowtorchDurationTest.Execute),
         ("RedAtomFreeShotTest", RedAtomFreeShotTest.Execute),
         ("ReleaseReadinessTest", ReleaseReadinessTest.Execute),
         ("ReplayTest", ReplayTest.Execute),

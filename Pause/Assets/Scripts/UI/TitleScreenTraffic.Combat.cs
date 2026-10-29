@@ -481,7 +481,7 @@ public partial class TitleScreenTraffic
                     float range = l.range * .7f * s;
                     float halfWidth = Mathf.Tan(l.width * Mathf.Deg2Rad) * range;
                     u.held = Play(FxSource.Loop, f.id, nose, new Vector3(halfWidth * 2f * 1.15f, range, 1f), deg,
-                                  ShipFxArt.LoopTicks, true, l.duration * .8f, f, ReferenceHull * s * .5f + range * .5f, f.layer, 1);
+                                  ShipFxArt.LoopTicks, true, Mathf.Min(l.duration * .8f, 3f), f, ReferenceHull * s * .5f + range * .5f, f.layer, 1);
                 }
                 break;
             case ShipAttack.ThrownDisc:
