@@ -436,6 +436,9 @@ public partial class TitleScreenTraffic
                 break;
             case ShipAttack.BoomerangStar:
                 u.held = Play(FxSource.Loop, f.id, nose, Vector3.one * .8f * s, 0f, ShipFxArt.LoopTicks, true, 0f, null, 0f, f.layer, 3);
+                // the second star leaves the tail (the demo shows the base pair)
+                u.disc = Play(FxSource.Loop, f.id, f.pos - Dir(f.heading) * ReferenceHull * s * .5f, Vector3.one * .7f * s, 0f,
+                              ShipFxArt.LoopTicks, true, 0f, null, 0f, f.layer, 3);
                 break;
             case ShipAttack.ProximityMines:
                 {
@@ -606,7 +609,12 @@ public partial class TitleScreenTraffic
                     Vector2 at = Nose(f) + new Vector2(1.3f * s * Mathf.Sin(th), 2.2f * s * (1f - Mathf.Cos(th)));
                     if (u.held != null && u.held.on) u.held.sr.transform.position = new Vector3(at.x, at.y, 0f);
                     KillInRadius(f, at, .4f * s);
-                    if (k >= 1f) { if (u.held != null) StopFx(u.held); Done(u); }
+                    // the tail star: mirrored, backwards and the other way round
+                    Vector2 rear = f.pos - new Vector2(1.3f * s * Mathf.Sin(th), 2.2f * s * (1f - Mathf.Cos(th)));
+                    rear.y -= ReferenceHull * s * .5f;
+                    if (u.disc != null && u.disc.on) u.disc.sr.transform.position = new Vector3(rear.x, rear.y, 0f);
+                    KillInRadius(f, rear, .35f * s);
+                    if (k >= 1f) { if (u.held != null) StopFx(u.held); if (u.disc != null) StopFx(u.disc); Done(u); }
                 }
                 break;
 

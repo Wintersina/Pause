@@ -28,6 +28,7 @@ public static class ShipAttacksV3CheapTest
         ArcaneEyeMarksThenDetonates();
         HeatWaveBurnsOnce();
         BoomerangHitsBothLegs();
+        BoomerangRearAndUpgrades();
         MinesWaitAndFizzle();
         AbductLiftsAndHurls();
         GaleShovesAndCollides();
@@ -303,12 +304,77 @@ public static class ShipAttacksV3CheapTest
         Teardown(c);
         Object.DestroyImmediate(apart);
 
-        SetLevel(11, ShipWeaponUpgrades.MaxLevel);
         FreshScene();
         c = Ship(11);
         c.Runner.Fire();
-        Check("a second star is thrown at max level", AttackPool.ActiveSprites == 2);
+        Check("the base attack throws two stars (front + tail)", AttackPool.ActiveSprites == 2);
         Teardown(c);
+        SetLevel(11, 0);
+    }
+
+    // The rear star, the per-step star counts, and the view / lane clamp.
+    static void BoomerangRearAndUpgrades()
+    {
+        int[] expect = { 2, 3, 4, 5, 6 };
+        for (int lv = 0; lv <= ShipWeaponUpgrades.MaxLevel; lv++)
+        {
+            SetLevel(11, lv);
+            FreshScene();
+            var c = Ship(11);
+            var l = ShipWeaponUpgrades.LoadoutFor(11);
+            Check("level " + lv + " throws " + expect[lv] + " stars (" + ShipAttackRunner.StarCount(l) + ")",
+                  ShipAttackRunner.StarCount(l) == expect[lv]);
+            c.Runner.Fire();
+            Check("level " + lv + " draws " + expect[lv] + " stars (" + AttackPool.ActiveSprites + ")",
+                  AttackPool.ActiveSprites == expect[lv]);
+            Teardown(c);
+        }
+        Check("the star count never passes the max",
+              ShipAttackRunner.StarMax == 6 && ShipAttackRunner.StarMax <= AttackV3.Max &&
+              ShipAttackRunner.StarCount(new ShipLoadout { shots = 99 }) == ShipAttackRunner.StarMax);
+
+        // the rear star travels behind the ship first and ends back at it
+        SetLevel(11, 0);
+        var lo = ShipWeaponUpgrades.LoadoutFor(11);
+        Check("star 1 is the rear one", !ShipAttackRunner.StarIsRear(0) && ShipAttackRunner.StarIsRear(1));
+        Check("the rear star goes backwards and comes home",
+              ShipAttackRunner.StarPath(lo, 1, .25f).y < -1f && ShipAttackRunner.StarPath(lo, 1, 1f).sqrMagnitude < 1e-6f);
+        Check("it bulges to the other side of the front star",
+              ShipAttackRunner.StarPath(lo, 1, .25f).x * ShipAttackRunner.StarPath(lo, 0, .25f).x < 0f);
+
+        // a hazard behind the ship is cut by the rear star
+        FreshScene();
+        var ship = Ship(11);
+        Vector3 nose = ship.Runner.Nose;
+        Vector3 tail = nose - Vector3.up * ((nose.y - ship.transform.position.y) * 1.8f);
+        Vector3 spot = tail + ShipAttackRunner.StarPath(lo, 1, .15f);
+        var behind = Hazard(spot.x, spot.y);
+        ship.Runner.Fire();
+        Steps(ship.Runner, ShipAttackRunner.StarSeconds(lo) * .6f);
+        Check("a hazard behind the ship is hit by the rear star", !Alive(behind));
+        Steps(ship.Runner, ShipAttackRunner.StarSeconds(lo));
+        Teardown(ship);
+        Object.DestroyImmediate(behind);
+
+        // every star of every step stays inside the view and the lane at several aspect ratios
+        var view = new Rect(-3f, -5f, 6f, 10f);
+        foreach (var half in new[] { 3f, 4.5f, 6f })
+        {
+            view = new Rect(-half, -5f, half * 2f, 10f);
+            bool inside = true;
+            for (int lv = 0; lv <= ShipWeaponUpgrades.MaxLevel; lv++)
+            {
+                var ll = ShipWeaponUpgrades.LoadoutAt(11, lv);
+                for (int k = 0; k < ShipAttackRunner.StarCount(ll); k++)
+                    for (float u = 0f; u <= 1f; u += .05f)
+                        for (float y0 = -5f; y0 <= 5f; y0 += 2.5f)
+                        {
+                            var p = ShipAttackRunner.StarClamp(new Vector3(0f, y0, 0f) + ShipAttackRunner.StarPath(ll, k, u), view);
+                            inside &= p.x >= view.xMin && p.x <= view.xMax && p.y >= view.yMin && p.y <= view.yMax;
+                        }
+            }
+            Check("every star stays in a view " + half * 2f + " wide", inside);
+        }
         SetLevel(11, 0);
     }
 

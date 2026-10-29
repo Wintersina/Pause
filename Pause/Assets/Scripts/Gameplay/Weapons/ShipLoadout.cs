@@ -26,7 +26,7 @@ public enum ShipAttack
     Blowtorch,      // a short-range flame cone held in front of the ship
     ArcaneEye,      // an eye gazes up its cone and marks targets; the marks detonate 0.8 s later
     HeatWave,       // a thin wall of heat rolls up the whole screen from the nose, burning what it passes
-    BoomerangStar,  // a shuriken thrown on an ellipse that hits out and back to the ship
+    BoomerangStar,  // a shuriken thrown ahead and one from the tail, each on an ellipse that hits out and back to the ship
     ProximityMines, // mines launched ahead hold their screen position and blow when something comes close
     AbductHurl,     // a beam lifts the nearest enemy, then hurls it at the densest group
     RailSlug,       // a piercing slug that hits everything in a narrow line
@@ -187,10 +187,10 @@ public static class ShipLoadoutTable
             PowerTrigger.HazardsNearShip, 3, 2.6f,
             shots: 4, duration: .6f, range: 9f, width: 40f),
         // 11 Ninja (1950)
-        Row(11, ShipAttack.BoomerangStar, "BOOMERANG STAR", "A shuriken arcs out and curves back, cutting both ways.",
+        Row(11, ShipAttack.BoomerangStar, "BOOMERANG STAR", "A shuriken flies ahead and one from the tail; both curve back. Each colour adds a star.",
             SecretPower.BlinkDash, "BLINK DASH", "Dodges to the safer side at the last moment, or when a threat gets within 2.",
             PowerTrigger.ThreatClose, 1, 2f,
-            range: 6f, speed: 12f),
+            shots: 2, range: 6f, speed: 12f),   // shots = stars thrown: one forward, one from the tail
         // 12 Saboteur (2150)
         Row(12, ShipAttack.ProximityMines, "PROXIMITY MINES", "Four mines land ahead and blow when danger comes close.",
             SecretPower.BlackHole, "BLACK HOLE", "Swallows what drifts in once 3 enemies are on screen.",

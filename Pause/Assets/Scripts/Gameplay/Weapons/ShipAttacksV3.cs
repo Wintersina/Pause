@@ -8,7 +8,8 @@ using UnityEngine;
 //   HeatWave        Solar Fang a thin wall of heat the width of the screen rolls up from the nose, burning
 //                              everything it passes once
 //   BoomerangStar   Ninja      a shuriken thrown on an ellipse that comes back to the ship, hitting on the
-//                              way out and again on the way back
+//                              way out and again on the way back; a second one leaves the tail and sweeps
+//                              the area behind; every weapon step adds one more (StarTable, up to 6)
 //   ProximityMines  Saboteur   mines launched from the nose land ahead, hold their screen position (hazards
 //                              fall into them) and blow when something comes close; the rest fizzle out
 //   AbductHurl      UFO        a beam lifts the nearest enemy to a hold point, then hurls it at the densest
@@ -43,6 +44,15 @@ public class AttackV3
     public AttackSprite eye;
     public int count, resolved;
     public float y0;
+    // Boomerang Star: who each star already hit on each leg (index star * 2 + leg), so a boss can take a hit
+    // from every star (its 0.25 s hit window paces them) while one star never hits the same target twice a leg.
+    public readonly System.Collections.Generic.List<GameObject>[] starHit = MakeStarHit();
+    static System.Collections.Generic.List<GameObject>[] MakeStarHit()
+    {
+        var a = new System.Collections.Generic.List<GameObject>[Max * 2];
+        for (int i = 0; i < a.Length; i++) a[i] = new System.Collections.Generic.List<GameObject>(8);
+        return a;
+    }
 
     // A fresh firing.
     public void Reset()
@@ -52,6 +62,7 @@ public class AttackV3
             fx[i] = null; tgt[i] = null; col[i] = null; at[i] = 0f; phase[i] = 0; n[i] = 0;
         }
         hit2.Clear();
+        for (int i = 0; i < starHit.Length; i++) starHit[i].Clear();
         for (int i = 0; i < ReturnMax; i++) { rFx[i] = null; rAge[i] = 0f; }
         rCount = 0;
         eye = null;
@@ -95,6 +106,19 @@ public partial class ShipAttackRunner
     public const int WaveSegments = 5;
     // BOOMERANG STAR (Ninja)
     public const float StarHalfWidth = 1.9f, StarRadius = .35f;
+    // Stars per firing: the base attack throws 2 (one forward, one from the tail); each of the Ninja's four
+    // weapon steps (ShipWeaponUpgrades) adds one: 2, 3, 4, 5, 6. The row's `shots` IS the star count.
+    public const int StarMin = 2, StarMax = 6;
+    // The throws, in the order stars are added. dir: +1 thrown forward from the nose, -1 from the tail
+    // backwards; side: which way the ellipse bulges first; wide / tall: scale on StarHalfWidth / half range.
+    //   0 front, right, standard   1 rear, left, standard    (the base pair, a pinwheel)
+    //   2 front, left, wide+short  3 rear, right, wide+short (the flanks)
+    //   4 front, right, narrow+tall  5 rear, left, narrow+tall (reach)
+    static readonly float[] StarDir  = { 1f, -1f, 1f, -1f, 1f, -1f };
+    static readonly float[] StarSide = { 1f, -1f, -1f, 1f, 1f, -1f };
+    static readonly float[] StarWide = { 1f, 1f, 1.6f, 1.6f, .6f, .6f };
+    static readonly float[] StarTall = { 1f, 1f, .7f, .7f, 1.3f, 1.3f };
+    const float StarEdge = .4f;   // a star stays this far inside the view and the rails
     // PROXIMITY MINES (Saboteur)
     public const int MineCap = 12;
     public const float MineTrigger = .9f, MineBlast = 1.1f, MineLife = 6f, MineFlight = .4f;
@@ -150,12 +174,16 @@ public partial class ShipAttackRunner
 
             case ShipAttack.BoomerangStar:
                 {
-                    int stars = Mathf.Clamp(l.shots, 1, 2);
+                    int stars = Mathf.Min(StarCount(l), AttackV3.Max);
                     for (int j = 0; j < stars; j++)
-                        v.fx[j] = AttackPool.Sprite().Play(AttackSprite.Source.AttackLoop, ship, nose, Vector3.one * 1.1f, 0f,
+                    {
+                        Vector3 o = StarClamp(StarOrigin(j), view);
+                        v.pos[j] = o;
+                        v.fx[j] = AttackPool.Sprite().Play(AttackSprite.Source.AttackLoop, ship, o,
+                            Vector3.one * (StarIsRear(j) ? .95f : 1.1f), 0f,
                             ShipFxArt.LoopTicks, true, 0f, null, Vector3.zero, 71).Owned(run);
+                    }
                     v.count = stars;
-                    for (int j = 0; j < stars; j++) v.pos[j] = nose;
                 }
                 break;
 
@@ -367,26 +395,60 @@ public partial class ShipAttackRunner
         return perimeter / Mathf.Max(1f, l.speed);
     }
 
+    // How many stars this loadout throws.
+    public static int StarCount(ShipLoadout l) { return Mathf.Clamp(l.shots, StarMin, StarMax); }
+
     // Where star `side` (+1 / -1) is at fraction u of its throw, relative to the nose: out along one
     // side of the ellipse to the range, back along the other to the ship.
     public static Vector3 StarOffset(ShipLoadout l, float side, float u)
     {
-        float th = u * 2f * Mathf.PI, b = l.range * .5f;
-        return new Vector3(side * StarHalfWidth * Mathf.Sin(th), b - b * Mathf.Cos(th), 0f);
+        return StarPath(l, 0, u, side);
+    }
+
+    // Star k's offset from its own origin (nose for a front star, tail for a rear one) at fraction u.
+    public static Vector3 StarPath(ShipLoadout l, int k, float u) { return StarPath(l, k, u, StarSide[k]); }
+
+    static Vector3 StarPath(ShipLoadout l, int k, float u, float side)
+    {
+        float th = u * 2f * Mathf.PI, b = l.range * .5f * StarTall[k];
+        return new Vector3(side * StarHalfWidth * StarWide[k] * Mathf.Sin(th), StarDir[k] * (b - b * Mathf.Cos(th)), 0f);
+    }
+
+    public static bool StarIsRear(int k) { return StarDir[k] < 0f; }
+
+    // The ship's tail: a hull length behind the nose (the nose offset is the half length).
+    Vector3 StarOrigin(int k)
+    {
+        Vector3 nose = Nose;
+        return StarIsRear(k) ? nose - Vector3.up * (noseOffset * 1.8f) : nose;
+    }
+
+    // Keeps a star in the visible lane: inside the view and the rails (LaneMetrics), never off screen.
+    public static Vector3 StarClamp(Vector3 p, Rect view)
+    {
+        if (view.width >= 100f) return p;
+        float half = LaneMetrics.InnerEdge;
+        float xMin = view.xMin + StarEdge, xMax = view.xMax - StarEdge;
+        if (half > 1f) { xMin = Mathf.Max(xMin, -half + StarEdge); xMax = Mathf.Min(xMax, half - StarEdge); }
+        if (xMin > xMax) xMin = xMax = view.center.x;
+        p.x = Mathf.Clamp(p.x, xMin, xMax);
+        p.y = Mathf.Clamp(p.y, view.yMin + StarEdge, view.yMax - StarEdge);
+        return p;
     }
 
     void StepStars(AttackRun run, AttackV3 v)
     {
         var l = run.loadout;
         float u = Mathf.Clamp01(run.t / StarSeconds(l));
-        var list = u < .5f ? run.hit : v.hit2;   // each target once per leg
-        Vector3 nose = Nose;
+        int leg = u < .5f ? 0 : 1;
+        Rect view = ShipTargets.View();
         ShipTargets.Collect(targets);
         int kills = 0;
         for (int j = 0; j < v.count; j++)
         {
+            var list = v.starHit[j * 2 + leg];   // each target once per star per leg
             Vector3 prev = v.pos[j];
-            Vector3 now = nose + StarOffset(l, j == 0 ? 1f : -1f, u);
+            Vector3 now = StarClamp(StarOrigin(j) + StarPath(l, j, u), view);
             v.pos[j] = now;
             if (v.fx[j] != null && v.fx[j].Active && v.fx[j].Run == run) v.fx[j].transform.position = now;
             HostileShots.ShootDownAlong(prev, now, StarRadius);
