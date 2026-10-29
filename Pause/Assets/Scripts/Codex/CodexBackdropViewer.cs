@@ -94,6 +94,8 @@ public sealed class CodexBackdropViewer : MonoBehaviour
     Font font;
     RectTransform root;
     RawImage view;
+    Image backing;
+    public Image Backing { get { return backing; } }
     Image fade, shade;
     Texture2D shadeTexture;
     Text title, sub;
@@ -159,6 +161,9 @@ public sealed class CodexBackdropViewer : MonoBehaviour
 
     void BuildView()
     {
+        backing = CodexUi.NewImage("Backing", root, null, Color.black);
+        CodexUi.Stretch(backing.rectTransform);
+        backing.raycastTarget = true;   // solid black under the picture: nothing of the codex can show through it
         view = new GameObject("View", typeof(RectTransform), typeof(RawImage)).GetComponent<RawImage>();
         view.transform.SetParent(root, false);
         CodexUi.Stretch(view.rectTransform);

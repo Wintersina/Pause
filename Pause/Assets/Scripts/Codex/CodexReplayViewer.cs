@@ -47,6 +47,8 @@ public sealed class CodexReplayViewer : MonoBehaviour
     Font font;
     RectTransform root, backRt, titleRt, subRt, shadeRt, tagRt;
     RawImage view;
+    Image backing;
+    public Image Backing { get { return backing; } }
     Image fade;
     ReplayLabel replayLabel;
     Text title, sub;
@@ -85,8 +87,15 @@ public sealed class CodexReplayViewer : MonoBehaviour
         RenderFrame();
     }
 
+    // The recorded game camera's background can carry alpha 0; into the RenderTexture that
+    // leaves see-through pixels the codex shows through. Always opaque.
+    public static Color OpaqueBackground(Color c) { c.a = 1f; return c; }
+
     void BuildView()
     {
+        backing = CodexUi.NewImage("Backing", root, null, Color.black);
+        CodexUi.Stretch(backing.rectTransform);
+        backing.raycastTarget = true;   // solid black under the picture: nothing of the codex can show through it
         view = new GameObject("View", typeof(RectTransform), typeof(RawImage)).GetComponent<RawImage>();
         view.transform.SetParent(root, false);
         CodexUi.Stretch(view.rectTransform);
@@ -222,7 +231,7 @@ public sealed class CodexReplayViewer : MonoBehaviour
             cam = camGo.AddComponent<Camera>();
             cam.orthographic = true;
             cam.clearFlags = CameraClearFlags.SolidColor;
-            cam.backgroundColor = HasClip ? loaded.clip.background : Color.black;
+            cam.backgroundColor = OpaqueBackground(HasClip ? (Color)loaded.clip.background : Color.black);
             cam.nearClipPlane = .1f;
             cam.farClipPlane = 200f;
             cam.allowHDR = false;
