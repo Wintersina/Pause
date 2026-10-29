@@ -177,10 +177,10 @@ public static class ShipLoadoutTable
             PowerTrigger.HazardsNearShip, 2, 2.0f,
             shots: 3, width: .32f, range: 1.2f, speed: 26f),
         // 9 Ligher (1200)
-        Row(9, ShipAttack.Blowtorch, "BLOWTORCH", "A short flame cone in front.",
+        Row(9, ShipAttack.Blowtorch, "BLOWTORCH", "A flame cone in front that burns for 5 s.",
             SecretPower.FlareDecoy, "FLARE DECOY", "A flare that hunters chase and shooters aim at for 4 s, then it pops.",
             PowerTrigger.EnemyClosing, 2, 2.4f,
-            duration: 2.8f, range: 2.7f, width: 24f),
+            duration: 5f, range: 2.7f, width: 24f),
         // 10 Paranoid (1450)
         Row(10, ShipAttack.ArcaneEye, "ARCANE EYE", "An eye marks four targets ahead; the marks detonate.",
             SecretPower.TimeBubble, "TIME BUBBLE", "A dome shoves hazards out and blocks bullets for 2.5 s when it crowds you.",
