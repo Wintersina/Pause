@@ -168,7 +168,7 @@ public static class AtomFusions
         if (first)
         {
             Discoveries++;
-            if (FusionTuning.FirstDiscoveryDust > 0f) score.AwardStarDust(FusionTuning.FirstDiscoveryDust);
+            Codex.PayFusion(f);   // the combo's Codex star dust (CodexPayout), once; replaces the old FirstDiscoveryDust switch
         }
         string word = first ? discoveryWords[(int)f.id]
                     : f.external ? null   // VACUUM's own callout (MagnetCombo) is already up

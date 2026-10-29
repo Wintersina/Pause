@@ -68,7 +68,7 @@ public static class FusionTuning
     public const float CalloutGlowAlpha = .55f;    // the fusion's own glow behind the words
 
     // ---- first discovery ----
-    public const float FirstDiscoveryDust = 0f;    // a one-time star dust reward; 0 = off (economy)
+    public const float FirstDiscoveryDust = 0f;    // unused: combo first-discovery dust is CodexPayout (Codex.PayFusion)
 
     // ---- the motes (an instant atom primed on the ship) ----
     public const float MoteSize = .14f;            // u, the dot's diameter

@@ -2,7 +2,7 @@ using System.Collections.Generic;
 
 // The star dust a Codex entry pays the first time it is discovered. ONE table, here, so the numbers are easy to
 // tune and to audit. Every payout is between Min (5) and Max (25 = super rare); normal entries scale 5..15 by
-// rarity / tier, and only the SuperRare ids pay Max. The Pilot's Log is free from the start and pays nothing.
+// rarity / tier, and only the SuperRare ids pay Max. The Log entries pay 5 too (paid by Codex.PaySweep).
 //
 //   kind                              pays
 //   --------------------------------  -----------------------------------------------------------
@@ -20,6 +20,13 @@ using System.Collections.Generic;
 //   Worlds: the wormhole portal       8
 //   Ships                             10
 //   Drift asteroid (Space rock)       5
+//   Log: Pilot's Log, Wormhole Gift,
+//        Last Stand (first replay kept) 5
+//   Combos (atomic fusions): pairs    8
+//   Combos: triples (Singularity)     15
+//   Music: a world / credits theme    5
+//   Music: a boss track               8
+//   Backdrops (one per world variant) 5
 //   SUPER RARE (25): the last world's boss, and the Paragon ship.
 //
 // Payment itself lives in Codex (first discovery, and the one-time back-pay for older saves).
@@ -32,6 +39,30 @@ public static class CodexPayout
     public const int Elite = 12, Boss = 15;
     public const int SpaceWorld = 5, OtherWorld = 10, Portal = 8;
     public const int Ship = 10, SuperRare = 25;
+    public const int LogEntry = 5, FusionPair = 8, FusionTriple = 15, Track = 5, BossTrack = 8, Backdrop = 5;
+
+    // Paid-list ids of the things that are not CodexEntry rows (they share Codex.PaidKey, so one guard covers all).
+    public const string FusionPrefix = "fusion_";
+    public static string FusionPayId(FusionDef f) { return FusionPrefix + f.key; }
+
+    // Star dust for a non-entry find: a combo ("fusion_bloom"), a music track ("music_..."), a backdrop ("bd_...").
+    // 0 for anything else (unknown / future ids, the always-open codex theme).
+    public static int ForExtra(string id)
+    {
+        if (string.IsNullOrEmpty(id)) return 0;
+        if (id.StartsWith(FusionPrefix, System.StringComparison.Ordinal))
+        {
+            var f = AtomFusionTable.FindKey(id.Substring(FusionPrefix.Length));
+            return f == null ? 0 : f.Triple ? FusionTriple : FusionPair;
+        }
+        if (id.StartsWith("music_", System.StringComparison.Ordinal))
+        {
+            if (id == CodexMusic.ThemeId || CodexMusic.Find(id) == null) return 0;
+            return id.StartsWith("music_boss_", System.StringComparison.Ordinal) ? BossTrack : Track;
+        }
+        if (id.StartsWith(CodexBackdrops.Prefix, System.StringComparison.Ordinal)) return CodexBackdrops.Find(id) == null ? 0 : Backdrop;
+        return 0;
+    }
 
     // The few entries that pay SuperRare. The last boss is the one of the highest world.
     public static IEnumerable<string> SuperRareIds
@@ -52,10 +83,11 @@ public static class CodexPayout
         return false;
     }
 
-    // Star dust for the entry (0 for the Pilot's Log and for null).
+    // Star dust for the entry (0 for null).
     public static int For(CodexEntry entry)
     {
-        if (entry == null || entry.category == CodexCategory.Log) return 0;
+        if (entry == null) return 0;
+        if (entry.category == CodexCategory.Log) return LogEntry;
         if (IsSuperRare(entry)) return SuperRare;
         string id = entry.id;
         switch (entry.category)
