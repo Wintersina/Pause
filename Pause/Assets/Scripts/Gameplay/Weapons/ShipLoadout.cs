@@ -22,7 +22,7 @@ public enum ShipAttack
 {
     CometStreak,    // two comet streaks straight ahead, each stops at the first hit
     ChainLightning, // a homing spark that then chains lightning between nearby enemies
-    SkyJavelins,    // three rockets fly up from the nose, each opens into a javelin that strikes down its lane
+    SkyJavelins,    // three rockets (up to five with weapon upgrades) fly up from the nose, each opens into a javelin that strikes down its lane
     Blowtorch,      // a short-range flame cone held in front of the ship
     ArcaneEye,      // an eye gazes up its cone and marks targets; the marks detonate 0.8 s later
     HeatWave,       // a thin wall of heat rolls up the whole screen from the nose, burning what it passes
@@ -172,7 +172,7 @@ public static class ShipLoadoutTable
             PowerTrigger.PickupsOnScreen, 4, 0f,
             shots: 3, duration: 6f, range: 6f, speed: 1.5f),   // speed = shots a second per pod (was 3; halved)
         // 8 Lightning (950)
-        Row(8, ShipAttack.SkyJavelins, "SKY JAVELINS", "Three rockets climb to the top, then javelins strike down three lanes.",
+        Row(8, ShipAttack.SkyJavelins, "SKY JAVELINS", "Three rockets climb to the top, then javelins strike down three lanes; colours add lanes up to five.",
             SecretPower.Thunderclap, "THUNDERCLAP", "Lightning strikes everything within 2.6 dead, bosses take half a hit.",
             PowerTrigger.HazardsNearShip, 2, 2.0f,
             shots: 3, width: .32f, range: 1.2f, speed: 26f),

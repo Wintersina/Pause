@@ -525,16 +525,20 @@ public partial class TitleScreenTraffic
                 break;
 
             case ShipAttack.SkyJavelins:
-                while (u.fired < l.shots && u.t >= u.fired * .08f)
                 {
-                    int lane = u.fired == 0 ? 0 : (u.fired % 2 == 1 ? -1 : 1) * ((u.fired + 1) / 2);
-                    float x = Mathf.Clamp(f.pos.x + lane * l.range * s, view.xMin + .3f, view.xMax - .3f);
-                    var b = Launch(f, BoltKind.Javelin, new Vector2(x, view.yMax + .6f), Vector2.down,
-                                   l.speed * .45f, l.width * s, .9f * s, null);
-                    if (b != null) b.stopY = f.pos.y + .3f * s;
-                    u.fired++;
+                    int count = Mathf.Clamp(l.shots, 1, SkyJavelinLanes.MaxCount);
+                    float minX = view.xMin + SkyJavelinLanes.EdgeMargin, maxX = view.xMax - SkyJavelinLanes.EdgeMargin;
+                    float pitch = SkyJavelinLanes.Pitch(count, l.range * s, 1f, minX, maxX);
+                    while (u.fired < count && u.t >= u.fired * .08f)
+                    {
+                        float x = SkyJavelinLanes.LaneX(u.fired, count, f.pos.x, pitch, minX, maxX);
+                        var b = Launch(f, BoltKind.Javelin, new Vector2(x, view.yMax + .6f), Vector2.down,
+                                       l.speed * .45f, l.width * s, .9f * s, null);
+                        if (b != null) b.stopY = f.pos.y + .3f * s;
+                        u.fired++;
+                    }
+                    if (u.fired >= count) Done(u);
                 }
-                if (u.fired >= l.shots) Done(u);
                 break;
 
             case ShipAttack.ChainLightning:

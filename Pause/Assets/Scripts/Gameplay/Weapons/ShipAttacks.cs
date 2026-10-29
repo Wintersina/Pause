@@ -312,23 +312,28 @@ public partial class ShipAttackRunner : MonoBehaviour
 
             case ShipAttack.SkyJavelins:
                 {
-                    // Three small rockets leave the nose and fly up to the top of
-                    // the screen, one per lane (centre lane first, then the outer
-                    // two); each opens into its javelin there (AttackProjectile
-                    // Rocket -> ManifestJavelin) and strikes down its lane.
+                    // Small rockets (3 at the base, up to SkyJavelinLanes.MaxCount
+                    // with the weapon steps) leave the nose and fly up to the top of
+                    // the screen, one per lane (centre lanes first); each opens into
+                    // its javelin there (AttackProjectile Rocket -> ManifestJavelin)
+                    // and strikes down its lane. The lanes are evenly spaced about
+                    // the ship and kept inside the live rails (SkyJavelinLanes).
                     Rect view = ShipTargets.View();
-                    while (run.fired < l.shots && run.t >= run.fired * .08f)
+                    int count = Mathf.Clamp(l.shots, 1, SkyJavelinLanes.MaxCount);
+                    float minX, maxX;
+                    SkyJavelinLanes.Limits(view, out minX, out maxX);
+                    float pitch = SkyJavelinLanes.Pitch(count, l.range, LaneMetrics.Density, minX, maxX);
+                    while (run.fired < count && run.t >= run.fired * .08f)
                     {
-                        int lane = run.fired == 0 ? 0 : (run.fired % 2 == 1 ? -1 : 1) * ((run.fired + 1) / 2);
-                        float x = Mathf.Clamp(transform.position.x + lane * l.range, view.xMin + .3f, view.xMax - .3f);
+                        float x = SkyJavelinLanes.LaneX(run.fired, count, transform.position.x, pitch, minX, maxX);
                         float top = Mathf.Min(view.yMax + .6f, transform.position.y + 30f);
                         Vector3 nose = Nose;
                         var p = Launch(run, AttackProjectile.Kind.Rocket, nose, new Vector3(x - nose.x, top - nose.y, 0f),
-                                       RocketSpeed, .05f, .6f, null, 1f / Mathf.Max(1, l.shots));
+                                       RocketSpeed, .05f, .6f, null, SkyJavelinLanes.WeightPerJavelin);
                         if (p != null) p.SetRocket(new Vector3(x, top, 0f), transform.position.y + .3f);
                         run.fired++;
                     }
-                    if (run.fired >= l.shots) run.active = false;
+                    if (run.fired >= count) run.active = false;
                 }
                 break;
 
