@@ -292,6 +292,7 @@ public static class AllTests
         ("ShipSkinsTest", ShipSkinsTest.Execute),
         ("SkinDamageGameplayTest", SkinDamageGameplayTest.Execute),
         ("ShipWeaponUpgradesTest", ShipWeaponUpgradesTest.Execute),
+        ("SignatureUpgradesG1Test", SignatureUpgradesG1Test.Execute),
         ("SkinHeartsTest", SkinHeartsTest.Execute),
         ("UpgradeHeartsSizeTest", UpgradeHeartsSizeTest.Execute),
         ("ShopHealthCarryoverTest", ShopHealthCarryoverTest.Execute),

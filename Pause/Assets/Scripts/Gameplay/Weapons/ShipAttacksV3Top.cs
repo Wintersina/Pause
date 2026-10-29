@@ -208,6 +208,8 @@ public partial class ShipAttackRunner
             HitOnce(run.hit, t.gameObject, weight);
         }
 
+        if (ShipSignatures.IonCross(l)) StepIonCross(run, nose, angle, weight);   // signature: the crossing beam
+
         // the beam itself: art is a horizontal strip, so it is stretched along x and turned onto the line
         if (run.visual != null && run.visual.Active && run.visual.Run == run)
         {
