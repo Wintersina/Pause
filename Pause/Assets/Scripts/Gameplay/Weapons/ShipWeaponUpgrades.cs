@@ -39,6 +39,12 @@ public static class ShipWeaponUpgrades
         return new WeaponStep { cooldownCut = cut, label = "-" + Mathf.RoundToInt(cut * 100f) + "% COOLDOWN" };
     }
 
+    // A "+1 star" step that also trims the cooldown (the Ninja adds a star at every colour).
+    static WeaponStep StarCd(string label, float cut)
+    {
+        return new WeaponStep { label = label, shots = 1, cooldownCut = cut };
+    }
+
     static WeaponStep Up(string label, int shots = 0, int maxHits = 0, float duration = 0f,
                          float range = 0f, float width = 0f, float speed = 0f)
     {
@@ -67,7 +73,7 @@ public static class ShipWeaponUpgrades
         /*  8 Lightning    */ new[] { Up("+1 JAVELIN", shots: 1), Cd(.15f), Up("+1 JAVELIN", shots: 1), Cd(.20f) },   // 3 -> 4 -> 5 lanes (SkyJavelinLanes)
         /*  9 Ligher       */ new[] { Up("LONGER BURN", duration: BlowtorchStepSeconds), Cd(.15f), Up("BIGGER, LONGER FLAME", duration: BlowtorchStepSeconds, range: .6f, width: 6f), Cd(.20f) },
         /* 10 Paranoid     */ new[] { Up("+1 MARK", shots: 1), Cd(.15f), Up("+1 MARK", shots: 1), Cd(.20f) },
-        /* 11 Ninja        */ new[] { Up("+1 STAR", shots: 1), Cd(.15f), Up("LONGER THROW", range: 1f), Cd(.20f) },
+        /* 11 Ninja        */ new[] { Up("+1 STAR", shots: 1), StarCd("+1 STAR", .15f), Up("+1 STAR", shots: 1), StarCd("+1 STAR", .20f) },   // 2 stars (front + rear) -> 6
         /* 12 Saboteur     */ new[] { Up("+1 MINE", shots: 1), Cd(.15f), Up("+1 MINE", shots: 1), Cd(.20f) },
         /* 13 UFO          */ new[] { Up("+1 PIERCE", maxHits: 1), Cd(.15f), Up("+1 GRAB", shots: 1), Cd(.20f) },
         /* 14 Dove         */ new[] { Up("WIDER GUST", width: 12f), Cd(.15f), Up("LONGER GUST", range: 1.5f), Cd(.20f) },
