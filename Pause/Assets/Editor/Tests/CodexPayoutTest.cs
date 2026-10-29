@@ -176,10 +176,10 @@ public static class CodexPayoutTest
 
         // a first song / backdrop pays on the spot, once
         Reset("", 100f);
-        string track = CodexMusic.All.First(t => t.id.StartsWith("music_world_")).id, boss = CodexMusic.All.First(t => t.id.StartsWith("music_boss_")).id;
+        string track = CodexMusic.All.First(t => t.id.StartsWith("music_world_")).id, bossTrack = CodexMusic.All.First(t => t.id.StartsWith("music_boss_")).id;
         string bd = CodexBackdrops.All[0].id;
         Check("hear a song: pays once", Codex.HearTrack(track) && Dust() == 100f + CodexPayout.Track && !Codex.HearTrack(track) && Dust() == 100f + CodexPayout.Track);
-        Check("boss song pays its own value", Codex.HearTrack(boss) && Dust() == 100f + CodexPayout.Track + CodexPayout.BossTrack);
+        Check("boss song pays its own value", Codex.HearTrack(bossTrack) && Dust() == 100f + CodexPayout.Track + CodexPayout.BossTrack);
         Check("see a backdrop: pays once", Codex.SeeBackdrop(bd) && !Codex.SeeBackdrop(bd) && Dust() == 100f + CodexPayout.Track + CodexPayout.BossTrack + CodexPayout.Backdrop);
         Codex.Reload();
         Check("after a reload: the sweep does not pay those again (only the logs)", Codex.PaySweep() == logs);
