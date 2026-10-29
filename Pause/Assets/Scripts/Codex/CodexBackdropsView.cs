@@ -13,6 +13,10 @@ using UnityEngine.UI;
 public sealed class CodexBackdropsView
 {
     public const float StripHeight = 96f, StripGap = 12f;
+    // Clear space between the strip's top (and bottom) edge and its text rows, so the "n / m  SEEN"
+    // count is not jammed against the edge (it was 6 px, now 14 px). Strip-relative, so it holds on
+    // every aspect ratio.
+    public const float StripTextInset = 14f;
     public const string LockedHint = "Not seen yet.";
     public const string IdleLine = "Tap a backdrop to look around. Swipe to browse.";
 
@@ -218,8 +222,8 @@ public sealed class CodexBackdropsView
         listRect = Rect.MinMaxRect(-w * .5f, -h * .5f, w * .5f, stripRect.yMin - StripGap);
         float pad = 20f;
         CodexUi.Place(strip, stripRect);
-        CodexUi.Place(stripCount.rectTransform, new Rect(-w * .5f + pad + 8f, 2f, w - 2f * pad - 16f, StripHeight * .5f - 8f));
-        CodexUi.Place(stripLine.rectTransform, new Rect(-w * .5f + pad + 8f, -StripHeight * .5f + 6f, w - 2f * pad - 16f, StripHeight * .5f - 8f));
+        CodexUi.Place(stripCount.rectTransform, new Rect(-w * .5f + pad + 8f, 2f, w - 2f * pad - 16f, StripHeight * .5f - 2f - StripTextInset));
+        CodexUi.Place(stripLine.rectTransform, new Rect(-w * .5f + pad + 8f, -StripHeight * .5f + StripTextInset, w - 2f * pad - 16f, StripHeight * .5f - 2f - StripTextInset));
         CodexUi.Place(grid, listRect);
         LayoutCards();
     }
