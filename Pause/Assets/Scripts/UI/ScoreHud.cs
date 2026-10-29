@@ -541,6 +541,15 @@ public class ScoreHud : MonoBehaviour
     // the "+N" popups' pool, motion and clock.
     public Text ShowWord(string text, Vector3 world, Color colour, int size = 26)
     {
+        return ShowWord(text, world, colour, size, .8f, 50f);
+    }
+
+    // The ELITE DOWN popup's size, hold and rise (StyleFor), shared by the elites' "PAUSE BLOCKED" word (EliteShip.TeleportStrike).
+    public const int EliteWordSize = 40;
+    public const float EliteWordSeconds = 1.4f, EliteWordRise = 64f;
+
+    public Text ShowWord(string text, Vector3 world, Color colour, int size, float seconds, float rise)
+    {
         if (canvasRect == null || string.IsNullOrEmpty(text)) return null;
         if (popups == null) BuildPopups();
         int index = nextPopup;
@@ -550,8 +559,8 @@ public class ScoreHud : MonoBehaviour
         p.text.text = text;
         p.text.fontSize = size;
         p.text.color = colour;
-        p.seconds = .8f;
-        p.rise = 50f;
+        p.seconds = seconds;
+        p.rise = rise;
         p.from = KeepInSafeArea(p.text, ToCanvas(world), p.rise);
         p.age = 0f;
         p.text.gameObject.SetActive(true);
@@ -653,7 +662,7 @@ public class ScoreHud : MonoBehaviour
             case RunScore.Source.World:
                 return new PopupStyle { colour = AkiraPalette.Cyan, size = 44, seconds = 1.6f, rise = 70f, suffix = "  WORLD" };
             case RunScore.Source.Elite:
-                return new PopupStyle { colour = AkiraPalette.Magenta, size = 40, seconds = 1.4f, rise = 64f, suffix = "  ELITE DOWN" };
+                return new PopupStyle { colour = AkiraPalette.Magenta, size = EliteWordSize, seconds = EliteWordSeconds, rise = EliteWordRise, suffix = "  ELITE DOWN" };
             case RunScore.Source.Escape:   // an elite got away: the points it cost (negative), in the warning amber
                 return new PopupStyle { colour = AkiraPalette.Amber, size = 34, seconds = 1.4f, rise = 64f, suffix = "  ESCAPED" };
             case RunScore.Source.BossEscape:   // a boss got away: the points it cost (negative), in the warning amber
@@ -686,7 +695,7 @@ public class ScoreHud : MonoBehaviour
         var p = popups[index];
         if (p.glow != null && p.glow.enabled) p.glow.enabled = false;
         var style = StyleFor(source, source == RunScore.Source.Kill && RunScore.Multiplier > 1);
-        p.text.text = (points < 0 ? "-" + RunScore.Format(-points) : points == 0 ? "" : "+" + RunScore.Format(points)) + (points == 0 ? style.suffix.TrimStart() : style.suffix);
+        p.text.text = PopupText(points, source, style);
         p.text.fontSize = style.size;
         p.text.color = style.colour;
         p.seconds = style.seconds;
@@ -700,6 +709,15 @@ public class ScoreHud : MonoBehaviour
         rt.localScale = Vector3.zero;
         popups[index] = p;
         return p.text;
+    }
+
+    // "+N" / "-N" and the source's word; an elite brought down with a kill chain running also names the chain's
+    // multiplier its reward was paid at ("+200  ELITE DOWN x2", RunScore.LastEliteMultiplier).
+    public static string PopupText(int points, RunScore.Source source, PopupStyle style)
+    {
+        string text = (points < 0 ? "-" + RunScore.Format(-points) : points == 0 ? "" : "+" + RunScore.Format(points)) + (points == 0 ? style.suffix.TrimStart() : style.suffix);
+        if (source == RunScore.Source.Elite && points > 0 && RunScore.LastEliteMultiplier > 1) text += " x" + RunScore.LastEliteMultiplier;
+        return text;
     }
 
     void BuildPopups()

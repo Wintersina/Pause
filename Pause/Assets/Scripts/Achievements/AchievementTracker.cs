@@ -145,6 +145,7 @@ public static class AchievementTracker
             def.WorldIndex >= 0 && def.WorldIndex < AchievementCatalog.EliteWorlds)
             AchievementStore.SetCounterAtLeast(AchievementCatalog.EliteCounter(def.WorldIndex),
                                                AchievementStore.ElitesDestroyedIn(def.WorldIndex));
+        // (a blink costs an elite ONE heart -- PAUSE BLOCKED -- so Blink Strike is the blink that lands on its LAST heart)
         if (cause == EliteDamage.Teleport)
         {
             AchievementStore.Unlock(AchievementCatalog.Find("elite_blink"));

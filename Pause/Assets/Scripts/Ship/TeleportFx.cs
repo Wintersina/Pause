@@ -23,7 +23,7 @@ public class TeleportFx : MonoBehaviour
     public static void Play(Vector3 from, Vector3 to)
     {
         // a nudge is not a jump -- but a pause jump aimed at an elite always
-        // connects, however short (EliteShip.TeleportStrike)
+        // connects, however short (EliteShip.TeleportStrike: one heart, PAUSE BLOCKED)
         if (Vector3.Distance(from, to) < MinimumJump) { StrikeElites(to); return; }
 
         Ensure();
@@ -81,6 +81,11 @@ public class TeleportFx : MonoBehaviour
     // multipliers, the "+N" popup, secret meter, codex, achievements, dust),
     // but blown apart with the teleport's own "erased by the pause" blast
     // (TeleportKillFx) instead of the weapons' cel explosion.
+    //
+    // An ELITE is not erased: it is a mini-boss (EliteShip.TeleportStrike) --
+    // the blink costs it exactly one heart ("PAUSE BLOCKED"), then it ignores
+    // blinks for EliteShip.BlinkGuardSeconds; only its last heart makes the
+    // blink a kill (paid as an elite, ScoreRules.EliteDown, no blink bonus).
     //
     // The boss is not a hazard here: its body hitbox (an IShipAttackTarget)
     // is left alone -- a blink never costs it a hit point, as before, and no

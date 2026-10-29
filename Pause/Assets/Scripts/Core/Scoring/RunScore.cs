@@ -260,17 +260,30 @@ public static class RunScore
     }
 
     // An elite ship went down (EliteShip.Die), whatever brought it down:
-    // flat `points` (ScoreRules.EliteDown) counted as a kill, no chain or
-    // speed multiplier, with the "ELITE DOWN" popup at `at`.
-    public static int OnElite(Vector3 at, int points)
+    // `points` (ScoreRules.EliteDown) times the RUNNING kill chain's
+    // multiplier (ScoreRules.EliteMultiplier: x2 / x3 / x4 when it dies with
+    // a chain going, x1 otherwise -- no speed multiplier, no loop scale), counted
+    // as a kill, with the "ELITE DOWN" popup at `at` (naming the multiplier).
+    // The elite itself neither extends nor restarts the chain. Once the run has
+    // ended the chain is gone (x1); `chained` false (an elite the death crash's
+    // DOMINO broke: the domino multiplies its own DominoEliteBase) pays x1 too,
+    // so nothing is multiplied twice.
+    public static int OnElite(Vector3 at, int points, bool chained = true)
     {
+        LastEliteMultiplier = 1;
         if (!Earning || points <= 0) return 0;
-        points = ScoreMultiplier.Gain(points);
+        int m = chained ? ScoreRules.EliteMultiplier(Chain) : 1;
+        LastEliteMultiplier = m;
+        if (m > 1) NoteMultiplier(m);
+        points = ScoreMultiplier.Gain(points * m);
         parts.kills += points;
         parts.killCount++;
         Raise(points, at, Source.Elite);
         return points;
     }
+
+    // The chain multiplier the last elite reward was paid at (the ELITE DOWN popup's "x2").
+    public static int LastEliteMultiplier { get; private set; } = 1;
 
     // An elite got away (EliteShip.Escaped): the pilot LOSES `points` (half of
     // what its kill would have paid, no multipliers), taken off the KILLS row

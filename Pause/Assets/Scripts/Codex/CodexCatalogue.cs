@@ -448,13 +448,14 @@ public static class CodexCatalogue
     }
 
     // An elite's spec lines: its role, hearts and what downing it pays
-    // (EliteDef.Score / Dust: ScoreRules' defaults unless the def says).
+    // (EliteDef.Score / Dust: ScoreRules' defaults unless the def says; the
+    // points times a running kill chain, RunScore.OnElite).
     public static string EliteLore(EliteDef e)
     {
         string role = string.IsNullOrEmpty(e.role) ? "SHIP" : e.role.ToUpperInvariant();
         return e.lore + "\n\n" +
                "ELITE  " + role + " - " + e.hearts + " HEARTS" + (e.armored ? ", ARMOURED" : "") + "\n" +
-               "DOWNED  +" + e.Score + " POINTS, +" + Mathf.RoundToInt(e.Dust) + " STAR DUST";
+               "DOWNED  +" + e.Score + " POINTS x CHAIN, +" + Mathf.RoundToInt(e.Dust) + " STAR DUST";
     }
 
     public static string LoadoutLore(int ship)

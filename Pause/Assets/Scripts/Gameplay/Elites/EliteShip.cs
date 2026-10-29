@@ -70,15 +70,20 @@ using UnityEngine;
 // clamped to the view, it plans no evasions (the reflex still pushes it off what is about to hit it) and the rails do not crash it;
 // while it is outside the board it is untouchable, like a hiding elite (no collider, no hazard tag, not a target).
 //
-// DAMAGE (one heart each, then half a second of grace): a player weapon,
-// the ultimate, the red atom's free shot or a secret power
-// (ShipAttackHits -> TakeShipAttack), touching the pilot
-// (collisionDetection -> Rammed; the pilot loses a heart too unless
-// shielded), a crash, a rail, another elite, friendly fire. A shielded ram
-// (blue atom / Cloak) takes every heart, grace or not; a pause jump landing
-// on it (TeleportFx -> TeleportStrike) takes every heart (an instant kill, a boss excepted), grace or not.
-// Every kill, crash or lure included, pays ScoreRules.EliteDown +
-// EliteDownDust with an "ELITE DOWN" popup.
+// DAMAGE (one heart each). ELITES ARE MINI-BOSSES (user, 2026-10-28):
+//   * the pilot's weapons -- a player weapon, the ultimate, the red atom's free shot or a secret power
+//     (ShipAttackHits -> TakeShipAttack) -- land back to back: one heart per hit, at most one heart per
+//     HitBlockSeconds (0.1 s) -- the only window a weapon hit respects;
+//   * a pause jump landing on it (TeleportFx -> TeleportStrike) is NOT an instant kill: it costs exactly
+//     ONE heart (grace or not) with a "PAUSE BLOCKED" popup, and the elite then ignores further blinks for
+//     BlinkGuardSeconds (one blink = one heart, never a chain kill in an instant); at its last heart the blink
+//     brings it down as an ordinary kill;
+//   * touching the pilot (collisionDetection -> Rammed; the pilot loses a heart too unless shielded), a crash,
+//     a rail, another elite, friendly fire: one heart, then GraceSeconds (half a second) in which none of
+//     these crash / contact sources hurt it again (it keeps it from being ground down by one overlap);
+//   * a shielded ram (blue atom / Cloak) takes every heart, grace or not.
+// Every kill, crash or lure included, pays ScoreRules.EliteDown (times the running kill chain's
+// multiplier, RunScore.OnElite) + EliteDownDust with an "ELITE DOWN" popup.
 //
 // Positions are world (screen) space: like the chaser it holds its place in
 // the world while the board pours past it. Stepped by EliteSystem on the
@@ -94,7 +99,18 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint, I
     // ---- tuning shared by every elite ----
     public const int RailOrder = 0;            // the side rails (gameS1 leftPipe / rightPipe)
     public const int PlayOrder = -3;           // UNDER the rails: hull, plumes, lights, glows and hearts (PlayOrder + 2 at most) all sort below RailOrder, so a hull flying off and back passes beneath them; over the backdrop, docks and weather (<= -7)
-    public const float GraceSeconds = .5f;     // after losing a heart
+    public const float GraceSeconds = .5f;     // after losing a heart: no further crash / rail / contact / friendly-fire heart (NOT the weapons' window)
+    // The player's weapons land back to back: a weapon hit (EliteDamage.PlayerWeapon) is refused only within this long of the
+    // last heart lost, so a stream of hits costs at most one heart per 0.1 s (user, 2026-10-28; bosses keep their own 0.25 s window).
+    public const float HitBlockSeconds = .1f;
+    // A pause jump onto an elite costs ONE heart, then the elite ignores blinks this long (world clock: a pause freezes it too),
+    // so one blink -- or blinks repeated inside a pause -- can never take more than one heart at once.
+    public const float BlinkGuardSeconds = .5f;
+    public const string PauseBlockedWord = "PAUSE BLOCKED";
+    // Pause jumps an elite survived ("PAUSE BLOCKED"), and the blinks its guard refused (tests, diagnostics).
+    public static int PauseBlocks, BlinksGuarded;
+    // Edit-mode stand-in for the HUD word (tests): (word, at, colour).
+    public static System.Action<string, Vector3, Color> PauseBlockedHook;
     public const float EscapeWindow = 2f;      // after joining: no attacks yet
     public const float JoinSeconds = 1.1f;       // (the unscripted join; a script's entrance is its own 1-2 s: EliteScriptRunner.EntranceSeconds)
     public const float EntranceBreath = .9f;     // seconds of quiet after the entrance before the first attack
@@ -165,6 +181,8 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint, I
     public float AttackClock => attackClock;
     public int CurrentFrame { get; private set; }
     public float Grace => grace;
+    public float HitBlock => hitBlock;
+    public float BlinkGuard => blinkGuard;
     public SpriteRenderer Hull => hull;
     public CircleCollider2D Collider => col;
     public float HullScale => hullBase;
@@ -212,7 +230,7 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint, I
     public const float FlinchSeconds = .45f, FlinchKick = 1.7f, PhaseKick = 3.2f;
     int hidePhase, hideSide;        // 0 away, 1 waiting, 2 back in; the side it left by (0 left, 1 right, 2 top)
     Vector2 hideTo;
-    float stateTime, cooldown, escapeLeft, grace, hitFlash, frameHold, blinkCooldown, exhaustClock;
+    float stateTime, cooldown, escapeLeft, grace, hitBlock, blinkGuard, hitFlash, frameHold, blinkCooldown, exhaustClock;
     int idleStep, attackPhase, damagedStep;
     float damagedHold, stunLeft;
     float thrust, lastDt;
@@ -487,6 +505,8 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint, I
         if (dt <= 0f || State == EliteState.Dead) return;
         stateTime += dt;
         if (grace > 0f) grace = Mathf.Max(0f, grace - dt);
+        if (hitBlock > 0f) hitBlock = Mathf.Max(0f, hitBlock - dt);
+        if (blinkGuard > 0f) blinkGuard = Mathf.Max(0f, blinkGuard - dt);
         if (hitFlash > 0f) hitFlash = Mathf.Max(0f, hitFlash - dt);
         if (blinkCooldown > 0f) blinkCooldown -= dt;
         exhaustClock += dt;
@@ -1432,14 +1452,17 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint, I
 
     // ---- damage -------------------------------------------------------------
 
-    // One heart (two for a shielded ram); false if it was in its grace.
+    // `amount` hearts (every heart for a shielded ram); false if refused (its window, a soaking shield / plate).
+    // A weapon hit respects only HitBlockSeconds; Teleport (TeleportStrike: one heart, its own BlinkGuardSeconds), ShieldRam and
+    // Domino ignore every window; the rest (contact, crashes, rails, friendly fire, combo links) respect GraceSeconds.
     public bool TakeHit(EliteDamage cause, Vector3 at, int amount = 1)
     {
         string by = HitBy;
         HitBy = null;
         if (State == EliteState.Dead || !InPlay) return false;
+        if (cause == EliteDamage.PlayerWeapon) { if (hitBlock > 1e-4f) return false; }
         // (Domino: the death crash's wreckage, DeathCrash; Teleport: a pause jump aimed at it always connects)
-        if (grace > 0f && cause != EliteDamage.ShieldRam && cause != EliteDamage.Domino && cause != EliteDamage.Teleport) return false;
+        else if (grace > 0f && cause != EliteDamage.ShieldRam && cause != EliteDamage.Domino && cause != EliteDamage.Teleport) return false;
         // (a shield link or an armour plate soaks it: no heart)
         if (Attack != null && Attack.Absorbs(cause, at)) return false;
         Hearts = Mathf.Max(0, Hearts - Mathf.Max(1, amount));
@@ -1448,6 +1471,7 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint, I
         impactPending = true;
         impactAt = at;
         grace = GraceSeconds;
+        hitBlock = HitBlockSeconds;
         hitFlash = HitFlashSeconds;
         Vector2 away = (Vector2)transform.position - (Vector2)at;
         if (away.sqrMagnitude > 1e-6f) velocity += away.normalized * 1.5f;
@@ -1586,14 +1610,17 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint, I
 
     // ---- hooks for the pilot's side ----------------------------------------
 
-    // TeleportFx.Strike: a pause jump landed on it -- every heart, through
-    // TakeHit as ever, so it is an ordinary elite kill (a shield link or armour
-    // plate that lets a pause jump through still does). It resolves on the
-    // landing frame, while the world is still frozen (the elite has not moved
-    // since the pilot aimed), and its grace window does not refuse it. (An
-    // elite that somehow survives is flung out of the landing blast so the ship
-    // doesn't sit inside it.) A jump onto an elite's shot erases the shot.
-    // True when handled.
+    // TeleportFx.Strike: a pause jump landed on it. An elite is a mini-boss
+    // (user, 2026-10-28): the pause does not erase it -- it costs exactly ONE
+    // heart through TakeHit (its grace window does not refuse it; a shield link
+    // or armour plate may still soak it) and, when it survives, a "PAUSE
+    // BLOCKED" popup over it. Then BlinkGuardSeconds of blink immunity: a blink
+    // landing again inside it (Strike and StrikeElites in one jump, a second
+    // jump inside the same pause) costs nothing. At its last heart the jump is
+    // an ordinary elite kill (ELITE DOWN). It resolves on the landing frame,
+    // while the world is still frozen; a survivor is flung out of the landing
+    // blast so the ship doesn't sit inside it. A jump onto an elite's shot
+    // erases the shot. True when handled.
     public static bool TeleportStrike(GameObject go, Vector3 at)
     {
         if (go == null) return false;
@@ -1601,12 +1628,36 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint, I
         if (elite != null)
         {
             if (!elite.InPlay) return true;
-            elite.TakeHit(EliteDamage.Teleport, at, elite.Hearts);
-            if (elite != null && elite.State != EliteState.Dead) elite.Shove(at, TeleportFx.BlastRadius + elite.Def.hullRadius + .1f);
+            if (elite.blinkGuard > 1e-4f) { BlinksGuarded++; return true; }
+            bool hit = elite.TakeHit(EliteDamage.Teleport, at, 1);
+            if (hit) elite.blinkGuard = BlinkGuardSeconds;
+            if (elite != null && elite.State != EliteState.Dead)
+            {
+                if (hit) elite.ShowPauseBlocked();
+                elite.Shove(at, TeleportFx.BlastRadius + elite.Def.hullRadius + .1f);
+            }
             return true;
         }
         // (a rail mine's laser only where the hull lands on it: RailMineLaser.BlinkStrike)
         return EliteShots.EraseHitbox(go) || RailMineLaser.BlinkStrike(go, at) || AttackHazard.BlinkStrike(go, at);
+    }
+
+    // The "PAUSE BLOCKED" word over a survivor of a pause jump: the ELITE DOWN popup's size and hold, in the elite's world cue
+    // colour (Space's own magenta; no pink elsewhere), no outline.
+    void ShowPauseBlocked()
+    {
+        PauseBlocks++;
+        Color c = PauseBlockedColour(Def != null ? Def.WorldIndex : 0);
+        Vector3 at = transform.position;
+        if (PauseBlockedHook != null) PauseBlockedHook(PauseBlockedWord, at, c);
+        if (!Application.isPlaying) return;
+        var hud = ScoreHud.Current;
+        if (hud != null) hud.ShowWord(PauseBlockedWord, at, c, ScoreHud.EliteWordSize, ScoreHud.EliteWordSeconds, ScoreHud.EliteWordRise);
+    }
+
+    public static Color PauseBlockedColour(int world)
+    {
+        return WorldCue.IsSpace(world) ? AkiraPalette.Magenta : WorldCue.Body(world);
     }
 
     // collisionDetection, shielded (blue atom / Cloak): the ram takes both

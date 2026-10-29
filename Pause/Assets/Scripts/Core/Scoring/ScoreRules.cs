@@ -97,16 +97,28 @@ public static class ScoreRules
     public static int ShieldedShotsPerShield = 12;
     // A kill made by blinking onto it with the pause-teleport (TeleportFx):
     // added to the enemy's own points before the chain and speed multipliers,
-    // a small reward for using a pause offensively. Not on boss parts.
+    // a small reward for using a pause offensively. Not on boss parts, and
+    // not on elites: a blink on an elite is "PAUSE BLOCKED" (one heart).
     public static int TeleportKillBonus = 5;
     // An elite ship brought down (EliteShip), by any means: the pilot's
-    // weapons, the ultimate, a blink, a shielded ram -- or baiting it into
-    // a rock, a mine, a rail or another elite (luring is the skill). Flat:
-    // no chain or speed multiplier, an "ELITE DOWN" popup, plus
-    // EliteDownDust star dust through the normal currency path. Kills the
-    // elites' own shots make of other hazards (friendly fire) pay nothing.
-    public static int EliteDown = 50;
+    // weapons, the ultimate, a shielded ram, a blink on its last heart (a
+    // blink only ever costs an elite ONE heart: "PAUSE BLOCKED") -- or
+    // baiting it into a rock, a mine, a rail or another elite (luring is the
+    // skill). EliteDown points times the running kill chain's multiplier
+    // (EliteMultiplier: x2 / x3 / x4 when it dies with a chain going; no
+    // speed multiplier), an "ELITE DOWN" popup naming it, plus EliteDownDust
+    // star dust (never multiplied) through the normal currency path. Kills
+    // the elites' own shots make of other hazards (friendly fire) pay nothing.
+    public static int EliteDown = 100;
     public static float EliteDownDust = 15f;
+
+    // An elite's reward multiplier for a running kill chain of `chain` kills:
+    // the roster kills' chain multiplier (MultiplierFor), never the speed
+    // multiplier, within MaxTotalMultiplier.
+    public static int EliteMultiplier(int chain)
+    {
+        return Mathf.Max(1, Mathf.Min(MultiplierFor(chain), Mathf.FloorToInt(MaxTotalMultiplier)));
+    }
 
     // ---- death combo (DeathCrash's domino) ----
     // The wreckage of the pilot's death destroys what it hits, and what that
@@ -114,7 +126,8 @@ public static class ScoreRules
     // points above x n (DOMINO x2, x3 ...), capped at DominoMaxMultiplier;
     // no speed multiplier (the run is over) and it never touches the in-run
     // kill chain. An elite counts DominoEliteBase (its own EliteDown reward
-    // is paid as well, as for any elite going down). A MEGA DOMINO (the death
+    // is paid as well, as for any elite going down -- at x1: the run is over,
+    // so no in-run chain multiplies it and nothing is counted twice). A MEGA DOMINO (the death
     // takes the whole screen) adds MegaDominoBonus. The chain's total is
     // added once, as RunScore's deathCombo.
     public static int DominoMaxMultiplier = 5;

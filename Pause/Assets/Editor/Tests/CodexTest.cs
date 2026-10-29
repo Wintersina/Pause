@@ -661,7 +661,7 @@ public static class CodexTest
         }
 
         // ---- elites ----
-        Check("elites pay 50 points and 15 star dust by default", ScoreRules.EliteDown == 50 && Mathf.Approximately(ScoreRules.EliteDownDust, 15f));
+        Check("elites pay 100 points and 15 star dust by default", ScoreRules.EliteDown == 100 && Mathf.Approximately(ScoreRules.EliteDownDust, 15f));
         foreach (var d in EliteCatalog.All)
         {
             var e = Codex.Find(d.codexId);
@@ -674,8 +674,8 @@ public static class CodexTest
             var frames = EliteArt.Frames(d);
             Check("elite " + d.key + " strip has every mapped cell",
                   frames != null && frames.Length >= d.cells.Count && Array.TrueForAll(frames, f => f != null));
-            Check("elite " + d.key + " lore gives its role, hearts and reward (+" + d.Score + " / +" + d.Dust + ")",
-                  e.lore.Contains(d.hearts + " HEARTS") && e.lore.Contains("+" + d.Score + " POINTS") &&
+            Check("elite " + d.key + " lore gives its role, hearts and reward (+" + d.Score + " x chain / +" + d.Dust + ")",
+                  e.lore.Contains(d.hearts + " HEARTS") && e.lore.Contains("+" + d.Score + " POINTS x CHAIN") &&
                   e.lore.Contains("+" + Mathf.RoundToInt(d.Dust) + " STAR DUST") &&
                   (string.IsNullOrEmpty(d.role) || e.lore.Contains(d.role.ToUpperInvariant())));
             Check("elite " + d.key + " detail subtitle names its world",

@@ -57,6 +57,7 @@ public static class EliteTest
             Hearts();
             DamageSources();
             Rewards();
+            MiniBoss();
             Director();
             WorldSites();
             Frozen();
@@ -885,15 +886,34 @@ public static class EliteTest
         Check("a player weapon / the ultimate / the red atom's shot (ShipAttackHits) takes one heart, not the ship",
               e != null && e.Hearts == 1 && e.LastHitCause == EliteDamage.PlayerWeapon);
         ShipAttackHits.Hit(e.gameObject, 3);
-        Check("... and none during its grace", e != null && e.Hearts == 1);
+        Check("... and none in the same instant (its " + EliteShip.HitBlockSeconds + " s hit block)", e != null && e.Hearts == 1);
 
+        // ELITES ARE MINI-BOSSES (user, 2026-10-28): a pause jump costs ONE heart and says PAUSE BLOCKED, never an instant kill
         Fresh(.05f);
         e = InPlay("gunship", new Vector2(0f, 1f));
-        int killsBefore = EliteShip.Kills;
-        TeleportFx.Strike(new Vector3(.3f, 1f, 0f));
-        // (was one heart; the user: "when pause teleport on them it does 2 heart damage" -- HostileReachTest has every elite)
-        Check("a pause jump landing on it (TeleportFx.Strike) takes both hearts: a kill",
-              (e == null || (e.Hearts == 0 && e.State == EliteState.Dead)) && EliteShip.Kills == killsBefore + 1 && EliteShip.LastKillCause == EliteDamage.Teleport);
+        int killsBefore = EliteShip.Kills, blocks = EliteShip.PauseBlocks;
+        string word = null; Color wordColour = Color.clear;
+        System.Action<string, Vector3, Color> hook = (w, at, c) => { word = w; wordColour = c; };
+        EliteShip.PauseBlockedHook += hook;
+        try { TeleportFx.Strike(new Vector3(.3f, 1f, 0f)); }
+        finally { EliteShip.PauseBlockedHook -= hook; }
+        Check("a pause jump landing on it (TeleportFx.Strike) costs exactly one heart and it lives",
+              e != null && e.State != EliteState.Dead && e.Hearts == 1 && e.LastHitCause == EliteDamage.Teleport && EliteShip.Kills == killsBefore);
+        Check("... with a PAUSE BLOCKED popup", EliteShip.PauseBlocks == blocks + 1 && word == "PAUSE BLOCKED" && word == EliteShip.PauseBlockedWord);
+        Check("... in the elite's world colour, no pink outside Space",
+              wordColour == EliteShip.PauseBlockedColour(e.Def.WorldIndex) && (WorldCue.IsSpace(e.Def.WorldIndex) || !WorldCue.IsPink(wordColour)));
+        for (int w = 1; w < WorldCue.Worlds; w++)
+            Check("PAUSE BLOCKED in world " + w + " is its cue colour, not pink", !WorldCue.IsPink(EliteShip.PauseBlockedColour(w)) && EliteShip.PauseBlockedColour(w) == WorldCue.Body(w));
+        Check("the guard is " + EliteShip.BlinkGuardSeconds + " s", Mathf.Approximately(EliteShip.BlinkGuardSeconds, .5f) && e.BlinkGuard > 0f);
+        int guarded = EliteShip.BlinksGuarded;
+        TeleportFx.Strike(e.Position);
+        EliteShip.TeleportStrike(e.gameObject, e.Position);
+        Check("two more blinks inside the guard cost nothing (one blink = one heart)",
+              e != null && e.State != EliteState.Dead && e.Hearts == 1 && EliteShip.BlinksGuarded >= guarded + 2 && EliteShip.Kills == killsBefore);
+        Step(EliteShip.BlinkGuardSeconds + .1f);
+        TeleportFx.Strike(e.Position);
+        Check("past the guard, a blink on its LAST heart brings it down (Blink Strike)",
+              (e == null || e.State == EliteState.Dead) && EliteShip.Kills == killsBefore + 1 && EliteShip.LastKillCause == EliteDamage.Teleport);
 
         Fresh(.05f);
         e = InPlay("gunship", new Vector2(0f, 1f));
@@ -1024,10 +1044,86 @@ public static class EliteTest
                 for (int w = 0; w < 600 && e != null && e.Hidden; w++) EliteSystem.Step(Dt);
             }
             Check(Def(brain).displayName + " down pays " + ScoreRules.EliteDown + " points and " + ScoreRules.EliteDownDust * ScoreRules.DustRewardScale + " dust (15 x scale)",
-                  e == null && RunScore.Total - total == 50 && ScoreRules.EliteDown == 50 && ScoreRules.EliteDownDust == 15f &&
+                  e == null && RunScore.Total - total == 100 && ScoreRules.EliteDown == 100 && ScoreRules.EliteDownDust == 15f &&
                   Mathf.Abs(score.totalCurrency + score.tutorialCurrency - dust - 15f * ScoreRules.DustRewardScale) < .01f);
         }
     }
+
+    // ---- elites are mini-bosses (user, 2026-10-28) ----------------------------------
+
+    static void MiniBoss()
+    {
+        // every shipped elite has at least 3 hearts; the armoured ones 5
+        foreach (var d in EliteCatalog.All)
+            Check(d.key + ": " + d.hearts + " hearts (>= 3; armoured 5)", d.hearts >= 3 && (!d.armored || d.hearts == 5));
+
+        // the weapons' hit block: hits 0.1 s apart each cost a heart, closer than that do not
+        Check("the weapon hit block is 0.1 s (bosses keep their own)", Mathf.Approximately(EliteShip.HitBlockSeconds, .1f));
+        Fresh(.05f);
+        var def = EliteCatalog.Find("space_elite_eventide_bastion");
+        var e = EliteShip.CreateInPlay(def, new Vector2(0f, 1f));
+        e.AttackCooldown = 99f;
+        e.EngageLeft = 9999f;
+        int h = e.Hearts;
+        e.TakeShipAttack(0, 1f, e.Position);
+        Check("a weapon hit costs a heart (" + h + " -> " + e.Hearts + ")", e.Hearts == h - 1);
+        e.TakeShipAttack(0, 1f, e.Position);
+        EliteSystem.Step(Dt);   // 0.033 s
+        e.TakeShipAttack(0, 1f, e.Position);
+        EliteSystem.Step(Dt);   // 0.067 s
+        e.TakeShipAttack(0, 1f, e.Position);
+        Check("hits closer than 0.1 s apart cost nothing more", e.Hearts == h - 1);
+        EliteSystem.Step(Dt);   // 0.1 s
+        e.TakeShipAttack(0, 1f, e.Position);
+        Check("a hit 0.1 s after the last heart lands (" + e.Hearts + ")", e.Hearts == h - 2);
+        for (int i = 0; i < 4; i++) EliteSystem.Step(Dt);   // 0.133 s
+        e.TakeShipAttack(0, 1f, e.Position);
+        Check("... and the next one 0.13 s later too: well inside the old half-second window", Alive(e) && e.Hearts == h - 3 && e.Grace > 0f);
+
+        // the reward: 100 flat at chain x1, times the running kill chain (x2 / x3 / x4), never the speed multiplier
+        bool combo = DeathCombo.Enabled;
+        DeathCombo.Enabled = false;
+        try
+        {
+            int[] chains = { 0, 3, 6, 10 };
+            for (int c = 0; c < chains.Length; c++)
+            {
+                Fresh(.05f);
+                var rock = Rock(new Vector2(0f, 6f));
+                for (int k = 0; k < chains[c]; k++) RunScore.OnKill(rock);
+                int m = c + 1;
+                Check("chain of " + chains[c] + ": x" + m, RunScore.Multiplier == (chains[c] == 0 ? 1 : m) && ScoreRules.EliteMultiplier(RunScore.Chain) == m);
+                e = InPlay("gunship", new Vector2(0f, 1f));
+                long total = RunScore.Total;
+                int pts = 0; RunScore.Source src = RunScore.Source.Distance;
+                System.Action<int, Vector3, RunScore.Source> spy = (p, w, s) => { if (s == RunScore.Source.Elite) { pts = p; src = s; } };
+                RunScore.Scored += spy;
+                try { HitBy(e); }
+                finally { RunScore.Scored -= spy; }
+                int want = ScoreRules.EliteDown * m;
+                Check("an elite down at chain x" + m + " pays " + want + " (got " + (RunScore.Total - total) + ")",
+                      !Alive(e) && RunScore.Total - total == want && pts == want && EliteRewards.LastPoints == want && RunScore.LastEliteMultiplier == m);
+                string text = ScoreHud.PopupText(pts, src, ScoreHud.StyleFor(src, false));
+                Check("... the popup says it (" + text + ")", text.StartsWith("+" + RunScore.Format(want)) && text.Contains("ELITE DOWN") &&
+                      (m == 1 ? !text.Contains(" x") : text.EndsWith(" x" + m)));
+                Check("... the elite neither extends nor restarts the chain", RunScore.Chain == chains[c]);
+                if (rock != null) Object.DestroyImmediate(rock);
+            }
+            // speed never multiplies it
+            Fresh(1.2f);
+            e = InPlay("gunship", new Vector2(0f, 1f));
+            long t0 = RunScore.Total;
+            HitBy(e);
+            Check("no speed multiplier on an elite (" + (RunScore.Total - t0) + " at speed x" + ScoreRules.SpeedMultiplierFor(1.2f) + ")",
+                  RunScore.Total - t0 == ScoreRules.EliteDown || RunScore.Total - t0 == ScoreRules.EliteDown * 2 /* (the max-speed streak's x2, ScoreMultiplier, applies to every gain) */);
+        }
+        finally { DeathCombo.Enabled = combo; }
+    }
+
+    static bool Alive(EliteShip e) { return e != null && e.State != EliteState.Dead; }
+
+    // Brought down by a crash: an ordinary elite death (the reward), no combo, no blink.
+    static void HitBy(EliteShip e) { e.ForceDie(EliteDamage.Crash); }
 
     // ---- the director -----------------------------------------------------------
 
