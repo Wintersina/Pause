@@ -54,8 +54,19 @@ public static class ShipSkins
     public const string DeveloperEquippedPrefix = "developerShipSkin";
 
     // ---------------------------------------------------------- economy
-    // The one config table: price in star dust by kind (Stock, Palette, Special).
-    public static readonly float[] KindPrices = { 0f, 300f, 750f };
+    // The one config table: a standard ship's skin prices by its dock row
+    // (SpaceDock.RowOf, 1 = top = cheapest hulls): { palette, special } in
+    // star dust. Later ships cost more; row 5 holds Gold Warden, the anchor
+    // (1000 per colour, 2500 for the Special). Stock is always free. Rows past
+    // the table use its last entry; a premium ship has its own PremiumShips.SkinPrice.
+    public static readonly float[][] RowPrices =
+    {
+        new[] { 200f, 500f },     // row 1: Neon Comet, Volt Viper, Lightning
+        new[] { 400f, 1000f },    // row 2
+        new[] { 600f, 1500f },    // row 3
+        new[] { 800f, 2000f },    // row 4
+        new[] { 1000f, 2500f },   // row 5: ... Gold Warden
+    };
 
     // A ship's first colour is its first heart and first weapon step
     // (SkinHearts, ShipWeaponUpgrades), priced low so a new player feels the
@@ -81,7 +92,13 @@ public static class ShipSkins
         return !PremiumShips.IsPremium(id) && SpaceDock.RowOf(id) < LastStandardRow;
     }
 
-    public static float PriceOf(ShipSkinKind kind) { return KindPrices[(int)kind]; }
+    // The price of a skin kind for a ship in dock row `row`.
+    public static float PriceOf(ShipSkinKind kind, int row)
+    {
+        if (kind == ShipSkinKind.Stock) return 0f;
+        var t = RowPrices[Mathf.Clamp(row, 1, RowPrices.Length) - 1];
+        return kind == ShipSkinKind.Special ? t[1] : t[0];
+    }
 
     public static float PriceOf(int id, int skin)
     {
@@ -89,7 +106,7 @@ public static class ShipSkins
         // a premium ship's skins are all one (high) price
         if (PremiumShips.IsPremium(id)) return PremiumShips.SkinPrice;
         if (skin == 1 && FirstColourDiscounted(id)) return FirstColourPrice;
-        return PriceOf(Get(id, skin).kind);
+        return PriceOf(Get(id, skin).kind, SpaceDock.RowOf(id));
     }
 
     // Raised with the ship id when its equipped or previewed skin changes.

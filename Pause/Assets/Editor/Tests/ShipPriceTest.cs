@@ -43,8 +43,7 @@ public static class ShipPriceTest
         Check("Volt Viper is the cheapest paid ship", min == p[2]);
         Check("each is the old price x 7000/5800 within 25", AllScaled(p));
         Check("Paragon has no dust price", PremiumShips.IsPremium(16) && p[16] == 0f && shopingShips.CostFor(16) == float.MaxValue);
-        Check("skin prices untouched", ShipSkins.KindPrices[0] == 0f && ShipSkins.KindPrices[1] == 300f && ShipSkins.KindPrices[2] == 750f);
-        Debug.Log("[SHIPPRICE] failures: " + fails);
+                Debug.Log("[SHIPPRICE] failures: " + fails);
         return fails;
     }
 
