@@ -393,9 +393,10 @@ public partial class ShipAttackRunner : MonoBehaviour
             Arc(run.point, to);
             AttackPool.Sprite().Play(AttackSprite.Source.AttackBurst, ship, to, Vector3.one * .5f, 0f,
                 ShipFxArt.BurstTicks, false, 0f, null, Vector3.zero, 71);
-            run.hit.Add(t.gameObject);
-            ShipAttackHits.Hit(t.gameObject, ship, 1f, ref run.budget);
-            ViperJolt(run, to, t.gameObject);   // signature: the jump stuns the enemies around it
+            var tgo = t.gameObject;   // read before the hit: a kill can destroy the object on the spot (edit-mode tests)
+            run.hit.Add(tgo);
+            ShipAttackHits.Hit(tgo, ship, 1f, ref run.budget);
+            ViperJolt(run, to, tgo);   // signature: the jump stuns the enemies around it
             run.point = to;
             run.hops++;
             run.next += .06f;
@@ -1106,13 +1107,14 @@ public class AttackProjectile : MonoBehaviour
                     {
                         var struckGo = hit.gameObject;
                         bool special = struckGo.GetComponent<IShipAttackTarget>() != null;
+                        Vector3 struckAt = struckGo.transform.position;   // before the hit: a kill can destroy it on the spot
                         Strike(struckGo);
                         if (kind == Kind.Straight && pierceLeft > 0 && !special)
                         {
                             // signature pierce: on through this enemy (it is gone or about to be), a spark where it passed
                             pierceLeft--;
                             lastSpecial = struckGo;
-                            AttackPool.Sprite().Play(AttackSprite.Source.AttackBurst, ship, struckGo.transform.position,
+                            AttackPool.Sprite().Play(AttackSprite.Source.AttackBurst, ship, struckAt,
                                 Vector3.one * .35f, 0f, ShipFxArt.BurstTicks, false, 0f, null, Vector3.zero, 71);
                         }
                         else if (kind == Kind.Homing || kind == Kind.Straight) { Finish(true); return; }

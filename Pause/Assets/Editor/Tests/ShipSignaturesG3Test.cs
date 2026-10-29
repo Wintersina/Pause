@@ -180,7 +180,7 @@ public static class ShipSignaturesG3Test
         grabbed.AddComponent<BoxCollider2D>();
         var inLine = Hazard(0f, 3f);
         var side = Hazard(.8f, 3f);
-        var boss = Hazard(-2f, 3f);
+        var boss = Hazard(2f, 3f);   // inside the blast reach of the impact, but never the nearer target of a hurl (that would be a direct hit, not the blast)
         var fake = boss.AddComponent<FakeBoss>();
         boss.GetComponent<ClearTarget>().SetRadius(.5f);
         c.Runner.Fire();

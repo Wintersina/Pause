@@ -530,7 +530,9 @@ public partial class ShipAttackRunner
                 // the blast sets off the armed mines near it, a beat apart (each still blows for its own share)
                 for (int j = 0; j < v.count; j++)
                 {
-                    if (j == i || v.phase[j] != 2 || v.chain[j] > 0f) continue;
+                    // armed, or landing this very frame (a mine laid on top of a target trips the moment it lands)
+                    bool armed = v.phase[j] == 2 || (v.phase[j] == 1 && v.at[j] + dt >= MineFlight);
+                    if (j == i || !armed || v.chain[j] > 0f) continue;
                     if (((Vector2)(v.pos[j] - at)).sqrMagnitude > ShipSignatures2.MineChainReach * ShipSignatures2.MineChainReach) continue;
                     v.chain[j] = ShipSignatures2.MineChainDelay;
                 }

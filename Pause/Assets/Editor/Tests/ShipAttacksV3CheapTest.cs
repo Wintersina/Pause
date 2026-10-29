@@ -190,9 +190,11 @@ public static class ShipAttacksV3CheapTest
         // The blast: neighbours in reach take half weight once; the marked target the full hit; out of reach, nothing.
         FreshScene();
         c = Ship(10);
-        var marked = Boss(3f, 1.5f);
-        var near = Boss(3.9f, 1.5f);      // outside the cone (never marked), .9 from the mark
-        var far = Boss(4.6f, 1.5f);       // outside the cone, 1.6 from the mark
+        // placed from the eye (the cone is 40 degrees to a side, so the mark sits just inside it, 36 degrees)
+        Vector3 eye = c.Runner.Nose + Vector3.up * ShipAttackRunner.EyeAhead;
+        var marked = Boss(eye.x + 2.9f, eye.y + 4f);
+        var near = Boss(eye.x + 3.8f, eye.y + 4f);      // outside the cone (never marked), .9 from the mark
+        var far = Boss(eye.x + 4.5f, eye.y + 4f);       // outside the cone, 1.6 from the mark
         foreach (var b in new[] { near, far }) b.GetComponent<ClearTarget>().SetRadius(.3f);
         c.Runner.Fire();
         Steps(c.Runner, 2f);
@@ -209,8 +211,9 @@ public static class ShipAttacksV3CheapTest
         // Two marks next to each other: each takes its own full hit and no splash on top.
         FreshScene();
         c = Ship(10);
-        var m1 = Boss(3f, 1.5f);
-        var m2 = Boss(2.6f, 2.4f);
+        eye = c.Runner.Nose + Vector3.up * ShipAttackRunner.EyeAhead;
+        var m1 = Boss(eye.x + 2.9f, eye.y + 4f);
+        var m2 = Boss(eye.x + 2.5f, eye.y + 4.9f);
         foreach (var b in new[] { m1, m2 }) b.GetComponent<ClearTarget>().SetRadius(.3f);
         c.Runner.Fire();
         Steps(c.Runner, 2f);
@@ -570,8 +573,8 @@ public static class ShipAttacksV3CheapTest
         Check("Solar Fang: thicker band, a second wave",
               ShipWeaponUpgrades.LoadoutAt(3, max).width > ShipWeaponUpgrades.LoadoutAt(3, 0).width &&
               ShipWeaponUpgrades.LoadoutAt(3, max).shots == 2);
-        Check("Ninja: a second star, longer throw",
-              ShipWeaponUpgrades.LoadoutAt(11, max).shots == 2 && ShipWeaponUpgrades.LoadoutAt(11, max).range > ShipWeaponUpgrades.LoadoutAt(11, 0).range);
+        Check("Ninja: two stars (front and rear), one more per colour, six at max level",
+              ShipWeaponUpgrades.LoadoutAt(11, 0).shots == 2 && ShipWeaponUpgrades.LoadoutAt(11, max).shots == 6);
         Check("Saboteur: 4 mines, 6 at max level",
               ShipWeaponUpgrades.LoadoutAt(12, 0).shots == 4 && ShipWeaponUpgrades.LoadoutAt(12, max).shots == 6);
         Check("UFO: pierces one more, two grabs",
