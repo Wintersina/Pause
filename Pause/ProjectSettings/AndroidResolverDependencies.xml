@@ -1,5 +1,6 @@
 <dependencies>
   <packages>
+    <package>androidx.fragment:fragment:1.6.2</package>
     <package>com.android.billingclient:billing:8.0.0</package>
     <package>com.google.android.gms:play-services-games-v2:22.1.0</package>
   </packages>

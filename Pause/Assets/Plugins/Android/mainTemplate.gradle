@@ -8,9 +8,9 @@ dependencies {
     // androidx.fragment 1.6.2 brings kotlin-stdlib 1.8.x; align the old jdk7/jdk8 split artifacts to it (duplicate classes otherwise)
     implementation platform('org.jetbrains.kotlin:kotlin-bom:1.8.22')
 // Android Resolver Dependencies Start
+    implementation 'androidx.fragment:fragment:1.6.2' // Assets/Editor/AndroidxFragmentDependencies.xml:9
     implementation 'com.android.billingclient:billing:8.0.0' // Assets/Editor/PlayBillingDependencies.xml:9
     implementation 'com.google.android.gms:play-services-games-v2:22.1.0' // Assets/GooglePlayGames/com.google.play.games/Editor/GooglePlayGamesPluginDependencies.xml:9
-    implementation 'androidx.fragment:fragment:1.6.2' // Assets/Editor/AndroidxFragmentDependencies.xml:9
 // Android Resolver Dependencies End
 **DEPS**}
 

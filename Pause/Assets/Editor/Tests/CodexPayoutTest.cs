@@ -176,6 +176,8 @@ public static class CodexPayoutTest
 
         // a first song / backdrop pays on the spot, once
         Reset("", 100f);
+        PlayerPrefs.DeleteKey(FusionDiscoveryStore.PrefsKey);   // the combo found above is not part of this check
+        FusionDiscoveryStore.Reload();
         string track = CodexMusic.All.First(t => t.id.StartsWith("music_world_")).id, bossTrack = CodexMusic.All.First(t => t.id.StartsWith("music_boss_")).id;
         string bd = CodexBackdrops.All[0].id;
         Check("hear a song: pays once", Codex.HearTrack(track) && Dust() == 100f + CodexPayout.Track && !Codex.HearTrack(track) && Dust() == 100f + CodexPayout.Track);
