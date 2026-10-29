@@ -318,6 +318,12 @@ public static class CodexBackdropTest
         Check("it scrolls slowly (the run's start rate), on unscaled time", WorldBackdrop.ScrollVelocity(0f) <= 8f && viewer.SecondsShown > .5f);
         Check("the Android back / Escape layer is the viewer's", BackNavigator.Top == (object)viewer);
 
+        // opaque: a full-screen solid backing under the picture, above the codex, so nothing of it shows through
+        Check("the viewer covers the codex opaquely (solid black full-screen backing beneath the picture)",
+              viewer.Backing != null && viewer.Backing.color.a >= 1f && viewer.Backing.transform.GetSiblingIndex() < viewer.ViewImage.transform.GetSiblingIndex() &&
+              (panel.GetComponentInParent<Canvas>() == null || viewer.GetComponent<Canvas>().sortingOrder > panel.GetComponentInParent<Canvas>().sortingOrder) &&
+              !CodexReplayViewer.OpaqueBackground(new Color(.2f, .3f, .4f, 0f)).a.Equals(0f));
+
         // BACK goes back to the list
         viewer.BackButton.onClick.Invoke();
         Check("BACK closes it and the Codex list is still there", !CodexBackdropViewer.IsOpen && panel.IsOpen && panel.BackdropsOpen && panel.Backdrops.Active);
