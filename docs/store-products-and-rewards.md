@@ -63,10 +63,10 @@ Rules:
 - **Pre-reg reward:** identical token scheme with key `preregGrantedTokens`; it arrives without developerPayload and maybe without orderId, so neither is read. Sets `ToastDue`; the home screen shows "Pre-registration reward: +100 star dust" (`PlayBilling.cs:50-53`).
 - **Android-only gating:** price comes from Play; `Available` is `Price != null && LaunchFlow != null`, so on iOS and in the editor no purchase UI appears (Paragon keeps its locked COMING SOON berth).
 - **Toasts:** `ParagonPurchase.GrantedMessage` "Paragon unlocked"; `SupportPurchase.GrantedMessage` "Thank you for supporting the developer! +2,500 star dust" (the 850 pack shows its own amount in PR #262); pending and error messages exist for both.
-- **UI on master:** a "SUPPORT THE DEVELOPER" header button (`Shop/SupportButton.cs`, sprite `Resources/Vfx/support_developer_2500_ui`) and news-ticker lines (`Shop/DockNews.cs`: Paragon line `GET THE PARAGON SHIP, THE PREMIUM PILOT`, Support line `SUPPORT THE DEV: +2,500 STAR DUST`, price suffix from Play; tap opens the purchase). `SpaceDock.cs` subscribes to `SupportPurchase.Changed/Rewarded`.
+- **UI on master:** a "SUPPORT THE DEVELOPER" header button (`Shop/SupportButton.cs`, sprite `Resources/Vfx/support_developer_2500_ui`) and support tiles in the dock rack (`Shop/DockSupportTile.cs`; the bottom news ticker was removed). `SpaceDock.cs` subscribes to `SupportPurchase.Changed/Rewarded`.
 - **UI after PR #262:** the header button is removed; the two support packs become dock tiles in the two spare berths (slots 17 and 18 of 18) of the 16-ship rack (`Shop/DockSupportTile.cs`), shown only when Play returns a price; one ticker line per pack.
 - **Editor/dev:** `SupportPurchase.Simulate()` and `PreRegistrationReward.Simulate()` (developer mode only) via `Editor/Tools/PreRegistrationRewardMenu.cs`.
-- **Tests (run on CI only):** `PreRegistrationRewardTest`, `SupportPurchaseTest`, `ParagonPurchaseTest`, `DockNewsTest`, `PremiumShipTest` (all in `Pause/Assets/Editor/Tests/`).
+- **Tests (run on CI only):** `PreRegistrationRewardTest`, `SupportPurchaseTest`, `ParagonPurchaseTest`, `PremiumShipTest` (all in `Pause/Assets/Editor/Tests/`).
 
 ## 5. Apple App Store plan
 

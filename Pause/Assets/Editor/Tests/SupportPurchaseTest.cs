@@ -179,6 +179,10 @@ public static class SupportPurchaseTest
                 big.SetPrice("$9.99");
                 bigTile.Refresh();
                 Check("tile price: a short price restores the scale", priceMesh.transform.localScale == Vector3.one);
+                Check("amount text is large", DockSupportTile.AmountHeight >= .11f);
+                Check("no support-the-dev caption on the tile", bigTile.transform.Find("Title") == null && smallTile.transform.Find("Title") == null);
+                var amountRenderer = bigTile.transform.Find("Amount").GetComponent<MeshRenderer>();
+                Check("amount text fits inside the berth", amountRenderer.bounds.size.x <= DockLayout.BaySize.x * .95f);
                 Check("the 850 icon is drawn smaller", DockSupportTile.IconScale(small) < DockSupportTile.IconScale(big));
             }
             finally { UnityEngine.Object.DestroyImmediate(holder); }
