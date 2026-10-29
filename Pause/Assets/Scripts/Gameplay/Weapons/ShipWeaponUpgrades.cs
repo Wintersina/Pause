@@ -64,7 +64,7 @@ public static class ShipWeaponUpgrades
         /*  5 Ion Lancer   */ new[] { Up("LONGER SWEEP", duration: .3f), Cd(.15f), Up("+1 PASS", shots: 1), Cd(.20f) },
         /*  6 Jade Phantom */ new[] { Up("SHATTER SPLASH", width: .8f), Cd(.15f), Up("BIGGER SPLASH", width: .4f), Cd(.20f) },
         /*  7 Gold Warden  */ new[] { Up("+1 SENTRY", shots: 1), Cd(.15f), Up("LONGER SENTRIES", duration: .9f), Cd(.20f) },
-        /*  8 Lightning    */ new[] { Up("+2 JAVELINS", shots: 2), Cd(.15f), Up("WIDER JAVELINS", width: .12f), Cd(.20f) },
+        /*  8 Lightning    */ new[] { Up("+1 JAVELIN", shots: 1), Cd(.15f), Up("+1 JAVELIN", shots: 1), Cd(.20f) },   // 3 -> 4 -> 5 lanes (SkyJavelinLanes)
         /*  9 Ligher       */ new[] { Up("LONGER BURN", duration: BlowtorchStepSeconds), Cd(.15f), Up("BIGGER, LONGER FLAME", duration: BlowtorchStepSeconds, range: .6f, width: 6f), Cd(.20f) },
         /* 10 Paranoid     */ new[] { Up("+1 MARK", shots: 1), Cd(.15f), Up("+1 MARK", shots: 1), Cd(.20f) },
         /* 11 Ninja        */ new[] { Up("+1 STAR", shots: 1), Cd(.15f), Up("LONGER THROW", range: 1f), Cd(.20f) },

@@ -35,6 +35,7 @@ public static class ShipAttacksTest
         OnlyTheTopPriceTierClearsTheScreen();
         RailHitsOnlyItsForwardLine();
         SpreadCountsAreRespected();
+        SkyJavelinsGrowToFive();
         ChainCountsAreRespected();
         ThrownDiscLastsItsDuration();
         ThrownDiscRicochetsOffEnemiesAndWalls();
@@ -218,6 +219,56 @@ public static class ShipAttacksTest
         Check("and nothing between the lanes", Alive(between));
         Teardown(light);
         Object.DestroyImmediate(between);
+    }
+
+    // Lightning's Sky Javelins: 3 at the base, +1 on the first and third colour,
+    // exactly 5 at the top; lanes evenly spaced and inside the rails on every screen.
+    static void SkyJavelinsGrowToFive()
+    {
+        var want = new[] { 3, 4, 4, 5, 5 };
+        bool counts = true;
+        for (int lv = 0; lv <= ShipWeaponUpgrades.MaxLevel; lv++)
+            counts &= ShipWeaponUpgrades.LoadoutAt(8, lv).shots == want[lv];
+        Check("sky javelins fly 3 / 4 / 4 / 5 / 5 by weapon level", counts);
+        Check("the stock row is " + SkyJavelinLanes.BaseCount + " javelins", ShipLoadoutTable.For(8).shots == SkyJavelinLanes.BaseCount);
+        Check("the top level is exactly " + SkyJavelinLanes.MaxCount + " javelins",
+              ShipWeaponUpgrades.LoadoutAt(8, ShipWeaponUpgrades.MaxLevel).shots == SkyJavelinLanes.MaxCount);
+        Check("javelin weight does not shrink as lanes are added", Mathf.Approximately(SkyJavelinLanes.WeightPerJavelin, 1f / 3f));
+        Check("every run's rockets and javelins fit the projectile pool",
+              ShipAttackRunner.MaxRuns * SkyJavelinLanes.MaxCount * 2 <= AttackPool.MaxProjectiles);
+
+        var screens = new[] { new Vector2Int(900, 2100), new Vector2Int(900, 1600), new Vector2Int(900, 1200),
+                              new Vector2Int(1200, 1200), new Vector2Int(1600, 1200) };
+        var ships = new[] { -9f, -1.3f, 0f, 2f, 9f };
+        foreach (var s in screens)
+        {
+            ScreenInfo.ClearOverride();
+            ScreenInfo.Override(s.x, s.y, new Rect(0, 0, s.x, s.y));
+            BossRails.Reset();
+            float half = LaneMetrics.ViewHalfWidthFor(s.x, s.y);
+            var view = new Rect(-half, -8f, half * 2f, 16f);
+            float minX, maxX;
+            SkyJavelinLanes.Limits(view, out minX, out maxX);
+            float edge = LaneMetrics.InnerEdgeFor(s.x, s.y);
+            bool inside = minX >= -edge && maxX <= edge && minX >= view.xMin && maxX <= view.xMax;
+            for (int n = SkyJavelinLanes.BaseCount; n <= SkyJavelinLanes.MaxCount; n++)
+            {
+                float pitch = SkyJavelinLanes.Pitch(n, 1.2f, LaneMetrics.Density, minX, maxX);
+                bool even = true;
+                foreach (float sx in ships)
+                {
+                    var xs = new List<float>();
+                    for (int i = 0; i < n; i++) xs.Add(SkyJavelinLanes.LaneX(i, n, sx, pitch, minX, maxX));
+                    xs.Sort();
+                    for (int i = 0; i < n; i++) inside &= xs[i] >= minX - 1e-4f && xs[i] <= maxX + 1e-4f;
+                    for (int i = 1; i < n; i++) even &= Mathf.Abs((xs[i] - xs[i - 1]) - pitch) < 1e-3f;
+                }
+                Check("sky javelins, " + n + " lanes on " + s.x + "x" + s.y + ": inside the rails (" + minX.ToString("F2") + ".." + maxX.ToString("F2") + ") and evenly spaced (" + pitch.ToString("F2") + ")",
+                      inside && even && pitch > 0f);
+            }
+        }
+        ScreenInfo.ClearOverride();
+        BossRails.Reset();
     }
 
     static void ChainCountsAreRespected()
