@@ -119,7 +119,7 @@ public static class CodexMusic
     public static bool HeardCredits()
     {
         if (!Codex.HearTrack(CreditsId)) return false;
-        StarDustLedger.Grant(Codex.UnlockReward);
+        // HearTrack paid CodexPayout.Track (= UnlockReward) through the paid list.
         PrefsSaver.SaveNow();
         if (Application.isPlaying) CodexToast.Announce(CodexToast.EntryHeading, Find(CreditsId).title, null);
         return true;

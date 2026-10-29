@@ -42,7 +42,7 @@ public static class CodexPayoutTest
         foreach (var e in Codex.Entries)
         {
             int v = CodexPayout.For(e);
-            if (e.category == CodexCategory.Log) { if (v != 0) badTable = e.id + ": the free Pilot's Log must pay 0"; }
+            if (e.category == CodexCategory.Log) { if (v != CodexPayout.LogEntry) badTable = e.id + ": a Log entry pays 5, got " + v; }
             else if (v < CodexPayout.Min || v > CodexPayout.Max) badTable = e.id + ": pays " + v + " (outside 5..25)";
             else if ((v == CodexPayout.Max) != superRare.Contains(e.id)) badTable = e.id + ": pays " + v + " but super rare is " + superRare.Contains(e.id);
             if (badTable != null) break;
@@ -120,6 +120,69 @@ public static class CodexPayoutTest
         // fresh save: 0 dust, flag set, nothing to announce
         Reset("", 100f);
         Check("fresh save: back-pay is 0 (so no popup), dust unchanged, flag set", Codex.PayBackOnce() == 0 && Dust() == 100f && Codex.BackPayDone);
+
+        // ---- every kind pays: combos, logs, songs, backdrops, ships bought later ----
+        string badExtra = null;
+        foreach (var f in AtomFusionTable.All)
+        {
+            int v = CodexPayout.ForExtra(CodexPayout.FusionPayId(f));
+            if (v < 8 || v > 15) badExtra = f.key + " pays " + v;
+        }
+        foreach (var t in CodexMusic.All)
+        {
+            if (t.id == CodexMusic.ThemeId) continue;   // the codex theme is always open: nothing to find
+            int v = CodexPayout.ForExtra(t.id);
+            if (v < CodexPayout.Min || v > 15) badExtra = t.id + " pays " + v;
+        }
+        foreach (var b in CodexBackdrops.All)
+        {
+            int v = CodexPayout.ForExtra(b.id);
+            if (v < CodexPayout.Min || v > 15) badExtra = b.id + " pays " + v;
+        }
+        Check("every combo pays 8..15 and every song and backdrop 5..15 (" + (badExtra ?? "ok") + ")", badExtra == null);
+        Check("the triple combo pays the top of the combo range", CodexPayout.ForExtra(CodexPayout.FusionPrefix + "singularity") == CodexPayout.FusionTriple);
+        Check("unknown ids pay nothing", CodexPayout.ForExtra("music_nope") == 0 && CodexPayout.ForExtra("bd_nope") == 0 && CodexPayout.ForExtra("fusion_nope") == 0);
+
+        // a combo: first firing pays once, then never (again, reload, sweep)
+        var bloom = AtomFusionTable.All[(int)FusionId.Bloom];
+        int logs = 2 * CodexPayout.LogEntry;   // the sweep always owes the two free Log entries
+        Reset("", 100f);
+        PlayerPrefs.DeleteKey(FusionDiscoveryStore.PrefsKey);
+        FusionDiscoveryStore.Reload();
+        Check("combo: first discovery pays its dust", Codex.PayFusion(bloom) == CodexPayout.FusionPair && Dust() == 100f + CodexPayout.FusionPair);
+        Check("combo: the same combo again pays nothing", Codex.PayFusion(bloom) == 0 && Dust() == 100f + CodexPayout.FusionPair);
+        Codex.Reload();
+        FusionDiscoveryStore.RecordFiring(FusionId.Bloom, 1, 20261026);
+        Check("combo: after a reload the sweep does not pay it again (only the logs)", Codex.PaySweep() == logs && Dust() == 100f + CodexPayout.FusionPair + logs);
+
+        Reset("", 100f);
+        DeveloperUnlocks.SetEnabled(true);
+        Check("developer mode: a combo and the sweep pay nothing", Codex.PayFusion(AtomFusionTable.All[(int)FusionId.Nova]) == 0 && Codex.PaySweep() == 0 && Dust() == 100f);
+        DeveloperUnlocks.SetEnabled(false);
+
+        // the sweep back-pays combos found, songs heard, backdrops seen and the logs, once; ships bought later pay once
+        Reset("music_world_ember,music_boss_ember,bd_frost_2", 100f);
+        PlayerPrefs.DeleteKey(FusionDiscoveryStore.PrefsKey);
+        FusionDiscoveryStore.Reload();
+        FusionDiscoveryStore.RecordFiring(FusionId.Singularity, 1, 20261026);
+        int expectSweep = logs + CodexPayout.FusionTriple + CodexPayout.Track + CodexPayout.BossTrack + CodexPayout.Backdrop;
+        int swept = Codex.PaySweep();
+        Check("sweep: logs, found combos, heard songs and seen backdrops are paid together (" + swept + " = " + expectSweep + ")",
+              swept == expectSweep && Dust() == 100f + expectSweep);
+        Check("sweep: a second run pays nothing", Codex.PaySweep() == 0 && Dust() == 100f + expectSweep);
+        PlayerPrefs.SetString("boughtship2", "True");
+        Codex.Reload();
+        Check("sweep: a ship bought later pays once", Codex.PaySweep() == CodexPayout.Ship && Codex.PaySweep() == 0);
+
+        // a first song / backdrop pays on the spot, once
+        Reset("", 100f);
+        string track = CodexMusic.All.First(t => t.id.StartsWith("music_world_")).id, boss = CodexMusic.All.First(t => t.id.StartsWith("music_boss_")).id;
+        string bd = CodexBackdrops.All[0].id;
+        Check("hear a song: pays once", Codex.HearTrack(track) && Dust() == 100f + CodexPayout.Track && !Codex.HearTrack(track) && Dust() == 100f + CodexPayout.Track);
+        Check("boss song pays its own value", Codex.HearTrack(boss) && Dust() == 100f + CodexPayout.Track + CodexPayout.BossTrack);
+        Check("see a backdrop: pays once", Codex.SeeBackdrop(bd) && !Codex.SeeBackdrop(bd) && Dust() == 100f + CodexPayout.Track + CodexPayout.BossTrack + CodexPayout.Backdrop);
+        Codex.Reload();
+        Check("after a reload: the sweep does not pay those again (only the logs)", Codex.PaySweep() == logs);
 
         Reset("", 0f);
         return fails;

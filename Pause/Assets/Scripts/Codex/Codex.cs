@@ -219,7 +219,10 @@ public static class Codex
         seen.Add(trackId);
         seenOrder.Add(trackId);
         PlayerPrefs.SetString(PrefsKey, string.Join(",", seenOrder));
+        int dust = PayExtra(trackId);   // star dust for a first song / backdrop (CodexPayout.ForExtra)
         PrefsSaver.MarkDirty();
+        if (dust > 0 && Application.isPlaying && SceneManager.GetActiveScene().name == "gameS1")
+            CodexToast.Announce(CodexToast.EntryHeading + "   +" + dust + " STAR DUST", trackId.StartsWith(CodexBackdrops.Prefix, StringComparison.Ordinal) ? "NEW BACKDROP" : "NEW MUSIC", null);
         return true;
     }
 
@@ -541,6 +544,73 @@ public static class Codex
         StarDustLedger.Grant(dust);
     }
 
+    // Pays a non-entry find (a combo, a song, a backdrop) once: the id goes into PaidKey in the same write as the
+    // dust (the caller saves). 0 when already paid, not worth anything, in the tutorial or in developer mode.
+    static int PayExtra(string payId)
+    {
+        int dust = CodexPayout.ForExtra(payId);
+        if (dust <= 0 || !RewardsActive || InTutorial()) return 0;
+        var done = Paid();
+        if (!done.Add(payId)) return 0;
+        WritePaid(done);
+        StarDustLedger.Grant(dust);
+        return dust;
+    }
+
+    // A combo (atomic fusion) fired for the first time: its dust, once, with the popup. Returns the dust paid.
+    public static int PayFusion(FusionDef f)
+    {
+        if (f == null) return 0;
+        int dust = PayExtra(CodexPayout.FusionPayId(f));
+        if (dust > 0)
+        {
+            PrefsSaver.MarkDirty();
+            if (Application.isPlaying) CodexToast.Announce(CodexToast.EntryHeading + "   +" + dust + " STAR DUST", f.name + " COMBO", null);
+        }
+        return dust;
+    }
+
+    // Everything found that has not been paid yet and has no other payment route, once each (the paid list is
+    // the guard, so running it again pays nothing): the Log entries, the ships owned and the worlds reached
+    // (derived from progress, so a ship bought after the one-time back-pay lands here), the combos found, the
+    // songs heard and the backdrops seen (older saves). Entries discovered by contact are NOT touched: they pay
+    // in Discover, or wait for COLLECT. Runs on the home screen. Returns the dust paid.
+    public static int PaySweep()
+    {
+        if (!RewardsActive || InTutorial()) return 0;
+        EnsureLoaded();
+        var done = Paid();
+        int dust = 0;
+        foreach (var e in Entries)
+        {
+            bool log = e.category == CodexCategory.Log;
+            if (done.Contains(e.id) || seen.Contains(e.id) || !IsDiscovered(e)) continue;
+            if (log && e.id == KillCamArchive.CodexId && !KillCamArchive.HasRecord) continue;   // Last Stand: once a replay is kept
+            done.Add(e.id);
+            dust += CodexPayout.For(e);
+        }
+        foreach (var f in AtomFusionTable.All)
+        {
+            string id = CodexPayout.FusionPayId(f);
+            if (!FusionDiscoveryStore.IsDiscovered(f.id) || done.Contains(id)) continue;
+            done.Add(id);
+            dust += CodexPayout.ForExtra(id);
+        }
+        foreach (string id in new List<string>(seen))
+        {
+            int v = CodexPayout.ForExtra(id);
+            if (v <= 0 || done.Contains(id)) continue;
+            done.Add(id);
+            dust += v;
+        }
+        if (dust == 0) return 0;
+        WritePaid(done);
+        StarDustLedger.Grant(dust);
+        PrefsSaver.SaveNow();
+        RaiseNewChanged();
+        return dust;
+    }
+
     static void WritePaid(HashSet<string> done)
     {
         var sorted = new List<string>(done);
@@ -636,7 +706,7 @@ public static class Codex
         // The one-time back-pay, on the home screen, with a single popup for the lump sum.
         if (Application.isPlaying && scene.name == BackNavigator.HomeScene)
         {
-            int dust = PayBackOnce();
+            int dust = PayBackOnce() + PaySweep();
             if (dust > 0) CodexToast.Announce(BackPayHeading, BackPayText(dust), null);
         }
     }
