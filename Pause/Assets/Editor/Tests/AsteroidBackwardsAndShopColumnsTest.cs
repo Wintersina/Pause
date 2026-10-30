@@ -99,11 +99,51 @@ public static class AsteroidBackwardsAndShopColumnsTest
             }
         }
 
+        ShopRackSplitsWideViews(count);
+
         var narrow = DockLayout.For(count, 2.85f);
         float top, bottom;
         narrow.ScrollRange(1f, -1f, out top, out bottom);
         Check("a rack taller than its space scrolls (range > 0)", bottom - top > 0f);
         narrow.ScrollRange(10f, -10f, out top, out bottom);
         Check("a rack that fits is centred and does not scroll", Mathf.Approximately(top, bottom));
+    }
+
+    // Near-square views (Z Flip7 cover 948x1048, a fold's inner screen): the rack and the ship card sit side by
+    // side, the whole fleet shows without scrolling, tall phones keep the single rack.
+    static void ShopRackSplitsWideViews(int count)
+    {
+        foreach (var s in new[] { new Vector2Int(948, 1048), new Vector2Int(1812, 2176), new Vector2Int(1100, 800) })
+        {
+            string tag = s.x + "x" + s.y;
+            float size = CameraFit.ComputeSize(5f, 2.85f, s.x, s.y);
+            float halfH = size, halfW = size * s.x / s.y;
+            Check(tag + ": a wide view", DockLayout.IsWide(halfW, halfH));
+            // header (dust, instruction, start-world row) and footer: ~2.6 world units of a 10-unit view
+            var view = new Rect(-halfW + .05f, -halfH + 1.1f, halfW * 2f - .1f, halfH * 2f - 2.6f);
+            float cardW = 4.6f;
+            Rect rackPane, cardPane;
+            DockLayout.Panes(view, cardW, out rackPane, out cardPane);
+            Check(tag + ": the panes tile the view, the card pane on the right",
+                  Mathf.Approximately(rackPane.xMax, cardPane.xMin) && Mathf.Approximately(cardPane.xMax, view.xMax) &&
+                  rackPane.xMin == view.xMin && cardPane.width <= view.width * DockLayout.CardShare + .001f);
+            var layout = DockLayout.ForWide(count, rackPane);
+            Check(tag + ": three columns, every ship has a berth", layout.columns == 3 && layout.columns * layout.rows >= count);
+            Check(tag + ": the rack fits its pane's width", layout.Width * layout.scale <= rackPane.width + .001f);
+            Check(tag + ": the rack fits its pane's height (no scrolling) or is at the minimum scale",
+                  layout.Height * layout.scale <= rackPane.height + .001f || Mathf.Approximately(layout.scale, DockLayout.MinWideScale));
+            Check(tag + ": height never shrinks the berths below the minimum",
+                  layout.scale >= Mathf.Min(DockLayout.MinWideScale, DockLayout.For(count, rackPane.width * .5f + DockLayout.SideMargin).scale) - .001f);
+            float top, bottom;
+            layout.ScrollRange(view.yMax, view.yMin, out top, out bottom);
+            Check(tag + ": the rack does not scroll", Mathf.Approximately(top, bottom));
+            // browsing (no card), the rack is drawn larger than beside the card, within the view's width
+            float browse = DockLayout.For(count, (view.width - 2f * DockLayout.Gutter) * .5f).scale;
+            Check(tag + ": browsing draws the rack larger than beside the card, inside the gutters",
+                  browse >= layout.scale && DockLayout.For(count, 100f).Width * browse <= view.width - 2f * DockLayout.Gutter + .001f);
+        }
+        float tall = CameraFit.ComputeSize(5f, 2.85f, 1080, 2520);
+        Check("a tall phone is not a wide view", !DockLayout.IsWide(tall * 1080f / 2520f, tall));
+        Check("a 4:3 portrait iPad is not a wide view", !DockLayout.IsWide(1536f / 2048f * 5f, 5f));
     }
 }

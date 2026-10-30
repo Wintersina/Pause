@@ -511,7 +511,8 @@ public static class ShopTest
                       r.xMin >= screen.xMin && r.xMax <= screen.xMax && r.yMin >= screen.yMin && r.yMax <= screen.yMax;
             if (!ok && worst == "") worst = " (ship" + i + " " + r + " vs " + v + ")";
             inside &= ok;
-            over &= ship.x >= r.xMin && ship.x <= r.xMax;
+            // a wide view docks the card in its own pane: it must clear the rack instead
+            over &= popup.Docked ? r.xMin >= dock.RackWorldRect.xMax - .001f : ship.x >= r.xMin && ship.x <= r.xMax;
             tall &= popup.SkinRowVisible && Mathf.Approximately(r.height, popup.CurrentHeight);
         }
         dock.Deselect();
@@ -519,7 +520,7 @@ public static class ShopTest
             if (saved[i] == null) PlayerPrefs.DeleteKey(ShipId.OwnedKey(i));
             else PlayerPrefs.SetString(ShipId.OwnedKey(i), saved[i]);
         Check(tag + ": every ship's full-height popup stays inside the safe view and on screen" + worst, inside);
-        Check(tag + ": every popup sits over its own ship", over);
+        Check(tag + ": every popup sits over its own ship (wide views: docked clear of the rack)", over);
         Check(tag + ": the popups measured carried the skin rows", tall);
     }
 

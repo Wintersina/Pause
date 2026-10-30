@@ -58,7 +58,6 @@ public class SpaceDock : MonoBehaviour
     Vector2 pressAt;
     float lastPointerY;
     bool skipLaunch;
-    bool rackPlaced;
     // shopingShips' selection statics as they were before the current
     // selection began, so Back can put them back.
     int preSelectShipNumber, preSelectLastShip;
@@ -357,8 +356,49 @@ public class SpaceDock : MonoBehaviour
         Vector3 camPos = cam.transform.position;
         RefreshTiles();
         int count = shopingShips.shipTotal - 1 + shownTiles;
-        layout = DockLayout.For(count, halfW);
-        rack.localScale = new Vector3(layout.scale, layout.scale, 1f);
+
+        // The header and footer follow the safe area (notch / Dynamic Island /
+        // punch-hole above, home indicator / nav bar below) before the rack is
+        // fitted between them.
+        PlaceChrome();
+
+        // The rack fills the space between the HUD header and the footer
+        // buttons, and scrolls only if it cannot fit there.
+        float viewTop = camPos.y + halfH, viewBottom = camPos.y - halfH;
+        Canvas.ForceUpdateCanvases();
+        float headerBottom = viewTop, footerTop = viewBottom;
+        foreach (var rt in header)
+            if (rt != null && rt.gameObject.activeInHierarchy) headerBottom = Mathf.Min(headerBottom, ScreenToWorldY(rt, 0));
+        foreach (var rt in footer)
+            if (rt != null && rt.gameObject.activeInHierarchy) footerTop = Mathf.Max(footerTop, ScreenToWorldY(rt, 1));
+        float top = headerBottom - .06f, bottom = footerTop + .06f;
+        if (top - bottom < 2f) { top = viewTop - .1f; bottom = viewBottom + .1f; }
+
+        // Sideways the popup keeps inside the safe area too (waterfall edges).
+        float worldPerPixel = halfH * 2f / Mathf.Max(1, ScreenInfo.Height);
+        float left = camPos.x - halfW + ScreenInfo.SafeLeftInset * worldPerPixel + .05f;
+        float right = camPos.x + halfW - ScreenInfo.SafeRightInset * worldPerPixel - .05f;
+        // The card is sized in points / dp (UiScale): world units per point.
+        float worldPerPoint = UiScale.PxPerPoint * worldPerPixel;
+
+        // A near-square view: the rack on the left, the selected ship's card docked on the right.
+        wide = DockLayout.IsWide(halfW, halfH);
+        Rect view = new Rect(left, bottom, right - left, top - bottom), rackPane = view, cardPane = view;
+        if (wide)
+        {
+            // the same gutter at both screen edges, a gap between the panes
+            view = new Rect(left + DockLayout.Gutter, bottom, right - left - 2f * DockLayout.Gutter, top - bottom);
+            DockLayout.Panes(view, worldPerPoint * DockPopup.PopupScale * DockPopup.PanelWidth, out rackPane, out cardPane);
+        }
+        layout = wide ? DockLayout.ForWide(count, rackPane) : DockLayout.For(count, halfW);
+        camX = camPos.x;
+        rackSlideX = wide ? rackPane.center.x - camPos.x : 0f;
+        // Browsing, the rack takes the whole view (fitting its height down to MinWideScale, scrolling below);
+        // with a ship picked it shrinks into its pane beside the card.
+        selectScale = layout.scale;
+        browseScale = wide ? DockLayout.ForWide(count, new Rect(view.x, view.y, view.width, view.height)).scale : layout.scale;
+        spaceTop = top;
+        spaceBottom = bottom;
 
         for (int i = 1; i < bays.Length; i++)
             if (bays[i] != null) bays[i].transform.localPosition = layout.BayCenter(SlotOf(i));
@@ -404,35 +444,18 @@ public class SpaceDock : MonoBehaviour
             gantry.transform.localPosition = new Vector3(0f, y, 0f);
         }
 
-        // The header and footer follow the safe area (notch / Dynamic Island /
-        // punch-hole above, home indicator / nav bar below) before the rack is
-        // fitted between them.
-        PlaceChrome();
-
-        // The rack fills the space between the HUD header and the footer
-        // buttons, and scrolls only if it cannot fit there.
-        float viewTop = camPos.y + halfH, viewBottom = camPos.y - halfH;
-        Canvas.ForceUpdateCanvases();
-        float headerBottom = viewTop, footerTop = viewBottom;
-        foreach (var rt in header)
-            if (rt != null && rt.gameObject.activeInHierarchy) headerBottom = Mathf.Min(headerBottom, ScreenToWorldY(rt, 0));
-        foreach (var rt in footer)
-            if (rt != null && rt.gameObject.activeInHierarchy) footerTop = Mathf.Max(footerTop, ScreenToWorldY(rt, 1));
-        float top = headerBottom - .06f, bottom = footerTop + .06f;
-        if (top - bottom < 2f) { top = viewTop - .1f; bottom = viewBottom + .1f; }
-        layout.ScrollRange(top, bottom, out rackYMin, out rackYMax);
-        rackY = Mathf.Clamp(rackPlaced ? rackY : rackYMin, rackYMin, rackYMax);
-        rackPlaced = true;
+        ApplyRackScale();
         nudge = 0f;
-        rack.position = new Vector3(camPos.x, rackY, 0f);
+        PlaceRack();
 
-        // Sideways the popup keeps inside the safe area too (waterfall edges).
-        float worldPerPixel = halfH * 2f / Mathf.Max(1, ScreenInfo.Height);
-        float left = camPos.x - halfW + ScreenInfo.SafeLeftInset * worldPerPixel + .05f;
-        float right = camPos.x + halfW - ScreenInfo.SafeRightInset * worldPerPixel - .05f;
-        popup.safeView = new Rect(left, bottom, right - left, top - bottom);
-        // The card is sized in points / dp (UiScale): world units per point.
-        popup.SetDensity(UiScale.PxPerPoint * worldPerPixel);
+        if (wide)
+        {
+            cardPane.xMin += DockLayout.PaneGap;
+            popup.safeView = cardPane;
+        }
+        else popup.safeView = new Rect(left, bottom, right - left, top - bottom);
+        popup.Docked = wide;
+        popup.SetDensity(worldPerPoint);
     }
 
     // The card fits neither above nor below the selected ship (a short
@@ -457,7 +480,54 @@ public class SpaceDock : MonoBehaviour
     {
         if (rack == null) return;
         var p = rack.position;
-        rack.position = new Vector3(p.x, rackY + nudge, p.z);
+        rack.position = new Vector3(camX + rackSlideX * DockTween.OutCubic(rackSlide), rackY + nudge, p.z);
+    }
+
+    // Wide view: the rack sits in the middle until a ship is picked, then slides left to make room for its
+    // docked card (rackSlide 0..1). Outside play there is no Update, so it snaps.
+    bool wide;
+    float browseScale, selectScale, spaceTop, spaceBottom;
+
+    // The rack's scale now (wide: between its browsing and its beside-the-card size), the scroll range
+    // that scale leaves, and the berth labels grown to stay readable when the rack is drawn small.
+    void ApplyRackScale()
+    {
+        layout.scale = wide ? Mathf.Lerp(browseScale, selectScale, DockTween.OutCubic(rackSlide)) : selectScale;
+        rack.localScale = new Vector3(layout.scale, layout.scale, 1f);
+        float k = wide ? Mathf.Clamp(DockLayout.LabelFloor / layout.scale, 1f, 1.5f) : 1f;
+        for (int i = 1; i < bays.Length; i++) if (bays[i] != null) bays[i].SetLabelScale(k);
+        layout.ScrollRange(spaceTop, spaceBottom, out rackYMin, out rackYMax);
+        // an untouched rack rests at the top of its range (a layout pass before the header was sized must not strand it higher)
+        rackY = scrolled ? Mathf.Clamp(rackY, rackYMin, rackYMax) : rackYMin;
+    }
+    bool scrolled;
+
+    // The rack's drawn extent in world space (for tests).
+    public Rect RackWorldRect
+    {
+        get
+        {
+            float w = layout.Width * layout.scale, h = layout.Height * layout.scale;
+            return new Rect(rack.position.x - w * .5f, rack.position.y - h * .5f, w, h);
+        }
+    }
+    float camX, rackSlideX, rackSlide;
+    const float SlideTime = .22f;
+
+    void SlideRack()
+    {
+        if (!Application.isPlaying) rackSlide = wide && Selected > 0 ? 1f : 0f;
+        ApplyRackScale();
+        PlaceRack();
+    }
+
+    void TickSlide(float dt)
+    {
+        float target = wide && Selected > 0 ? 1f : 0f;
+        if (rackSlide == target) return;
+        rackSlide = Mathf.MoveTowards(rackSlide, target, dt / SlideTime);
+        ApplyRackScale();
+        PlaceRack();
     }
 
     // World y of a screen-space-overlay element's bottom (corner 0) or top
@@ -569,6 +639,7 @@ public class SpaceDock : MonoBehaviour
         }
         Selected = index;
         ClearNudge();
+        SlideRack();
         shopingShips.LastShipSelected = shopingShips.shipNumber;
         shopingShips.shipNumber = index;
         rotateRight.shipSelected = index;
@@ -585,6 +656,7 @@ public class SpaceDock : MonoBehaviour
         rotateRight.shipSelected = 0;
         popup.Hide();
         ClearNudge();
+        SlideRack();
     }
 
     void ShowPopup(int index)
@@ -762,6 +834,7 @@ public class SpaceDock : MonoBehaviour
         }
 
         float dt = Time.unscaledDeltaTime;
+        TickSlide(dt);
         bool scrollable = rackYMax - rackYMin > .001f;
         Vector2 pointer = Input.mousePosition;
 
@@ -830,6 +903,7 @@ public class SpaceDock : MonoBehaviour
 
     void SetRackY(float y)
     {
+        scrolled = true;
         rackY = Mathf.Clamp(y, rackYMin, rackYMax);
         PlaceRack();
     }

@@ -34,6 +34,10 @@ public class ShipThruster : MonoBehaviour
              "so the flame ignores pause state and just burns.")]
     public bool respondToPause = true;
 
+    [Tooltip("True builds the plumes at zero size so they grow in; the space dock sets it, so a berth never " +
+             "flashes a full-size plume before the engine eases to its idle size.")]
+    public bool startCold;
+
     // At or past this size the plume shows the ship's boost drawings.
     public const float BoostDrawingsAt = 1f;
 
@@ -122,6 +126,7 @@ public class ShipThruster : MonoBehaviour
             renderer.sortingOrder = (hull != null ? hull.sortingOrder : 0) - 1;
             go.transform.localPosition = mounts[i];
             go.transform.localRotation = Quaternion.identity;
+            if (startCold) go.transform.localScale = new Vector3(0f, 0f, 1f);
             mountedFor = hull != null ? hull.sprite : null;
             flames.Add(go.transform);
             flameRenderers.Add(renderer);

@@ -1025,6 +1025,8 @@ public static class CodexTest
         ("off-centre safe area", new Rect(-380f, -700f, 760f, 1500f)),
         ("extra-tall 9:22 1080x2640", new Rect(-400f, -978f, 800f, 1956f)),
         ("extra-tall 9:24 1080x2880", new Rect(-400f, -1067f, 800f, 2133f)),
+        ("Z Flip7 cover 948x1048", new Rect(-474f, -524f, 948f, 1008f)),
+        ("Z Fold inner 1812x2176", new Rect(-533f, -640f, 1066f, 1230f)),
     };
 
     static void CheckLayoutMath()
@@ -1034,9 +1036,11 @@ public static class CodexTest
             var l = CodexPanel.ComputeLayout(safe);
             var visual = Inset(l.panel, -CodexPanel.GlowMargin);
             Check(name + ": panel and glow fit the safe area", Contains(safe, visual));
-            Check(name + ": panel is a usable size", l.panel.width >= 680f && l.panel.height >= 1100f);
+            Check(name + ": panel is a usable size", l.panel.width >= 680f && l.panel.height >= (l.wide ? 900f : 1100f));
 
             var local = new Rect(-l.panel.width * .5f, -l.panel.height * .5f, l.panel.width, l.panel.height);
+            Check(name + ": the rail layout is for near-square screens only", l.wide == (safe.width / safe.height >= CodexPanel.WideAspect));
+            if (l.wide) { CheckWideLayout(name, safe, l, local); continue; }
             var rows = new[] { ("header", l.header), ("divider", l.divider), ("tabs", l.tabs), ("grid", l.body), ("back", l.back) };
             foreach (var (rn, r) in rows)
                 Check(name + ": " + rn + " inside the panel", Contains(local, r));
@@ -1082,6 +1086,42 @@ public static class CodexTest
             Check(name + ": a section header and two card rows fit the list",
                   l.list.height >= CodexPanel.SectionHeaderHeight + CodexPanel.SectionHeaderGap + 2f * l.cardHeight);
         }
+    }
+
+    // Near-square screens (Z Flip7 cover, a foldable's inner screen): the tabs stand in a rail on the left, the body fills
+    // the pane to its right, header / divider on top and BACK underneath. Everything inside the panel, clear of everything
+    // else, finger-sized, and the extra width bought more columns and a taller list than the stacked layout leaves.
+    static void CheckWideLayout(string name, Rect safe, CodexPanel.Layout l, Rect local)
+    {
+        Check(name + ": wide panel stays inside the safe area and its cap", Contains(safe, l.panel) && l.panel.width <= CodexPanel.WideMaxWidth + .5f);
+        var rows = new[] { ("header", l.header), ("divider", l.divider), ("rail", l.tabs), ("pane", l.body), ("back", l.back) };
+        foreach (var (rn, r) in rows) Check(name + ": " + rn + " inside the panel", Contains(local, r));
+        for (int i = 0; i < rows.Length; i++)
+            for (int j = i + 1; j < rows.Length; j++)
+                Check(name + ": " + rows[i].Item1 + " clear of " + rows[j].Item1, !rows[i].Item2.Overlaps(rows[j].Item2));
+        Check(name + ": the rail is left of the pane, side by side", l.tabs.xMax <= l.body.xMin && Mathf.Abs(l.tabs.yMax - l.body.yMax) < .5f);
+        Check(name + ": detail inside the panel, clear of header and back, wider than the pane",
+              Contains(local, l.detail) && !l.detail.Overlaps(l.header) && !l.detail.Overlaps(l.back) && l.detail.width > l.body.width);
+        bool tabsOk = true;
+        for (int i = 0; i < CodexPanel.TabCount; i++)
+        {
+            Rect t = CodexPanel.TabRect(l, i);
+            tabsOk &= Contains(l.tabs, t) && t.width + CodexPanel.TabGap >= 96f && t.height + CodexPanel.TabRowGap >= 96f && t.width >= 90f;
+            for (int j = 0; j < i; j++) tabsOk &= !CodexPanel.TabRect(l, j).Overlaps(t);
+        }
+        Check(name + ": all nine tabs in the rail, each a >= 96-unit touch target, none overlapping", tabsOk);
+        float gridW = l.body.width - 2f * CodexPanel.GridInset;
+        Check(name + ": >= 3 columns of >= 150-wide cards filling the pane (" + l.columns + ")",
+              l.columns >= 3 && l.cardWidth >= 150f && Mathf.Abs(l.columns * l.cardWidth + (l.columns - 1) * CodexPanel.Gap - gridW) < .5f);
+        Check(name + ": the pane is taller than the stacked layout's body (>= 3 card rows under the COLLECT bar)",
+              l.catBody.height >= 3f * l.cardHeight);
+        Check(name + ": COLLECT ALL bar, chips and list sit in the pane, in order",
+              Contains(l.body, l.collectBar) && Contains(l.body, l.chips) && Contains(l.body, l.list) &&
+              l.collectBar.yMin >= l.chips.yMax && l.chips.yMin >= l.list.yMax && l.collectBar.height >= 72f &&
+              l.chips.height >= CodexPanel.WideChipRows * CodexPanel.ChipsHeight);
+        Check(name + ": a section header and two card rows fit the list",
+              l.list.height >= CodexPanel.SectionHeaderHeight + CodexPanel.SectionHeaderGap + 2f * l.cardHeight);
+        Check(name + ": back button meets the 96-unit tap target", l.back.height >= 96f && l.back.width >= 96f);
     }
 
     // ---- The home-screen entry point and the real panel ----

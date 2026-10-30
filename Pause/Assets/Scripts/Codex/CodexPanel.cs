@@ -152,6 +152,22 @@ public class CodexPanel : MonoBehaviour
         public Rect collectBar, catBody;
         public int columns;
         public float cardWidth, cardHeight, tabWidth;
+        // Wide screens (WideAspect): the tab band is a rail on the left and the body a pane on the right.
+        public bool wide;
+        public float tabRowHeight;
+    }
+
+    // Near-square screens (the Z Flip7 cover screen, a foldable's inner screen): safe-area width / height from
+    // here up, and at least WideMinWidth units across, lay the panel out as a RAIL of tabs beside the body
+    // instead of stacking them (tall phones keep the stack: three tab rows would leave the list a sliver).
+    public const float WideAspect = .8f, WideMinWidth = 700f;
+    public const float WideMaxWidth = 1100f;
+    public const float RailWidth = 300f, RailGap = 16f;
+    public const float WideTabRowHeight = 96f;
+    public const float WideMinCard = 156f;     // 3 columns in a 548-unit pane, 4 in a 660-unit one
+    public static bool IsWide(Rect safe)
+    {
+        return safe.height > 0f && safe.width >= WideMinWidth && safe.width / safe.height >= WideAspect;
     }
 
     // Pure: where everything goes for a given safe area (canvas units,
@@ -162,7 +178,8 @@ public class CodexPanel : MonoBehaviour
         var l = new Layout();
         float m = Margin + GlowMargin;
         var avail = Rect.MinMaxRect(safe.xMin + m, safe.yMin + m, safe.xMax - m, safe.yMax - m);
-        float w = Mathf.Max(0f, Mathf.Min(avail.width, MaxWidth));
+        l.wide = IsWide(safe);
+        float w = Mathf.Max(0f, Mathf.Min(avail.width, l.wide ? WideMaxWidth : MaxWidth));
         float h = Mathf.Max(0f, avail.height);
         l.panel = CodexUi.Centered(avail.center.x, avail.center.y, w, h);
 
@@ -172,6 +189,8 @@ public class CodexPanel : MonoBehaviour
         l.divider = CodexUi.Centered(0f, l.header.yMin - HeaderDividerGap - DividerHeight * .5f, iw * .7f, DividerHeight);
         l.tabs = new Rect(left, l.divider.yMin - DividerTabsGap - TabsHeight, iw, TabsHeight);
         l.back = CodexUi.Centered(0f, bottom + BackHeight * .5f, BackWidth, BackHeight);
+        l.tabRowHeight = TabRowHeight;
+        if (l.wide) return WideLayout(l, iw, left, bottom);
         l.body = Rect.MinMaxRect(left, l.back.yMax + BodyGap, left + iw, l.tabs.yMin - BodyGap);
         l.collectBar = new Rect(left, l.body.yMax - CollectBarHeight, iw, CollectBarHeight);
         l.catBody = Rect.MinMaxRect(left, l.body.yMin, left + iw, l.collectBar.yMin - CollectBarGap);
@@ -187,9 +206,44 @@ public class CodexPanel : MonoBehaviour
         return l;
     }
 
-    // Tab `i`'s drawn rect (panel-local): row-major, 3 + 3 + 3.
+    // The wide variant: header, divider and BACK as above; between them the tabs stand in a rail on the
+    // left (ACHIEVEMENTS alone on top, then two to a row) and the body fills the pane to its right, the
+    // whole height the stacked tabs used to take.
+    static Layout WideLayout(Layout l, float iw, float left, float bottom)
+    {
+        l.tabRowHeight = WideTabRowHeight;
+        float railH = WideRows * WideTabRowHeight + (WideRows - 1) * TabRowGap;
+        float top = l.divider.yMin - DividerTabsGap, floor = l.back.yMax + BodyGap;
+        l.tabs = new Rect(left, top - railH, RailWidth, railH);
+        float paneLeft = left + RailWidth + RailGap;
+        l.body = Rect.MinMaxRect(paneLeft, floor, left + iw, top);
+        l.collectBar = new Rect(paneLeft, l.body.yMax - CollectBarHeight, l.body.width, CollectBarHeight);
+        l.catBody = Rect.MinMaxRect(paneLeft, l.body.yMin, left + iw, l.collectBar.yMin - CollectBarGap);
+        // the pane is narrow: the jump chips take two rows (up to WideChipRows) so each keeps a readable label
+        float chipsH = WideChipRows * ChipsHeight + (WideChipRows - 1) * ChipGap;
+        l.chips = new Rect(paneLeft, l.catBody.yMax - chipsH, l.body.width, chipsH);
+        l.list = Rect.MinMaxRect(paneLeft, l.catBody.yMin, left + iw, l.chips.yMin - ChipsGap);
+        l.detail = Rect.MinMaxRect(left, floor, left + iw, top);
+        float gridW = l.body.width - 2f * GridInset;
+        l.columns = Mathf.Clamp(Mathf.FloorToInt((gridW + Gap) / (WideMinCard + Gap)), 2, 5);
+        l.cardWidth = (gridW - Gap * (l.columns - 1)) / l.columns;
+        l.cardHeight = l.cardWidth + CardNameHeight - 14f;
+        l.tabWidth = (RailWidth - TabGap) * .5f;
+        return l;
+    }
+
+    public const int WideRows = 5, WideChipRows = 2, WideChipsOneRow = 4;
+
+    // Tab `i`'s drawn rect (panel-local): row-major, 3 + 3 + 3 (wide: 1 + 2 + 2 + 2 + 2).
     public static Rect TabRect(Layout l, int i)
     {
+        if (l.wide)
+        {
+            int wrow = (i + 1) / 2, wcol = (i + 1) % 2;
+            float rw = i == 0 ? l.tabs.width : l.tabWidth;
+            float wx = i == 0 || wcol == 0 ? l.tabs.xMin : l.tabs.xMin + l.tabWidth + TabGap;
+            return new Rect(wx, l.tabs.yMax - (wrow + 1) * l.tabRowHeight - wrow * TabRowGap, rw, l.tabRowHeight);
+        }
         int row = i / TabsPerRow, col = i % TabsPerRow;
         int inRow = Mathf.Min(TabsPerRow, TabCount - row * TabsPerRow);
         float w = (l.tabs.width - TabGap * (inRow - 1)) / inRow;
@@ -1172,16 +1226,21 @@ public class CodexPanel : MonoBehaviour
         float height = shownCount <= 0 && !sectioned ? 0f : y + GridInset;
         content.sizeDelta = new Vector2(0f, height);
 
-        // Jump chips share the row evenly.
+        // Jump chips share the row evenly (wide: two rows once there are more than WideChipsOneRow).
         int chipCount = sectioned ? sectionCount : 0;
         if (chipCount > 0)
         {
             float gap = ChipGapFor(chipCount);
-            float cw = (layout.chips.width - gap * (chipCount - 1)) / chipCount;
+            int chipRows = layout.wide && chipCount > WideChipsOneRow ? WideChipRows : 1;
+            int perRow = (chipCount + chipRows - 1) / chipRows;
+            if (chipRows > 1) gap = ChipGap;
+            float cw = (layout.chips.width - gap * (perRow - 1)) / perRow;
             for (int i = 0; i < chipCount; i++)
             {
-                float x = -layout.chips.width * .5f + cw * .5f + i * (cw + gap);
-                CodexUi.Place(chips[i].rt, CodexUi.Centered(x, 0f, cw, layout.chips.height));
+                int r = i / perRow, c = i % perRow;
+                float x = -layout.chips.width * .5f + cw * .5f + c * (cw + gap);
+                float cy = layout.chips.height * .5f - ChipsHeight * .5f - r * (ChipsHeight + ChipGap);
+                CodexUi.Place(chips[i].rt, CodexUi.Centered(x, cy, cw, ChipsHeight));
             }
         }
         // A resize can move the headers under the pinned one.

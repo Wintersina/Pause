@@ -51,6 +51,10 @@ public static class ScreenFitScreens
         // Developer-only rows: left as they are on purpose (user decision).
         new FitWaiver { screen = "options", kind = "TAPSIZE", element = "Canvas/Developer",
                         reason = "DEVELOPER-ONLY rows (DeveloperUnlocks.Available builds; not shipped to players): left as is by decision" },
+        // The flight-complete panel was never laid out for a near-square screen: its small type sits exactly on the
+        // floor (7.0 dp) on the Flip7 cover. Open follow-up (dock + codex are the wide-screen pass).
+        new FitWaiver { screen = "game-death", kind = "SMALLTEXT", element = "Panel/", devices = "flip7-cover-948x1048",
+                        reason = "death panel on the near-square cover screen: type on the floor, wide layout still to do" },
     };
 
     const float Dt = 1f / 60f;
@@ -538,7 +542,13 @@ public static class ScreenFitScreens
         if (overlapX > 1f && overlapY > hull.height * .15f)
             rig.Fail("POPUP", "~DockPopup/card", "covers its own ship (" + overlapY.ToString("F0") + "px of the hull's " + hull.height.ToString("F0") + ")", card);
         float shipX = rig.Pixel(dock.bays[selected].ship.position).x;
-        if (shipX < card.xMin || shipX > card.xMax)
+        // (a wide view docks the card in its own pane beside the rack: it must not touch the rack at all)
+        if (popup.Docked)
+        {
+            Rect rack = rig.PixelRect(dock.RackWorldRect);
+            if (card.xMin < rack.xMax - 1f) rig.Fail("POPUP", "~DockPopup/card", "docked card runs into the rack", card);
+        }
+        else if (shipX < card.xMin || shipX > card.xMax)
             rig.Fail("POPUP", "~DockPopup/card", "is not over its ship's column", card);
         rig.AddImportant("ship card", card);
     }
