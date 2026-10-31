@@ -148,7 +148,16 @@ public static class DeathComboTest
     }
 
     static readonly FieldInfo GraceField = typeof(EliteShip).GetField("grace", Inst);
-    static void NoGrace(EliteShip e) { if (e != null && GraceField != null) GraceField.SetValue(e, 0f); }
+    static readonly FieldInfo HitBlockField = typeof(EliteShip).GetField("hitBlock", Inst);
+
+    // Clears both windows a hit respects: grace (combo, crashes) and the 0.1 s weapon HitBlock. (Clearing only
+    // grace made the weapon-hit loop below spin forever once HitBlock existed: no time passes in it.)
+    static void NoGrace(EliteShip e)
+    {
+        if (e == null) return;
+        if (GraceField != null) GraceField.SetValue(e, 0f);
+        if (HitBlockField != null) HitBlockField.SetValue(e, 0f);
+    }
 
     static bool Near(float value, float want, float band) => Mathf.Abs(value - want) <= band;
 
@@ -296,7 +305,8 @@ public static class DeathComboTest
         Steps(.3f);
         Check("elite: no heart lost in its grace (" + h2 + " -> " + e.Hearts + ")", e.Hearts == h2);
         // Its last heart: the combo kills it, and its death is a combo death.
-        while (e != null && e.Hearts > 1) { NoGrace(e); e.TakeHit(EliteDamage.PlayerWeapon, e.transform.position); }
+        // (bounded: a hit that is refused must fail the test, never hang the run)
+        for (int guard = 0; guard < 50 && e != null && e.Hearts > 1; guard++) { NoGrace(e); e.TakeHit(EliteDamage.PlayerWeapon, e.transform.position); }
         NoGrace(e);
         var beyond = Rock(new Vector3(1.9f, 0f, 0f));
         int bursts = DeathCombo.Bursts;
