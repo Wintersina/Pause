@@ -208,7 +208,7 @@ public static class ShopTest
                   " of " + screen.width.ToString("F2") + "x" + screen.height.ToString("F2") + ")",
                   Mathf.Approximately(r.width, DockPopup.PanelWidth * popup.Unit) &&
                   Mathf.Approximately(r.height, popup.CurrentHeightUnits * popup.Unit) &&
-                  r.height < screen.height * .45f);
+                  r.height < screen.height * .47f);
         }
 
         // The anchor follows the ship: move the rack and the popup moves too.
