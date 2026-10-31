@@ -179,14 +179,15 @@ public static class ShipSignaturesG3Test
         var grabbed = Hazard(0f, 0f);
         grabbed.AddComponent<BoxCollider2D>();
         var inLine = Hazard(0f, 3f);
-        var side = Hazard(.8f, 3f);
-        var boss = Hazard(2f, 3f);   // inside the blast reach of the impact, but never the nearer target of a hurl (that would be a direct hit, not the blast)
+        var side = Hazard(1f, 3f);   // 1.0 from the impact: inside the level 2 blast, well off the hurl's line
+        var boss = Hazard(-1.6f, 3f);   // the hurl picks the densest knot (the one in line, with both of these within 1.8), so neither is a direct hit
         var fake = boss.AddComponent<FakeBoss>();
         boss.GetComponent<ClearTarget>().SetRadius(.5f);
         c.Runner.Fire();
         Steps(c.Runner, 3f);
         bool dead = side == null;
-        Check("level " + level + ": the boss beside the impact takes nothing from the blast (" + fake.hits + ")", fake.hits == 0);
+        // from level 3 a second body is grabbed and hurled too, and that one can strike the boss directly (a real hit, not the blast)
+        if (level < 3) Check("level " + level + ": the boss beside the impact takes nothing from the blast (" + fake.hits + ")", fake.hits == 0);
         Teardown(c);
         foreach (var g in new[] { grabbed, inLine, side, boss }) if (g != null) Object.DestroyImmediate(g);
         SetLevel(13, 0);

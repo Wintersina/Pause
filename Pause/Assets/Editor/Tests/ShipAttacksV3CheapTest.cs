@@ -190,11 +190,12 @@ public static class ShipAttacksV3CheapTest
         // The blast: neighbours in reach take half weight once; the marked target the full hit; out of reach, nothing.
         FreshScene();
         c = Ship(10);
-        // placed from the eye (the cone is 40 degrees to a side, so the mark sits just inside it, 36 degrees)
+        // placed from the eye, all inside the view (the camera here is only 2.8 wide to a side; a target outside it is
+        // never collected): the cone is 40 degrees to a side, so the mark sits just inside it, 34 degrees
         Vector3 eye = c.Runner.Nose + Vector3.up * ShipAttackRunner.EyeAhead;
-        var marked = Boss(eye.x + 2.9f, eye.y + 4f);
-        var near = Boss(eye.x + 3.8f, eye.y + 4f);      // outside the cone (never marked), .9 from the mark
-        var far = Boss(eye.x + 4.5f, eye.y + 4f);       // outside the cone, 1.6 from the mark
+        var marked = Boss(eye.x + 2.2f, eye.y + 3.2f);
+        var near = Boss(eye.x + 2.7f, eye.y + 2.2f);    // outside the cone (never marked, 51 degrees), 1.1 from the mark
+        var far = Boss(eye.x + 2.7f, eye.y + 1f);       // outside the cone, 2.3 from the mark
         foreach (var b in new[] { near, far }) b.GetComponent<ClearTarget>().SetRadius(.3f);
         c.Runner.Fire();
         Steps(c.Runner, 2f);
@@ -212,8 +213,8 @@ public static class ShipAttacksV3CheapTest
         FreshScene();
         c = Ship(10);
         eye = c.Runner.Nose + Vector3.up * ShipAttackRunner.EyeAhead;
-        var m1 = Boss(eye.x + 2.9f, eye.y + 4f);
-        var m2 = Boss(eye.x + 2.5f, eye.y + 4.9f);
+        var m1 = Boss(eye.x + 2.2f, eye.y + 3.2f);
+        var m2 = Boss(eye.x + 1.8f, eye.y + 4f);        // .9 from the first, inside the cone too (24 degrees)
         foreach (var b in new[] { m1, m2 }) b.GetComponent<ClearTarget>().SetRadius(.3f);
         c.Runner.Fire();
         Steps(c.Runner, 2f);

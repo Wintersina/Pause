@@ -298,7 +298,7 @@ public partial class ShipAttackRunner
             for (int k = 0; k < targets.Count; k++)
             {
                 var n = targets[k];
-                if (n == null || n == t || !n.isActiveAndEnabled || ShipAttackHits.AlreadyHit(n.gameObject)) continue;
+                if (n == null || n == t || !n.isActiveAndEnabled || ShipAttackHits.AlreadyHit(n.gameObject) || run.hit.Contains(n.gameObject)) continue;   // a mark that already went off took its own full hit
                 bool waiting = false;   // a mark still counting down takes its own full hit instead of a splash
                 for (int m = 0; m < v.count && !waiting; m++) waiting = v.phase[m] == 0 && v.tgt[m] == n;
                 if (waiting) continue;
@@ -308,7 +308,9 @@ public partial class ShipAttackRunner
                 if (d.sqrMagnitude > r * r) continue;
                 if (ShipAttackHits.Hit(n.gameObject, ship, w * EyeSplash, ref run.budget)) kills++;
             }
-            if (ShipAttackHits.Hit(t.gameObject, ship, w, ref run.budget)) kills++;
+            var markedGo = t.gameObject;   // read before the hit: a kill can destroy it on the spot
+            if (ShipAttackHits.Hit(markedGo, ship, w, ref run.budget)) kills++;
+            run.hit.Add(markedGo);   // later blasts of this firing leave it alone
             Resolve(v, i);
         }
         if (run.t >= gaze + .05f && v.resolved >= v.count)
