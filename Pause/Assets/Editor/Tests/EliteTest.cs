@@ -1267,6 +1267,7 @@ public static class EliteTest
         entryButton.Build();
         entryButton.Button.onClick.Invoke();
         var panel = CodexPanel.Current;
+        panel.ApplyLayout(new Rect(-400f, -640f, 800f, 1280f));   // the 800 x 1280 frame the art is rendered in: a tall phone's layout, not the wide rail
         panel.SkipAnimations();
         panel.ShowCategory(CodexCategory.Enemies);
         panel.SkipAnimations();

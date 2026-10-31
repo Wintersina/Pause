@@ -97,10 +97,10 @@ public class CodexToast : MonoBehaviour
 
         float left = -Width * .5f + 34f + iconSize + 14f;
         float textWidth = Width * .5f - 24f - left;
-        heading = CodexUi.NewText("Heading", box, font, EntryHeading, 15, CodexUi.Accent, TextAnchor.MiddleLeft);
+        heading = CodexUi.NewText("Heading", box, font, EntryHeading, 17, CodexUi.Accent, TextAnchor.MiddleLeft);
         heading.resizeTextForBestFit = true;
         heading.resizeTextMinSize = 10;
-        heading.resizeTextMaxSize = 15;
+        heading.resizeTextMaxSize = 17;   // scaled down on a small phone: 15 came to 6.7 dp at 480x854
         CodexUi.Place(heading.rectTransform, new Rect(left, 2f, textWidth, 24f));
         nameText = CodexUi.NewText("Name", box, font, "", 24, CodexUi.Title, TextAnchor.MiddleLeft);
         nameText.horizontalOverflow = HorizontalWrapMode.Wrap;

@@ -298,7 +298,8 @@ public static class CodexNewDotsTest
                 var local = new Rect(cr.anchoredPosition.x - cr.rect.width * .5f, cr.anchoredPosition.y - cr.rect.height * .5f, cr.rect.width, cr.rect.height);
                 if (!InsideWithMargin(panelRt, chip.rectTransform, 2f)) why = tab + ": COLLECT ALL button outside the panel";
                 else if (local.yMax > lay.collectBar.yMax + .5f || local.yMin < lay.collectBar.yMin - .5f) why = tab + ": COLLECT ALL button not inside the bar under the tabs";
-                else if (lay.collectBar.yMax > lay.tabs.yMin + .5f) why = tab + ": COLLECT ALL bar is not under the tabs";
+                else if (!lay.wide && lay.collectBar.yMax > lay.tabs.yMin + .5f) why = tab + ": COLLECT ALL bar is not under the tabs";
+                else if (lay.wide && lay.collectBar.xMin < lay.tabs.xMax - .5f) why = tab + ": COLLECT ALL bar is not beside the tab rail";   // wide: the tabs are a rail on the left, the bar tops the pane
                 else if (lay.catBody.yMax > lay.collectBar.yMin + .5f) why = tab + ": the list starts above the COLLECT ALL bar";
                 else if (cr.rect.height < 40f || cr.rect.width < 150f) why = tab + ": COLLECT ALL button too small";
             }

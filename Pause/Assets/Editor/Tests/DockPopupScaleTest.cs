@@ -17,7 +17,7 @@ public static class DockPopupScaleTest
     public static void Run() { TestHarness.Exit(Execute()); }
 
     // Master before this change: the card in canvas units.
-    const float OldWidth = 300f, OldLockedHeight = 126f + DockPopup.PreviewHeight, OldOwnedHeight = 214f + DockPopup.PreviewHeight;
+    const float OldWidth = 300f, OldLockedHeight = 126f + DockPopup.PreviewHeight, OldOwnedHeight = 224f + DockPopup.PreviewHeight;
 
     // The power preview: every ship has frames, names and lines for both
     // kinds; it alternates on a timer until tapped; the card fits the smallest phone.
@@ -127,7 +127,7 @@ public static class DockPopupScaleTest
         var popup = DockPopup.Create(null, font, null);
         popup.safeView = new Rect(-50f, -50f, 100f, 100f);   // roomy: no fit-shrink
         Check("the one scale constant is 0.85", Mathf.Approximately(DockPopup.PopupScale, .85f));
-        Check("layout constants are the originals (width 300, locked 126, owned 214)",
+        Check("layout constants are the originals (width 300, locked 126, owned 224: the weapon row is two lines tall)",
               DockPopup.PanelWidth == OldWidth && DockPopup.BaseHeight == OldLockedHeight && DockPopup.OwnedHeight == OldOwnedHeight);
         Check("the preview is 171 units tall (art frame plus both weapons and the trigger)", DockPopup.PreviewHeight == 171f);
         PreviewChecks(popup, anchor);

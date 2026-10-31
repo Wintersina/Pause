@@ -44,6 +44,7 @@ public static class ScreenFitTest
     public static readonly string[] GateDevices =
     {
         "flip7-1080x2520",           // the user's phone: 21:9, centre punch-hole
+        "flip7-cover-948x1048",      // the Flip7's cover screen: near square, the wide dock / codex layouts
         "and-480x854",               // smallest, low dpi, 16:9
         "and-1080x2340-waterfall",   // left / right insets + rounded corners
         "fold-1812x2176",            // widest (near square)

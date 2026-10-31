@@ -26,7 +26,7 @@ public static class UiScale
     public const float MinTapDp = 48f;   // Android, dp
     public const float MinPlausibleDpi = 100f, MaxPlausibleDpi = 1000f;
     public const float FallbackPhoneWidthDp = 320f, FallbackTabletWidthDp = 600f;
-    public const float PhoneAspect = 1.7f;
+    public const float PhoneAspect = 1.7f, TabletMinShortPx = 1100f;
 
     public static bool Plausible(float dpi) { return dpi >= MinPlausibleDpi && dpi <= MaxPlausibleDpi; }
 
@@ -34,7 +34,8 @@ public static class UiScale
     {
         if (Plausible(dpi)) return ios ? (dpi >= 380f ? 3f : 2f) : dpi / 160f;
         float shortSide = Mathf.Max(1f, Mathf.Min(w, h)), longSide = Mathf.Max(w, h);
-        float widthDp = longSide >= shortSide * PhoneAspect ? FallbackPhoneWidthDp : FallbackTabletWidthDp;
+        // a near-square screen that is small in pixels is a phone with a cover screen (Z Flip), not a tablet
+        float widthDp = longSide >= shortSide * PhoneAspect || shortSide < TabletMinShortPx ? FallbackPhoneWidthDp : FallbackTabletWidthDp;
         return Mathf.Clamp(shortSide / widthDp, 1f, 4f);
     }
 

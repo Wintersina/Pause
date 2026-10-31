@@ -9,6 +9,12 @@ using UnityEngine;
 // Wider screens keep three columns, centred over the starfield. If the rack
 // is a hair too wide for the screen it is scaled down to fit rather than
 // dropping a column.
+//
+// Near-square screens (the Z Flip7 cover screen, a foldable's inner screen:
+// view width / height from WideAspect up) split the view into two panes: the
+// rack, scaled to fit its pane's width AND height so the whole fleet shows
+// without scrolling, on the left, and the selected ship's card docked in the
+// pane on the right (Panes, ForWide) instead of floating over the rack.
 public struct DockLayout
 {
     public static readonly Vector2 BaySize = new Vector2(1.62f, 1.36f);
@@ -20,6 +26,13 @@ public struct DockLayout
     public const float SideMargin = .06f;
     public const int MinColumns = 3;
     public const int MaxColumns = 3;
+
+    public const float WideAspect = .8f;       // view width / height from here up
+    public const float CardShare = .62f;       // the card pane never takes more than this share of the width
+    public const float PaneGap = .3f;          // between the panes
+    public const float Gutter = .3f;           // clear of the view's left and right edges (both panes)
+    public const float LabelFloor = 1.2f;      // berth labels grow when the rack is drawn below this scale
+    public const float MinWideScale = .75f;    // the rack scrolls rather than shrink below this
 
     public int count;
     public int columns;
@@ -42,6 +55,30 @@ public struct DockLayout
         layout.columns = Mathf.Min(layout.columns, layout.count);
         layout.rows = Mathf.CeilToInt(layout.count / (float)layout.columns);
         layout.scale = Mathf.Min(1f, usable / layout.Width);
+        return layout;
+    }
+
+    public static bool IsWide(float viewHalfWidth, float viewHalfHeight)
+    {
+        return viewHalfHeight > 0f && viewHalfWidth / viewHalfHeight >= WideAspect;
+    }
+
+    // The two panes of a wide view: the card pane on the right, as wide as the card wants (cardWidth, world
+    // units) up to CardShare of the view; the rack pane takes the rest.
+    public static void Panes(Rect view, float cardWidth, out Rect rackPane, out Rect cardPane)
+    {
+        float cw = Mathf.Min(cardWidth + PaneGap, view.width * CardShare);
+        cardPane = new Rect(view.xMax - cw, view.yMin, cw, view.height);
+        rackPane = new Rect(view.xMin, view.yMin, view.width - cw, view.height);
+    }
+
+    // The rack for a wide view: three columns scaled to fit the rack pane's width and height (down to
+    // MinWideScale, below which it scrolls).
+    public static DockLayout ForWide(int count, Rect rackPane)
+    {
+        var layout = For(count, rackPane.width * .5f + SideMargin);
+        float byHeight = rackPane.height / layout.Height;
+        layout.scale = Mathf.Min(layout.scale, Mathf.Max(MinWideScale, byHeight));
         return layout;
     }
 

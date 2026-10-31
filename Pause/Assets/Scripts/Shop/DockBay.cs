@@ -136,6 +136,7 @@ public class DockBay : MonoBehaviour
             thruster = shipGo.AddComponent<ShipThruster>();
             thruster.respondToPause = false;
             thruster.idleScale = .55f;
+            thruster.startCold = true;
             thruster.flicker = .12f;
             thruster.powered = false;
         }
@@ -254,11 +255,32 @@ public class DockBay : MonoBehaviour
             chipText.text = label;
             float width = .25f + label.Length * .058f;
             chip.size = new Vector2(width, .15f);
-            float right = .555f;
-            chip.transform.localPosition = new Vector3(right - width * .5f, .43f, 0f);
+            chipWidth = width;
+            PlaceChip();
             chipDust.transform.localPosition = new Vector3(-width * .5f + .08f, 0f, 0f);
             chipText.transform.localPosition = new Vector3(width * .5f - .045f, -.002f, 0f);
         }
+    }
+
+    // The corner price tag, right edge fixed, at the current label scale.
+    float chipWidth = .4f, labelK = 1f;
+    void PlaceChip()
+    {
+        const float right = .555f;
+        chip.transform.localScale = new Vector3(labelK, labelK, 1f);
+        chip.transform.localPosition = new Vector3(right - chipWidth * labelK * .5f, .43f, 0f);
+    }
+
+    // A rack drawn smaller than the berths were designed for (the wide dock beside its card) grows the
+    // name plates, price tags and status icons by `k` (1 = as designed) so they stay readable.
+    public void SetLabelScale(float k)
+    {
+        if (Mathf.Approximately(k, labelK)) return;
+        labelK = k;
+        nameText.transform.localScale = new Vector3(k, k, 1f);
+        statusIcon.transform.localScale = Vector3.one * .62f * k;
+        statusIcon.transform.localPosition = new Vector3(.555f - .085f * k, .42f, 0f);
+        PlaceChip();
     }
 
     // The ship was just bought: play the black -> white -> colour reveal.

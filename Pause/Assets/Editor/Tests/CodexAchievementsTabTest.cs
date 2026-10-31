@@ -441,6 +441,7 @@ public static class CodexAchievementsTabTest
 
     static void Perf(CodexPanel panel)
     {
+        panel.ApplyLayout(Screens[0].safe);   // the cards below are placed against the 800x1280 body
         AchievementStore.ResetAll();
         PlayerPrefs.SetInt(AchievementStore.SchemaKey, AchievementMigration.Schema);
         foreach (string id in new[] { "meta_first_flight", "world_frost_reached", "world_verdant_reached", "loop_1", "loop_2" }) AchievementStore.Unlock(AchievementCatalog.Find(id));

@@ -72,6 +72,8 @@ public class DockPopup : MonoBehaviour
     public bool Visible { get { return ShipIndex > 0 && gameObject.activeSelf; } }
     public bool Flipped { get; private set; }
     public Rect safeView = new Rect(-2.8f, -4f, 5.6f, 8f);
+    // Wide view: the card sits centred in its own pane (safeView) instead of floating over its ship.
+    public bool Docked;
 
     public System.Action<int> onLaunch;
     public System.Action<int> onBuy;
@@ -489,11 +491,12 @@ public class DockPopup : MonoBehaviour
     // ---- END power preview ------------------------------------------------
 
     // The card's corner X: closes it (as tapping anywhere off it or Back does).
+    const float CloseInset = 14f;   // the drawn X sits this far in from the card's right edge, clear of its frame
     void BuildClose()
     {
         var rt = Rect("Close", body);
         // drawn 28 x 28 in the top-right corner; its touch target 48 x 48
-        Place(rt, new Vector2(1f, 1f), new Vector2(-8f, -8f), new Vector2(28f, 28f), new Vector2(1f, 1f));
+        Place(rt, new Vector2(1f, 1f), new Vector2(-CloseInset, -CloseInset + 2f), new Vector2(28f, 28f), new Vector2(1f, 1f));
         var hit = rt.gameObject.AddComponent<Image>();
         hit.color = new Color(0f, 0f, 0f, 0f);
         hit.raycastTarget = true;
@@ -501,7 +504,7 @@ public class DockPopup : MonoBehaviour
         // the card's corner, so reaching 8 outward would just touch the card
         // edge, and the card may sit against the screen edge.
         float grow = CloseSize - 28f - 8f;
-        hit.raycastPadding = new Vector4(-grow, -grow, -8f, -8f);
+        hit.raycastPadding = new Vector4(-grow, -grow, -8f, -8f);   // (outward 8: the frame is 6+ away)
         var label = Label("X", rt, font, 16, TextAnchor.MiddleCenter, AkiraPalette.Muted);
         label.fontStyle = FontStyle.Bold;
         label.text = "X";
@@ -538,8 +541,8 @@ public class DockPopup : MonoBehaviour
         heartsLine.resizeTextForBestFit = true;
         heartsLine.resizeTextMinSize = SmallSize - 2;
         heartsLine.resizeTextMaxSize = SmallSize;
-        Place(heartsLine.rectTransform, new Vector2(1f, 1f), new Vector2(-Pad, y),
-              new Vector2(PanelWidth - 2f * Pad - StartSpeedWidth - 4f, StartSpeedLineHeight - 2f), new Vector2(1f, 1f));
+        Place(heartsLine.rectTransform, new Vector2(1f, 1f), new Vector2(-Pad - 4f, y),
+              new Vector2(PanelWidth - 2f * Pad - StartSpeedWidth - 8f, StartSpeedLineHeight - 2f), new Vector2(1f, 1f));
         heartsLine.gameObject.SetActive(false);
     }
 
@@ -602,7 +605,7 @@ public class DockPopup : MonoBehaviour
             w.check.rectTransform.anchoredPosition = new Vector2(ChipW * .5f - 5f, ChipH * .5f - 2.5f);
             float priceY = -ChipH * .5f - 4f - 7f;
             w.dust = Chip(w.root, "Dust", "icon_dust", new Vector2(10f, 10f));
-            w.dust.rectTransform.anchoredPosition = new Vector2(-15f, priceY);
+            w.dust.rectTransform.anchoredPosition = new Vector2(-19f, priceY);
             w.price = Label("Price", w.root, font, SmallSize, TextAnchor.MiddleLeft, DockArt.Gold);
             // Whatever the price reads ("1,600", "50K"), it shrinks to fit the slot instead of
             // running past the chip row (five chips share the card's width).
@@ -611,8 +614,8 @@ public class DockPopup : MonoBehaviour
             w.price.resizeTextMaxSize = SmallSize;
             w.price.horizontalOverflow = HorizontalWrapMode.Wrap;
             w.price.verticalOverflow = VerticalWrapMode.Truncate;
-            Place(w.price.rectTransform, new Vector2(.5f, .5f), new Vector2(-9f, priceY),
-                  new Vector2(SlotW * .5f + 4f, 14f), new Vector2(0f, .5f));
+            Place(w.price.rectTransform, new Vector2(.5f, .5f), new Vector2(-13f, priceY),
+                  new Vector2(SlotW * .5f + 2f, 14f), new Vector2(0f, .5f));
             w.button = w.root.gameObject.AddComponent<Button>();
             w.button.targetGraphic = w.hit;
             w.button.transition = Selectable.Transition.None;
@@ -1001,12 +1004,19 @@ public class DockPopup : MonoBehaviour
         float shift;
         var size = new Vector2(WorldWidth, CurrentHeight);
         Vector2 center = Place(target.position, above, below, TailLength, size, safeView, out flipped, out shift);
-        if (shift != 0f && onNudge != null)
+        if (shift != 0f && onNudge != null && !Docked)
         {
             onNudge(shift);   // the ship moves; place the card against where it is now
             center = Place(target.position, above, below, TailLength, size, safeView, out flipped, out shift);
         }
         Flipped = flipped;
+        if (tail.gameObject.activeSelf == Docked) tail.gameObject.SetActive(!Docked);
+        if (Docked)
+        {
+            Flipped = false;
+            transform.position = new Vector3(safeView.center.x, safeView.center.y, -1f);
+            return;
+        }
         Vector2 ship = target.position;
         transform.position = new Vector3(center.x, center.y, -1f);
         float margin = 20f * Unit;

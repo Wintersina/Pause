@@ -98,6 +98,9 @@ public class FitDevice
         new FitDevice { id = "flip7-1080x2520", name = "Galaxy Z Flip7 21:9", w = 1080, h = 2520, pxPerPt = 2.625f,
                         top = 110, cornerRadius = 110, cutoutKind = "centre punch-hole",
                         cutoutsTopLeft = new[] { Centre(1080, 80, 30, 80) } },
+        // Z Flip7 cover screen: 4.1", near square (the wide-layout case)
+        new FitDevice { id = "flip7-cover-948x1048", name = "Galaxy Z Flip7 cover 948x1048", w = 948, h = 1048, pxPerPt = 2f,
+                        top = 40, cornerRadius = 80, cutoutKind = "centre status bar" },
         new FitDevice { id = "and-1080x2640", name = "Android 22:9 1080x2640", w = 1080, h = 2640, pxPerPt = 2.625f,
                         top = 110, cornerRadius = 110, cutoutKind = "centre punch-hole",
                         cutoutsTopLeft = new[] { Centre(1080, 80, 30, 80) } },
