@@ -585,6 +585,7 @@ public static class Codex
         {
             bool log = e.category == CodexCategory.Log;
             if (done.Contains(e.id) || seen.Contains(e.id) || !IsDiscovered(e)) continue;
+            if (IsStarterShip(e)) continue;   // the free starter is never a find: a fresh save pays 0
             if (log && e.id == KillCamArchive.CodexId && !KillCamArchive.HasRecord) continue;   // Last Stand: once a replay is kept
             done.Add(e.id);
             dust += CodexPayout.For(e);
@@ -609,6 +610,11 @@ public static class Codex
         PrefsSaver.SaveNow();
         RaiseNewChanged();
         return dust;
+    }
+
+    static bool IsStarterShip(CodexEntry e)
+    {
+        return e.category == CodexCategory.Ships && CodexCatalogue.ShipIndex(e.id) == ShipId.Starter;
     }
 
     static void WritePaid(HashSet<string> done)
@@ -651,6 +657,7 @@ public static class Codex
         foreach (var e in Entries)
         {
             if (e.category == CodexCategory.Log || done.Contains(e.id) || !IsDiscovered(e)) continue;
+            if (IsStarterShip(e)) continue;   // the free starter is never a find: a fresh save pays 0
             done.Add(e.id);
             dust += CodexPayout.For(e);
         }
