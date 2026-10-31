@@ -8,6 +8,7 @@ using UnityEngine;
 //   ART        the art of every wired world: complete, real resolution, pale-edged
 //   BACKDROP   a boulder only spawns where it blends into the backdrop variant in play; it emerges and recedes without a pop
 //   NOTHING    a boulder blocks nothing: the ship, shots, bodies, elite landing sites are all unaffected, in every world
+//   SORTING    a boulder is pinned ON the ground plane: every other backdrop layer, and all gameplay, sorts above it, in every world
 //   RULES      spawn rules and rarity per world, the first 20 s, tutorial, death, world change, a boss fades it
 //   COST       no allocation, pooled; every device shape keeps it inside the rails
 public static class CoverBoulderTest
@@ -35,6 +36,7 @@ public static class CoverBoulderTest
             BackdropRules();
             Emerge();
             BlocksNothing();
+            Sorting();
             Rules();
             Rarity();
             Cost();
@@ -402,6 +404,59 @@ public static class CoverBoulderTest
         return new LandingSite { anchor = anchor, local = Vector3.zero, scale = .3f, order = -420, id = id };
     }
 
+    // ---- SORTING: pinned to the ground plane, under everything else, in every world ----
+
+    // Every sorting order gameplay draws at (the lowest a body of that kind ever sits), by name.
+    static readonly KeyValuePair<string, int>[] Gameplay =
+    {
+        new KeyValuePair<string, int>("boss approach", BossActor.ApproachOrder),
+        new KeyValuePair<string, int>("boss play", BossActor.PlayOrder),
+        new KeyValuePair<string, int>("elite play (hull, plumes, sight)", EliteShip.PlayOrder - 1),
+        new KeyValuePair<string, int>("resume fx", ResumeFx.VignetteOrder),
+        new KeyValuePair<string, int>("weather", WeatherLayer.SortingOrder),
+        new KeyValuePair<string, int>("wind", WindVisuals.SortingOrder),
+        new KeyValuePair<string, int>("hazard visuals", HazardVisuals.SortingOrder),
+        new KeyValuePair<string, int>("rock hazards", 2),
+        new KeyValuePair<string, int>("enemies", 3),
+        new KeyValuePair<string, int>("hostile shots", 29),
+        new KeyValuePair<string, int>("pickups", 8),
+        new KeyValuePair<string, int>("mines", 12),
+    };
+
+    static void Sorting()
+    {
+        var T = CoverBoulderTable.Entries;
+        for (int w = 0; w < T.Length; w++)
+        {
+            Fresh();
+            string nm = T[w].world;
+            var b = Place(1, new Vector2(.4f, 2f), w);
+            if (b == null) { Check(nm + ": a boulder spawns", false); continue; }
+            int lo = int.MaxValue, hi = int.MinValue;
+            foreach (var sr in b.GetComponentOnBody().transform.parent.GetComponentsInChildren<SpriteRenderer>(true))
+            {
+                lo = Mathf.Min(lo, sr.sortingOrder);
+                hi = Mathf.Max(hi, sr.sortingOrder);
+            }
+            var spec = BackdropCatalog.For(nm);
+            string anchor = spec.boulderLayer ?? "mid";
+            int anchorOrder = spec.Order(anchor);
+            Check(nm + ": it sits on its ground layer '" + anchor + "' (" + lo + ".." + hi + " over " + anchorOrder + ")", lo > anchorOrder);
+            bool above = true;
+            string worst = "";
+            bool after = false;
+            foreach (var l in spec.layers)
+            {
+                if (after && spec.Order(l.name) <= hi) { above = false; worst = l.name; }
+                if (l.name == anchor) after = true;
+            }
+            Check(nm + ": every backdrop layer above the ground plane draws over it" + (above ? "" : " (not '" + worst + "')"), above);
+            foreach (var g in Gameplay)
+                Check(nm + ": a boulder (" + hi + ") sorts under " + g.Key + " (" + g.Value + ")", hi < g.Value);
+            CoverBoulders.Clear();
+        }
+    }
+
     static void BlocksNothing()
     {
         var T = CoverBoulderTable.Entries;
@@ -411,8 +466,8 @@ public static class CoverBoulderTest
             string nm = T[w].world;
             var b = Place(1, new Vector2(.4f, 2f), w);
             if (b == null) { Check(nm + ": a boulder spawns", false); continue; }
-            Check(nm + ": it is drawn behind gameplay (backdrop sorting order " + CoverBoulder.SortingOrder + ")",
-                  b.GetComponentOnBody().sortingOrder == CoverBoulder.SortingOrder && CoverBoulder.SortingOrder < 0);
+            Check(nm + ": it is drawn behind gameplay (backdrop sorting order " + b.SortingOrder + ")",
+                  b.GetComponentOnBody().sortingOrder == b.SortingOrder && b.SortingOrder < 0);
             Check(nm + ": it is inside the lane (" + b.Width.ToString("0.0") + " u of " + (CoverBoulders.Edge * 2f).ToString("0.0") + ")", b.Width <= CoverBoulders.Edge * 2f * CoverBoulders.DecorMaxShare + .001f);
 
             // a body and a hostile shot right on top of it; the player's follow target straight through it

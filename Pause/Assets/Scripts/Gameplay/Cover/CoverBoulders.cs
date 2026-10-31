@@ -3,7 +3,7 @@ using UnityEngine;
 // COVER BOULDERS: big decorative LANDFORMS of the backdrop (docs/cover-boulders.md), in every world.
 //
 // One huge boulder now and then (CoverBoulderDirector spawns it, the table CoverBoulderTable says how) is pinned to the
-// backdrop's ground and scrolls with it, drawn behind everything (CoverBoulder.SortingOrder). It is scenery only: it has
+// backdrop's ground and scrolls with it, drawn on the ground plane under everything else (CoverBoulder.OrderFor). It is scenery only: it has
 // no collision and no effect on the ship, shots, beams, enemies, elites or world hazards. A boss arriving, a world change
 // or a death just fades it out.
 //
