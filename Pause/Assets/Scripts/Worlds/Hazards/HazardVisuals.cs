@@ -2,7 +2,7 @@ using UnityEngine;
 
 // The hazards' drawn bodies and telegraphs, as pooled placeholder sprites (WeatherSprites) in the world's cue
 // colour (pink only in Space), until Codex's sheets are vetted. At most Pool renderers, built once; Draw
-// allocates nothing. Sorting order -7: behind enemies and shots (a boulder is -7 too, and never shares the screen).
+// allocates nothing. Sorting order -7: behind enemies and shots (above every backdrop layer and any boulder, which sits on the ground plane).
 public sealed class HazardVisuals
 {
     public const int Pool = 150, PerField = 14;

@@ -147,6 +147,13 @@ public static class BackdropCatalog
 
         public float Rate(string name) { return Find(name).rate; }
 
+        // Where the pinned landforms (CoverBoulders) are drawn: ON the ground plane. This layer is the last the boulder
+        // covers; every layer after it (landmarks, docks, flow, mist, clouds, weather, dust) and all gameplay sort above.
+        // Null: the ground tile "mid" every planet world pins its pieces to.
+        public string boulderLayer;
+        public const int BoulderOffset = 3;   // above the anchor layer's own tile copies; stays under the next layer (+10)
+        public int BoulderOrder { get { return Order(boulderLayer ?? "mid") + BoulderOffset; } }
+
         // Sorting order: everything sits far below gameplay (order 0).
         public int Order(string name)
         {
@@ -177,7 +184,8 @@ public static class BackdropCatalog
         // creeps by just in front of the stars, far slower than the small
         // stations and rocks (deep..near) that really are close to the ship.
         // See SpaceDirector.Tiers.
-        new Spec { world = "Space", layers = new[] {
+        // The asteroid boulder floats just above the far planets; stations, docks and dust pass over it.
+        new Spec { world = "Space", boulderLayer = "planet_near", layers = new[] {
             // Cross-fade the sky's last rows into its first at render time
             // (BackdropSkyWrap). One of Codex's sky_01..04 per run (SpaceSkySelection).
             Layer.Tile("sky", 0.006f, new Color(0.84f, 0.84f, 0.94f), Role.Sky).WrapBlended(SkyWrapBlend),
