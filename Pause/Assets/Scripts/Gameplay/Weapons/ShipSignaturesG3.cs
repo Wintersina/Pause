@@ -23,7 +23,7 @@ public static class ShipSignaturesG3
     public const string DoveReturnFullLabel = "TWIN RETURNS";
     public const string DiscMildLabel = "+2 BOUNCES, SPARKS";
     public const string DiscFullLabel = "+4 BOUNCES, TRAIL";
-    public const string NukeMildLabel = "BIGGER FIREBALL";
+    public const string NukeMildLabel = "BIG BLAST";
     public const string NukeFullLabel = "2ND WARHEAD";
 
     static int At(int level) { return Mathf.Clamp(level, 0, ShipWeaponUpgrades.MaxLevel); }

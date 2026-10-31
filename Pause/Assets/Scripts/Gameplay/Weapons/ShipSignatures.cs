@@ -29,7 +29,7 @@ public static class ShipSignatures
     public const int CometExtrasPierceLevel = 2;
     public const int CometAllPierceLevel = 4;
     public const int CometPierceCount = 1;          // enemies a piercing streak passes through
-    public const string CometExtrasPierceNote = "EXTRAS PIERCE";
+    public const string CometExtrasPierceNote = "3+ PIERCE";
     public const string CometAllPierceNote = "ALL PIERCE";
 
     public static int CometPierce(ShipLoadout l, int streak)

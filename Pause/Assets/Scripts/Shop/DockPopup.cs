@@ -37,7 +37,7 @@ public class DockPopup : MonoBehaviour
     // Added for an owned ship: the swatches (their touch slots), the weapon
     // row and the START SPEED line.
     public const float SkinRowHeight = 50f;
-    public const float WeaponRowHeight = 20f;
+    public const float WeaponRowHeight = 30f;   // two lines: a step with a signature note ("NEXT -15% COOLDOWN, 3+ PIERCE") wraps
     public const float StartSpeedLineHeight = 18f;
     public const float OwnedHeight = BaseHeight + SkinRowHeight + WeaponRowHeight + StartSpeedLineHeight;
     // Paragon only: a one-line warning strip along the card's bottom edge
