@@ -168,7 +168,7 @@ public static class AtomFusions
         if (first)
         {
             Discoveries++;
-            Codex.PayFusion(f);   // the combo's Codex star dust (CodexPayout), once; replaces the old FirstDiscoveryDust switch
+            Codex.OnFusionFound(f);   // the combo becomes a pending Codex reward (collected in the COMBOS tab)
         }
         string word = first ? discoveryWords[(int)f.id]
                     : f.external ? null   // VACUUM's own callout (MagnetCombo) is already up

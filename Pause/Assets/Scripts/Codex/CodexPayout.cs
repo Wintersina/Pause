@@ -1,8 +1,8 @@
 using System.Collections.Generic;
 
-// The star dust a Codex entry pays the first time it is discovered. ONE table, here, so the numbers are easy to
+// The star dust a Codex find pays when the player collects it. ONE table, here, so the numbers are easy to
 // tune and to audit. Every payout is between Min (5) and Max (25 = super rare); normal entries scale 5..15 by
-// rarity / tier, and only the SuperRare ids pay Max. The Log entries pay 5 too (paid by Codex.PaySweep).
+// rarity / tier, and only the SuperRare ids pay Max. The Log entries pay 5 too.
 //
 //   kind                              pays
 //   --------------------------------  -----------------------------------------------------------
@@ -29,7 +29,7 @@ using System.Collections.Generic;
 //   Backdrops (one per world variant) 5
 //   SUPER RARE (25): the last world's boss, and the Paragon ship.
 //
-// Payment itself lives in Codex (first discovery, and the one-time back-pay for older saves).
+// Nothing pays by itself: a find is a pending reward and Codex.Collect* pays it (per item, per tab, COLLECT ALL).
 public static class CodexPayout
 {
     public const int Min = 5, Max = 25;

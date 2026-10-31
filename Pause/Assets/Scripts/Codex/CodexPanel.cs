@@ -563,7 +563,7 @@ public class CodexPanel : MonoBehaviour
         BuildGrid();
         ach = new CodexAchievementsView(this, panel, font);
         music = new CodexMusicView(this, panel, font);
-        combos = new CodexCombosView(panel, font);
+        combos = new CodexCombosView(this, panel, font);
         BuildDetail();
         BuildBack();
     }
@@ -843,7 +843,18 @@ public class CodexPanel : MonoBehaviour
 
     public static bool TabHasReward(int i)
     {
-        return i == MusicTab ? false : i == CombosTab ? FusionDiscoveryStore.HasUnseen : i == AchievementsTab ? AchievementStore.ClaimableCount > 0 : Codex.PendingIn(CodexPanel.CategoryOfTab(i)) > 0;
+        return i == MusicTab ? Codex.PendingInExtra(Codex.ExtraKind.Music) > 0 : i == CombosTab ? Codex.PendingInExtra(Codex.ExtraKind.Combos) > 0 : i == AchievementsTab ? AchievementStore.ClaimableCount > 0 : Codex.PendingIn(CodexPanel.CategoryOfTab(i)) > 0;
+    }
+
+    // What the COLLECT ALL bar covers: the open tab (an entry tab, MUSIC or COMBOS).
+    int BarPending()
+    {
+        return musicOpen ? Codex.PendingInExtra(Codex.ExtraKind.Music) : combosOpen ? Codex.PendingInExtra(Codex.ExtraKind.Combos) : Codex.PendingIn(category);
+    }
+
+    int BarDust()
+    {
+        return musicOpen ? Codex.PendingDustInExtra(Codex.ExtraKind.Music) : combosOpen ? Codex.PendingDustInExtra(Codex.ExtraKind.Combos) : Codex.PendingDustIn(category);
     }
 
     public Button CollectTabButton { get { return collectTabButton; } }
@@ -856,15 +867,16 @@ public class CodexPanel : MonoBehaviour
     void PaintCollect()
     {
         if (collectTabFrame == null) return;
-        bool barOn = !OtherViewOpen && !inDetail;
-        int tabPending = barOn ? Codex.PendingIn(category) : 0;
+        // The bar sits under the tabs for every tab but ACHIEVEMENTS (its own strip): the entry tabs, MUSIC and COMBOS.
+        bool barOn = !achievementsOpen && !inDetail;
+        int tabPending = barOn ? BarPending() : 0;
         bool tabShown = tabPending > 0;
         collectTabFrame.gameObject.SetActive(barOn);
         collectBarText.gameObject.SetActive(barOn);
         collectTabButton.interactable = tabShown;
         collectTabFrame.color = tabShown ? CodexHomeButton.BubbleYellow : CodexUi.Locked;
         collectTabLabel.color = tabShown ? CodexUi.Ink : CodexUi.Muted;
-        collectTabLabel.text = tabShown ? "COLLECT ALL +" + Codex.PendingDustIn(category) : "COLLECT ALL";
+        collectTabLabel.text = tabShown ? "COLLECT ALL +" + BarDust() : "COLLECT ALL";
         collectBarText.text = tabShown ? tabPending + " TO COLLECT" : "NOTHING TO COLLECT";
 
         bool entryShown = inDetail && detailEntry != null && !OtherViewOpen && Codex.IsRewardPending(detailEntry);
@@ -889,8 +901,8 @@ public class CodexPanel : MonoBehaviour
 
     void OnCollectTab()
     {
-        if (OtherViewOpen || inDetail) return;
-        AfterCollect(Codex.CollectRewards(category));
+        if (achievementsOpen || inDetail) return;
+        AfterCollect(musicOpen ? Codex.CollectExtras(Codex.ExtraKind.Music) : combosOpen ? Codex.CollectExtras(Codex.ExtraKind.Combos) : Codex.CollectRewards(category));
     }
 
     void OnCollectDetail()
@@ -900,12 +912,16 @@ public class CodexPanel : MonoBehaviour
     }
 
     // The counter flashes what was paid for a moment (the same star dust the shop spends).
-    void AfterCollect(int dust)
+    // Used by the panel's own buttons and by the MUSIC / COMBOS / BACKDROPS rows' COLLECT chips.
+    public void AfterCollect(int dust)
     {
         if (dust <= 0) return;
         feedbackText = "+" + dust + " STAR DUST";
         feedbackUntil = Time.unscaledTime + 2.2f;
         RefreshCounter();
+        if (musicOpen) music.Paint();
+        if (combosOpen) combos.Paint();
+        if (BackdropsOpen) backdrops.Paint();
         PaintNewDots();
     }
 
@@ -1088,8 +1104,8 @@ public class CodexPanel : MonoBehaviour
         LayoutCards();
         LayoutDetail();
         ach.ApplyLayout(layout.body, layout);
-        music.ApplyLayout(layout.body, layout);
-        combos.ApplyLayout(layout.body);
+        music.ApplyLayout(layout.catBody, layout);
+        combos.ApplyLayout(layout.catBody);
         LayoutSubTabs();
     }
 
@@ -1490,7 +1506,7 @@ public class CodexPanel : MonoBehaviour
         musicOpen = true;
         grid.gameObject.SetActive(false);
         chipsRoot.gameObject.SetActive(false);
-        music.ApplyLayout(layout.body, layout);
+        music.ApplyLayout(layout.catBody, layout);
         music.Show();
         PaintTabs();
         RefreshCounter();
@@ -1508,7 +1524,7 @@ public class CodexPanel : MonoBehaviour
         combosOpen = true;
         grid.gameObject.SetActive(false);
         chipsRoot.gameObject.SetActive(false);
-        combos.ApplyLayout(layout.body);
+        combos.ApplyLayout(layout.catBody);
         combos.Show();   // clears its NEW dot
         PaintTabs();
         RefreshCounter();
@@ -2122,7 +2138,7 @@ public class CodexPanel : MonoBehaviour
 
     void RefreshCounter()
     {
-        if (Time.unscaledTime < feedbackUntil && !musicOpen && !achievementsOpen && !combosOpen) { counter.text = feedbackText; return; }
+        if (Time.unscaledTime < feedbackUntil && !achievementsOpen) { counter.text = feedbackText; return; }
         counter.text = musicOpen
             ? CodexMusic.UnlockedCount + " / " + CodexMusic.ListedCount + "  HEARD"
             : combosOpen

@@ -123,7 +123,7 @@ public class CodexToast : MonoBehaviour
     public void Enqueue(CodexEntry entry)
     {
         if (entry == null) return;
-        // The heading stays short: with "+N STAR DUST" on it the best-fit text shrank under the 7 dp floor on small phones.
+        // The find is a pending reward: the dust is claimed later with COLLECT in the Codex.
         Push(new Item { heading = EntryHeading, entry = entry });
     }
 

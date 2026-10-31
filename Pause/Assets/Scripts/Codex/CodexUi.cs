@@ -97,6 +97,43 @@ public static class CodexUi
         return c;
     }
 
+    // A small yellow COLLECT chip (the music / combo / backdrop rows' own claim button); hidden until a row needs it.
+    public static Image NewCollectChip(string name, Transform parent, Font font, out Button button, out Text label)
+    {
+        var frame = NewImage(name, parent, CodexSprite("cx_tab"), CodexHomeButton.BubbleYellow, true);
+        frame.raycastTarget = true;
+        frame.raycastPadding = new Vector4(-6f, -6f, -6f, -6f);
+        button = frame.gameObject.AddComponent<Button>();
+        button.transition = Selectable.Transition.None;
+        button.targetGraphic = frame;
+        label = NewText("Label", frame.rectTransform, font, "", 22, Ink, TextAnchor.MiddleCenter);
+        label.horizontalOverflow = HorizontalWrapMode.Wrap;
+        label.verticalOverflow = VerticalWrapMode.Truncate;
+        label.resizeTextForBestFit = true;
+        label.resizeTextMinSize = 11;
+        label.resizeTextMaxSize = 22;
+        Stretch(label.rectTransform);
+        label.rectTransform.offsetMin = new Vector2(6f, 0f);
+        label.rectTransform.offsetMax = new Vector2(-6f, 0f);
+        frame.gameObject.SetActive(false);
+        return frame;
+    }
+
+    // The yellow NEW dot in a row's / card's top-right corner (no touches), hidden until its reward is pending.
+    public static Image NewRewardDot(Transform parent)
+    {
+        var dot = NewImage("NewDot", parent, CodexHomeButton.BadgeSprite(), Color.white);
+        dot.raycastTarget = false;
+        var rt = dot.rectTransform;
+        rt.anchorMin = rt.anchorMax = Vector2.one;
+        rt.pivot = Vector2.one;
+        rt.anchoredPosition = new Vector2(-CodexPanel.NewDotInset, -CodexPanel.NewDotInset);
+        rt.sizeDelta = new Vector2(CodexPanel.NewDotSize, CodexPanel.NewDotSize);
+        Isolate(dot.gameObject);
+        dot.gameObject.SetActive(false);
+        return dot;
+    }
+
     public static Text NewText(string name, Transform parent, Font font, string content, int size, Color color,
                                TextAnchor align, bool wrap = false)
     {

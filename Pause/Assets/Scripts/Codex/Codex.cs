@@ -25,7 +25,7 @@ using UnityEngine.SceneManagement;
 //
 // The tutorial is practice: nothing met in tutorialS5 counts.
 //
-// Star dust: CodexPayout.For(entry) is paid on the first discovery and, for older saves, once in a lump (PayBackOnce).
+// Star dust: nothing pays by itself. A find is a pending reward (CodexPayout) until COLLECT claims it (see below).
 //
 // Developer mode (DeveloperUnlocks.Enabled) shows every entry as discovered
 // but never writes PrefsKey; turning it off brings back the real set.
@@ -39,23 +39,17 @@ public static class Codex
     public const string NewKey = "codexNew", AckKey = "codexNewAck";
     public const string AchievementAckPrefix = "ach:";
 
-    // UNLOCK REWARDS. Discovering a codex entry (not the Pilot's Log, which is free from the start) earns
-    // CodexPayout star dust, paid on the first discovery (see below); the leftovers are COLLECTed in the Codex. The saved state is one id
-    // list, PaidKey: the entries whose reward was collected. An entry is "pending" while it is in the real
-    // discovered set (PrefsKey) and not in PaidKey, so the pending state derives from the save and survives
-    // restarts. Saves that predate the rewards have no PaidKey: everything they already discovered is pending
-    // once (each old entry is claimable one time; nothing is paid automatically). Developer mode
-    // shows no rewards and cannot collect (its discoveries are not real).
+    // UNLOCK REWARDS. Every find (entries, ships, worlds, logs, combos, songs, backdrops) earns CodexPayout star
+    // dust, claimed with COLLECT in the Codex. The saved state is one id list, PaidKey: the finds whose reward was
+    // collected (entry ids, "fusion_<key>", "music_..." and "bd_..." pay ids). A find is "pending" while it is
+    // found and not in PaidKey, so the pending state derives from the save and survives restarts. Older saves
+    // simply have their finds pending (ids already in PaidKey stay collected). Developer mode and the tutorial
+    // show no rewards and cannot collect (their discoveries are not real).
     public const string PaidKey = "codexPaid";
     // The Credits song's flat reward (a track is not an entry). Entries pay CodexPayout.For(entry).
     public const int UnlockReward = 5;
-    // First-discovery payout: a new entry now pays its CodexPayout straight away (Discover), and is marked in
-    // PaidKey in the same write, so PaidKey stays the one guard against paying an entry twice (a re-contact, a
-    // cloud merge, a restore: paid ids are only ever unioned). What is still pending (discovered, unpaid) is only
-    // what no payment has reached: entries arriving through a cloud restore from an older build, or saves that
-    // predate payouts and are not back-paid yet; those stay claimable with COLLECT.
-    // BackPaidKey: set (1) once the one-time back-pay below ran, synced with the cloud save (ProgressSnapshot
-    // codexBackPaid, merged by OR), never cleared by a restore.
+    // BackPaidKey: retired flag of the old one-time lump back-pay. Nothing sets it any more; it stays readable
+    // and synced with the cloud save (ProgressSnapshot codexBackPaid, merged by OR) for old saves and merges.
     public const string BackPaidKey = "codexBackPaid";
 
     // Raised whenever a NEW marker appears or is cleared (the home bubble listens).
@@ -174,8 +168,6 @@ public static class Codex
         seenOrder.Add(id);
         PlayerPrefs.SetString(PrefsKey, string.Join(",", seenOrder));
         var found = Find(id);
-        // Star dust for the first discovery, marked paid in the same write (see PaidKey).
-        PayDiscovery(found);
         if (found.category != CodexCategory.Log)
         {
             LoadNew();
@@ -219,10 +211,11 @@ public static class Codex
         seen.Add(trackId);
         seenOrder.Add(trackId);
         PlayerPrefs.SetString(PrefsKey, string.Join(",", seenOrder));
-        int dust = PayExtra(trackId);   // star dust for a first song / backdrop (CodexPayout.ForExtra)
         PrefsSaver.MarkDirty();
-        if (dust > 0 && Application.isPlaying && SceneManager.GetActiveScene().name == "gameS1")
-            CodexToast.Announce(CodexToast.EntryHeading + "   +" + dust + " STAR DUST", trackId.StartsWith(CodexBackdrops.Prefix, StringComparison.Ordinal) ? "NEW BACKDROP" : "NEW MUSIC", null);
+        bool worth = CodexPayout.ForExtra(trackId) > 0;   // a found song / backdrop is now a pending reward (COLLECT)
+        if (worth) RaiseNewChanged();
+        if (worth && Application.isPlaying && SceneManager.GetActiveScene().name == "gameS1")
+            CodexToast.Announce(CodexToast.EntryHeading, trackId.StartsWith(CodexBackdrops.Prefix, StringComparison.Ordinal) ? "NEW BACKDROP" : "NEW MUSIC", null);
         return true;
     }
 
@@ -440,8 +433,15 @@ public static class Codex
     }
 
     // ---------------------------------------------------------------------
-    // Unlock rewards (5 star dust per discovered entry, collected by the player)
+    // Star dust rewards: every find is PENDING until the player COLLECTs it
     // ---------------------------------------------------------------------
+    //
+    // Nothing pays by itself. A find (a contact entry, a ship owned, a world reached, a log, a combo fired,
+    // a song heard, a backdrop seen) only marks the save; its CodexPayout dust waits as a pending reward, shown
+    // by a yellow dot and counted by the home bubble, until COLLECT (per item, per tab, COLLECT ALL) adds its
+    // id to PaidKey and grants the dust in the same write. Pending is derived from the save (found and not in
+    // PaidKey), so it survives restarts and cloud restores, and PaidKey (only ever unioned) is the one guard
+    // against paying anything twice.
 
     static HashSet<string> Paid()
     {
@@ -451,15 +451,69 @@ public static class Codex
 
     static bool RewardsActive { get { return !DeveloperUnlocks.Enabled; } }
 
-    // The entry earns a reward the player has not collected yet.
-    public static bool IsRewardPending(CodexEntry entry)
+    // The non-entry finds that pay dust: tabs of their own (MUSIC, COMBOS) or part of one (backdrops: WORLDS).
+    public enum ExtraKind { Music, Combos, Backdrops }
+
+    // The free starter ship is never a find: it counts as discovered on every save and never pays.
+    static bool IsStarterShip(CodexEntry e)
     {
-        if (entry == null || entry.category == CodexCategory.Log || !RewardsActive) return false;
-        EnsureLoaded();
-        return seen.Contains(entry.id) && !Paid().Contains(entry.id);
+        return e.category == CodexCategory.Ships && CodexCatalogue.ShipIndex(e.id) == ShipId.Starter;
     }
 
-    public static bool IsRewardPending(string id) { return IsRewardPending(Find(id)); }
+    static bool EntryPending(CodexEntry e)
+    {
+        if (e == null || !RewardsActive || IsStarterShip(e)) return false;
+        if (e.id == KillCamArchive.CodexId && !KillCamArchive.HasRecord) return false;   // Last Stand: once a replay is kept
+        if (!IsDiscovered(e)) return false;
+        return !Paid().Contains(e.id);
+    }
+
+    static bool ExtraFound(string id)
+    {
+        if (id.StartsWith(CodexPayout.FusionPrefix, StringComparison.Ordinal))
+        {
+            var f = AtomFusionTable.FindKey(id.Substring(CodexPayout.FusionPrefix.Length));
+            return f != null && FusionDiscoveryStore.IsDiscovered(f.id);
+        }
+        EnsureLoaded();
+        return seen.Contains(id);
+    }
+
+    static bool IsExtraId(string id)
+    {
+        return id.StartsWith("music_", StringComparison.Ordinal) || id.StartsWith(CodexBackdrops.Prefix, StringComparison.Ordinal) ||
+               id.StartsWith(CodexPayout.FusionPrefix, StringComparison.Ordinal);
+    }
+
+    static bool IsExtraOfKind(string id, ExtraKind kind)
+    {
+        switch (kind)
+        {
+            case ExtraKind.Music: return id.StartsWith("music_", StringComparison.Ordinal);
+            case ExtraKind.Combos: return id.StartsWith(CodexPayout.FusionPrefix, StringComparison.Ordinal);
+            default: return id.StartsWith(CodexBackdrops.Prefix, StringComparison.Ordinal);
+        }
+    }
+
+    // A combo / song / backdrop pay id ("fusion_bloom", "music_ember", "bd_frost_2") found and not collected.
+    public static bool IsExtraPending(string payId)
+    {
+        if (string.IsNullOrEmpty(payId) || !RewardsActive || CodexPayout.ForExtra(payId) <= 0) return false;
+        return ExtraFound(payId) && !Paid().Contains(payId);
+    }
+
+    public static bool IsFusionPending(FusionDef f) { return f != null && IsExtraPending(CodexPayout.FusionPayId(f)); }
+
+    // The entry earns a reward the player has not collected yet.
+    public static bool IsRewardPending(CodexEntry entry) { return EntryPending(entry); }
+
+    // An entry id or a combo / song / backdrop pay id.
+    public static bool IsRewardPending(string id)
+    {
+        if (id == null) return false;
+        var e = Find(id);
+        return e != null ? EntryPending(e) : IsExtraPending(id);
+    }
 
     public static bool IsRewardCollected(string id)
     {
@@ -467,16 +521,83 @@ public static class Codex
         return Paid().Contains(id);
     }
 
-    // Uncollected rewards in one tab.
-    public static int PendingIn(CodexCategory category)
+    // Star dust waiting in one entry / one pay id.
+    public static int PendingDust(CodexEntry entry) { return EntryPending(entry) ? CodexPayout.For(entry) : 0; }
+    public static int PendingDust(string id)
     {
+        if (!IsRewardPending(id)) return 0;
+        var e = Find(id);
+        return e != null ? CodexPayout.For(e) : CodexPayout.ForExtra(id);
+    }
+
+    // Every pending reward (entries, combos, songs, backdrops) the pick accepts: their ids go into `ids` (may be
+    // null), the dust they pay into `dust`; returns how many.
+    static int Gather(Func<string, bool> pick, List<string> ids, out int dust)
+    {
+        dust = 0;
         if (!RewardsActive) return 0;
         EnsureLoaded();
-        var done = Paid();
         int n = 0;
         foreach (var e in Entries)
-            if (e.category == category && e.category != CodexCategory.Log && seen.Contains(e.id) && !done.Contains(e.id)) n++;
+        {
+            if (!EntryPending(e) || !pick(e.id)) continue;
+            n++;
+            dust += CodexPayout.For(e);
+            if (ids != null) ids.Add(e.id);
+        }
+        foreach (var f in AtomFusionTable.All)
+        {
+            string id = CodexPayout.FusionPayId(f);
+            if (!IsExtraPending(id) || !pick(id)) continue;
+            n++;
+            dust += CodexPayout.ForExtra(id);
+            if (ids != null) ids.Add(id);
+        }
+        foreach (string id in seen)
+        {
+            if (id.StartsWith(CodexPayout.FusionPrefix, StringComparison.Ordinal) || !IsExtraId(id)) continue;
+            if (!IsExtraPending(id) || !pick(id)) continue;
+            n++;
+            dust += CodexPayout.ForExtra(id);
+            if (ids != null) ids.Add(id);
+        }
         return n;
+    }
+
+    // An id belongs to a category's tab: its entries, plus the backdrops under WORLDS.
+    static bool InCategory(string id, CodexCategory category)
+    {
+        var e = Find(id);
+        if (e != null) return e.category == category;
+        return category == CodexCategory.Worlds && IsExtraOfKind(id, ExtraKind.Backdrops);
+    }
+
+    // Uncollected rewards in one entry tab (WORLDS also counts its backdrops).
+    public static int PendingIn(CodexCategory category)
+    {
+        int dust;
+        return Gather(id => InCategory(id, category), null, out dust);
+    }
+
+    public static int PendingDustIn(CodexCategory category)
+    {
+        int dust;
+        Gather(id => InCategory(id, category), null, out dust);
+        return dust;
+    }
+
+    // Uncollected rewards of the MUSIC tab, the COMBOS tab or the backdrops (all worlds).
+    public static int PendingInExtra(ExtraKind kind)
+    {
+        int dust;
+        return Gather(id => IsExtraOfKind(id, kind), null, out dust);
+    }
+
+    public static int PendingDustInExtra(ExtraKind kind)
+    {
+        int dust;
+        Gather(id => IsExtraOfKind(id, kind), null, out dust);
+        return dust;
     }
 
     // Uncollected rewards across every tab (the home bubble counts these).
@@ -484,127 +605,47 @@ public static class Codex
     {
         get
         {
-            int n = 0;
-            foreach (CodexCategory c in Enum.GetValues(typeof(CodexCategory))) n += PendingIn(c);
-            return n;
+            int dust;
+            return Gather(id => true, null, out dust);
         }
     }
 
-    // Collects one entry's reward. Returns the star dust paid (0: nothing pending).
+    // Collects one reward (an entry id or a combo / song / backdrop pay id). Returns the star dust paid (0: nothing pending).
     public static int CollectReward(string id)
     {
-        var entry = Find(id);
-        if (!IsRewardPending(entry)) return 0;
-        return CollectWhere(e => e == entry);
+        return CollectWhere(x => x == id);
     }
 
-    // Collects every pending reward of a tab.
+    // Collects every pending reward of a tab (WORLDS includes its backdrops).
     public static int CollectRewards(CodexCategory category)
     {
-        return CollectWhere(e => e.category == category);
+        return CollectWhere(id => InCategory(id, category));
     }
 
-    // Collects every pending reward.
+    // Collects every pending combo, song or backdrop.
+    public static int CollectExtras(ExtraKind kind)
+    {
+        return CollectWhere(id => IsExtraOfKind(id, kind));
+    }
+
+    // Collects every pending reward: entries, combos, songs and backdrops.
     public static int CollectAllRewards()
     {
-        return CollectWhere(e => true);
+        return CollectWhere(id => true);
     }
 
-    // Marks the entries paid and grants the dust in the same write batch, then saves once: a kill in between
+    // Marks the finds paid and grants the dust in the same write batch, then saves once: a kill in between
     // can neither give dust without the mark nor the mark without the dust (both are in PlayerPrefs before the
     // one save), and a second call finds nothing pending.
-    static int CollectWhere(Func<CodexEntry, bool> pick)
-    {
-        if (!RewardsActive) return 0;
-        EnsureLoaded();
-        var done = Paid();
-        int dust = 0;
-        foreach (var e in Entries)
-        {
-            if (e.category == CodexCategory.Log || !seen.Contains(e.id) || done.Contains(e.id) || !pick(e)) continue;
-            done.Add(e.id);
-            dust += CodexPayout.For(e);
-        }
-        if (dust == 0) return 0;
-        WritePaid(done);
-        StarDustLedger.Grant(dust);
-        PrefsSaver.SaveNow();
-        RaiseNewChanged();
-        return dust;
-    }
-
-    // Credits one newly discovered entry: the mark and the dust go into PlayerPrefs together (the caller saves).
-    static void PayDiscovery(CodexEntry entry)
-    {
-        int dust = CodexPayout.For(entry);
-        if (dust <= 0) return;
-        var done = Paid();
-        if (!done.Add(entry.id)) return;
-        WritePaid(done);
-        StarDustLedger.Grant(dust);
-    }
-
-    // Pays a non-entry find (a combo, a song, a backdrop) once: the id goes into PaidKey in the same write as the
-    // dust (the caller saves). 0 when already paid, not worth anything, in the tutorial or in developer mode.
-    static int PayExtra(string payId)
-    {
-        int dust = CodexPayout.ForExtra(payId);
-        if (dust <= 0 || !RewardsActive || InTutorial()) return 0;
-        var done = Paid();
-        if (!done.Add(payId)) return 0;
-        WritePaid(done);
-        StarDustLedger.Grant(dust);
-        return dust;
-    }
-
-    // A combo (atomic fusion) fired for the first time: its dust, once, with the popup. Returns the dust paid.
-    public static int PayFusion(FusionDef f)
-    {
-        if (f == null) return 0;
-        int dust = PayExtra(CodexPayout.FusionPayId(f));
-        if (dust > 0)
-        {
-            PrefsSaver.MarkDirty();
-            if (Application.isPlaying) CodexToast.Announce(CodexToast.EntryHeading + "   +" + dust + " STAR DUST", f.name + " COMBO", null);
-        }
-        return dust;
-    }
-
-    // Everything found that has not been paid yet and has no other payment route, once each (the paid list is
-    // the guard, so running it again pays nothing): the Log entries, the ships owned and the worlds reached
-    // (derived from progress, so a ship bought after the one-time back-pay lands here), the combos found, the
-    // songs heard and the backdrops seen (older saves). Entries discovered by contact are NOT touched: they pay
-    // in Discover, or wait for COLLECT. Runs on the home screen. Returns the dust paid.
-    public static int PaySweep()
+    static int CollectWhere(Func<string, bool> pick)
     {
         if (!RewardsActive || InTutorial()) return 0;
-        EnsureLoaded();
+        var ids = new List<string>();
+        int dust;
+        Gather(pick, ids, out dust);
+        if (ids.Count == 0 || dust <= 0) return 0;
         var done = Paid();
-        int dust = 0;
-        foreach (var e in Entries)
-        {
-            bool log = e.category == CodexCategory.Log;
-            if (done.Contains(e.id) || seen.Contains(e.id) || !IsDiscovered(e)) continue;
-            if (IsStarterShip(e)) continue;   // the free starter is never a find: a fresh save pays 0
-            if (log && e.id == KillCamArchive.CodexId && !KillCamArchive.HasRecord) continue;   // Last Stand: once a replay is kept
-            done.Add(e.id);
-            dust += CodexPayout.For(e);
-        }
-        foreach (var f in AtomFusionTable.All)
-        {
-            string id = CodexPayout.FusionPayId(f);
-            if (!FusionDiscoveryStore.IsDiscovered(f.id) || done.Contains(id)) continue;
-            done.Add(id);
-            dust += CodexPayout.ForExtra(id);
-        }
-        foreach (string id in new List<string>(seen))
-        {
-            int v = CodexPayout.ForExtra(id);
-            if (v <= 0 || done.Contains(id)) continue;
-            done.Add(id);
-            dust += v;
-        }
-        if (dust == 0) return 0;
+        foreach (string id in ids) done.Add(id);
         WritePaid(done);
         StarDustLedger.Grant(dust);
         PrefsSaver.SaveNow();
@@ -612,9 +653,13 @@ public static class Codex
         return dust;
     }
 
-    static bool IsStarterShip(CodexEntry e)
+    // A combo (atomic fusion) fired for the first time: it is now a pending reward (the toast announces it;
+    // the dust is collected in the COMBOS tab).
+    public static void OnFusionFound(FusionDef f)
     {
-        return e.category == CodexCategory.Ships && CodexCatalogue.ShipIndex(e.id) == ShipId.Starter;
+        if (f == null || !RewardsActive || InTutorial()) return;
+        RaiseNewChanged();
+        if (Application.isPlaying) CodexToast.Announce(CodexToast.EntryHeading, f.name + " COMBO", null);
     }
 
     static void WritePaid(HashSet<string> done)
@@ -624,57 +669,9 @@ public static class Codex
         PlayerPrefs.SetString(PaidKey, string.Join(",", sorted));
     }
 
-    // Star dust waiting in one entry / one tab / everywhere (derived from the save).
-    public static int PendingDust(CodexEntry entry) { return IsRewardPending(entry) ? CodexPayout.For(entry) : 0; }
-
-    public static int PendingDustIn(CodexCategory category)
-    {
-        if (!RewardsActive) return 0;
-        EnsureLoaded();
-        var done = Paid();
-        int n = 0;
-        foreach (var e in Entries)
-            if (e.category == category && e.category != CodexCategory.Log && seen.Contains(e.id) && !done.Contains(e.id)) n += CodexPayout.For(e);
-        return n;
-    }
-
-    // ---------------------------------------------------------------------
-    // One-time back-pay
-    // ---------------------------------------------------------------------
-
+    // Retired: the one-time lump back-pay no longer exists (older saves' finds are simply pending). The flag key
+    // stays readable so snapshots and cloud merges of older saves keep working; nothing sets it any more.
     public static bool BackPayDone { get { return PlayerPrefs.GetInt(BackPaidKey, 0) != 0; } }
-
-    // First launch after payouts exist: pays, in one lump, every entry the save already discovered (including the
-    // ones derived from progress: owned ships, worlds reached) that has not been paid, then sets BackPaidKey so it
-    // never runs again. A fresh save pays 0 (and still sets the flag). Developer mode and the tutorial neither pay
-    // nor set the flag (their discoveries are not real). Returns the dust paid (0: nothing, or already done).
-    public static int PayBackOnce()
-    {
-        if (BackPayDone || DeveloperUnlocks.Enabled || InTutorial()) return 0;
-        EnsureLoaded();
-        var done = Paid();
-        int dust = 0;
-        foreach (var e in Entries)
-        {
-            if (e.category == CodexCategory.Log || done.Contains(e.id) || !IsDiscovered(e)) continue;
-            if (IsStarterShip(e)) continue;   // the free starter is never a find: a fresh save pays 0
-            done.Add(e.id);
-            dust += CodexPayout.For(e);
-        }
-        if (dust > 0)
-        {
-            WritePaid(done);
-            StarDustLedger.Grant(dust);
-        }
-        PlayerPrefs.SetInt(BackPaidKey, 1);
-        PrefsSaver.SaveNow();
-        RaiseNewChanged();
-        return dust;
-    }
-
-    public const string BackPayHeading = "CODEX REWARD";
-
-    static string BackPayText(int dust) { return "+" + dust + " STAR DUST FOR YOUR CODEX"; }
 
     static void EnsureLoaded()
     {
@@ -710,12 +707,6 @@ public static class Codex
     {
         Reload();
         Prewarm();
-        // The one-time back-pay, on the home screen, with a single popup for the lump sum.
-        if (Application.isPlaying && scene.name == BackNavigator.HomeScene)
-        {
-            int dust = PayBackOnce() + PaySweep();
-            if (dust > 0) CodexToast.Announce(BackPayHeading, BackPayText(dust), null);
-        }
     }
 
     // Builds the catalogue lookup and parses the saved discoveries now (scene

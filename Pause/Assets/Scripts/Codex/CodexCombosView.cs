@@ -27,12 +27,14 @@ public sealed class CodexCombosView
     sealed class Row
     {
         public RectTransform rt;
-        public Image frame, edge;
+        public Image frame, edge, dot, collectFrame;
         public Image[] glyphs;
-        public Text title, line, stats;
+        public Text title, line, stats, collectLabel;
+        public Button collectButton;
         public FusionDef def;
     }
 
+    readonly CodexPanel panel;
     readonly Font font;
     RectTransform root;
     CanvasGroup rootGroup;
@@ -43,8 +45,9 @@ public sealed class CodexCombosView
     Row[] rows;
     Rect listRect;
 
-    public CodexCombosView(RectTransform parent, Font font)
+    public CodexCombosView(CodexPanel panel, RectTransform parent, Font font)
     {
+        this.panel = panel;
         this.font = font;
         Build(parent);
     }
@@ -56,6 +59,10 @@ public sealed class CodexCombosView
     public Text RowTitle(int i) { return rows[i].title; }
     public Text RowLine(int i) { return rows[i].line; }
     public Text RowStats(int i) { return rows[i].stats; }
+    public Image RowDot(int i) { return rows[i].dot; }
+    public Button RowCollectButton(int i) { return rows[i].collectButton; }
+    public Text RowCollectLabel(int i) { return rows[i].collectLabel; }
+    public Image RowCollectFrame(int i) { return rows[i].collectFrame; }
     public Image RowGlyph(int i, int g) { return rows[i].glyphs[g]; }
     public RectTransform RowRect(int i) { return rows[i].rt; }
     public Text StripCount { get { return stripCount; } }
@@ -133,6 +140,11 @@ public sealed class CodexCombosView
         r.title = Label("Title", r.rt, 28, 14, CodexUi.Body, TextAnchor.MiddleLeft, 2f);
         r.line = Label("Line", r.rt, 18, 10, CodexUi.Body, TextAnchor.MiddleLeft, 1.5f);
         r.stats = Label("Stats", r.rt, 16, 9, CodexUi.Muted, TextAnchor.MiddleLeft, 1.5f);
+        // the combo's star dust waits here until COLLECT (the row's right half is free)
+        int pending = index;
+        r.collectFrame = CodexUi.NewCollectChip("Collect", r.rt, font, out r.collectButton, out r.collectLabel);
+        r.collectButton.onClick.AddListener(() => OnCollectClicked(pending));
+        r.dot = CodexUi.NewRewardDot(r.rt);
         return r;
     }
 
@@ -216,6 +228,8 @@ public sealed class CodexCombosView
             CodexUi.Place(r.title.rectTransform, new Rect(textLeft, top - titleH, textW, titleH));
             CodexUi.Place(r.line.rectTransform, new Rect(textLeft, top - titleH - lineH, textW, lineH));
             CodexUi.Place(r.stats.rectTransform, new Rect(textLeft, top - titleH - lineH - statsH, textW, statsH));
+            float chipW = Mathf.Min(220f, w * .3f);
+            CodexUi.Place(r.collectFrame.rectTransform, CodexUi.Centered(w * .5f - InsetX - chipW * .5f, 0f, chipW, 64f));
             y += RowHeight + RowGap;
         }
         content.sizeDelta = new Vector2(0f, Mathf.Max(0f, y - RowGap) + 8f);
@@ -234,6 +248,13 @@ public sealed class CodexCombosView
         content.anchoredPosition = Vector2.zero;
         Paint();
         FusionDiscoveryStore.MarkSeen();
+    }
+
+    void OnCollectClicked(int index)
+    {
+        if (index < 0 || index >= rows.Length) return;
+        panel.AfterCollect(Codex.CollectReward(CodexPayout.FusionPayId(rows[index].def)));
+        Paint();
     }
 
     public void Hide() { root.gameObject.SetActive(false); }
@@ -256,6 +277,11 @@ public sealed class CodexCombosView
             r.stats.text = found ? StatsLine(rec) : "";
             r.edge.color = found ? r.def.glow : CodexUi.Locked;
             r.frame.color = found ? Color.white : new Color(.7f, .7f, .8f, 1f);
+            string payId = CodexPayout.FusionPayId(r.def);
+            bool pending = Codex.IsRewardPending(payId);
+            r.dot.gameObject.SetActive(pending);
+            r.collectFrame.gameObject.SetActive(pending);
+            if (pending) r.collectLabel.text = "COLLECT +" + Codex.PendingDust(payId);
         }
         stripCount.text = FusionDiscoveryStore.DiscoveredCount + " / " + FusionDiscoveryStore.Total + "  FOUND";
         stripLine.text = IdleLine;
