@@ -174,6 +174,10 @@ public static class DeveloperModeTest
     static void NoSnapshotLeftover()
     {
         CleanShips();
+        // an earlier case left its snapshot behind: this one starts with none at all
+        var tracked = new System.Collections.Generic.List<string> { "HasDoneTut", WorldManager.PrefsHighestWorld, WorldManager.PrefsCurrentWorld };
+        for (int i = 1; i < shopingShips.RosterTotal; i++) tracked.Add("boughtship" + i);
+        foreach (var k in tracked) { PlayerPrefs.DeleteKey("developerBackup_" + k); PlayerPrefs.DeleteKey("developerBackup_" + k + "_exists"); }
         PlayerPrefs.SetInt(DeveloperUnlocks.EnabledKey, 1);   // flag with no snapshot at all
         PlayerPrefs.SetString("boughtship5", "True");          // genuine purchase
         PlayerPrefs.SetInt(WorldManager.PrefsHighestWorld, 2);

@@ -123,9 +123,8 @@ public class CodexToast : MonoBehaviour
     public void Enqueue(CodexEntry entry)
     {
         if (entry == null) return;
-        // The first discovery paid its star dust (Codex.Discover): say how much, in the same small popup.
-        int dust = CodexPayout.For(entry);
-        Push(new Item { heading = dust > 0 ? EntryHeading + "   +" + dust + " STAR DUST" : EntryHeading, entry = entry });
+        // The heading stays short: with "+N STAR DUST" on it the best-fit text shrank under the 7 dp floor on small phones.
+        Push(new Item { heading = EntryHeading, entry = entry });
     }
 
     void Push(Item item)

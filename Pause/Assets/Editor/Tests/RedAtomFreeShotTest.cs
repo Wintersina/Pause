@@ -256,7 +256,12 @@ public static class RedAtomFreeShotTest
                 // what went out matches the loadout at this level
                 bool count;
                 if (l.attack == ShipAttack.RailSlug)
-                    count = spritesNow == 2 * Mathf.Max(1, l.shots) && launchedNow == 0;
+                    {
+                    // a beam and a muzzle flash per rail; Crimson Halo's pierce signature adds a core beam and a spark per target on each rail
+                    int rails = Mathf.Max(1, l.shots);
+                    count = (spritesNow == 2 * rails || (ShipSignatures.HaloPierces(l) && spritesNow >= 3 * rails)) && launchedNow == 0;
+                    if (!count) bad += " rail-sprites=" + spritesNow + "/" + rails;
+                }
                 else if (l.attack == ShipAttack.ChainLightning)
                 {
                     Steps(c.Runner, 2f);
