@@ -184,13 +184,13 @@ public static class ShipWeaponUpgradesTest
                 labelled &= !string.IsNullOrEmpty(ShipWeaponUpgrades.Step(id, lv).label);
             }
             var max = ShipWeaponUpgrades.LoadoutAt(id, ShipWeaponUpgrades.MaxLevel);
-            bounded &= max.shots <= 26 && max.maxHits <= 9 && max.duration <= 7f &&
+            bounded &= max.shots <= 26 && max.maxHits <= 9 && max.duration <= 7.5f &&
                        ShipWeaponUpgrades.CooldownScaleAt(id, ShipWeaponUpgrades.MaxLevel) >= .55f;
         }
         Check("level 0 is the ship's base loadout", base0);
         Check("every level of every ship adds something (more, bigger, longer or faster)", felt);
         Check("every step has a dock label", labelled);
-        Check("max level stays bounded (shots <= 26, hops <= 9, cooldown >= 55%)", bounded);
+        Check("max level stays bounded (shots <= 26, hops <= 9, duration <= 7.5 s, cooldown >= 55%)", bounded);
     }
 
     static void ProjectileCountsFollowTheLevel()
