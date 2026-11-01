@@ -29,10 +29,18 @@ public sealed class SentryTurret
     public SpriteRenderer HeadRenderer { get { return headSr; } }
     public SpriteRenderer BaseRenderer { get { return baseSr; } }
 
+    // Read as textures (like the attack strips) and cut into one-cell sprites at 256 px a unit. Sprite.Create()d
+    // sprites can be destroyed when the editor opens a new scene, so a stale one is rebuilt.
+    static Sprite Cell(string name)
+    {
+        var tex = Resources.Load<Texture2D>("Weapons/Powers2/" + name);
+        return tex == null ? null : Sprite.Create(tex, new Rect(0, 0, tex.width, tex.height), new Vector2(.5f, .5f), CellPixels);
+    }
+
     static void LoadSprites()
     {
-        if (baseSprite == null) baseSprite = Resources.Load<Sprite>("Weapons/Powers2/GoldWarden_turret_base");
-        if (headSprite == null) headSprite = Resources.Load<Sprite>("Weapons/Powers2/GoldWarden_turret_head");
+        if (baseSprite == null) baseSprite = Cell("GoldWarden_turret_base");
+        if (headSprite == null) headSprite = Cell("GoldWarden_turret_head");
     }
 
     void Build()
