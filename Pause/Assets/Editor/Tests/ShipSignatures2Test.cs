@@ -300,6 +300,7 @@ public static class ShipSignatures2Test
         foreach (var at in targets)
         {
             t.Show(Vector3.zero, SentryTurret.SentryScaleForTests);
+            t.Unfold(1f);
             float prev = t.Angle;
             bool capped = true;
             for (int i = 0; i < 100; i++)
@@ -335,10 +336,17 @@ public static class ShipSignatures2Test
             Check("its head faces the enemy below it (error " + tur.Error(enemy.transform.position).ToString("0.0") + ")", tur.Error(enemy.transform.position) < 1f);
             Check("the sentries fired", gold.Runner.SentryBolts > 0);
             Vector3 from = gold.Runner.LastBoltFrom;
-            Vector3 toEnemy = (enemy.transform.position - tur.Pivot).normalized;
-            Check("bolts leave from the muzzle ring around the pivot, along the aim",
-                  Mathf.Abs((from - tur.Pivot).magnitude - SentryTurret.MuzzleReach * ShipAttackRunner.SentryTurretSize) < .01f &&
-                  Vector3.Angle(from - tur.Pivot, toEnemy) < SentryTurret.FireCone + 1f);
+            // the last bolt came from whichever sentry fired last: find the one whose muzzle it left from
+            bool fromAMuzzle = false;
+            for (int i = 0; i < 3; i++)
+            {
+                var o = gold.Runner.SentryTurretOf(i);
+                if (o == null || !o.Visible) continue;
+                Vector3 toE = (enemy.transform.position - o.Pivot).normalized;
+                if (Mathf.Abs((from - o.Pivot).magnitude - SentryTurret.MuzzleReach * ShipAttackRunner.SentryTurretSize) < .01f &&
+                    Vector3.Angle(from - o.Pivot, toE) < SentryTurret.FireCone + 1f) fromAMuzzle = true;
+            }
+            Check("bolts leave from a muzzle ring around a pivot, along the aim", fromAMuzzle);
         }
         Destroy(enemy);
         Teardown(gold, 7);
