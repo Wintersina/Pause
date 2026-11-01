@@ -587,6 +587,7 @@ public partial class ShipAttackRunner : MonoBehaviour
     void OnDestroy()
     {
         StopAll();
+        DestroyTurrets();
         for (int i = 0; i < runs.Length; i++) if (runs[i] != null && runs[i].spark != null) runs[i].spark.Dispose();
     }
 }

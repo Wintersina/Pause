@@ -240,5 +240,6 @@ public partial class ShipAttackRunner
         if (Mathf.Approximately(x, s.to.x)) return;
         s.to.x = x;
         if (s.sprite != null && s.sprite.Active) s.sprite.Body.position = s.to;
+        if (s.turret != null) s.turret.SetPosition(s.to);
     }
 }
