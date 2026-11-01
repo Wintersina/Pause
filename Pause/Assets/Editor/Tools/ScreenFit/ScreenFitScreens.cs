@@ -348,6 +348,8 @@ public static class ScreenFitScreens
                         playerName = i < LongNames.Length ? LongNames[i] : i % 2 == 0 ? "TETSUO" + i : "A_RATHER_LONG_PLAYER_NAME_" + i,
                         value = 99999999 - i * 137,
                         isLocalPlayer = i == 3,
+                        // Ships 1-9 in their skins 0..2 (a skin a ship lacks draws stock).
+                        startShip = 1 + i % 9, startHearts = 3, startSkin = i % 3,
                     });
                 string boardId = b.PlatformId(rig.device.ios);
                 if (!string.IsNullOrEmpty(boardId)) fake.SetBoard(boardId, rows.ToArray());

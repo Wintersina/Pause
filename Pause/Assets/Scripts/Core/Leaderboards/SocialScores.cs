@@ -67,16 +67,16 @@ public static class SocialScores
 
     static LeaderboardEntry Entry(IScore s, string localUserId, Func<IScore, string> tagOf)
     {
-        int ship = 0, hearts = 0, end = -1, pauses = -1;
+        int ship = 0, hearts = 0, end = -1, pauses = -1, skin = 0;
         if (tagOf != null)
         {
             string tag = null;
             try { tag = tagOf(s); } catch (Exception) { }
-            LeaderboardRunTag.TryParse(tag, out ship, out hearts, out end, out pauses);
+            LeaderboardRunTag.TryParse(tag, out ship, out hearts, out end, out pauses, out skin);
         }
         return new LeaderboardEntry
         {
-            startShip = ship, startHearts = hearts,
+            startShip = ship, startHearts = hearts, startSkin = skin,
             hasEnd = end >= 0, endHearts = Mathf.Max(end, 0),
             hasPauses = pauses >= 0, pauses = Mathf.Max(pauses, 0),
             rank = s.rank,

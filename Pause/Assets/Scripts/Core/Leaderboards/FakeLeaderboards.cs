@@ -140,11 +140,11 @@ public sealed class FakeLeaderboards : ILeaderboardPlatform
         NativeUICalls.Add(boardId);
     }
 
-    public static LeaderboardEntry Entry(int rank, string name, long value, bool local = false, int ship = 0, int hearts = 0, int endHearts = -1, int pauses = -1)
+    public static LeaderboardEntry Entry(int rank, string name, long value, bool local = false, int ship = 0, int hearts = 0, int endHearts = -1, int pauses = -1, int skin = 0)
     {
         return new LeaderboardEntry
         {
-            startShip = ship, startHearts = hearts,
+            startShip = ship, startHearts = hearts, startSkin = skin,
             hasEnd = endHearts >= 0, endHearts = Mathf.Max(endHearts, 0),
             hasPauses = pauses >= 0, pauses = Mathf.Max(pauses, 0),
             rank = rank, playerId = local ? "local" : "p" + rank, playerName = name,

@@ -44,6 +44,7 @@ public static class LeaderboardTest
             RunTagsAndParagon();
             FurthestLoopShipHearts();
             PausesColumn();
+            ShipSkinInTag();
             PausesAtDeath();
             StarDustSurvivesLedgerReset();
             ConfirmBeforeDone();
@@ -616,6 +617,40 @@ public static class LeaderboardTest
         Check("worlds format: no '>' glyph anywhere", !LeaderboardBoards.FormatWorlds(8).Contains(">"));
         Check("worlds per loop is the live world count (a new world needs a deliberate decision)",
               LeaderboardBoards.WorldsPerLoop == WorldManager.LiveWorldCount);
+    }
+
+    // The skin (colour) the ship wore rides in the tag as k<skin>; old tags have none.
+    static void ShipSkinInTag()
+    {
+        int ship, hearts, end, pauses, skin;
+        Check("tag: encode with skin", LeaderboardRunTag.Encode(7, 4, 2, 3, 2) == "s7h4e2p3k2");
+        Check("tag: skin without end or pauses", LeaderboardRunTag.Encode(7, 4, -1, -1, 1) == "s7h4k1");
+        Check("tag: default skin writes no k part", LeaderboardRunTag.Encode(7, 4, 2, 3, 0) == "s7h4e2p3");
+        Check("tag: skin round trip", LeaderboardRunTag.TryParse("s7h4e2p3k2", out ship, out hearts, out end, out pauses, out skin)
+              && ship == 7 && hearts == 4 && end == 2 && pauses == 3 && skin == 2);
+        Check("tag: old tags decode to the default skin",
+              LeaderboardRunTag.TryParse("s7h4e2p3", out ship, out hearts, out end, out pauses, out skin) && ship == 7 && skin == 0
+              && LeaderboardRunTag.TryParse("s7h4", out ship, out hearts, out end, out pauses, out skin) && skin == 0);
+        Check("tag: a skin the ship does not have reads as the default",
+              LeaderboardRunTag.TryParse("s7h4k98", out ship, out hearts, out end, out pauses, out skin) && ship == 7 && skin == 0
+              && LeaderboardRunTag.TryParse("s7h4k99999999", out ship, out hearts, out end, out pauses, out skin) && skin == 0);
+        Check("tag: skin tag still short and URL-safe", LeaderboardRunTag.Encode(15, ShipLives.MostHearts, ShipLives.MostHearts, LeaderboardRunTag.MostPauses, 9).Length < 30);
+        Check("tag: Paragon never carries a skin", LeaderboardRunTag.Encode(PremiumShips.Paragon, 10, 3, 4, 1) == "");
+        Check("tag: the run stats carry the skin", new LeaderboardRunStats { startShip = 7, startHearts = 4, startSkin = 1 }.Tag == "s7h4k1");
+
+        // The row draws the ship in the recorded skin (stock when none / the ship has no such skin).
+        RealRunContext();
+        EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
+        var fake = new FakeLeaderboards();
+        fake.SetBoard(TopScoreId,
+            FakeLeaderboards.Entry(1, "TETSUO", 1000, false, 7, 4, 2, 3, 1),
+            FakeLeaderboards.Entry(2, "KAI", 900, false, 7, 4, 2, 3));
+        var panel = OpenPanel(fake);
+        var rows = panel.PanelRoot.Find("List/Rows");
+        var skinned = rows.Find("Row0/Ship").GetComponent<Image>().sprite;
+        var stock = rows.Find("Row1/Ship").GetComponent<Image>().sprite;
+        Check("row with a skin: the skin's sprite", skinned == ShipHullArt.Get(7, 1, 0, 0) && skinned != stock);
+        Check("row without a skin: the default sprite", stock == ShipHullArt.StockRest(7));
     }
 
     static void PausesColumn()

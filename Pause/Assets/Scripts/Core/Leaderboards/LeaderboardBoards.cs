@@ -28,6 +28,8 @@ public struct LeaderboardRunStats
     // the ship id and its hearts. Shown beside the score on the boards.
     public int startShip;
     public int startHearts;
+    // The skin the start ship wore (ShipSkins.Equipped at run start; 0 = default).
+    public int startSkin;
     // The hearts the run FINISHED with (0 = died). Sampled during the run.
     public bool hasEnd;
     public int endHearts;
@@ -39,7 +41,7 @@ public struct LeaderboardRunStats
     public bool premiumRun;
 
     public bool UsedPremium { get { return premiumRun || PremiumShips.IsPremium(startShip); } }
-    public string Tag { get { return LeaderboardRunTag.Encode(startShip, startHearts, hasEnd ? endHearts : -1, hasPauses ? endPauses : -1); } }
+    public string Tag { get { return LeaderboardRunTag.Encode(startShip, startHearts, hasEnd ? endHearts : -1, hasPauses ? endPauses : -1, startSkin); } }
 }
 
 public sealed class LeaderboardBoard

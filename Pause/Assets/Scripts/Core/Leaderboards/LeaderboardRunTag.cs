@@ -2,8 +2,9 @@ using UnityEngine;
 
 // The note kept with a score: which ship the run STARTED with, how many
 // hearts it started with, how many it FINISHED with and how many pauses it had
-// left. "s<ship>h<hearts>e<end>p<pauses>", e.g. "s7h4e2p3" (a run that died
-// ends on e0) -- URL-safe and far under Play Games' 64-character score-tag
+// left, and the skin (colour) the ship wore.
+// "s<ship>h<hearts>e<end>p<pauses>k<skin>", e.g. "s7h4e2p3k2" (a run that died
+// ends on e0; no k part = the default skin) -- URL-safe and far under Play Games' 64-character score-tag
 // limit. Everything after the h part is optional: tags an older build wrote
 // ("s7h4", "s7h4e2") still read, with what they lack unknown. A later build may
 // add more "<letter><digits>" fields; a reader skips the ones it does not know
@@ -23,14 +24,18 @@ public static class LeaderboardRunTag
     public const int MaxLength = 64;
     // Most pauses a row can show (two digits); a bigger count reads as unknown.
     public const int MostPauses = 99;
+    // Highest skin index a tag carries (two digits); a bigger one reads as the default skin.
+    public const int MostSkin = 99;
 
     // endHearts < 0 = not known: no e part. pauses < 0 = not known: no p part.
-    public static string Encode(int ship, int hearts, int endHearts = -1, int pauses = -1)
+    // skin <= 0 (the default skin) writes no k part.
+    public static string Encode(int ship, int hearts, int endHearts = -1, int pauses = -1, int skin = 0)
     {
         if (!ShipId.IsValid(ship) || PremiumShips.IsPremium(ship) || hearts < 1) return "";
         string tag = "s" + ship + "h" + hearts;
         if (endHearts >= 0) tag += "e" + Mathf.Min(endHearts, ShipLives.MostHearts);
         if (pauses >= 0) tag += "p" + Mathf.Min(pauses, MostPauses);
+        if (skin > 0) tag += "k" + Mathf.Min(skin, MostSkin);
         return tag;
     }
 
@@ -52,6 +57,14 @@ public static class LeaderboardRunTag
     // pauses is -1 when the tag has no (readable) pauses count.
     public static bool TryParse(string tag, out int ship, out int hearts, out int endHearts, out int pauses)
     {
+        int skin;
+        return TryParse(tag, out ship, out hearts, out endHearts, out pauses, out skin);
+    }
+
+    // skin is 0 (the default skin) when the tag has none (an older build) or one that can't be.
+    public static bool TryParse(string tag, out int ship, out int hearts, out int endHearts, out int pauses, out int skin)
+    {
+        skin = 0;
         ship = 0;
         hearts = 0;
         endHearts = -1;
@@ -66,7 +79,7 @@ public static class LeaderboardRunTag
         digits = 0;
         while (i < tag.Length && tag[i] >= '0' && tag[i] <= '9' && digits < 4) { h = h * 10 + (tag[i] - '0'); i++; digits++; }
         if (digits == 0) return false;
-        long e = -1, p = -1;
+        long e = -1, p = -1, k = -1;
         while (i < tag.Length)
         {
             char key = tag[i];
@@ -82,6 +95,7 @@ public static class LeaderboardRunTag
             if (digits == 0) return false;   // a field without a number: malformed
             if (key == 'e' && e < 0) e = digits <= 4 ? n : 1000000;
             else if (key == 'p' && p < 0) p = digits <= 4 ? n : 1000000;
+            else if (key == 'k' && k < 0) k = digits <= 4 ? n : 1000000;
             // any other letter is a field from a newer build: skipped
         }
         if (PremiumShips.IsPremium((int)s)) return false;   // never shown, hearts included
@@ -89,6 +103,7 @@ public static class LeaderboardRunTag
         if (h >= 1 && h <= ShipLives.MostHearts) hearts = (int)h;
         if (e >= 0 && e <= ShipLives.MostHearts) endHearts = (int)e;
         if (p >= 0 && p <= MostPauses) pauses = (int)p;
+        if (ship != 0 && k >= 1 && k <= MostSkin && ShipSkins.Has(ship, (int)k)) skin = (int)k;
         return ship != 0 || hearts != 0;
     }
 

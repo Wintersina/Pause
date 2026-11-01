@@ -19,7 +19,7 @@ public class LeaderboardRunTracker : MonoBehaviour
     int worldsCleared;
     bool ended;
     // Captured when the run starts, never re-read: what it STARTED with.
-    int startShip, startHearts;
+    int startShip, startHearts, startSkin;
     // The hearts left at the last sample: what the run FINISHED with. Cached
     // (like runScore) because the next scene resets the static hit counter.
     // The ship never changes mid-run, so only the hearts have a finish value.
@@ -38,6 +38,7 @@ public class LeaderboardRunTracker : MonoBehaviour
         ended = false;
         startShip = ShipId.Equipped();
         startHearts = ShipLives.Max(startShip);
+        startSkin = ShipSkins.Equipped(startShip);
         premiumRun = PremiumShips.IsPremium(startShip) || RunScore.Unranked;
         endHearts = startHearts;
         endPauses = score.pauseCounter;
@@ -83,6 +84,7 @@ public class LeaderboardRunTracker : MonoBehaviour
             worldsCleared = worldsCleared,
             startShip = startShip,
             startHearts = startHearts,
+            startSkin = startSkin,
             hasEnd = true,
             endHearts = endHearts,
             hasPauses = true,

@@ -101,6 +101,7 @@ public class LeaderboardPanel : MonoBehaviour
     public Button ActionButton { get; private set; }   // SIGN IN / RETRY, when shown
     readonly List<Image> shipImages = new List<Image>();
     readonly List<int> shipIds = new List<int>();
+    readonly List<int> shipSkins = new List<int>();
     int shipDrawing = -1;
     public int RowCount { get; private set; }
     public bool PlayerRowShown { get; private set; }
@@ -518,6 +519,7 @@ public class LeaderboardPanel : MonoBehaviour
     {
         shipImages.Clear();
         shipIds.Clear();
+        shipSkins.Clear();
         shipDrawing = -1;
         int n = Mathf.Min(top.entries.Count, LeaderboardService.PanelRows);
         for (int i = 0; i < n; i++)
@@ -579,17 +581,18 @@ public class LeaderboardPanel : MonoBehaviour
         Label(rank, e.rank > 0 ? "#" + e.rank : "#--", 26, rankColor, TextAnchor.MiddleLeft, 2.5f);
 
         // The premium (cheat) ship is never shown: such an entry reads as unknown.
-        if (PremiumShips.IsPremium(e.startShip)) { e.startShip = 0; e.startHearts = 0; }
+        if (PremiumShips.IsPremium(e.startShip)) { e.startShip = 0; e.startHearts = 0; e.startSkin = 0; }
         if (ShipHullArt.Has(e.startShip))
         {
             var ship = Child(rt, "Ship");
             Anchor(ship, ShipLeft, ShipWidth);
             var image = ship.gameObject.AddComponent<Image>();
-            image.sprite = ShipHullArt.StockRest(e.startShip);
+            image.sprite = ShipHullArt.Get(e.startShip, e.startSkin, 0, 0);
             image.preserveAspect = true;
             image.raycastTarget = false;
             shipImages.Add(image);
             shipIds.Add(e.startShip);
+            shipSkins.Add(e.startSkin);
         }
 
         var name = Child(rt, "Name");
@@ -737,7 +740,7 @@ public class LeaderboardPanel : MonoBehaviour
         for (int i = 0; i < shipImages.Count; i++)
         {
             if (shipImages[i] == null) continue;
-            var sprite = ShipHullArt.Get(shipIds[i], ShipSkins.Stock, 0, drawing);
+            var sprite = ShipHullArt.Get(shipIds[i], shipSkins[i], 0, drawing);
             if (sprite != null) shipImages[i].sprite = sprite;
         }
     }
