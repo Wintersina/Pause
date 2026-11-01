@@ -62,6 +62,8 @@ public struct LeaderboardEntry
     // without tags, a tag we can't read): the row shows nothing for it.
     public int startShip;
     public int startHearts;
+    // The skin the ship wore, from the tag (k part); 0 = the default skin (also an older tag).
+    public int startSkin;
     // The hearts the run finished with (0 = died); only meaningful when hasEnd.
     public bool hasEnd;
     public int endHearts;

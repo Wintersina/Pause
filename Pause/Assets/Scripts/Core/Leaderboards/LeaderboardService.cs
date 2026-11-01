@@ -646,26 +646,27 @@ public sealed class LeaderboardService
         long have;
         string tag = submitted.TagOf(boardId);
         if (string.IsNullOrEmpty(tag) || !submitted.TryGet(boardId, out have)) return page;
-        int ship, hearts, end, pauses;
-        if (!LeaderboardRunTag.TryParse(tag, out ship, out hearts, out end, out pauses)) return page;
+        int ship, hearts, end, pauses, skin;
+        if (!LeaderboardRunTag.TryParse(tag, out ship, out hearts, out end, out pauses, out skin)) return page;
         for (int i = 0; i < page.entries.Count; i++)
         {
             var e = page.entries[i];
             if ((e.isLocalPlayer || (ownRank > 0 && e.rank == ownRank)) && e.value == have)
-                page.entries[i] = FillFrom(e, ship, hearts, end, pauses);
+                page.entries[i] = FillFrom(e, ship, hearts, end, pauses, skin);
         }
-        if (page.hasPlayer && page.player.value == have) page.player = FillFrom(page.player, ship, hearts, end, pauses);
+        if (page.hasPlayer && page.player.value == have) page.player = FillFrom(page.player, ship, hearts, end, pauses, skin);
         return page;
     }
 
     // The device-kept record fills what the store row lacks: the whole tag when
     // it has none, or just the pauses when its (older) tag has no pauses.
-    static LeaderboardEntry FillFrom(LeaderboardEntry e, int ship, int hearts, int end, int pauses)
+    static LeaderboardEntry FillFrom(LeaderboardEntry e, int ship, int hearts, int end, int pauses, int skin)
     {
         if (e.startShip == 0 && e.startHearts == 0)
         {
             e.startShip = ship;
             e.startHearts = hearts;
+            e.startSkin = skin;
             e.hasEnd = end >= 0;
             e.endHearts = Mathf.Max(end, 0);
             e.hasPauses = pauses >= 0;
@@ -675,6 +676,7 @@ public sealed class LeaderboardService
         {
             e.hasPauses = true;
             e.pauses = pauses;
+            if (e.startSkin == 0) e.startSkin = skin;
         }
         return e;
     }
