@@ -260,6 +260,7 @@ public static class AllTests
         ("ScoringTest", ScoringTest.Execute),
         ("ScoreBonusTest", ScoreBonusTest.Execute),
         ("ScoreMultiplierTest", ScoreMultiplierTest.Execute),
+        ("NewRecordTest", NewRecordTest.Execute),
         ("DustEconomyTest", DustEconomyTest.Execute),
         ("ShipPriceTest", ShipPriceTest.Execute),
         ("ShieldFitTest", ShieldFitTest.Execute),

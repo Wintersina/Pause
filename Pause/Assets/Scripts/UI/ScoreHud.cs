@@ -51,6 +51,12 @@ public class ScoreHud : MonoBehaviour
     // Right-hand badges on the rows under SCORE: the speed multiplier on the
     // SPEED row, the loop on the PAUSES row (once looping has started).
     Text speedBadge, loopBadge;
+    // "NEW": the run's score has passed the personal best (NewRecordTracker); sits left of the chain badge.
+    Text newTag;
+    float newTagAt = -1f;
+    int trackedRun = -1;
+    float nextRecordPoll;
+    readonly NewRecordTracker records = new NewRecordTracker();
     float lastSpeedMultiplier = 1f;
     float speedPunchAt = -1f;
     int lastLoop;
@@ -74,9 +80,16 @@ public class ScoreHud : MonoBehaviour
     public Text ChainText { get { return chainText; } }
     public Text SpeedBadge { get { return speedBadge; } }
     public Text LoopBadge { get { return loopBadge; } }
+    public Text NewTag { get { return newTag; } }
+    public NewRecordTracker Records { get { return records; } }
 
     public const string SpeedBadgeName = "SpeedMultiplier";
     public const string LoopBadgeName = "Loop";
+    public const string NewTagName = "NewTag";
+    public const string NewTagLabel = "NEW";
+    public const int NewTagFontSize = 14;
+    public const float NewTagWidth = 50f;
+    public const float NewTagGap = 4f;
     // The row the LOOP badge sits on (gameS1's pause counter).
     public const string LoopRowName = "PauseCounter";
     public const float BadgeWidth = 132f;
@@ -153,6 +166,7 @@ public class ScoreHud : MonoBehaviour
         hud.speedBadge = Badge(speedText.transform, SpeedBadgeName, hud.font);
         var loopRow = rows.Find(LoopRowName);
         hud.loopBadge = Badge(loopRow != null ? loopRow : speedText.transform, LoopBadgeName, hud.font);
+        hud.newTag = BuildNewTag(hud.scoreText.transform, hud.font);
         ScoreX2Cue.Attach(hud.scoreText);   // the max-speed streak's bar and x2 plate, on the SCORE row
         hud.lastSpeedMultiplier = 1f;
         hud.lastLoop = 0;
@@ -245,6 +259,75 @@ public class ScoreHud : MonoBehaviour
         Style(t, font, BadgeFontSize, AkiraPalette.Cyan, TextAnchor.MiddleRight);
         t.text = "";
         return t;
+    }
+
+    // The NEW tag on the SCORE row (idempotent): right-aligned, hidden until the best is passed.
+    static Text BuildNewTag(Transform row, Font font)
+    {
+        var existing = row.Find(NewTagName);
+        if (existing != null) return existing.GetComponent<Text>();
+        var go = new GameObject(NewTagName, typeof(RectTransform), typeof(Text));
+        go.transform.SetParent(row, false);
+        var rt = (RectTransform)go.transform;
+        rt.anchorMin = new Vector2(1f, 0f);
+        rt.anchorMax = new Vector2(1f, 1f);
+        rt.pivot = new Vector2(1f, .5f);
+        rt.sizeDelta = new Vector2(NewTagWidth, 0f);
+        rt.anchoredPosition = new Vector2(-BadgeInset, 0f);
+        var t = go.GetComponent<Text>();
+        Style(t, font, NewTagFontSize, AkiraPalette.Amber, TextAnchor.MiddleRight);
+        t.text = "";
+        return t;
+    }
+
+
+    // Where the NEW tag sits. Inline on the SCORE row, just left of the chain badge, when it fits between the
+    // score figure (and the x2 plate when that is showing) and the chain badge. The x2 plate is a gameplay state and
+    // never gives way: on the worst row (7-digit score + x2 + x4) the tag drops to the line under, in the gap
+    // between the SPEED figure and its SPD badge, instead.
+    public const float NewTagClear = 3f;
+    public const float SpeedBadgeReserve = 112f;   // the SPD badge's column on the SPEED row (BadgeWidth less its slack)
+    public bool NewTagInline { get; private set; } = true;
+
+    public void ForceNewTagPlacement() { if (newTag != null) PlaceNewTag(); }
+
+    void PlaceNewTag()
+    {
+        float rowW = scoreText.rectTransform.rect.width;
+        float chainReserve = chainText != null && !string.IsNullOrEmpty(chainText.text) ? chainText.preferredWidth + NewTagGap : 0f;
+        var cue = scoreText.GetComponent<ScoreX2Cue>();
+        float left = scoreText.preferredWidth;
+        if (cue != null && cue.Plate != null && cue.Plate.enabled && cue.PlateX >= 0f) left = cue.PlateX + ScoreX2Cue.PlateWidth;
+        float right = rowW - BadgeInset - chainReserve;
+        NewTagInline = right - newTag.preferredWidth >= left + NewTagClear;
+        newTag.rectTransform.anchoredPosition = NewTagInline
+            ? new Vector2(-(BadgeInset + chainReserve), 0f)
+            : new Vector2(-(BadgeInset + SpeedBadgeReserve), -RowStep);
+    }
+
+    // Starts the record watch on a new run, then (4 times a second) checks every board's live value against its stored best.
+    public void CheckRecords(float now)
+    {
+        if (trackedRun != RunScore.RunId)
+        {
+            trackedRun = RunScore.RunId;
+            records.Begin();
+            newTagAt = -1f;
+            if (newTag != null) newTag.text = "";
+        }
+        if (now < nextRecordPoll) return;
+        nextRecordPoll = now + .25f;
+        var fresh = records.Poll();
+        for (int i = 0; i < fresh.Count; i++)
+        {
+            NewRecordPopup.Show(fresh[i]);
+            if (fresh[i] == LeaderboardBoards.TopScore && newTag != null) { newTag.text = NewTagLabel; newTagAt = now; }
+        }
+        if (newTag != null && newTagAt >= 0f)
+        {
+            PlaceNewTag();
+            Punch(newTag.rectTransform, now - newTagAt, 1.4f);
+        }
     }
 
     public static string SpeedBadgeLabel(float multiplier)
@@ -391,6 +474,7 @@ public class ScoreHud : MonoBehaviour
         }
 
         TickBadges(now);
+        CheckRecords(now);
 
         // Popups live on the explosions' clock (TargetExplosion.Delta): they
         // freeze with the world, and through the ultimate's deep slow motion

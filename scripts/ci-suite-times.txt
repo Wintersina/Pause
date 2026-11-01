@@ -176,6 +176,7 @@ RosterCleanupTest 0.1
 RowHeartsTest 13.4
 ScoreBonusTest 0.4
 ScoreMultiplierTest 1.2
+NewRecordTest 2.0
 ScoringTest 4.2
 ScreenFitTest1 158.1
 ScreenFitTest2 197.6
