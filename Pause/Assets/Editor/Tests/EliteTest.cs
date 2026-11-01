@@ -955,8 +955,25 @@ public static class EliteTest
         collisionDetection.atomCheck = true;
         int kills = EliteShip.Kills;
         rig.Touch(e.gameObject);
-        Check("a shielded ram takes both hearts (a kill) and costs the pilot nothing",
-              e == null && EliteShip.Kills == kills + 1 && EliteShip.LastKillCause == EliteDamage.ShieldRam && collisionDetection.lifeCounter == 0);
+        collisionDetection.invTimer = 5.8f;
+        int hearts = e.Hearts, rams = EliteShip.Rams;
+        rig.Touch(e.gameObject);
+        Check("a shielded ram is a boss ram: it banks " + BossRam.RamWeight + " of a heart, no heart yet, elite and pilot standing",
+              e != null && e.Hearts == hearts && EliteShip.Rams == rams + 1 && collisionDetection.lifeCounter == 0);
+        Check("... it costs the shield " + BossRam.RamShieldCost + " s",
+              Mathf.Abs(collisionDetection.invTimer - (5.8f - BossRam.RamShieldCost)) < 1e-3f);
+        float timer = collisionDetection.invTimer;
+        rig.Touch(e.gameObject);
+        Check("... a second ram inside the hit window does nothing and costs nothing",
+              e.Hearts == hearts && EliteShip.Rams == rams + 1 && Mathf.Abs(collisionDetection.invTimer - timer) < 1e-4f);
+        // (rams spaced past the window: the 4th lands 1.2 of a heart, so exactly one heart goes)
+        for (int i = 0; i < 3 && e != null; i++) { Step(BossRam.RamBlockSeconds + .05f); rig.Touch(e.gameObject); }
+        Check("... four landed rams (" + 4 * BossRam.RamWeight + " heart) take exactly one heart",
+              e != null && e.Hearts == hearts - 1 && EliteShip.Rams == rams + 4 && collisionDetection.lifeCounter == 0);
+        int paidBefore = EliteRewards.Paid;
+        for (int guard = 0; guard < 60 && e != null; guard++) { Step(BossRam.RamBlockSeconds + .15f); rig.Touch(e.gameObject); }
+        Check("... its last heart to a ram is an ordinary kill (ELITE DOWN, cause ShieldRam)",
+              e == null && EliteShip.Kills == kills + 1 && EliteShip.LastKillCause == EliteDamage.ShieldRam && EliteRewards.Paid == paidBefore + 1 && collisionDetection.lifeCounter == 0);
         rig.Dispose();
 
         Fresh(.05f);

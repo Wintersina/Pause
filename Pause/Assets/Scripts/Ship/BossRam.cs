@@ -15,6 +15,7 @@ using UnityEngine;
 //     (5.8 s) buys about four rams at most, never a melted boss;
 //   * the body hitbox stays (nothing is destroyed, nothing paid as a kill);
 //   * a contact the window blocks costs nothing: the shield just shrugs it off.
+// An elite (a mini-boss) is rammed the same way: EliteShip.ShieldRam reuses RamWeight, RamShieldCost and the window.
 // An unshielded touch is unchanged: a heart, and the hitbox is knocked out
 // for BodyRespawnSeconds.
 public static class BossRam
@@ -24,6 +25,9 @@ public static class BossRam
     public static float RamWeight = .3f;
     // Seconds of shield (blue atom timer / Cloak) a landed ram uses up.
     public static float RamShieldCost = 1.2f;
+
+    // The hit window a landed ram opens (an elite borrows it: EliteShip.ShieldRam).
+    public static float RamBlockSeconds => BossConfig.HitInvulnerableSeconds;
 
     public static int Rams;           // tests: landed rams
 
@@ -42,7 +46,7 @@ public static class BossRam
         return true;
     }
 
-    static void SpendShield(float seconds)
+    public static void SpendShield(float seconds)
     {
         if (collisionDetection.atomCheck) collisionDetection.invTimer -= seconds;
         else if (collisionDetection.Cloaked) collisionDetection.cloakTimer = Mathf.Max(0f, collisionDetection.cloakTimer - seconds);
