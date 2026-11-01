@@ -35,6 +35,7 @@ public static class NewRecordTest
             PopupQueuesAndTimes();
             HudTagAndPopupInARun();
             TagLayout();
+            WorstCaseRow();
         }
         finally
         {
@@ -293,17 +294,66 @@ public static class NewRecordTest
                 hud.ChainText.text = chain ? "x4" : "";
                 hud.NewTag.text = ScoreHud.NewTagLabel;
                 Canvas.ForceUpdateCanvases();
-                hud.CheckRecords(0f);
-                hud.NewTag.rectTransform.anchoredPosition = new Vector2(-(ScoreHud.BadgeInset + (chain ? hud.ChainText.preferredWidth + ScoreHud.NewTagGap : 0f)), 0f);
+                hud.ForceNewTagPlacement();
                 float rowW = row.rectTransform.rect.width;
-                float tagRight = rowW - ScoreHud.BadgeInset - (chain ? hud.ChainText.preferredWidth + ScoreHud.NewTagGap : 0f);
-                float tagLeft = tagRight - hud.NewTag.preferredWidth;
+                float tagRight = rowW + hud.NewTag.rectTransform.anchoredPosition.x, tagLeft = tagRight - hud.NewTag.preferredWidth;
+                float chainLeft = rowW - ScoreHud.BadgeInset - (chain ? hud.ChainText.preferredWidth : 0f);
                 string what = "'" + label + "'" + (chain ? " + x4" : "");
                 Check(what + ": NEW fits its box and the row", hud.NewTag.preferredWidth <= ScoreHud.NewTagWidth && tagLeft >= 0f);
-                Check(what + ": NEW clears the score figure (figure " + row.preferredWidth.ToString("F0") + ", NEW from " + tagLeft.ToString("F0") + ")", row.preferredWidth <= tagLeft);
+                Check(what + ": NEW is " + (hud.NewTagInline ? "inline" : "dropped under") + ", clear of the figure and the chain badge",
+                      hud.NewTagInline ? row.preferredWidth <= tagLeft && tagRight <= chainLeft : hud.NewTag.rectTransform.anchoredPosition.y < 0f);
                 Check(what + ": NEW text is a readable size", hud.NewTag.fontSize >= 14);
             }
         Check("the tag is not a raycast target, and has no box", !hud.NewTag.raycastTarget && hud.NewTag.GetComponent<Image>() == null);
         Object.DestroyImmediate(go);
+    }
+
+    // The crowded row: a 7-digit score, the x2 plate ACTIVE, the NEW tag and an x4 chain at once. Nothing overlaps and the
+    // x2 plate is never hidden for NEW (it is a gameplay state).
+    static void WorstCaseRow()
+    {
+        ClearTables();
+        RunScore.EndRun(RunScore.RunId);
+        PlayerPrefs.SetInt(RunScore.BestScoreKey, 5);
+        RunScore.BeginRun(true, true);
+        var hud = BuildHud(out GameObject go);
+        if (hud == null || hud.NewTag == null) { Check("worst case: the HUD has a NEW tag", false); return; }
+        var cue = hud.ScoreText.GetComponent<ScoreX2Cue>();
+        Fly(10);
+        float now = 50f;
+        hud.CheckRecords(now);
+        ScoreMultiplier.Tick(ScoreMultiplier.StreakSeconds + .1f, SpeedRamp.Cap);
+        cue.Refresh(1000f);
+        cue.Refresh(1001f);
+        var row = hud.ScoreText;
+        row.text = ScoreHud.Label(9999999);
+        hud.ChainText.text = "x4";
+        Canvas.ForceUpdateCanvases();
+        cue.Remeasure();
+        hud.CheckRecords(now += .3f);
+        Check("worst case: NEW is showing and the x2 plate is active and shown", hud.NewTag.text == "NEW" && cue.State == ScoreX2Cue.CueState.Active && cue.Plate.enabled && cue.PlateX >= 0f);
+        hud.ForceNewTagPlacement();
+        float rowW = row.rectTransform.rect.width;
+        float chainRight = rowW - ScoreHud.BadgeInset, chainLeft = chainRight - hud.ChainText.preferredWidth;
+        float newRight = rowW + hud.NewTag.rectTransform.anchoredPosition.x, newLeft = newRight - hud.NewTag.preferredWidth;
+        float figureRight = row.preferredWidth, plateLeft = cue.PlateX, plateRight = plateLeft + ScoreX2Cue.PlateWidth;
+        Debug.Log("[NRC] worst case row " + rowW.ToString("F0") + ": figure ..." + figureRight.ToString("F0") + " plate " + plateLeft.ToString("F0") + ".." + plateRight.ToString("F0") +
+                  " NEW " + newLeft.ToString("F0") + ".." + newRight.ToString("F0") + (hud.NewTagInline ? " inline" : " under") + " chain " + chainLeft.ToString("F0") + ".." + chainRight.ToString("F0"));
+        Check("worst case: figure, x2 plate and x4 in order, no overlap", figureRight <= plateLeft && plateRight <= chainLeft - 1f && chainRight <= rowW);
+        if (hud.NewTagInline)
+            Check("worst case: NEW inline between the plate and x4", plateRight <= newLeft - 1f && newRight <= chainLeft - 1f);
+        else
+        {
+            // under the row, in the gap between the SPEED figure and its SPD badge
+            var speed = SceneUtil.FindAny("SpeedText").GetComponent<Text>();
+            Check("worst case: NEW drops under, clear of the SPEED figure and the SPD badge column",
+                  hud.NewTag.rectTransform.anchoredPosition.y < 0f && newLeft >= speed.preferredWidth + 3f && newRight <= rowW - ScoreHud.BadgeInset - 100f);
+        }
+        Check("worst case: NEW keeps its size and fits its box", hud.NewTag.fontSize == ScoreHud.NewTagFontSize && hud.NewTag.preferredWidth <= ScoreHud.NewTagWidth);
+        Check("worst case: the plate is still the same size and not shrunk", Mathf.Approximately(cue.Plate.rectTransform.sizeDelta.x, ScoreX2Cue.PlateWidth));
+        Object.DestroyImmediate(go);
+        RunScore.EndRun(RunScore.RunId);
+        ScoreMultiplier.Reset();
+        ClearTables();
     }
 }

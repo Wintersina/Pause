@@ -87,8 +87,8 @@ public class ScoreHud : MonoBehaviour
     public const string LoopBadgeName = "Loop";
     public const string NewTagName = "NewTag";
     public const string NewTagLabel = "NEW";
-    public const int NewTagFontSize = 16;
-    public const float NewTagWidth = 56f;
+    public const int NewTagFontSize = 14;
+    public const float NewTagWidth = 50f;
     public const float NewTagGap = 4f;
     // The row the LOOP badge sits on (gameS1's pause counter).
     public const string LoopRowName = "PauseCounter";
@@ -280,11 +280,29 @@ public class ScoreHud : MonoBehaviour
         return t;
     }
 
-    // Right edge of the tag: left of the chain badge while a chain is alive.
+
+    // Where the NEW tag sits. Inline on the SCORE row, just left of the chain badge, when it fits between the
+    // score figure (and the x2 plate when that is showing) and the chain badge. The x2 plate is a gameplay state and
+    // never gives way: on the worst row (7-digit score + x2 + x4) the tag drops to the line under, in the gap
+    // between the SPEED figure and its SPD badge, instead.
+    public const float NewTagClear = 3f;
+    public const float SpeedBadgeReserve = 112f;   // the SPD badge's column on the SPEED row (BadgeWidth less its slack)
+    public bool NewTagInline { get; private set; } = true;
+
+    public void ForceNewTagPlacement() { if (newTag != null) PlaceNewTag(); }
+
     void PlaceNewTag()
     {
-        float reserve = chainText != null && !string.IsNullOrEmpty(chainText.text) ? chainText.preferredWidth + NewTagGap : 0f;
-        newTag.rectTransform.anchoredPosition = new Vector2(-(BadgeInset + reserve), 0f);
+        float rowW = scoreText.rectTransform.rect.width;
+        float chainReserve = chainText != null && !string.IsNullOrEmpty(chainText.text) ? chainText.preferredWidth + NewTagGap : 0f;
+        var cue = scoreText.GetComponent<ScoreX2Cue>();
+        float left = scoreText.preferredWidth;
+        if (cue != null && cue.Plate != null && cue.Plate.enabled && cue.PlateX >= 0f) left = cue.PlateX + ScoreX2Cue.PlateWidth;
+        float right = rowW - BadgeInset - chainReserve;
+        NewTagInline = right - newTag.preferredWidth >= left + NewTagClear;
+        newTag.rectTransform.anchoredPosition = NewTagInline
+            ? new Vector2(-(BadgeInset + chainReserve), 0f)
+            : new Vector2(-(BadgeInset + SpeedBadgeReserve), -RowStep);
     }
 
     // Starts the record watch on a new run, then (4 times a second) checks every board's live value against its stored best.

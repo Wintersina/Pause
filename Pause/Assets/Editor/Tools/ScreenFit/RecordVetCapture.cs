@@ -12,7 +12,7 @@ public static class RecordVetCapture
         string dir = Environment.GetEnvironmentVariable("SCREEN_FIT_DIR") ?? "Builds/RecordVet";
         string[] names = { "space", "frost", "verdant", "ember", "tide", "storm", "desert" };
         var boards = LeaderboardBoards.All;
-        var devices = new[] { FitDevice.Find("and-720x1280"), FitDevice.Find("flip7-cover-948x1048") };
+        var devices = new[] { FitDevice.Find("and-480x854"), FitDevice.Find("and-720x1280"), FitDevice.Find("flip7-cover-948x1048") };
         using (new TestHarness.Sandbox())
         {
             for (int w = 0; w < names.Length; w++)

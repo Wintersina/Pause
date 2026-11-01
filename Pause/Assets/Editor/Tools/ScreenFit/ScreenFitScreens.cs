@@ -881,13 +881,23 @@ public static class ScreenFitScreens
         moveBackGround.speed = 5f;
         var hud = ScoreHud.Current ?? UnityEngine.Object.FindFirstObjectByType<ScoreHud>();
         var row = SceneUtil.FindAny(ScoreHud.RowName);
-        if (row != null) row.GetComponent<Text>().text = ScoreHud.Label(123456);
+        // worst case: a 7-digit score, the x2 plate active, NEW and an x4 chain, with the popup up
+        var x2 = row != null ? row.GetComponent<ScoreX2Cue>() : null;
+        if (row != null) row.GetComponent<Text>().text = ScoreHud.Label(9999999);
+        if (x2 != null)
+        {
+            RunScore.BeginRun(true, true);
+            ScoreMultiplier.Tick(ScoreMultiplier.StreakSeconds + .1f, SpeedRamp.Cap);
+            x2.Refresh(1000f);
+            x2.Refresh(1001f);
+        }
         if (hud != null && hud.NewTag != null)
         {
             hud.NewTag.text = ScoreHud.NewTagLabel;
             if (hud.ChainText != null) hud.ChainText.text = "x4";
             Canvas.ForceUpdateCanvases();
-            hud.CheckRecords(0f);
+            hud.ForceNewTagPlacement();
+            if (x2 != null) x2.Remeasure();
         }
         var popup = NewRecordPopup.Build();
         popup.Push(board);
@@ -896,6 +906,7 @@ public static class ScreenFitScreens
         PlaceHudBand(rig, styler, false);
         Canvas.ForceUpdateCanvases();
         popup.ApplyAt(.7f);
+        if (hud != null && hud.NewTag != null) hud.ForceNewTagPlacement();
     }
 
     // HUD glyph contrast sweep (HudContrastCapture): per variant x cloud shadows on/off x scroll offset, writes the bare backdrop
