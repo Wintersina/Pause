@@ -81,7 +81,8 @@ using UnityEngine;
 //   * touching the pilot (collisionDetection -> Rammed; the pilot loses a heart too unless shielded), a crash,
 //     a rail, another elite, friendly fire: one heart, then GraceSeconds (half a second) in which none of
 //     these crash / contact sources hurt it again (it keeps it from being ground down by one overlap);
-//   * a shielded ram (blue atom / Cloak) takes every heart, grace or not.
+//   * a shielded ram (blue atom / Cloak) is a boss ram (BossRam): BossRam.RamWeight of a heart, BossRam.RamShieldCost of
+//     shield, paced by the boss's 0.25 s hit window (RamBlock) instead of the heart windows; grace never blocks it.
 // Every kill, crash or lure included, pays ScoreRules.EliteDown (times the running kill chain's
 // multiplier, RunScore.OnElite) + EliteDownDust with an "ELITE DOWN" popup.
 //
@@ -107,6 +108,10 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint, I
     // so one blink -- or blinks repeated inside a pause -- can never take more than one heart at once.
     public const float BlinkGuardSeconds = .5f;
     public const string PauseBlockedWord = "PAUSE BLOCKED";
+    // The same word for a shield bash the elite survives (a partial ram, or one the hit window refused), at most once per elite per this long.
+    public const string ShieldBlockedWord = "SHIELD BLOCKED";
+    public const float ShieldBlockedGap = .6f;
+    public static int ShieldBlocks;
     // Pause jumps an elite survived ("PAUSE BLOCKED"), and the blinks its guard refused (tests, diagnostics).
     public static int PauseBlocks, BlinksGuarded;
     // Edit-mode stand-in for the HUD word (tests): (word, at, colour).
@@ -230,6 +235,7 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint, I
     public const float FlinchSeconds = .45f, FlinchKick = 1.7f, PhaseKick = 3.2f;
     int hidePhase, hideSide;        // 0 away, 1 waiting, 2 back in; the side it left by (0 left, 1 right, 2 top)
     Vector2 hideTo;
+    float ramBlock, ramDamage, shieldWordGap;   // a shielded ram's hit window left; its fraction of a heart banked so far
     float stateTime, cooldown, escapeLeft, grace, hitBlock, blinkGuard, hitFlash, frameHold, blinkCooldown, exhaustClock;
     int idleStep, attackPhase, damagedStep;
     float damagedHold, stunLeft;
@@ -506,6 +512,8 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint, I
         stateTime += dt;
         if (grace > 0f) grace = Mathf.Max(0f, grace - dt);
         if (hitBlock > 0f) hitBlock = Mathf.Max(0f, hitBlock - dt);
+        if (ramBlock > 0f) ramBlock = Mathf.Max(0f, ramBlock - dt);
+        if (shieldWordGap > 0f) shieldWordGap = Mathf.Max(0f, shieldWordGap - dt);
         if (blinkGuard > 0f) blinkGuard = Mathf.Max(0f, blinkGuard - dt);
         if (hitFlash > 0f) hitFlash = Mathf.Max(0f, hitFlash - dt);
         if (blinkCooldown > 0f) blinkCooldown -= dt;
@@ -1452,7 +1460,7 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint, I
 
     // ---- damage -------------------------------------------------------------
 
-    // `amount` hearts (every heart for a shielded ram); false if refused (its window, a soaking shield / plate).
+    // `amount` hearts; false if refused (its window, a soaking shield / plate).
     // A weapon hit respects only HitBlockSeconds; Teleport (TeleportStrike: one heart, its own BlinkGuardSeconds), ShieldRam and
     // Domino ignore every window; the rest (contact, crashes, rails, friendly fire, combo links) respect GraceSeconds.
     public bool TakeHit(EliteDamage cause, Vector3 at, int amount = 1)
@@ -1647,12 +1655,26 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint, I
     void ShowPauseBlocked()
     {
         PauseBlocks++;
+        ShowBlockedWord(PauseBlockedWord);
+    }
+
+    // "SHIELD BLOCKED": the same word, once per ShieldBlockedGap per elite, over a shield bash it survived.
+    void ShowShieldBlocked()
+    {
+        if (shieldWordGap > 1e-4f) return;
+        shieldWordGap = ShieldBlockedGap;
+        ShieldBlocks++;
+        ShowBlockedWord(ShieldBlockedWord);
+    }
+
+    void ShowBlockedWord(string word)
+    {
         Color c = PauseBlockedColour(Def != null ? Def.WorldIndex : 0);
         Vector3 at = transform.position;
-        if (PauseBlockedHook != null) PauseBlockedHook(PauseBlockedWord, at, c);
+        if (PauseBlockedHook != null) PauseBlockedHook(word, at, c);
         if (!Application.isPlaying) return;
         var hud = ScoreHud.Current;
-        if (hud != null) hud.ShowWord(PauseBlockedWord, at, c, ScoreHud.EliteWordSize, ScoreHud.EliteWordSeconds, ScoreHud.EliteWordRise);
+        if (hud != null) hud.ShowWord(word, at, c, ScoreHud.EliteWordSize, ScoreHud.EliteWordSeconds, ScoreHud.EliteWordRise);
     }
 
     public static Color PauseBlockedColour(int world)
@@ -1660,19 +1682,46 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint, I
         return WorldCue.IsSpace(world) ? AkiraPalette.Magenta : WorldCue.Body(world);
     }
 
-    // collisionDetection, shielded (blue atom / Cloak): the ram takes both
-    // hearts; an elite shot is absorbed. True when handled.
-    public static bool ShieldRam(GameObject go, Vector3 shipAt)
+    // collisionDetection, shielded (blue atom / Cloak): an elite is rammed like a boss (BossRam). A ram that lands is
+    // BossRam.RamWeight of a heart (banked in ramDamage; a whole heart goes through TakeHit, so the last one is an
+    // ordinary kill: ELITE DOWN, chain reward, death combo) and costs the shield BossRam.RamShieldCost seconds. The
+    // boss's hit window (BossConfig.HitInvulnerableSeconds) opens on it; a ram inside that window, or a heart
+    // window (hitBlock), is shrugged off for free. An elite shot is absorbed. True when handled.
+    public static bool ShieldRam(GameObject go, Vector3 shipAt, int ship = 0)
     {
         if (go == null) return false;
         var elite = go.GetComponent<EliteShip>();
         if (elite != null)
         {
-            elite.TakeHit(EliteDamage.ShieldRam, shipAt, elite.Hearts);
+            elite.Ram(shipAt, ship);
             return true;
         }
         // (a rail mine's laser is absorbed the same way: RailMineLaser)
         return EliteShots.EraseHitbox(go) || RailMineLaser.EraseHitbox(go) || AttackHazard.EraseHitbox(go);
+    }
+
+    public static int Rams;   // tests: landed shielded rams
+
+    void Ram(Vector3 at, int ship)
+    {
+        if (!InPlay) return;
+        if (ramBlock > 1e-4f || hitBlock > 1e-4f) { ShowShieldBlocked(); return; }
+        ramBlock = BossRam.RamBlockSeconds;
+        Rams++;
+        BossRam.SpendShield(BossRam.RamShieldCost);
+        ramDamage += BossRam.RamWeight;
+        if (ramDamage >= 1f - 1e-4f)
+        {
+            // (a soaking Frost link / plate refuses it: the heart stays owed for the next ram)
+            if (TakeHit(EliteDamage.ShieldRam, at, 1)) ramDamage = Mathf.Max(0f, ramDamage - 1f);
+            else ramDamage = 1f;
+            if (State != EliteState.Dead) ShowShieldBlocked();   // (survived: a lost heart, or soaked by a link / plate)
+            return;
+        }
+        hitFlash = HitFlashSeconds;
+        ShowShieldBlocked();
+        EliteSystem.Fx.Sparks(at, Def.HeartColor, 4);
+        TargetExplosion.Spawn(Vector3.Lerp(transform.position, at, .5f), TargetExplosion.KindForWorld(Def != null ? Def.world : null), TargetExplosion.Size.Small, ship);
     }
 
     // collisionDetection, unshielded: the pilot pays a heart as for any

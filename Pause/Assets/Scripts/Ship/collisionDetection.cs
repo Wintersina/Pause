@@ -352,8 +352,8 @@ public class collisionDetection : MonoBehaviour {
                 // atom's, not Cloak) pays ScoreRules.ShieldedShot (RunScore).
                 if (atomCheck) RunScore.OnShieldedShot(hit.gameObject, hit.transform.position);
                 if (atomCheck) PowerUpRefund.OnShieldAbsorb();   // a shield's first absorb is a power-up used
-                // An elite rammed shielded loses both hearts; its shot is absorbed (EliteShip).
-                if (EliteShip.ShieldRam(hit.gameObject, transform.position)) return;
+                // An elite rammed shielded is hit like a boss (BossRam numbers); its shot is absorbed (EliteShip).
+                if (EliteShip.ShieldRam(hit.gameObject, transform.position, ShipId.Of(gameObject, ShipId.Equipped()))) return;
                 // A boss's body: a hit on the boss, not a kill (BossRam).
                 if (BossRam.Ram(hit.gameObject, ShipId.Of(gameObject, ShipId.Equipped()), hit.transform.position)) return;
 
