@@ -956,13 +956,18 @@ public static class EliteTest
         int kills = EliteShip.Kills;
         collisionDetection.invTimer = 5.8f;
         int hearts = e.Hearts, rams = EliteShip.Rams;
+        var shieldWords = new System.Collections.Generic.List<string>();
+        System.Action<string, Vector3, Color> shieldHook = (w, at, c) => { if (w == EliteShip.ShieldBlockedWord) shieldWords.Add(w); };
+        EliteShip.PauseBlockedHook += shieldHook;
         rig.Touch(e.gameObject);
+        Check("a surviving ram pops SHIELD BLOCKED (same word path as PAUSE BLOCKED)", shieldWords.Count == 1 && EliteShip.ShieldBlockedWord == "SHIELD BLOCKED");
         Check("a shielded ram is a boss ram: it banks " + BossRam.RamWeight + " of a heart, no heart yet, elite and pilot standing",
               e != null && e.Hearts == hearts && EliteShip.Rams == rams + 1 && collisionDetection.lifeCounter == 0);
         Check("... it costs the shield " + BossRam.RamShieldCost + " s",
               Mathf.Abs(collisionDetection.invTimer - (5.8f - BossRam.RamShieldCost)) < 1e-3f);
         float timer = collisionDetection.invTimer;
         rig.Touch(e.gameObject);
+        Check("... a ram the hit window refused is throttled: no second word inside " + EliteShip.ShieldBlockedGap + " s", shieldWords.Count == 1);
         Check("... a second ram inside the hit window does nothing and costs nothing",
               e.Hearts == hearts && EliteShip.Rams == rams + 1 && Mathf.Abs(collisionDetection.invTimer - timer) < 1e-4f);
         // (rams spaced past the window: the 4th lands 1.2 of a heart, so exactly one heart goes)
@@ -970,7 +975,16 @@ public static class EliteTest
         Check("... four landed rams (" + 4 * BossRam.RamWeight + " heart) take exactly one heart",
               e != null && e.Hearts == hearts - 1 && EliteShip.Rams == rams + 4 && collisionDetection.lifeCounter == 0);
         int paidBefore = EliteRewards.Paid;
-        for (int guard = 0; guard < 60 && e != null; guard++) { Step(BossRam.RamBlockSeconds + .15f); rig.Touch(e.gameObject); }
+        int wordsAtKill = -1;
+        for (int guard = 0; guard < 60 && e != null; guard++)
+        {
+            Step(BossRam.RamBlockSeconds + .15f);
+            int before = shieldWords.Count;
+            rig.Touch(e.gameObject);
+            if (e == null) wordsAtKill = shieldWords.Count - before;
+        }
+        EliteShip.PauseBlockedHook -= shieldHook;
+        Check("... the killing ram shows no SHIELD BLOCKED (" + wordsAtKill + ")", wordsAtKill == 0);
         Check("... its last heart to a ram is an ordinary kill (ELITE DOWN, cause ShieldRam)",
               e == null && EliteShip.Kills == kills + 1 && EliteShip.LastKillCause == EliteDamage.ShieldRam && EliteRewards.Paid == paidBefore + 1 && collisionDetection.lifeCounter == 0);
         rig.Dispose();

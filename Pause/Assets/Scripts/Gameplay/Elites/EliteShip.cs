@@ -108,6 +108,10 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint, I
     // so one blink -- or blinks repeated inside a pause -- can never take more than one heart at once.
     public const float BlinkGuardSeconds = .5f;
     public const string PauseBlockedWord = "PAUSE BLOCKED";
+    // The same word for a shield bash the elite survives (a partial ram, or one the hit window refused), at most once per elite per this long.
+    public const string ShieldBlockedWord = "SHIELD BLOCKED";
+    public const float ShieldBlockedGap = .6f;
+    public static int ShieldBlocks;
     // Pause jumps an elite survived ("PAUSE BLOCKED"), and the blinks its guard refused (tests, diagnostics).
     public static int PauseBlocks, BlinksGuarded;
     // Edit-mode stand-in for the HUD word (tests): (word, at, colour).
@@ -231,7 +235,7 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint, I
     public const float FlinchSeconds = .45f, FlinchKick = 1.7f, PhaseKick = 3.2f;
     int hidePhase, hideSide;        // 0 away, 1 waiting, 2 back in; the side it left by (0 left, 1 right, 2 top)
     Vector2 hideTo;
-    float ramBlock, ramDamage;   // a shielded ram's hit window left; its fraction of a heart banked so far
+    float ramBlock, ramDamage, shieldWordGap;   // a shielded ram's hit window left; its fraction of a heart banked so far
     float stateTime, cooldown, escapeLeft, grace, hitBlock, blinkGuard, hitFlash, frameHold, blinkCooldown, exhaustClock;
     int idleStep, attackPhase, damagedStep;
     float damagedHold, stunLeft;
@@ -509,6 +513,7 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint, I
         if (grace > 0f) grace = Mathf.Max(0f, grace - dt);
         if (hitBlock > 0f) hitBlock = Mathf.Max(0f, hitBlock - dt);
         if (ramBlock > 0f) ramBlock = Mathf.Max(0f, ramBlock - dt);
+        if (shieldWordGap > 0f) shieldWordGap = Mathf.Max(0f, shieldWordGap - dt);
         if (blinkGuard > 0f) blinkGuard = Mathf.Max(0f, blinkGuard - dt);
         if (hitFlash > 0f) hitFlash = Mathf.Max(0f, hitFlash - dt);
         if (blinkCooldown > 0f) blinkCooldown -= dt;
@@ -1650,12 +1655,26 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint, I
     void ShowPauseBlocked()
     {
         PauseBlocks++;
+        ShowBlockedWord(PauseBlockedWord);
+    }
+
+    // "SHIELD BLOCKED": the same word, once per ShieldBlockedGap per elite, over a shield bash it survived.
+    void ShowShieldBlocked()
+    {
+        if (shieldWordGap > 1e-4f) return;
+        shieldWordGap = ShieldBlockedGap;
+        ShieldBlocks++;
+        ShowBlockedWord(ShieldBlockedWord);
+    }
+
+    void ShowBlockedWord(string word)
+    {
         Color c = PauseBlockedColour(Def != null ? Def.WorldIndex : 0);
         Vector3 at = transform.position;
-        if (PauseBlockedHook != null) PauseBlockedHook(PauseBlockedWord, at, c);
+        if (PauseBlockedHook != null) PauseBlockedHook(word, at, c);
         if (!Application.isPlaying) return;
         var hud = ScoreHud.Current;
-        if (hud != null) hud.ShowWord(PauseBlockedWord, at, c, ScoreHud.EliteWordSize, ScoreHud.EliteWordSeconds, ScoreHud.EliteWordRise);
+        if (hud != null) hud.ShowWord(word, at, c, ScoreHud.EliteWordSize, ScoreHud.EliteWordSeconds, ScoreHud.EliteWordRise);
     }
 
     public static Color PauseBlockedColour(int world)
@@ -1685,7 +1704,8 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint, I
 
     void Ram(Vector3 at, int ship)
     {
-        if (!InPlay || ramBlock > 1e-4f || hitBlock > 1e-4f) return;
+        if (!InPlay) return;
+        if (ramBlock > 1e-4f || hitBlock > 1e-4f) { ShowShieldBlocked(); return; }
         ramBlock = BossRam.RamBlockSeconds;
         Rams++;
         BossRam.SpendShield(BossRam.RamShieldCost);
@@ -1695,9 +1715,11 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint, I
             // (a soaking Frost link / plate refuses it: the heart stays owed for the next ram)
             if (TakeHit(EliteDamage.ShieldRam, at, 1)) ramDamage = Mathf.Max(0f, ramDamage - 1f);
             else ramDamage = 1f;
+            if (State != EliteState.Dead) ShowShieldBlocked();   // (survived: a lost heart, or soaked by a link / plate)
             return;
         }
         hitFlash = HitFlashSeconds;
+        ShowShieldBlocked();
         EliteSystem.Fx.Sparks(at, Def.HeartColor, 4);
         TargetExplosion.Spawn(Vector3.Lerp(transform.position, at, .5f), TargetExplosion.KindForWorld(Def != null ? Def.world : null), TargetExplosion.Size.Small, ship);
     }
