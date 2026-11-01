@@ -15,8 +15,11 @@ public sealed class CoverBoulder
     // on the way out it sinks back over the last RecedeUnits above the view bottom.
     public const float EmergeSeconds = 2.6f, RecedeUnits = 1.8f;
     public const int MaxCircles = 4;   // (the art's bounding circles: they only size the boulder now)
-    public const int SortingOrder = -7;   // the backdrop layer: behind enemies, shots and the ship
+    // Drawn ON the backdrop: just above the world's ground plane (BackdropCatalog.Spec.BoulderOrder), so every other backdrop
+    // layer (landmarks, docks, flow, mist, clouds, weather), enemies, elites, bosses, shots, pickups, the ship and FX sort above it.
+    public static int OrderFor(string world) { return BackdropCatalog.For(world).BoulderOrder; }
 
+    public int SortingOrder { get; private set; }
     public Phase State { get; private set; }
     public int World { get; private set; }
     public int Variant { get; private set; }
@@ -48,8 +51,8 @@ public sealed class CoverBoulder
     {
         go = new GameObject(name);
         go.transform.SetParent(root, false);
-        body = NewRenderer("Body", SortingOrder);
-        wash = NewRenderer("Wash", SortingOrder + 1);
+        body = NewRenderer("Body", 0);
+        wash = NewRenderer("Wash", 1);
         go.SetActive(false);
     }
 
@@ -70,6 +73,9 @@ public sealed class CoverBoulder
         bodyTint = tint;
         viewBottom = -100f;
         entry = CoverBoulderTable.For(world);
+        SortingOrder = OrderFor(entry.world);
+        body.sortingOrder = SortingOrder;
+        wash.sortingOrder = SortingOrder + 1;
         World = world;
         art = v;
         Variant = variant;
@@ -87,7 +93,7 @@ public sealed class CoverBoulder
         if (entry.stormFx)
         {
             if (stormFx == null) stormFx = new CoverStormFx(go.transform);
-            stormFx.Begin(v, entry.folder, rng01);
+            stormFx.Begin(v, entry.folder, rng01, SortingOrder);
         }
         else if (stormFx != null) stormFx.Hide();
         go.SetActive(true);

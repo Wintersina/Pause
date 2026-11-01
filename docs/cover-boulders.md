@@ -2,7 +2,7 @@
 
 > **Update (feat/boulders-decorative-only): boulders are decorative only, in every world.** Space's boulder is now a backdrop landform like the others. Everything below that describes
 > blocking (the ship, shots, beams, shockwaves and shoves, rail-mine lasers, elite landing sites, the hazard seam), the lane/free-reach rules, the destruction sequence and the
-> boulder's own drift is removed. A boulder is pinned to the backdrop's ground, drawn behind gameplay (sorting order -7), and just fades out when a boss arrives, the world changes or the player dies.
+> boulder's own drift is removed. A boulder is pinned to the backdrop's ground, drawn ON the ground plane (`BackdropCatalog.Spec.BoulderOrder`: just above the world's `mid` ground tile, Space: above `planet_near`), under every other backdrop layer and all gameplay, and just fades out when a boss arrives, the world changes or the player dies.
 
 
 **Two kinds, one flag (`CoverBoulderEntry.interactive`, only Space is true).** Space's asteroids are interactive COVER boulders exactly as in sections 1-11 (you hide
@@ -25,8 +25,7 @@ own drift style, own tuning). Pink only in Space.
 
 ## 2. What a cover boulder is
 
-* An **object of the board, not of a backdrop layer**: it is drawn *behind* the player, enemies and every shot (sorting order `-7`, above all backdrop
-  layers, below the boss's play order `-3`), so a shot that is stopped by it is seen to die on its face and the ship is never half hidden by it.
+* An **object of the board, not of a backdrop layer**: it is drawn *behind* the player, enemies and every shot (sorting order `BackdropCatalog.Spec.BoulderOrder`, just above the ground tile and under every other backdrop layer and the boss's approach order), so a shot that is stopped by it is seen to die on its face and the ship is never half hidden by it.
 * **3-5x an enemy ship** wide (2.0 .. 3.0 u; the lane's rails are 2.61 u from the centre, the ship's reach is +-2.2 .. 2.45 u).
 * **Solid shape** = one to four circles per variant fitted inside the art's silhouette (`boulder.json`, written by `scripts/verify_boulder_art.py`;
   they sit 6 % inside the art so the ship can tuck against the drawn edge). The shape rotates / sways / bobs with the art.
@@ -147,7 +146,7 @@ radius, sound volumes) sit at the top of `CoverBoulders`.
 
 ## 10. Layer, cost, screens
 
-* Sorting order -7; the chips / debris pixels use order 28 (under shots at 30).
+* Sorting order `Spec.BoulderOrder` (ground plane + 3; `CoverBoulderTest.Sorting` holds it under every layer and gameplay order); the chips / debris pixels use order 28 (under shots at 30).
 * `CoverBoulders.Step(dt)` is O(boulders x circles) with <= 4 circles, hostile shots are tested in `HostileShots.Resolve` (already O(shots)), bodies by
   `ClearTarget.Live`. No allocation after `Prewarm` (measured by `CoverBoulderTest.Cost`). 60 fps budget: well under .05 ms per frame on device-class code.
 * ScreenFit: the boulder's width is clamped to `.62 x` the lane's rail-to-rail width, its path and the 1 u of free lane are checked on every device shape

@@ -14,6 +14,7 @@ public sealed class CoverStormFx
     readonly SpriteRenderer shadow;
     readonly Transform root;
     Sprite[] sp;
+    int order;   // the host boulder's sorting order (it follows the world's ground plane)
     float cx, baseY, rx, bodyY, bodyRx, seed;
     bool shown;
     public bool Active { get; private set; }
@@ -24,20 +25,30 @@ public sealed class CoverStormFx
     {
         root = new GameObject("StormFx").transform;
         root.SetParent(parent, false);
-        shadow = New("Shadow", CoverBoulder.SortingOrder - 1);
-        for (int i = 0; i < Wisps; i++) wisp[i] = New("Wisp", CoverBoulder.SortingOrder - 1);
-        for (int i = 0; i < Rain; i++) rain[i] = New("Rain", CoverBoulder.SortingOrder - 1);
-        for (int i = 0; i < Hail; i++) hail[i] = New("Hail", CoverBoulder.SortingOrder - 1);
-        for (int i = 0; i < Arcs; i++) arc[i] = New("Arc", CoverBoulder.SortingOrder + 2);
+        shadow = New("Shadow", 0);
+        for (int i = 0; i < Wisps; i++) wisp[i] = New("Wisp", 0);
+        for (int i = 0; i < Rain; i++) rain[i] = New("Rain", 0);
+        for (int i = 0; i < Hail; i++) hail[i] = New("Hail", 0);
+        for (int i = 0; i < Arcs; i++) arc[i] = New("Arc", 0);
         root.gameObject.SetActive(false);
     }
 
-    SpriteRenderer New(string n, int order)
+    void SetOrder(int hostOrder)
+    {
+        order = hostOrder;
+        shadow.sortingOrder = order - 1;
+        foreach (var r in wisp) r.sortingOrder = order - 1;
+        foreach (var r in rain) r.sortingOrder = order - 1;
+        foreach (var r in hail) r.sortingOrder = order - 1;
+        foreach (var r in arc) r.sortingOrder = order + 2;
+    }
+
+    SpriteRenderer New(string n, int ord)
     {
         var g = new GameObject(n);
         g.transform.SetParent(root, false);
         var sr = g.AddComponent<SpriteRenderer>();
-        sr.sortingOrder = order;
+        sr.sortingOrder = ord;
         return sr;
     }
 
@@ -53,8 +64,9 @@ public sealed class CoverStormFx
     static float Smooth(float x) { x = Mathf.Clamp01(x); return x * x * (3f - 2f * x); }
 
     // A boulder with this art starts (the sprites load once; false: no atlas, no effects).
-    public bool Begin(CoverVariant v, string folder, float rng01)
+    public bool Begin(CoverVariant v, string folder, float rng01, int hostOrder)
     {
+        SetOrder(hostOrder);
         sp = CoverBoulderArt.FxSprites(folder);
         Active = sp != null;
         if (!Active) { root.gameObject.SetActive(false); return false; }
@@ -116,7 +128,7 @@ public sealed class CoverStormFx
             float size = (.55f + .35f * Hash(i, 7)) * (.93f + .07f * Mathf.Sin(t * .9f + i)) * rx * 1.15f / 512f * 2f;
             float x = cx + s * rx * .9f;
             float y = baseY + 6f + c * 38f + Mathf.Sin(t * .6f + i * 1.7f) * 12f;
-            wisp[i].sortingOrder = c > 0f ? CoverBoulder.SortingOrder + 3 : CoverBoulder.SortingOrder - 1;
+            wisp[i].sortingOrder = c > 0f ? order + 3 : order - 1;
             Put(wisp[i], x, y, size, 7f * Mathf.Sin(a * 2f + i), (c > 0f ? .62f : .5f) * edge * alpha, WispCol);
         }
 
