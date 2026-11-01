@@ -869,6 +869,35 @@ public static class ScreenFitScreens
         VetLayers(rig, styler, world);
     }
 
+    // The NEW tag and a NEW RECORD popup in one world's HUD (RecordVetCapture).
+    public static FitScreen RecordVet(int world, string board)
+    {
+        return new FitScreen { id = "record-vet-" + world, scene = "gameS1", title = "NEW RECORD vet, world " + world, gameplayView = true, fullBleed = true, stage = r => RecordVetStage(r, world, board) };
+    }
+
+    static void RecordVetStage(ScreenFitRig rig, int world, string board)
+    {
+        var styler = WorldBase(rig, world, true, false);
+        moveBackGround.speed = 5f;
+        var hud = ScoreHud.Current ?? UnityEngine.Object.FindFirstObjectByType<ScoreHud>();
+        var row = SceneUtil.FindAny(ScoreHud.RowName);
+        if (row != null) row.GetComponent<Text>().text = ScoreHud.Label(123456);
+        if (hud != null && hud.NewTag != null)
+        {
+            hud.NewTag.text = ScoreHud.NewTagLabel;
+            if (hud.ChainText != null) hud.ChainText.text = "x4";
+            Canvas.ForceUpdateCanvases();
+            hud.CheckRecords(0f);
+        }
+        var popup = NewRecordPopup.Build();
+        popup.Push(board);
+        popup.ApplyAt(.7f);
+        rig.Sync();
+        PlaceHudBand(rig, styler, false);
+        Canvas.ForceUpdateCanvases();
+        popup.ApplyAt(.7f);
+    }
+
     // HUD glyph contrast sweep (HudContrastCapture): per variant x cloud shadows on/off x scroll offset, writes the bare backdrop
     // (_D) and the full HUD (_F) plus the glyphs' pixel rects. SCREEN_FIT_DIR = output folder.
     public static FitScreen HudContrast(int world)
@@ -1075,6 +1104,25 @@ public static class ScreenFitScreens
                         hud.ShowBanner(ScoreHud.MegaDominoLabel, AkiraPalette.Amber, 54, 1.4f, .16f);
                         for (int i = 0; i < 12; i++) hud.StepPopups(Dt);
                     }
+                    // the NEW tag on the score row beside a 7-digit score and a live x4 chain
+                    var hudNew = ScoreHud.Current ?? UnityEngine.Object.FindFirstObjectByType<ScoreHud>();
+                    if (hudNew != null && hudNew.NewTag != null)
+                    {
+                        hudNew.NewTag.text = ScoreHud.NewTagLabel;
+                        if (hudNew.ChainText != null) hudNew.ChainText.text = "x4";
+                        Canvas.ForceUpdateCanvases();
+                        if (x2 != null) x2.Remeasure();
+                    }
+                    // the longest NEW RECORD popup: clear of the read-out and the quick actions
+                    var recordPopup = NewRecordPopup.Build();
+                    string longestBoard = null;
+                    foreach (var b in LeaderboardBoards.All)
+                        if (longestBoard == null || NewRecordPopup.TextFor(b.id).Length > NewRecordPopup.TextFor(longestBoard).Length) longestBoard = b.id;
+                    recordPopup.Push(longestBoard);
+                    recordPopup.ApplyAt(.6f);
+                    Canvas.ForceUpdateCanvases();
+                    ClearOfBand(rig, styler, "new record popup", rig.PixelRect(recordPopup.Box), false, false);
+                    rig.AddImportant("new record popup", rig.PixelRect(recordPopup.Box));
                     var toast = CodexToast.Build();
                     rig.Sync();
                     var entry = LongestCodexEntry();

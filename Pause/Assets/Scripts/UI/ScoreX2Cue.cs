@@ -48,8 +48,8 @@ public class ScoreX2Cue : MonoBehaviour
     static readonly Color InkColour = AkiraPalette.Ink;
     static readonly Color LostColour = AkiraPalette.Muted;
 
-    Text scoreText, chainText;
-    string measuredFor, measuredChain;
+    Text scoreText, chainText, newText;
+    string measuredFor, measuredChain, measuredNew;
     float plateX;
     Image back, bar, plate;
     Text label;
@@ -118,6 +118,8 @@ public class ScoreX2Cue : MonoBehaviour
         scoreText = score;
         var chain = score.transform.Find(ScoreHud.ChainName);
         chainText = chain != null ? chain.GetComponent<Text>() : null;
+        var tag = score.transform.Find(ScoreHud.NewTagName);
+        newText = tag != null ? tag.GetComponent<Text>() : null;
         if (plate != null) return;
         var rowRect = score.transform;
 
@@ -258,7 +260,7 @@ public class ScoreX2Cue : MonoBehaviour
     // Measures now (the plate's x is also kept up to date in Refresh).
     public void Remeasure()
     {
-        measuredFor = null; measuredChain = null;
+        measuredFor = null; measuredChain = null; measuredNew = null;
         if (scoreText != null) Measure();
     }
 
@@ -267,11 +269,14 @@ public class ScoreX2Cue : MonoBehaviour
     {
         string now = scoreText.text;
         string chain = chainText != null ? chainText.text : "";
-        if (ReferenceEquals(now, measuredFor) && ReferenceEquals(chain, measuredChain)) return;
+        string tag = newText != null ? newText.text : "";
+        if (ReferenceEquals(now, measuredFor) && ReferenceEquals(chain, measuredChain) && ReferenceEquals(tag, measuredNew)) return;
         if (scoreText.rectTransform.rect.width <= 0f) return;   // not laid out yet: try next frame
         measuredFor = now;
         measuredChain = chain;
+        measuredNew = tag;
         float reserve = string.IsNullOrEmpty(chain) ? 0f : chainText.preferredWidth + 3f;
+        if (!string.IsNullOrEmpty(tag)) reserve += newText.preferredWidth + ScoreHud.NewTagGap;   // the NEW tag sits left of the chain badge
         plateX = PlateLeftFor(scoreText.preferredWidth, scoreText.rectTransform.rect.width, reserve);
         bool room = plateX >= 0f;
         if (plate.enabled != room && (state == CueState.Active || state == CueState.Lost))
@@ -287,7 +292,7 @@ public class ScoreX2Cue : MonoBehaviour
 
     void SetShown(CueState s)
     {
-        measuredFor = null; measuredChain = null;   // re-measure the figure as the plate comes up
+        measuredFor = null; measuredChain = null; measuredNew = null;   // re-measure the figure as the plate comes up
         bool bars = s == CueState.Charging;
         bool badge = s == CueState.Active || s == CueState.Lost;
         back.enabled = bars;
