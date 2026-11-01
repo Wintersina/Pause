@@ -615,9 +615,9 @@ public partial class ShipAttackRunner
         {
             var b = bolts[i];
             if (!b.on) continue;
-            if (b.target == null || b.clear == null || !b.clear.isActiveAndEnabled)
+            if (b.target == null || b.clear == null || !b.clear.isActiveAndEnabled || b.clear.IsScenery)
             {
-                // its mark died on the way: the bolt fizzles
+                // its mark died on the way (or is scenery, which a sentry bolt never touches): the bolt fizzles
                 EndBolt(b);
                 continue;
             }

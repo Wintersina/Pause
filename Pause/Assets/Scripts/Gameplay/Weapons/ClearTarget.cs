@@ -49,13 +49,14 @@ public class ClearTarget : MonoBehaviour, IPoolReset
     // hostile fire's spawn-in protection (FriendlyFire.TrackPlayfield).
     [System.NonSerialized] public float PlayfieldSeconds;
     EnemyBrain brain;
-    bool classified, shotHitbox;
+    bool classified, shotHitbox, sceneryBody;
 
     void Classify()
     {
         classified = true;
         TryGetComponent(out brain);
         shotHitbox = TryGetComponent(out EliteShotHitbox _);
+        sceneryBody = TryGetComponent(out ISceneryTarget _);
     }
 
     // A pooled body starts over: nothing sensed, no mother, not scenery. (Its measured radius and
@@ -73,6 +74,8 @@ public class ClearTarget : MonoBehaviour, IPoolReset
     }
 
     public EnemyBrain Brain { get { if (!classified) Classify(); return brain; } }
+    // Scenery by flag or by what it is (an ISceneryTarget body): never something a sentry picks as its mark.
+    public bool IsScenery { get { if (!classified) Classify(); return Scenery || sceneryBody; } }
     public bool IsShotHitbox { get { if (!classified) Classify(); return shotHitbox; } }
 
     // Rough hit radius in world units, from the collider (or renderer) the

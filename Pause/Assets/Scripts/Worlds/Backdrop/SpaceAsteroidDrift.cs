@@ -1181,7 +1181,7 @@ public class SpaceAsteroidDrift
 // The hit body of one drifting backdrop rock: invisible, no collider (it can never touch the ship), tagged
 // like a hazard rock and registered as scenery, so the ship's attacks find it through ClearTarget and the
 // drift field decides what a hit does. Takes every hit in full (IShipAttackTargetUncapped).
-public class BackdropRockTarget : MonoBehaviour, IShipAttackTargetUncapped
+public class BackdropRockTarget : MonoBehaviour, IShipAttackTargetUncapped, ISceneryTarget
 {
     [System.NonSerialized] public SpaceAsteroidDrift Owner;
     [System.NonSerialized] public SpaceAsteroidDrift.Rock Rock;

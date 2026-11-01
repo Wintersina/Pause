@@ -27,6 +27,7 @@ public static class ShipSignatures2Test
         LabelsMentionTheEffectsAndKeepTheNumbers();
         JadeChillsOutsideTheSplash();
         GoldBoltsPierceAndSentriesDrift();
+        GoldSentriesIgnoreScenery();
         ParanoidBlastGrowsWithTheLevel();
         SaboteurBlastGrowsAndChains();
 
@@ -251,6 +252,37 @@ public static class ShipSignatures2Test
         }
     }
 
+    // Gold Warden: scenery nearer than an enemy is never picked as a mark and never takes a bolt. A backdrop rock is a
+    // hazard-tagged body that takes hits (flagged Scenery, and an ISceneryTarget even when the flag is reset); a cover
+    // boulder is a plain decorative object with no target at all.
+    static void GoldSentriesIgnoreScenery()
+    {
+        foreach (bool flagReset in new[] { false, true })
+        {
+            FreshScene();
+            var gold = Ship(7, 1);
+            var rock = Hazard(0f, 2.6f);
+            rock.tag = "Astr";
+            var rockHits = rock.AddComponent<FakeRock>();
+            var rockClear = rock.GetComponent<ClearTarget>();
+            rockClear.Scenery = !flagReset;   // the flag reset (a pooled body): the marker still marks it
+            var boulder = new GameObject("coverBoulder", typeof(SpriteRenderer));
+            boulder.transform.position = new Vector3(0f, 2.9f, 0f);
+            var enemy = Hazard(0f, 3.8f);
+            var fake = enemy.AddComponent<FakeBoss>();
+            var muzzle = new Vector3(0f, 2.2f, 0f);
+            Check("scenery" + (flagReset ? " (flag reset)" : "") + ": nearest real mark is the enemy though the rock is closer",
+                  ShipTargets.Nearest(muzzle, 0f, null, true) == enemy.GetComponent<ClearTarget>() && ShipTargets.IsThreat(rockClear) == false);
+            gold.Runner.Fire();
+            Steps(gold.Runner, 4f);
+            Check("scenery" + (flagReset ? " (flag reset)" : "") + ": the sentries shot the enemy (" + fake.hits + " hits)", fake.hits > 0);
+            Check("scenery" + (flagReset ? " (flag reset)" : "") + ": the backdrop rock took no hit and the boulder is untouched",
+                  rockHits.hits == 0 && Alive(rock) && Alive(boulder));
+            Destroy(rock, boulder, enemy);
+            Teardown(gold, 7);
+        }
+    }
+
     // Paranoid: a neighbour 1.5 from the mark dies from level 2 on, one 1.8 away only at level 4. The neighbour
     // sits level with the eye so the gaze never marks it itself.
     static void ParanoidBlastGrowsWithTheLevel()
@@ -310,6 +342,12 @@ public static class ShipSignatures2Test
                   !Alive(trip) && (chains ? c.Runner.LiveMines < launched - 1 : c.Runner.LiveMines == launched - 1));
             Teardown(c, 12);
         }
+    }
+
+    sealed class FakeRock : MonoBehaviour, IShipAttackTargetUncapped, ISceneryTarget
+    {
+        public int hits;
+        public void TakeShipAttack(int ship, float w, Vector3 at) { hits++; }
     }
 
     sealed class FakeBoss : MonoBehaviour, IShipAttackTargetUncapped

@@ -28,6 +28,11 @@ public interface IShipAttackTarget
 // FieldAsteroid, and its backdrop rocks), so one volley can break several of them.
 public interface IShipAttackTargetUncapped : IShipAttackTarget { }
 
+// Marks a hit body as scenery (the drifting backdrop rocks): it takes hits from the weapons that sweep an area, but the
+// weapons that PICK a mark (the Gold Warden's sentries) never choose it. ClearTarget.IsScenery reads this as well as
+// the Scenery flag, so a pooled / reset flag can never turn a backdrop body into a target.
+public interface ISceneryTarget { }
+
 public static class ShipAttackHits
 {
     // Counters for tests and previews.
@@ -105,7 +110,7 @@ public static class ShipTargets
     // A hazard that is a real body in the lane: not scenery (ClearTarget.Scenery).
     public static bool IsThreat(ClearTarget t)
     {
-        return IsHazard(t) && !t.Scenery;
+        return IsHazard(t) && !t.IsScenery;
     }
 
     public static bool IsPickup(ClearTarget t)
@@ -198,7 +203,7 @@ public static class ShipTargets
         for (int i = 0; i < live.Count; i++)
         {
             var t = live[i];
-            if (!IsHazard(t) || !IsBossTarget(t) || !InHomingView(t.transform.position)) continue;
+            if (!IsHazard(t) || !IsBossTarget(t) || (skipScenery && t.IsScenery) || !InHomingView(t.transform.position)) continue;
             if (exclude != null && exclude.Contains(t.gameObject)) continue;
             float sq = ((Vector2)(t.transform.position - from)).sqrMagnitude;
             if (sq < bestSq) { bestSq = sq; best = t; }
@@ -262,7 +267,7 @@ public static class ShipTargets
         for (int i = 0; i < live.Count; i++)
         {
             var t = live[i];
-            if (!IsHazard(t) || (skipScenery && t.Scenery)) continue;
+            if (!IsHazard(t) || (skipScenery && t.IsScenery)) continue;
             Vector3 p = t.transform.position;
             if (!view.Contains(p)) continue;
             if (exclude != null && exclude.Contains(t.gameObject)) continue;
