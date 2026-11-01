@@ -954,7 +954,6 @@ public static class EliteTest
         rig = PlayerRig(new Vector2(0f, .6f));
         collisionDetection.atomCheck = true;
         int kills = EliteShip.Kills;
-        rig.Touch(e.gameObject);
         collisionDetection.invTimer = 5.8f;
         int hearts = e.Hearts, rams = EliteShip.Rams;
         rig.Touch(e.gameObject);
