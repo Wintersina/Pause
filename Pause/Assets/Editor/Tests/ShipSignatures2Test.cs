@@ -28,6 +28,7 @@ public static class ShipSignatures2Test
         JadeChillsOutsideTheSplash();
         GoldBoltsPierceAndSentriesDrift();
         GoldSentriesIgnoreScenery();
+        GoldTurretsAimAllAround();
         ParanoidBlastGrowsWithTheLevel();
         SaboteurBlastGrowsAndChains();
 
@@ -281,6 +282,76 @@ public static class ShipSignatures2Test
             Destroy(rock, boulder, enemy);
             Teardown(gold, 7);
         }
+    }
+
+    // Gold Warden turrets: the head turns the full circle (no arc limit) toward its mark at a capped speed, the muzzle
+    // follows the rotation, bolts leave from it, and a turret with nothing to shoot holds fire.
+    static void GoldTurretsAimAllAround()
+    {
+        FreshScene();
+        var t = new SentryTurret();
+        t.Show(Vector3.zero, SentryTurret.SentryScaleForTests);
+        Check("turret art loads: base and head drawn, head sorts above the base",
+              t.BaseRenderer.sprite != null && t.HeadRenderer.sprite != null && t.HeadRenderer.sortingOrder > t.BaseRenderer.sortingOrder);
+        Check("art is point filtered at 256 px a unit",
+              t.HeadRenderer.sprite.texture.filterMode == FilterMode.Point && Mathf.Approximately(t.HeadRenderer.sprite.pixelsPerUnit, 256f));
+        var targets = new[] { new Vector3(3f, 3f), new Vector3(-3f, 3f), new Vector3(3f, -3f), new Vector3(-3f, -3f),
+                              new Vector3(0f, -4f), new Vector3(0f, 4f), new Vector3(-4f, 0f), new Vector3(4f, 0f) };
+        foreach (var at in targets)
+        {
+            t.Show(Vector3.zero, SentryTurret.SentryScaleForTests);
+            float prev = t.Angle;
+            bool capped = true;
+            for (int i = 0; i < 100; i++)
+            {
+                t.Aim(at, .02f);
+                if (Mathf.Abs(Mathf.DeltaAngle(prev, t.Angle)) > SentryTurret.TurnSpeed * .02f + .01f) capped = false;
+                prev = t.Angle;
+            }
+            Vector3 aimDir = at.normalized, muzzleDir = t.Muzzle.normalized;
+            Check("head converges on " + at + " (error " + t.Error(at).ToString("0.0") + ")", t.Error(at) < .5f);
+            Check("turn speed is capped for " + at, capped);
+            Check("muzzle sits on the aim line for " + at + ", " + (SentryTurret.MuzzleReach * SentryTurret.SentryScaleForTests).ToString("0.000") + " from the pivot",
+                  Vector3.Dot(aimDir, muzzleDir) > .999f && Mathf.Abs(t.Muzzle.magnitude - SentryTurret.MuzzleReach * SentryTurret.SentryScaleForTests) < 1e-3f);
+            Check("head transform agrees with the muzzle for " + at,
+                  Vector3.Distance(t.HeadTransform.TransformPoint(new Vector3(0f, SentryTurret.MuzzleReach, 0f)), t.Muzzle) < 1e-3f);
+        }
+        Check("pointing straight up the muzzle is straight above the pivot",
+              Vector3.Distance(SentryTurret.MuzzleAt(Vector3.zero, 0f, 1f), new Vector3(0f, SentryTurret.MuzzleReach, 0f)) < 1e-5f);
+        Check("pointing left the muzzle is to the left", Vector3.Distance(SentryTurret.MuzzleAt(Vector3.zero, 90f, 1f), new Vector3(-SentryTurret.MuzzleReach, 0f, 0f)) < 1e-5f);
+        t.Destroy();
+
+        // in play: an enemy below and beside the sentry, held by a fake boss so it survives to be shot at
+        FreshScene();
+        var gold = Ship(7, 1);
+        var enemy = Hazard(0f, -1.5f);
+        enemy.AddComponent<FakeBoss>();
+        gold.Runner.Fire();
+        Steps(gold.Runner, 1.5f);
+        var tur = gold.Runner.SentryTurretOf(0);
+        Check("a deployed sentry has a turret", tur != null && tur.Visible);
+        if (tur != null)
+        {
+            Check("its head faces the enemy below it (error " + tur.Error(enemy.transform.position).ToString("0.0") + ")", tur.Error(enemy.transform.position) < 1f);
+            Check("the sentries fired", gold.Runner.SentryBolts > 0);
+            Vector3 from = gold.Runner.LastBoltFrom;
+            Vector3 toEnemy = (enemy.transform.position - tur.Pivot).normalized;
+            Check("bolts leave from the muzzle ring around the pivot, along the aim",
+                  Mathf.Abs((from - tur.Pivot).magnitude - SentryTurret.MuzzleReach * ShipAttackRunner.SentryTurretSize) < .01f &&
+                  Vector3.Angle(from - tur.Pivot, toEnemy) < SentryTurret.FireCone + 1f);
+        }
+        Destroy(enemy);
+        Teardown(gold, 7);
+
+        // nothing to shoot: no bolts, the head only idles about straight up
+        FreshScene();
+        var idle = Ship(7, 1);
+        idle.Runner.Fire();
+        Steps(idle.Runner, 2f);
+        var it = idle.Runner.SentryTurretOf(0);
+        Check("no target: no bolts", idle.Runner.SentryBolts == 0);
+        Check("no target: the head idles within its sweep", it != null && Mathf.Abs(Mathf.DeltaAngle(0f, it.Angle)) <= SentryTurret.IdleSweep + .5f);
+        Teardown(idle, 7);
     }
 
     // Paranoid: a neighbour 1.5 from the mark dies from level 2 on, one 1.8 away only at level 4. The neighbour

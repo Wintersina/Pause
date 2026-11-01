@@ -107,6 +107,7 @@ public partial class ShipAttackRunner
             {
                 var s = sentries[i];
                 if (s.sprite != null && s.sprite.Active) s.sprite.Stop();
+                if (s.turret != null) s.turret.Hide();
                 s.on = false;
                 s.sprite = null;
             }
@@ -418,8 +419,6 @@ public partial class ShipAttackRunner
     public const int MaxSentries = 8, MaxBolts = 16;
     public const float SentryFlightSeconds = .4f, SentryStagger = .08f, SentryBoltSpeed = 30f, SentrySpacing = 2.6f;
     public const float SentryQuickShare = .5f;
-    static readonly int[] DeployTicks = { 1, 1, 1, 1, 1, 1, 1, 1000 };   // unfolds, then holds the open turret
-    static readonly int[] FoldTicks = { 1, 1, 1, 1, 1, 1, 1, 1 };
 
     public static float DeploySeconds { get { return 8 * WeaponArt.Tick; } }
 
@@ -435,6 +434,8 @@ public partial class ShipAttackRunner
         public bool drift;            // drifts along with the ship (ShipSignatures2.SentryDriftLevel)
         public Vector3 home;          // where it deployed
         public float anchorX;         // the ship's x at the deploy
+        public SentryTurret turret;   // the open turret: static base + a head that turns toward its mark
+        public ClearTarget aim;       // what the head is turned toward (null: idle sweep, no fire)
     }
 
     class Bolt
@@ -544,32 +545,37 @@ public partial class ShipAttackRunner
                     s.stage = 2;
                     s.t = 0f;
                     if (s.sprite != null && s.sprite.Active) s.sprite.Stop();
-                    s.sprite = AttackPool.Sprite().Play(AttackSprite.Source.AttackBurst, ship, s.to, Vector3.one * .9f, 0f,
-                        DeployTicks, false, 0f, null, Vector3.zero, 68).Owned(s.run);
+                    s.sprite = null;
+                    if (s.turret == null || !s.turret.Alive) s.turret = new SentryTurret();
+                    s.turret.Show(s.to, SentryTurretSize);   // pops in, then turns toward what it shoots
                     break;
                 case 2:
+                    s.turret.Unfold(s.t / DeploySeconds);
                     if (s.t < DeploySeconds) break;
+                    s.turret.Unfold(1f);
                     s.stage = 3;
                     s.t = 0f;
                     break;
                 case 3:
                     if (s.drift) DriftSentry(s, dt);
+                    AimSentry(s, dt);
                     s.fireClock += dt;
                     float gap = 1f / s.rate;
                     while (s.fireClock >= gap)
                     {
+                        // it fires only when the head faces its mark (no mark, or still turning: the shot waits)
+                        if (s.aim == null || s.turret.Error(s.aim.transform.position) > SentryTurret.FireCone) { s.fireClock = gap; break; }
                         s.fireClock -= gap;
                         FireBolt(s);
                     }
                     if (s.t < s.life) break;
                     s.stage = 4;
                     s.t = 0f;
-                    if (s.sprite != null && s.sprite.Active) s.sprite.Stop();
-                    s.sprite = AttackPool.Sprite().Play(AttackSprite.Source.AttackBurst, ship, s.to, Vector3.one * .9f, 0f,
-                        FoldTicks, false, 0f, null, Vector3.zero, 68).Reverse().Owned(s.run);
+                    s.aim = null;
                     break;
                 default:
-                    if (s.t < DeploySeconds) break;
+                    if (s.t < DeploySeconds) { s.turret.Unfold(1f - s.t / DeploySeconds); break; }
+                    if (s.turret != null) s.turret.Hide();
                     if (s.sprite != null && s.sprite.Active) s.sprite.Stop();
                     s.sprite = null;
                     s.on = false;
@@ -580,11 +586,33 @@ public partial class ShipAttackRunner
 
     public const float SentryBurstAlphaK = .5f;   // a sentry bolt's impact burst is half as opaque (they fire all the time)
 
+    public const float SentryTurretSize = .9f;
+
+    void DestroyTurrets()
+    {
+        if (sentries == null) return;
+        for (int i = 0; i < sentries.Length; i++)
+            if (sentries[i].turret != null) sentries[i].turret.Destroy();
+    }
+
+    // The mark: the nearest real body in reach of the sentry (never backdrop rocks); the head turns toward it.
+    void AimSentry(Sentry s, float dt)
+    {
+        s.aim = ShipTargets.NearestHoming(s.to + Vector3.up * .35f, s.reach, null, true);
+        s.turret.Aim(s.aim != null ? s.aim.transform.position : (Vector3?)null, dt);
+    }
+
+    // Where sentry i's muzzle is and which way its head points (tests). NaN / 0 when it is not deployed.
+    public Vector3 SentryMuzzle(int i) { return sentries != null && sentries[i].on && sentries[i].turret != null ? sentries[i].turret.Muzzle : new Vector3(float.NaN, float.NaN, 0f); }
+    public float SentryHeadAngle(int i) { return sentries != null && sentries[i].turret != null ? sentries[i].turret.Angle : 0f; }
+    public SentryTurret SentryTurretOf(int i) { return sentries != null ? sentries[i].turret : null; }
+    public Vector3 LastBoltFrom { get; private set; }
+
     void FireBolt(Sentry s)
     {
-        Vector3 muzzle = s.to + Vector3.up * .35f;
-        var t = ShipTargets.NearestHoming(muzzle, s.reach, null, true);   // real bodies only, never backdrop rocks
-        if (t == null) return;
+        Vector3 muzzle = s.turret.Muzzle;   // the tip of the head as it points now
+        var t = s.aim;
+        if (t == null || !t.isActiveAndEnabled || t.IsScenery) return;
         Bolt b = null;
         for (int i = 0; i < bolts.Length; i++) if (!bolts[i].on) { b = bolts[i]; break; }
         if (b == null) return;
@@ -594,6 +622,7 @@ public partial class ShipAttackRunner
         b.target = t.gameObject;
         b.clear = t;
         b.from = muzzle;
+        LastBoltFrom = muzzle;
         b.t = 0f;
         b.dur = Mathf.Max(.05f, Vector2.Distance(muzzle, to) / SentryBoltSpeed);
         b.weight = s.weight;
