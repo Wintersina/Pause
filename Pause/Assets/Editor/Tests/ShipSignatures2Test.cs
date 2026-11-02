@@ -176,19 +176,19 @@ public static class ShipSignatures2Test
     // the shatter's chill can touch it.
     static void JadeChillsOutsideTheSplash()
     {
-        foreach (var row in new[] { new { level = 1, dx = 1.5f }, new { level = 2, dx = 1.5f }, new { level = 4, dx = 2.5f } })
+        foreach (var row in new[] { new { level = 1, dx = 3.0f }, new { level = 2, dx = 3.0f }, new { level = 4, dx = 3.5f } })
         {
             FreshScene();
             var jade = Ship(6, row.level);
             var a = Hazard(0f, -1f);
             jade.Runner.Fire();
             Steps(jade.Runner, 1.04f);   // the ring has covered the screen, a is frozen
-            var b = Hazard(row.dx, -1f);
+            var b = Hazard(0f, -1f + row.dx);   // straight up: past the chain's reach, inside the chill's halo (dx is the distance)
             int guard = 0;
             while (jade.Runner.ShatterCount < 1 && guard++ < 40) jade.Runner.Step(.02f);
             bool chills = ShipSignatures2.ChillsAt(row.level);
             var fs = b.GetComponent<FrozenState>();
-            Check("level " + row.level + ": a shatters (" + jade.Runner.ShatterCount + ") and b outside the splash lives", !Alive(a) && Alive(b));
+            Check("level " + row.level + ": a shatters (" + jade.Runner.ShatterCount + ") and b outside the chain's reach lives", !Alive(a) && Alive(b));
             Check("level " + row.level + ": the chill is " + (chills ? "ON: b stops under an overlay" : "OFF: b is untouched"),
                   chills ? fs != null && fs.IsFrozen && jade.Runner.ChilledNow == 1 && jade.Runner.ChillCount == 1
                          : (fs == null || !fs.IsFrozen) && jade.Runner.ChillCount == 0);

@@ -165,7 +165,7 @@ public static class ShipLoadoutTable
             PowerTrigger.LowPauses, 2, 0f,
             shots: 1, duration: 1.2f, range: 16f, width: 70f),
         // 6 Jade Phantom (9100, top tier)
-        Row(6, ShipAttack.FrostNova, "FROST NOVA", "A frost ring sweeps the screen. Everything it reaches freezes solid, then shatters.",
+        Row(6, ShipAttack.FrostNova, "FROST NOVA", "A frost ring sweeps the screen. What it freezes shatters, and the ice jumps to nearby foes.",
             SecretPower.PhaseCloak, "PHASE CLOAK", "Ghosts the ship for 4 s: untouchable, passes through hazards.",
             PowerTrigger.ImminentHit, 1, 0f,
             duration: 1.0f, width: 0f),

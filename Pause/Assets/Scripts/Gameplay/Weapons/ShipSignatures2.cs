@@ -79,7 +79,7 @@ public partial class ShipAttackRunner
 {
     // ============================================ FROST NOVA: CHILL (Jade Phantom)
     //
-    // A shatter (Shatter) chills the ordinary enemies just outside its splash: they stop (FrozenState, with a
+    // A shatter (Shatter) chills the ordinary enemies just outside the chain reaction's reach (ChainFrom): they stop (FrozenState, with a
     // failsafe as long as the chill) under a pale ice overlay and thaw by themselves. No damage, so a boss or
     // an elite (never freezable) and the nova's own frozen enemies are left alone.
 
@@ -118,7 +118,7 @@ public partial class ShipAttackRunner
             for (int i = 0; i < chilled.Length; i++) chilled[i] = new ChillEntry();
         }
         float seconds = ShipSignatures2.ChillSecondsAt(lo.weaponLevel);
-        float outer = splash + reach;
+        float outer = ShipAttackRunner.ChainRadius + splash + reach;   // the halo just past the chain's own reach
         // a pale puff the size of the chill, so its reach reads
         AttackPool.Sprite().Play(AttackSprite.Source.AttackBurst, ship, at, Vector3.one * outer * 2f, 0f,
             ShipFxArt.BurstTicks, false, 0f, null, Vector3.zero, 66).Strip("attack_ice", 8, false)

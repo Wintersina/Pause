@@ -235,7 +235,15 @@ public partial class ShipAttackRunner
     public const float NovaQuickShare = .7f;
     public const float CrackSeconds = .33f;     // the crust cracks over the last of the freeze
     public const float ShatterSplashWeight = .5f;
-    public const int MaxFrozen = 32;
+    public const int MaxFrozen = 48;
+    // CHAIN REACTION: a shatter freezes every ordinary enemy within ChainRadius (+ the splash upgrades' width) that
+    // the run has not caught yet; those shatter ChainLinkSeconds later and pass the ice on in turn. No link limit:
+    // the chain ends when a shatter has nobody new in range, or ChainWindowSeconds after the ring finished
+    // (a hard stop while enemies keep arriving). Each enemy is caught once per firing (run.hit).
+    public const float ChainRadius = 1.5f;          // world units, at level 0
+    public const float ChainLinkSeconds = .12f;   // freeze-to-shatter of a chained enemy: the delay between links
+    public const float ChainWindowSeconds = 6f;   // new links stop this long after the ring has covered the screen
+    public int ChainLinks { get; private set; }   // enemies frozen by a shatter so far (tests)
     const float NovaRingArtRadius = .35f;       // the ring drawing's radius in world units at scale 1
 
     class FrozenEntry
@@ -317,7 +325,7 @@ public partial class ShipAttackRunner
         return false;
     }
 
-    bool Freeze(AttackRun run, ClearTarget t)
+    bool Freeze(AttackRun run, ClearTarget t, float shatterIn = -1f)
     {
         FrozenEntry e = null;
         for (int i = 0; i < frozen.Length; i++) if (!frozen[i].on) { e = frozen[i]; break; }
@@ -332,7 +340,8 @@ public partial class ShipAttackRunner
         e.run = run;
         e.t = 0f;
         e.radius = t.Radius;
-        e.shatterAt = Mathf.Max(.3f, run.loadout.duration * (run.quick ? NovaQuickShare : 1f));
+        e.shatterAt = shatterIn >= 0f ? shatterIn : Mathf.Max(.3f, run.loadout.duration * (run.quick ? NovaQuickShare : 1f));
+        e.cracking = shatterIn >= 0f;   // a chained link is too short to crack: it just shatters
         frozenCount++;
         e.overlay = AttackPool.Sprite().Play(AttackSprite.Source.AttackLoop, ship, t.transform.position,
             Vector3.one * Mathf.Max(.7f, e.radius * 2.6f), 0f, ShipFxArt.LoopTicks, true, 0f, t.transform, Vector3.zero, 67)
@@ -362,7 +371,8 @@ public partial class ShipAttackRunner
             // destroyed (shot down by something else) or despawned: nothing left to shatter
             if (e.go == null || e.target == null || !e.target.isActiveAndEnabled || !e.go.activeInHierarchy)
             {
-                ReleaseFrozen(e, false);
+                // a pooled enemy returned to its pool (inactive, still alive) must not keep its stale frozen state
+                ReleaseFrozen(e, e.go != null);
                 continue;
             }
             e.t += dt;
@@ -390,6 +400,7 @@ public partial class ShipAttackRunner
         AttackPool.Sprite().Play(AttackSprite.Source.AttackBurst, ship, at, Vector3.one * Mathf.Max(.8f, radius * 2.6f), 0f,
             ShipFxArt.BurstTicks, false, 0f, null, Vector3.zero, 71);
         ShipAttackHits.Hit(go, ship);
+        if (run != null && run.active) ChainFrom(at, splash, run);
         if (splash > 0f)
         {
             ShipTargets.Collect(targets);
@@ -405,6 +416,27 @@ public partial class ShipAttackRunner
             }
             // Jade Phantom's chill (level 2+): what stands just outside the splash stops for a moment
             ChillAround(at, splash, run != null ? run.loadout : loadout);
+        }
+    }
+
+    // The chain reaction: freezes what the run has not caught within reach of a shatter at `at`. A boss or an elite
+    // takes the splash's half hit once (run.hit) and does not pass the chain on. Cost: one pass over the screen's
+    // targets per shatter, and shatters are ChainLinkSeconds apart.
+    void ChainFrom(Vector3 at, float splash, AttackRun run)
+    {
+        if (run.t > NovaSeconds * (run.quick ? NovaQuickShare : 1f) + ChainWindowSeconds) return;
+        float range = ChainRadius + splash;
+        ShipTargets.Collect(targets);
+        for (int i = 0; i < targets.Count; i++)
+        {
+            var t = targets[i];
+            if (t == null || !t.isActiveAndEnabled || ShipAttackHits.AlreadyHit(t.gameObject)) continue;
+            Vector2 dv = t.transform.position - at;
+            float reach = range + t.Radius * .5f;
+            if (dv.sqrMagnitude > reach * reach) continue;
+            if (run.hit.Contains(t.gameObject) || FrozenByNova(t.gameObject)) continue;
+            if (IsSpecial(t.gameObject)) { HitOnce(run.hit, t.gameObject, ShatterSplashWeight); continue; }
+            if (Freeze(run, t, ChainLinkSeconds)) { run.hit.Add(t.gameObject); ChainLinks++; }
         }
     }
 
