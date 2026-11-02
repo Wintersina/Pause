@@ -88,6 +88,9 @@ public class ProgressSnapshot
     // The Remove Ads entitlement (AdFree). Additive, no schema bump: an older blob lacks it (false = "not known to be
     // owned", never "revoked"). Merged by OR and never cleared by Apply, so ownership can't be lost.
     public bool adFree;
+    // Written by a build that has the existing-buyer rule (ExistingBuyer). An older blob lacks it (false): such a save
+    // with progress can only come from the paid era. Merged by OR.
+    public bool adsEra;
 
     // Hard cap per list: the Codex has ~95 entries (+ achievement acks), so this
     // only guards the cloud blob against a corrupt pref.
@@ -182,6 +185,7 @@ public class ProgressSnapshot
         s.codexHurt = DamageLog.MergeMax(PlayerPrefs.GetString(DamageLog.HurtKey, ""), "");
         s.fusionLog = FusionDiscoveryStore.Normalize(PlayerPrefs.GetString(FusionDiscoveryStore.PrefsKey, ""));
         s.adFree = AdFree.IsActive;
+        s.adsEra = true;
 
         var counters = new List<Counter>();
         foreach (string key in CounterKeys())
