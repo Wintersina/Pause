@@ -25,6 +25,7 @@ public class PlayBilling : MonoBehaviour
     const int Ok = 0;
     AndroidJavaObject client;
     AndroidJavaObject paragonDetails;
+    AndroidJavaObject removeAdsDetails;
     readonly Dictionary<string, AndroidJavaObject> supportDetails = new Dictionary<string, AndroidJavaObject>();
     bool connecting, connected;
     float connectStartedAt;
@@ -107,6 +108,7 @@ public class PlayBilling : MonoBehaviour
             connecting = true;
             connectStartedAt = Time.realtimeSinceStartup;
             ParagonPurchase.LaunchFlow = LaunchParagon;
+            RemoveAdsPurchase.LaunchFlow = LaunchRemoveAds;
             foreach (var pack in SupportPurchase.Packs)
             {
                 var p = pack;
@@ -137,6 +139,8 @@ public class PlayBilling : MonoBehaviour
         connected = false;
         DisposeQuiet(paragonDetails);
         paragonDetails = null;
+        DisposeQuiet(removeAdsDetails);
+        removeAdsDetails = null;
         foreach (var kv in supportDetails) DisposeQuiet(kv.Value);
         supportDetails.Clear();
     }
@@ -205,10 +209,62 @@ public class PlayBilling : MonoBehaviour
         }
     }
 
-    // Every product the game sells: Paragon plus each support pack.
+    // Opens Play's purchase sheet for Remove Ads (no UI calls it yet; the Shop screen will).
+    void LaunchRemoveAds()
+    {
+        try
+        {
+            if (!connected || client == null || removeAdsDetails == null) { FailRemoveAds(); return; }
+            LaunchFlowFor(removeAdsDetails, OnRemoveAdsFlowResult);
+        }
+        catch (Exception e)
+        {
+            Debug.Log("[RemoveAds] launch failed: " + e.Message);
+            FailRemoveAds();
+        }
+    }
+
+    void OnRemoveAdsFlowResult(int code)
+    {
+        switch (ParagonPurchase.Classify(code))
+        {
+            case ParagonPurchase.Outcome.Ok: return;
+            case ParagonPurchase.Outcome.Cancelled: RemoveAdsPurchase.EndBuy(); return;
+            case ParagonPurchase.Outcome.AlreadyOwned: RemoveAdsPurchase.EndBuy(); QueryOwned(); return;   // restore
+            default: FailRemoveAds(); return;
+        }
+    }
+
+    void FailRemoveAds()
+    {
+        RemoveAdsPurchase.EndBuy();
+        AccountHintToast.Show(RemoveAdsPurchase.ErrorMessage);
+        if (!connected) Connect();
+    }
+
+    void AcknowledgeRemoveAds(string token)
+    {
+        try
+        {
+            using (var cls = new AndroidJavaClass("com.android.billingclient.api.AcknowledgePurchaseParams"))
+            using (var builder = cls.CallStatic<AndroidJavaObject>("newBuilder"))
+            {
+                builder.Call<AndroidJavaObject>("setPurchaseToken", token);
+                using (var p = builder.Call<AndroidJavaObject>("build"))
+                    client.Call("acknowledgePurchase", p, new AcknowledgeListener(this, token, RemoveAdsPurchase.OnAcknowledged));
+            }
+        }
+        catch (Exception e)
+        {
+            Debug.Log("[RemoveAds] acknowledge call failed: " + e.Message);
+            RemoveAdsPurchase.OnAcknowledged(token, false);
+        }
+    }
+
+    // Every product the game sells: Paragon, Remove Ads and each star dust pack.
     static List<string> ProductIds()
     {
-        var ids = new List<string> { PremiumShips.ParagonProductId };
+        var ids = new List<string> { PremiumShips.ParagonProductId, RemoveAdsPurchase.ProductId };
         foreach (var p in SupportPurchase.Packs) ids.Add(p.productId);
         return ids;
     }
@@ -361,7 +417,7 @@ public class PlayBilling : MonoBehaviour
     {
         mainThread.Enqueue(() =>
         {
-            bool buying = ParagonPurchase.Buying, supporting = SupportPurchase.Buying != null;
+            bool buying = ParagonPurchase.Buying, supporting = SupportPurchase.Buying != null, removing = RemoveAdsPurchase.Buying;
             foreach (var p in purchases)
             {
                 PreRegistrationReward.Handle(p, Consume);
@@ -374,6 +430,10 @@ public class PlayBilling : MonoBehaviour
                 if (r == ParagonPurchase.Result.Granted) AccountHintToast.Show(ParagonPurchase.GrantedMessage);
                 else if (r == ParagonPurchase.Result.Pending && buying) AccountHintToast.Show(ParagonPurchase.PendingMessage);
                 if (r != ParagonPurchase.Result.Ignored) ParagonPurchase.EndBuy();
+                var ar = RemoveAdsPurchase.Handle(p, AcknowledgeRemoveAds);
+                if (ar == RemoveAdsPurchase.Result.Granted) AccountHintToast.Show(RemoveAdsPurchase.GrantedMessage);
+                else if (ar == RemoveAdsPurchase.Result.Pending && removing) AccountHintToast.Show(RemoveAdsPurchase.PendingMessage);
+                if (ar != RemoveAdsPurchase.Result.Ignored) RemoveAdsPurchase.EndBuy();
             }
             // The live purchases-updated callback came back OK with nothing for
             // the open sheet (empty list, other products): release the buy button.
@@ -392,6 +452,12 @@ public class PlayBilling : MonoBehaviour
                     bool matched = false;
                     foreach (var p in purchases) if (p.productId == PremiumShips.ParagonProductId) matched = true;
                     if (!matched) ParagonPurchase.EndBuy();
+                }
+                if (RemoveAdsPurchase.Buying)
+                {
+                    bool matched = false;
+                    foreach (var p in purchases) if (p.productId == RemoveAdsPurchase.ProductId) matched = true;
+                    if (!matched) RemoveAdsPurchase.EndBuy();
                 }
             }
         });
@@ -421,6 +487,7 @@ public class PlayBilling : MonoBehaviour
             {
                 owner.connecting = false;
                 owner.connected = false;
+                RemoveAdsPurchase.SetPrice(null);
                 ParagonPurchase.SetPrice(null);   // no store: the dock reads COMING SOON again
                 foreach (var pack in SupportPurchase.Packs) pack.SetPrice(null);
             });
@@ -445,6 +512,7 @@ public class PlayBilling : MonoBehaviour
                     {
                         if (ParagonPurchase.Buying) owner.OnFlowResult(code);
                         if (SupportPurchase.Buying != null) owner.OnSupportFlowResult(code);
+                        if (RemoveAdsPurchase.Buying) owner.OnRemoveAdsFlowResult(code);
                     });
                     return;
                 }
@@ -480,6 +548,8 @@ public class PlayBilling : MonoBehaviour
         {
             AndroidJavaObject paragon = null;
             string paragonPrice = null;
+            AndroidJavaObject removeAds = null;
+            string removeAdsPrice = null;
             var support = new Dictionary<string, AndroidJavaObject>();
             var supportPrice = new Dictionary<string, string>();
             try
@@ -494,7 +564,8 @@ public class PlayBilling : MonoBehaviour
                             var d = list.Call<AndroidJavaObject>("get", i);
                             string id = d.Call<string>("getProductId");
                             bool isParagon = id == PremiumShips.ParagonProductId, isSupport = SupportPurchase.ForProduct(id) != null;
-                            if (!isParagon && !isSupport) { d.Dispose(); continue; }
+                            bool isRemoveAds = id == RemoveAdsPurchase.ProductId;
+                            if (!isParagon && !isSupport && !isRemoveAds) { d.Dispose(); continue; }
                             string price;
                             using (var offer = d.Call<AndroidJavaObject>("getOneTimePurchaseOfferDetails"))
                             {
@@ -502,6 +573,7 @@ public class PlayBilling : MonoBehaviour
                                 price = offer.Call<string>("getFormattedPrice");
                             }
                             if (isParagon) { paragon = d; paragonPrice = price; }
+                            else if (isRemoveAds) { removeAds = d; removeAdsPrice = price; }
                             else { support[id] = d; supportPrice[id] = price; }
                         }
                     }
@@ -511,8 +583,9 @@ public class PlayBilling : MonoBehaviour
             {
                 Debug.Log("[Paragon] details read failed: " + e.Message);
                 DisposeQuiet(paragon);
+                DisposeQuiet(removeAds);
                 foreach (var kv in support) DisposeQuiet(kv.Value);
-                paragon = null; paragonPrice = null; support.Clear(); supportPrice.Clear();
+                paragon = null; paragonPrice = null; removeAds = null; removeAdsPrice = null; support.Clear(); supportPrice.Clear();
             }
             owner.mainThread.Enqueue(() =>
             {
@@ -521,6 +594,9 @@ public class PlayBilling : MonoBehaviour
                 // in-flight launchBillingFlow can still be holding the old ones.
                 DisposeQuiet(owner.paragonDetails);
                 owner.paragonDetails = paragon;
+                DisposeQuiet(owner.removeAdsDetails);
+                owner.removeAdsDetails = removeAds;
+                RemoveAdsPurchase.SetPrice(removeAds != null ? removeAdsPrice : null);
                 foreach (var kv in owner.supportDetails) DisposeQuiet(kv.Value);
                 owner.supportDetails.Clear();
                 foreach (var kv in support) owner.supportDetails[kv.Key] = kv.Value;
@@ -538,10 +614,12 @@ public class PlayBilling : MonoBehaviour
     {
         readonly PlayBilling owner;
         readonly string token;
-        public AcknowledgeListener(PlayBilling owner, string token) : base("com.android.billingclient.api.AcknowledgePurchaseResponseListener")
+        readonly Action<string, bool> onDone;
+        public AcknowledgeListener(PlayBilling owner, string token, Action<string, bool> onDone = null) : base("com.android.billingclient.api.AcknowledgePurchaseResponseListener")
         {
             this.owner = owner;
             this.token = token;
+            this.onDone = onDone ?? ParagonPurchase.OnAcknowledged;
         }
 
         void onAcknowledgePurchaseResponse(AndroidJavaObject result)
@@ -549,7 +627,7 @@ public class PlayBilling : MonoBehaviour
             bool ok;
             try { ok = result.Call<int>("getResponseCode") == Ok; }
             catch (Exception e) { Debug.Log("[Paragon] acknowledge result read failed: " + e.Message); ok = false; }
-            owner.mainThread.Enqueue(() => ParagonPurchase.OnAcknowledged(token, ok));
+            owner.mainThread.Enqueue(() => onDone(token, ok));
         }
     }
 

@@ -2,9 +2,11 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
-// "Support the Developer": repeatable real-money one-time Google Play products
-// (the Packs table below: $4 pays 850 star dust, $10 pays 2,500) that each pay
-// their dust every time they are bought. Adding a pack is one row in Packs.
+// Star dust packs: repeatable real-money one-time Google Play products (the
+// Packs table below: $4 pays 850 star dust, $10 pays 2,500, $20 pays 6,000)
+// that each pay their dust every time they are bought. (The class and the
+// support_developer_* product ids keep their old names; the player-visible
+// text no longer says "support the developer".) Adding a pack is one row in Packs.
 //
 // It is a consumable: PlayBilling queries its details (Play's own localized
 // price), launches the billing flow from the dock's button, and feeds every
@@ -30,6 +32,8 @@ public static class SupportPurchase
         public readonly int dust;
         public readonly string label;       // "+850 STAR DUST"
         public readonly string grantedMessage;
+        // Whether the space dock draws a tile for it (the 6,000 pack waits for the Shop screen).
+        public readonly bool inDock;
 
         // The store's formatted price ("$3.99"), null while unknown or unavailable.
         public string Price { get; private set; }
@@ -38,13 +42,14 @@ public static class SupportPurchase
         // Set by PlayBilling while connected: opens Play's purchase sheet.
         public Action LaunchFlow;
 
-        public Pack(string id, string productId, int dust)
+        public Pack(string id, string productId, int dust, bool inDock = true)
         {
+            this.inDock = inDock;
             this.id = id;
             this.productId = productId;
             this.dust = dust;
             label = "+" + dust.ToString("N0") + " STAR DUST";
-            grantedMessage = "Thank you for supporting the developer! +" + dust.ToString("N0") + " star dust";
+            grantedMessage = "+" + dust.ToString("N0") + " star dust";
         }
 
         public bool Available { get { return !string.IsNullOrEmpty(Price) && LaunchFlow != null; } }
@@ -76,7 +81,9 @@ public static class SupportPurchase
     // product id in the Play Console).
     public static readonly Pack Small = new Pack("support850", "support_developer_850", 850);
     public static readonly Pack Large = new Pack("support2500", "support_developer_2500", 2500);
-    public static readonly Pack[] Packs = { Small, Large };
+    // $20: no dock berth is free, so no tile until the Shop screen. Purchase and restore already work.
+    public static readonly Pack Huge = new Pack("stardust6000", "stardust_6000", 6000, false);
+    public static readonly Pack[] Packs = { Small, Large, Huge };
 
     // Purchase tokens already paid whose consume has not been confirmed yet,
     // newline separated. Empty in the normal case.

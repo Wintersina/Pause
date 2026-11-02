@@ -1,7 +1,7 @@
 using System;
 using UnityEngine;
 
-// "Support the Developer" (repeatable, 2,500 star dust): granted once per
+// Star dust packs (repeatable: 850, 2,500, 6,000): granted once per
 // purchase token, only when Purchased, only for its product, never twice after
 // a failed consume, and a new purchase (new token) pays again.
 //
@@ -52,8 +52,8 @@ public static class SupportPurchaseTest
             Check("product ids", SupportPurchase.Large.productId == "support_developer_2500" && SupportPurchase.Small.productId == "support_developer_850");
             Check("pays 2500 and 850", SupportPurchase.Large.dust == 2500 && SupportPurchase.Small.dust == 850);
             Check("thank-you toast shows each pack's amount",
-                  SupportPurchase.Large.grantedMessage == "Thank you for supporting the developer! +2,500 star dust" &&
-                  SupportPurchase.Small.grantedMessage == "Thank you for supporting the developer! +850 star dust");
+                  SupportPurchase.Large.grantedMessage == "+2,500 star dust" &&
+                  SupportPurchase.Small.grantedMessage == "+850 star dust");
             Check("routing finds the right pack", SupportPurchase.ForProduct("support_developer_850") == SupportPurchase.Small &&
                   SupportPurchase.ForProduct("support_developer_2500") == SupportPurchase.Large && SupportPurchase.ForProduct("x") == null);
 
@@ -131,6 +131,30 @@ public static class SupportPurchaseTest
             Check("850 retry does not pay twice", r == SupportPurchase.Result.AlreadyGranted && Mathf.Approximately(Dust, before + 2550f) && SupportPurchase.GrantedTokens().Count == 0);
             r = SupportPurchase.Handle(Buy("small-p", PlayPurchaseState.Pending, "support_developer_850"), autoOk);
             Check("850 pending waits", r == SupportPurchase.Result.Pending && Mathf.Approximately(Dust, before + 2550f));
+
+            // The 6,000 pack ($20): same rules, no dock tile, never pays twice after a failed consume.
+            var huge = SupportPurchase.Huge;
+            Check("6000 pack: id, amount, message, no dock tile",
+                  huge.productId == "stardust_6000" && huge.dust == 6000 && huge.grantedMessage == "+6,000 star dust" &&
+                  !huge.inDock && SupportPurchase.Small.inDock && SupportPurchase.Large.inDock &&
+                  SupportPurchase.ForProduct("stardust_6000") == huge);
+            Check("no player text says support the developer",
+                  !huge.grantedMessage.ToLower().Contains("support") && !SupportPurchase.PendingMessage.ToLower().Contains("support") &&
+                  !SupportPurchase.ErrorMessage.ToLower().Contains("support") && !SupportPurchase.Small.grantedMessage.ToLower().Contains("support"));
+            consumes = 0; rewarded = 0;
+            before = Dust;
+            r = SupportPurchase.Handle(Buy("huge-1", PlayPurchaseState.Purchased, "stardust_6000"), failing);
+            Check("6000 pays once even when the consume fails", r == SupportPurchase.Result.Granted && Mathf.Approximately(Dust, before + 6000f) && rewarded == 6000);
+            Check("6000 token kept until the consume is confirmed", SupportPurchase.GrantedTokens().Contains("huge-1"));
+            r = SupportPurchase.Handle(Buy("huge-1", PlayPurchaseState.Purchased, "stardust_6000"), failing);
+            Check("6000 failed consume retried same session pays nothing", r == SupportPurchase.Result.AlreadyGranted && Mathf.Approximately(Dust, before + 6000f));
+            SupportPurchase.ResetSession();   // next launch
+            r = SupportPurchase.Handle(Buy("huge-1", PlayPurchaseState.Purchased, "stardust_6000"), autoOk);
+            Check("6000 retry after relaunch consumes without paying again", r == SupportPurchase.Result.AlreadyGranted && Mathf.Approximately(Dust, before + 6000f) && SupportPurchase.GrantedTokens().Count == 0);
+            r = SupportPurchase.Handle(Buy("huge-2", PlayPurchaseState.Purchased, "stardust_6000"), autoOk);
+            Check("6000 repeats with a new token", r == SupportPurchase.Result.Granted && Mathf.Approximately(Dust, before + 12000f));
+            r = SupportPurchase.Handle(Buy("huge-p", PlayPurchaseState.Pending, "stardust_6000"), autoOk);
+            Check("6000 pending pays nothing", r == SupportPurchase.Result.Pending && Mathf.Approximately(Dust, before + 12000f));
 
             // A pack needs a price and a launcher; buying is one at a time, per pack.
             var big = SupportPurchase.Large; var small = SupportPurchase.Small;

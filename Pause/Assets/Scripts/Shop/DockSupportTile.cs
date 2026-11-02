@@ -1,6 +1,6 @@
 using UnityEngine;
 
-// A support-pack berth in the space dock's rack: one per support pack
+// A star dust pack berth in the space dock's rack: one per support pack
 // (SupportPurchase.Packs), parked in the slots after the ships. It shows the
 // pack's icon, what it pays and Play's localized price, and
 // a tap starts that pack's purchase. SpaceDock shows a tile only while Play has

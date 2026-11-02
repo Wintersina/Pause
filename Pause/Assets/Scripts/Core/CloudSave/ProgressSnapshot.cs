@@ -85,6 +85,9 @@ public class ProgressSnapshot
     // schema bump: an older blob lacks it (= none) and an older build ignores it. Merged per key (larger count and
     // chain, earlier first day) by FusionDiscoveryStore.Merge.
     public string fusionLog = "";
+    // The Remove Ads entitlement (AdFree). Additive, no schema bump: an older blob lacks it (false = "not known to be
+    // owned", never "revoked"). Merged by OR and never cleared by Apply, so ownership can't be lost.
+    public bool adFree;
 
     // Hard cap per list: the Codex has ~95 entries (+ achievement acks), so this
     // only guards the cloud blob against a corrupt pref.
@@ -115,6 +118,7 @@ public class ProgressSnapshot
     // within seconds (and merge by union / max anyway).
     public bool HasProgress()
     {
+        if (adFree) return true;
         if (currency > 0f || highestWorld > 0 || currentWorld > 0 || bestScore > 0 || highestSpeed > 0f) return true;
         if (ownedSkins != null && ownedSkins.Length > 0) return true;
         foreach (int id in boughtShips ?? new int[0])
@@ -177,6 +181,7 @@ public class ProgressSnapshot
         s.codexKilled = DamageLog.MergeMax(PlayerPrefs.GetString(DamageLog.KilledKey, ""), "");
         s.codexHurt = DamageLog.MergeMax(PlayerPrefs.GetString(DamageLog.HurtKey, ""), "");
         s.fusionLog = FusionDiscoveryStore.Normalize(PlayerPrefs.GetString(FusionDiscoveryStore.PrefsKey, ""));
+        s.adFree = AdFree.IsActive;
 
         var counters = new List<Counter>();
         foreach (string key in CounterKeys())
@@ -238,6 +243,7 @@ public class ProgressSnapshot
         WriteTally(DamageLog.HurtKey, DamageLog.MergeMax(PlayerPrefs.GetString(DamageLog.HurtKey, ""), codexHurt));
         WriteTally(FusionDiscoveryStore.PrefsKey, FusionDiscoveryStore.Normalize(fusionLog));
         FusionDiscoveryStore.Reload();
+        if (adFree) PlayerPrefs.SetInt(AdFree.Key, 1);   // never cleared: a snapshot without it (older save, other account) can't take the purchase away
         Codex.OnExternalChange();   // drop the cached sets so the next write can't undo this
     }
 
