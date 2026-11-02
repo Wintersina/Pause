@@ -118,6 +118,7 @@ public static class AllTests
         ("BossAttackTest", BossAttackTest.Execute),
         ("BossDamageTest", BossDamageTest.Execute),
         ("BossImpactTest", BossImpactTest.Execute),
+        ("NukeBossDamageTest", NukeBossDamageTest.Execute),
         ("BossEncounterTest", BossEncounterTest.Execute),
         ("BossEntranceTest", BossEntranceTest.Execute),
         ("BossHeartsTest", BossHeartsTest.Execute),

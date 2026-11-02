@@ -16,7 +16,9 @@ using UnityEngine;
 // split one full hit between their shots, so a firing is worth about one
 // hit on a boss at any level (held weapons -- flame, beam, disc -- add a
 // tick's worth for every extra tick, and the boss's own hit window,
-// BossConfig.HitInvulnerableSeconds, paces the rest). Shot counts stay well
+// BossConfig.HitInvulnerableSeconds, paces the rest). THE ONE EXCEPTION is Paragon's nuke (the paid ship): one
+// nuke takes ShipSignaturesG3.NukeBossDamage (3) boss health, as a single weight-3 hit so the hit window cannot
+// swallow part of it; its mini-warheads and every other ship keep the one-hit rule. Shot counts stay well
 // under AttackPool.MaxProjectiles.
 //
 // Some ships also unlock a signature effect with a level (ShipSignatures2.cs: Jade Phantom, Gold Warden,

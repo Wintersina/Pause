@@ -11,7 +11,10 @@ using UnityEngine;
 //
 // Fairness: every hit still goes through ShipAttackHits and bosses / elites never take an extra hit from a
 // signature (UFO's blast skips them; the Dove's returns and the Turtle's bounces stay inside the boss's own
-// hit window; Paragon's two warheads split one boss hit between them).
+// hit window; Paragon's two warheads split the nuke's boss damage between them).
+//
+// THE ONE DELIBERATE EXCEPTION to "a firing is worth about one hit on a boss": Paragon's NUKE (the paid ship's
+// main attack) takes NukeBossDamage (3) boss health, delivered as ONE hit (see NukeBossDamage).
 public static class ShipSignaturesG3
 {
     public const int MildLevel = 2, FullLevel = 4;
@@ -53,11 +56,20 @@ public static class ShipSignaturesG3
 
     // ---- Paragon (Nuke): the shockwave already covers the screen, so the signature is the blast itself: a
     // bigger core flash and mushroom from level 2, and a second warhead on another spot at level 4. The
-    // warheads share one hit on a boss (weight each), so the total stays as it was.
+    // warheads split the nuke's boss damage (NukeBossWeight each), so a whole nuke is still NukeBossDamage.
     static readonly float[] nukeBlastScale = { 1f, 1f, 1.5f, 1.5f, 1.5f };
     static readonly int[] nukeWarheads = { 1, 1, 1, 1, 2 };
     public const float NukeSecondDelay = .5f, NukeSecondOffset = 2.4f;
     public static float NukeBlastScale(int level) { return nukeBlastScale[At(level)]; }
     public static int NukeWarheads(int level) { return nukeWarheads[At(level)]; }
     public static float NukeWarheadWeight(int level) { return 1f / NukeWarheads(level); }
+
+    // BOSS HEALTH one nuke takes (user, 2026-11-02: "nuke should do 3 boss health dmg for the paid ship"). The
+    // exception to the one-hit-per-firing rule in ShipWeaponUpgrades; bosses only (ordinary enemies die, elites
+    // lose one heart, field rocks keep NukeWarheadWeight) and the mini-warheads are not the nuke (1 / count).
+    // It is a single weight-3 hit, never three hits in a row: the boss's 0.25 s hit window would swallow two of
+    // them. BossEncounter.TakePlayerHit pays all three health in one go and opens the window once. At the top
+    // level the two warheads split it (1.5 each), so the whole nuke is still exactly 3.
+    public const float NukeBossDamage = 3f;
+    public static float NukeBossWeight(int level) { return NukeBossDamage / NukeWarheads(level); }
 }

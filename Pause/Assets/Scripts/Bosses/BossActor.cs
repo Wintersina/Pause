@@ -1160,7 +1160,7 @@ public class BossActor : MonoBehaviour, IMusicPatternHost
 // proportionally less of the fight than big ones. Nothing caps a firing, a
 // barrage or a ram (IShipAttackTargetUncapped): the only limit is the boss's
 // short hit window (BossEncounter.TakePlayerHit), and a hit it blocks still sparks.
-public class BossTarget : MonoBehaviour, IShipAttackTargetUncapped
+public class BossTarget : MonoBehaviour, IBossAttackTarget
 {
     // A blocked hit shows a light spark, at most this often (a ram would spark every frame).
     const float SparkGap = .05f;
@@ -1180,6 +1180,15 @@ public class BossTarget : MonoBehaviour, IShipAttackTargetUncapped
     }
 
     public void TakeShipAttack(int ship, float weight, Vector3 at) => Strike(ship, weight, at);
+
+    // A heavy single hit that must not be lost (the nuke): false only while the hit window blocks it. Outside a
+    // fight (intro, outro, already dead) there is nothing to wait for, so it reports done without a spark.
+    public bool TryStrike(int ship, float weight, Vector3 at)
+    {
+        var encounter = BossEncounter.Instance;
+        if (encounter == null || encounter.State != BossEncounter.Phase.Fight) return true;
+        return Strike(ship, weight, at);
+    }
 
     // True when the hit effects may play (and then starts the gap). Heavy hits (weight >= .5) always do.
     bool FxDue(float weight = 0f)
