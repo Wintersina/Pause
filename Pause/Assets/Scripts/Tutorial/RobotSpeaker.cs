@@ -33,18 +33,18 @@ public class RobotSpeaker : MonoBehaviour, IPointerDownHandler
     public const float MatchWidthOrHeight = .5f;
 
     public const float RobotArt = 128f;        // tut_robot.png's canvas, in its own units
-    public const float RobotSize = 150f;       // what it occupies on screen
+    public const float RobotSize = 72f;        // what it occupies on screen (small: it sits in the top-left corner)
     const float ArtScale = RobotSize / RobotArt;
-    public const float BubbleHeight = 116f;
-    public const float MaxBubbleWidth = 480f;
-    public const float MinBubbleWidth = 300f;
-    public const float RobotBubbleGap = 14f;   // the tail spans it
+    public const float BubbleHeight = 124f;
+    public const float MaxBubbleWidth = 205f;   // a narrow corner card, not a banner across the play field
+    public const float MinBubbleWidth = 190f;
+    public const float RobotBubbleGap = 12f;   // the tail spans it
     public const float TailReach = 19f;        // tail tip, left of the bubble body
-    public const float Margin = 22f;           // from the safe area, > hover + pop travel
+    public const float Margin = 20f;           // from the safe area, > hover + pop travel
     public const float BubbleMargin = 4f;      // tut_bubble's transparent rim (8 px at 200 ppu) outside the panel's dark outline
     public const float TopGap = 10f;           // below whatever is blocking the top
-    public const float TextPadX = 26f, TextPadY = 12f;
-    public const int FontMax = 28, FontMin = 18;
+    public const float TextPadX = 16f, TextPadY = 8f;
+    public const int FontMax = 20, FontMin = 14;
     // How far the hover, jolt and pop overshoot can push art past its
     // laid-out rect. Margin must exceed it so nothing leaves the safe area.
     public const float MaxAnimatedOverhang = 12f;

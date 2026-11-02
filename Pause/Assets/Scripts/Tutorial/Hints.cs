@@ -553,13 +553,29 @@ public class Hints : MonoBehaviour {
 
     // The strike step's alien: slides in from the top and hangs in the ship's
     // reach. Returns null with no enemy art (the step is then not left waiting).
+    // World y of the lowest edge of the robot and its text card (it sits in the
+    // top-left corner); +infinity while it is not laid out (or off the view).
+    // Things the player has to touch hold below it, so the card never covers
+    // the thing it is asking for.
+    float CardBottomY(float bottom, float top)
+    {
+        var cam = Camera.main;
+        if (speaker == null || speaker.Bubble == null || speaker.Robot == null || cam == null) return float.PositiveInfinity;
+        speaker.Bubble.GetWorldCorners(corners);
+        float low = corners[0].y;
+        speaker.Robot.GetWorldCorners(corners);
+        low = Mathf.Min(low, corners[0].y);
+        float y = cam.ScreenToWorldPoint(new Vector3(0f, low, Mathf.Abs(cam.transform.position.z))).y;
+        return y > bottom + .5f * (top - bottom) && y < top ? y : float.PositiveInfinity;
+    }
+
     TutorialEnemy SpawnAlien()
     {
         var alien = TutorialEnemy.Spawn(ship != null ? ship.transform.position.x : 0f);
         if (alien == null) return null;
         float bottom, top;
         TutorialAtomDrift.View(out bottom, out top);
-        alien.ArriveAt(Mathf.Min(top - 1.3f, ShipReach.ClampY(1000f) - .3f));
+        alien.ArriveAt(Mathf.Min(Mathf.Min(top - 1.3f, ShipReach.ClampY(1000f) - .3f), CardBottomY(bottom, top) - .6f));
         if (score.pauseCounter < PausesPerStep) score.pauseCounter = PausesPerStep;
         return alien;
     }

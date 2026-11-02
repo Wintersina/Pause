@@ -64,6 +64,7 @@ public static class TutorialRebuildTest
             HeartsAndHeal();
             Popups();
             Wall();
+            TapThenPunch();
             PauseMenuAndReplay();
             Completion();
             Parity();
@@ -195,6 +196,13 @@ public static class TutorialRebuildTest
         screenPos = new Vector2(sp.x, sp.y);
     }
 
+    // The finger ON a world point (a jump lands on the finger, then slides to the perch).
+    static void FingerOn(Vector3 world)
+    {
+        var sp = Camera.main.WorldToScreenPoint(world);
+        screenPos = new Vector2(sp.x, sp.y);
+    }
+
     static Transform Nearest<T>(float x) where T : Component
     {
         Transform best = null;
@@ -249,7 +257,7 @@ public static class TutorialRebuildTest
                 else if (frozenFor > 20)
                 {
                     pressed = true;
-                    FingerAt(new Vector3(alien.position.x, alien.position.y, 0f));
+                    FingerOn(new Vector3(alien.position.x, alien.position.y, 0f));
                 }
                 break;
             case TutorialAdvance.CrossWall:
@@ -258,7 +266,7 @@ public static class TutorialRebuildTest
                 if (w != null && frozenFor > 20)
                 {
                     pressed = true;
-                    FingerAt(new Vector3(0f, Mathf.Min(w.Y + TutorialWall.CrossMargin(w.PieceHalfHeight, .4f) + .6f, ShipReach.ClampY(1000f)), 0f));
+                    FingerOn(new Vector3(0f, Mathf.Min(w.Y + TutorialWall.CrossMargin(w.PieceHalfHeight, .4f) + .6f, ShipReach.ClampY(1000f)), 0f));
                 }
                 break;
         }
@@ -654,6 +662,63 @@ public static class TutorialRebuildTest
 
     // ---- WALL -----------------------------------------------------------------------
 
+    // The pause-jump is a tap-then-punch, as in a run (movePlayer): the ship
+    // lands ON the finger (so the blast hits what the finger is on) and then
+    // visibly slides up to its perch over movePlayer.ReturnSeconds, instead of
+    // blinking straight to a point a finger-offset above the touch.
+    static void TapThenPunch()
+    {
+        Open(false);
+        Frames(3);
+        // the lesson's first press glides (launch); let go, then tap: that one is a jump
+        pressed = true; FingerAt(new Vector3(0f, -2.6f, 0f)); Frames(60);
+        pressed = false; Frames(10);
+        var target = new Vector3(-1.1f, .8f, 0f);
+        Vector3 rest = movePlayer.FollowTarget(target);
+        Check("the perch is above the touch (rest y " + rest.y.ToString("0.00") + " vs touch y " + target.y.ToString("0.00") + ")", rest.y > target.y + 1f);
+        int jumps = movePlayerInTut.Jumps;
+        pressed = true;
+        FingerOn(target);
+        var wp = Camera.main.ScreenToWorldPoint(new Vector3(screenPos.x, screenPos.y, 0f));
+        Frame();
+        Check("the tap is a jump", movePlayerInTut.Jumps == jumps + 1);
+        Check("the ship lands ON the touch, not above it (" + ship.transform.position.ToString("0.00") + " vs " + wp.ToString("0.00") + ")",
+              Vector2.Distance(ship.transform.position, wp) < .05f);
+        Check("the jump's landing point is the touch (LastJumpTo " + movePlayerInTut.LastJumpTo.ToString("0.00") + ")",
+              Vector2.Distance(movePlayerInTut.LastJumpTo, wp) < .05f);
+        float prevY = ship.transform.position.y;
+        bool rising = true;
+        int frames = Mathf.CeilToInt(movePlayer.ReturnSeconds / Dt);
+        for (int i = 0; i < frames / 2; i++)
+        {
+            Frame();
+            if (ship.transform.position.y < prevY - 1e-4f) rising = false;
+            prevY = ship.transform.position.y;
+        }
+        Check("then it visibly slides up toward the perch (halfway: y " + prevY.ToString("0.00") + ")",
+              rising && prevY > wp.y + .1f && prevY < rest.y - .1f);
+        Frames(frames);
+        Check("and settles on the perch above the finger (" + ship.transform.position.ToString("0.00") + " vs " + rest.ToString("0.00") + ")",
+              Vector2.Distance(ship.transform.position, rest) < .05f);
+        // letting go mid-slide cancels it; the next tap is a fresh jump from there
+        pressed = false; Frames(3);
+        FingerOn(new Vector3(1.2f, -1.5f, 0f));
+        pressed = true; Frame();
+        Check("a second tap jumps again", movePlayerInTut.Jumps == jumps + 2);
+
+        // a tap on the alien erases it: the blast is where the finger is
+        Cleanup();
+        pressed = false; Frames(5);
+        var alien = TutorialEnemy.Spawn(0f);
+        alien.transform.position = new Vector3(.4f, 1.2f, 0f);
+        int kills = TeleportFx.Kills;
+        FingerOn(alien.transform.position);
+        pressed = true; Frame();
+        Check("touching ON the alien erases it (kills " + (TeleportFx.Kills - kills) + ")", TeleportFx.Kills == kills + 1 && TutorialEnemy.Live == null);
+        pressed = false;
+        Cleanup();
+    }
+
     static void Wall()
     {
         Open(false);
@@ -741,7 +806,7 @@ public static class TutorialRebuildTest
         int life0 = collisionDetection.lifeCounter;
         int pauses0 = score.pauseCounter;
         pressed = true;
-        FingerAt(new Vector3(.3f, wy + TutorialWall.CrossMargin(w.PieceHalfHeight, .4f) + .6f, 0f));
+        FingerOn(new Vector3(.3f, wy + TutorialWall.CrossMargin(w.PieceHalfHeight, .4f) + .6f, 0f));
         Frames(3);
         Check("the jump landed above the wall (ship y " + ship.transform.position.y.ToString("0.0") + " > wall " + wy.ToString("0.0") + ")", ship.transform.position.y > wy + 1f);
         Check("it spent a pause (" + pauses0 + " -> " + score.pauseCounter + ")", score.pauseCounter == pauses0 - 1);

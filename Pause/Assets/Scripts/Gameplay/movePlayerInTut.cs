@@ -32,6 +32,14 @@ public class movePlayerInTut : MonoBehaviour
     bool glided;
     bool gliding;
     float glideElapsed;
+    // The pause-jump, as in a run (movePlayer): the ship lands ON the finger
+    // (so the landing blast hits what the finger is on), then slides up to its
+    // perch above the finger over movePlayer.ReturnSeconds. It used to land
+    // straight on the perch, a finger-offset above the touch, so a tap beside
+    // or on a target blinked the ship past it and nothing was ever hit.
+    bool returning;
+    float returnElapsed;
+    Vector3 returnOffset;
 
     // Total distance the ship has been steered (world units) since the
     // scene started; the "hold anywhere to fly" step watches it. Pause-jumps
@@ -73,6 +81,7 @@ public class movePlayerInTut : MonoBehaviour
         {
             held = false;
             gliding = false;
+            returning = false;
             return;
         }
 
@@ -105,11 +114,30 @@ public class movePlayerInTut : MonoBehaviour
                 if (done) gliding = false;
                 FollowTexts();
             }
+            else if (!held)
+            {
+                // an arrival: land on the finger, then slide up to the perch
+                Vector3 land = movePlayer.LandingPoint(fingerPos);
+                Vector3 rest = movePlayer.FollowTarget(fingerPos);
+                transform.position = land;
+                FollowTexts();
+                returnOffset = land - rest;
+                returnElapsed = 0f;
+                Arrive(before, land);
+                returning = true;
+            }
+            else if (returning)
+            {
+                returnElapsed += Mathf.Min(Dt(), .05f);
+                transform.position = movePlayer.ReturnPosition(movePlayer.FollowTarget(fingerPos), returnOffset, returnElapsed);
+                FollowTexts();
+                if (returnElapsed >= movePlayer.ReturnSeconds) returning = false;
+                FlownUnits += Vector3.Distance(before, transform.position);
+            }
             else
             {
                 moveLeft_Right(fingerPos);
-                if (!held) Arrive(before, transform.position);
-                else FlownUnits += Vector3.Distance(before, transform.position);
+                FlownUnits += Vector3.Distance(before, transform.position);
             }
             if (gliding) FlownUnits += Vector3.Distance(before, transform.position);
             held = true;
@@ -118,6 +146,7 @@ public class movePlayerInTut : MonoBehaviour
         {
             held = false;
             gliding = false;
+            returning = false;
         }
     }
 
@@ -156,32 +185,12 @@ public class movePlayerInTut : MonoBehaviour
         return true;
     }
 
-    // will move the player left and right baised on touch positions.
+    // Steering while the finger is held: the hull sits at the same perch above
+    // (and beside, by the perch setting) the finger as in a run.
     void moveLeft_Right(Vector3 fingerPos)
     {
-        //gets a position of the finger on the screen
-        //checks position of finger is in bound box
-        // (vertically: the same reach as the run, ShipReach, in the view this
-        // device shows; it was the constant -4.15 .. 4.5)
-        // (sideways: ShipReach's reach too, which follows the rails)
-        float reach = ShipReach.HalfWidth;
-        if (fingerPos.x <= reach && fingerPos.x > -reach)
-        {
-            this.transform.position = new Vector3(fingerPos.x,
-                ShipReach.ClampY(fingerPos.y + ShipReach.FingerOffset));
-
-            // Allow text to follow player----------------------------
-
-            FollowTexts();
-
-            //--------------------------------------------------------
-        }
-        else
-        {
-            this.transform.position = new Vector3(ShipReach.ClampX(fingerPos.x),
-                ShipReach.ClampY(fingerPos.y + ShipReach.FingerOffset));
-        }
-
+        this.transform.position = movePlayer.FollowTarget(fingerPos);
+        FollowTexts();
     }
 
 }

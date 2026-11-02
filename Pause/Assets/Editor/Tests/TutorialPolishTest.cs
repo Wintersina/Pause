@@ -916,7 +916,7 @@ public static class TutorialPolishTest
         {
             string src = File.ReadAllText(f);
             Check(Path.GetFileName(f) + " places the ship with ShipReach.FingerOffset (no private number)",
-                  src.Contains("ShipReach.FingerOffset") && !src.Contains("fingerPos.y + 1.5f") && !src.Contains("fingerPos.y + 1f"));
+                  (src.Contains("ShipReach.FingerOffset") || src.Contains("movePlayer.FollowTarget")) && !src.Contains("fingerPos.y + 1.5f") && !src.Contains("fingerPos.y + 1f"));
         }
         // every touch controller in the project reads it: no other script maps a finger to the ship
         var users = new List<string>();
@@ -926,7 +926,8 @@ public static class TutorialPolishTest
         foreach (var u in users)
         {
             var path = Directory.GetFiles("Assets/Scripts", u, SearchOption.AllDirectories)[0];
-            allUse &= File.ReadAllText(path).Contains("ShipReach.FingerOffset");
+            string body = File.ReadAllText(path);
+            allUse &= body.Contains("ShipReach.FingerOffset") || body.Contains("movePlayer.FollowTarget");
         }
         Check("every touch controller (" + string.Join(", ", users) + ") uses it", allUse);
 

@@ -16,7 +16,7 @@ public static class TutorialPreview
 {
     const int Width = 1080, Height = 2340;
     const float Sf = 1.777f;   // canvas scale a 1080x2340 phone gets from the 800x1000 / 0.5 scaler
-    static readonly string[] Shots = { "hold", "freeze", "dust", "heal", "refill", "enemies" };
+    static readonly string[] Shots = { "hold", "freeze", "dust", "heal", "refill", "strike" };
 
     public static void Run()
     {
