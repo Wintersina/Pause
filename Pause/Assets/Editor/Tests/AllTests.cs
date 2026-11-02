@@ -296,6 +296,7 @@ public static class AllTests
         ("ShipWeaponUpgradesTest", ShipWeaponUpgradesTest.Execute),
         ("SignatureUpgradesG1Test", SignatureUpgradesG1Test.Execute),
         ("ShipSignatures2Test", ShipSignatures2Test.Execute),
+        ("JadeChainReactionTest", JadeChainReactionTest.Execute),
         ("SkinHeartsTest", SkinHeartsTest.Execute),
         ("UpgradeHeartsSizeTest", UpgradeHeartsSizeTest.Execute),
         ("ShopHealthCarryoverTest", ShopHealthCarryoverTest.Execute),
