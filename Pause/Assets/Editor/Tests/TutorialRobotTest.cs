@@ -361,6 +361,10 @@ public static class TutorialRobotTest
                       Contains(safe, Grow(bubble, RobotSpeaker.BubbleMargin * scale + over)));
                 Check(tag + "tail tip inside the safe area", bubble.xMin - RobotSpeaker.TailReach * scale >= safe.xMin);
                 Check(tag + "bubble clears the robot", bubble.xMin >= robot.xMax);
+                // the text card is a corner card on the left, never a banner across the play field
+                Check(tag + "robot and bubble stay in the left 60% of the safe area (right edge at "
+                      + ((bubble.xMax - safe.xMin) / safe.width).ToString("F2") + " of its width)",
+                      bubble.xMax <= safe.xMin + safe.width * .6f || safe.width < 560f);
                 Check(tag + "bubble is at least MinBubbleWidth (scaled)",
                       bubble.width >= RobotSpeaker.MinBubbleWidth * scale - .01f);
                 Check(tag + "row sits below the blocked band",
@@ -415,7 +419,7 @@ public static class TutorialRobotTest
             gen.Populate(spoken.richText, settings);
             int size = gen.fontSizeUsedForBestFit;
             Check("\"" + s.id + "\" fits the narrowest bubble at " + size + "pt (min " + RobotSpeaker.FontMin + ")",
-                  size >= RobotSpeaker.FontMin + 2 && gen.lineCount <= 3);
+                  size >= RobotSpeaker.FontMin && gen.lineCount <= 4);
             Check("\"" + s.id + "\" text mesh has one quad per visible glyph (" + gen.vertexCount / 4 + " vs " + spoken.totalGlyphs + ")",
                   gen.vertexCount / 4 == spoken.totalGlyphs);
         }

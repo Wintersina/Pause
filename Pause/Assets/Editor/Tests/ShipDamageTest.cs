@@ -54,6 +54,7 @@ public static class ShipDamageTest
         Posing(ShipId.Starter);
         Spinning(11);
         Frozen(ShipId.Starter);
+        FrozenWhileTheHullGrows(ShipId.Starter);
         Pool(13);
         Ducking(ShipId.Starter);
         Smoke(3);
@@ -412,6 +413,43 @@ public static class ShipDamageTest
         for (int i = 0; i < fx.EmitterCount; i++) still &= spr[fx.PoolSize + i] == fx.EmitterRenderer(i).sprite;
         Check("at timeScale 0 (dt 0) no FX frame, motion or emission advances (" + active + " particles)",
               still && active > 0);
+        collisionDetection.lifeCounter = 0;
+        Object.DestroyImmediate(go);
+    }
+
+    // The tutorial's fly-in grows the hull from 6% on unscaled time while the
+    // world (and so the FX) is frozen. Pieces are drawn as children of the
+    // hull, so a frozen piece used to grow with it: huge blurry chunks and
+    // sparks hanging over the ship. Their WORLD size must hold still.
+    static void FrozenWhileTheHullGrows(int id)
+    {
+        ShipDamageFx fx; lifeControler life;
+        var go = Fly(id, out fx, out life);
+        go.transform.localScale *= .06f;
+        SetState(Critical);
+        Run(fx, life, .4f);
+        var before = new List<float>();
+        for (int i = 0; i < fx.PoolSize; i++) before.Add(fx.ParticleRenderer(i).transform.lossyScale.x);
+        for (int i = 0; i < fx.EmitterCount; i++) before.Add(fx.EmitterRenderer(i).transform.lossyScale.x);
+        int active = fx.ActiveParticles;
+        go.transform.localScale /= .06f;
+        for (int k = 0; k < 10; k++) fx.Tick(0f);
+        bool same = true;
+        float worst = 1f;
+        int n = 0;
+        for (int i = 0; i < fx.PoolSize; i++, n++)
+        {
+            float was = before[n], now = fx.ParticleRenderer(i).transform.lossyScale.x;
+            if (was > 1e-6f) worst = Mathf.Max(worst, now / was);
+            if (was > 1e-6f && Mathf.Abs(now / was - 1f) > .02f) same = false;
+        }
+        for (int i = 0; i < fx.EmitterCount; i++, n++)
+        {
+            float was = before[n], now = fx.EmitterRenderer(i).transform.lossyScale.x;
+            if (was > 1e-6f && Mathf.Abs(now / was - 1f) > .02f) same = false;
+        }
+        Check("a hull growing 16x while the world is frozen does not blow the frozen FX up (" + active + " particles, worst x" + worst.ToString("0.00") + ")",
+              same && active > 0);
         collisionDetection.lifeCounter = 0;
         Object.DestroyImmediate(go);
     }

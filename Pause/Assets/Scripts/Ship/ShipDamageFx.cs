@@ -210,7 +210,10 @@ public class ShipDamageFx : MonoBehaviour
         if (hull != null && hull.sprite != null)
         {
             var size = hull.sprite.bounds.size;
-            float scale = Mathf.Abs(transform.lossyScale.x);
+            // The hull's FULL size: built while the portal arrival is still
+            // growing the ship out of the vortex (6% of its size), the fx
+            // used to bake that moment in and come out ~16x too small.
+            float scale = Mathf.Abs(transform.lossyScale.x) / Mathf.Max(PortalArrival.ShipFactor(transform), .01f);
             hullSize = Mathf.Max(size.x, size.y) * (scale > 0f ? scale : 1f);
         }
         var c = ShipHullArt.SkinHue(id);
@@ -264,10 +267,36 @@ public class ShipDamageFx : MonoBehaviour
         Tick(Time.deltaTime);
     }
 
+    // Every piece (emitter flipbooks, flying chunks, smoke, sparks) is sized in
+    // WORLD units but drawn as a child of the hull, so its local scale carries
+    // 1 / (the hull's scale) -- re-set every RUNNING frame. While the world is
+    // frozen nothing re-sets it, and the hull's scale can still change then:
+    // the tutorial's fly-in grows it from 6% on unscaled time. Pieces born
+    // while it was tiny then drew up to ~16x too big, frozen over the hull
+    // (huge blurry chunks and sparks beside the ship at the tutorial's start).
+    // Scaling the children by the hull's scale change keeps their world size.
+    float sizedAt = -1f;
+    void KeepWorldSize()
+    {
+        if (root == null) return;
+        float now = Mathf.Max(1e-4f, Mathf.Abs(root.lossyScale.x));
+        if (sizedAt > 0f && Mathf.Abs(now - sizedAt) > sizedAt * 1e-4f)
+        {
+            float k = sizedAt / now;
+            for (int i = 0; i < root.childCount; i++)
+            {
+                var c = root.GetChild(i);
+                c.localScale = c.localScale * k;
+            }
+        }
+        sizedAt = now;
+    }
+
     // One frame of scaled time. dt <= 0 (the world frozen) changes nothing.
     public void Tick(float dt)
     {
         if (!started) Build();
+        KeepWorldSize();
         if (dt <= 0f) return;
         clock += dt;
 
