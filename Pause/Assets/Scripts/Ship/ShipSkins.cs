@@ -57,15 +57,15 @@ public static class ShipSkins
     // The one config table: a standard ship's skin prices by its dock row
     // (SpaceDock.RowOf, 1 = top = cheapest hulls): { palette, special } in
     // star dust. Later ships cost more; row 5 holds Gold Warden, the anchor
-    // (1000 per colour, 2500 for the Special). Stock is always free. Rows past
+    // (1700 per colour, 4300 for the Special). Stock is always free. Rows past
     // the table use its last entry; a premium ship has its own PremiumShips.SkinPrice.
     public static readonly float[][] RowPrices =
     {
-        new[] { 200f, 500f },     // row 1: Neon Comet, Volt Viper, Lightning
-        new[] { 400f, 1000f },    // row 2
-        new[] { 600f, 1500f },    // row 3
-        new[] { 800f, 2000f },    // row 4
-        new[] { 1000f, 2500f },   // row 5: ... Gold Warden
+        new[] { 350f, 850f },     // row 1: Neon Comet, Volt Viper, Lightning
+        new[] { 700f, 1700f },    // row 2
+        new[] { 1050f, 2550f },    // row 3
+        new[] { 1350f, 3450f },    // row 4
+        new[] { 1700f, 4300f },   // row 5: ... Gold Warden
     };
 
     // A ship's first colour is its first heart and first weapon step

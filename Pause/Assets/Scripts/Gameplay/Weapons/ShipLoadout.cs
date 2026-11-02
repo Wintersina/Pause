@@ -149,32 +149,32 @@ public static class ShipLoadoutTable
             SecretPower.EmpStun, "EMP", "Freezes every enemy and cancels their shots, arcing through each.",
             PowerTrigger.EnemiesOnScreen, 3, 0f,
             maxHits: 5, range: 4.6f, width: 2.5f),
-        // 3 Solar Fang (1700)
+        // 3 Solar Fang (2900)
         Row(3, ShipAttack.HeatWave, "HEAT WAVE", "A wall of heat rolls up the screen, burning everything it passes.",
             SecretPower.SolarNova, "SOLAR NOVA", "Burns away everything close by and leaves a burning ring for 2 s.",
             PowerTrigger.HazardsNearShip, 3, 2.3f,
             duration: .4f, width: .7f, speed: 5f),
-        // 4 Crimson Halo (2650)
+        // 4 Crimson Halo (4550)
         Row(4, ShipAttack.RailSlug, "RAIL GUN", "Pierces everything in a straight line.",
             SecretPower.CapacitorDump, "CAPACITOR DUMP", "Fires the rail gun at once.",
             PowerTrigger.TargetsOnScreen, 3, 0f,
             range: 11f, width: .42f),
-        // 5 Ion Lancer (3850, top tier)
+        // 5 Ion Lancer (6600, top tier)
         Row(5, ShipAttack.IonLaser, "ION LASER", "A thin laser leaves the nose and sweeps the whole screen, burning everything it crosses.",
             SecretPower.IonBattery, "ION BATTERY", "Adds two pauses when you run low.",
             PowerTrigger.LowPauses, 2, 0f,
             shots: 1, duration: 1.2f, range: 16f, width: 70f),
-        // 6 Jade Phantom (5300, top tier)
+        // 6 Jade Phantom (9100, top tier)
         Row(6, ShipAttack.FrostNova, "FROST NOVA", "A frost ring sweeps the screen. Everything it reaches freezes solid, then shatters.",
             SecretPower.PhaseCloak, "PHASE CLOAK", "Ghosts the ship for 4 s: untouchable, passes through hazards.",
             PowerTrigger.ImminentHit, 1, 0f,
             duration: 1.0f, width: 0f),
-        // 7 Gold Warden (7000, top tier)
+        // 7 Gold Warden (12000, top tier)
         Row(7, ShipAttack.WardenSentries, "WARDEN SENTRIES", "Three sentry pods deploy across the screen and shoot the nearest targets for 6 s.",
             SecretPower.GoldMagnet, "GOLD MAGNET", "Pulls in star dust for 5 s, worth double meanwhile.",
             PowerTrigger.PickupsOnScreen, 4, 0f,
             shots: 3, duration: 6f, range: 6f, speed: 1.5f),   // speed = shots a second per pod (was 3; halved)
-        // 8 Lightning (950)
+        // 8 Lightning (1650)
         Row(8, ShipAttack.SkyJavelins, "SKY JAVELINS", "Rockets climb, then javelins strike down three lanes; colours add lanes up to five.",
             SecretPower.Thunderclap, "THUNDERCLAP", "Lightning strikes everything within 2.6 dead, bosses take half a hit.",
             PowerTrigger.HazardsNearShip, 2, 2.0f,
@@ -204,12 +204,12 @@ public static class ShipLoadoutTable
             SecretPower.TractorPull, "TRACTOR PULL", "Pulls nearby enemies and debris in for 1.8 s, and kills drop star dust.",
             PowerTrigger.HazardsNearShip, 2, 3.5f,
             maxHits: 1, range: 9f, speed: 15f),
-        // 14 Dove (2900)
+        // 14 Dove (4950)
         Row(14, ShipAttack.GaleWings, "GALE WINGS", "A gust shoves enemies and turns shots back at them, harder and in pairs with colours.",
             SecretPower.Mending, "MENDING", "Repairs one heart in a burst of feathers as soon as the hull is damaged.",
             PowerTrigger.HullDamaged, 1, 0f,
             width: 60f, range: 6f),
-        // 15 Turtle (3600)
+        // 15 Turtle (6150)
         Row(15, ShipAttack.ThrownDisc, "SHELL DISC", "A shell ricochets off enemies and walls; colours add bounces and a spark trail.",
             SecretPower.HardShell, "HARD SHELL", "A shell shows on the hull for up to 8 s and shatters on the next hit.",
             PowerTrigger.HazardInLane, 1, 3.4f,

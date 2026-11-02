@@ -1,9 +1,9 @@
 using UnityEngine;
 
-// The ship price table (shopingShips.Prices): Gold Warden is 7,000, every
-// other paid ship is scaled by 7000/5800 and rounded to the nearest 50, the
-// old price order is kept with no ties, free ships stay free, Paragon (IAP)
-// has no dust price, and skin prices are untouched.
+// The ship price table (shopingShips.Prices): Gold Warden is 12,000, every
+// other paid ship is the previous (7,000-era) price scaled by 12/7 and rounded to
+// the nearest 50, the old price order is kept with no ties, free ships stay
+// free, and Paragon (IAP) has no dust price.
 public static class ShipPriceTest
 {
     static int fails;
@@ -14,8 +14,8 @@ public static class ShipPriceTest
     }
 
     // Old prices by roster id (0..15), written out on purpose.
-    static readonly float[] Old = { 0, 0, 600, 1400, 2200, 3200, 4400, 5800, 800, 1000, 1200, 1600, 1800, 2000, 2400, 3000 };
-    static readonly float[] Expected = { 0, 0, 700, 1700, 2650, 3850, 5300, 7000, 950, 1200, 1450, 1950, 2150, 2400, 2900, 3600 };
+    static readonly float[] Old = { 0, 0, 700, 1700, 2650, 3850, 5300, 7000, 950, 1200, 1450, 1950, 2150, 2400, 2900, 3600 };
+    static readonly float[] Expected = { 0, 0, 1200, 2900, 4550, 6600, 9100, 12000, 1650, 2050, 2500, 3350, 3700, 4100, 4950, 6150 };
 
     public static void Run() { TestHarness.Exit(Execute()); }
 
@@ -24,7 +24,7 @@ public static class ShipPriceTest
         fails = 0;
         var p = shopingShips.Prices;
         Check("table covers the roster", p.Length == shopingShips.Roster.Length && p.Length == shopingShips.RosterTotal);
-        Check("Gold Warden is exactly 7000", p[7] == 7000f);
+        Check("Gold Warden is exactly 12000", p[7] == 12000f);
         bool exact = true, mult = true, order = true;
         for (int i = 0; i < Old.Length; i++)
         {
@@ -41,7 +41,7 @@ public static class ShipPriceTest
         float min = float.MaxValue;
         for (int i = 2; i < Old.Length; i++) min = Mathf.Min(min, p[i]);
         Check("Volt Viper is the cheapest paid ship", min == p[2]);
-        Check("each is the old price x 7000/5800 within 25", AllScaled(p));
+        Check("each is the old price x 12/7 within 25", AllScaled(p));
         Check("Paragon has no dust price", PremiumShips.IsPremium(16) && p[16] == 0f && shopingShips.CostFor(16) == float.MaxValue);
                 Debug.Log("[SHIPPRICE] failures: " + fails);
         return fails;
@@ -50,7 +50,7 @@ public static class ShipPriceTest
     static bool AllScaled(float[] p)
     {
         for (int i = 2; i < Old.Length; i++)
-            if (Mathf.Abs(p[i] - Old[i] * 7000f / 5800f) > 25.001f) return false;
+            if (Mathf.Abs(p[i] - Old[i] * 12f / 7f) > 25.001f) return false;
         return true;
     }
 }
