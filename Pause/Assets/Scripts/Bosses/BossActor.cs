@@ -1182,11 +1182,11 @@ public class BossTarget : MonoBehaviour, IBossAttackTarget
     public void TakeShipAttack(int ship, float weight, Vector3 at) => Strike(ship, weight, at);
 
     // A heavy single hit that must not be lost (the nuke): false only while the hit window blocks it. Outside a
-    // fight (intro, outro, already dead) there is nothing to wait for, so it reports done without a spark.
+    // fight (intro, outro, no health left) there is nothing to wait for, so it reports done without a spark.
     public bool TryStrike(int ship, float weight, Vector3 at)
     {
         var encounter = BossEncounter.Instance;
-        if (encounter == null || encounter.State != BossEncounter.Phase.Fight) return true;
+        if (encounter == null || encounter.State != BossEncounter.Phase.Fight || encounter.Destroyed) return true;
         return Strike(ship, weight, at);
     }
 
