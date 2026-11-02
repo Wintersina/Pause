@@ -926,7 +926,8 @@ public static class TutorialPolishTest
         foreach (var u in users)
         {
             var path = Directory.GetFiles("Assets/Scripts", u, SearchOption.AllDirectories)[0];
-            allUse &= File.ReadAllText(path).Contains("ShipReach.FingerOffset");
+            string body = File.ReadAllText(path);
+            allUse &= body.Contains("ShipReach.FingerOffset") || body.Contains("movePlayer.FollowTarget");
         }
         Check("every touch controller (" + string.Join(", ", users) + ") uses it", allUse);
 

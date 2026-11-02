@@ -563,7 +563,7 @@ public static class TutorialRobotTest
 
         string src = File.ReadAllText("Assets/Scripts/Gameplay/movePlayerInTut.cs");
         Check("the tutorial ship's first frame of a press is the arrival (Arrive)",
-              src.Contains("if (!held) Arrive(before, transform.position)"));
+              src.Contains("else if (!held)") && src.Contains("Arrive(before, land)"));
         foreach (var t in Object.FindObjectsByType<Transform>(FindObjectsSortMode.None))
             if (t != null && t.parent == null && (t.name == "~TeleportVortex" || t.name == "~TeleportFx")) Object.DestroyImmediate(t.gameObject);
     }
