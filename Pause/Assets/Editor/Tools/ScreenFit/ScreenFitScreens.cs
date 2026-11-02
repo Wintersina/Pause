@@ -1113,6 +1113,12 @@ public static class ScreenFitScreens
                         hud.ShowPopup(99999, new Vector3(view.xMin, view.yMin, 0f), RunScore.Source.Boss);
                         hud.ShowPopup(5, new Vector3(view.xMax, view.yMin, 0f), RunScore.Source.Dust);
                         hud.ShowPopup(250, new Vector3(0f, 0f, 0f), RunScore.Source.Teleport);
+                        // the fusion callout (one slot, the sizes AtomFusions uses): the longest discovery line over the ship
+                        FusionId longest = AtomFusionTable.All[0].id;
+                        foreach (var f in AtomFusionTable.All)
+                            if (AtomFusions.DiscoveryWord(f.id).Length > AtomFusions.DiscoveryWord(longest).Length) longest = f.id;
+                        hud.ShowCallout(AtomFusions.DiscoveryWord(longest), new Vector3(0f, view.center.y, 0f), Color.Lerp(AkiraPalette.Cyan, Color.white, .35f),
+                                        FusionTuning.DiscoverySize, FusionTuning.DiscoverySeconds, FusionTuning.DiscoveryRise, AkiraPalette.WithAlpha(AkiraPalette.Cyan, FusionTuning.CalloutGlowAlpha));
                         hud.ShowBanner(ScoreHud.DeathComboLabel(9999999), AkiraPalette.Magenta, 54, 1.4f, .05f);
                         hud.ShowBanner(ScoreHud.MegaDominoLabel, AkiraPalette.Amber, 54, 1.4f, .16f);
                         for (int i = 0; i < 12; i++) hud.StepPopups(Dt);
