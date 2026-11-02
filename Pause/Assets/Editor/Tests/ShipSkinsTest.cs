@@ -296,9 +296,9 @@ public static class ShipSkinsTest
     static void Prices()
     {
         int gold = ShipId.FromKey("GoldWarden");
-        Check("Gold Warden: later colours 1000, the Special 2500",
-              gold > 0 && ShipSkins.PriceOf(gold, 2) == 1000f && ShipSkins.PriceOf(gold, 3) == 1000f &&
-              ShipSkins.PriceOf(gold, ShipSkins.Special) == 2500f);
+        Check("Gold Warden: later colours 1700, the Special 4300",
+              gold > 0 && ShipSkins.PriceOf(gold, 2) == 1700f && ShipSkins.PriceOf(gold, 3) == 1700f &&
+              ShipSkins.PriceOf(gold, ShipSkins.Special) == 4300f);
         Check("stock is free for every kind and row",
               ShipSkins.PriceOf(ShipSkinKind.Stock, 1) == 0f && ShipSkins.PriceOf(ShipSkinKind.Stock, 5) == 0f);
         var order = StandardInDockOrder();
