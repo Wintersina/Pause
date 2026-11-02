@@ -531,10 +531,10 @@ public class ScoreHud : MonoBehaviour
         var p = popups[index];
         if (p.glow != null && p.glow.enabled) p.glow.enabled = false;
         p.text.text = text;
-        p.text.fontSize = size;
+        p.text.fontSize = PopupSize(size);
         p.text.color = colour;
         p.seconds = seconds;
-        p.rise = 24f;
+        p.rise = Rise(24f);
         p.from = KeepInSafeArea(p.text, new Vector2(0f, canvasRect.rect.size.y * y), p.rise);
         p.age = 0f;
         p.text.gameObject.SetActive(true);
@@ -601,10 +601,10 @@ public class ScoreHud : MonoBehaviour
         var p = popups[index];
         if (p.glow != null && p.glow.enabled) p.glow.enabled = false;
         p.text.text = text;
-        p.text.fontSize = 30;
+        p.text.fontSize = PopupSize(30);
         p.text.color = colour;
         p.seconds = 1.1f;
-        p.rise = 30f;
+        p.rise = Rise(30f);
         Vector2 at = near != null ? (Vector2)canvasRect.InverseTransformPoint(near.position) : Vector2.zero;
         Vector2 size = canvasRect.rect.size;
         // Below the read-out (its bottom is ~60 units under the SPEED row),
@@ -641,10 +641,10 @@ public class ScoreHud : MonoBehaviour
         var p = popups[index];
         if (p.glow != null && p.glow.enabled) p.glow.enabled = false;
         p.text.text = text;
-        p.text.fontSize = size;
+        p.text.fontSize = PopupSize(size);
         p.text.color = colour;
         p.seconds = seconds;
-        p.rise = rise;
+        p.rise = Rise(rise);
         p.from = KeepInSafeArea(p.text, ToCanvas(world), p.rise);
         p.age = 0f;
         p.text.gameObject.SetActive(true);
@@ -677,10 +677,10 @@ public class ScoreHud : MonoBehaviour
         var p = popups[index];
         if (p.glow != null && p.glow.enabled) p.glow.enabled = false;
         p.text.text = text;
-        p.text.fontSize = size;
+        p.text.fontSize = PopupSize(size);
         p.text.color = colour;
         p.seconds = seconds;
-        p.rise = rise;
+        p.rise = Rise(rise);
         p.from = KeepInSafeArea(p.text, ToCanvas(world), p.rise);
         p.age = 0f;
         p.text.gameObject.SetActive(true);
@@ -780,10 +780,10 @@ public class ScoreHud : MonoBehaviour
         if (p.glow != null && p.glow.enabled) p.glow.enabled = false;
         var style = StyleFor(source, source == RunScore.Source.Kill && RunScore.Multiplier > 1);
         p.text.text = PopupText(points, source, style);
-        p.text.fontSize = style.size;
+        p.text.fontSize = PopupSize(style.size);
         p.text.color = style.colour;
         p.seconds = style.seconds;
-        p.rise = style.rise;
+        p.rise = Rise(style.rise);
         p.from = KeepInSafeArea(p.text, ToCanvas(at), p.rise);
         p.age = 0f;
         p.text.gameObject.SetActive(true);
@@ -843,6 +843,58 @@ public class ScoreHud : MonoBehaviour
         return local;
     }
 
+    // ---- popup size ----------------------------------------------------------
+    //
+    // The HUD canvas scales by the screen's WIDTH (800 units across), so a
+    // popup's size in units is a fixed share of the width on every device --
+    // and the canvas is only as tall as the screen's shape allows: ~1870 units
+    // on a 21:9 phone, 1422 on 9:16, but ~1070 on a 4:3 iPad. The same 40-unit
+    // fusion word that is 2% of the view's height on the Flip7 is 3.7% on an
+    // iPad, and it grows with the tablet's physical size on top. The rule:
+    // popups are authored for a 16:9-or-taller view (every phone), and on a
+    // squarer one their type, rise and motion shrink with the view's
+    // height-to-width ratio (never under PopupMinScale), so a popup keeps its
+    // share of the view's height. Phones (ratio >= 16:9) are untouched.
+    public const float PopupDesignRatio = 16f / 9f;   // view height / width the popup sizes were authored for
+    public const float PopupMinScale = .6f;
+    public const float PopOvershoot = 1.6f;           // the first drawing of a popup's pop (StepPopups)
+
+    // The factor for a view `width` x `height` (canvas units or pixels): 1 at 16:9 and taller.
+    public static float PopupScaleFor(float width, float height)
+    {
+        if (!(width > 0f) || !(height > 0f)) return 1f;
+        return Mathf.Clamp((height / width) / PopupDesignRatio, PopupMinScale, 1f);
+    }
+
+    // A popup's font size under `scale`, never over its authored size and never under `minUnits`
+    // (the legibility floor in canvas units; 0 = none).
+    public static int ScaledPopupSize(int size, float scale, float minUnits)
+    {
+        int scaled = Mathf.RoundToInt(size * scale);
+        return Mathf.Min(size, Mathf.Max(scaled, Mathf.CeilToInt(minUnits)));
+    }
+
+    // Off only for the before/after preview renders (PopupScalePreview).
+    public static bool PopupScaling = true;
+
+    float PopupScale()
+    {
+        if (canvasRect == null || !PopupScaling) return 1f;
+        Vector2 size = canvasRect.rect.size;
+        return PopupScaleFor(size.x, size.y);
+    }
+
+    int PopupSize(int size)
+    {
+        float scale = PopupScale();
+        if (scale >= 1f) return size;
+        float sf = canvas != null ? canvas.scaleFactor : 0f;
+        float minUnits = UiScale.Active && sf > 0f ? UiScale.MinTextPt * UiScale.PxPerPoint / sf : 0f;
+        return ScaledPopupSize(size, scale, minUnits);
+    }
+
+    float Rise(float rise) { return rise * PopupScale(); }
+
     // The part of the HUD canvas popups may use: the screen's safe area, in
     // canvas units (centre origin). Insets are taken as fractions of the
     // screen, so this holds whatever the canvas's scale factor is.
@@ -873,7 +925,8 @@ public class ScoreHud : MonoBehaviour
             t.fontSize = Mathf.Max(12, Mathf.FloorToInt(t.fontSize * room / width));
             width = Mathf.Min(t.preferredWidth, room);
         }
-        float halfW = width * .5f, halfH = t.fontSize * .7f;
+        // the first drawing of the pop is PopOvershoot times bigger: keep that inside too (centred when it cannot fit)
+        float halfW = width * .5f * PopOvershoot, halfH = t.fontSize * .7f * PopOvershoot;
         float xMin = safe.xMin + margin + halfW, xMax = safe.xMax - margin - halfW;
         float yMin = safe.yMin + margin + halfH, yMax = safe.yMax - margin - halfH - Mathf.Max(0f, rise);
         at.x = xMax >= xMin ? Mathf.Clamp(at.x, xMin, xMax) : safe.center.x;

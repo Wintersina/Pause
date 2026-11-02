@@ -351,6 +351,7 @@ public static class AllTests
         ("TideLoopSoakTest", TideLoopSoakTest.Execute),
         ("TransitionChargeTest", TransitionChargeTest.Execute),
         ("UiScaleTest", UiScaleTest.Execute),
+        ("PopupScaleTest", PopupScaleTest.Execute),
         ("UnusedAssetGuardTest", UnusedAssetGuardTest.Execute),
         ("WeaponChargeTest", WeaponChargeTest.Execute),
         ("ExplosionV2Test", ExplosionV2Test.Execute),
