@@ -62,11 +62,12 @@ public static class ShipSignaturesG3Test
         return go;
     }
 
-    class FakeBoss : MonoBehaviour, IShipAttackTargetUncapped
+    class FakeBoss : MonoBehaviour, IBossAttackTarget
     {
         public float weight;
         public int hits;
         public void TakeShipAttack(int ship, float w, Vector3 at) { weight += w; hits++; }
+        public bool TryStrike(int ship, float w, Vector3 at) { TakeShipAttack(ship, w, at); return true; }
     }
 
     static ShipPowerController Ship(int id)
@@ -142,8 +143,11 @@ public static class ShipSignaturesG3Test
         Check("Paragon: fireball bigger from 2, second warhead only at 4",
               ShipSignaturesG3.NukeBlastScale(1) == 1f && ShipSignaturesG3.NukeBlastScale(mild) > 1f &&
               ShipSignaturesG3.NukeWarheads(3) == 1 && ShipSignaturesG3.NukeWarheads(full) == 2);
-        Check("Paragon's warheads share one hit", Mathf.Approximately(ShipSignaturesG3.NukeWarheadWeight(full) * 2f, 1f) &&
+        Check("Paragon's warheads share one hit (rocks, elites)", Mathf.Approximately(ShipSignaturesG3.NukeWarheadWeight(full) * 2f, 1f) &&
               Mathf.Approximately(ShipSignaturesG3.NukeWarheadWeight(0), 1f));
+        Check("Paragon's warheads share the nuke's boss damage",
+              Mathf.Approximately(ShipSignaturesG3.NukeBossWeight(full) * 2f, ShipSignaturesG3.NukeBossDamage) &&
+              Mathf.Approximately(ShipSignaturesG3.NukeBossWeight(0), ShipSignaturesG3.NukeBossDamage));
         // the numeric tracks are untouched
         Check("the numeric steps are unchanged (UFO pierce/grab, Dove gust, Turtle disc, Paragon speed)",
               ShipWeaponUpgrades.LoadoutAt(13, full).maxHits == 2 && ShipWeaponUpgrades.LoadoutAt(13, full).shots == 2 &&
@@ -218,8 +222,8 @@ public static class ShipSignaturesG3Test
             int want = level >= ShipSignaturesG3.FullLevel ? 2 : 1;
             Check("Paragon level " + level + ": " + want + " warhead(s) detonate (" + p.Runner.Detonations + ") and everything ordinary dies",
                   p.Runner.Detonations == want && a == null && far == null && p.Runner.WarheadsNow == 0 && p.Runner.ActiveRuns == 0);
-            Check("Paragon level " + level + ": the boss takes about one hit in all (" + fake.weight.ToString("F2") + ")",
-                  fake.weight > .45f && fake.weight <= 1.01f);
+            Check("Paragon level " + level + ": the boss takes the nuke's " + ShipSignaturesG3.NukeBossDamage + " health in all (" + fake.weight.ToString("F2") + ")",
+                  Mathf.Abs(fake.weight - ShipSignaturesG3.NukeBossDamage) < 1e-3f && fake.hits == want);
             Check("Paragon level " + level + ": every detonation had its visible fall", p.Runner.FallsShown == p.Runner.Detonations);
             Teardown(p);
             if (boss != null) Object.DestroyImmediate(boss);

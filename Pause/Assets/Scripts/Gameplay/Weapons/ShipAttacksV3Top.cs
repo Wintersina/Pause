@@ -14,7 +14,7 @@ using UnityEngine;
 // time and the world is never slowed. A red atom's free shot plays the same verb, shortened (AttackRun.quick).
 //
 // Every hit goes through ShipAttackHits like the other attacks. A boss (or an elite) takes a whole attack as
-// roughly one hit: the laser and the nova hit it once per pass / once, the nuke once, the sentries' bolts
+// roughly one hit: the laser and the nova hit it once per pass / once, the nuke once (but worth NukeBossDamage = 3 health: the one exception), the sentries' bolts
 // weigh 1 / (shots over a sentry's life). Everything here is preallocated and pooled; nothing allocates per frame.
 public partial class ShipAttackRunner
 {
@@ -754,7 +754,7 @@ public partial class ShipAttackRunner
         public AttackSprite sprite, ring, mush;
         public Vector3 from, to, center;
         public bool fell;
-        public float t, delay, flight, fuse, maxRadius, weight;
+        public float t, delay, flight, fuse, maxRadius, weight, bossWeight;
         public readonly List<GameObject> hit = new List<GameObject>(24);
     }
 
@@ -811,12 +811,13 @@ public partial class ShipAttackRunner
         w.fell = false;
         w.fuse = l.duration * (run.quick ? .7f : 1f);
         w.weight = ShipSignaturesG3.NukeWarheadWeight(l.weaponLevel);
+        w.bossWeight = ShipSignaturesG3.NukeBossWeight(l.weaponLevel);
         w.hit.Clear();
         AttackPool.Sprite().Play(AttackSprite.Source.AttackBurst, ship, nose, Vector3.one * .4f, 0f,
             ShipFxArt.BurstTicks, false, 0f, transform, Vector3.up * noseOffset, 71);
         SpawnFalling(w, .6f);
         // Paragon signature (top level): a second full warhead drops a moment later, on the other side of the first
-        // (ShipSignaturesG3); the two share one hit on a boss.
+        // (ShipSignaturesG3); the two share the nuke's boss damage.
         if (ShipSignaturesG3.NukeWarheads(l.weaponLevel) < 2) return;
         var w2 = FreeWarhead();
         if (w2 == null) return;
@@ -835,6 +836,7 @@ public partial class ShipAttackRunner
         w2.sprite = null;
         w2.fuse = w.fuse;
         w2.weight = w.weight;
+        w2.bossWeight = w.bossWeight;
         w2.hit.Clear();
     }
 
@@ -890,6 +892,7 @@ public partial class ShipAttackRunner
             w.flight = MiniFallSeconds;
             w.fuse = 0f;
             w.weight = 1f / count;
+            w.bossWeight = w.weight;   // a mini-warhead is not the nuke: one firing is still about one boss hit
             w.maxRadius = MiniRadius;
             w.hit.Clear();
             w.sprite = null;
@@ -1000,6 +1003,13 @@ public partial class ShipAttackRunner
             Vector2 dv = t.transform.position - w.center;
             float reach = r + t.Radius * .5f;
             if (dv.sqrMagnitude > reach * reach) continue;
+            // The nuke's one heavy hit on a boss (NukeBossDamage, shared by its warheads). If the boss's hit window
+            // blocks it, it stays pending (not in w.hit) and lands as soon as the window closes, while the ring lasts.
+            if (!w.mini && t.TryGetComponent<IBossAttackTarget>(out var boss))
+            {
+                if (ShipAttackHits.HitBoss(boss, ship, w.bossWeight, t.transform.position)) w.hit.Add(t.gameObject);
+                continue;
+            }
             HitOnce(w.hit, t.gameObject, w.weight);
         }
         if (w.t < ShockSeconds) return;

@@ -28,6 +28,15 @@ public interface IShipAttackTarget
 // FieldAsteroid, and its backdrop rocks), so one volley can break several of them.
 public interface IShipAttackTargetUncapped : IShipAttackTarget { }
 
+// The end-of-level boss (BossTarget): an uncapped target that can say whether a hit counted. A heavy attack
+// (Paragon's nuke) uses it to try again until the hit window lets it through, instead of being swallowed.
+public interface IBossAttackTarget : IShipAttackTargetUncapped
+{
+    // True when the hit counted or there is nothing left to hit; false only when the boss's hit window blocked it
+    // (try again next frame).
+    bool TryStrike(int ship, float weight, Vector3 at);
+}
+
 // Marks a hit body as scenery (the drifting backdrop rocks): it takes hits from the weapons that sweep an area, but the
 // weapons that PICK a mark (the Gold Warden's sentries) never choose it. ClearTarget.IsScenery reads this as well as
 // the Scenery flag, so a pooled / reset flag can never turn a backdrop body into a target.
@@ -67,6 +76,16 @@ public static class ShipAttackHits
             return false;
         }
         Kill(target, ship);
+        return true;
+    }
+
+    // One heavy hit on a boss (the nuke). Counted like any uncapped contact once it lands. False: the boss's hit
+    // window blocked it, so the caller keeps it pending and calls again.
+    public static bool HitBoss(IBossAttackTarget boss, int ship, float weight, Vector3 at)
+    {
+        if (!boss.TryStrike(ship, weight, at)) return false;
+        AttackTargetHits++;
+        AttackTargetWeight += weight;
         return true;
     }
 
