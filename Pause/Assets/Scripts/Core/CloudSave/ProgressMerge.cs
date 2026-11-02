@@ -15,6 +15,7 @@ using System.Collections.Generic;
 //                                    the other side already cleared (known there
 //                                    and not NEW); acknowledged on either side
 //                                    stays acknowledged
+//   Remove Ads (adFree)              true if either side has it (never lost)
 //   fusion log (COMBOS)              per fusion: larger count, larger best chain,
 //                                    earlier first day (FusionDiscoveryStore.Merge)
 //   currency, spawnShip,             from whichever side has the newer
@@ -93,6 +94,7 @@ public static class ProgressMerge
             codexKilled = DamageLog.MergeMax(local.codexKilled, cloud.codexKilled),
             codexHurt = DamageLog.MergeMax(local.codexHurt, cloud.codexHurt),
             fusionLog = FusionDiscoveryStore.Merge(local.fusionLog, cloud.fusionLog),
+            adFree = local.adFree || cloud.adFree,
         };
         return result;
     }

@@ -271,7 +271,7 @@ public class SpaceDock : MonoBehaviour
         }
 
         foreach (var pack in SupportPurchase.Packs)
-            tiles.Add(DockSupportTile.Create(rack, pack, font));
+            if (pack.inDock) tiles.Add(DockSupportTile.Create(rack, pack, font));
         RefreshTiles();
 
         popup = DockPopup.Create(transform, font, cam);
@@ -287,7 +287,7 @@ public class SpaceDock : MonoBehaviour
         Relayout();
     }
 
-    // The "support the dev" berths after the ships: one per pack Play has a
+    // The star dust pack berths after the ships: one per pack Play has a
     // price for. Shown tiles take consecutive slots, so with the 16-ship roster
     // (3 columns, 6 rows) they fill the 2 spare berths of the last row.
     readonly List<DockSupportTile> tiles = new List<DockSupportTile>();

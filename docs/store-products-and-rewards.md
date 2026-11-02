@@ -7,6 +7,23 @@ on master (28ccb3775, PR #261). Related docs: `achievements-store-setup.md` (Pla
 
 Status of the Apple side: **nothing exists yet**. The game's billing is Google Play only (see section 5), so the Apple section is a plan, not a record.
 
+## 0. Free-with-ads update (2026-11-02)
+
+Pause is moving to a free game with ads (tracker: `monetization/ads-free-tracker.md`). Product changes, code in PR "feat/iap-remove-ads-and-dust-pack":
+
+| Product ID | Type | Price | Name (Play Console, set by the user) | Grant |
+|---|---|---|---|---|
+| `me.hapticgate.pause.remove_ads` (new) | one-time, permanent | target $4 (shows USD 3.99) | "Support the devs by removing the ads" | permanent ad-free entitlement (`AdFree.IsActive`) |
+| `stardust_6000` (new) | repeatable, consumed | USD 20.00 | "6,000 Star Dust" | +6,000 star dust |
+| `support_developer_2500` (id can't change) | repeatable | USD 10.00 | renamed "2,500 Star Dust" | +2,500 star dust |
+| `support_developer_850` (id can't change) | repeatable | target $4 (USD 3.99) | renamed "850 Star Dust" | +850 star dust |
+
+The phrase "support the devs" now belongs only to Remove Ads; the dust packs are plain star dust packs (in-game toasts read "+850 star dust" and so on). The Console side was done by the user and checked on the product list on 2026-11-02: both new products are Active, purchase option `buy`, 174 countries/regions, Digital app sales. Remove Ads shows USD 3.99 in the US (4 USD bulk price), description "Support the developers and remove all forced ads from Pause, permanently." `stardust_6000` shows USD 20.00 in the US (the 20 USD bulk price rounded to 19.99, so the US was set by hand; other regions keep Play's converted price), description "6,000 star dust to spend in the game. Can be bought as many times as you like." The 2,500 and 850 packs are renamed "2,500 Star Dust" and "850 Star Dust" with descriptions "<amount> star dust to spend in the game. Can be bought as many times as you like."; prices unchanged. Still open: the new products have no icon; the 850 and 2,500 icons and tile art still show a pink heart (reads as a donation); translations of the renamed packs were not checked. The section 1 table and name list below keep the original (pre-2026-11-02) names for the record.
+
+Remove Ads (`Billing/RemoveAdsPurchase.cs`, `Billing/AdFree.cs`): non-consumable, Paragon pattern. `Purchased` -> `AdFree.Grant` (PlayerPrefs key `adFreeOwned`) and acknowledge (retried on every owned-purchases query, which is also the restore); `Pending` waits; response code 7 triggers a restore query. Future ad code checks `AdFree.IsActive`. The flag is in the cloud save (`ProgressSnapshot.adFree`, additive, no schema bump): merged by OR in `ProgressMerge`, never cleared by `Apply`, counts as progress in `HasProgress`. An older save lacking the field reads as false and cannot take ownership away. Toasts: "Ads removed. Thank you for supporting the devs!", pending "Purchase pending. Ads are removed when the payment completes.". No UI yet (a Shop screen comes next).
+
+6,000 pack: one more row in `SupportPurchase.Packs` (`SupportPurchase.Huge`), same token-with-the-dust idempotence rule and consume; `inDock = false`, so the dock rack draws no tile for it until the Shop screen. Tests: `RemoveAdsPurchaseTest`, `SupportPurchaseTest`.
+
 ## 1. The four products side by side
 
 All four are Play Console "One-time products", purchase option id `buy` (Buy type, must be Activated), Active, 174 countries/regions, tax category "Digital app sales".
@@ -17,10 +34,10 @@ All four are Play Console "One-time products", purchase option id `buy` (Buy typ
 | Type | non-consumable (permanent) | repeatable (game consumes it) | repeatable (game consumes it) | one-time, consumed by the game |
 | Price | target $5, shows USD 4.99 (US) | USD 10.00 | target $4, shows USD 3.99 (US) | bulk 0.10 USD (Play rejects $0) |
 | Grant | unlocks the Paragon hull (id 16) | +2,500 star dust | +850 star dust | +100 star dust once |
-| Code on master | yes | yes | **no: in PR #262 / pending** | yes |
+| Code on master | yes | yes | yes (on master; the "pending in PR #262" wording below is out of date) | yes |
 | Art | [paragon_ship_icon_1024.png](store-products/art/paragon_ship_icon_1024.png) (1024x1024, ship on dark navy) | [support_developer_2500_icon.png](store-products/art/support_developer_2500_icon.png) (512x512, dust pile + small pink heart); in-game sprite [support_developer_2500_ui.png](store-products/art/support_developer_2500_ui.png) (256x256 transparent) | reuses/varies the support art (no separate file saved) | [prereg_stardust_100_icon.png](store-products/art/prereg_stardust_100_icon.png) (512 product icon); [prereg_stardust_100_badge.png](store-products/art/prereg_stardust_100_badge.png) (512 reward badge) |
 
-Names and descriptions as entered on Play:
+Names and descriptions as first entered on Play (items 2 and 3 were renamed on 2026-11-02, see section 0):
 
 1. Paragon Ship: "Unlock the Paragon, the premium ship with extra hearts, a fast start and its own weapons."
 2. Support the Developer: "Support the developer of Pause and receive 2,500 star dust to spend in the game. Can be bought as many times as you like. Thank you!"
@@ -52,7 +69,9 @@ Paragon is a real-money cheat ship: it is not on leaderboards and star dust neve
 |---|---|---|
 | Paragon | `PremiumShips.ParagonProductId` (`Pause/Assets/Scripts/Ship/PremiumShips.cs:38`) | `Billing/ParagonPurchase.cs` |
 | 2,500 pack | `SupportPurchase.ProductId` (`Billing/SupportPurchase.cs:25`), `DustAmount = 2500` | `Billing/SupportPurchase.cs` |
-| 850 pack | `support_developer_850`: not on master; added by PR #262 (pack table in `SupportPurchase`) | pending |
+| 850 pack | `support_developer_850` (`SupportPurchase.Small`) | `Billing/SupportPurchase.cs` |
+| 6,000 pack | `stardust_6000` (`SupportPurchase.Huge`, no dock tile) | `Billing/SupportPurchase.cs` |
+| Remove Ads | `RemoveAdsPurchase.ProductId` = `me.hapticgate.pause.remove_ads` | `Billing/RemoveAdsPurchase.cs` |
 | Pre-reg | `PreRegistrationReward.ProductId` (`Billing/PreRegistrationReward.cs:24`), `DustAmount = 100` | `Billing/PreRegistrationReward.cs` |
 
 `Billing/PlayBilling.cs` is the only store code: Google Play Billing through JNI (no Unity IAP package), `#if UNITY_ANDROID && !UNITY_EDITOR`; elsewhere a stub (`PlayBilling.cs:463`). It queries product details for Paragon and the support product (inapp type, `PlayBilling.cs:131`), queries owned purchases on launch/return, and feeds every owned or updated purchase to each handler.
@@ -62,7 +81,7 @@ Rules:
 - **Support packs (repeatable):** pay `StarDustLedger.Grant(DustAmount)`, then consume so it can be bought again. Idempotence: the purchase token is written to PlayerPrefs (`supportGrantedTokens`, newline separated) in the same save as the dust and removed only after a confirmed consume; a failed consume retries next launch without paying twice; a new purchase has a new token. `Pending` pays nothing.
 - **Pre-reg reward:** identical token scheme with key `preregGrantedTokens`; it arrives without developerPayload and maybe without orderId, so neither is read. Sets `ToastDue`; the home screen shows "Pre-registration reward: +100 star dust" (`PlayBilling.cs:50-53`).
 - **Android-only gating:** price comes from Play; `Available` is `Price != null && LaunchFlow != null`, so on iOS and in the editor no purchase UI appears (Paragon keeps its locked COMING SOON berth).
-- **Toasts:** `ParagonPurchase.GrantedMessage` "Paragon unlocked"; `SupportPurchase.GrantedMessage` "Thank you for supporting the developer! +2,500 star dust" (the 850 pack shows its own amount in PR #262); pending and error messages exist for both.
+- **Toasts:** `ParagonPurchase.GrantedMessage` "Paragon unlocked"; each `SupportPurchase.Pack.grantedMessage` is now just "+2,500 star dust" / "+850 star dust" / "+6,000 star dust" (it used to read "Thank you for supporting the developer! ..."); pending and error messages exist for both.
 - **UI on master:** a "SUPPORT THE DEVELOPER" header button (`Shop/SupportButton.cs`, sprite `Resources/Vfx/support_developer_2500_ui`) and support tiles in the dock rack (`Shop/DockSupportTile.cs`; the bottom news ticker was removed). `SpaceDock.cs` subscribes to `SupportPurchase.Changed/Rewarded`.
 - **UI after PR #262:** the header button is removed; the two support packs become dock tiles in the two spare berths (slots 17 and 18 of 18) of the 16-ship rack (`Shop/DockSupportTile.cs`), shown only when Play returns a price; one ticker line per pack.
 - **Editor/dev:** `SupportPurchase.Simulate()` and `PreRegistrationReward.Simulate()` (developer mode only) via `Editor/Tools/PreRegistrationRewardMenu.cs`.
