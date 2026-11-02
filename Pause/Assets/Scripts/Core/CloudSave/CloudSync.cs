@@ -275,6 +275,7 @@ public sealed class CloudSync
         var result = Reconcile(local, pendingCloud, id, last, backups, clock(), out switched);
         backups.Save();
 
+        ExistingBuyer.ApplyCloud(pendingCloud);   // a pre-ads-era save with progress is a paying buyer's: grants (and queues the thanks toast)
         result.Apply();
         if (switched)
         {

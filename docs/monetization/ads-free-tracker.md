@@ -31,5 +31,5 @@ Pause is moving from a paid game to a free game with ads. This page tracks the d
 - [ ] 3. Play-time tracker (for the first ad-free hour).
 - [ ] 4. Ads SDK (AdMob proposed), consent prompt, forced and rewarded ads, frequency rules.
 - [ ] 5. Boosters, after measuring typical dust income.
-- [ ] 6. Going free: Console declarations (contains ads, Data safety, advertising ID), privacy policy, `app-ads.txt` on hapticgategames.com, price change, existing-buyer handling.
+- [ ] 6. Going free (step by step: [go-free-checklist.md](go-free-checklist.md); existing-buyer code: `Billing/ExistingBuyer.cs`, PR on `feat/existing-buyer-ad-free`): Console declarations (contains ads, Data safety, advertising ID), privacy policy, `app-ads.txt` on hapticgategames.com, price change, existing-buyer handling.
 - [ ] 7. iOS, later.

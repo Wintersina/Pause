@@ -10,7 +10,8 @@ Hold to fly. Lift your finger to freeze the universe, but you only get so many p
 
 ---
 
-Pause is a Unity game for **Android and iOS** (a paid app, planned at $1.99). You
+Pause is a Unity game for **Android and iOS** (currently a paid app on Google Play at $1.99; the plan is to
+go free with ads, see [the tracker](docs/monetization/ads-free-tracker.md)). You
 survive across seven worlds: Space, Frost, Verdant, Ember, Tide, Storm and Desert.
 
 - Package / bundle id: `me.hapticgate.pause`
