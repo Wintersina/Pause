@@ -125,11 +125,12 @@ public static class NukeBossDamageTest
             Check("nuke on a boss with " + left + " health left lands", landed);
             Check("... health is 0, never negative", e.HitPointsLeft == 0 && e.Destroyed);
             Check("... hearts are 0, never negative", e.HeartsLeft == 0);
-            Settle(e);
-            Check("... the boss goes to its outro (one death)", e.State == BossEncounter.Phase.Outro || e.State == BossEncounter.Phase.Done);
+            // a second nuke on the dead boss (before its body is torn down in the outro): reports done, changes nothing
             int hits = e.Hits;
             Check("a second nuke on the dead boss reports done and changes nothing",
                   ShipAttackHits.HitBoss(t, 16, ShipSignaturesG3.NukeBossWeight(0), t.transform.position) && e.Hits == hits && e.HitPointsLeft == 0 && e.HeartsLeft == 0);
+            Settle(e);
+            Check("... the boss goes to its outro (one death)", e.State == BossEncounter.Phase.Outro || e.State == BossEncounter.Phase.Done);
         }
     }
 
