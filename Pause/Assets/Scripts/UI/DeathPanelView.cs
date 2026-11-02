@@ -302,6 +302,20 @@ public class DeathPanelView : MonoBehaviour, IPointerDownHandler
     Rect ButtonRect(int i) { return buttonRects[i]; }
     public bool IntroFinished { get { return finalApplied; } }
 
+    // For DoubleDustOffer (the rewarded ad button hangs off the panel's bottom edge).
+    public Font ViewFont { get { return font; } }
+    public bool PracticeRun { get { return results.practice; } }
+    public static Sprite ButtonArt() { return TranslucentButtonSprite(Load("dp_button")); }
+
+    // The rewarded double dust was credited: show it in the star dust card.
+    public void AddDustWon(float extra)
+    {
+        if (!(extra > 0f)) return;
+        results.dustWon += extra;
+        shownDustCents = -1;
+        if (finalApplied) AnimateIntro(IntroDuration);
+    }
+
     // ---------------------------------------------------------------------
     // Building
     // ---------------------------------------------------------------------
@@ -346,6 +360,7 @@ public class DeathPanelView : MonoBehaviour, IPointerDownHandler
         if (legacyDialog != null && legacyDialog != root.transform && legacyDialog.parent == canvasRoot)
             legacyDialog.gameObject.SetActive(false);
 
+        DoubleDustOffer.Attach(view);   // nothing while ads are off (AdsConfig.Enabled)
         view.ApplyAt(0f);
         return view;
     }

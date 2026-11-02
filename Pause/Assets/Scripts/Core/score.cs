@@ -77,6 +77,7 @@ public class score : MonoBehaviour {
 
         pauseCounterBool = false;
         hasStartedRun = false;
+        if (paysRealDust) AdManager.OnRunStart();   // ads: no load requests mid-run; run length for AdPolicy
 
 
         if (paysRealDust)

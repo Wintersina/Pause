@@ -38,6 +38,8 @@ public static class IOSCapabilitiesPostProcess
         string frameworkTarget = project.GetUnityFrameworkTargetGuid();
         // The native saved-games bridge is compiled into UnityFramework.
         project.AddFrameworkToProject(frameworkTarget, "GameKit.framework", false);
+        // The App Tracking Transparency prompt (PauseATT.mm) for the ads flow; weak, it needs iOS 14.
+        project.AddFrameworkToProject(frameworkTarget, "AppTrackingTransparency.framework", true);
 
         bool noGameCenter = System.Environment.GetEnvironmentVariable(NoGameCenterEnv) == "1";
         string teamId = System.Environment.GetEnvironmentVariable(TeamIdEnv);

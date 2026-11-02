@@ -95,6 +95,7 @@ public static class BuildScript
 
     public static void BuildAndroidDev()
     {
+        AdsManifestGuard.DevBuild = true;   // dev builds keep the ads SDK's manifest parts (ads are forced on for testing)
         ConfigureAndroidSigning();
         Run(BuildTarget.Android, Path.Combine(OutputRoot, "Android/Pause-dev.apk"), DevDefine);
     }
@@ -182,6 +183,7 @@ public static class BuildScript
 
     public static void BuildIOSDev()
     {
+        AdsManifestGuard.DevBuild = true;   // dev builds carry the test AdMob App ID
         // Keep this project separate from the release build so Xcode's derived
         // data and the two generated projects cannot be accidentally mixed.
         Run(BuildTarget.iOS, Path.Combine(OutputRoot, "iOS-dev"), DevDefine);
