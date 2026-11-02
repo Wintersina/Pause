@@ -168,8 +168,8 @@ public static class JadeChainReactionTest
         var jade = FireAt(out a);
         var boss = Hazard(0f, 0f);
         var fake = boss.AddComponent<FakeBoss>();
-        var e1 = Hazard(0.6f, .8f);
-        var e2 = Hazard(-.6f, 1.6f);
+        var e1 = Hazard(.5f, .3f);
+        var e2 = Hazard(-.6f, 1.4f);
         Steps(jade.Runner, 3f);
         Check("a boss next to several shatters takes one hit in the firing, and never freezes", fake.hits == 1 && boss.GetComponent<FrozenState>() == null);
         Check("the enemies beside it still chain", !Alive(e1) && !Alive(e2));
