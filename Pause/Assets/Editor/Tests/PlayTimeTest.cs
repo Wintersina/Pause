@@ -22,7 +22,7 @@ public static class PlayTimeTest
         PlayTime.ResetPending();
 
         Check("starts at 0", PlayTime.Seconds == 0f);
-        PlayTime.Add(1f); PlayTime.Add(0.5f);
+        PlayTime.Add(0.5f); PlayTime.Add(0.5f); PlayTime.Add(0.5f);
         Check("adds steps", Mathf.Approximately(PlayTime.Seconds, 1.5f));
         PlayTime.Add(-3f); PlayTime.Add(0f); PlayTime.Add(float.NaN); PlayTime.Add(float.PositiveInfinity);
         Check("ignores zero, negative and non-finite steps", Mathf.Approximately(PlayTime.Seconds, 1.5f));
