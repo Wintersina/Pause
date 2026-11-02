@@ -45,8 +45,8 @@ public static class ParagonPurchaseTest
 
         try
         {
-            // Without a store price the dock reads COMING SOON, exactly as before.
-            Check("no price: not available", !ParagonPurchase.Available && ParagonPurchase.BuyLabel == "");
+            // Without a store price the offer is unavailable (the Shop row reads UNAVAILABLE, the dock points to the Shop).
+            Check("no price: not available", !ParagonPurchase.Available && ParagonPurchase.Price == null);
             Check("no price: still coming soon", PremiumShips.IsPremium(P) && !ShipId.IsOwned(P));
             Check("buy tap without a store does nothing", !ParagonPurchase.RequestBuy() && !ParagonPurchase.Buying);
 
@@ -56,7 +56,7 @@ public static class ParagonPurchaseTest
             int launches = 0;
             ParagonPurchase.LaunchFlow = () => launches++;
             Check("price and billing: available", ParagonPurchase.Available);
-            Check("buy label carries the store price", ParagonPurchase.BuyLabel == "BUY $4.99");
+            Check("the store price is carried for the Shop row", ParagonPurchase.Price == "$4.99");
             Check("price change redraws the dock", changed == 1);
             ParagonPurchase.SetPrice("$4.99");
             Check("same price does not redraw", changed == 1);
@@ -126,7 +126,7 @@ public static class ParagonPurchaseTest
                   && ParagonPurchase.Classify(12) == ParagonPurchase.Outcome.Retry);
             Check("other codes are errors", ParagonPurchase.Classify(6) == ParagonPurchase.Outcome.Error && ParagonPurchase.Classify(5) == ParagonPurchase.Outcome.Error);
 
-            // The store going away puts the dock back to COMING SOON.
+            // The store going away withdraws the offer.
             ParagonPurchase.SetPrice(null);
             Check("losing the price withdraws the offer", !ParagonPurchase.Available);
         }

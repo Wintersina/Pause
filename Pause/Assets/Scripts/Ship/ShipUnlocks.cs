@@ -15,6 +15,11 @@ public static class ShipUnlocks
 {
     public const int GatedCount = 3;
 
+    // The Shop sells Paragon, whose purchase is still refused until 5 ships are owned. Flip this to false to
+    // drop that gate (the Shop row, ParagonPurchase.RequestBuy and the dock all follow); the two dust-bought
+    // gated ships keep theirs. Open product question: see docs/monetization/ads-free-tracker.md.
+    public static readonly bool GatesParagon = true;
+
     // Ships owned before each gated berth opens, in dock order.
     static readonly int[] required = { 4, 4, 5 };
 
@@ -44,6 +49,7 @@ public static class ShipUnlocks
     // Ships that must be owned before `id` may be bought; 0 for an ungated ship.
     public static int RequiredOwned(int id)
     {
+        if (id == PremiumShips.Paragon && !GatesParagon) return 0;
         var ids = GatedIds;
         for (int n = 0; n < ids.Length; n++)
             if (ids[n] == id) return required[n];

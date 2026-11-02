@@ -65,7 +65,7 @@ public static class PremiumShipTest
         Check("the superseded procedural attack fx atlas stays deleted", Resources.Load<Texture2D>("Weapons/AttackFx") == null && ShipFxArt.Rows == 16);
     }
 
-    // A long localized price shrinks to fit the BUY button on one line.
+    // The dock never buys Paragon: its card button points at the Shop (no price, no purchase from the dock).
     static void BuyLabelFits()
     {
         var font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
@@ -73,25 +73,23 @@ public static class PremiumShipTest
         var popup = DockPopup.Create(null, font, null);
         popup.safeView = new Rect(-50f, -50f, 100f, 100f);
         var oldFlow = ParagonPurchase.LaunchFlow;
-        ParagonPurchase.LaunchFlow = () => { };
+        int launches = 0;
+        ParagonPurchase.LaunchFlow = () => launches++;
         PlayerPrefs.DeleteKey(ShipId.OwnedKey(P));
-        for (int id = 2; id <= 5; id++) PlayerPrefs.SetString(ShipId.OwnedKey(id), "True");   // Paragon's buy button needs 5 owned ships (ShipUnlocks)
-        float room = DockPopup.PanelWidth - 2f * DockPopup.Pad - 12f;
+        for (int id = 2; id <= 5; id++) PlayerPrefs.SetString(ShipId.OwnedKey(id), "True");   // gate open: the strongest case
+        int shopTaps = 0;
+        popup.onShop = () => shopTaps++;
         try
         {
             ParagonPurchase.SetPrice("$4.99");
             popup.Show(P, anchor, .3f, false, false, 0f, 0f);
-            Check("buy label: a normal price keeps the full size", popup.ButtonLabel.text == "BUY $4.99" && popup.ButtonLabel.fontSize == DockPopup.ButtonSize);
-            ParagonPurchase.SetPrice("Rp 1.299.000,00 per bulan lengkap");
+            Check("dock card: Paragon's button is SHOP, at the full size", popup.CurrentMode == DockPopup.Mode.OpenShop &&
+                  popup.ButtonLabel.text == DockPopup.ShopButtonText && popup.ButtonLabel.fontSize == DockPopup.ButtonSize);
+            popup.Press();
+            Check("dock card: pressing it opens the Shop and never starts a purchase", shopTaps == 1 && launches == 0 && !ParagonPurchase.Buying);
+            ParagonPurchase.SetPrice(null);
             popup.Show(P, anchor, .3f, false, false, 0f, 0f);
-            var label = popup.ButtonLabel;
-            Check("buy label: a long price shrinks, never below the minimum",
-                  label.fontSize < DockPopup.ButtonSize && label.fontSize >= DockPopup.ButtonMinSize);
-            Check("buy label: ...and fits the button on one line (or is at the minimum size)",
-                  label.preferredWidth <= room || label.fontSize == DockPopup.ButtonMinSize);
-            Check("buy label: single line, no wrap", label.horizontalOverflow == HorizontalWrapMode.Overflow);
-            popup.SetButtonText("LAUNCH");
-            Check("buy label: the next short label returns to full size", label.fontSize == DockPopup.ButtonSize);
+            Check("dock card: with no store price it still points at the Shop", popup.CurrentMode == DockPopup.Mode.OpenShop);
         }
         finally
         {

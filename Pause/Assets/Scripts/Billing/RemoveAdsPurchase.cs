@@ -14,7 +14,7 @@ using UnityEngine;
 //   * Pending -> wait; nothing is granted until Play says Purchased.
 //   * anything else, or another product -> ignored.
 // Response codes are classified by ParagonPurchase.Classify (ITEM_ALREADY_OWNED
-// triggers a restore query). There is no UI for it yet; a Shop screen is next.
+// triggers a restore query). The Shop screen (ShopPanel / ShopCatalog) is its only buy button.
 public static class RemoveAdsPurchase
 {
     public enum Result { Ignored, Pending, Granted, AlreadyOwned }
@@ -50,7 +50,7 @@ public static class RemoveAdsPurchase
     // The player tapped buy. Never when already ad-free or without a store.
     public static bool RequestBuy()
     {
-        if (!Available || Buying || AdFree.IsActive) return false;
+        if (!Available || Buying || ShopCatalog.AnyBuying || AdFree.IsActive) return false;
         Buying = true;
         LaunchFlow();
         return true;

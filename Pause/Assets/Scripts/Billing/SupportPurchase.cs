@@ -9,7 +9,7 @@ using UnityEngine;
 // text no longer says "support the developer".) Adding a pack is one row in Packs.
 //
 // It is a consumable: PlayBilling queries its details (Play's own localized
-// price), launches the billing flow from the dock's button, and feeds every
+// price), launches the billing flow from the Shop screen's button, and feeds every
 // owned or updated purchase to Handle below, which pays and consumes it so the
 // player can buy it again.
 //
@@ -21,19 +21,17 @@ using UnityEngine;
 // pays again.
 //
 // Android only: iOS and the editor never get a price, so Available stays false
-// and the dock hides the button.
+// and the Shop shows the pack as unavailable (never buyable).
 public static class SupportPurchase
 {
     // One purchasable pack. Its price and buy state are per pack.
     public sealed class Pack
     {
-        public readonly string id;          // stable short id (news / tile)
+        public readonly string id;          // stable short id
         public readonly string productId;   // the Play Console product id
         public readonly int dust;
         public readonly string label;       // "+850 STAR DUST"
         public readonly string grantedMessage;
-        // Whether the space dock draws a tile for it (the 6,000 pack waits for the Shop screen).
-        public readonly bool inDock;
 
         // The store's formatted price ("$3.99"), null while unknown or unavailable.
         public string Price { get; private set; }
@@ -42,9 +40,8 @@ public static class SupportPurchase
         // Set by PlayBilling while connected: opens Play's purchase sheet.
         public Action LaunchFlow;
 
-        public Pack(string id, string productId, int dust, bool inDock = true)
+        public Pack(string id, string productId, int dust)
         {
-            this.inDock = inDock;
             this.id = id;
             this.productId = productId;
             this.dust = dust;
@@ -66,7 +63,7 @@ public static class SupportPurchase
         // The player tapped the pack. Never without a store or while one is open.
         public bool RequestBuy()
         {
-            if (!Available || Buying) return false;
+            if (!Available || Buying || ShopCatalog.AnyBuying) return false;
             Buying = true;
             LaunchFlow();
             return true;
@@ -77,12 +74,11 @@ public static class SupportPurchase
         internal void Reset() { Price = null; Buying = false; LaunchFlow = null; }
     }
 
-    // The pack table, in dock order. Add a pack by adding a row (and the same
+    // The pack table, in Shop order (smallest first). Add a pack by adding a row (and the same
     // product id in the Play Console).
     public static readonly Pack Small = new Pack("support850", "support_developer_850", 850);
     public static readonly Pack Large = new Pack("support2500", "support_developer_2500", 2500);
-    // $20: no dock berth is free, so no tile until the Shop screen. Purchase and restore already work.
-    public static readonly Pack Huge = new Pack("stardust6000", "stardust_6000", 6000, false);
+    public static readonly Pack Huge = new Pack("stardust6000", "stardust_6000", 6000);
     public static readonly Pack[] Packs = { Small, Large, Huge };
 
     // Purchase tokens already paid whose consume has not been confirmed yet,
@@ -107,7 +103,7 @@ public static class SupportPurchase
         get { foreach (var p in Packs) if (p.Buying) return p; return null; }
     }
 
-    // Raised when any price arrives or goes away, so the dock redraws.
+    // Raised when any price arrives or goes away, so the Shop redraws.
     public static event Action Changed;
 
     // Raised after dust is paid, with the amount.

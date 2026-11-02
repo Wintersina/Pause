@@ -72,6 +72,9 @@ public static class ScreenFitScreens
         new FitScreen { id = "codex-world-detail", fullBleed = true, scene = "startS4", title = "Codex / world detail (INFO | BACKDROPS)", stage = r => CodexBackdropsScreen(r, false, false) },
         new FitScreen { id = "codex-backdrops", fullBleed = true, scene = "startS4", title = "Codex / world detail: backdrops sub-tab", stage = r => CodexBackdropsScreen(r, false, true) },
         new FitScreen { id = "codex-backdrop-viewer", fullBleed = true, scene = "startS4", title = "Codex / backdrop viewer", stage = r => CodexBackdropsScreen(r, true, false) },
+        new FitScreen { id = "shop", fullBleed = true, scene = "startS4", title = "Shop: every product priced", stage = r => ShopScreen(r, 0) },
+        new FitScreen { id = "shop-owned-gated", fullBleed = true, scene = "startS4", title = "Shop: Remove Ads owned, Paragon gated (OWN 5 SHIPS)", stage = r => ShopScreen(r, 1) },
+        new FitScreen { id = "shop-unavailable", fullBleed = true, scene = "startS4", title = "Shop: no store (iOS / editor / no price)", stage = r => ShopScreen(r, 2) },
         new FitScreen { id = "options", fullBleed = true, scene = "leaderboardS3", title = "Options: developer rows", stage = r => Options(r, 0) },
         new FitScreen { id = "options-start-world", fullBleed = true, scene = "leaderboardS3", title = "Options: START WORLD row (unlocked)", stage = r => Options(r, 3) },
         new FitScreen { id = "options-start-locked", fullBleed = true, scene = "leaderboardS3", title = "Options: START WORLD row (locked)", stage = r => Options(r, 4) },
@@ -232,6 +235,36 @@ public static class ScreenFitScreens
         }
         panel.ApplyLayout(CodexUi.SafeAreaUnits(panel.GetComponent<Canvas>()));
         panel.SkipAnimations();
+        Canvas.ForceUpdateCanvases();
+        // the home menu is behind the panel's scrim: covered, not part of this screen
+        rig.Ignore("MainMenuCanvas");
+    }
+
+    // The Shop over the home screen. 0: Play prices for everything, Paragon open; 1: Remove Ads owned, Paragon
+    // gated; 2: no store at all.
+    static void ShopScreen(ScreenFitRig rig, int variant)
+    {
+        HomeBase(rig);
+        DeveloperUnlocks.SetEnabled(false);
+        for (int id = 1; id <= PremiumShips.Paragon; id++) PlayerPrefs.DeleteKey(ShipId.OwnedKey(id));
+        PlayerPrefs.SetString(ShipId.OwnedKey(1), "True");
+        PlayerPrefs.DeleteKey(AdFree.Key);
+        RemoveAdsPurchase.ResetSession(); ParagonPurchase.ResetSession(); SupportPurchase.ResetSession();
+        PlayerPrefs.SetFloat(StarDustLedger.CurrencyKey, 12480f);
+        if (variant != 2)
+        {
+            RemoveAdsPurchase.LaunchFlow = () => { }; ParagonPurchase.LaunchFlow = () => { };
+            foreach (var p in SupportPurchase.Packs) p.LaunchFlow = () => { };
+            // a long localized price on purpose: the buttons must still fit it
+            RemoveAdsPurchase.SetPrice("Rp 59.000"); ParagonPurchase.SetPrice("Rp 79.000");
+            SupportPurchase.Small.SetPrice("$3.99"); SupportPurchase.Large.SetPrice("$9.99"); SupportPurchase.Huge.SetPrice("$19.99");
+            if (variant == 0) for (int id = 2; id <= 5; id++) PlayerPrefs.SetString(ShipId.OwnedKey(id), "True");
+            else { PlayerPrefs.SetInt(AdFree.Key, 1); PlayerPrefs.SetString(ShipId.OwnedKey(2), "True"); }
+        }
+        var panel = ShopPanel.Open();
+        rig.Sync();
+        panel.Refresh();
+        panel.Layout();
         Canvas.ForceUpdateCanvases();
         // the home menu is behind the panel's scrim: covered, not part of this screen
         rig.Ignore("MainMenuCanvas");

@@ -132,11 +132,11 @@ public static class SupportPurchaseTest
             r = SupportPurchase.Handle(Buy("small-p", PlayPurchaseState.Pending, "support_developer_850"), autoOk);
             Check("850 pending waits", r == SupportPurchase.Result.Pending && Mathf.Approximately(Dust, before + 2550f));
 
-            // The 6,000 pack ($20): same rules, no dock tile, never pays twice after a failed consume.
+            // The 6,000 pack ($20): same rules, never pays twice after a failed consume.
             var huge = SupportPurchase.Huge;
-            Check("6000 pack: id, amount, message, no dock tile",
+            Check("6000 pack: id, amount, message, sold in the Shop",
                   huge.productId == "stardust_6000" && huge.dust == 6000 && huge.grantedMessage == "+6,000 star dust" &&
-                  !huge.inDock && SupportPurchase.Small.inDock && SupportPurchase.Large.inDock &&
+                  SupportPurchase.Packs.Length == 3 && SupportPurchase.Packs[2] == huge &&
                   SupportPurchase.ForProduct("stardust_6000") == huge);
             Check("no player text says support the developer",
                   !huge.grantedMessage.ToLower().Contains("support") && !SupportPurchase.PendingMessage.ToLower().Contains("support") &&
@@ -176,40 +176,6 @@ public static class SupportPurchaseTest
             small.SetPrice(null);
             Check("price gone hides the pack", !small.Available);
 
-            // Dock tiles: shown only with a price, tap routes to their own pack.
-            var holder = new GameObject("~TileTest");
-            try
-            {
-                var font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
-                var bigTile = DockSupportTile.Create(holder.transform, big, font);
-                var smallTile = DockSupportTile.Create(holder.transform, small, font);
-                big.EndBuy();
-                Check("tile shown only with a price", bigTile.Shown && !smallTile.Shown);
-                small.SetPrice("$4.00");
-                smallTile.Refresh();
-                Check("both tiles shown with both prices", bigTile.Shown && smallTile.Shown);
-                Check("tile tap starts its own pack", smallTile.Tap() && smallLaunches == 2 && launches == 2);
-                small.EndBuy();
-                var priceMesh = bigTile.PriceMesh;
-                big.SetPrice("$9.99");
-                bigTile.Refresh();
-                Check("tile price: a normal price is unscaled", priceMesh.transform.localScale == Vector3.one);
-                big.SetPrice("Rp 1.299.000,00 (24 chars)");
-                bigTile.Refresh();
-                Check("tile price: a long price shrinks uniformly, by its length (no rendered mesh to measure in the editor)",
-                      priceMesh.transform.localScale.x < 1f && priceMesh.transform.localScale.x == priceMesh.transform.localScale.y &&
-                      Mathf.Approximately(priceMesh.transform.localScale.x, DockSupportTile.PriceScale("Rp 1.299.000,00 (24 chars)")) &&
-                      DockSupportTile.PriceScale("$9.99") == 1f && DockSupportTile.PriceScale("Rp 149.000") == 1f);
-                big.SetPrice("$9.99");
-                bigTile.Refresh();
-                Check("tile price: a short price restores the scale", priceMesh.transform.localScale == Vector3.one);
-                Check("amount text is large", DockSupportTile.AmountHeight >= .11f);
-                Check("no support-the-dev caption on the tile", bigTile.transform.Find("Title") == null && smallTile.transform.Find("Title") == null);
-                var amountRenderer = bigTile.transform.Find("Amount").GetComponent<MeshRenderer>();
-                Check("amount text fits inside the berth", amountRenderer.bounds.size.x <= DockLayout.BaySize.x * .95f);
-                Check("the 850 icon is drawn smaller", DockSupportTile.IconScale(small) < DockSupportTile.IconScale(big));
-            }
-            finally { UnityEngine.Object.DestroyImmediate(holder); }
         }
         finally
         {

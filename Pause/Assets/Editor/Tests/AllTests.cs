@@ -63,6 +63,7 @@ public static class AllTests
         ("SupportPurchaseTest", SupportPurchaseTest.Execute),
         ("RemoveAdsPurchaseTest", RemoveAdsPurchaseTest.Execute),
         ("PlayTimeTest", PlayTimeTest.Execute),
+        ("ShopScreenTest", ShopScreenTest.Execute),
         ("AppIconTest", AppIconTest.Execute),
         ("ArtRestyleTest", ArtRestyleTest.Execute),
         ("AchievementCatalogTest", AchievementCatalogTest.Execute),

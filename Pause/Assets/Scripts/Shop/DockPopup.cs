@@ -65,7 +65,7 @@ public class DockPopup : MonoBehaviour
     public const float PlumeClearance = .34f;
     const float AppearTime = .2f;
 
-    public enum Mode { Launch, Buy, BuySkin, Locked, BuyStore }
+    public enum Mode { Launch, Buy, BuySkin, Locked, OpenShop }
 
     public int ShipIndex { get; private set; }
     public Mode CurrentMode { get; private set; }
@@ -77,6 +77,9 @@ public class DockPopup : MonoBehaviour
 
     public System.Action<int> onLaunch;
     public System.Action<int> onBuy;
+    // Paragon's button: leave for the Shop screen.
+    public System.Action onShop;
+    public const string ShopButtonText = "SHOP";
     public System.Action<int, int> onSkin;      // (ship, skin) swatch tapped
     public System.Action<int, int> onBuySkin;   // (ship, skin) BUY on a previewed skin
     public System.Action onClose;               // the close button
@@ -615,7 +618,7 @@ public class DockPopup : MonoBehaviour
             w.price.horizontalOverflow = HorizontalWrapMode.Wrap;
             w.price.verticalOverflow = VerticalWrapMode.Truncate;
             Place(w.price.rectTransform, new Vector2(.5f, .5f), new Vector2(-13f, priceY),
-                  new Vector2(SlotW * .5f + 2f, 14f), new Vector2(0f, .5f));
+                  new Vector2(SlotW * .5f + 12f, 14f), new Vector2(0f, .5f));   // clear of the next slot's dust icon (it starts 6 units past this slot): "4,300" must stay above the card's type floor
             w.button = w.root.gameObject.AddComponent<Button>();
             w.button.targetGraphic = w.hit;
             w.button.transition = Selectable.Transition.None;
@@ -639,7 +642,7 @@ public class DockPopup : MonoBehaviour
 
     void SwatchClicked(int skin)
     {
-        if (!Visible || !SkinRowVisible || CurrentMode == Mode.Buy || CurrentMode == Mode.Locked || CurrentMode == Mode.BuyStore) return;
+        if (!Visible || !SkinRowVisible || CurrentMode == Mode.Buy || CurrentMode == Mode.Locked || CurrentMode == Mode.OpenShop) return;
         if (onSkin != null) onSkin(ShipIndex, skin);
     }
 
@@ -650,7 +653,7 @@ public class DockPopup : MonoBehaviour
     // hull. A shown skin that isn't owned turns the action into BUY.
     public void ShowSkins(int index, int shown, float balance)
     {
-        if (index != ShipIndex || CurrentMode == Mode.Buy || CurrentMode == Mode.Locked || CurrentMode == Mode.BuyStore) return;
+        if (index != ShipIndex || CurrentMode == Mode.Buy || CurrentMode == Mode.Locked || CurrentMode == Mode.OpenShop) return;
         SkinRowVisible = true;
         SkinShown = shown;
         skinRow.gameObject.SetActive(true);
@@ -879,7 +882,7 @@ public class DockPopup : MonoBehaviour
             SetButtonText("LAUNCH");
             buttonImage.color = DockArt.Cyan;
         }
-        else if (ShipUnlocks.IsLocked(index) && (!PremiumShips.IsPremium(index) || ParagonPurchase.Available))
+        else if (ShipUnlocks.IsLocked(index) && !PremiumShips.IsPremium(index))
         {
             // Not enough ships owned yet (ShipUnlocks): the button names the
             // requirement and does nothing; no price, no dust is taken.
@@ -889,25 +892,15 @@ public class DockPopup : MonoBehaviour
             SetButtonText(ShipUnlocks.LockedButtonText(index));
             buttonImage.color = AkiraPalette.GunHi;
         }
-        else if (PremiumShips.IsPremium(index) && ParagonPurchase.Available)
-        {
-            // A real-money ship with its store price loaded: the button shows it
-            // and opens the store's purchase sheet. Never star dust (PremiumShips).
-            CurrentMode = Mode.BuyStore;
-            ShowStatus("");
-            dustIcon.gameObject.SetActive(false);
-            SetButtonText(ParagonPurchase.BuyLabel);
-            buttonImage.color = DockArt.Gold;
-        }
         else if (PremiumShips.IsPremium(index))
         {
-            // A real-money ship without a store (editor, iOS, no Play): it
-            // can't be bought with dust (PremiumShips). The popup says so.
-            CurrentMode = Mode.Locked;
-            ShowStatus(PremiumShips.ComingSoonLabel);
+            // A real-money ship is bought in the Shop screen, never from the dock (PremiumShips): the button
+            // points there. While the own-N-ships gate holds the card says so; the Shop refuses the purchase.
+            CurrentMode = Mode.OpenShop;
+            ShowStatus(ShipUnlocks.IsLocked(index) ? ShipUnlocks.LockedButtonText(index) : "");
             dustIcon.gameObject.SetActive(false);
-            SetButtonText("SOON");
-            buttonImage.color = AkiraPalette.GunHi;
+            SetButtonText(ShopButtonText);
+            buttonImage.color = DockArt.Gold;
         }
         else
         {
@@ -955,8 +948,8 @@ public class DockPopup : MonoBehaviour
     void Clicked()
     {
         if (!Visible) return;
-        if (CurrentMode == Mode.Locked) return;   // coming soon (no store)
-        if (CurrentMode == Mode.BuyStore) { ParagonPurchase.RequestBuy(); return; }
+        if (CurrentMode == Mode.Locked) return;   // gated: the button only names the requirement
+        if (CurrentMode == Mode.OpenShop) { if (onShop != null) onShop(); return; }
         if (CurrentMode == Mode.Launch) { if (onLaunch != null) onLaunch(ShipIndex); }
         else if (CurrentMode == Mode.BuySkin) { if (onBuySkin != null) onBuySkin(ShipIndex, SkinShown); }
         else if (onBuy != null) onBuy(ShipIndex);

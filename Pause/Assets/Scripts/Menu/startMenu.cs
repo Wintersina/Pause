@@ -22,6 +22,12 @@ public class startMenu : MonoBehaviour {
         // iOS has no system back and apps must not quit themselves: no Quit.
         quitB.gameObject.SetActive(BackNavigator.QuitAllowed);
         LayoutHome();
+        // Sent here from the dock's Paragon berth: the Shop opens over the home screen.
+        if (ShopCatalog.OpenOnHome)
+        {
+            ShopCatalog.OpenOnHome = false;
+            if (ShopCatalog.EntryVisible()) ShopPanel.Open();
+        }
     }
 
     // Update is called once per frame
@@ -39,11 +45,23 @@ public class startMenu : MonoBehaviour {
     // A menu row's touch height: (330 - 4 x 12) / 5 + 12.
     public const float HomeRowUnits = 68f;
 
+    // The menu column's height for `rows` rows: 330 units for the five rows, plus 70 for each row more (the
+    // Shop row), so every row keeps its ~68-unit touch height.
+    public static float HomeColumnUnits(int rows) { return 330f + Mathf.Max(0, rows - 5) * 70f; }
+
+    static int ActiveRows(GameObject panel)
+    {
+        int rows = 0;
+        if (panel != null) foreach (Transform child in panel.transform) if (child.gameObject.activeSelf) rows++;
+        return Mathf.Max(5, rows);
+    }
+
     public void LayoutHome()
     {
         var canvasObject = SceneUtil.FindAny("MainMenuCanvas");
         if (canvasObject == null) return;
         EnsurePrivacyButton();
+        ShopHomeEntry.Ensure();
         var canvas = canvasObject.GetComponent<Canvas>();
         var scaler = canvasObject.GetComponent<CanvasScaler>();
         if (scaler != null)
@@ -62,9 +80,16 @@ public class startMenu : MonoBehaviour {
         float safeBottom = canvas != null ? ScreenInfo.SafeArea.yMin / canvas.scaleFactor : 0f;
         // The column keeps its 330 units (five ~68-unit touch rows) on any
         // canvas of 660+ units: a short phone's floor-raised canvas is ~800.
-        Place("UIPanel", new Vector2(0.5f, 0.5f), new Vector2(0f, -height * 0.08f),
-              new Vector2(Mathf.Min(520f, width * 0.78f), Mathf.Min(330f, height * 0.5f)));
         var panel = SceneUtil.FindAny("UIPanel");
+        // The column's top edge stays where the five-row menu had it (under the logo); the Shop row (every
+        // platform) makes it a row taller, growing downward.
+        float topEdge = -height * 0.08f + Mathf.Min(HomeColumnUnits(5), height * 0.5f) * 0.5f;
+        // The five-row cap is half the canvas; each row more earns its share of that half, so a short canvas
+        // (the foldable's cover display) keeps every row at its touch height instead of squeezing six into five.
+        int rowCount = ActiveRows(panel);
+        float columnHeight = Mathf.Min(HomeColumnUnits(rowCount), height * 0.5f * rowCount / 5f);
+        Place("UIPanel", new Vector2(0.5f, 0.5f), new Vector2(0f, topEdge - columnHeight * 0.5f),
+              new Vector2(Mathf.Min(520f, width * 0.78f), columnHeight));
         var group = panel != null ? panel.GetComponent<VerticalLayoutGroup>() : null;
         if (group != null)
         {
@@ -79,9 +104,22 @@ public class startMenu : MonoBehaviour {
         var quit = SceneUtil.FindAny("QuitButton");
         bool hasQuit = quit != null && quit.activeSelf;
         float footerY = 44f + safeBottom;
-        float columnBottom = height * 0.5f - height * 0.08f - Mathf.Min(330f, height * 0.5f) * 0.5f - 6f;
+        float columnBottom = height * 0.5f + topEdge - columnHeight - 6f;
         float stackedTop = footerY + FooterRowUnits * 1.5f + FooterGap + FooterGap * 0.5f;
         FooterStacked = !hasQuit || stackedTop <= columnBottom;
+        // Side by side the footer row is one row tall; on a canvas too short even for that under a six-row
+        // column (the foldable's cover display), the column rises by what it overlaps instead of covering it.
+        if (!FooterStacked)
+        {
+            float sideTop = footerY + FooterRowUnits + FooterGap * .5f;
+            float deficit = sideTop - (columnBottom + 6f);
+            if (deficit > 0f)
+            {
+                topEdge += deficit;
+                Place("UIPanel", new Vector2(0.5f, 0.5f), new Vector2(0f, topEdge - columnHeight * 0.5f),
+                      new Vector2(Mathf.Min(520f, width * 0.78f), columnHeight));
+            }
+        }
         if (FooterStacked)
         {
             Place("QuitButton", new Vector2(0.5f, 0f), new Vector2(0f, footerY), new Vector2(footerWidth, FooterRowUnits));
@@ -106,7 +144,7 @@ public class startMenu : MonoBehaviour {
             var graphic = go != null ? go.GetComponent<Graphic>() : null;
             if (graphic != null) graphic.raycastPadding = new Vector4(-8f, -FooterGap * .5f, -8f, -FooterGap * .5f);
         }
-        foreach (string name in new[] { "PlayButton", "shopButton", "achivButton", "LeaderboardButton", "QuitButton", PrivacyButtonName })
+        foreach (string name in new[] { "PlayButton", "shopButton", ShopHomeEntry.ButtonName, "achivButton", "LeaderboardButton", "QuitButton", PrivacyButtonName })
         {
             var button = SceneUtil.FindAny(name);
             if (button == null) continue;
