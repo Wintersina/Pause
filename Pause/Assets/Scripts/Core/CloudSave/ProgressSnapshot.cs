@@ -88,6 +88,8 @@ public class ProgressSnapshot
     // The Remove Ads entitlement (AdFree). Additive, no schema bump: an older blob lacks it (false = "not known to be
     // owned", never "revoked"). Merged by OR and never cleared by Apply, so ownership can't be lost.
     public bool adFree;
+    // Whole seconds of real play (PlayTime). Additive, no schema bump: an older blob lacks it (= 0). Merged by max.
+    public int playTimeSeconds;
 
     // Hard cap per list: the Codex has ~95 entries (+ achievement acks), so this
     // only guards the cloud blob against a corrupt pref.
@@ -182,6 +184,7 @@ public class ProgressSnapshot
         s.codexHurt = DamageLog.MergeMax(PlayerPrefs.GetString(DamageLog.HurtKey, ""), "");
         s.fusionLog = FusionDiscoveryStore.Normalize(PlayerPrefs.GetString(FusionDiscoveryStore.PrefsKey, ""));
         s.adFree = AdFree.IsActive;
+        s.playTimeSeconds = PlayTime.WholeSeconds;
 
         var counters = new List<Counter>();
         foreach (string key in CounterKeys())
@@ -244,6 +247,7 @@ public class ProgressSnapshot
         WriteTally(FusionDiscoveryStore.PrefsKey, FusionDiscoveryStore.Normalize(fusionLog));
         FusionDiscoveryStore.Reload();
         if (adFree) PlayerPrefs.SetInt(AdFree.Key, 1);   // never cleared: a snapshot without it (older save, other account) can't take the purchase away
+        PlayTime.RestoreAtLeast(playTimeSeconds);   // never lowered: the larger value wins
         Codex.OnExternalChange();   // drop the cached sets so the next write can't undo this
     }
 

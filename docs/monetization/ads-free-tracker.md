@@ -29,7 +29,7 @@ Pause is moving from a paid game to a free game with ads. This page tracks the d
   - [ ] Real test purchase of Remove Ads and a dust pack (purchase, acknowledge/consume, restore).
   - Still open: the two new products have no icon yet; the 850 and 2,500 icons and in-game tile art still show a pink heart, which reads as a donation; translations under "Manage translations" were not checked for the renamed packs.
 - [ ] 2. Shop screen; move Paragon and the dust packs into it.
-- [ ] 3. Play-time tracker (for the first ad-free hour).
+- [ ] 3. Play-time tracker (for the first ad-free hour). PR: https://github.com/Wintersina/Pause/pull/428. `PlayTime` counts seconds of unfrozen flying in real runs only (not menus, tutorial, practice, world entries or boss entrances, and nothing while backgrounded). **Frozen PAUSE time does not count** (the stricter reading: one honest hour of flying). Saved in PlayerPrefs (`playTimeSeconds`) and in the cloud save (merged by the larger value); older saves read as 0.
 - [ ] 4. Ads SDK (AdMob proposed), consent prompt, forced and rewarded ads, frequency rules.
 - [ ] 5. Boosters, after measuring typical dust income.
 - [ ] 6. Going free (step by step: [go-free-checklist.md](go-free-checklist.md)): Console declarations (contains ads, Data safety, advertising ID), privacy policy, `app-ads.txt` on hapticgategames.com, price change (owner's explicit go-ahead first; one-way).
