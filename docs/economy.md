@@ -41,3 +41,42 @@ Holding the speed cap for 15 s without losing a heart doubles the score gained f
 flight trickle are unchanged. The end-of-run score bonus reads `RunScore.Total`, so a doubled score raises
 it, but it is `min(1.5, 0.02 sqrt(score))` x `DustRewardScale` and caps at 5,625 points (0.90 dust), so
 doubling a 3,000-point run moves it from 0.66 to 0.78 dust at most. No retune needed.
+
+## Boosters (bought with star dust)
+
+Two repeatable purchases, `Boosters` (`Scripts/Boosters/`). No store product, no platform code: iOS is the same code.
+
+| | Price | What it does |
+|---|---|---|
+| Dust x2 | `Boosters.DustBoosterPrice` = 600 | Doubles pickup and reward dust for 10 minutes of play (`DustBoosterSeconds` = 600). Buying again adds 10 minutes (stored time caps at an hour). |
+| Hazard clear | `Boosters.HazardClearPrice` = 200 per charge | One charge, held (max 9), fired with the CLEAR button in a run. |
+
+**What the multiplier touches:** star and large-star pickups, the blue atom, the flight trickle, kill crumbs and elite rewards (`score.AwardStarDust`, `score.calcScore`).
+**What it never touches:** claims (achievements, Codex), purchases (packs), the end-of-run score bonus, the tutorial and practice runs. Score is never affected, and the leaderboard's "run star dust" board reads `Boosters.RankedDust` (earned minus what the booster added).
+**The clock** counts only unfrozen frames of a real run (`score.payDust`, called from `StepRunning`): not in a menu, not while the world is frozen with the finger up, not during a scripted entrance, a dead player, or a practice run. It is saved in milliseconds, so a restart keeps it.
+**Stacking:** `Boosters.DustMultiplier(boosterActive, adDoubled)` is additive (1 + 1 + 1), capped at 3x. Never 4x.
+
+### Where the dust price comes from
+
+`BoostersTest` simulates 10 minutes (5 levels of 120 s, 60 fps, speed 0.10 to 0.33 per level, 12 seeded runs), the same model as `DustEconomyTest`:
+
+| | Dust |
+|---|---|
+| Typical 10 minutes of play (flight + pickups + kills + elites, no score bonus) | about 275 |
+| What x2 adds (equal to the base) | about 275 = 46% of 600 |
+| Flawless run (adaptive difficulty's best case, x1.35) | about 370 = 62% of 600 |
+| Rule: earn back under 70% | 420 at a price of 600 |
+
+So even a flawless player never earns back the price (it is a net cost; the value is the ad-free 10 minutes and a faster ramp). `BoostersTest` fails if a retune of the economy moves the extra dust over 70% of the price.
+**How far to trust it:** the sim uses seeded pickup, kill and elite counts that match the `DustEconomyTest` model, not logged play. The star counts per level (45-80 small, 8-18 large) and the 120 s level length are assumptions, and pickups are most of the income. A player who collects far more than the model (a magnet or Gold Magnet run, a very good player) can pass 70%; the 1.35x flawless case is the adaptive-difficulty estimate, itself "not measured in play". Re-check with real averages once the Play Console or leaderboard stats give dust per run.
+
+**Hazard clear, 200:** one typical 4-level run earns about 220 (same sim), so a charge costs about one run's earnings. It saves a heart or a run, but extending a run by a level only pays about 55 dust, so it never pays for itself. Max 9 held so a hoard cannot sit on screen.
+
+### Hazard clear rules
+
+Clears every rock, mine and ordinary ship in view, and every hostile projectile in flight (`HostileShots.ClearIn`). It leaves bosses, elites (and their drones and shot hitboxes), backdrop rocks, weather, pickups and timed area attacks (jets, waves, blast rings, strikes, lashes). Bosses and elites take no damage from it.
+It is not a kill: it never calls `AwardDestroyedTarget`, so there is no run score, kill chain, combo, achievement, Codex entry, secret-meter charge or dust. A run that used it still counts for score and leaderboards (see the tracker's open questions). It spends a charge only if something was cleared. Not available in the tutorial or practice runs; in developer mode it is always available and spends nothing.
+
+### Cloud save
+
+Four monotonic counters (`ProgressSnapshot.boostDustBought`, `boostDustUsedMs`, `boostClearBought`, `boostClearUsed`), merged per counter by the LARGER value (`ProgressMerge`). Held = bought - used. A max can't duplicate a paid item (a sum would) or bring back a used one; a booster bought only on the other device is paid for from the newer balance (`UnpaidBoosters`), as ships and skins are. A purchase writes the new balance and the counter together and saves at once, so a restart never leaves "paid, nothing received".

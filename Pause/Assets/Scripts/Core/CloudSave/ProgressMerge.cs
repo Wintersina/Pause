@@ -17,6 +17,14 @@ using System.Collections.Generic;
 //                                    stays acknowledged
 //   Remove Ads (adFree)              true if either side has it (never lost)
 //   play time (playTimeSeconds)      max
+//   boosters (4 counters)            per counter the LARGER (never summed, never lowered):
+//                                    dust-multiplier purchases, milliseconds of
+//                                    boosted play spent, hazard-clear charges
+//                                    bought, charges fired. Held = bought - used,
+//                                    so a merge cannot duplicate a paid booster
+//                                    (max, not sum) nor bring back a used one. A
+//                                    purchase only the OTHER side knows is paid
+//                                    for from the newer balance (UnpaidBoosters).
 //   fusion log (COMBOS)              per fusion: larger count, larger best chain,
 //                                    earlier first day (FusionDiscoveryStore.Merge)
 //   currency, spawnShip,             from whichever side has the newer
@@ -97,6 +105,10 @@ public static class ProgressMerge
             fusionLog = FusionDiscoveryStore.Merge(local.fusionLog, cloud.fusionLog),
             adFree = local.adFree || cloud.adFree,
             playTimeSeconds = PlayTime.Merge(local.playTimeSeconds, cloud.playTimeSeconds),
+            boostDustBought = Math.Max(local.boostDustBought, cloud.boostDustBought),
+            boostDustUsedMs = Math.Max(local.boostDustUsedMs, cloud.boostDustUsedMs),
+            boostClearBought = Math.Max(local.boostClearBought, cloud.boostClearBought),
+            boostClearUsed = Math.Max(local.boostClearUsed, cloud.boostClearUsed),
         };
         return result;
     }
@@ -117,7 +129,14 @@ public static class ProgressMerge
                 int id = code / ProgressSnapshot.SkinCode, skin = code % ProgressSnapshot.SkinCode;
                 total += ShipSkins.PriceOf(id, skin);
             }
-        return total;
+        return total + UnpaidBoosters(newer, other);
+    }
+
+    // Boosters bought only on `other` (more purchases than newer knows of): the max keeps them, so newer's balance pays for them.
+    public static float UnpaidBoosters(ProgressSnapshot newer, ProgressSnapshot other)
+    {
+        return Math.Max(0, other.boostDustBought - newer.boostDustBought) * Boosters.DustBoosterPrice +
+               Math.Max(0, other.boostClearBought - newer.boostClearBought) * Boosters.HazardClearPrice;
     }
 
     static float ShipDustPrice(int id)

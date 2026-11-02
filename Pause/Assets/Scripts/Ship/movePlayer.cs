@@ -127,7 +127,7 @@ public class movePlayer : MonoBehaviour
             // A press on Replay or Menu belongs to the UI. Without this
             // guard, that same press was consumed as a teleport target before
             // the UI click completed, making the pause actions appear broken.
-            if (PauseQuickActions.IsScreenPointOnAction(TouchInput.Position)) return;
+            if (PauseQuickActions.IsScreenPointOnAction(TouchInput.Position) || HazardClearButton.PointerOnButton) return;
 
             // show start timer, give player 1 second to prep. This used to
             // subtract Time.timeSinceLevelLoad (the whole time since load)
