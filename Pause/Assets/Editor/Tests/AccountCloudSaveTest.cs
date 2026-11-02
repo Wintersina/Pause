@@ -640,17 +640,17 @@ public static class AccountCloudSaveTest
     // H4: a purchase on one device is paid for from the other's balance, never refunded.
     static void PurchasesStayPaidAcrossDevices()
     {
-        // B bought ship 2 (price 600) earlier: 1000 -> 400. A is newer but never saw it (1000).
-        var b = Snap(1000, 400f, new[] { 1, 2 }, 2, 0f, 0, 0, true);
-        var a = Snap(2000, 1000f, new[] { 1 }, 1, 0f, 0, 0, true);
+        // B bought ship 2 (price 1200) earlier: 3000 -> 1800. A is newer but never saw it (3000).
+        var b = Snap(1000, 1800f, new[] { 1, 2 }, 2, 0f, 0, 0, true);
+        var a = Snap(2000, 3000f, new[] { 1 }, 1, 0f, 0, 0, true);
         var m = ProgressMerge.Merge(a, b);
         Check("economy: ship bought on the older device is deducted from the newer balance",
-              string.Join(",", m.boughtShips) == "1,2" && m.currency == 1000f - shopingShips.Prices[2]);
+              string.Join(",", m.boughtShips) == "1,2" && m.currency == 3000f - shopingShips.Prices[2]);
         m = ProgressMerge.Merge(b, a);
-        Check("economy: same result either way round", m.currency == 1000f - shopingShips.Prices[2]);
+        Check("economy: same result either way round", m.currency == 3000f - shopingShips.Prices[2]);
         // Purchase made on the newer side: nothing extra is charged.
-        m = ProgressMerge.Merge(b, Snap(1, 1000f, new[] { 1 }, 1, 0f, 0, 0, true));
-        Check("economy: a purchase on the newer side is not charged twice", m.currency == 400f);
+        m = ProgressMerge.Merge(b, Snap(1, 3000f, new[] { 1 }, 1, 0f, 0, 0, true));
+        Check("economy: a purchase on the newer side is not charged twice", m.currency == 1800f);
         // A skin (id 2, skin 1) owned only on the older side.
         var skinOlder = Snap(1000, 50f, new[] { 1, 2 }, 2, 0f, 0, 0, true);
         skinOlder.ownedSkins = new[] { 2 * ProgressSnapshot.SkinCode + 1 };
