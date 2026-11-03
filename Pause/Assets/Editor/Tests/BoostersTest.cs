@@ -1,17 +1,21 @@
 using System.Collections.Generic;
 using UnityEditor.SceneManagement;
+using System;
+using System.Reflection;
 using UnityEngine;
 using UnityEngine.UI;
+using Object = UnityEngine.Object;
 
-// The star-dust boosters (Boosters, HazardClear, HazardClearButton):
+// The star-dust boosters (Boosters, HazardClear, HazardClearReadout):
 //   1  the pure stacking rule (booster + rewarded ad capped at 3x)
 //   2  PRICES: simulated typical dust in 10 minutes of play; the multiplier's extra dust stays under 70% of its price
 //   3  buying: pay once, extension, limits, restart safety, no buying inside a run
 //   4  the clock: ticks only on unfrozen real-run frames; practice runs never tick or multiply
 //   5  what it multiplies (pickups, rewards, flight) and what it must not (claims, purchases, score, leaderboard dust)
 //   6  hazard clear: what it removes, what it leaves, and that it pays no score, kills, dust or achievements
+//   6b the AUTOMATIC save: a hit that would cost a heart spends a charge instead (collisionDetection), never when nothing was lost
 //   7  cloud save: capture / apply round trip and the merge rules
-//   8  the in-run control: its rect on a spread of screens (phones, tall, tablet) never meets the HUD
+//   8  the in-run readout (not a control): its rect on a spread of screens (phones, tall, tablet) never meets the HUD
 public static class BoostersTest
 {
     static int fails;
@@ -48,6 +52,7 @@ public static class BoostersTest
             Clock();
             Multiplies();
             Clearing();
+            AutoSave();
             Cloud();
             Control();
         }
@@ -327,7 +332,7 @@ public static class BoostersTest
         float earnedBefore = StarDustLedger.Earned;
         int pickupsBefore = score.dustPickups;
         Check("a charge is held and the clear is allowed", Boosters.ClearCharges == 1 && HazardClear.BlockedBy() == HazardClear.Block.None);
-        bool fired = HazardClear.Fire(Vector3.zero);
+        bool fired = HazardClear.AutoSave(Vector3.zero);
         Check("it fires and removes the three bodies", fired && HazardClear.LastBodies == 3 && enemy == null && mine == null && rock == null);
         Check("... leaving the boss part, the attack target and the pickup", boss != null && armoured != null && pickup != null);
         Check("... and spends the charge", Boosters.ClearCharges == 0 && Boosters.UsedClear == 1 && HazardClear.UsedThisRun == 1);
@@ -340,14 +345,12 @@ public static class BoostersTest
               !code.Contains("AwardDestroyedTarget") && !code.Contains("RunScore.") && !code.Contains("Codex.") && !code.Contains("AchievementTracker") && !code.Contains("AwardStarDust"));
         Check("the run still counts (a clear changes no run flag)", RunScore.Scoring && RunScore.SavesBest);
 
-        Boosters.BuyHazardClear();   // refused in a run: set the counter
-        PlayerPrefs.SetInt(Boosters.ClearBoughtKey, 2);
+        PlayerPrefs.SetInt(Boosters.ClearBoughtKey, 2);   // a second charge (buying is refused inside a run)
         Boosters.Reload();
-        Check("on cooldown a second tap does nothing", HazardClear.BlockedBy() == HazardClear.Block.Cooldown && !HazardClear.Fire(Vector3.zero) && Boosters.ClearCharges == 1);
+        Check("no cooldown: with i-frames guarding the repeat, a held charge is never refused (Block.None)", HazardClear.BlockedBy() == HazardClear.Block.None && Boosters.ClearCharges == 1);
         Object.DestroyImmediate(boss); Object.DestroyImmediate(armoured); Object.DestroyImmediate(pickup);
 
         HazardClear.BeginRun();
-        Check("an empty screen does not spend a charge", !HazardClear.Fire(Vector3.zero) && Boosters.ClearCharges == 1);
         buttonClicks.playerDied = true;
         Check("blocked when dead", HazardClear.BlockedBy() == HazardClear.Block.Dead);
         buttonClicks.playerDied = false;
@@ -356,7 +359,7 @@ public static class BoostersTest
         HazardClear.BeginRun();
         Check("no charge, no clear", HazardClear.BlockedBy() == HazardClear.Block.NoCharge);
         PlayerPrefs.SetInt(DeveloperUnlocks.EnabledKey, 1);
-        Check("developer mode: always available, never spends", HazardClear.BlockedBy() == HazardClear.Block.None && Boosters.ConsumeClear() && Boosters.UsedClear == 2);
+        Check("developer mode grants nothing: no charge, no clear, nothing spent", HazardClear.BlockedBy() == HazardClear.Block.NoCharge && !Boosters.ClearAvailable && !Boosters.ConsumeClear() && Boosters.UsedClear == 2);
         PlayerPrefs.SetInt(DeveloperUnlocks.EnabledKey, 0);
         EndRun(s);
 
@@ -435,7 +438,7 @@ public static class BoostersTest
             foreach (float rail in new[] { 0f, 2.2f })
             {
                 var band = TopBand.FrameFor(safe, screen, rail, new Rect[0]);
-                Rect clear = HazardClearButton.RectFor(band, screen);
+                Rect clear = HazardClearReadout.RectFor(band, screen);
                 Rect pair = PauseQuickActions.ScreenRectFor(band, screen);
                 float boardBottom = band.top - HudStyler.ReadoutHeightFor(screen) * HudStyler.ReadoutFitFor(band, screen);
                 allFit &= clear.xMin >= safe.xMin && clear.xMax <= safe.xMax && clear.yMin >= safe.yMin && clear.yMax <= safe.yMax;
@@ -450,8 +453,202 @@ public static class BoostersTest
         Check("the control sits inside the safe area on every screen", allFit);
         Check("... under the Replay/Home pair, clear of the score board, in the top half only", noClash);
         Check("... and is a square at least as big as a tap target", bigEnough);
-        Check("the tutorial gets no button (gameS1 only)", System.IO.File.ReadAllText("Assets/Scripts/Boosters/HazardClearButton.cs").Contains("scene.name != \"gameS1\""));
-        Check("movePlayer treats a press on it as the button's", System.IO.File.ReadAllText("Assets/Scripts/Ship/movePlayer.cs").Contains("HazardClearButton.PointerOnButton"));
-        Check("a tap on it never spends a pause (score.Update)", System.IO.File.ReadAllText("Assets/Scripts/Core/score.cs").Contains("!HazardClearButton.PointerOnButton"));
+        Check("the tutorial gets no button (gameS1 only)", System.IO.File.ReadAllText("Assets/Scripts/Boosters/HazardClearReadout.cs").Contains("scene.name != \"gameS1\""));
+        string readout = System.IO.File.ReadAllText("Assets/Scripts/Boosters/HazardClearReadout.cs");
+        string move = System.IO.File.ReadAllText("Assets/Scripts/Ship/movePlayer.cs");
+        string scoreSrc = System.IO.File.ReadAllText("Assets/Scripts/Core/score.cs");
+        Check("the readout is not interactive: no Button, no GraphicRaycaster, every graphic raycastTarget off, canvas group blocks nothing",
+              !readout.Contains("typeof(Button)") && !readout.Contains("typeof(GraphicRaycaster)") && !readout.Contains("PointerOnButton") &&
+              readout.Contains("plate.raycastTarget = false") && readout.Contains("glyph.raycastTarget = false") && readout.Contains("count.raycastTarget = false") &&
+              readout.Contains("group.blocksRaycasts = false"));
+        Check("a press on the readout's area is an ordinary press: movePlayer and score.Update no longer ask about it (the Replay/Home guard stays)",
+              !move.Contains("HazardClear") && !scoreSrc.Contains("PointerOnButton") && !scoreSrc.Contains("HazardClearReadout") &&
+              move.Contains("PauseQuickActions.IsScreenPointOnAction(TouchInput.Position)"));
+        // behaviour: a press at the readout's centre is not on a quick action, so movePlayer takes it as a teleport press
+        var tallScreen = new Vector2(1080f, 2400f);
+        var tallBand = TopBand.FrameFor(new Rect(0f, 72f, 1080f, 2256f), tallScreen, 0f, new Rect[0]);
+        Vector2 centre = HazardClearReadout.RectFor(tallBand, tallScreen).center;
+        Check("... and that point is on no quick action (so the teleport press is not swallowed)", !PauseQuickActions.IsScreenPointOnAction(centre));
+    }
+
+    // ---- 6b: the automatic save in the one place a heart is lost (collisionDetection.OnTriggerEnter2D) ----
+    sealed class Rig
+    {
+        public GameObject ship;
+        public collisionDetection cd;
+        public Action<Collider2D> trigger;
+
+        public Rig(int maxLife)
+        {
+            ship = new GameObject(ShipId.ObjectName(1) + "(Clone)", typeof(SpriteRenderer));
+            ship.AddComponent<Rigidbody2D>().bodyType = RigidbodyType2D.Kinematic;
+            ship.AddComponent<BoxCollider2D>().isTrigger = true;
+            cd = ship.AddComponent<collisionDetection>();
+            cd.explosionAnimation = new GameObject("~TestExplosion");
+            cd.boostSound = ship.AddComponent<AudioSource>();
+            cd.boostText = new GameObject("~boostText", typeof(RectTransform)).AddComponent<Text>();
+            cd.hypeText = new GameObject("~hypeText", typeof(RectTransform)).AddComponent<Text>();
+            cd.boost = new GameObject("~boost");
+            cd.boost.SetActive(false);
+            trigger = (Action<Collider2D>)Delegate.CreateDelegate(typeof(Action<Collider2D>), cd,
+                typeof(collisionDetection).GetMethod("OnTriggerEnter2D", BindingFlags.NonPublic | BindingFlags.Instance));
+            Reset(maxLife);
+        }
+
+        public void Reset(int maxLife)
+        {
+            collisionDetection.MAXLIFE = maxLife;
+            collisionDetection.lifeCounter = 0;
+            collisionDetection.atomCheck = false;
+            collisionDetection.invTimer = 0f;
+            collisionDetection.cloakTimer = 0f;
+            PlayerInvuln.Reset();
+            buttonClicks.playerDied = false;
+        }
+
+        public GameObject Hit(string name = "Rock", string tag = "Astr")
+        {
+            var go = new GameObject(name, typeof(CircleCollider2D));
+            go.tag = tag;
+            go.transform.position = ship.transform.position + Vector3.right * .3f;
+            ClearTarget.Ensure(go);
+            trigger(go.GetComponent<Collider2D>());
+            return go;
+        }
+
+        public void Dispose()
+        {
+            foreach (var go in new[] { cd.explosionAnimation, cd.boost, cd.boostText.gameObject, cd.hypeText.gameObject })
+                if (go != null) Object.DestroyImmediate(go);
+            if (ship != null) Object.DestroyImmediate(ship);
+            foreach (var name in new[] { "~fx", "~TestExplosion(Clone)", "~PickupBurst" })
+                for (var go = GameObject.Find(name); go != null; go = GameObject.Find(name))
+                    Object.DestroyImmediate(go);
+            Reset(3);
+        }
+    }
+
+    static void Charges(int held)
+    {
+        PlayerPrefs.SetInt(Boosters.ClearBoughtKey, held);
+        PlayerPrefs.SetInt(Boosters.ClearUsedKey, 0);
+        Boosters.Reload();
+    }
+
+    static void AutoSave()
+    {
+        Reset(5000f);
+        var s = BeginRealRun(5000f);
+        HazardClear.BeginRun();
+        var rig = new Rig(3);
+        try
+        {
+            // a charge fires, the heart is kept
+            Charges(2);
+            int scoreBefore = (int)RunScore.Total, killsBefore = RunScore.Parts.killCount;
+            float dustBefore = StarDustLedger.Earned;
+            var rock = rig.Hit();
+            Check("a hit with a charge held: the heart is kept, one charge spent, the hit source cleared",
+                  collisionDetection.lifeCounter == 0 && Boosters.ClearCharges == 1 && HazardClear.UsedThisRun == 1 && !buttonClicks.playerDied);
+            Check("... post-hit i-frames start, and no credit is paid",
+                  PlayerInvuln.Active && (int)RunScore.Total == scoreBefore && RunScore.Parts.killCount == killsBefore && Mathf.Approximately(StarDustLedger.Earned, dustBefore));
+            if (rock != null) Object.DestroyImmediate(rock);
+
+            // the i-frames stop the same hazard hitting again: nothing more is spent, no heart lost
+            var again = rig.Hit();
+            Check("a second hit inside the i-frames spends nothing and costs nothing", collisionDetection.lifeCounter == 0 && Boosters.ClearCharges == 1);
+            if (again != null) Object.DestroyImmediate(again);
+
+            // a shielded hit spends nothing
+            rig.Reset(3);
+            collisionDetection.atomCheck = true;
+            var shielded = rig.Hit();
+            Check("a shielded hit (blue atom) spends no charge", Boosters.ClearCharges == 1 && collisionDetection.lifeCounter == 0 && HazardClear.UsedThisRun == 1);
+            if (shielded != null) Object.DestroyImmediate(shielded);
+            rig.Reset(3);
+
+            // i-frames from a lost heart spend nothing
+            PlayerInvuln.BeginPostHit();
+            var inv = rig.Hit();
+            Check("a hit during i-frames spends no charge", Boosters.ClearCharges == 1 && collisionDetection.lifeCounter == 0 && HazardClear.UsedThisRun == 1);
+            if (inv != null) Object.DestroyImmediate(inv);
+            rig.Reset(3);
+
+            // no charge: the heart is lost
+            Charges(0);
+            var hurt = rig.Hit();
+            Check("no charge: the heart is lost as before, i-frames begin", collisionDetection.lifeCounter == 1 && PlayerInvuln.Active);
+            if (hurt != null) Object.DestroyImmediate(hurt);
+            rig.Reset(3);
+
+            // developer mode with no charges does not fire
+            PlayerPrefs.SetInt(DeveloperUnlocks.EnabledKey, 1);
+            var dev = rig.Hit();
+            Check("developer mode with no charges does not save the heart and spends nothing", collisionDetection.lifeCounter == 1 && Boosters.UsedClear == 0);
+            if (dev != null) Object.DestroyImmediate(dev);
+            rig.Reset(3);
+            Charges(1);
+            var devHeld = rig.Hit();
+            Check("developer mode with a real held charge fires and spends it", collisionDetection.lifeCounter == 0 && Boosters.ClearCharges == 0);
+            if (devHeld != null) Object.DestroyImmediate(devHeld);
+            PlayerPrefs.SetInt(DeveloperUnlocks.EnabledKey, 0);
+            rig.Reset(3);
+
+            // the fatal hit is saved
+            Charges(1);
+            rig.Reset(1);   // one heart: any hit is fatal
+            var fatal = rig.Hit();
+            Check("the hit that would be fatal is saved: alive, heart kept, charge spent", !buttonClicks.playerDied && collisionDetection.lifeCounter == 0 && Boosters.ClearCharges == 0 && !DeathCrash.Running);
+            if (fatal != null) Object.DestroyImmediate(fatal);
+            rig.Reset(3);
+
+            // a boss-tagged source: the hit is absorbed, the boss is not removed
+            Charges(1);
+            var boss = rig.Hit("Boss_Body", "Enimey");
+            Check("a boss body that hits is absorbed (heart kept, charge spent) and is not removed", collisionDetection.lifeCounter == 0 && Boosters.ClearCharges == 0 && boss != null);
+            if (boss != null) Object.DestroyImmediate(boss);
+            rig.Reset(3);
+
+            // a scripted block lets the hit land
+            Charges(1);
+            var prop = typeof(ShipPowerController).GetProperty("CinematicClearActive");
+            prop.GetSetMethod(true).Invoke(null, new object[] { true });
+            var scripted = rig.Hit();
+            prop.GetSetMethod(true).Invoke(null, new object[] { false });
+            Check("scripted (cinematic) block: the hit lands, no charge spent", collisionDetection.lifeCounter == 1 && Boosters.ClearCharges == 1);
+            if (scripted != null) Object.DestroyImmediate(scripted);
+        }
+        finally
+        {
+            rig.Dispose();
+            Charges(0);
+            EndRun(s);
+        }
+
+        // tutorial / practice: the hit lands, nothing spent
+        PlayerPrefs.SetString("HasDoneTut", "false");
+        EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
+        s = MakeScore();
+        s.SendMessage("Awake");
+        s.SendMessage("Start");
+        Charges(3);
+        var prac = new Rig(3);
+        try
+        {
+            var h = prac.Hit();
+            Check("practice run: the hit lands (no automatic save), no charge spent", collisionDetection.lifeCounter == 1 && Boosters.ClearCharges == 3);
+            if (h != null) Object.DestroyImmediate(h);
+        }
+        finally
+        {
+            prac.Dispose();
+            Charges(0);
+            EndRun(s);
+            PlayerPrefs.SetString("HasDoneTut", "true");
+        }
+        string cd = System.IO.File.ReadAllText("Assets/Scripts/Ship/collisionDetection.cs");
+        Check("the hook sits in the one place a heart is lost (the hit branch of collisionDetection, before `fatal` is decided)",
+              cd.Contains("HazardClear.AutoSave(") && cd.IndexOf("HazardClear.AutoSave(", StringComparison.Ordinal) < cd.IndexOf("bool fatal =", StringComparison.Ordinal) &&
+              cd.Split(new[] { "lifeCounter += 1" }, StringSplitOptions.None).Length == 2);
     }
 }

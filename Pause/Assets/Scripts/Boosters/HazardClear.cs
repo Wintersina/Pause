@@ -1,7 +1,10 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-// The HAZARD CLEAR booster's effect: one charge wipes the hazards on screen, for no credit.
+// The HAZARD CLEAR booster's effect: AUTOMATIC. A held charge fires by itself when a hit would cost a heart
+// (collisionDetection, the one place a heart is lost): the hit is absorbed, the heart is kept, the charge is spent, the hazards on
+// screen are wiped for no credit, and the usual post-hit i-frames (PlayerInvuln) follow. The fatal hit is saved too. A hit that
+// costs no heart (shield, Hard Shell, Cloak, i-frames) never reaches this. There is no button: the game is one-finger.
 //
 // WHAT IT CLEARS (everything the view holds that can hurt the ship, bar the bosses' and elites' own bodies):
 //   * rocks and asteroids (tag Astr, Space's FieldAsteroid rocks without a split),
@@ -19,21 +22,19 @@ using UnityEngine;
 // one thin ring from the ship in the world's cue colour (WorldCue.Trace: pink only in Space). No outline, no new sprite.
 public static class HazardClear
 {
-    public const float CooldownSeconds = 1.5f;
     public const int MaxAudio = 3;
     public const int MaxBursts = 14;
 
-    public enum Block { None, NoCharge, NotInRun, Dead, Scripted, Cooldown }
+    public enum Block { None, NoCharge, NotInRun, Dead, Scripted }
 
     // Per run (tests, the death panel could read them).
     public static int UsedThisRun { get; private set; }
     public static int LastBodies { get; private set; }
     public static int LastShots { get; private set; }
-    static float lastFiredAt = -999f;
 
     static readonly List<ClearTarget> buffer = new List<ClearTarget>(48);
 
-    public static void BeginRun() { UsedThisRun = 0; LastBodies = LastShots = 0; lastFiredAt = -999f; }
+    public static void BeginRun() { UsedThisRun = 0; LastBodies = LastShots = 0; }
 
     public static Block BlockedBy()
     {
@@ -42,7 +43,6 @@ public static class HazardClear
         if (WorldEntry.Active || Liftoff.HoldsShip || Planetfall.HoldsShip || PortalArrival.HoldsShip || WorldTransition.InProgress ||
             BossEncounter.ScriptedEntrance || ShipPowerController.CinematicClearActive) return Block.Scripted;
         if (!Boosters.ClearAvailable) return Block.NoCharge;
-        if (Time.unscaledTime - lastFiredAt < CooldownSeconds) return Block.Cooldown;
         return Block.None;
     }
 
@@ -69,20 +69,15 @@ public static class HazardClear
         return into.Count;
     }
 
-    // Fires one clear from `from` (the ship). Spends a charge only if something was actually cleared. Returns true if it fired.
-    public static bool Fire(Vector3 from)
+    // A hit that would cost a heart calls this. True: the hit is absorbed (a charge was spent, the clear ran from `from`, the i-frames
+    // began) and the caller must lose no heart. False: blocked or no charge, the hit lands normally.
+    public static bool AutoSave(Vector3 from)
     {
         if (BlockedBy() != Block.None) return false;
-        lastFiredAt = Time.unscaledTime;
         Rect view = ShipTargets.View();
         int bodies = Collect(buffer);
-        int shots = HostileShots.ActiveCount;
-        if (bodies == 0 && shots == 0)
-        {
-            Word("NOTHING TO CLEAR", from, new Color(.8f, .85f, .9f, 1f));
-            return false;
-        }
         if (!Boosters.ConsumeClear()) return false;
+        PlayerInvuln.BeginPostHit();   // the same 2 s window a lost heart gives: the hazard that is still there cannot hit again
         UsedThisRun++;
         int world = Mathf.Max(0, WorldManager.CurrentIndex);
         int ship = ShipId.Equipped();

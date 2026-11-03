@@ -122,8 +122,7 @@ public class score : MonoBehaviour {
         // ... and so is a run's entry (WorldEntry: the portal arrival).
         if (PortalArrival.FreePress && TouchInput.IsPressed) pauseCounterBool = true;
 
-        // A tap on the run's CLEAR button is the button's, not a press of the world: it never starts the run or spends a pause.
-        if (TouchInput.IsPressed && !buttonClicks.playerDied && !HazardClearButton.PointerOnButton)
+        if (TouchInput.IsPressed && !buttonClicks.playerDied)
         {
             // Holding the first touch must behave exactly like a normal held
             // run without subtracting a pause. Once it is released, the next

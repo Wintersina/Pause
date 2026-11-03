@@ -328,6 +328,11 @@ public class collisionDetection : MonoBehaviour {
             // blow it up, or pay for it, twice.
             if (safe && ShipAttackHits.AlreadyHit(hit.gameObject)) return;
 
+            // HAZARD CLEAR (automatic): a hit that would cost a heart, the fatal one included, spends a held charge instead, keeps the
+            // heart and wipes the screen (HazardClear.AutoSave; it also starts the post-hit i-frames). Blocked in the tutorial and
+            // practice, when dead and in scripted entrances: then the hit lands below. This is the only place a heart is lost.
+            if (!safe && HazardClear.AutoSave(transform.position)) return;
+
             // creating different explotions for different enims
             // Under the boost shield (or Cloak) the player destroys the
             // mine, and the weapon explosion below covers it.

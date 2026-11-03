@@ -2,35 +2,25 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
-// The run's CLEAR control (the Hazard Clear booster, HazardClear). Built on gameS1 only (never the tutorial) and shown only while a
-// charge is held (or in developer mode): a pilot who owns none sees nothing, so the HUD is exactly as before.
+// The run's HAZARD CLEAR readout: how many automatic charges are held (HazardClear fires them by itself when a hit would cost a heart).
+// NOT a control: no Button, no GraphicRaycaster, every graphic has raycastTarget off, and movePlayer / score never ask about it, so a
+// finger on it is an ordinary press (teleport / resume). Built on gameS1 only (never the tutorial) and shown only while a charge is
+// held: a pilot who owns none sees nothing. Developer mode shows it only for real held charges too.
 //
 // PLACEMENT. Pinned to the right edge of the top band, directly UNDER the Replay/Home pair (PauseQuickActions.ScreenRectFor), one
-// ButtonSize square: the same size, scale and floor as those buttons (>= 44 pt / 48 dp), so it follows ScreenFit's tall phones, notches,
-// narrow lanes (the pair stands in a column and this drops below it) and tablets. It never overlaps the score board (left of the
-// band), the quick actions or the lane's play area at the bottom, where the pilot's thumb lives. RectFor is pure (BoostersTest checks
-// it on a spread of screens).
+// ButtonSize square, so it follows ScreenFit's tall phones, notches, narrow lanes and tablets. RectFor is pure (BoostersTest).
 //
-// LOOK. Pixel art, drawn here in code at 16 px with point filtering: a chamfered dark plate with no border, and a thin white burst glyph
-// tinted to the world's cue colour (HudSkin's world, WorldCue.Trace: pink only in Space). A small "x3" count sits at its corner.
-//
-// INPUT. A tap is the button's: movePlayer ignores a press on it (as for Replay/Home) and score.Update neither starts the run nor spends a
-// pause (PointerOnButton). It works while the world is frozen (finger lifted) and while it runs.
-public class HazardClearButton : MonoBehaviour
+// LOOK. Pixel art drawn in code at 16 px, point filtered: a chamfered dark plate with no border, a thin burst glyph in the world's cue
+// colour (pink only in Space), and a small "x3" at its corner.
+public class HazardClearReadout : MonoBehaviour
 {
     public const float Gap = 6f;                 // canvas units under the quick actions
-    public const string HostName = "~HazardClearButton";
+    public const string HostName = "~HazardClearReadout";
     public const int GlyphPx = 16;
 
-    static HazardClearButton live;
+    static HazardClearReadout live;
 
-    // Is the press at the pointer on the button? (Cheap: the callers only ask while a finger is down.)
-    public static bool PointerOnButton
-    {
-        get { return live != null && live.shown && live.screenRect.Contains(TouchInput.Position); }
-    }
-
-    // The button's screen-pixel rect (origin bottom-left) for a top band on `screen`.
+    // The readout's screen-pixel rect (origin bottom-left) for a top band on `screen`.
     public static Rect RectFor(TopBand.Frame band, Vector2 screen)
     {
         float s = PauseQuickActions.CanvasScaleFor(screen);
@@ -44,7 +34,6 @@ public class HazardClearButton : MonoBehaviour
     RectTransform root;
     Image plate, glyph;
     Text count;
-    Button button;
     CanvasGroup group;
     Rect screenRect;
     bool shown;
@@ -57,7 +46,7 @@ public class HazardClearButton : MonoBehaviour
 
     void Build()
     {
-        var holder = new GameObject("HazardClearCanvas", typeof(Canvas), typeof(CanvasScaler), typeof(GraphicRaycaster), typeof(CanvasGroup));
+        var holder = new GameObject("HazardClearCanvas", typeof(Canvas), typeof(CanvasScaler), typeof(CanvasGroup));
         holder.transform.SetParent(transform, false);
         var canvas = holder.GetComponent<Canvas>();
         canvas.renderMode = RenderMode.ScreenSpaceOverlay;
@@ -67,7 +56,7 @@ public class HazardClearButton : MonoBehaviour
         scaler.scaleFactor = 1f;
         group = holder.GetComponent<CanvasGroup>();
 
-        var go = new GameObject("ClearButton", typeof(RectTransform), typeof(Image), typeof(Button));
+        var go = new GameObject("ClearReadout", typeof(RectTransform), typeof(Image));
         go.transform.SetParent(holder.transform, false);
         root = (RectTransform)go.transform;
         root.anchorMin = root.anchorMax = Vector2.zero;
@@ -75,10 +64,9 @@ public class HazardClearButton : MonoBehaviour
         plate = go.GetComponent<Image>();
         plate.sprite = PlateSprite();
         plate.color = new Color(.04f, .05f, .1f, .6f);
-        button = go.GetComponent<Button>();
-        button.targetGraphic = plate;
-        button.transition = Selectable.Transition.None;
-        button.onClick.AddListener(OnTap);
+        plate.raycastTarget = false;
+        group.blocksRaycasts = false;
+        group.interactable = false;
 
         var g = new GameObject("Glyph", typeof(RectTransform), typeof(Image));
         g.transform.SetParent(go.transform, false);
@@ -155,19 +143,13 @@ public class HazardClearButton : MonoBehaviour
 
     static Texture2D NewTex()
     {
-        return new Texture2D(GlyphPx, GlyphPx, TextureFormat.RGBA32, false) { filterMode = FilterMode.Point, wrapMode = TextureWrapMode.Clamp, name = "~ClearButtonArt" };
-    }
-
-    void OnTap()
-    {
-        var ship = ShipSpawn.Live;
-        HazardClear.Fire(ship != null ? ship.transform.position : Vector3.zero);
+        return new Texture2D(GlyphPx, GlyphPx, TextureFormat.RGBA32, false) { filterMode = FilterMode.Point, wrapMode = TextureWrapMode.Clamp, name = "~ClearReadoutArt" };
     }
 
     void Update()
     {
-        bool want = Boosters.ClearAvailable && HazardClear.BlockedBy() != HazardClear.Block.NotInRun &&
-                    HazardClear.BlockedBy() != HazardClear.Block.Dead;
+        var state = HazardClear.BlockedBy();
+        bool want = Boosters.ClearAvailable && state != HazardClear.Block.NotInRun && state != HazardClear.Block.Dead;
         if (want && root == null) Build();
         if (root == null) return;
         if (want != shown) { shown = want; root.gameObject.SetActive(want); }
@@ -184,9 +166,8 @@ public class HazardClearButton : MonoBehaviour
             glyph.color = WorldCue.Trace(world);
             count.color = WorldCue.Trace(world);
         }
-        var block = HazardClear.BlockedBy();
-        group.alpha = block == HazardClear.Block.None ? 1f : .45f;
-        count.text = DeveloperUnlocks.Enabled ? "DEV" : "x" + Boosters.ClearCharges;
+        group.alpha = state == HazardClear.Block.None ? 1f : .45f;
+        count.text = "x" + Boosters.ClearCharges;
     }
 
     void Place()
@@ -201,7 +182,7 @@ public class HazardClearButton : MonoBehaviour
 }
 
 // Builds the button when the run scene loads.
-public static class HazardClearButtonBootstrap
+public static class HazardClearReadoutBootstrap
 {
     [RuntimeInitializeOnLoadMethod]
     static void Init()
@@ -213,7 +194,7 @@ public static class HazardClearButtonBootstrap
     static void OnLoaded(Scene scene, LoadSceneMode mode)
     {
         if (scene.name != "gameS1") return;
-        if (GameObject.Find(HazardClearButton.HostName) != null) return;
-        new GameObject(HazardClearButton.HostName).AddComponent<HazardClearButton>();
+        if (GameObject.Find(HazardClearReadout.HostName) != null) return;
+        new GameObject(HazardClearReadout.HostName).AddComponent<HazardClearReadout>();
     }
 }
