@@ -23,6 +23,7 @@ All code is in `Pause/Assets/Scripts/Core/Leaderboards/`, and the panel is in `S
 | `LeaderboardBoards` | **The board table**: logical id, Android id, iOS id, name, description, sort order, formatter and run metric. |
 | `LeaderboardService` | The submission pipeline, the loading done for the panel, and native UI. `Instance` can be swapped out in tests. |
 | `LeaderboardRunTracker` | Added at runtime when `gameS1` loads. It tracks the run score (`RunScore.Total`), star dust, the worlds cleared (`RunScore.Parts.worldCount`) and the pauses left (`score.pauseCounter`), and calls `SubmitRun` when the run ends. No gameplay script or scene references it. |
+| Power-Ups board | See "Power-Ups board" below: boosted runs only, ranked by score, columns in the tag. |
 | `LeaderboardPanel` | The in-game panel, opened by Options → LeaderBoard (`leaderboard.pull_up_leaderboard`). It's built at runtime on its own overlay canvas, so `leaderboardS3.unity` is unchanged. |
 
 Sign-in still belongs to `CloudSync`/`IPlayerAccount`. The interactive sign-in is `AccountLink.SignIn`
@@ -41,6 +42,7 @@ The table order is the panel's tab order: **Top Score** is the primary board and
 | ~~`top_speed`~~ | ~~Top Speed~~ | (retired) | (retired) | | | **retired** (2026-10, the speed cap): not in the table, `LeaderboardBoards.RetiredSpeedBoard` only names it so old queues drop it |
 | `run_star_dust` | Star Dust | `CgkIopqxqbAPEAIQPw` | empty (proposed `me.hapticgate.pause.run_star_dust`) | higher is better | hundredths shown with 2 decimals | enabled on Android; off on iOS until its Game Center id is filled in |
 | `furthest_world` | **Worlds** (logical id kept; was "Furthest Loop") | `CgkIopqxqbAPEAIQQA` (**upper limit must be raised**, see "Worlds cleared") | empty (proposed `me.hapticgate.pause.furthest_world`) | higher is better | `LOOP L · WORLDS N` | enabled on Android; off on iOS until its Game Center id is filled in |
+| `boosted_runs` | **Boosted** (Power-Ups board) | empty (to create, see "Power-Ups board") | empty (Game Center cannot carry the columns) | higher is better | integer with thousands separators (`RunScore.Total`) | **off** until the Play Console id is filled in |
 
 **Worlds cleared (value and label).** The submitted number is the TOTAL worlds the run cleared, across loops (one loop = the 7-world cycle).
 A world is *cleared* when its portal / planetfall / the last world's lift-off is flown, the same event that pays the world-cleared points
@@ -67,6 +69,7 @@ iOS only its Game Center id. A board with no id on the running platform gets no 
 
 ### Submission rules
 
+* **Which boards:** a boosted run feeds only the Power-Ups board, any other run only the other boards (see "Power-Ups board").
 * **When:** at run end. That covers death, and also leaving a run early (Menu/Replay/Back) or
   backgrounding the app, but in those cases only when the run beat the local best score
   (`BestScore`). (The best speed and the old `leaderboard_highest_speed_reached`
@@ -107,6 +110,36 @@ retry), unavailable (no store on this device), no boards configured, and populat
 top 10, a "your rank" row that appears even outside the top 10 (Kaneda red), and **VIEW ALL**, which
 opens the store's own screen. The panel follows `docs/art-style.md`: flat chamfered cel plates,
 `INK` contours, one hard offset shadow, the red title slab, and Orbitron with an ink stroke.
+
+## Power-Ups board
+
+A fourth board, **Boosted** (logical id `boosted_runs`; this page calls it the Power-Ups board), holds the runs that used a paid **booster**. It is the other half of an exclusive split:
+
+* A run that used a booster is submitted **only** to Power-Ups. Any other run is submitted **only** to Top Score, Star Dust and Worlds. Paragon stays on no board, including this one.
+* "Booster" means the two Shop boosters (`Boosters.cs`): **Dust x2** and **Hazard Clear**. Ship powers, ultimates, in-run pickups and the double-dust ad are not boosters.
+* A run counts as boosted when Dust x2 was active on at least one unfrozen frame of real flight (`Boosters.RunDustUsed`, set in `Boosters.Tick`, so it stays set when the time runs out mid-run), or when a Hazard Clear charge fired (`HazardClear.UsedThisRun > 0`). Owning booster time or a held charge does not count. `LeaderboardRunTracker` latches the bits for the run (`powerUps`: 1 = Dust x2, 2 = Clear) at every sample, so they cannot reset mid-run.
+* Routing lives in `LeaderboardService.SubmitRun`: `board.poweredUpOnly != run.PoweredUp` skips the board. The live "NEW RECORD" popup (`NewRecordTracker.Poll`) applies the same split.
+* **No store id yet, so nothing is sent:** `LeaderboardBoards` keeps both ids empty. A board with an empty id is not Usable, so a boosted run on such a build submits nowhere and does **not** fall back to the normal boards (tested). The tab appears once the Android id is pasted in.
+
+**Ranking and columns.** Ranked by run score (`RunScore.Total`), higher is better. Play Games keeps one sort value per board, so the row's other columns ride in the score tag (`LeaderboardRunTag`): `s<ship>h<hearts>e<end>p<pauses>k<skin>` as before, then `d<star dust in hundredths>w<worlds cleared>u<bits>`, e.g. `s7h4e2p3k2d123456w12u3`. The columns therefore show the stats of the player's **best-scoring powered-up run**, not separate bests for dust and worlds. Star dust is everything the run earned, booster doubling included (the Star Dust board still ranks dust without the booster's share). Longest tag an in-range run writes: 32 characters (dust clamps at 999,999,999 hundredths, worlds at 9999); the widest string the parser accepts is 42; the Play Games limit is 64 (`PowerUpsLeaderboardTest` pins both). Old tags keep parsing (no columns), a reader that predates the fields skips them, and the other boards' tags are unchanged (no `d`, `w`, `u`).
+
+**Panel.** A last tab, **Boosted**. Rows show rank, ship, name, `DUST n` over `WORLDS n` (dust reads 999, 1.2K, 12K, 1M; worlds stop at 99), the score (column narrowed to 150 units) and, under it, the power-ups used (`DUST x2`, `CLEAR` or `BOTH`). The hearts and pauses badges are dropped on this tab: there is no room beside the extra columns at the narrowest phone (the tab name is short for the same reason). A row with no tag data shows only rank, name and score. Type is 16 units or more, tabs keep their 100-unit tap target, and the screen-fit sheets cover the tab on every test device.
+
+**Local bests, one per route.** `RunScore.SavedBest` banks every ranked run, boosted or not (score rules are unchanged), so the tracker does not use it for leaderboard decisions. `LeaderboardService.LocalBest(false)` (normal, key `leaderboards_bestNormal`, seeded once from the saved best before any boosted run can raise it) and `LocalBest(true)` (key `leaderboards_bestBoosted`, starts at 0) are device-local. A run left early (Menu, Replay, Back, backgrounded) is submitted only when it beats **its own route's** best, so a boosted score never raises the bar for normal runs and a normal best never blocks a boosted run. Death always offers, and the service keeps only improvements. The one-time backfill on account bind offers the normal best to Top Score, never the saved best. A run backgrounded before its first booster is used queues its pre-booster score on the normal boards (an honest unboosted score); once a booster is used, the run's final score goes only to Power-Ups.
+
+*Limits.* After a reinstall, with only the cloud save restored, the normal best is read from `RunScore.SavedBest` (the key is device-local), which could include a boosted score from another device until the first normal run seeds it. Game Center cannot store the columns (see iOS todo in the tracker, section 7): rows of other players are blank there and the player's own row is filled from the device record. The board has no iOS id and stays off on iOS.
+
+### Play Console: create the Power-Ups board
+
+Play Console, Pause, Play Games Services, Setup and management, Leaderboards, **Add leaderboard**:
+
+* **Name:** Boosted (the game shows its own name on the tab; keep it short, four tabs share 126 units each on the narrowest phone)
+* **Description:** Best score in a run that used Dust x2 or Hazard Clear.
+* **Ordering:** Larger is better
+* **Score format:** Numeric, 0 decimal places
+* **Limits:** lower 1, upper 1000000 (same as Top Score; the game never offers 0)
+* **Tamper protection:** On
+* Save, **Get resources**, paste the id into the Android id of the `BoostedRuns` row in `LeaderboardBoards.cs`, run `AllTests.RunAll`, and publish the Play Games changes.
 
 ## Start ship, start hearts and the premium ship
 

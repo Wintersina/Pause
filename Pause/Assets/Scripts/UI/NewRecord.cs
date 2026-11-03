@@ -52,6 +52,8 @@ public sealed class NewRecordTracker
         for (int i = 0; i < entries.Count; i++)
         {
             var e = entries[i];
+            // Routing: a run that used a booster only chases the Power-Ups board, any other run only the normal boards.
+            if (e.board.poweredUpOnly != run.PoweredUp) continue;
             if (e.crossed || !e.board.IsBetter(e.board.Measure(run), e.best)) continue;
             e.crossed = true;
             entries[i] = e;
@@ -67,7 +69,8 @@ public sealed class NewRecordTracker
 
     static LeaderboardRunStats DefaultLive()
     {
-        return new LeaderboardRunStats { score = RunScore.Total, starDust = Boosters.RankedDust(StarDustLedger.Earned), worldsCleared = RunScore.Parts.worldCount };
+        return new LeaderboardRunStats { score = RunScore.Total, starDust = Boosters.RankedDust(StarDustLedger.Earned), worldsCleared = RunScore.Parts.worldCount,
+            powerUps = (Boosters.RunDustUsed ? LeaderboardRunTag.PowerDust : 0) | (HazardClear.UsedThisRun > 0 ? LeaderboardRunTag.PowerClear : 0) };
     }
 
     public static bool StoredBest(LeaderboardBoard board, out long best)
@@ -110,6 +113,7 @@ public class NewRecordPopup : MonoBehaviour
             case LeaderboardBoards.TopScore: return "NEW HIGH SCORE!";
             case LeaderboardBoards.RunStarDust: return "NEW STAR DUST RECORD!";
             case LeaderboardBoards.FurthestWorld: return "NEW WORLDS RECORD!";
+            case LeaderboardBoards.BoostedRuns: return "NEW BOOSTED RECORD!";
             default: return Generic;
         }
     }

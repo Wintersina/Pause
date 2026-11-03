@@ -223,6 +223,7 @@ public static class AllTests
         ("LaunchCountdownTest", LaunchCountdownTest.Execute),
         ("StartGlideTest", StartGlideTest.Execute),
         ("LeaderboardTest", LeaderboardTest.Execute),
+        ("PowerUpsLeaderboardTest", PowerUpsLeaderboardTest.Execute),
         ("LiftoffTest", LiftoffTest.Execute),
         ("LoopTest", LoopTest.Execute),
         ("MissingScriptsTest", MissingScriptsTest.Execute),

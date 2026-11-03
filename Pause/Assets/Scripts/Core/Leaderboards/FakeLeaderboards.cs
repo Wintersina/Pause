@@ -45,12 +45,12 @@ public sealed class FakeLeaderboards : ILeaderboardPlatform
     {
         Submissions.Add(new Submission { board = boardId, score = score, tag = tag ?? "" });
         bool ok = IsSignedIn && SubmitSucceeds;
-        if (ok && !SilentlyRejects) Record(boardId, score);
+        if (ok && !SilentlyRejects) Record(boardId, score, tag);
         if (done != null) done(ok);
     }
 
     // The store keeps the player's best only.
-    void Record(string boardId, long score)
+    void Record(string boardId, long score, string tag)
     {
         List<LeaderboardEntry> list;
         if (!Boards.TryGetValue(boardId, out list)) Boards[boardId] = list = new List<LeaderboardEntry>();
@@ -61,10 +61,23 @@ public sealed class FakeLeaderboards : ILeaderboardPlatform
         {
             if (!list[i].isLocalPlayer && list[i].playerId != LocalPlayerId) continue;
             var e = list[i];
-            if (lower ? score < e.value : score > e.value) { e.value = score; list[i] = e; }
+            if (lower ? score < e.value : score > e.value) { e = WithTag(e, tag); e.value = score; list[i] = e; }
             return;
         }
-        list.Add(Entry(list.Count + 1, LocalPlayerName, score, true));
+        list.Add(WithTag(Entry(list.Count + 1, LocalPlayerName, score, true), tag));
+    }
+
+    // Like Play Games: the row's columns come from the score's tag.
+    static LeaderboardEntry WithTag(LeaderboardEntry e, string tag)
+    {
+        int ship, hearts, end, pauses, skin, worlds, powerUps;
+        long dust;
+        if (!LeaderboardRunTag.TryParse(tag, out ship, out hearts, out end, out pauses, out skin, out dust, out worlds, out powerUps) || dust < 0 || worlds < 0) return e;   // only the Power-Ups board's tags (the others stay blank, like Game Center)
+        e.startShip = ship; e.startHearts = hearts; e.startSkin = skin;
+        e.hasEnd = end >= 0; e.endHearts = Mathf.Max(end, 0);
+        e.hasPauses = pauses >= 0; e.pauses = Mathf.Max(pauses, 0);
+        e.hasRunStats = dust >= 0 && worlds >= 0; e.starDustHundredths = dust; e.worlds = worlds; e.powerUps = powerUps;
+        return e;
     }
 
     public int SubmissionsTo(string boardId)
@@ -140,13 +153,15 @@ public sealed class FakeLeaderboards : ILeaderboardPlatform
         NativeUICalls.Add(boardId);
     }
 
-    public static LeaderboardEntry Entry(int rank, string name, long value, bool local = false, int ship = 0, int hearts = 0, int endHearts = -1, int pauses = -1, int skin = 0)
+    public static LeaderboardEntry Entry(int rank, string name, long value, bool local = false, int ship = 0, int hearts = 0, int endHearts = -1, int pauses = -1, int skin = 0,
+                                       long dustHundredths = -1, int worlds = -1, int powerUps = 0)
     {
         return new LeaderboardEntry
         {
             startShip = ship, startHearts = hearts, startSkin = skin,
             hasEnd = endHearts >= 0, endHearts = Mathf.Max(endHearts, 0),
             hasPauses = pauses >= 0, pauses = Mathf.Max(pauses, 0),
+            hasRunStats = dustHundredths >= 0 && worlds >= 0, starDustHundredths = dustHundredths, worlds = worlds, powerUps = powerUps,
             rank = rank, playerId = local ? "local" : "p" + rank, playerName = name,
             value = value, isLocalPlayer = local,
         };

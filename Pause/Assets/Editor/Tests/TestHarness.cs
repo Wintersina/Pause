@@ -517,6 +517,12 @@ public static class TestHarness
         // Leaderboard queue (device-local).
         keys.Add(LeaderboardService.PendingKey);
         keys.Add(LeaderboardService.SubmittedKey);
+        keys.Add(LeaderboardService.NormalBestKey);
+        keys.Add(LeaderboardService.BoostedBestKey);
+        keys.Add(Boosters.DustBoughtKey);
+        keys.Add(Boosters.DustUsedMsKey);
+        keys.Add(Boosters.ClearBoughtKey);
+        keys.Add(Boosters.ClearUsedKey);
 
         // DeveloperUnlocks keeps its own backup copies of the progress keys.
         var backed = new List<string>
