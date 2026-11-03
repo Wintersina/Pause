@@ -50,6 +50,8 @@ public class playerIsDead : MonoBehaviour
         // below (and the dust written) include it.
         float scoreBonus = score.SettleCurrentRun();
         SaveDustForResults();
+        AdManager.OnRunEnd(true);       // ads: loads are allowed again; the rewarded flag resets for this death
+        AdManager.OnDeathPanel();
 
         var results = new DeathPanelView.Results
         {

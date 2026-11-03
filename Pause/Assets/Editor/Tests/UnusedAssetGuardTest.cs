@@ -194,7 +194,7 @@ public static class UnusedAssetGuardTest
     // EliteArtSync).
     static readonly string[] ExemptPrefixes =
     {
-        "Assets/Plugins/", "Assets/GooglePlayGames/", "Assets/ExternalDependencyManager/",
+        "Assets/Plugins/", "Assets/GooglePlayGames/", "Assets/ExternalDependencyManager/", "Assets/GoogleMobileAds/",
         "Assets/Art/AppIcon/", "Assets/Art/Enemies/Elite/",
     };
 

@@ -1,0 +1,412 @@
+using System;
+using UnityEditor;
+using UnityEngine;
+
+// Ads: the master switch (default off, iOS gate), AdPolicy (every forced-ad rule), the double dust
+// rules, and AdController on a stub provider (boot, consent, preload, interstitial, rewarded, timeouts,
+// failures, exactly-once). No SDK, no network.
+public static class AdsTest
+{
+    static int failures;
+
+    static void Check(string label, bool condition)
+    {
+        if (!condition) failures++;
+        Debug.Log("[ADS] " + (condition ? "PASS " : "FAIL ") + label);
+    }
+
+    public static void Run() { TestHarness.Exit(Execute()); }
+
+    class FakeEnv : IAdEnvironment
+    {
+        public int suspends, resumes;
+        public void Suspend() { suspends++; }
+        public void Resume() { resumes++; }
+    }
+
+    class FakeStore : IRewardStore
+    {
+        public long paid; public int pays; public float total;
+        public long LastPaidToken { get { return paid; } }
+        public void Pay(long token, float amount) { paid = token; pays++; total += amount; }
+    }
+
+    class Rig
+    {
+        public StubAdProvider provider = new StubAdProvider();
+        public FakeEnv env = new FakeEnv();
+        public FakeStore store = new FakeStore();
+        public float now = 100f;
+        public bool enabled = true;
+        public AdController controller;
+        public Rig(IAdProvider p = null)
+        {
+            if (p != null) provider = (StubAdProvider)p;
+            controller = new AdController(provider, () => now, () => enabled, env, store);
+        }
+        public void BootReady() { controller.Boot(); controller.Tick(); }
+    }
+
+    static AdPolicy.Inputs Good()
+    {
+        return new AdPolicy.Inputs
+        {
+            removeAdsOwned = false, paragonOwned = false, playSeconds = AdPolicy.AdFreePlaySeconds + 1f,
+            boosterActive = false, secondsSinceLastAd = float.MaxValue, runSeconds = AdPolicy.MinRunSecondsForAd + 1f,
+            watchedRewardedAtDeath = false, tutorialOrPractice = false,
+        };
+    }
+
+    public static int Execute()
+    {
+        failures = 0;
+        using var sandbox = new TestHarness.Sandbox();
+        PlayerPrefs.DeleteKey(DeveloperUnlocks.EnabledKey);
+        var savedBooster = AdPolicy.BoosterActiveCheck;
+        float savedScale = Time.timeScale;
+        try
+        {
+            Config();
+            Policy();
+            DoubleDust();
+            Controller();
+            Environment();
+            BuildSync();
+            ManifestGuard();
+        }
+        finally
+        {
+            AdPolicy.BoosterActiveCheck = savedBooster;
+            Time.timeScale = savedScale;
+            AdManager.Reset();
+        }
+        return failures;
+    }
+
+    static void Config()
+    {
+        Check("MASTER SWITCH: AdsConfig.MasterSwitch defaults to false", AdsConfig.MasterSwitch == false);
+        Check("MASTER SWITCH: AdsConfig.Enabled is false by default", AdsConfig.Enabled == false);
+        Check("EnabledOnIos defaults to false (no StoreKit yet)", AdsConfig.EnabledOnIos == false);
+        Check("resolve: off stays off", !AdsConfig.Resolve(false, false, false, false) && !AdsConfig.Resolve(false, true, true, false));
+        Check("resolve: master on, Android", AdsConfig.Resolve(true, false, false, false));
+        Check("resolve: master on, iOS gate closed -> no ads", !AdsConfig.Resolve(true, false, true, false));
+        Check("resolve: master on, iOS gate open", AdsConfig.Resolve(true, true, true, false));
+        Check("resolve: developer mode forces on", AdsConfig.Resolve(false, false, false, true) && AdsConfig.Resolve(false, false, true, true));
+        Check("App IDs have the ~ form, ad units the / form",
+            AdsConfig.AndroidAppId.Contains("~") && AdsConfig.IosAppId.Contains("~") && AdsConfig.TestAndroidAppId.Contains("~") && AdsConfig.TestIosAppId.Contains("~")
+            && AdsConfig.AndroidInterstitialUnit.Contains("/") && AdsConfig.AndroidRewardedUnit.Contains("/")
+            && AdsConfig.IosInterstitialUnit.Contains("/") && AdsConfig.IosRewardedUnit.Contains("/"));
+        Check("real IDs are the publisher's, not Google's",
+            AdsConfig.AndroidAppId.StartsWith("ca-app-pub-4397064133944218~") && AdsConfig.IosRewardedUnit.StartsWith("ca-app-pub-4397064133944218/")
+            && !AdsConfig.AndroidInterstitialUnit.StartsWith(AdsConfig.TestPublisher) && !AdsConfig.IosInterstitialUnit.StartsWith(AdsConfig.TestPublisher));
+        Check("test IDs are Google's", AdsConfig.TestAndroidAppId.StartsWith(AdsConfig.TestPublisher) && AdsConfig.TestAndroidInterstitialUnit.StartsWith(AdsConfig.TestPublisher)
+            && AdsConfig.TestAndroidRewardedUnit.StartsWith(AdsConfig.TestPublisher) && AdsConfig.TestIosAppId.StartsWith(AdsConfig.TestPublisher)
+            && AdsConfig.TestIosInterstitialUnit.StartsWith(AdsConfig.TestPublisher) && AdsConfig.TestIosRewardedUnit.StartsWith(AdsConfig.TestPublisher));
+        Check("unit choice: developer mode gets the test unit, release the real one",
+            AdsConfig.Pick(true, AdsConfig.AndroidInterstitialUnit, AdsConfig.TestAndroidInterstitialUnit) == AdsConfig.TestAndroidInterstitialUnit
+            && AdsConfig.Pick(false, AdsConfig.AndroidInterstitialUnit, AdsConfig.TestAndroidInterstitialUnit) == AdsConfig.AndroidInterstitialUnit);
+        Check("App ID choice: dev builds carry the test App ID, release the real one",
+            AdsConfig.AppIdFor(false, true) == AdsConfig.TestAndroidAppId && AdsConfig.AppIdFor(true, true) == AdsConfig.TestIosAppId
+            && AdsConfig.AppIdFor(false, false) == AdsConfig.AndroidAppId && AdsConfig.AppIdFor(true, false) == AdsConfig.IosAppId);
+        Check("outside developer mode the live units are the real ones (not test)", !AdsConfig.UsingTestIds && !AdsConfig.InterstitialUnit.StartsWith(AdsConfig.TestPublisher));
+        PlayerPrefs.SetInt(DeveloperUnlocks.EnabledKey, 1);
+        Check("in developer mode the live units are Google's test units", AdsConfig.UsingTestIds && AdsConfig.RewardedUnit.StartsWith(AdsConfig.TestPublisher));
+        PlayerPrefs.DeleteKey(DeveloperUnlocks.EnabledKey);
+        Check("tracking text is set", !string.IsNullOrEmpty(AdsConfig.TrackingUsageDescription));
+        // The live switch off means the manager never builds a controller.
+        AdManager.Reset();
+        Check("manager does not boot while ads are off", !AdManager.EnsureBooted() && AdManager.Controller == null);
+        Check("manager hooks are inert while ads are off", !AdManager.TryShowBeforeReplay(() => { }) && !AdManager.RewardedReady && !AdManager.PrivacyOptionsRequired);
+    }
+
+    static void Policy()
+    {
+        Check("policy numbers", AdPolicy.AdFreePlaySeconds == 3600f && AdPolicy.MinSecondsBetweenAds == 180f && AdPolicy.MinRunSecondsForAd == 45f);
+        Check("policy defaults: Paragon removes ads, Remove Ads owners keep the double dust offer",
+            AdPolicy.ParagonRemovesAds && AdPolicy.RemoveAdsOwnersSeeDoubleDust);
+        Check("all clear -> allowed", AdPolicy.ForcedAd(Good()) == AdPolicy.Reason.Allowed && AdPolicy.MayShowForcedAd(Good()));
+
+        var i = Good(); i.removeAdsOwned = true;
+        Check("Remove Ads owner: none", AdPolicy.ForcedAd(i) == AdPolicy.Reason.RemoveAdsOwned);
+        i = Good(); i.paragonOwned = true;
+        Check("Paragon owner: none", AdPolicy.ForcedAd(i) == AdPolicy.Reason.ParagonOwned);
+        i = Good(); i.playSeconds = AdPolicy.AdFreePlaySeconds - 0.5f;
+        Check("under one hour: none", AdPolicy.ForcedAd(i) == AdPolicy.Reason.UnderPlayTime);
+        i.playSeconds = AdPolicy.AdFreePlaySeconds;
+        Check("exactly one hour: allowed", AdPolicy.ForcedAd(i) == AdPolicy.Reason.Allowed);
+        i = Good(); i.boosterActive = true;
+        Check("booster active: none", AdPolicy.ForcedAd(i) == AdPolicy.Reason.BoosterActive);
+        i = Good(); i.secondsSinceLastAd = AdPolicy.MinSecondsBetweenAds - 1f;
+        Check("under 3 min since the last ad: none", AdPolicy.ForcedAd(i) == AdPolicy.Reason.TooSoonAfterAd);
+        i.secondsSinceLastAd = AdPolicy.MinSecondsBetweenAds;
+        Check("exactly 3 min since the last ad: allowed", AdPolicy.ForcedAd(i) == AdPolicy.Reason.Allowed);
+        i = Good(); i.runSeconds = AdPolicy.MinRunSecondsForAd - 1f;
+        Check("run shorter than 45 s: none", AdPolicy.ForcedAd(i) == AdPolicy.Reason.RunTooShort);
+        i.runSeconds = AdPolicy.MinRunSecondsForAd;
+        Check("run of exactly 45 s: allowed", AdPolicy.ForcedAd(i) == AdPolicy.Reason.Allowed);
+        i = Good(); i.watchedRewardedAtDeath = true;
+        Check("watched the rewarded ad at this death: none", AdPolicy.ForcedAd(i) == AdPolicy.Reason.WatchedRewardedAtDeath);
+        i = Good(); i.tutorialOrPractice = true;
+        Check("tutorial or practice: none", AdPolicy.ForcedAd(i) == AdPolicy.Reason.TutorialOrPractice);
+        i = new AdPolicy.Inputs { removeAdsOwned = true, paragonOwned = true, boosterActive = true, tutorialOrPractice = true, watchedRewardedAtDeath = true };
+        Check("a fresh default (zeroed) input set never allows", !AdPolicy.MayShowForcedAd(new AdPolicy.Inputs()));
+        Check("several reasons: the first in order wins", AdPolicy.ForcedAd(i) == AdPolicy.Reason.RemoveAdsOwned);
+
+        Check("booster hook defaults to no booster", AdPolicy.BoosterActiveCheck != null && !AdPolicy.BoosterActive);
+        AdPolicy.BoosterActiveCheck = () => true;
+        Check("booster hook is honoured", AdPolicy.BoosterActive);
+        AdPolicy.BoosterActiveCheck = () => { throw new Exception("x"); };
+        Check("a throwing booster hook counts as none", !AdPolicy.BoosterActive);
+        AdPolicy.BoosterActiveCheck = null;
+        Check("a null booster hook counts as none", !AdPolicy.BoosterActive);
+        AdPolicy.BoosterActiveCheck = () => false;
+
+        Check("double dust: offered to a normal player", AdPolicy.DoubleDustOffered(false, false, 3f));
+        Check("double dust: Remove Ads owners still see it (default)", AdPolicy.DoubleDustOffered(true, false, 3f));
+        Check("double dust: not in the tutorial or practice", !AdPolicy.DoubleDustOffered(false, true, 3f));
+        Check("double dust: nothing earned, nothing to double", !AdPolicy.DoubleDustOffered(false, false, 0f));
+    }
+
+    static void DoubleDust()
+    {
+        Check("bonus is a copy of what the run earned", Mathf.Approximately(DoubleDustRules.Bonus(12.345f), 12.35f) || Mathf.Approximately(DoubleDustRules.Bonus(12.345f), 12.34f));
+        Check("bonus of nothing, negative or non-finite is 0", DoubleDustRules.Bonus(0f) == 0f && DoubleDustRules.Bonus(-4f) == 0f
+            && DoubleDustRules.Bonus(float.NaN) == 0f && DoubleDustRules.Bonus(float.PositiveInfinity) == 0f);
+        Check("a new death can claim", DoubleDustRules.CanClaim(500L, 0L) && DoubleDustRules.CanClaim(501L, 500L));
+        Check("the paid death cannot claim again, nor an older one", !DoubleDustRules.CanClaim(500L, 500L) && !DoubleDustRules.CanClaim(499L, 500L));
+        Check("a zero token cannot claim", !DoubleDustRules.CanClaim(0L, 0L));
+        Check("tokens only go up, whatever the clock does", DoubleDustRules.NextToken(0L, 0L) == 1L && DoubleDustRules.NextToken(5L, 3L) == 6L && DoubleDustRules.NextToken(3L, 5L) == 6L);
+        PlayerPrefs.DeleteKey(DoubleDustRules.DeathCounterKey);
+        PlayerPrefs.SetString(DoubleDustRules.PaidTokenKey, "10");
+        long t1 = PrefsRewardStore.NewDeathToken(), t2 = PrefsRewardStore.NewDeathToken();
+        Check("stored death tokens are increasing and newer than the last paid death", t1 == 11L && t2 == 12L && DoubleDustRules.CanClaim(t1, 10L));
+        Check("a paid death never blocks the next one", DoubleDustRules.CanClaim(PrefsRewardStore.NewDeathToken(), t2));
+
+        // The prefs store credits dust and records the token together.
+        PlayerPrefs.SetFloat(StarDustLedger.CurrencyKey, 10f);
+        PlayerPrefs.DeleteKey(DoubleDustRules.PaidTokenKey);
+        var store = new PrefsRewardStore();
+        Check("store starts unpaid", store.LastPaidToken == 0L);
+        store.Pay(777L, 2.5f);
+        Check("store credits the dust and remembers the death", Mathf.Approximately(PlayerPrefs.GetFloat(StarDustLedger.CurrencyKey), 12.5f) && store.LastPaidToken == 777L);
+    }
+
+    static void Controller()
+    {
+        // ---- disabled: nothing is touched ----
+        var r = new Rig { enabled = false };
+        r.controller.Boot(); r.controller.Tick(); r.controller.OnRunEnd(true);
+        Check("disabled: no consent, init or load", r.provider.consentCalls == 0 && r.provider.initCalls == 0 && r.provider.interstitialLoads == 0 && r.provider.rewardedLoads == 0);
+        r.provider.interstitialReady = true; r.provider.rewardedReady = true;
+        bool proceeded = false;
+        Check("disabled: no interstitial, no rewarded, not initialised",
+            !r.controller.TryShowInterstitial(Good(), () => proceeded = true) && !r.controller.TryShowRewarded(1L, 5f, null, null)
+            && !r.controller.Initialised && !r.controller.InterstitialReady && !r.controller.RewardedReady && r.provider.interstitialShows == 0);
+
+        // ---- boot: consent -> tracking -> init -> loads ----
+        r = new Rig();
+        r.controller.Boot();
+        Check("boot runs consent, then tracking, then init, in order", r.provider.consentCalls == 1 && r.provider.trackingCalls == 1 && r.provider.initCalls == 1 && r.controller.Initialised);
+        Check("no load before the first tick", r.provider.interstitialLoads == 0);
+        r.controller.OnRunStart();
+        r.controller.Tick();
+        Check("no load request while a run is on", r.provider.interstitialLoads == 0 && r.provider.rewardedLoads == 0);
+        r.controller.OnRunEnd(true);
+        r.controller.Tick();
+        Check("loads after the run ends", r.provider.interstitialLoads == 1 && r.provider.rewardedLoads == 1 && r.controller.InterstitialReady && r.controller.RewardedReady);
+        r.controller.Tick();
+        Check("no reload while an ad is loaded", r.provider.interstitialLoads == 1);
+
+        // ---- consent denied / slow ----
+        r = new Rig(); r.provider.canRequestAds = false;
+        r.controller.Boot(); r.controller.Tick();
+        Check("no consent: the SDK is never initialised, nothing loads", r.provider.initCalls == 0 && r.provider.interstitialLoads == 0 && !r.controller.Initialised);
+        r = new Rig(); r.provider.autoCompleteCallbacks = false;
+        r.controller.Boot();
+        r.now += AdController.ConsentTimeoutSeconds + 1f; r.controller.Tick();
+        r.provider.pendingConsent(true);
+        Check("consent that never answers times out, a late answer is ignored", r.provider.initCalls == 0 && !r.controller.Initialised);
+
+        // ---- the player reading the consent form is not a timeout ----
+        r = new Rig(); r.provider.autoCompleteCallbacks = false; r.provider.consentFormShowing = true;
+        r.controller.Boot();
+        r.now += AdController.ConsentTimeoutSeconds * 4f; r.controller.Tick();
+        r.now += AdController.ConsentTimeoutSeconds * 4f; r.controller.Tick();
+        r.provider.consentFormShowing = false;
+        r.provider.pendingConsent(true);
+        r.provider.autoCompleteCallbacks = true; r.provider.pendingInit();
+        Check("consent form on screen for minutes: still waiting, and consenting initialises ads", r.provider.initCalls == 1 && r.controller.Initialised);
+        r = new Rig(); r.provider.autoCompleteCallbacks = false; r.provider.consentFormShowing = true;
+        r.controller.Boot(); r.controller.Tick();
+        r.provider.consentFormShowing = false;
+        r.now += AdController.ConsentTimeoutSeconds - 1f; r.controller.Tick();
+        Check("the timeout clock restarts when the form closes", r.provider.pendingConsent != null && !r.controller.Initialised);
+        r.now += 2f; r.controller.Tick(); r.provider.pendingConsent(true);
+        Check("a form load that then hangs still times out", r.provider.initCalls == 0);
+        r = new Rig(); r.provider.canRequestAds = false; r.provider.consentFormShowing = true;
+        r.controller.Boot(); r.controller.Tick();
+        Check("declining consent keeps ads blocked", r.provider.initCalls == 0 && !r.controller.Initialised);
+
+        // ---- load failure backs off ----
+        r = new Rig(); r.provider.loadSucceeds = false;
+        r.BootReady();
+        Check("failed load: one try now", r.provider.interstitialLoads == 1);
+        r.controller.Tick();
+        Check("failed load: waits before retrying", r.provider.interstitialLoads == 1);
+        r.now += AdController.FirstRetrySeconds + 1f; r.controller.Tick();
+        Check("failed load: retries after the backoff", r.provider.interstitialLoads == 2);
+
+        // ---- interstitial: closes normally ----
+        r = new Rig(); r.BootReady();
+        int proceeds = 0;
+        Check("interstitial takes over when allowed and loaded", r.controller.TryShowInterstitial(Good(), () => proceeds++) && r.provider.interstitialShows == 1 && r.controller.Busy);
+        Check("replay waits for the ad", proceeds == 0);
+        Check("a second show is refused while busy", !r.controller.TryShowInterstitial(Good(), () => proceeds += 100));
+        r.provider.lastEvents.opened();
+        Check("audio and time are suspended while the ad is up", r.env.suspends == 1 && r.env.resumes == 0);
+        r.provider.lastEvents.closed();
+        r.provider.lastEvents.closed();
+        Check("closing continues exactly once and restores audio and time", proceeds == 1 && r.env.resumes == 1 && !r.controller.Busy);
+        Check("the next ad is requested right away", r.provider.interstitialLoads == 2);
+        Check("3 minute rule starts at the close", r.controller.SecondsSinceLastAd < 1f);
+        Check("an immediate second interstitial is blocked by the gap",
+            !r.controller.TryShowInterstitial(Good(), () => proceeds += 100) && r.provider.interstitialShows == 1);
+        r.now += AdPolicy.MinSecondsBetweenAds + 1f;
+        Check("after the gap it may show again", r.controller.TryShowInterstitial(Good(), () => proceeds++));
+        r.provider.lastEvents.closed();
+
+        // ---- interstitial: policy says no, or none loaded ----
+        r = new Rig(); r.BootReady();
+        var blocked = Good(); blocked.removeAdsOwned = true;
+        Check("policy no: false, no ad shown", !r.controller.TryShowInterstitial(blocked, () => { }) && r.provider.interstitialShows == 0);
+        r.provider.interstitialReady = false;
+        Check("no ad loaded: false at once, Replay not delayed", !r.controller.TryShowInterstitial(Good(), () => { }));
+
+        // ---- interstitial that never opens ----
+        r = new Rig(); r.BootReady(); proceeds = 0;
+        r.controller.TryShowInterstitial(Good(), () => proceeds++);
+        r.now += AdController.OpenTimeoutSeconds - 1f; r.controller.Tick();
+        Check("still waiting inside the open timeout", proceeds == 0 && r.controller.Busy);
+        r.now += 2f; r.controller.Tick();
+        Check("never opened: Replay carries on after the timeout", proceeds == 1 && !r.controller.Busy && r.env.suspends == 0);
+        r.provider.lastEvents.opened(); r.provider.lastEvents.closed();
+        Check("a late-opening abandoned ad is muted while up and restored on close", proceeds == 1 && r.env.suspends == 1 && r.env.resumes == 1);
+        Check("an abandoned ad starts the 3 minute clock (it may still appear)", r.controller.SecondsSinceLastAd < 1f);
+
+        // ---- interstitial that fails ----
+        r = new Rig(); r.BootReady(); proceeds = 0;
+        r.controller.TryShowInterstitial(Good(), () => proceeds++);
+        r.provider.lastEvents.failed("no fill");
+        r.provider.lastEvents.closed();
+        Check("a failed show continues exactly once", proceeds == 1 && !r.controller.Busy);
+
+        // ---- interstitial that opens and never closes ----
+        r = new Rig(); r.BootReady(); proceeds = 0;
+        r.controller.TryShowInterstitial(Good(), () => proceeds++);
+        r.provider.lastEvents.opened();
+        r.now += AdController.OpenWatchdogSeconds + 1f; r.controller.Tick();
+        Check("an ad that never reports closing cannot trap the player", proceeds == 1 && r.env.resumes == 1);
+
+        // ---- provider that throws ----
+        var thrower = new ThrowingShow();
+        r = new Rig(thrower); r.BootReady(); proceeds = 0;
+        Check("a provider that throws still gives Replay back", r.controller.TryShowInterstitial(Good(), () => proceeds++) && proceeds == 1 && !r.controller.Busy);
+
+        // ---- rewarded ----
+        r = new Rig(); r.BootReady();
+        float paid = 0f; int paidCalls = 0, doneCalls = 0;
+        Check("rewarded starts", r.controller.TryShowRewarded(900L, 7.5f, extra => { paid += extra; paidCalls++; }, () => doneCalls++));
+        r.provider.lastEvents.opened();
+        Check("opening the rewarded ad marks this death as watched", r.controller.WatchedRewardedAtDeath);
+        Check("nothing is paid before the reward is earned", r.store.pays == 0);
+        r.provider.lastEvents.earned();
+        r.provider.lastEvents.earned();
+        Check("reward pays exactly once, a copy of the run's dust", r.store.pays == 1 && Mathf.Approximately(r.store.total, 7.5f) && paidCalls == 1 && Mathf.Approximately(paid, 7.5f));
+        r.provider.lastEvents.closed();
+        Check("closing finishes the flow and restores audio and time", doneCalls == 1 && r.env.resumes == 1 && !r.controller.Busy);
+        r.provider.rewardedReady = true;
+        Check("the same death cannot be doubled twice", !r.controller.TryShowRewarded(900L, 7.5f, null, null));
+        Check("an older death cannot be doubled", !r.controller.TryShowRewarded(899L, 7.5f, null, null));
+        var afterReward = Good();
+        Check("no forced ad after the rewarded ad at this death", !r.controller.TryShowInterstitial(afterReward, () => { }));
+        r.controller.OnDeathPanel();
+        Check("a new death panel clears the watched flag", !r.controller.WatchedRewardedAtDeath);
+
+        r = new Rig(); r.BootReady(); paidCalls = 0;
+        r.controller.TryShowRewarded(901L, 4f, x => paidCalls++, null);
+        r.provider.lastEvents.opened(); r.provider.lastEvents.closed();
+        Check("closed without earning: nothing is paid", r.store.pays == 0 && paidCalls == 0);
+        r.provider.rewardedReady = true;
+        Check("and the death can still be doubled later", r.controller.TryShowRewarded(901L, 4f, null, null));
+
+        r = new Rig(); r.BootReady();
+        r.provider.rewardedReady = false;
+        Check("no rewarded ad loaded: false (the button stays hidden)", !r.controller.TryShowRewarded(902L, 4f, null, null) && !r.controller.RewardedReady);
+        r.provider.rewardedReady = true;
+        Check("nothing earned, nothing to double", !r.controller.TryShowRewarded(903L, 0f, null, null));
+
+        r = new Rig(); r.BootReady(); r.store.paid = 905L;
+        Check("a death the store already paid is refused", !r.controller.TryShowRewarded(905L, 4f, null, null));
+
+        // ---- privacy options ----
+        r = new Rig(); r.provider.privacyOptionsRequired = true; r.BootReady();
+        bool reopened = false;
+        Check("privacy options entry follows UMP", r.controller.PrivacyOptionsRequired);
+        r.controller.ShowPrivacyOptions(() => reopened = true);
+        Check("privacy options calls back", reopened);
+        r = new Rig(); r.BootReady();
+        Check("no entry when UMP does not require one", !r.controller.PrivacyOptionsRequired);
+    }
+
+    class ThrowingShow : StubAdProvider
+    {
+        public override void ShowInterstitial(AdShowEvents e) { throw new InvalidOperationException("boom"); }
+    }
+
+    static void Environment()
+    {
+        var env = new AdEnvironment();
+        bool pause = AudioListener.pause; float vol = AudioListener.volume;
+        AudioListener.volume = 0.6f;
+        Time.timeScale = 0.5f;
+        env.Suspend();
+        Check("ad up: audio paused and muted, time frozen", AudioListener.pause && AudioListener.volume == 0f && Time.timeScale == 0f);
+        env.Suspend();
+        env.Resume();
+        Check("ad down: audio and time come back exactly", AudioListener.pause == pause && Mathf.Approximately(AudioListener.volume, 0.6f) && Mathf.Approximately(Time.timeScale, 0.5f));
+        env.Resume();
+        Check("a second resume changes nothing", Mathf.Approximately(AudioListener.volume, 0.6f));
+        AudioListener.volume = vol;
+    }
+
+    static void ManifestGuard()
+    {
+        Check("manifest guard strips only while the master switch is off and not a dev build",
+            AdsManifestGuard.ShouldStrip(false, false) && !AdsManifestGuard.ShouldStrip(true, false)
+            && !AdsManifestGuard.ShouldStrip(false, true) && !AdsManifestGuard.ShouldStrip(true, true));
+        const string manifest = "<?xml version=\"1.0\" encoding=\"utf-8\"?><manifest xmlns:android=\"http://schemas.android.com/apk/res/android\" package=\"x\"><uses-permission android:name=\"android.permission.INTERNET\"/><application/></manifest>";
+        string once = AdsManifestGuard.Strip(manifest);
+        foreach (string p in AdsManifestGuard.RemovedPermissions)
+            Check("guard removes " + p, once.Contains("android:name=\"" + p + "\"") && once.Contains("tools:node=\"remove\""));
+        Check("guard removes the SDK's init provider and foreground service", once.Contains(AdsManifestGuard.RemovedProvider) && once.Contains(AdsManifestGuard.RemovedService));
+        Check("guard keeps the app's own permissions", once.Contains("android.permission.INTERNET") && once.Contains("xmlns:tools"));
+        Check("guard is idempotent", AdsManifestGuard.Strip(once) == once);
+    }
+
+    static void BuildSync()
+    {
+        AdsBuildSync.Sync(false);
+        var asset = AssetDatabase.LoadMainAssetAtPath(AdsBuildSync.SettingsPath);
+        Check("the plugin settings asset exists", asset != null);
+        if (asset == null) return;
+        var so = new SerializedObject(asset);
+        Check("settings: Android App ID comes from AdsConfig", so.FindProperty("adMobAndroidAppId").stringValue == AdsConfig.AppIdFor(false, false));
+        Check("settings: iOS App ID comes from AdsConfig", so.FindProperty("adMobIOSAppId").stringValue == AdsConfig.AppIdFor(true, false));
+        Check("settings: ATT text comes from AdsConfig", so.FindProperty("userTrackingUsageDescription").stringValue == AdsConfig.TrackingUsageDescription);
+        Check("settings: the plugin does not add a second dependency manager", !so.FindProperty("enableExternalDependencyManager").boolValue);
+        Check("a second sync changes nothing", !AdsBuildSync.Sync(false));
+        Check("a dev build syncs the test App IDs", AdsBuildSync.Sync(true) && new SerializedObject(asset).FindProperty("adMobAndroidAppId").stringValue == AdsConfig.TestAndroidAppId);
+        AdsBuildSync.Sync(false);
+    }
+}
