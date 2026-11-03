@@ -136,12 +136,12 @@ public static class PowerUpsLeaderboardTest
         var real = LeaderboardBoards.Get(LeaderboardBoards.BoostedRuns);
         Check("real table: the Power-Ups board exists, last, powered-up only", real != null && real.poweredUpOnly
               && LeaderboardBoards.All[LeaderboardBoards.All.Length - 1] == real);
-        Check("real table: its Android and iOS ids are empty, so it is disabled everywhere", real.androidId == "" && real.iosId == ""
-              && !real.EnabledOn(false) && !real.EnabledOn(true));
+        Check("real table: its Android id is the Play Console id and its iOS id is empty, so it is on for Android only",
+              real.androidId == "CgkIopqxqbAPEAIQQg" && real.iosId == "" && real.EnabledOn(false) && !real.EnabledOn(true));
         Check("real table: no other board is powered-up only", CountPoweredOnly() == 1);
-        bool noTab = true;
-        foreach (var b in LeaderboardBoards.Enabled()) noTab &= !b.poweredUpOnly;
-        Check("real table: no tab for it", noTab);
+        bool iosTab = false;
+        foreach (var b in LeaderboardBoards.All) iosTab |= b.poweredUpOnly && b.EnabledOn(true);
+        Check("real table: no iOS tab for it", !iosTab);
     }
 
     static int CountPoweredOnly()
@@ -364,7 +364,7 @@ public static class PowerUpsLeaderboardTest
         Check("a premium-tagged queued Power-Ups entry is dropped, not sent", fake.Submissions.Count == 0 && !service.HasPending(LeaderboardBoards.BoostedRuns, out v));
     }
 
-    // A build whose Power-Ups board has no store id (the shipped state).
+    // A build whose Power-Ups board has no store id (the iOS state).
     static void MissingStoreId()
     {
         var shipped = new List<LeaderboardBoard>(LeaderboardTest.LiveTable());
