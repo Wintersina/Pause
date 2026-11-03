@@ -1,13 +1,13 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-// What the Shop screen sells and what each row says, as pure data (no UI): the three Remove Ads / Paragon /
-// star dust sections, their state from the billing classes, and the one place a buy tap is decided.
+// What the Shop screen sells and what each row says, as pure data (no UI): the Remove Ads / Paragon /
+// star dust / booster sections, their state from the billing classes, and the one place a buy tap is decided.
 //
 // A row is never buyable unless its product is Available (Play returned a price and the billing flow is
 // connected), so on iOS, in the editor, or with no price nothing looks buyable: the row reads UNAVAILABLE.
 // The Shop entry is on the home screen on every platform (nothing here is platform-specific).
-public enum ShopRowKind { RemoveAds, Paragon, Pack }
+public enum ShopRowKind { RemoveAds, Paragon, Pack, DustBooster, HazardClear }
 
 public enum ShopRowState
 {
@@ -16,12 +16,15 @@ public enum ShopRowState
     Buying,        // the sheet is open or the store has not answered yet
     Owned,         // a one-time product already bought
     Locked,        // Paragon only: own more ships first (ShipUnlocks)
+    Short,         // booster rows only: not enough star dust, or already at the limit (shown, never buyable)
 }
 
 public sealed class ShopRow
 {
     public ShopRowKind kind;
     public SupportPurchase.Pack pack;   // Pack rows only
+    public Boosters.Kind booster;       // booster rows only
+    public bool IsBooster { get { return kind == ShopRowKind.DustBooster || kind == ShopRowKind.HazardClear; } }
     public ShopRowState state;
     public string title, subtitle, button;
     public bool Tappable { get { return state == ShopRowState.Buyable; } }
@@ -77,6 +80,7 @@ public static class ShopCatalog
             new ShopSection("ADS", RemoveAdsRow()),
             new ShopSection("SHIP", ParagonRow()),
             packs,
+            new ShopSection("BOOSTERS", BoosterRow(Boosters.Kind.DustMultiplier), BoosterRow(Boosters.Kind.HazardClear)),
         };
     }
 
@@ -124,6 +128,34 @@ public static class ShopCatalog
         return row;
     }
 
+    // A booster row: bought with star dust (Boosters API), no store involved, so it does not depend on billing being
+    // connected and is never held up by the purchase-flow guard (AnyBuying). It is buyable whenever Boosters.CanBuy.
+    public static ShopRow BoosterRow(Boosters.Kind kind)
+    {
+        string status = Boosters.Status(kind);
+        var row = new ShopRow
+        {
+            kind = kind == Boosters.Kind.DustMultiplier ? ShopRowKind.DustBooster : ShopRowKind.HazardClear,
+            booster = kind,
+            title = Boosters.Name(kind) + (status.Length > 0 ? "  " + status : ""),
+            subtitle = Boosters.Description(kind),
+        };
+        string price = Mathf.RoundToInt(Boosters.Price(kind)).ToString("N0") + " DUST";
+        if (Boosters.CanBuy(kind)) Set(row, ShopRowState.Buyable, price);
+        else if (AtLimit(kind)) Set(row, ShopRowState.Short, MaxLabel);
+        else Set(row, ShopRowState.Short, price);
+        return row;
+    }
+
+    public const string MaxLabel = "MAX";
+
+    static bool AtLimit(Boosters.Kind kind)
+    {
+        return kind == Boosters.Kind.DustMultiplier
+            ? Boosters.RemainingSeconds + Boosters.DustBoosterSeconds > Boosters.MaxStoredSeconds + .01f
+            : Boosters.ClearCharges >= Boosters.MaxClearCharges;
+    }
+
     static void Set(ShopRow row, ShopRowState state, string button) { row.state = state; row.button = button; }
 
     // True while no product at all has a price (the store has not answered, or there is none): the screen says so
@@ -142,7 +174,10 @@ public static class ShopCatalog
     // nothing here; the panel toasts the gate.
     public static bool Tap(ShopRow row)
     {
-        if (row == null || !row.Tappable || AnyBuying) return false;
+        if (row == null || !row.Tappable) return false;
+        // Booster rows spend star dust on the spot: no sheet, so they neither wait for nor block a purchase flow.
+        if (row.IsBooster) return Boosters.Buy(row.booster) == Boosters.BuyResult.Bought;
+        if (AnyBuying) return false;
         switch (row.kind)
         {
             case ShopRowKind.RemoveAds: return RemoveAdsPurchase.RequestBuy();

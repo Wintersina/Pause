@@ -11,6 +11,7 @@ using UnityEngine.UI;
 //     ADS          Remove Ads (one-time, owned/not)
 //     SHIP         Paragon (one-time; bought here, then it sits in the Space Dock)
 //     STAR DUST    the 850 / 2,500 / 6,000 packs (repeatable)
+//     BOOSTERS     Dust x2 and Hazard Clear (bought with star dust, no store)
 //     a restore note, BACK
 //
 // Rows are flat bands (no outlines), type and buttons in the codex's cel style. Every state comes from
@@ -268,7 +269,8 @@ public class ShopPanel : MonoBehaviour
         v.button.color = live ? Color.white : new Color(.8f, .8f, .9f, 1f);
         // a locked Paragon still takes the tap (it explains the gate); other non-buyable rows do not
         // (and nothing is while another product's sheet is open: one purchase flow at a time)
-        bool other = ShopCatalog.AnyBuying && r.state != ShopRowState.Buying;
+        // (booster rows spend dust, not a store sheet, so an open sheet never greys them)
+        bool other = ShopCatalog.AnyBuying && r.state != ShopRowState.Buying && !r.IsBooster;
         if (other) { v.edge.color = CodexUi.Locked; v.button.color = new Color(.8f, .8f, .9f, 1f); v.buttonText.color = CodexUi.Muted; }
         v.click.interactable = !other && (live || r.state == ShopRowState.Locked);
         PaintIcon(v);
@@ -295,6 +297,12 @@ public class ShopPanel : MonoBehaviour
                 v.icon.sprite = ShipHullArt.Get(PremiumShips.Paragon, 0, 0, 0);
                 v.icon.color = Color.white;
                 v.icon.type = Image.Type.Simple;
+                break;
+            case ShopRowKind.HazardClear:
+                v.icon.sprite = null;
+                v.icon.color = AkiraPalette.TealShadow;
+                CutCornerShape.Apply(v.icon);
+                v.iconText.text = "CLEAR";
                 break;
             default:
                 v.icon.sprite = DockArt.Get("icon_dust");
@@ -393,7 +401,7 @@ public class ShopPanel : MonoBehaviour
         bool paragon = v.row.kind == ShopRowKind.Paragon;
         bool pack = v.row.kind == ShopRowKind.Pack;
         float iconBox = paragon ? 150f : 96f;
-        float h = paragon ? 210f : pack ? 128f : 140f;
+        float h = paragon ? 210f : pack ? 128f : v.row.IsBooster ? 176f : 140f;   // boosters carry a 2-3 line description
         float btnW = Mathf.Min(ButtonMaxWidth, width * .36f);
         SetRect(v.icon.rectTransform, RowPad, (h - iconBox) * .5f, iconBox, iconBox, v.rt, true);
         if (pack)
@@ -550,7 +558,7 @@ public class ShopPanel : MonoBehaviour
     string Signature()
     {
         var sb = new System.Text.StringBuilder();
-        foreach (var v in rows) sb.Append((int)v.row.state).Append(v.row.button).Append('|');
+        foreach (var v in rows) sb.Append((int)v.row.state).Append(v.row.button).Append(v.row.title).Append('|');
         sb.Append(Mathf.FloorToInt(StarDustLedger.Saved));
         return sb.ToString();
     }

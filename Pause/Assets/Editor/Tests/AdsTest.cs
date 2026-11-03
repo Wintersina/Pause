@@ -63,12 +63,17 @@ public static class AdsTest
         using var sandbox = new TestHarness.Sandbox();
         PlayerPrefs.DeleteKey(DeveloperUnlocks.EnabledKey);
         var savedBooster = AdPolicy.BoosterActiveCheck;
+        foreach (string k in BoosterKeys) PlayerPrefs.DeleteKey(k);
+        Boosters.Reload();
+        Boosters.ResetRun();
         float savedScale = Time.timeScale;
         try
         {
             Config();
             Policy();
+            BoosterWiring(savedBooster);
             DoubleDust();
+            DoubleDustWithBooster();
             Controller();
             Environment();
             BuildSync();
@@ -77,6 +82,9 @@ public static class AdsTest
         finally
         {
             AdPolicy.BoosterActiveCheck = savedBooster;
+            foreach (string k in BoosterKeys) PlayerPrefs.DeleteKey(k);
+            Boosters.Reload();
+            Boosters.ResetRun();
             Time.timeScale = savedScale;
             AdManager.Reset();
         }
@@ -166,6 +174,53 @@ public static class AdsTest
         Check("double dust: Remove Ads owners still see it (default)", AdPolicy.DoubleDustOffered(true, false, 3f));
         Check("double dust: not in the tutorial or practice", !AdPolicy.DoubleDustOffered(false, true, 3f));
         Check("double dust: nothing earned, nothing to double", !AdPolicy.DoubleDustOffered(false, false, 0f));
+    }
+
+    static readonly string[] BoosterKeys = { Boosters.DustBoughtKey, Boosters.DustUsedMsKey, Boosters.ClearBoughtKey, Boosters.ClearUsedKey };
+
+    // The wiring itself (not only the hook): the shipped default reads the real Boosters state, so a booster being active
+    // really blocks forced ads. The field initializer runs in every build and in the editor, so no init order is involved.
+    static void BoosterWiring(System.Func<bool> shippedDefault)
+    {
+        Check("WIRING: the shipped BoosterActiveCheck is the boosters check, not a stub",
+              shippedDefault != null && shippedDefault.Method.DeclaringType == typeof(AdPolicy) && shippedDefault.Method.Name == "DefaultBoosterCheck");
+        AdPolicy.BoosterActiveCheck = () => false;   // as a test left it
+        AdPolicy.ResetBoosterCheck();
+        Check("WIRING: no booster held -> BoosterActive is false", !AdPolicy.BoosterActive);
+        // a hazard charge held does NOT block ads (Boosters.AnyActive), only the dust multiplier does
+        PlayerPrefs.SetInt(Boosters.ClearBoughtKey, 2); Boosters.Reload();
+        Check("WIRING: held hazard clear charges do not count as an active booster", !AdPolicy.BoosterActive);
+        PlayerPrefs.SetInt(Boosters.DustBoughtKey, 1); Boosters.Reload();
+        Check("WIRING: an active dust booster makes AdPolicy.BoosterActive true", AdPolicy.BoosterActive && Boosters.AnyActive);
+        var inputs = Good();
+        inputs.boosterActive = AdPolicy.BoosterActive;
+        Check("WIRING: forced ads refuse with BoosterActive while the booster runs", AdPolicy.ForcedAd(inputs) == AdPolicy.Reason.BoosterActive && !AdPolicy.MayShowForcedAd(inputs));
+        Check("WIRING: the live inputs the ad manager builds carry it", AdManager.LiveInputs().boosterActive);
+        PlayerPrefs.SetInt(Boosters.DustUsedMsKey, (int)(Boosters.DustBoosterSeconds * 1000f)); Boosters.Reload();
+        Check("WIRING: once the booster runs out ads are allowed again", !AdPolicy.BoosterActive && !AdManager.LiveInputs().boosterActive);
+        foreach (string k in BoosterKeys) PlayerPrefs.DeleteKey(k);
+        Boosters.Reload();
+        AdPolicy.BoosterActiveCheck = () => false;
+    }
+
+    // Double dust pays on the unboosted base: booster + ad is 3x in total, never 4x.
+    static void DoubleDustWithBooster()
+    {
+        float baseDust = 100f;
+        Check("DOUBLE DUST: base run, ad pays 100 -> 200 (2x)", Mathf.Approximately(DoubleDustRules.Payout(baseDust, 0f), 100f));
+        float boostedEarned = baseDust * Boosters.DustMultiplier(true, false);   // 200, booster extra 100
+        Check("DOUBLE DUST: booster only earns 200 (2x)", Mathf.Approximately(boostedEarned, 200f));
+        float pay = DoubleDustRules.Payout(boostedEarned, 100f);
+        Check("DOUBLE DUST: booster + ad pays 100 (the base), not 200", Mathf.Approximately(pay, 100f));
+        Check("DOUBLE DUST: booster + ad totals 3x the base, the Boosters cap",
+              Mathf.Approximately(boostedEarned + pay, baseDust * Boosters.DustMultiplier(true, true)) && Boosters.MaxDustMultiplier == 3f);
+        Check("DOUBLE DUST: ad only totals 2x", Mathf.Approximately(baseDust + DoubleDustRules.Payout(baseDust, 0f), baseDust * Boosters.DustMultiplier(false, true)));
+        Check("DOUBLE DUST: unboosted score bonus in the base is doubled once (earned 230, extra 100 -> pays 130, total 360 <= 3x base)",
+              Mathf.Approximately(DoubleDustRules.Payout(230f, 100f), 130f));
+        Check("DOUBLE DUST: payout of nothing, non-finite or an extra above earned is 0",
+              DoubleDustRules.Payout(0f, 0f) == 0f && DoubleDustRules.Payout(float.NaN, 0f) == 0f && DoubleDustRules.Payout(50f, 80f) == 0f);
+        Boosters.ResetRun();
+        Check("DOUBLE DUST: the payout base equals Boosters.RankedDust", Mathf.Approximately(Boosters.RankedDust(200f), 200f - Boosters.RunBoostExtra));
     }
 
     static void DoubleDust()

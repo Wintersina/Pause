@@ -31,7 +31,12 @@ public static class ShopScreenTest
         RemoveAdsPurchase.ResetSession();
         ParagonPurchase.ResetSession();
         SupportPurchase.ResetSession();
+        foreach (string k in BoosterKeys) PlayerPrefs.DeleteKey(k);
+        PlayerPrefs.SetFloat(StarDustLedger.CurrencyKey, 0f);
+        Boosters.Reload();
     }
+
+    static readonly string[] BoosterKeys = { Boosters.DustBoughtKey, Boosters.DustUsedMsKey, Boosters.ClearBoughtKey, Boosters.ClearUsedKey };
 
     static void OwnShips(int n)
     {
@@ -55,6 +60,7 @@ public static class ShopScreenTest
             Rows();
             Gate();
             Taps();
+            BoosterRows();
             Panel();
             Dock();
             Home();
@@ -71,10 +77,12 @@ public static class ShopScreenTest
     static void Rows()
     {
         var sections = ShopCatalog.Sections();
-        Check("three sections: ads, ship, star dust (one list the panel lays out from)",
-              sections.Count == 3 && sections[0].label == "ADS" && sections[1].label == "SHIP" && sections[2].label == "STAR DUST");
+        Check("four sections: ads, ship, star dust, boosters (one list the panel lays out from)",
+              sections.Count == 4 && sections[0].label == "ADS" && sections[1].label == "SHIP" && sections[2].label == "STAR DUST" &&
+              sections[3].label == "BOOSTERS" && sections[3].rows.Count == 2);
         var rows = ShopCatalog.Rows();
-        Check("rows: Remove Ads, Paragon, then 850 / 2,500 / 6,000", rows.Count == 5 &&
+        Check("rows: Remove Ads, Paragon, 850 / 2,500 / 6,000, then Dust x2 and Hazard Clear", rows.Count == 7 &&
+              rows[5].kind == ShopRowKind.DustBooster && rows[6].kind == ShopRowKind.HazardClear &&
               rows[0].kind == ShopRowKind.RemoveAds && rows[1].kind == ShopRowKind.Paragon &&
               rows[2].pack.dust == 850 && rows[3].pack.dust == 2500 && rows[4].pack.dust == 6000);
         Check("Remove Ads row says what it does", rows[0].subtitle == "Support the devs by removing the ads");
@@ -165,6 +173,55 @@ public static class ShopScreenTest
         Reset();
     }
 
+    static void BoosterRows()
+    {
+        Reset();   // no billing connected, 0 dust
+        var dustRow = ShopCatalog.BoosterRow(Boosters.Kind.DustMultiplier);
+        var clearRow = ShopCatalog.BoosterRow(Boosters.Kind.HazardClear);
+        Check("booster rows carry the Boosters name and description",
+              dustRow.title == Boosters.Name(Boosters.Kind.DustMultiplier) && clearRow.title == Boosters.Name(Boosters.Kind.HazardClear) &&
+              dustRow.subtitle == Boosters.Description(Boosters.Kind.DustMultiplier));
+        Check("no dust: both rows show the price and are not buyable",
+              dustRow.state == ShopRowState.Short && dustRow.button == "600 DUST" && !dustRow.Tappable &&
+              clearRow.state == ShopRowState.Short && clearRow.button == "200 DUST" && !ShopCatalog.Tap(clearRow));
+        PlayerPrefs.SetFloat(StarDustLedger.CurrencyKey, 1000f);
+        Check("with dust and NO billing connection the rows are still buyable",
+              ShopCatalog.StoreDown && ShopCatalog.BoosterRow(Boosters.Kind.DustMultiplier).Tappable &&
+              ShopCatalog.BoosterRow(Boosters.Kind.HazardClear).Tappable);
+
+        // a store sheet is open: dust purchases still go through and do not touch the guard
+        RemoveAdsPurchase.LaunchFlow = () => { };
+        RemoveAdsPurchase.SetPrice("$3.99");
+        RemoveAdsPurchase.RequestBuy();
+        Check("a store sheet is open", ShopCatalog.AnyBuying);
+        Check("Dust x2 can be bought while a sheet is open: pays 600 and starts the clock",
+              ShopCatalog.Tap(ShopCatalog.BoosterRow(Boosters.Kind.DustMultiplier)) && Boosters.DustActive &&
+              Mathf.Approximately(StarDustLedger.Saved, 400f));
+        Check("the purchase guard is unchanged: still the one sheet", ShopCatalog.AnyBuying && RemoveAdsPurchase.Buying &&
+              SupportPurchase.Buying == null && !ShopCatalog.Tap(ShopCatalog.RemoveAdsRow()));
+        RemoveAdsPurchase.EndBuy();
+        Check("a booster tap never sets a Buying flag", !ShopCatalog.AnyBuying);
+
+        // hazard clear: 200 each, max 9
+        PlayerPrefs.SetFloat(StarDustLedger.CurrencyKey, 5000f);
+        Check("Dust x2 now reads its time left on the row", ShopCatalog.BoosterRow(Boosters.Kind.DustMultiplier).title.Contains("left"));
+        int bought = 0;
+        while (ShopCatalog.Tap(ShopCatalog.BoosterRow(Boosters.Kind.HazardClear)) && bought < 20) bought++;
+        var full = ShopCatalog.BoosterRow(Boosters.Kind.HazardClear);
+        Check("hazard clear sells up to 9 charges, then reads MAX and is dead",
+              bought == Boosters.MaxClearCharges && Boosters.ClearCharges == 9 && full.state == ShopRowState.Short && full.button == "MAX" &&
+              !full.Tappable && full.title.Contains("x9"));
+        Check("a refused tap spent nothing", Mathf.Approximately(StarDustLedger.Saved, 5000f - 9f * 200f));
+
+        // dust x2 stops at the stored-time cap
+        PlayerPrefs.SetFloat(StarDustLedger.CurrencyKey, 100000f);
+        int dustBought = 0;
+        while (ShopCatalog.Tap(ShopCatalog.BoosterRow(Boosters.Kind.DustMultiplier)) && dustBought < 20) dustBought++;
+        Check("Dust x2 stops at the one-hour stored cap and then reads MAX",
+              Boosters.RemainingSeconds <= Boosters.MaxStoredSeconds + .01f && ShopCatalog.BoosterRow(Boosters.Kind.DustMultiplier).button == "MAX");
+        Reset();
+    }
+
     static void Panel()
     {
         EditorSceneManager.OpenScene("Assets/Scenes/startS4.unity", OpenSceneMode.Single);
@@ -177,9 +234,12 @@ public static class ShopScreenTest
         PlayerPrefs.SetFloat(StarDustLedger.CurrencyKey, 1234f);
         var panel = ShopPanel.Open();
         Check("the panel opens and owns Back", panel != null && ShopPanel.IsOpen && BackNavigator.Top == (object)panel);
-        Check("it has the five rows and scrolls vertically only",
-              panel.RowCount == 5 && panel.Scroll.vertical && !panel.Scroll.horizontal);
+        Check("it has the seven rows and scrolls vertically only",
+              panel.RowCount == 7 && panel.Scroll.vertical && !panel.Scroll.horizontal);
         Check("the star dust balance is shown", panel.DustText.text == "1,234");
+        Check("booster rows read their dust price and are live with 1,234 dust",
+              panel.RowButtonText(5).text == "600 DUST" && panel.RowButton(5).interactable &&
+              panel.RowButtonText(6).text == "200 DUST" && panel.RowButton(6).interactable);
         Check("Remove Ads price on its button", panel.RowButtonText(0).text == "$3.99" && panel.RowButton(0).interactable);
         Check("Paragon carries the leaderboard warning before payment", panel.RowNotice(1).gameObject.activeSelf &&
               panel.RowNotice(1).text == PremiumShips.LeaderboardNotice);
@@ -188,6 +248,15 @@ public static class ShopScreenTest
         SupportPurchase.Handle(new PlayPurchase { productId = SupportPurchase.Small.productId, token = "shop-t1", state = PlayPurchaseState.Purchased },
                                (t, done) => done(true));
         Check("after a pack is granted the balance updates", panel.DustText.text == "2,084");
+
+        // a store sheet open: the packs grey out, the dust-bought booster rows stay live
+        RemoveAdsPurchase.LaunchFlow = () => { };
+        RemoveAdsPurchase.SetPrice("$3.99");
+        RemoveAdsPurchase.RequestBuy();
+        panel.Refresh();
+        Check("a store sheet open greys the packs but not the booster rows",
+              ShopCatalog.AnyBuying && !panel.RowButton(2).interactable && panel.RowButton(5).interactable && panel.RowButton(6).interactable);
+        RemoveAdsPurchase.EndBuy();
 
         // owned Remove Ads
         PlayerPrefs.SetInt(AdFree.Key, 1);
@@ -199,6 +268,7 @@ public static class ShopScreenTest
         ParagonPurchase.SetPrice(null);
         foreach (var p in SupportPurchase.Packs) p.SetPrice(null);
         panel.Refresh();
+        Check("no store: the booster rows stay live (dust, not Play billing)", panel.RowButton(5).interactable && panel.RowButton(6).interactable);
         Check("no store: no row is interactive and the note shows (not an empty screen)",
               !panel.RowButton(1).interactable && !panel.RowButton(2).interactable && panel.StoreNote.gameObject.activeSelf &&
               panel.RowButtonText(2).text == "UNAVAILABLE");

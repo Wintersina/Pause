@@ -26,9 +26,14 @@ public static class AdPolicy
     public const bool ParagonRemovesAds = true;
     public const bool RemoveAdsOwnersSeeDoubleDust = true;
 
-    // Boosters are built elsewhere; they set this so a booster being active blocks forced ads.
-    // Default: no booster is ever active.
-    public static Func<bool> BoosterActiveCheck = () => false;
+    // A booster being active blocks forced ads ("no forced ads while a booster is active"). Wired to the boosters by
+    // the field initializer itself, so it holds in every build and in edit-mode tests, with no init order to get wrong.
+    // Tests may replace the hook; ResetBoosterCheck puts the shipped wiring back.
+    public static Func<bool> BoosterActiveCheck = DefaultBoosterCheck;
+
+    public static bool DefaultBoosterCheck() { return Boosters.AnyActive; }
+
+    public static void ResetBoosterCheck() { BoosterActiveCheck = DefaultBoosterCheck; }
 
     public static bool BoosterActive
     {

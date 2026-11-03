@@ -4,8 +4,8 @@ using UnityEngine.UI;
 // The death panel's optional "watch an ad to double the star dust" button. Hangs off the panel's
 // bottom edge like a tab (the panel's card stack is packed tight and fitted to the screen, so there
 // is no free row inside it). Built only while AdsConfig.Enabled; shown only when a rewarded ad is
-// loaded (no ad, no button), and gone once used. It doubles only what THIS run earned
-// (StarDustLedger.Earned), and pays once per death (DoubleDustRules).
+// loaded (no ad, no button), and gone once used. It doubles only what THIS run earned,
+// without the booster's share (DoubleDustRules.Payout), and pays once per death (DoubleDustRules).
 public class DoubleDustOffer : MonoBehaviour
 {
     public const string ObjectName = "DoubleDustOffer";
@@ -23,7 +23,8 @@ public class DoubleDustOffer : MonoBehaviour
     {
         if (!AdsConfig.Enabled || view == null || view.PracticeRun) return null;
         // Real runs only, with something earned, and Remove Ads owners per AdPolicy.
-        float earned = StarDustLedger.IsActive ? StarDustLedger.Earned : 0f;
+        // What it pays is the unboosted base (DoubleDustRules.Payout): Earned already holds the booster's extra.
+        float earned = StarDustLedger.IsActive ? DoubleDustRules.Payout(StarDustLedger.Earned, Boosters.RunBoostExtra) : 0f;
         if (!AdPolicy.DoubleDustOffered(AdFree.IsActive, !score.paysRealDust, earned)) return null;
 
         var go = new GameObject(ObjectName, typeof(RectTransform), typeof(CanvasGroup), typeof(Image), typeof(Button));
