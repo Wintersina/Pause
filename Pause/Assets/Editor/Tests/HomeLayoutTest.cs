@@ -28,17 +28,17 @@ public static class HomeLayoutTest
         public string device;
         public float logoY0, logoY1;      // PAUSE logo's drawn outline
         public float x, w, h;             // every button
-        public float play, dock, options, credits, codex;   // bottom edges
+        public float play, dock, shop, options, credits, codex;   // bottom edges
     }
 
     static readonly Pin[] Pins =
     {
-        new Pin { device = "and-1080x1920", logoY0 = 1293.7f, logoY1 = 1676.2f, x = 118.8f, w = 842.4f, h = 108.3f,
-                  play = 1014.9f, dock = 883.6f, options = 752.3f, credits = 620.9f, codex = 489.6f },
-        new Pin { device = "and-1080x2340-notch", logoY0 = 1503.7f, logoY1 = 1886.2f, x = 118.8f, w = 842.4f, h = 132.0f,
-                  play = 1236.9f, dock = 1076.9f, options = 916.8f, credits = 756.8f, codex = 596.7f },
-        new Pin { device = "iphone-13", logoY0 = 1627.5f, logoY1 = 2041.9f, x = 128.7f, w = 912.6f, h = 142.8f,
-                  play = 1338.4f, dock = 1165.2f, options = 992.0f, credits = 818.8f, codex = 645.7f },
+        new Pin { device = "and-1080x1920", logoY0 = 1293.7f, logoY1 = 1676.2f, x = 118.8f, w = 842.4f, h = 108.8f,
+                  play = 1014.4f, dock = 882.6f, shop = 750.7f, options = 618.9f, credits = 487.0f, codex = 355.2f },
+        new Pin { device = "and-1080x2340-notch", logoY0 = 1503.7f, logoY1 = 1886.2f, x = 118.8f, w = 842.4f, h = 132.6f,
+                  play = 1236.3f, dock = 1075.6f, shop = 914.9f, options = 754.3f, credits = 593.6f, codex = 432.9f },
+        new Pin { device = "iphone-13", logoY0 = 1627.5f, logoY1 = 2041.9f, x = 128.7f, w = 912.6f, h = 143.5f,
+                  play = 1337.7f, dock = 1163.9f, shop = 990.0f, options = 816.1f, credits = 642.3f, codex = 468.4f },
     };
 
     public static int Execute()
@@ -59,7 +59,7 @@ public static class HomeLayoutTest
 
     static readonly string[] Buttons =
     {
-        "MainMenuCanvas/UIPanel/PlayButton", "MainMenuCanvas/UIPanel/shopButton", "MainMenuCanvas/UIPanel/achivButton",
+        "MainMenuCanvas/UIPanel/PlayButton", "MainMenuCanvas/UIPanel/shopButton", "MainMenuCanvas/UIPanel/ShopEntryButton", "MainMenuCanvas/UIPanel/achivButton",
         "MainMenuCanvas/UIPanel/LeaderboardButton", "MainMenuCanvas/UIPanel/CodexButton",
     };
 
@@ -100,7 +100,7 @@ public static class HomeLayoutTest
             for (int i = 0; i < r.Length; i++) r[i] = Rect_(rig, Buttons[i]);
             pin.logoY0 = logo.yMin; pin.logoY1 = logo.yMax;
             pin.x = r[0].x; pin.w = r[0].width; pin.h = r[0].height;
-            pin.play = r[0].y; pin.dock = r[1].y; pin.options = r[2].y; pin.credits = r[3].y; pin.codex = r[4].y;
+            pin.play = r[0].y; pin.dock = r[1].y; pin.shop = r[2].y; pin.options = r[3].y; pin.credits = r[4].y; pin.codex = r[5].y;
             ok = logo.height > 0f && r[0].height > 0f;
             var t = Object.FindFirstObjectByType<TitleScreenTraffic>();
             if (t != null) t.Shutdown();
@@ -120,14 +120,14 @@ public static class HomeLayoutTest
         Check(d + "logo and buttons found", ok);
         Check(d + "logo " + got.logoY0 + ".." + got.logoY1, Near(got.logoY0, want.logoY0) && Near(got.logoY1, want.logoY1));
         Check(d + "buttons " + got.w + "x" + got.h + " at x " + got.x, Near(got.x, want.x) && Near(got.w, want.w) && Near(got.h, want.h));
-        Check(d + "Play / Space dock / Options / Leaderboard / Codex at " + got.play + " " + got.dock + " " + got.options + " " + got.credits + " " + got.codex,
-              Near(got.play, want.play) && Near(got.dock, want.dock) && Near(got.options, want.options) &&
+        Check(d + "Play / Space dock / Shop / Options / Leaderboard / Codex at " + got.play + " " + got.dock + " " + got.shop + " " + got.options + " " + got.credits + " " + got.codex,
+              Near(got.play, want.play) && Near(got.dock, want.dock) && Near(got.shop, want.shop) && Near(got.options, want.options) &&
               Near(got.credits, want.credits) && Near(got.codex, want.codex));
         // the spacing the player sees, independent of the absolute pins
         float gap = got.logoY0 - (got.play + got.h);
         Check(d + "the logo clears Play by " + gap + " px (" + (gap / got.h).ToString("F2") + " button heights)", gap >= got.h * .8f);
         float pitch = got.play - got.dock;
         Check(d + "buttons are evenly spaced (pitch " + pitch + ")",
-              Near(got.dock - got.options, pitch) && Near(got.options - got.credits, pitch) && Near(got.credits - got.codex, pitch));
+              Near(got.dock - got.shop, pitch) && Near(got.shop - got.options, pitch) && Near(got.options - got.credits, pitch) && Near(got.credits - got.codex, pitch));
     }
 }

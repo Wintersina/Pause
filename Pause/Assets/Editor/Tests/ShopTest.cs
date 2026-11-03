@@ -92,7 +92,7 @@ public static class ShopTest
                   bay.ShowsStatusIcon == owned);
             Check("berth " + i + (owned ? " has no price tag" : " shows its price"),
                   bay.ShowsPrice == !owned &&
-                  (owned || bay.PriceLabel == (PremiumShips.IsPremium(i) ? "SOON" : Mathf.RoundToInt(shopingShips.CostFor(i)).ToString("N0"))));
+                  (owned || bay.PriceLabel == (PremiumShips.IsPremium(i) ? "SHOP" : Mathf.RoundToInt(shopingShips.CostFor(i)).ToString("N0"))));
         }
 
         // Berths are packed edge to edge, without overlapping (slots 0, 1
@@ -294,8 +294,8 @@ public static class ShopTest
               message.enabled && message.text.Contains("NEED") && message.text.Contains((shopingShips.CostFor(poor) - 100f).ToString("N0")));
     }
 
-    // Paragon (PremiumShips) is a real-money ship: the dock shows it locked,
-    // "COMING SOON", with no dust path to own it.
+    // Paragon (PremiumShips) is a real-money ship bought in the Shop screen: the dock shows its berth (SHOP tag),
+    // its card points to the Shop, and no dock path buys it or takes dust.
     static void PremiumLocked(SpaceDock dock)
     {
         int p = PremiumShips.Paragon;
@@ -303,11 +303,30 @@ public static class ShopTest
         PlayerPrefs.SetFloat("PlayerCurrecny", 9999999f);
         dock.RefreshStatuses();
         dock.Select(p);
-        Check("Paragon's popup is the locked COMING SOON state, not BUY", dock.popup.CurrentMode == DockPopup.Mode.Locked);
-        Check("its berth shows a SOON tag", dock.bays[p].ShowsPrice && dock.bays[p].PriceLabel == "SOON");
-        int saves = PrefsSaver.SaveCount;
-        dock.popup.Press();
-        dock.Buy(p);
+        Check("Paragon's popup points to the Shop, not BUY", dock.popup.CurrentMode == DockPopup.Mode.OpenShop && dock.popup.ButtonLabel.text == "SHOP");
+        Check("its berth stays visible with a SHOP tag", dock.bays[p].ShowsPrice && dock.bays[p].PriceLabel == "SHOP");
+        string loaded = null;
+        var oldLoad = BackNavigator.LoadScene;
+        BackNavigator.LoadScene = scene => loaded = scene;
+        ParagonPurchase.LaunchFlow = () => { };
+        ParagonPurchase.SetPrice("$4.99");
+        ShopCatalog.OpenOnHome = false;
+        try
+        {
+            dock.popup.Press();
+            Check("tapping locked Paragon routes to the Shop (home, Shop opening on arrival)",
+                  loaded == BackNavigator.HomeScene && ShopCatalog.OpenOnHome);
+            loaded = null; ShopCatalog.OpenOnHome = false;
+            dock.Buy(p);
+            Check("Buy on it routes to the Shop too", loaded == BackNavigator.HomeScene && ShopCatalog.OpenOnHome && !ParagonPurchase.Buying);
+        }
+        finally
+        {
+            BackNavigator.LoadScene = oldLoad;
+            ShopCatalog.OpenOnHome = false;
+            ParagonPurchase.SetPrice(null);
+            ParagonPurchase.LaunchFlow = null;
+        }
         Check("pressing it or calling Buy never owns it or charges dust",
               PlayerPrefs.GetString("boughtship" + p) != "True" && Mathf.Approximately(PlayerPrefs.GetFloat("PlayerCurrecny"), 9999999f));
         Check("it can't launch", !ShipId.IsOwned(p) && dock.LiftOffIndex() != p);

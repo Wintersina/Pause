@@ -46,7 +46,12 @@ public static class ShipSelectionTest
         EveryShipLaunchesItself("all owned", Own(AllIds()), devMode: false);
         EveryShipLaunchesItself("developer mode", Own(), devMode: true);
         DeveloperModeOffFallsBack();
-        PartialOwnership();
+        // The premium berth's BUY now routes to the Shop (a home-scene load); stub the load so the dock
+        // test does not try to open a scene the edit-mode run has not got in its build list.
+        var realLoad = BackNavigator.LoadScene;
+        BackNavigator.LoadScene = scene => { };
+        try { PartialOwnership(); }
+        finally { BackNavigator.LoadScene = realLoad; ShopCatalog.OpenOnHome = false; }
         LiftOffUsesTheSelection();
         BackThenPlayKeepsTheSelection();
         Tutorial();

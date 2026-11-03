@@ -6,7 +6,7 @@ using UnityEngine;
 //
 // Paragon is a non-consumable one-time product, PremiumShips.ParagonProductId.
 // PlayBilling queries its details (the store's own formatted price, localized),
-// launches the billing flow when the player taps buy in the dock, and feeds
+// launches the billing flow when the player taps buy in the Shop screen (the dock only points there), and feeds
 // every owned or updated purchase to Handle below, which decides what to do:
 //   * Purchased -> PremiumShips.Grant (the same boughtship<id> key the roster
 //     always used, so cloud save, the dock and the spawner pick it up) and
@@ -18,8 +18,8 @@ using UnityEngine;
 //   * anything else, or another product -> ignored.
 // Star dust never buys the hull (PremiumShips.DustPurchasable).
 //
-// iOS and the editor never get a price, so Available stays false and the dock
-// keeps its COMING SOON berth.
+// iOS and the editor never get a price, so Available stays false: the Shop shows
+// the row as unavailable and the dock keeps its COMING SOON berth.
 public static class ParagonPurchase
 {
     public enum Result { Ignored, Pending, Granted, AlreadyOwned }
@@ -37,22 +37,16 @@ public static class ParagonPurchase
     // True from a buy tap until the store answers.
     public static bool Buying { get; private set; }
 
-    // Raised when the price arrives or the ship becomes owned, so the dock redraws.
+    // Raised when the price arrives or the ship becomes owned, so the Shop and the dock redraw.
     public static event Action Changed;
 
     // Set by PlayBilling while connected: opens Play's purchase sheet.
     public static Action LaunchFlow;
 
-    // The dock may offer the hull for real money.
+    // The Shop may offer the hull for real money.
     public static bool Available
     {
         get { return !string.IsNullOrEmpty(Price) && LaunchFlow != null; }
-    }
-
-    // The dock's button text, e.g. "BUY $4.99". Empty when there is no price.
-    public static string BuyLabel
-    {
-        get { return string.IsNullOrEmpty(Price) ? "" : "BUY " + Price; }
     }
 
     public static void SetPrice(string formatted)
@@ -66,8 +60,8 @@ public static class ParagonPurchase
     // The player tapped buy. Never for an owned ship or without a store.
     public static bool RequestBuy()
     {
-        if (!Available || Buying || ShipId.IsOwned(PremiumShips.Paragon)) return false;
-        if (ShipUnlocks.IsLocked(PremiumShips.Paragon)) return false;   // own enough ships first (restore never comes through here)
+        if (!Available || Buying || ShopCatalog.AnyBuying || ShipId.IsOwned(PremiumShips.Paragon)) return false;
+        if (ShipUnlocks.IsLocked(PremiumShips.Paragon)) return false;   // own enough ships first (ShipUnlocks.GatesParagon switches this off) (restore never comes through here)
         Buying = true;
         LaunchFlow();
         return true;

@@ -62,6 +62,14 @@ public class PlayBilling : MonoBehaviour
         }
     }
 
+    // Ends every open purchase (the connection to Play dropped). Test seam too.
+    public static void EndAllBuys()
+    {
+        RemoveAdsPurchase.EndBuy();
+        ParagonPurchase.EndBuy();
+        foreach (var p in SupportPurchase.Packs) p.EndBuy();
+    }
+
     static bool AnySupportPriceMissing()
     {
         foreach (var p in SupportPurchase.Packs) if (string.IsNullOrEmpty(p.Price)) return true;
@@ -72,7 +80,7 @@ public class PlayBilling : MonoBehaviour
     {
         if (!focused) return;
         QueryOwned();
-        if (string.IsNullOrEmpty(ParagonPurchase.Price) || AnySupportPriceMissing()) QueryParagonDetails();
+        if (string.IsNullOrEmpty(RemoveAdsPurchase.Price) || string.IsNullOrEmpty(ParagonPurchase.Price) || AnySupportPriceMissing()) QueryParagonDetails();
     }
 
     void OnDestroy()
@@ -167,7 +175,7 @@ public class PlayBilling : MonoBehaviour
     }
 
     // Asks Play for the details of every product the game sells; the formatted
-    // prices are what the dock shows.
+    // prices are what the Shop shows.
     void QueryParagonDetails()
     {
         if (!connected || client == null) return;
@@ -194,7 +202,7 @@ public class PlayBilling : MonoBehaviour
         catch (Exception e) { Debug.Log("[Paragon] details query failed: " + e.Message); }
     }
 
-    // The dock's buy tap: opens Play's purchase sheet for Paragon.
+    // The Shop's buy tap: opens Play's purchase sheet for Paragon.
     void LaunchParagon()
     {
         try
@@ -269,7 +277,7 @@ public class PlayBilling : MonoBehaviour
         return ids;
     }
 
-    // A dock tile's buy tap: opens Play's purchase sheet for that consumable pack.
+    // A Shop pack row's buy tap: opens Play's purchase sheet for that consumable pack.
     void LaunchSupport(SupportPurchase.Pack pack)
     {
         try
@@ -487,6 +495,7 @@ public class PlayBilling : MonoBehaviour
             {
                 owner.connecting = false;
                 owner.connected = false;
+                EndAllBuys();   // a dropped connection answers no open sheet: no row stays on "..."
                 RemoveAdsPurchase.SetPrice(null);
                 ParagonPurchase.SetPrice(null);   // no store: the dock reads COMING SOON again
                 foreach (var pack in SupportPurchase.Packs) pack.SetPrice(null);

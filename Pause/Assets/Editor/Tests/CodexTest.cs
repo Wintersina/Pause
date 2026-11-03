@@ -1165,7 +1165,7 @@ public static class CodexTest
         Check("home menu keeps its top edge under the logo (" + top + " vs " + oldTop + ")",
               Mathf.Abs(top - oldTop) < .5f);
         var quit = (RectTransform)SceneUtil.FindAny("QuitButton").transform;
-        Check("the 5-row menu stays clear of Quit",
+        Check("the 6-row menu (Shop row included) stays clear of Quit",
               uiRect.anchoredPosition.y - uiRect.sizeDelta.y * .5f > quit.anchoredPosition.y + quit.sizeDelta.y * .5f - h * .5f);
 
         entry.Build();

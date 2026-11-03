@@ -87,10 +87,6 @@ public class SpaceDock : MonoBehaviour
         DeveloperUnlocks.Changed += RefreshStatuses;
         ParagonPurchase.Changed -= RefreshStatuses;
         ParagonPurchase.Changed += RefreshStatuses;
-        SupportPurchase.Changed -= OnSupportChanged;
-        SupportPurchase.Changed += OnSupportChanged;
-        ParagonPurchase.Changed -= OnSupportChanged;
-        ParagonPurchase.Changed += OnSupportChanged;
         SupportPurchase.Rewarded -= OnSupportRewarded;
         SupportPurchase.Rewarded += OnSupportRewarded;
         BackNavigator.Register(this, OnBackPressed);
@@ -100,8 +96,6 @@ public class SpaceDock : MonoBehaviour
     {
         DeveloperUnlocks.Changed -= RefreshStatuses;
         ParagonPurchase.Changed -= RefreshStatuses;
-        SupportPurchase.Changed -= OnSupportChanged;
-        ParagonPurchase.Changed -= OnSupportChanged;
         SupportPurchase.Rewarded -= OnSupportRewarded;
         BackNavigator.Unregister(this);
         if (Instance == this) Instance = null;
@@ -111,19 +105,12 @@ public class SpaceDock : MonoBehaviour
     {
         DeveloperUnlocks.Changed -= RefreshStatuses;
         ParagonPurchase.Changed -= RefreshStatuses;
-        SupportPurchase.Changed -= OnSupportChanged;
-        ParagonPurchase.Changed -= OnSupportChanged;
         SupportPurchase.Rewarded -= OnSupportRewarded;
         BackNavigator.Unregister(this);
         if (Instance == this) Instance = null;
     }
 
-    // The support tiles follow Play's prices; a payout refreshes the dust read-out.
-    void OnSupportChanged()
-    {
-        if (RefreshTiles()) Relayout();
-    }
-
+    // A pack paid while the dock is open (a pending payment completing) refreshes the dust read-out.
     void OnSupportRewarded(int amount)
     {
         if (shop != null) shop.ShowPurchase(amount);
@@ -233,10 +220,6 @@ public class SpaceDock : MonoBehaviour
         DeveloperUnlocks.Changed += RefreshStatuses;
         ParagonPurchase.Changed -= RefreshStatuses;
         ParagonPurchase.Changed += RefreshStatuses;
-        SupportPurchase.Changed -= OnSupportChanged;
-        SupportPurchase.Changed += OnSupportChanged;
-        ParagonPurchase.Changed -= OnSupportChanged;
-        ParagonPurchase.Changed += OnSupportChanged;
         SupportPurchase.Rewarded -= OnSupportRewarded;
         SupportPurchase.Rewarded += OnSupportRewarded;
         BackNavigator.Register(this, OnBackPressed);
@@ -270,13 +253,10 @@ public class SpaceDock : MonoBehaviour
             shopingShips.ships[i] = bays[i].ship.gameObject;
         }
 
-        foreach (var pack in SupportPurchase.Packs)
-            if (pack.inDock) tiles.Add(DockSupportTile.Create(rack, pack, font));
-        RefreshTiles();
-
         popup = DockPopup.Create(transform, font, cam);
         popup.onLaunch = Launch;
         popup.onBuy = Buy;
+        popup.onShop = GoToShop;
         popup.onSkin = TapSkin;
         popup.onBuySkin = BuySkin;
         popup.onClose = UndoSelection;
@@ -285,28 +265,6 @@ public class SpaceDock : MonoBehaviour
         FindChrome();
         RefreshStatuses();
         Relayout();
-    }
-
-    // The star dust pack berths after the ships: one per pack Play has a
-    // price for. Shown tiles take consecutive slots, so with the 16-ship roster
-    // (3 columns, 6 rows) they fill the 2 spare berths of the last row.
-    readonly List<DockSupportTile> tiles = new List<DockSupportTile>();
-    int shownTiles;
-
-    // Shows or hides each tile by its pack's availability and refreshes its
-    // price. True when the number shown changed (the rack must lay out again).
-    bool RefreshTiles()
-    {
-        int n = 0;
-        foreach (var tile in tiles)
-        {
-            bool on = tile.Shown;
-            if (tile.gameObject.activeSelf != on) tile.gameObject.SetActive(on);
-            if (on) { tile.Refresh(); n++; }
-        }
-        bool changed = n != shownTiles;
-        shownTiles = n;
-        return changed;
     }
 
     SpriteRenderer Piece(string name, Sprite sprite, SpriteDrawMode mode, int order)
@@ -354,8 +312,9 @@ public class SpaceDock : MonoBehaviour
         float halfH = cam.orthographicSize;
         float halfW = halfH * cam.aspect;
         Vector3 camPos = cam.transform.position;
-        RefreshTiles();
-        int count = shopingShips.shipTotal - 1 + shownTiles;
+        // The 16 roster ships fill five rows and one berth; the lone Paragon berth sits centred in the last row
+        // (DockLayout.BayCenter), so freeing the star dust pack tiles leaves no gap.
+        int count = shopingShips.shipTotal - 1;
 
         // The header and footer follow the safe area (notch / Dynamic Island /
         // punch-hole above, home indicator / nav bar below) before the rack is
@@ -402,9 +361,6 @@ public class SpaceDock : MonoBehaviour
 
         for (int i = 1; i < bays.Length; i++)
             if (bays[i] != null) bays[i].transform.localPosition = layout.BayCenter(SlotOf(i));
-        int tileSlot = shopingShips.shipTotal - 1;
-        foreach (var tile in tiles)
-            if (tile.gameObject.activeSelf) tile.transform.localPosition = layout.BayCenter(tileSlot++);
 
         float w = layout.Width, h = layout.Height;
         backplate.size = new Vector2(w, h);
@@ -674,17 +630,18 @@ public class SpaceDock : MonoBehaviour
     {
         if (Launching || index < 1 || index >= bays.Length) return;
         if (IsOwned(index)) { ShowPopup(index); return; }
-        // The last three berths stay shut until enough ships are owned (ShipUnlocks): no purchase, no dust taken.
+        // Premium ships are real-money only (PremiumShips) and bought in the Shop screen, never here: the dock
+        // neither sells one for dust nor starts a purchase, it sends the player to the Shop (which shows the
+        // own-N-ships gate and refuses the purchase while it holds).
+        if (PremiumShips.IsPremium(index))
+        {
+            GoToShop();
+            return;
+        }
+        // The last berths stay shut until enough ships are owned (ShipUnlocks): no purchase, no dust taken.
         if (ShipUnlocks.IsLocked(index))
         {
             popup.ShowMessage(ShipUnlocks.LockedMessage(index), DockArt.Warn, 1.4f);
-            return;
-        }
-        // Premium ships are real-money only (PremiumShips); the dock never sells one for dust.
-        if (PremiumShips.IsPremium(index))
-        {
-            if (ParagonPurchase.Available) ParagonPurchase.RequestBuy();
-            else popup.ShowMessage(PremiumShips.ComingSoonLabel, DockArt.Cyan, 1.2f);
             return;
         }
         float price = shopingShips.CostFor(index);
@@ -703,6 +660,12 @@ public class SpaceDock : MonoBehaviour
         {
             popup.ShowCantAfford(price - StarDustLedger.Saved);
         }
+    }
+
+    // Leaves for the Shop (home, with the Shop panel opening). Where it cannot, the berth says so.
+    public void GoToShop()
+    {
+        if (!ShopCatalog.Open()) popup.ShowMessage(PremiumShips.ComingSoonLabel, DockArt.Cyan, 1.2f);
     }
 
     // Equips the ship (saved at once) and launches it.
@@ -896,8 +859,6 @@ public class SpaceDock : MonoBehaviour
     {
         for (int i = 1; i < bays.Length; i++)
             if (bays[i] != null && bays[i].Contains(world)) { Select(i); return; }
-        foreach (var tile in tiles)
-            if (tile.gameObject.activeSelf && tile.Contains(world)) { tile.Tap(); return; }
         Deselect();
     }
 

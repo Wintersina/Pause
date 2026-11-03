@@ -87,7 +87,9 @@ public struct DockLayout
     public Vector2 BayCenter(int slot)
     {
         int col = slot % columns, row = slot / columns;
-        float x = (col - (columns - 1) * .5f) * PitchX;
+        // A short last row (the lone Paragon berth) is centred rather than left with an empty gap beside it.
+        int inRow = Mathf.Min(columns, count - row * columns);
+        float x = (col - (Mathf.Max(1, inRow) - 1) * .5f) * PitchX;
         float top = Height * .5f - Gate;
         float y = top - BaySize.y * .5f - row * PitchY;
         return new Vector2(x, y);

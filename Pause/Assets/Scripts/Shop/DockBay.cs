@@ -246,11 +246,9 @@ public class DockBay : MonoBehaviour
         chip.gameObject.SetActive(locked);
         if (locked)
         {
-            // a premium ship has no dust price: the tag says SOON, or the store's
-            // price once Play has it (PremiumShips, ParagonPurchase)
-            bool store = PremiumShips.IsPremium(index) && ParagonPurchase.Available;
-            string label = store ? ParagonPurchase.Price
-                : PremiumShips.IsPremium(index) ? "SOON" : Mathf.RoundToInt(price).ToString("N0");
+            // a premium ship has no dust price and is bought in the Shop screen: the tag says SHOP
+            bool store = PremiumShips.IsPremium(index);
+            string label = store ? DockPopup.ShopButtonText : Mathf.RoundToInt(price).ToString("N0");
             chipDust.gameObject.SetActive(!store);
             chipText.text = label;
             float width = .25f + label.Length * .058f;
