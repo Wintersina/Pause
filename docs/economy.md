@@ -49,7 +49,7 @@ Two repeatable purchases, `Boosters` (`Scripts/Boosters/`). No store product, no
 | | Price | What it does |
 |---|---|---|
 | Dust x2 | `Boosters.DustBoosterPrice` = 600 | Doubles pickup and reward dust for 10 minutes of play (`DustBoosterSeconds` = 600). Buying again adds 10 minutes (stored time caps at an hour). |
-| Hazard clear | `Boosters.HazardClearPrice` = 200 per charge | One charge, held (max 9), fired with the CLEAR button in a run. |
+| Hazard clear | `Boosters.HazardClearPrice` = 200 per charge | One charge, held (max 9), fires AUTOMATICALLY when a hit would cost a heart: the heart is kept. |
 
 **What the multiplier touches:** star and large-star pickups, the blue atom, the flight trickle, kill crumbs and elite rewards (`score.AwardStarDust`, `score.calcScore`).
 **What it never touches:** claims (achievements, Codex), purchases (packs), the end-of-run score bonus, the tutorial and practice runs. Score is never affected, and the leaderboard's "run star dust" board reads `Boosters.RankedDust` (earned minus what the booster added).
@@ -70,12 +70,12 @@ Two repeatable purchases, `Boosters` (`Scripts/Boosters/`). No store product, no
 So even a flawless player never earns back the price (it is a net cost; the value is the ad-free 10 minutes and a faster ramp). `BoostersTest` fails if a retune of the economy moves the extra dust over 70% of the price.
 **How far to trust it:** the sim uses seeded pickup, kill and elite counts that match the `DustEconomyTest` model, not logged play. The star counts per level (45-80 small, 8-18 large) and the 120 s level length are assumptions, and pickups are most of the income. A player who collects far more than the model (a magnet or Gold Magnet run, a very good player) can pass 70%; the 1.35x flawless case is the adaptive-difficulty estimate, itself "not measured in play". Re-check with real averages once the Play Console or leaderboard stats give dust per run.
 
-**Hazard clear, 200:** one typical 4-level run earns about 220 (same sim), so a charge costs about one run's earnings. It saves a heart or a run, but extending a run by a level only pays about 55 dust, so it never pays for itself. Max 9 held so a hoard cannot sit on screen.
+**Hazard clear, 200:** one typical 4-level run earns about 220 (same sim), so a charge costs about one run's earnings. It saves a heart (or the run, on a fatal hit), but extending a run by a level only pays about 55 dust, so it never pays for itself. Max 9 held so a hoard cannot sit on screen.
 
 ### Hazard clear rules
 
 Clears every rock, mine and ordinary ship in view, and every hostile projectile in flight (`HostileShots.ClearIn`). It leaves bosses, elites (and their drones and shot hitboxes), backdrop rocks, weather, pickups and timed area attacks (jets, waves, blast rings, strikes, lashes). Bosses and elites take no damage from it.
-It is not a kill: it never calls `AwardDestroyedTarget`, so there is no run score, kill chain, combo, achievement, Codex entry, secret-meter charge or dust. A run that used it still counts for score and leaderboards (see the tracker's open questions). It spends a charge only if something was cleared. Not available in the tutorial or practice runs; in developer mode it is always available and spends nothing.
+It is not a kill: it never calls `AwardDestroyedTarget`, so there is no run score, kill chain, combo, achievement, Codex entry, secret-meter charge or dust. A run that used it still counts for score and leaderboards (see the tracker's open questions). It is automatic (the game is one-finger, so there is no button): `collisionDetection` is the one place a heart is lost, and a hit that would remove one (the fatal hit included) spends a held charge instead, keeps the heart, runs the clear from the ship and starts the usual 2 s post-hit i-frames, so the same hazard cannot hit again. Hits that cost no heart (shield, Hard Shell, Cloak, i-frames) spend nothing. A boss, elite or timed area attack that hits is absorbed but not removed. Never in the tutorial or practice runs, when dead, or in scripted entrances (then the hit lands). There is no cooldown: the i-frames are the guard. Developer mode grants nothing: it fires, and spends, only real held charges (buy them in the Shop). The run shows a small non-interactive readout of the charges held under the Replay/Home pair. The save helps a player survive a run, which matters for the leaderboard question in the tracker.
 
 ### Cloud save
 

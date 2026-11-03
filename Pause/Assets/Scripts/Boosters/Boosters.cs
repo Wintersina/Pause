@@ -6,7 +6,7 @@ using UnityEngine;
 //                    never in a menu, a frozen world, a scripted entrance or the tutorial. Buying more while it is active
 //                    adds 10 minutes. Doubles pickups and rewards (score.AwardStarDust / flight trickle / kills / elites);
 //                    never a claim (achievements, Codex), a purchase (packs) or the end-of-run score bonus. Score is untouched.
-//   HAZARD CLEAR     a charge held in inventory, fired with the run's CLEAR button (HazardClearButton -> HazardClear).
+//   HAZARD CLEAR     a charge held in inventory, fires BY ITSELF when a hit would cost a heart (collisionDetection -> HazardClear.AutoSave), saving the heart.
 //
 // Both are bought here with dust and nothing else: no store product, no platform code (iOS = Android).
 //
@@ -84,8 +84,8 @@ public static class Boosters
     // deliberately do NOT count (unused charges would switch ads off for good).
     public static bool AnyActive { get { return DustActive; } }
 
-    // Developer mode has every charge for free: the clear is always available and never spends one.
-    public static bool ClearAvailable { get { return DeveloperUnlocks.Enabled || ClearCharges > 0; } }
+    // A charge is held. Developer mode grants nothing here: it fires, and spends, only on real held charges (buy them in the Shop).
+    public static bool ClearAvailable { get { return ClearCharges > 0; } }
 
     // The multiplier applied to dust earned in the live run right now (1 in the tutorial and practice runs).
     public static float RunDustMultiplier
@@ -174,11 +174,10 @@ public static class Boosters
         return BuyResult.Bought;
     }
 
-    // Spends one charge (the clear fired). False when there is none; developer mode spends nothing.
+    // Spends one charge (the clear fired). False when there is none (developer mode included).
     public static bool ConsumeClear()
     {
         EnsureLoaded();
-        if (DeveloperUnlocks.Enabled) return true;
         if (ClearCharges <= 0) return false;
         usedClear++;
         PlayerPrefs.SetInt(ClearUsedKey, usedClear);
@@ -199,7 +198,7 @@ public static class Boosters
     {
         return kind == Kind.DustMultiplier
             ? "Double star dust for 10 minutes of play. Pickups and rewards only. Buy again to add time. No ads while it runs."
-            : "One charge. Tap CLEAR in a run to wipe the rocks, mines, ships and shots on screen. No score. Bosses and elites stay.";
+            : "Fires by itself when a hit would cost a heart: saves the heart and wipes rocks, mines and shots on screen. No score. Bosses stay.";
     }
 
     public static float Price(Kind kind) { return kind == Kind.DustMultiplier ? DustBoosterPrice : HazardClearPrice; }
