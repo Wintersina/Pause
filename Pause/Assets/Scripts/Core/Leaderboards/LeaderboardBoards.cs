@@ -169,7 +169,7 @@ public static class LeaderboardBoards
 
         // Worlds cleared across loops (logical and store ids kept from the old
         // "Furthest Loop" board; only the meaning changed). The Play Console
-        // draft was made with limits 1..7: its upper limit must be raised
+        // board has lowest limit 1 and no highest limit
         // (docs/leaderboards.md, "Worlds cleared"). Lowest 1: a run that
         // cleared no world is never offered.
         new LeaderboardBoard(FurthestWorld,
