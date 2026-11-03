@@ -99,7 +99,7 @@ public static class NewRecordTest
         var live = new Dictionary<string, long> { { LeaderboardBoards.TopScore, 100 }, { LeaderboardBoards.RunStarDust, 500 }, { LeaderboardBoards.FurthestWorld, 2 } };
         var t = Fake(best, live);
         t.Begin();
-        Check("every board with a stored best is watched", t.Watching == LeaderboardBoards.Enabled().Count);
+        Check("every board with a stored best is watched", t.Watching == best.Count);
         Check("tying the best is not beating it", t.Poll().Count == 0 && !t.Crossed(LeaderboardBoards.TopScore));
         live[LeaderboardBoards.TopScore] = 101;
         Check("score passes its best: only the score board fires", Join(t.Poll()) == LeaderboardBoards.TopScore && t.Crossed(LeaderboardBoards.TopScore));
