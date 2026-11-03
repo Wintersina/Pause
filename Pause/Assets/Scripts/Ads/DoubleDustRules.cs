@@ -18,6 +18,15 @@ public static class DoubleDustRules
         return (float)System.Math.Round(earned, 2);
     }
 
+    // Each death panel's token comes from a persisted counter that only ever goes up, never from the clock
+    // (a clock set backwards would otherwise make every later death look "already paid").
+    public const string DeathCounterKey = "adsDeathCounter";
+
+    public static long NextToken(long counter, long lastPaidToken)
+    {
+        return System.Math.Max(counter, lastPaidToken) + 1L;
+    }
+
     public static bool CanClaim(long token, long lastPaidToken)
     {
         return token > 0L && token > lastPaidToken;

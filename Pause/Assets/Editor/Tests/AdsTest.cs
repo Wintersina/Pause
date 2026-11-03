@@ -176,6 +176,12 @@ public static class AdsTest
         Check("a new death can claim", DoubleDustRules.CanClaim(500L, 0L) && DoubleDustRules.CanClaim(501L, 500L));
         Check("the paid death cannot claim again, nor an older one", !DoubleDustRules.CanClaim(500L, 500L) && !DoubleDustRules.CanClaim(499L, 500L));
         Check("a zero token cannot claim", !DoubleDustRules.CanClaim(0L, 0L));
+        Check("tokens only go up, whatever the clock does", DoubleDustRules.NextToken(0L, 0L) == 1L && DoubleDustRules.NextToken(5L, 3L) == 6L && DoubleDustRules.NextToken(3L, 5L) == 6L);
+        PlayerPrefs.DeleteKey(DoubleDustRules.DeathCounterKey);
+        PlayerPrefs.SetString(DoubleDustRules.PaidTokenKey, "10");
+        long t1 = PrefsRewardStore.NewDeathToken(), t2 = PrefsRewardStore.NewDeathToken();
+        Check("stored death tokens are increasing and newer than the last paid death", t1 == 11L && t2 == 12L && DoubleDustRules.CanClaim(t1, 10L));
+        Check("a paid death never blocks the next one", DoubleDustRules.CanClaim(PrefsRewardStore.NewDeathToken(), t2));
 
         // The prefs store credits dust and records the token together.
         PlayerPrefs.SetFloat(StarDustLedger.CurrencyKey, 10f);
@@ -222,6 +228,26 @@ public static class AdsTest
         r.provider.pendingConsent(true);
         Check("consent that never answers times out, a late answer is ignored", r.provider.initCalls == 0 && !r.controller.Initialised);
 
+        // ---- the player reading the consent form is not a timeout ----
+        r = new Rig(); r.provider.autoCompleteCallbacks = false; r.provider.consentFormShowing = true;
+        r.controller.Boot();
+        r.now += AdController.ConsentTimeoutSeconds * 4f; r.controller.Tick();
+        r.now += AdController.ConsentTimeoutSeconds * 4f; r.controller.Tick();
+        r.provider.consentFormShowing = false;
+        r.provider.pendingConsent(true);
+        r.provider.autoCompleteCallbacks = true; r.provider.pendingInit();
+        Check("consent form on screen for minutes: still waiting, and consenting initialises ads", r.provider.initCalls == 1 && r.controller.Initialised);
+        r = new Rig(); r.provider.autoCompleteCallbacks = false; r.provider.consentFormShowing = true;
+        r.controller.Boot(); r.controller.Tick();
+        r.provider.consentFormShowing = false;
+        r.now += AdController.ConsentTimeoutSeconds - 1f; r.controller.Tick();
+        Check("the timeout clock restarts when the form closes", r.provider.pendingConsent != null && !r.controller.Initialised);
+        r.now += 2f; r.controller.Tick(); r.provider.pendingConsent(true);
+        Check("a form load that then hangs still times out", r.provider.initCalls == 0);
+        r = new Rig(); r.provider.canRequestAds = false; r.provider.consentFormShowing = true;
+        r.controller.Boot(); r.controller.Tick();
+        Check("declining consent keeps ads blocked", r.provider.initCalls == 0 && !r.controller.Initialised);
+
         // ---- load failure backs off ----
         r = new Rig(); r.provider.loadSucceeds = false;
         r.BootReady();
@@ -265,8 +291,8 @@ public static class AdsTest
         r.now += 2f; r.controller.Tick();
         Check("never opened: Replay carries on after the timeout", proceeds == 1 && !r.controller.Busy && r.env.suspends == 0);
         r.provider.lastEvents.opened(); r.provider.lastEvents.closed();
-        Check("a late open / close of the abandoned ad does nothing more", proceeds == 1 && r.env.suspends == 0 && r.env.resumes == 0);
-        Check("an abandoned ad does not start the 3 minute clock", r.controller.SecondsSinceLastAd == float.MaxValue);
+        Check("a late-opening abandoned ad is muted while up and restored on close", proceeds == 1 && r.env.suspends == 1 && r.env.resumes == 1);
+        Check("an abandoned ad starts the 3 minute clock (it may still appear)", r.controller.SecondsSinceLastAd < 1f);
 
         // ---- interstitial that fails ----
         r = new Rig(); r.BootReady(); proceeds = 0;

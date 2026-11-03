@@ -51,7 +51,7 @@ public sealed class AdController
     bool busy, sessionOpened, sessionFinished;
     float sessionStarted, sessionOpenedAt;
     Action sessionDone;
-    bool sessionRewarded, sessionPaid;
+    bool sessionRewarded, sessionPaid, lateOpen;
     long sessionToken; float sessionEarned; Action<float> sessionOnPaid;
 
     float lastAdAt = float.NegativeInfinity;
@@ -158,7 +158,9 @@ public sealed class AdController
         switch (phase)
         {
             case Phase.Consent:
-                if (now - phaseStarted > ConsentTimeoutSeconds) phase = Phase.Blocked;   // never wait on the network
+                // Never wait on the network, but the player reading the form is not the network.
+                if (provider.ConsentFormShowing) phaseStarted = now;
+                else if (now - phaseStarted > ConsentTimeoutSeconds) phase = Phase.Blocked;
                 return;
             case Phase.Tracking:
                 if (now - phaseStarted > AdTracking.TimeoutSeconds + 5f) StartInit();
@@ -174,7 +176,7 @@ public sealed class AdController
 
         if (busy)
         {
-            if (!sessionOpened && now - sessionStarted > OpenTimeoutSeconds) FinishShow(false);
+            if (!sessionOpened && now - sessionStarted > OpenTimeoutSeconds) FinishShow(false, true);
             else if (sessionOpened && now - sessionOpenedAt > OpenWatchdogSeconds) FinishShow(true);
             return;
         }
@@ -262,7 +264,7 @@ public sealed class AdController
         busy = true;
         session++;
         sessionStarted = clock();
-        sessionOpened = sessionFinished = sessionPaid = false;
+        sessionOpened = sessionFinished = sessionPaid = lateOpen = false;
         sessionRewarded = rewarded;
         sessionOnPaid = null;
     }
@@ -273,6 +275,11 @@ public sealed class AdController
         {
             opened = () =>
             {
+                if (mark == session && sessionFinished && !sessionOpened && !lateOpen)
+                {
+                    // Opened after Replay already carried on: it cannot be cancelled, but mute and freeze while it is up.
+                    lateOpen = true; env.Suspend(); return;
+                }
                 if (mark != session || sessionFinished || sessionOpened) return;
                 sessionOpened = true;
                 sessionOpenedAt = clock();
@@ -284,7 +291,11 @@ public sealed class AdController
                 if (mark != session || sessionFinished || !sessionRewarded) return;
                 Pay();
             },
-            closed = () => { if (mark == session && !sessionFinished) FinishShow(true); },
+            closed = () =>
+            {
+                if (mark == session && lateOpen) { lateOpen = false; env.Resume(); return; }
+                if (mark == session && !sessionFinished) FinishShow(true);
+            },
             failed = message => { if (mark == session && !sessionFinished) FinishShow(sessionOpened); },
         };
     }
@@ -304,13 +315,14 @@ public sealed class AdController
 
     // Ends the show exactly once: environment back, the clock for MinSecondsBetweenAds started, the
     // continuation run, and the next ad requested.
-    void FinishShow(bool wasShown)
+    void FinishShow(bool wasShown, bool abandoned = false)
     {
         if (sessionFinished) return;
         sessionFinished = true;
         busy = false;
         if (sessionOpened) { try { env.Resume(); } catch (Exception) { } }
-        if (wasShown || sessionOpened) lastAdAt = clock();
+        // An abandoned ad may still open late: count it as shown so no second ad follows right behind it.
+        if (wasShown || sessionOpened || abandoned) lastAdAt = clock();
         var done = sessionDone;
         sessionDone = null;
         sessionOnPaid = null;

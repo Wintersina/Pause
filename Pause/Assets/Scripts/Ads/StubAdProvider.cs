@@ -21,6 +21,8 @@ public class StubAdProvider : IAdProvider
     }
 
     public bool PrivacyOptionsRequired { get { return privacyOptionsRequired; } }
+    public bool consentFormShowing;
+    public bool ConsentFormShowing { get { return consentFormShowing; } }
     public void ShowPrivacyOptions(Action done) { if (done != null) done(); }
     public void RequestTracking(Action done) { trackingCalls++; done(); }
 

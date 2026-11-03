@@ -163,6 +163,17 @@ public sealed class AdEnvironment : IAdEnvironment
 // The reward store on PlayerPrefs: the paid token and the credited dust go out in one save.
 public sealed class PrefsRewardStore : IRewardStore
 {
+    // A fresh token for a death panel: persisted and strictly increasing.
+    public static long NewDeathToken()
+    {
+        long counter;
+        if (!long.TryParse(PlayerPrefs.GetString(DoubleDustRules.DeathCounterKey, "0"), out counter)) counter = 0L;
+        long token = DoubleDustRules.NextToken(counter, new PrefsRewardStore().LastPaidToken);
+        PlayerPrefs.SetString(DoubleDustRules.DeathCounterKey, token.ToString());
+        PrefsSaver.MarkDirty();
+        return token;
+    }
+
     public long LastPaidToken
     {
         get

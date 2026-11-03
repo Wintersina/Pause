@@ -19,6 +19,9 @@ public interface IAdProvider
 
     // True after GatherConsent when a "privacy options" entry must be offered in settings.
     bool PrivacyOptionsRequired { get; }
+
+    // True while the consent form is on screen. The player's reading time must not count against the consent timeout.
+    bool ConsentFormShowing { get; }
     void ShowPrivacyOptions(Action done);
 
     // iOS App Tracking Transparency prompt (after UMP). A no-op that completes at once elsewhere.

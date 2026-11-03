@@ -31,7 +31,7 @@ public class DoubleDustOffer : MonoBehaviour
         var offer = go.AddComponent<DoubleDustOffer>();
         offer.view = view;
         offer.earned = earned;
-        offer.token = System.DateTime.UtcNow.Ticks;
+        offer.token = PrefsRewardStore.NewDeathToken();
         offer.Build(go);
         return offer;
     }

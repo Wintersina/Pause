@@ -15,6 +15,8 @@ public sealed class AdMobProvider : IAdProvider
     InterstitialAd interstitial;
     RewardedAd rewarded;
     float interstitialLoadedAt, rewardedLoadedAt;
+    bool consentFormShowing;
+    public bool ConsentFormShowing { get { return consentFormShowing; } }
 
     public void GatherConsent(Action<bool> done)
     {
@@ -29,10 +31,27 @@ public sealed class AdMobProvider : IAdProvider
                     done(SafeCanRequest());
                     return;
                 }
-                ConsentForm.LoadAndShowConsentFormIfRequired(formError =>
+                // Load (network, bounded by the controller's timeout), then show (the player's time, unbounded).
+                if (ConsentInformation.ConsentStatus != ConsentStatus.Required || !ConsentInformation.IsConsentFormAvailable())
                 {
-                    if (formError != null) Debug.Log("[ADS] consent form: " + formError.Message);
                     done(SafeCanRequest());
+                    return;
+                }
+                ConsentForm.Load((form, loadError) =>
+                {
+                    if (loadError != null || form == null)
+                    {
+                        Debug.Log("[ADS] consent form load: " + (loadError != null ? loadError.Message : "null"));
+                        done(SafeCanRequest());
+                        return;
+                    }
+                    consentFormShowing = true;
+                    form.Show(showError =>
+                    {
+                        consentFormShowing = false;
+                        if (showError != null) Debug.Log("[ADS] consent form: " + showError.Message);
+                        done(SafeCanRequest());
+                    });
                 });
             });
         }

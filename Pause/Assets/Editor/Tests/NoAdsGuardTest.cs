@@ -7,6 +7,13 @@ using UnityEngine;
 // project can show an ad or ask for the advertising id. Fails if a script,
 // scene, prefab, manifest, gradle file or package list names AdMob or an ad
 // SDK again.
+//
+// Phase 4 of the free-with-ads move adds the AdMob SDK on purpose, behind
+// AdsConfig.MasterSwitch (false). So the rule is now: an ad SDK may be named only
+// inside the sanctioned ad code and plugin files (AllowedPaths), and while any
+// ad code is present the master switch must be false -- the store's "no ads"
+// answers stay true until the owner flips it together with the Play Console
+// declarations (then update this guard in the same change).
 public static class NoAdsGuardTest
 {
     static int fails;
@@ -35,6 +42,14 @@ public static class NoAdsGuardTest
         string self = "NoAdsGuardTest.cs";
         // Third-party plugin trees only mention ads in their own docs.
         string[] skip = { "ExternalDependencyManager", "GooglePlayGames" };
+        // The ads feature (Scripts/Ads, Editor/Ads), its tests and build hooks, and the Google Mobile Ads plugin
+        // with the gradle / manifest / plist files its dependency manager writes.
+        string[] allowed =
+        {
+            "Scripts/Ads/", "Editor/Ads/", "GoogleMobileAds/", "Plugins/Android/GoogleMobileAdsPlugin.androidlib/",
+            "Plugins/Android/mainTemplate.gradle", "Plugins/Android/settingsTemplate.gradle", "Plugins/iOS/",
+            "Editor/Tests/AdsTest.cs", "Editor/Tests/UnusedAssetGuardTest.cs", "Editor/Build/BuildScript.cs", "Editor/Build/IOSCapabilitiesPostProcess.cs",
+        };
 
         int scanned = 0;
         var offenders = new System.Collections.Generic.List<string>();
@@ -50,10 +65,13 @@ public static class NoAdsGuardTest
                 if (file.Contains(Path.DirectorySeparatorChar + s + Path.DirectorySeparatorChar)) skipped = true;
             if (skipped) continue;
             scanned++;
-            if (AdTerms.IsMatch(File.ReadAllText(file)))
+            string rel = file.Substring(Application.dataPath.Length + 1).Replace('\\', '/');
+            bool ok = false;
+            foreach (string a in allowed) if (rel.StartsWith(a) || rel == a) ok = true;
+            if (!ok && AdTerms.IsMatch(File.ReadAllText(file)))
                 offenders.Add(file.Substring(project.Length + 1));
         }
-        Check("no script, scene, prefab or manifest under Assets names an ad SDK (" + scanned + " files)"
+        Check("no script, scene, prefab or manifest outside the sanctioned ad files names an ad SDK (" + scanned + " files)"
               + (offenders.Count > 0 ? ": " + string.Join(", ", offenders) : ""), offenders.Count == 0);
 
         foreach (string rel in new[] { "Packages/manifest.json", "ProjectSettings/ProjectSettings.asset" })
@@ -62,6 +80,8 @@ public static class NoAdsGuardTest
             Check(rel + " names no ad SDK", !File.Exists(path) || !AdTerms.IsMatch(File.ReadAllText(path)));
         }
 
+        Check("ads stay off: AdsConfig.MasterSwitch is false (flip it only with the Play Console declarations)", AdsConfig.MasterSwitch == false);
+        Check("ads stay off on iOS: AdsConfig.EnabledOnIos is false until StoreKit ships", AdsConfig.EnabledOnIos == false);
         Check("AdMob.cs is gone", !File.Exists(Path.Combine(Application.dataPath, "Scripts/UI/AdMob.cs")));
         return fails;
     }
