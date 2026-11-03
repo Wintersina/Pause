@@ -95,7 +95,6 @@ public static class ProgressMerge
             codexHurt = DamageLog.MergeMax(local.codexHurt, cloud.codexHurt),
             fusionLog = FusionDiscoveryStore.Merge(local.fusionLog, cloud.fusionLog),
             adFree = local.adFree || cloud.adFree,
-            adsEra = local.adsEra || cloud.adsEra,
         };
         return result;
     }
