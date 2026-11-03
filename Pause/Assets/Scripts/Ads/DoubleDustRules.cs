@@ -1,3 +1,5 @@
+using UnityEngine;
+
 // The rewarded "double your star dust" rules, pure.
 //
 // The reward doubles ONE thing: the dust the run itself earned (StarDustLedger.Earned,
@@ -16,6 +18,18 @@ public static class DoubleDustRules
     {
         if (!(earned > 0f) || float.IsInfinity(earned)) return 0f;
         return (float)System.Math.Round(earned, 2);
+    }
+
+    // What the double pays when a booster ran too. StarDustLedger.Earned already holds the booster's extra, so doubling
+    // it would stack x2 (booster) on x2 (ad) = 4x. The ad doubles the UNBOOSTED base only (Boosters.RankedDust), and the
+    // total never passes Boosters.DustMultiplier(boosted, true) (3x with a booster, 2x without). boostExtra is
+    // Boosters.RunBoostExtra.
+    public static float Payout(float earned, float boostExtra)
+    {
+        if (!(earned > 0f) || float.IsInfinity(earned)) return 0f;
+        float baseDust = Mathf.Max(0f, earned - Mathf.Max(0f, boostExtra));
+        float room = baseDust * Boosters.DustMultiplier(boostExtra > 0f, true) - earned;
+        return Bonus(Mathf.Min(baseDust, Mathf.Max(0f, room)));
     }
 
     // Each death panel's token comes from a persisted counter that only ever goes up, never from the clock
