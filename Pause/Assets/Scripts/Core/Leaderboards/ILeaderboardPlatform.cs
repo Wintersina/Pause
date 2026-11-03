@@ -71,6 +71,12 @@ public struct LeaderboardEntry
     // (an older tag has none: the row shows nothing, never a 0).
     public bool hasPauses;
     public int pauses;
+    // The Boosted board's columns, from the score tag (d, w, u fields); only meaningful when hasRunStats.
+    // No tag (an older score, a store without tags such as Game Center) leaves them blank.
+    public bool hasRunStats;
+    public long starDustHundredths;
+    public int worlds;
+    public int powerUps;
 }
 
 public sealed class LeaderboardPage

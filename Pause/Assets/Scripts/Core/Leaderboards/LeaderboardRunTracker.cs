@@ -6,16 +6,27 @@ using UnityEngine.SceneManagement;
 // has to know about leaderboards.
 //
 //   death          -> SubmitRun (the service keeps only improvements)
-//   left mid-run   -> SubmitRun only if the run beat the local best score
+//   left mid-run   -> SubmitRun only if the run beat the local best score OF ITS ROUTE (see below)
 //   app backgrounded mid-run with a new best -> queued too (the app may be
 //                     killed in the background); death later re-offers and
 //                     the improvement rule drops the duplicate.
+//
+// ROUTING. A run that used a booster (Dust x2 active during real flight at any moment, or a Hazard Clear charge that
+// fired; latched for the run) goes ONLY to the Power-Ups board; every other run goes only to the normal boards
+// (LeaderboardService.SubmitRun). The two routes keep their own local bests (LeaderboardService.LocalBest), so a boosted
+// score never becomes the bar a normal early quit has to beat, and the other way round. RunScore.SavedBest is NOT used for
+// this: it keeps every ranked run, boosted or not (score rules are unchanged).
 public class LeaderboardRunTracker : MonoBehaviour
 {
     public const string RunScene = "gameS1";
 
     long runScore;
-    long bestScoreAtStart;
+    long normalBestAtStart, boostedBestAtStart;
+    // Boosters the run has used so far (LeaderboardRunTag.Power* bits). Only ever grows, so it cannot reset mid-run
+    // and a booster that expires mid-run still counts.
+    int powerUps;
+    float endDustAll;
+    bool savesBest;   // RunScore.SavesBest at the last sample (the next scene's BeginRun resets it)
     int worldsCleared;
     bool ended;
     // Captured when the run starts, never re-read: what it STARTED with.
@@ -32,7 +43,12 @@ public class LeaderboardRunTracker : MonoBehaviour
 
     void Start()
     {
-        bestScoreAtStart = RunScore.SavedBest;
+        LeaderboardService.SeedLocalBests();
+        normalBestAtStart = LeaderboardService.LocalBest(false);
+        boostedBestAtStart = LeaderboardService.LocalBest(true);
+        powerUps = 0;
+        endDustAll = 0f;
+        savesBest = false;
         runScore = 0;
         worldsCleared = 0;
         ended = false;
@@ -70,10 +86,23 @@ public class LeaderboardRunTracker : MonoBehaviour
         endHearts = ShipLives.Left;
         endPauses = Mathf.Max(0, score.pauseCounter);
         endDust = System.Math.Max(endDust, Boosters.RankedDust(StarDustLedger.Earned));   // only grows within a run
+        endDustAll = System.Math.Max(endDustAll, StarDustLedger.Earned);
+        savesBest = RunScore.SavesBest;
+        // The boosters, latched. Holding a charge or booster time without using it does not count.
+        if (Boosters.RunDustUsed) powerUps |= LeaderboardRunTag.PowerDust;
+        if (HazardClear.UsedThisRun > 0) powerUps |= LeaderboardRunTag.PowerClear;
         if (RunScore.Scoring) runScore = System.Math.Max(runScore, RunScore.Total);
     }
 
-    bool BeatLocalBest { get { return runScore > bestScoreAtStart; } }
+    // The route's own best: a boosted run is measured against boosted runs only, a normal run against normal ones.
+    bool BeatLocalBest { get { return runScore > (powerUps != 0 ? boostedBestAtStart : normalBestAtStart); } }
+
+    // The run is over for good (death or left early): its score becomes its route's local best, as a saved best would.
+    void RecordBest()
+    {
+        if (!savesBest || premiumRun || LeaderboardService.SubmissionBlocked()) return;
+        LeaderboardService.RecordLocalBest(powerUps != 0, runScore);
+    }
 
     public LeaderboardRunStats Stats()
     {
@@ -90,6 +119,8 @@ public class LeaderboardRunTracker : MonoBehaviour
             hasPauses = true,
             endPauses = endPauses,
             premiumRun = premiumRun,
+            powerUps = powerUps,
+            dustEarned = endDustAll,
         };
     }
 
@@ -101,6 +132,7 @@ public class LeaderboardRunTracker : MonoBehaviour
         if (buttonClicks.playerDied) endHearts = 0;   // the fatal hit may not be counted yet
         ended = true;
         LeaderboardService.Instance.SubmitRun(Stats());
+        RecordBest();
     }
 
     // Leaving early (Menu, Replay, Back) keeps a new best, never anything else.
@@ -109,6 +141,7 @@ public class LeaderboardRunTracker : MonoBehaviour
         if (ended) return;
         ended = true;
         if (BeatLocalBest) LeaderboardService.Instance.SubmitRun(Stats());
+        RecordBest();
     }
 
     void OnApplicationPause(bool paused)

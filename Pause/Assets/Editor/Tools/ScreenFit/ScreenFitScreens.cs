@@ -369,6 +369,8 @@ public static class ScreenFitScreens
             {
                 new LeaderboardBoard(real.id, "fit_android_top_score", "fit_ios_top_score", real.displayName, real.description,
                                      real.sort, LeaderboardBoards.FormatScore, run => run.score),
+                new LeaderboardBoard(LeaderboardBoards.BoostedRuns, "fit_android_boosted", "fit_ios_boosted", "Boosted", "Runs that used a booster.",
+                                     LeaderboardSort.HigherIsBetter, LeaderboardBoards.FormatScore, run => run.score, 1, true),
             });
             foreach (var b in LeaderboardBoards.All)
             {
@@ -383,6 +385,9 @@ public static class ScreenFitScreens
                         isLocalPlayer = i == 3,
                         // Ships 1-9 in their skins 0..2 (a skin a ship lacks draws stock).
                         startShip = 1 + i % 9, startHearts = 3, startSkin = i % 3,
+                        // The Boosted board's columns: widest values on some rows, none on every third.
+                        hasRunStats = i % 3 != 2, starDustHundredths = i % 2 == 0 ? 999999 : 123456, worlds = i % 2 == 0 ? 99 : 12,
+                        powerUps = 1 + i % 3,
                     });
                 string boardId = b.PlatformId(rig.device.ios);
                 if (!string.IsNullOrEmpty(boardId)) fake.SetBoard(boardId, rows.ToArray());
@@ -392,7 +397,35 @@ public static class ScreenFitScreens
             panel.SendMessage("Update");
             rig.Ignore("Canvas");
             LeaderboardChecks(rig, panel);
+            // The Boosted tab (last): the same row checks, plus its own columns.
+            panel.SelectBoard(LeaderboardBoards.BoostedRuns);
+            rig.Sync();
+            panel.SendMessage("Update");
+            rig.Ignore("Canvas");
+            LeaderboardChecks(rig, panel);
+            BoostedChecks(rig, panel);
         }
+    }
+
+    // The Boosted board's star dust / worlds block and power-ups line: whole, inside their boxes, at least 16 units.
+    static void BoostedChecks(ScreenFitRig rig, LeaderboardPanel panel)
+    {
+        int stats = 0, used = 0;
+        foreach (var t in panel.GetComponentsInChildren<Text>())
+        {
+            if (t.name != "Stats" && t.name != "PowerUps") continue;
+            if (t.name == "Stats") stats++; else used++;
+            Rect glyphs; float fontPx; bool truncated;
+            if (!rig.MeasureText(t, out glyphs, out fontPx, out truncated)) continue;
+            Rect box = rig.PixelRect(t.rectTransform);
+            if (t.fontSize < 16 || t.resizeTextForBestFit)
+                rig.Fail("LEADERBOARD", t.name + " " + t.transform.parent.name, "drawn at " + t.fontSize + " units, under the 16 floor", glyphs);
+            // The type is bold italic: its slant overhangs the right edge of the box by up to ~a quarter of the font size (CI: 3 px at 13 px type).
+            float overhang = fontPx * .3f;
+            if (glyphs.xMax > box.xMax + 1f + overhang || glyphs.xMin < box.xMin - 1f)
+                rig.Fail("LEADERBOARD", t.name + " " + t.transform.parent.name + " \"" + t.text + "\"", "runs out of its column (glyphs x " + glyphs.xMin.ToString("F1") + ".." + glyphs.xMax.ToString("F1") + ", box x " + box.xMin.ToString("F1") + ".." + box.xMax.ToString("F1") + ", size " + t.fontSize + ")", glyphs);
+        }
+        if (stats < 5 || used < 5) rig.Fail("STAGE", "boosted board", "only " + stats + " stats / " + used + " power-up cells");
     }
 
     // Row 3 is the player's own; the rest: a 30+ character name, wide glyphs

@@ -96,7 +96,11 @@ public static class Boosters
     // Dust the booster alone added to the live run (so the ad code can add its own x on the unboosted base:
     // base = earned - RunBoostExtra, final = base x DustMultiplier(...) stays at 3x). Reset by ResetRun.
     public static float RunBoostExtra { get; private set; }
-    public static void ResetRun() { RunBoostExtra = 0f; }
+    public static void ResetRun() { RunBoostExtra = 0f; RunDustUsed = false; }
+
+    // The dust multiplier was ACTIVE on at least one unfrozen frame of real run flight this run (set by Tick, so it stays true after the
+    // time runs out mid-run). The leaderboards route a run with this set to the Power-Ups board. Merely owning booster time does not set it.
+    public static bool RunDustUsed { get; private set; }
 
     // The run's earned dust as the leaderboards see it: WITHOUT what the booster added, so the "run star dust" board ranks play, not purchases.
     public static float RankedDust(float earned) { return Mathf.Max(0f, earned - RunBoostExtra); }
@@ -119,6 +123,7 @@ public static class Boosters
     {
         if (TestDelta.HasValue) dt = TestDelta.Value;
         if (dt <= 0f || !DustActive) return;
+        RunDustUsed = true;
         long left = RemainingMs;
         fracMs += dt * 1000f;
         int whole = (int)fracMs;

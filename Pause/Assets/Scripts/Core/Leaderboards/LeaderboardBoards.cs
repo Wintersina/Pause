@@ -39,9 +39,28 @@ public struct LeaderboardRunStats
     // The run flew the premium (cheat) ship at any point, or ranked nothing
     // (RunScore.Unranked). Such a run is never submitted anywhere.
     public bool premiumRun;
+    // Boosters the run used (LeaderboardRunTag.PowerDust / PowerClear bits): Dust x2 active during real flight at any
+    // point, or a Hazard Clear charge fired. Non-zero routes the run to the Power-Ups board ONLY, and every
+    // other board then gets nothing from it.
+    public int powerUps;
+    // All the star dust the run earned, booster doubling included (the Power-Ups row's star dust column).
+    // `starDust` above is the dust the Star Dust board ranks, without what a booster added.
+    public float dustEarned;
 
+    public bool PoweredUp { get { return powerUps != 0; } }
     public bool UsedPremium { get { return premiumRun || PremiumShips.IsPremium(startShip); } }
-    public string Tag { get { return LeaderboardRunTag.Encode(startShip, startHearts, hasEnd ? endHearts : -1, hasPauses ? endPauses : -1, startSkin); } }
+    // The normal boards' tag is unchanged; a powered-up run's tag also carries its star dust, worlds and power-ups
+    // (it only ever goes to the Power-Ups board).
+    public string Tag
+    {
+        get
+        {
+            return LeaderboardRunTag.Encode(startShip, startHearts, hasEnd ? endHearts : -1, hasPauses ? endPauses : -1, startSkin,
+                PoweredUp ? (long)System.Math.Round(System.Math.Max(0f, dustEarned) * 100.0) : -1,
+                PoweredUp ? Math.Max(0, worldsCleared) : -1,
+                powerUps);
+        }
+    }
 }
 
 public sealed class LeaderboardBoard
@@ -57,11 +76,14 @@ public sealed class LeaderboardBoard
     // A value below this is never offered (the store board's lower limit: the
     // worlds board starts at 1, so a run that cleared nothing sends nothing).
     public readonly long minValue;
+    // The Power-Ups board: takes ONLY runs that used a booster, and those runs take no other board.
+    public readonly bool poweredUpOnly;
 
     public LeaderboardBoard(string id, string androidId, string iosId, string displayName, string description,
                             LeaderboardSort sort, Func<long, string> format, Func<LeaderboardRunStats, long> measure,
-                            long minValue = long.MinValue)
+                            long minValue = long.MinValue, bool poweredUpOnly = false)
     {
+        this.poweredUpOnly = poweredUpOnly;
         this.minValue = minValue;
         this.id = id;
         this.androidId = androidId ?? "";
@@ -102,6 +124,9 @@ public static class LeaderboardBoards
     public const string TopScore = "top_score";
     public const string RunStarDust = "run_star_dust";
     public const string FurthestWorld = "furthest_world";
+    // Runs that used a booster (Dust x2 / Hazard Clear), ranked by run score. Its star dust, worlds and power-ups
+    // columns ride in the score tag. No store ids yet: off until Play Console creates it.
+    public const string BoostedRuns = "boosted_runs";
 
     // The board the game used to have for speed. Speed is capped now
     // (SpeedRamp.Cap), so there is nothing to rank: the board is gone from
@@ -156,6 +181,19 @@ public static class LeaderboardBoards
             FormatWorlds,
             run => Math.Max(0, run.worldsCleared),
             1),
+
+        // Powered-up runs only (docs/leaderboards.md, "Power-Ups board"). Ids empty on purpose: the board is created in
+        // Play Console first, and until then it has no tab and nothing is submitted or queued for it.
+        new LeaderboardBoard(BoostedRuns,
+            "",   // Play Console id: to create (docs/leaderboards.md)
+            "",   // iOS: Game Center cannot carry the columns (no score tag), see docs
+            "Power-Ups",
+            "Best score in a run that used Dust x2 or Hazard Clear.",
+            LeaderboardSort.HigherIsBetter,
+            FormatScore,
+            run => run.score,
+            1,
+            true),
     };
 
     public static LeaderboardBoard Get(string id)

@@ -45,6 +45,16 @@ public class LeaderboardPanel : MonoBehaviour
     const float ValueWidth = 170f, ValueInset = 14f;
     const int BadgeSize = 24, BadgeMinSize = 16;     // 16 units = 7.7 dp at the smallest scale (0.48 units per dp)
     const int ValueMinSize = 16;
+    // Tab captions shrink (or wrap onto a second line) to this at the least: four tabs share the width.
+    public const int TabMinSize = 16;
+    // The Boosted board's row: no hearts / pauses badges; their room holds a two-line star dust + worlds block,
+    // and under the score the power-ups the run used (all at 16 units or more).
+    const float StatsWidth = 150f;
+    // The Boosted tab narrows the score column (170 to 150) to make room for the stats block.
+    const float BoostedValueWidth = 150f;
+    const int StatsSize = 18;
+    // Text is fitted this far inside its box: the glyphs are laid out at pixel size on a device, a little wider than measured here.
+    const float FitMargin = 12f;
     // UiScale's floor: the buttons and the tab are 100-unit touch targets.
     public const float MinTapUnits = 100f;
     public const string Ellipsis = "...";
@@ -83,6 +93,7 @@ public class LeaderboardPanel : MonoBehaviour
     float Inner { get { return panelW - 2f * SideInset; } }
     float Drop { get { return DesignHeight - panelH; } }   // the lower block moves up by this
     float ListHeight { get { return PlayerRowTop - Drop - 40f - ListTop; } }
+    public float BoostedNameWidth { get { return NameColumnWidth + 2f * BadgeWidth + (ValueWidth - BoostedValueWidth) - StatsWidth; } }
     public float NameColumnWidth { get { return Inner - NameLeft - ValueInset - ValueWidth - 6f - 2f * BadgeWidth; } }
     public Vector2 PanelSize { get { return new Vector2(panelW, panelH); } }
     public bool ListScrolls { get { return list != null && list.GetComponent<ScrollRect>().enabled; } }
@@ -311,7 +322,7 @@ public class LeaderboardPanel : MonoBehaviour
             shape.raycastPadding = new Vector4(0f, -TabTouchMargin, 0f, -TabTouchMargin);   // a bigger finger target, same art
             var label = Child(rt, "Label");
             Stretch(label, 10f);
-            Label(label, board.displayName.ToUpperInvariant(), 26, AkiraPalette.Muted, TextAnchor.MiddleCenter, 2.5f);
+            Label(label, board.displayName.ToUpperInvariant(), 26, AkiraPalette.Muted, TextAnchor.MiddleCenter, 2.5f, TabMinSize);
             var button = rt.gameObject.AddComponent<Button>();
             button.targetGraphic = shape;
             button.transition = Selectable.Transition.None;
@@ -595,13 +606,28 @@ public class LeaderboardPanel : MonoBehaviour
             shipSkins.Add(e.startSkin);
         }
 
+        bool boosted = board != null && board.poweredUpOnly;
+        float nameWidth = boosted ? BoostedNameWidth : NameColumnWidth;
         var name = Child(rt, "Name");
-        Anchor(name, NameLeft, NameColumnWidth);
+        Anchor(name, NameLeft, nameWidth);
         string who = string.IsNullOrEmpty(e.playerName) ? "PILOT" : e.playerName.ToUpperInvariant();
         if (own && e.rank > 0) who = "YOU  " + who;
-        FitName(Label(name, who, NameSize, nameColor, TextAnchor.MiddleLeft, 2.5f), who, NameColumnWidth - 4f);
+        FitName(Label(name, who, NameSize, nameColor, TextAnchor.MiddleLeft, 2.5f), who, nameWidth - 4f);
 
-        if (e.startHearts > 0)
+        if (boosted)
+        {
+            // Star dust and worlds of the player's best powered-up run, from its score tag; blank without one.
+            if (e.hasRunStats && e.starDustHundredths >= 0 && e.worlds >= 0)
+            {
+                var stats = Child(rt, "Stats");
+                Anchor(stats, NameLeft + nameWidth + 2f, StatsWidth - 4f);
+                var statsText = Label(stats, "DUST " + Compact(e.starDustHundredths / 100) + "\nWORLDS " + Mathf.Min(e.worlds, 99),
+                                      StatsSize, AkiraPalette.Amber, TextAnchor.MiddleLeft, 2f, ValueMinSize);
+                statsText.lineSpacing = .9f;
+                FitText(statsText, StatsSize, ValueMinSize, StatsWidth - FitMargin);
+            }
+        }
+        else if (e.startHearts > 0)
         {
             var badge = Child(rt, "Hearts");
             Anchor(badge, NameLeft + NameColumnWidth + 2f, BadgeWidth - 4f);
@@ -625,7 +651,7 @@ public class LeaderboardPanel : MonoBehaviour
 
         // The pauses the run ended with: two bars (the pause glyph) and a count.
         // An older tag has none: the slot stays empty, never a 0 or a stray glyph.
-        if (e.hasPauses && e.pauses >= 0)
+        if (!boosted && e.hasPauses && e.pauses >= 0)
         {
             var badge = Child(rt, "Pauses");
             Anchor(badge, NameLeft + NameColumnWidth + 2f + BadgeWidth, BadgeWidth - 4f);
@@ -651,35 +677,63 @@ public class LeaderboardPanel : MonoBehaviour
         if (e.rank > 0 || e.value != 0)
         {
             var value = Child(rt, "Value");
-            value.anchorMin = new Vector2(1f, 0f);
+            bool hasPowerUps = boosted && e.hasRunStats && LeaderboardRunTag.PowerUpShort(e.powerUps).Length > 0;
+            value.anchorMin = new Vector2(1f, hasPowerUps ? .38f : 0f);
             value.anchorMax = new Vector2(1f, 1f);
             value.pivot = new Vector2(1f, .5f);
-            value.sizeDelta = new Vector2(ValueWidth, 0f);
+            float valueWidth = boosted ? BoostedValueWidth : ValueWidth;
+            value.sizeDelta = new Vector2(valueWidth, 0f);
             value.anchoredPosition = new Vector2(-ValueInset, 0f);
             string shown = board != null ? board.Format(e.value) : e.value.ToString();
             // "LOOP 2 \u00B7 WORLDS 8" is drawn on two lines (no dot glyph to depend on).
             bool twoLines = shown.Contains(LeaderboardBoards.WorldsSeparator);
             if (twoLines) shown = shown.Replace(LeaderboardBoards.WorldsSeparator, "\n");
-            var valueText = Label(value, shown, twoLines ? 24 : 30, valueColor, TextAnchor.MiddleRight, 3f, ValueMinSize);
+            int valueSize = hasPowerUps ? 26 : twoLines ? 24 : 30;
+            var valueText = Label(value, shown, valueSize, valueColor, TextAnchor.MiddleRight, 3f, ValueMinSize);
             if (twoLines) valueText.lineSpacing = .9f;
-            FitValue(valueText, twoLines ? 24 : 30);
+            FitText(valueText, valueSize, ValueMinSize, valueWidth);
+            if (hasPowerUps)
+            {
+                var used = Child(rt, "PowerUps");
+                used.anchorMin = new Vector2(1f, 0f);
+                used.anchorMax = new Vector2(1f, .4f);
+                used.pivot = new Vector2(1f, .5f);
+                used.sizeDelta = new Vector2(valueWidth - 8f, 0f);
+                used.anchoredPosition = new Vector2(-ValueInset - 8f, 0f);   // clear of the italic overhang and the ink stroke
+                var usedText = Label(used, LeaderboardRunTag.PowerUpShort(e.powerUps), StatsSize, mine ? AkiraPalette.Bone : AkiraPalette.Amber,
+                                     TextAnchor.MiddleRight, 2f, ValueMinSize);
+                FitText(usedText, StatsSize, ValueMinSize, valueWidth - 8f - FitMargin);
+                usedText.horizontalOverflow = HorizontalWrapMode.Wrap;   // fitted above, so it never wraps; right-aligned Overflow text is laid out from the wrong edge
+            }
         }
     }
 
     // The score / worlds text at `size`, shrinking one unit at a time to
     // ValueMinSize until its widest line fits ValueWidth (never smaller, never cut).
     // Measured with the font itself, once, when the row is built.
-    void FitValue(Text text, int size)
+    void FitValue(Text text, int size) { FitText(text, size, ValueMinSize, ValueWidth); }
+
+    // 999 as is, then 1.2K, 12K, 1M: the star dust block is only 150 units wide.
+    public static string Compact(long v)
+    {
+        if (v < 1000L) return Mathf.Max(0L, v).ToString();
+        if (v < 10000L) return (v / 1000L) + "." + ((v % 1000L) / 100L) + "K";
+        if (v < 1000000L) return (v / 1000L) + "K";
+        return (v / 1000000L) + "M";
+    }
+
+    // `text` at `size`, one unit at a time down to `min` until its widest line fits `width` (never smaller, never cut).
+    void FitText(Text text, int size, int min, float width)
     {
         text.resizeTextForBestFit = false;
         text.horizontalOverflow = HorizontalWrapMode.Overflow;
         text.verticalOverflow = VerticalWrapMode.Overflow;
-        for (; size > ValueMinSize; size--)
+        for (; size > min; size--)
         {
             text.fontSize = size;
-            if (text.preferredWidth <= ValueWidth) return;
+            if (text.preferredWidth <= width) return;
         }
-        text.fontSize = ValueMinSize;
+        text.fontSize = min;
     }
 
     // One line at NameSize .. NameMinSize; a name too long even at the

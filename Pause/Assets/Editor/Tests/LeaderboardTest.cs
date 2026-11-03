@@ -72,6 +72,8 @@ public static class LeaderboardTest
     {
         PlayerPrefs.DeleteKey(LeaderboardService.PendingKey);
         PlayerPrefs.DeleteKey(LeaderboardService.SubmittedKey);
+        PlayerPrefs.DeleteKey(LeaderboardService.NormalBestKey);   // the tracker's per-route local bests
+        PlayerPrefs.DeleteKey(LeaderboardService.BoostedBestKey);
         PlayerPrefs.SetInt(DeveloperUnlocks.EnabledKey, 0);
         PlayerPrefs.SetString("HasDoneTut", "true");
         startMenu.youAreInTutorial = false;

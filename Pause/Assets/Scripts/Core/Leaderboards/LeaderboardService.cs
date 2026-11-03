@@ -230,11 +230,43 @@ public sealed class LeaderboardService
             Debug.Log("[Leaderboards] not submitting: premium ship");
             return 0;
         }
+        // EXCLUSIVE routing: a run that used a booster feeds the Power-Ups board and nothing else, any other run feeds
+        // every board but that one. A boosted run with no usable Power-Ups board (no store id yet) goes nowhere.
+        bool powered = run.PoweredUp;
         int accepted = 0;
         string tag = run.Tag;
         foreach (var board in UsableBoards())
+        {
+            if (board.poweredUpOnly != powered) continue;
             if (OfferUnchecked(board, board.Measure(run), tag)) accepted++;
+        }
         return accepted;
+    }
+
+    // ---- local bests, one per route ----
+
+    // The best score this device has seen on each route. Device-local, never in the cloud save. The normal one starts
+    // from RunScore.SavedBest (seeded once, before any boosted run can raise it); the boosted one starts at 0.
+    public const string NormalBestKey = "leaderboards_bestNormal";
+    public const string BoostedBestKey = "leaderboards_bestBoosted";
+
+    public static void SeedLocalBests()
+    {
+        if (!PlayerPrefs.HasKey(NormalBestKey)) PlayerPrefs.SetInt(NormalBestKey, RunScore.SavedBest);
+    }
+
+    public static long LocalBest(bool boosted)
+    {
+        if (boosted) return PlayerPrefs.GetInt(BoostedBestKey, 0);
+        return PlayerPrefs.HasKey(NormalBestKey) ? PlayerPrefs.GetInt(NormalBestKey, 0) : RunScore.SavedBest;
+    }
+
+    public static void RecordLocalBest(bool boosted, long score)
+    {
+        string key = boosted ? BoostedBestKey : NormalBestKey;
+        if (!boosted) SeedLocalBests();
+        int v = (int)Math.Min(Math.Max(0L, score), int.MaxValue);
+        if (v > PlayerPrefs.GetInt(key, 0)) PlayerPrefs.SetInt(key, v);
     }
 
     public bool Offer(string boardId, long value, string tag = null)
@@ -600,7 +632,8 @@ public sealed class LeaderboardService
         nextSendAt.Clear();
 
         var top = Usable(LeaderboardBoards.TopScore);
-        int best = RunScore.SavedBest;
+        // The NORMAL best: RunScore.SavedBest also holds boosted runs, which must not reach the Top Score board.
+        long best = LocalBest(false);
         if (top != null && best > 0) OfferUnchecked(top, best, null);
         Debug.Log("[Leaderboards] backfilled for player " + id + ".");
     }
@@ -646,21 +679,22 @@ public sealed class LeaderboardService
         long have;
         string tag = submitted.TagOf(boardId);
         if (string.IsNullOrEmpty(tag) || !submitted.TryGet(boardId, out have)) return page;
-        int ship, hearts, end, pauses, skin;
-        if (!LeaderboardRunTag.TryParse(tag, out ship, out hearts, out end, out pauses, out skin)) return page;
+        int ship, hearts, end, pauses, skin, worlds, powerUps;
+        long dust;
+        if (!LeaderboardRunTag.TryParse(tag, out ship, out hearts, out end, out pauses, out skin, out dust, out worlds, out powerUps)) return page;
         for (int i = 0; i < page.entries.Count; i++)
         {
             var e = page.entries[i];
             if ((e.isLocalPlayer || (ownRank > 0 && e.rank == ownRank)) && e.value == have)
-                page.entries[i] = FillFrom(e, ship, hearts, end, pauses, skin);
+                page.entries[i] = FillFrom(e, ship, hearts, end, pauses, skin, dust, worlds, powerUps);
         }
-        if (page.hasPlayer && page.player.value == have) page.player = FillFrom(page.player, ship, hearts, end, pauses, skin);
+        if (page.hasPlayer && page.player.value == have) page.player = FillFrom(page.player, ship, hearts, end, pauses, skin, dust, worlds, powerUps);
         return page;
     }
 
     // The device-kept record fills what the store row lacks: the whole tag when
     // it has none, or just the pauses when its (older) tag has no pauses.
-    static LeaderboardEntry FillFrom(LeaderboardEntry e, int ship, int hearts, int end, int pauses, int skin)
+    static LeaderboardEntry FillFrom(LeaderboardEntry e, int ship, int hearts, int end, int pauses, int skin, long dust, int worlds, int powerUps)
     {
         if (e.startShip == 0 && e.startHearts == 0)
         {
@@ -671,6 +705,10 @@ public sealed class LeaderboardService
             e.endHearts = Mathf.Max(end, 0);
             e.hasPauses = pauses >= 0;
             e.pauses = Mathf.Max(pauses, 0);
+            e.hasRunStats = dust >= 0 && worlds >= 0;
+            e.starDustHundredths = dust;
+            e.worlds = worlds;
+            e.powerUps = powerUps;
         }
         else if (!e.hasPauses && pauses >= 0 && e.startShip == ship && e.startHearts == hearts)
         {
