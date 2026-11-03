@@ -43,47 +43,44 @@ Ads-related declarations must be correct at the time of the release that contain
 
 ## 2. AdMob
 
-- [ ] **[user]** Create the AdMob account, with the Google account that owns the Play Console (codingsina, **not** the WinterSina account). Accept terms.
-- [ ] **[user]** Payments: set up the payment profile (HapticGate LLC address and bank details), complete the tax information (a US LLC normally gives W-9 style details), and the address PIN verification if AdMob asks. Thresholds and steps change: re-check at the time.
-- [ ] **[user]** Add the app for Android (published, so pick "Yes, listed on Google Play" and search `me.hapticgate.pause`, or enter the package). Add the iOS app as not yet published (leave it until iOS ships; section 4).
-- [ ] **[user]** Create ad units (Apps > the app > Ad units): per platform one **Interstitial** and one **Rewarded** (the "double dust" ad). That is 2 now (Android), 2 later (iOS). Copy each ad unit id (`ca-app-pub-XXXX/YYYY`) and the app id (`ca-app-pub-XXXX~ZZZZ`) to the agent.
-- [ ] **[user]** Consent message: AdMob > Privacy & messaging. Create the GDPR message (EEA, UK, Switzerland) and, if wanted, the US state-regulations message; for iOS the ATT message later ([UMP docs](https://developers.google.com/admob/ump/android/quick-start); not fetched, re-check). Publish the messages; the in-game UMP calls do nothing without them.
+- [x] **[user]** AdMob account created (done 2026-11-02, publisher `pub-4397064133944218`).
+- [x] **[user]** Payment profile complete (the banner cleared 2026-11-02). The owner keeps the Individual profile for now; changing it is not a todo.
+- [x] **[user]** Both AdMob apps (Android and iOS) are created (done 2026-11-02).
+- [x] **[user]** All four ad units (interstitial and rewarded, Android and iOS) are created, and their ids are in `AdsConfig.cs` on PR #432. Nothing to create or enter again.
+- [ ] **[user]** Consent message: AdMob > Privacy & messaging. Create the GDPR message (EEA, UK, Switzerland) and, if wanted, the US state-regulations message; for iOS the ATT message later ([UMP docs](https://developers.google.com/admob/ump/android/quick-start); not fetched, re-check). Publish the messages; the in-game UMP calls do nothing without them. **Not created yet (2026-11-02).**
 - [ ] **[user]** Add the test devices (Settings > Test devices) so real ad units can be tested without invalid-traffic risk. Never tap live ads.
-- [ ] **[agent]** `app-ads.txt` (the code of AdMob verification). After the AdMob account exists, add `/app-ads.txt` to the hapticgate-site repo with exactly this line (use the real publisher id from AdMob > Settings; the second field is Google's fixed certification-authority id, re-check at [Google's page](https://support.google.com/admob/answer/9363762)):
+- [ ] **[agent]** `app-ads.txt` (the code of AdMob verification): the hapticgate-site PR #9 adds it and awaits merge (the Dockerfile `COPY` line must include it, or it 404s in production). The file is exactly this line (the second field is Google's fixed certification-authority id, re-check at [Google's page](https://support.google.com/admob/answer/9363762)); after the merge deploys, check `https://hapticgategames.com/app-ads.txt` in a browser.
 
   ```
-  google.com, pub-XXXXXXXXXXXXXXXX, DIRECT, f08c47fec0942fa0
+  google.com, pub-4397064133944218, DIRECT, f08c47fec0942fa0
   ```
 
-  The site's nginx serves any file at the domain root (`location / { try_files $uri $uri/ =404; }`), as text/plain, and `robots.txt` allows all crawlers. **But** the site's `Dockerfile` copies only a fixed list of root files: `app-ads.txt` must be added to its `COPY` line or it will 404 in production. Then deploy and check `https://hapticgategames.com/app-ads.txt` in a browser.
-- [ ] **[user]** In AdMob > Apps > app-ads.txt, "Check for updates"; verification can take up to 24 hours. AdMob uses the website from the Play listing and looks at that hostname only ([AdMob help](https://support.google.com/admob/answer/9776740)). The Play listing website must be the apex domain exactly as the file is served; the crawler excludes `www.` as a place to look.
+- [ ] **[user]** After #9 is merged and deployed: in AdMob > Apps > app-ads.txt, "Check for updates"; verification can take up to 24 hours. AdMob uses the website from the Play listing and looks at that hostname only ([AdMob help](https://support.google.com/admob/answer/9776740)). The Play listing website must be the apex domain exactly as the file is served; the crawler excludes `www.` as a place to look.
 - [ ] **[user]** Link AdMob to Play if prompted (AdMob > App settings > Link with store).
 
 ## 3. Code (agent)
 
-- [ ] Branch `feat/ads-admob` (another agent is building the ads config constants): once merged, fill in the **real** ids from section 2 in the ads config, replacing Google's demo ids. Constant names are whatever that branch defines: check it, don't assume.
+- [x] The real AdMob ids are in `AdsConfig.cs` on PR #432 (merge pending). Confirm no Google demo ids remain in the release build.
 - [ ] Set `AdsConfig.Enabled = true`. Keep `AdsConfig.EnabledOnIos = false` until StoreKit ships (section 4).
 - [ ] Confirm the built AAB's merged manifest has the AdMob app id and the `AD_ID` permission, and that no debug/test ad unit ids remain.
 - [ ] Bump `AndroidBundleVersionCode` and cut the release with the `release-android` skill.
 - [ ] After release: a fresh-install test (no ads for the first hour, then ads, Remove Ads works, restore works).
 
-## 4. iOS (later; nothing here blocks the Android launch)
+## 4. iOS (todos only; blocked until the Apple Developer account is accepted)
 
 iOS has never been sold, so there is no price change; it launches free with ads and Remove Ads. **Rule: iOS ads stay off (`AdsConfig.EnabledOnIos = false`) until Remove Ads can be purchased on iOS**, so no iOS player sees ads with no way to remove them.
 
-- [ ] **[agent]** StoreKit layer as in [store-products-and-rewards.md](../store-products-and-rewards.md) section 5 (5.1 code work, 5.2 per-product checklist): fill `RemoveAdsPurchase`, `SupportPurchase` and `ParagonPurchase` price/launch from StoreKit and feed transactions into the existing `Handle` methods. A **Restore Purchases** button is required for non-consumables on iOS.
-- [ ] **[user]** App Store Connect > Monetization > In-App Purchases (product ids per section 5 of that doc; Apple ids cannot be reused after deletion, unconfirmed):
+Owner decision 2026-11-02: **todos only, no iOS work for now.** Work starts when the Apple Developer account is accepted. The AdMob iOS app and both iOS ad units already exist and their ids are in `AdsConfig.cs` (PR #432); nothing to create there. The step-by-step list is phase 7 of the [tracker](ads-free-tracker.md).
 
-  | Play product | Apple type |
-  |---|---|
-  | `me.hapticgate.pause.remove_ads` | Non-Consumable |
-  | `me.hapticgate.pause.ship_paragon` | Non-Consumable |
-  | `support_developer_850`, `support_developer_2500`, `stardust_6000` | Consumable |
-  | `prereg_stardust_100` | Android pre-registration only; the Apple equivalent is separate and unverified (section 5.3 of that doc) |
-
-- [ ] **[user]** App Store Connect > App Privacy: answer the "data used to track you" and "data linked to you" questions for the ad SDK (typically identifiers, usage data, diagnostics; **unconfirmed**: the AdMob iOS data-disclosure page could not be fetched, re-check Google's iOS App Store data disclosure page for the SDK version in use). Apple's current privacy-label rules: re-check at the time.
-- [ ] **[agent]** App Tracking Transparency: add `NSUserTrackingUsageDescription` to Info.plist, show the ATT prompt (after the UMP flow, per Google's guidance; re-check), and add the SKAdNetwork identifiers Google publishes. **[user]** Create the ATT/IDFA message in AdMob Privacy & messaging.
-- [ ] **[user]** Add the iOS ad units to AdMob (section 2), put the real iOS ids in the ads config, then **[agent]** set `AdsConfig.EnabledOnIos = true` only in the release where Remove Ads is purchasable on iOS.
+- [ ] **[user]** Apple Developer organization enrollment for HapticGate LLC: pending acceptance. Then the bundle ID.
+- [ ] **[agent]** StoreKit layer as in [store-products-and-rewards.md](../store-products-and-rewards.md) section 5 (5.1 code work, 5.2 per-product checklist); feed transactions into the existing `Handle` methods; a **Restore Purchases** button is required for non-consumables on iOS.
+- [ ] **[user]** App Store Connect products: `me.hapticgate.pause.remove_ads` and `ship_paragon` Non-Consumable; `support_developer_850`, `support_developer_2500`, `stardust_6000` Consumable (ids per section 5 of that doc; Apple ids cannot be reused after deletion, unconfirmed). `prereg_stardust_100` is Android only.
+- [ ] **[agent]** App Tracking Transparency: `NSUserTrackingUsageDescription`, the ATT prompt after the UMP flow, and the SKAdNetwork identifiers Google publishes (re-check Google's guidance). **[user]** creates the ATT/IDFA message in AdMob Privacy & messaging.
+- [ ] **[user]** Test on the **iOS simulator** with Google's test ads first (the real ad units are never used for testing).
+- [ ] **[user]** Get access to a real iPhone for a check before App Store release, and confirm what the simulator cannot cover (re-check at the time).
+- [ ] **[user]** App Store Connect > App Privacy labels for the ad SDK (re-check Google's iOS data disclosure and Apple's rules at the time) and the age rating with ads.
+- [ ] **[user]** After the App Store listing is live: AdMob > iOS app > Add store, then get it through AdMob review.
+- [ ] **[agent]** Set `AdsConfig.EnabledOnIos = true` only in the release where Remove Ads can be bought on iOS.
 - [ ] **[user]** The privacy policy already names Apple Game Center; the new ads wording covers iOS (ATT) too.
 
 ## 5. Privacy: every place that must be updated
@@ -101,7 +98,7 @@ All of these must say the same thing as the game does at the moment ads go live.
 
 - [ ] **[user]** A human reviews the privacy-policy PR (legal text, drafted by an agent).
 - [ ] **[agent]** Merge it **at go-live**, when the ads build is live (the policy would be inaccurate earlier: it describes ads). Its deploy is automatic on push to `main` (Cloud Run).
-- [ ] **[agent]** After AdMob exists, add `app-ads.txt` and the Dockerfile line (section 2).
+- [ ] **[agent]** `app-ads.txt` and the Dockerfile line: hapticgate-site PR #9, awaiting merge (section 2).
 - [ ] **[user]** Make sure the Play listing's privacy-policy URL is `https://hapticgategames.com/privacy/` (not changed by this work; check only).
 
 ## 7. Rollback: what can and cannot be undone
@@ -122,4 +119,4 @@ If ads misbehave after launch: ship a release with `Enabled = false` first (fast
 - The app is still **paid at USD 1.99** with no buyers (11 device acquisitions in 28 days, the only paid order refunded).
 - Already live in Play Console: the two new products (`me.hapticgate.pause.remove_ads`, USD 3.99 US; `stardust_6000`, USD 20.00 US) are Active in 174 regions, and the 2,500 and 850 packs are renamed "2,500 Star Dust" and "850 Star Dust" (prices unchanged). See the [tracker](ads-free-tracker.md) and [store-products-and-rewards.md](../store-products-and-rewards.md).
 - Outstanding: **real test purchases** of Remove Ads and a dust pack (purchase, acknowledge/consume, restore); product icons; pink-heart art on old packs; translations.
-- Not done and not in this PR: AdMob account, Data safety / ads / advertising ID changes, price change, any release.
+- Not done and not in this PR: Data safety / ads / advertising ID changes, the AdMob consent message, `app-ads.txt` merge and verification, price change, any release.

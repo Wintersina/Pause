@@ -33,4 +33,15 @@ Pause is moving from a paid game to a free game with ads. This page tracks the d
 - [ ] 4. Ads SDK (AdMob proposed), consent prompt, forced and rewarded ads, frequency rules.
 - [ ] 5. Boosters, after measuring typical dust income.
 - [ ] 6. Going free (step by step: [go-free-checklist.md](go-free-checklist.md)): Console declarations (contains ads, Data safety, advertising ID), privacy policy, `app-ads.txt` on hapticgategames.com, price change (owner's explicit go-ahead first; one-way).
-- [ ] 7. iOS, later.
+- [ ] 7. iOS. **Blocked: starts when the Apple Developer account is accepted** (owner decision 2026-11-02: todos only, no iOS work for now). Detail: [go-free-checklist.md](go-free-checklist.md) section 4.
+  - [ ] **[user]** Apple Developer organization enrollment for HapticGate LLC: pending acceptance. Then the bundle ID.
+  - [ ] **[agent/user]** Install CocoaPods, run `pod install` on the exported project and compile in Xcode. Never done with the ads plugin.
+  - [ ] **[agent]** StoreKit layer: Remove Ads, dust packs, Paragon, restore, cloud-save merge. The Shop must show real App Store prices; rows stay UNAVAILABLE until then.
+  - [ ] **[user]** Create the same products in App Store Connect.
+  - [ ] **[agent]** Boosters and the Shop checked on iOS.
+  - [ ] **[user]** ATT prompt, SKAdNetwork IDs and consent form checked on the iOS simulator with Google's test ads first (the real ad units are not used for testing).
+  - [ ] **[user]** Get access to a real iPhone for a check before App Store release, and confirm what the simulator cannot cover (re-check at the time).
+  - [ ] **[user]** App Privacy labels, and age rating with ads.
+  - [ ] **[user]** After the App Store listing is live: AdMob > iOS app > Add store, then get it through AdMob review.
+  - [ ] **[agent]** Set `AdsConfig.EnabledOnIos = true` only in the release where Remove Ads can be bought on iOS.
+  - [ ] **[user]** Game Center and sign-in checked; the Game Center ids and steps are in [achievements-store-setup.md](../achievements-store-setup.md) and [leaderboards.md](../leaderboards.md).
