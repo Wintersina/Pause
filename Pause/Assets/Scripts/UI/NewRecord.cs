@@ -67,7 +67,7 @@ public sealed class NewRecordTracker
 
     static LeaderboardRunStats DefaultLive()
     {
-        return new LeaderboardRunStats { score = RunScore.Total, starDust = StarDustLedger.Earned, worldsCleared = RunScore.Parts.worldCount };
+        return new LeaderboardRunStats { score = RunScore.Total, starDust = Boosters.RankedDust(StarDustLedger.Earned), worldsCleared = RunScore.Parts.worldCount };
     }
 
     public static bool StoredBest(LeaderboardBoard board, out long best)

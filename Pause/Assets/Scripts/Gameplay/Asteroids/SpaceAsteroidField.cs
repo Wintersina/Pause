@@ -247,6 +247,16 @@ public class FieldAsteroid : MonoBehaviour, IShipAttackTargetUncapped
         if (Application.isPlaying) Destroy(gameObject); else DestroyImmediate(gameObject);
     }
 
+    // Removed with no credit and no split (the Hazard Clear booster, HazardClear): no score, codex, meter or dust.
+    public void Vanish()
+    {
+        if (Broken) return;
+        Broken = true;
+        ClearTarget.Release(gameObject);
+        SpaceAsteroidField.Unregister(this);
+        if (Application.isPlaying) Destroy(gameObject); else DestroyImmediate(gameObject);
+    }
+
     // Two chunks one size down, parting sideways (when there is room in the cap).
     void Split(Vector3 from)
     {

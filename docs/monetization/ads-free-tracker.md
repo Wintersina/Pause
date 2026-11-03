@@ -18,8 +18,10 @@ Pause is moving from a paid game to a free game with ads. This page tracks the d
 2. **Does buying Paragon or a dust pack also remove ads?** Proposed: Paragon yes, packs no.
 3. **Do Remove Ads owners still see the optional double dust ad?** Proposed: yes.
 4. **Forced ad frequency.** The ask was one after each replay; proposed cap of one per 3 minutes and none after a very short run.
-5. **"Exp" booster.** The game has no XP system that we have found. Proposed: dust only.
-6. **A cut-off sentence.** The message said "we also wanna always offer the options to ..." and then stopped. What was the rest?
+5. **"Exp" booster.** Confirmed by search: the game has no XP, experience or level system (no such identifier in `Scripts/`). Built as a star dust multiplier only; no XP was invented. Needs a yes if the user meant something else.
+6. **Hazard clear and leaderboards.** A run that used a hazard clear still counts for score and every leaderboard (the clear itself pays no score). It does help a player survive, so it is a paid advantage on the score board. Alternative: flag such runs like Paragon runs (`Boosters`/`HazardClear.UsedThisRun` already tells you). Which do you want?
+7. **Booster prices.** 600 dust for 10 minutes of x2, 200 per hazard clear charge (derived in `docs/economy.md`). OK, or should the multiplier be cheaper/pricier?
+8. **A cut-off sentence.** The message said "we also wanna always offer the options to ..." and then stopped. What was the rest?
 
 ## Work phases
 
@@ -31,7 +33,7 @@ Pause is moving from a paid game to a free game with ads. This page tracks the d
 - [ ] 2. Shop screen; move Paragon and the dust packs into it.
 - [ ] 3. Play-time tracker (for the first ad-free hour). PR: https://github.com/Wintersina/Pause/pull/428. `PlayTime` counts seconds of unfrozen flying in real runs only (not menus, tutorial, practice, world entries or boss entrances, and nothing while backgrounded). **Frozen PAUSE time does not count** (the stricter reading: one honest hour of flying). Saved in PlayerPrefs (`playTimeSeconds`) and in the cloud save (merged by the larger value); older saves read as 0.
 - [ ] 4. Ads SDK (AdMob proposed), consent prompt, forced and rewarded ads, frequency rules.
-- [ ] 5. Boosters, after measuring typical dust income.
+- [ ] 5. Boosters (code done, PR pending merge). Dust x2 for 10 minutes of play (600 dust) and hazard clear charges (200 dust each), both bought with star dust and repeatable; `Boosters.AnyActive` is true while the multiplier has time left (hazard charges held do NOT count, so unheld ads never switch off for ever). Shop row API: `Boosters.Name/Description/Price/Status/CanBuy/Buy`; wire into the Shop screen once it merges. Defaults: 3x cap with the rewarded ad, no boosters in the tutorial.
 - [ ] 6. Going free (step by step: [go-free-checklist.md](go-free-checklist.md)): Console declarations (contains ads, Data safety, advertising ID), privacy policy, `app-ads.txt` on hapticgategames.com, price change (owner's explicit go-ahead first; one-way).
 - [ ] 7. iOS. **Blocked: starts when the Apple Developer account is accepted** (owner decision 2026-11-02: todos only, no iOS work for now). Detail: [go-free-checklist.md](go-free-checklist.md) section 4.
   - [ ] **[user]** Apple Developer organization enrollment for HapticGate LLC: pending acceptance. Then the bundle ID.

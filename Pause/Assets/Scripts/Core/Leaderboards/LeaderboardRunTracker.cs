@@ -69,7 +69,7 @@ public class LeaderboardRunTracker : MonoBehaviour
         // already have begun by then.
         endHearts = ShipLives.Left;
         endPauses = Mathf.Max(0, score.pauseCounter);
-        endDust = System.Math.Max(endDust, StarDustLedger.Earned);   // only grows within a run
+        endDust = System.Math.Max(endDust, Boosters.RankedDust(StarDustLedger.Earned));   // only grows within a run
         if (RunScore.Scoring) runScore = System.Math.Max(runScore, RunScore.Total);
     }
 

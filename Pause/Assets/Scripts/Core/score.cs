@@ -60,6 +60,8 @@ public class score : MonoBehaviour {
             PlayerPrefs.GetString("HasDoneTut") == "true", startMenu.youAreInTutorial);
         PowerUpRefund.BeginRun(paysRealDust);   // off in the tutorial and practice runs
         ledgerRun = StarDustLedger.BeginRun(paysRealDust);
+        Boosters.ResetRun();
+        HazardClear.BeginRun();
         if (paysRealDust) UpgradeOfferStore.RunStarted();
         // Practice runs score nothing; developer runs score but never save a
         // best (or reach a leaderboard).
@@ -119,7 +121,8 @@ public class score : MonoBehaviour {
         // ... and so is a run's entry (WorldEntry: the portal arrival).
         if (PortalArrival.FreePress && TouchInput.IsPressed) pauseCounterBool = true;
 
-        if (TouchInput.IsPressed && !buttonClicks.playerDied)
+        // A tap on the run's CLEAR button is the button's, not a press of the world: it never starts the run or spends a pause.
+        if (TouchInput.IsPressed && !buttonClicks.playerDied && !HazardClearButton.PointerOnButton)
         {
             // Holding the first touch must behave exactly like a normal held
             // run without subtracting a pause. Once it is released, the next
@@ -168,6 +171,7 @@ public class score : MonoBehaviour {
         PlayTime.Flush();
         Settle(scoreRun, ledgerRun);
         StarDustLedger.EndRun(ledgerRun);
+        Boosters.Flush();
     }
 
     // Ends the score run and pays its star-dust score bonus into the same
@@ -194,7 +198,12 @@ public class score : MonoBehaviour {
 
     void payDust()
     {
-        if (paysRealDust) StarDustLedger.Earn(calcScore(ref totalCurrency));
+        if (paysRealDust)
+        {
+            StarDustLedger.Earn(calcScore(ref totalCurrency));
+            // The dust booster's clock: unfrozen, real-run frames only (StepRunning is the only caller).
+            Boosters.Tick(Time.deltaTime);
+        }
         else calcScore(ref tutorialCurrency);
     }
 
@@ -207,6 +216,7 @@ public class score : MonoBehaviour {
         // dependent, paying out twice as fast at 120Hz as at 60Hz.
         // (nothing while a portal is kept waiting past its grace: PortalPressure)
         float earned = PortalPressure.EarningsClosed ? 0f : ScoreRules.FlightDust(moveBackGround.speed, Time.deltaTime);
+        earned = Boosters.ApplyToAward(earned);   // the dust booster (1x when none / in a practice run)
         tc += earned;
         // Rebuilt only when the count changes (a string per frame otherwise).
         if (pauseCounter != shownPauseCounter)
@@ -289,6 +299,7 @@ public class score : MonoBehaviour {
         if (PortalPressure.EarningsClosed) return;
         if (paysRealDust)
         {
+            amount = Boosters.ApplyToAward(amount);   // the dust booster doubles pickups and rewards, never claims or purchases
             totalCurrency += amount;
             StarDustLedger.Earn(amount);
         }

@@ -90,6 +90,10 @@ public class ProgressSnapshot
     public bool adFree;
     // Whole seconds of real play (PlayTime). Additive, no schema bump: an older blob lacks it (= 0). Merged by max.
     public int playTimeSeconds;
+    // Boosters (Boosters): four monotonic counters -- dust-multiplier purchases and milliseconds of boosted play spent, hazard-clear
+    // charges bought and fired. Additive, no schema bump (an older blob lacks them = 0). Merged per counter by MAX: never summed (no
+    // duplicated paid item), never lowered (a used charge or spent minute stays used); see ProgressMerge.
+    public int boostDustBought, boostDustUsedMs, boostClearBought, boostClearUsed;
 
     // Hard cap per list: the Codex has ~95 entries (+ achievement acks), so this
     // only guards the cloud blob against a corrupt pref.
@@ -120,7 +124,7 @@ public class ProgressSnapshot
     // within seconds (and merge by union / max anyway).
     public bool HasProgress()
     {
-        if (adFree) return true;
+        if (adFree || boostDustBought > 0 || boostClearBought > 0) return true;
         if (currency > 0f || highestWorld > 0 || currentWorld > 0 || bestScore > 0 || highestSpeed > 0f) return true;
         if (ownedSkins != null && ownedSkins.Length > 0) return true;
         foreach (int id in boughtShips ?? new int[0])
@@ -185,6 +189,11 @@ public class ProgressSnapshot
         s.fusionLog = FusionDiscoveryStore.Normalize(PlayerPrefs.GetString(FusionDiscoveryStore.PrefsKey, ""));
         s.adFree = AdFree.IsActive;
         s.playTimeSeconds = PlayTime.WholeSeconds;
+        Boosters.Flush();   // the in-memory boosted-play clock, so the snapshot has the latest second
+        s.boostDustBought = PlayerPrefs.GetInt(Boosters.DustBoughtKey, 0);
+        s.boostDustUsedMs = PlayerPrefs.GetInt(Boosters.DustUsedMsKey, 0);
+        s.boostClearBought = PlayerPrefs.GetInt(Boosters.ClearBoughtKey, 0);
+        s.boostClearUsed = PlayerPrefs.GetInt(Boosters.ClearUsedKey, 0);
 
         var counters = new List<Counter>();
         foreach (string key in CounterKeys())
@@ -248,6 +257,11 @@ public class ProgressSnapshot
         FusionDiscoveryStore.Reload();
         if (adFree) PlayerPrefs.SetInt(AdFree.Key, 1);   // never cleared: a snapshot without it (older save, other account) can't take the purchase away
         PlayTime.RestoreAtLeast(playTimeSeconds);   // never lowered: the larger value wins
+        SetOrDelete(Boosters.DustBoughtKey, boostDustBought);
+        SetOrDelete(Boosters.DustUsedMsKey, boostDustUsedMs);
+        SetOrDelete(Boosters.ClearBoughtKey, boostClearBought);
+        SetOrDelete(Boosters.ClearUsedKey, boostClearUsed);
+        Boosters.Reload();
         Codex.OnExternalChange();   // drop the cached sets so the next write can't undo this
     }
 
