@@ -498,8 +498,8 @@ public sealed class LeaderboardService
         float delay = BackoffSeconds(n);
         if (verdict == Verdict.Rejected && n + 1 >= MaxRejectedSends)
         {
-            // The store keeps refusing (for the worlds board: its upper limit is
-            // still the draft's 7 and the value is above it). The value stays
+            // The store keeps refusing (for example a board whose upper limit is
+            // below the value). The value stays
             // queued and the local best is kept; no more sends this session
             // (opening the panel or the next launch tries once more).
             Debug.LogWarning("[Leaderboards] " + boardId + " keeps refusing " + v.value

@@ -41,8 +41,8 @@ The table order is the panel's tab order: **Top Score** is the primary board and
 | `top_score` | Top Score | `CgkIopqxqbAPEAIQPg` | `me.hapticgate.pause.top_score` | higher is better | integer with thousands separators (`RunScore.Total`, see `Scripts/Core/Scoring/ScoreRules.cs`) | enabled on Android and iOS |
 | ~~`top_speed`~~ | ~~Top Speed~~ | (retired) | (retired) | | | **retired** (2026-10, the speed cap): not in the table, `LeaderboardBoards.RetiredSpeedBoard` only names it so old queues drop it |
 | `run_star_dust` | Star Dust | `CgkIopqxqbAPEAIQPw` | empty (proposed `me.hapticgate.pause.run_star_dust`) | higher is better | hundredths shown with 2 decimals | enabled on Android; off on iOS until its Game Center id is filled in |
-| `furthest_world` | **Worlds** (logical id kept; was "Furthest Loop") | `CgkIopqxqbAPEAIQQA` (**upper limit must be raised**, see "Worlds cleared") | empty (proposed `me.hapticgate.pause.furthest_world`) | higher is better | `LOOP L · WORLDS N` | enabled on Android; off on iOS until its Game Center id is filled in |
-| `boosted_runs` | **Boosted** (Power-Ups board) | empty (to create, see "Power-Ups board") | empty (Game Center cannot carry the columns) | higher is better | integer with thousands separators (`RunScore.Total`) | **off** until the Play Console id is filled in |
+| `furthest_world` | **Worlds** (logical id kept; was "Furthest Loop") | `CgkIopqxqbAPEAIQQA` (console name still "Furthest Loop"; lowest 1, no highest limit, see "Worlds cleared") | empty (proposed `me.hapticgate.pause.furthest_world`) | higher is better | `LOOP L · WORLDS N` | enabled on Android; off on iOS until its Game Center id is filled in |
+| `boosted_runs` | **Boosted** (Power-Ups board) | `CgkIopqxqbAPEAIQQg` | empty (Game Center cannot carry the columns) | higher is better | integer with thousands separators (`RunScore.Total`) | **off** on iOS (no Game Center id); live on Android |
 
 **Worlds cleared (value and label).** The submitted number is the TOTAL worlds the run cleared, across loops (one loop = the 7-world cycle).
 A world is *cleared* when its portal / planetfall / the last world's lift-off is flown, the same event that pays the world-cleared points
@@ -60,7 +60,7 @@ draws the two halves on two lines (no dot glyph needed). Rank is the number itse
 the device's queued / submitted marks for `furthest_world`, because a mark is only a "this device already sent it" note and an old loop number
 would read as a worlds count. Nothing real is lost (the board was an unpublished draft, and there is no other local "best loop").
 
-*Store clamp.* If the store board still has its upper limit of 7, a value above 7 is refused: the read-back shows the old value, the client keeps the
+*Store clamp.* The Play Console board has no highest limit (lowest 1). Should a store board ever carry an upper limit, a value above it is refused: the read-back shows the old value, the client keeps the
 value queued and the local best, retries with the usual backoff, and after `MaxRejectedSends` (8) refused sends logs a warning and stops sending that
 board for the session (opening the panel or the next launch tries once more). Nothing crashes and no other board is affected.
 
@@ -119,7 +119,7 @@ A fourth board, **Boosted** (logical id `boosted_runs`; this page calls it the P
 * "Booster" means the two Shop boosters (`Boosters.cs`): **Dust x2** and **Hazard Clear**. Ship powers, ultimates, in-run pickups and the double-dust ad are not boosters.
 * A run counts as boosted when Dust x2 was active on at least one unfrozen frame of real flight (`Boosters.RunDustUsed`, set in `Boosters.Tick`, so it stays set when the time runs out mid-run), or when a Hazard Clear charge fired (`HazardClear.UsedThisRun > 0`). Owning booster time or a held charge does not count. `LeaderboardRunTracker` latches the bits for the run (`powerUps`: 1 = Dust x2, 2 = Clear) at every sample, so they cannot reset mid-run.
 * Routing lives in `LeaderboardService.SubmitRun`: `board.poweredUpOnly != run.PoweredUp` skips the board. The live "NEW RECORD" popup (`NewRecordTracker.Poll`) applies the same split.
-* **No store id yet, so nothing is sent:** `LeaderboardBoards` keeps both ids empty. A board with an empty id is not Usable, so a boosted run on such a build submits nowhere and does **not** fall back to the normal boards (tested). The tab appears once the Android id is pasted in.
+* **Android only:** `LeaderboardBoards` has the Play Console id (`CgkIopqxqbAPEAIQQg`) and an empty iOS id. A board with an empty id is not Usable, so a boosted run on iOS submits nowhere and does **not** fall back to the normal boards (tested). The tab shows on Android only.
 
 **Ranking and columns.** Ranked by run score (`RunScore.Total`), higher is better. Play Games keeps one sort value per board, so the row's other columns ride in the score tag (`LeaderboardRunTag`): `s<ship>h<hearts>e<end>p<pauses>k<skin>` as before, then `d<star dust in hundredths>w<worlds cleared>u<bits>`, e.g. `s7h4e2p3k2d123456w12u3`. The columns therefore show the stats of the player's **best-scoring powered-up run**, not separate bests for dust and worlds. Star dust is everything the run earned, booster doubling included (the Star Dust board still ranks dust without the booster's share). Longest tag an in-range run writes: 32 characters (dust clamps at 999,999,999 hundredths, worlds at 9999); the widest string the parser accepts is 42; the Play Games limit is 64 (`PowerUpsLeaderboardTest` pins both). Old tags keep parsing (no columns), a reader that predates the fields skips them, and the other boards' tags are unchanged (no `d`, `w`, `u`).
 
@@ -127,7 +127,7 @@ A fourth board, **Boosted** (logical id `boosted_runs`; this page calls it the P
 
 **Local bests, one per route.** `RunScore.SavedBest` banks every ranked run, boosted or not (score rules are unchanged), so the tracker does not use it for leaderboard decisions. `LeaderboardService.LocalBest(false)` (normal, key `leaderboards_bestNormal`, seeded once from the saved best before any boosted run can raise it) and `LocalBest(true)` (key `leaderboards_bestBoosted`, starts at 0) are device-local. A run left early (Menu, Replay, Back, backgrounded) is submitted only when it beats **its own route's** best, so a boosted score never raises the bar for normal runs and a normal best never blocks a boosted run. Death always offers, and the service keeps only improvements. The one-time backfill on account bind offers the normal best to Top Score, never the saved best. A run backgrounded before its first booster is used queues its pre-booster score on the normal boards (an honest unboosted score); once a booster is used, the run's final score goes only to Power-Ups.
 
-*Limits.* After a reinstall, with only the cloud save restored, the normal best is read from `RunScore.SavedBest` (the key is device-local), which could include a boosted score from another device until the first normal run seeds it. Game Center cannot store the columns (see iOS todo in the tracker, section 7): rows of other players are blank there and the player's own row is filled from the device record. The board has no iOS id and stays off on iOS.
+*Limits.* After a reinstall, with only the cloud save restored, the normal best is read from `RunScore.SavedBest` (the key is device-local), which could include a boosted score from another device until the first normal run seeds it. Game Center cannot store the columns (see iOS todo in the tracker, section 7): rows of other players are blank there and the player's own row is filled from the device record. The board has no iOS id and stays off on iOS (live on Android).
 
 ### Play Console: create the Power-Ups board
 
@@ -137,9 +137,9 @@ Play Console, Pause, Play Games Services, Setup and management, Leaderboards, **
 * **Description:** Best score in a run that used Dust x2 or Hazard Clear.
 * **Ordering:** Larger is better
 * **Score format:** Numeric, 0 decimal places
-* **Limits:** lower 1, upper 1000000 (same as Top Score; the game never offers 0)
+* **Limits:** lowest 1, no highest limit (no score cap; the game never offers 0). The console board is still an unpublished draft.
 * **Tamper protection:** On
-* Save, **Get resources**, paste the id into the Android id of the `BoostedRuns` row in `LeaderboardBoards.cs`, run `AllTests.RunAll`, and publish the Play Games changes.
+* Save, **Get resources**, paste the id into the Android id of the `BoostedRuns` row in `LeaderboardBoards.cs` (done: `CgkIopqxqbAPEAIQQg`), run `AllTests.RunAll`, and publish the Play Games changes.
 
 ## Start ship, start hearts and the premium ship
 
@@ -180,8 +180,7 @@ Play Console id: its iOS id is already in.
    * **Score format:** Numeric, **0 decimal places**
    * **Ordering:** Larger is better
    * **Icon:** optional (the game's icon is fine)
-   * **Limits:** lower limit 0; upper limit 1000000 (a good run is around a thousand and a long one a few
-     thousand, so this only throws away nonsense)
+   * **Limits:** no lowest and no highest limit (as set in the console today; the game never offers a 0 score)
    * **Tamper protection:** **On**
    * Save, then **Get resources** and copy the generated id (it looks like `CgkI3eXNjrQcEAIQ..`).
      Paste it into the empty Android id of the `TopScore` row in
@@ -191,7 +190,7 @@ Play Console id: its iOS id is already in.
 3. For each placeholder you want live, choose **Add leaderboard**:
    * Star Dust: Numeric, **2 decimal places**, larger is better. The game sends hundredths, so 1234
      shows as 12.34.
-   * Worlds (the existing `furthest_world` board `CgkIopqxqbAPEAIQQA`, ids are kept): name "Worlds cleared", description "Most worlds cleared in a single run, across loops", Numeric integer (0 decimals), larger is better, **lowest 1, highest 9999** (it was created with 1..7: edit the limits, do not recreate it).
+   * Worlds (the existing `furthest_world` board `CgkIopqxqbAPEAIQQA`, ids are kept): name "Worlds cleared", description "Most worlds cleared in a single run, across loops", Numeric integer (0 decimals), larger is better, **lowest 1, no highest limit** (in the console it is still named "Furthest Loop"; do not recreate it).
    * Turn tamper protection on for each one.
 4. Copy each new id (*Get resources*) into `LeaderboardBoards`.
 5. **Publish** the Play Games Services changes. Until they're published, only the tester accounts
@@ -208,7 +207,7 @@ Play Console id: its iOS id is already in.
    * **Score format type:** Integer
    * **Score submission type:** Best score
    * **Sort order:** High to low
-   * **Score range** (optional, works as tamper protection): 0 to 1000000
+   * **Score range** (optional): none, to match Google Play (no score cap)
    * Add an **English localization**: display name "Top Score", format "Integer", suffix " pts" (or none).
    The game already sends to this id; nothing needs changing in code for iOS. (The board stays off in
    the game until the Play Console id is in too, because a board is enabled per platform by that platform's own id.)

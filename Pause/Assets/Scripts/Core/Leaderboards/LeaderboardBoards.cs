@@ -169,7 +169,7 @@ public static class LeaderboardBoards
 
         // Worlds cleared across loops (logical and store ids kept from the old
         // "Furthest Loop" board; only the meaning changed). The Play Console
-        // draft was made with limits 1..7: its upper limit must be raised
+        // board has lowest limit 1 and no highest limit
         // (docs/leaderboards.md, "Worlds cleared"). Lowest 1: a run that
         // cleared no world is never offered.
         new LeaderboardBoard(FurthestWorld,
@@ -182,10 +182,10 @@ public static class LeaderboardBoards
             run => Math.Max(0, run.worldsCleared),
             1),
 
-        // Powered-up runs only (docs/leaderboards.md, "Power-Ups board"). Ids empty on purpose: the board is created in
-        // Play Console first, and until then it has no tab and nothing is submitted or queued for it.
+        // Powered-up runs only (docs/leaderboards.md, "Power-Ups board"). Live on Android; the iOS id stays empty on purpose
+        // (Game Center cannot carry the columns), so the board has no tab and nothing is submitted or queued for it on iOS.
         new LeaderboardBoard(BoostedRuns,
-            "",   // Play Console id: to create (docs/leaderboards.md)
+            "CgkIopqxqbAPEAIQQg",   // Play Console id
             "",   // iOS: Game Center cannot carry the columns (no score tag), see docs
             "Power-Ups",
             "Best score in a run that used Dust x2 or Hazard Clear.",

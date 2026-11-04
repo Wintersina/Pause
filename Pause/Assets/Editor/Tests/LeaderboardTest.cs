@@ -171,7 +171,7 @@ public static class LeaderboardTest
         long v;
         Check("nothing queued for a disabled board", !service.HasPending("no_such_board", out v));
         int accepted = service.SubmitRun(new LeaderboardRunStats { score = 500, starDust = 3f, worldsCleared = 2 });
-        Check("a run end only queues enabled boards", accepted == LeaderboardBoards.Enabled().Count);
+        Check("a run end only queues enabled boards", accepted == LeaderboardBoards.Enabled().FindAll(b => !b.poweredUpOnly).Count);
         Check("only enabled boards appear as panel tabs", service.UsableBoards().Count == LeaderboardBoards.Enabled().Count);
     }
 

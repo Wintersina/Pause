@@ -106,19 +106,10 @@ public static class ReleaseReadinessTest
 
         Check("Top Score board has an Android id",
               LeaderboardBoards.Get(LeaderboardBoards.TopScore) != null && LeaderboardBoards.Get(LeaderboardBoards.TopScore).EnabledOn(false));
-        // Created in Play Console later: remove a board from this list once its CgkI... id is pasted into LeaderboardBoards. An empty id keeps
-        // the board off everywhere (no tab, nothing submitted, nothing queued); only an EMPTY id is excused, a half-filled one still fails.
-        var awaitingStoreBoards = new System.Collections.Generic.HashSet<string> { LeaderboardBoards.BoostedRuns };
+        // Every board needs a real Android id. The Power-Ups board has no iOS id on purpose (Game Center cannot carry its columns).
         foreach (var b in LeaderboardBoards.All)
-        {
-            if (awaitingStoreBoards.Contains(b.id) && b.androidId == "")
-            {
-                Check("board " + b.id + " waits for its Play Console id and is off on both stores", !b.EnabledOn(false) && !b.EnabledOn(true));
-                continue;
-            }
             Check("board " + b.id + " Android id is real (" + b.androidId + ")",
                   b.androidId.StartsWith("CgkI") && !AchievementIds.IsPlaceholder(b.androidId));
-        }
         Check("Play Games app id is set", File.ReadAllText("Assets/GooglePlayGames/Resources/PlayGamesSettings.asset").Contains("mAppId: 528367766818"));
     }
 
