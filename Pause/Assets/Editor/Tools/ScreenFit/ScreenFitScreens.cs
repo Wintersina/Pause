@@ -361,14 +361,17 @@ public static class ScreenFitScreens
         DevBadge(rig);
         if (shot == 2)
         {
-            // The shipped table has no live store ids yet (the panel would say
-            // NO LEADERBOARDS YET): stage the one board it has, Top Score,
-            // with stand-in ids so its tab and rows are on screen.
+            // Stage every board with stand-in ids so both tabs and all three sort headers are on screen
+            // (the shipped table has no iOS ids for Star Dust / Worlds, which would offer one header there).
             var real = LeaderboardBoards.Get(LeaderboardBoards.TopScore);
             LeaderboardBoards.OverrideForTests(new[]
             {
                 new LeaderboardBoard(real.id, "fit_android_top_score", "fit_ios_top_score", real.displayName, real.description,
                                      real.sort, LeaderboardBoards.FormatScore, run => run.score),
+                new LeaderboardBoard(LeaderboardBoards.RunStarDust, "fit_android_dust", "fit_ios_dust", "Star Dust", "Star dust.",
+                                     LeaderboardSort.HigherIsBetter, LeaderboardBoards.FormatHundredths, run => (long)run.starDust, 1),
+                new LeaderboardBoard(LeaderboardBoards.FurthestWorld, "fit_android_worlds", "fit_ios_worlds", "Worlds", "Worlds.",
+                                     LeaderboardSort.HigherIsBetter, LeaderboardBoards.FormatWorlds, run => run.worldsCleared, 1),
                 new LeaderboardBoard(LeaderboardBoards.BoostedRuns, "fit_android_boosted", "fit_ios_boosted", "Boosted", "Runs that used a booster.",
                                      LeaderboardSort.HigherIsBetter, LeaderboardBoards.FormatScore, run => run.score, 1, true),
             });
@@ -381,13 +384,16 @@ public static class ScreenFitScreens
                         rank = i + 1,
                         playerId = i == 3 ? fake.LocalPlayerId : "p" + i,
                         playerName = i < LongNames.Length ? LongNames[i] : i % 2 == 0 ? "TETSUO" + i : "A_RATHER_LONG_PLAYER_NAME_" + i,
-                        value = 99999999 - i * 137,
+                        // Worlds are capped at 9999 by the store board; the other boards hold big numbers.
+                        value = b.id == LeaderboardBoards.FurthestWorld ? 9999 - i * 137 : 99999999 - i * 137,
                         isLocalPlayer = i == 3,
                         // Ships 1-9 in their skins 0..2 (a skin a ship lacks draws stock).
                         startShip = 1 + i % 9, startHearts = 3, startSkin = i % 3,
                         // The Boosted board's columns: widest values on some rows, none on every third.
                         hasRunStats = i % 3 != 2, starDustHundredths = i % 2 == 0 ? 999999 : 123456, worlds = i % 2 == 0 ? 99 : 12,
                         powerUps = 1 + i % 3,
+                        // The main tab's SCORE cell on the dust / worlds sorts: widest values on some rows, a dash on every third.
+                        hasScore = i % 3 != 2, runScore = i % 2 == 0 ? 99999999 : 1234567,
                     });
                 string boardId = b.PlatformId(rig.device.ios);
                 if (!string.IsNullOrEmpty(boardId)) fake.SetBoard(boardId, rows.ToArray());
@@ -397,6 +403,17 @@ public static class ScreenFitScreens
             panel.SendMessage("Update");
             rig.Ignore("Canvas");
             LeaderboardChecks(rig, panel);
+            MainChecks(rig, panel, 3);
+            // Each other column sorted: the same row checks and the cells again.
+            foreach (string sort in new[] { LeaderboardBoards.RunStarDust, LeaderboardBoards.FurthestWorld })
+            {
+                panel.SelectBoard(sort);
+                rig.Sync();
+                panel.SendMessage("Update");
+                rig.Ignore("Canvas");
+                LeaderboardChecks(rig, panel);
+                MainChecks(rig, panel, 3);
+            }
             // The Boosted tab (last): the same row checks, plus its own columns.
             panel.SelectBoard(LeaderboardBoards.BoostedRuns);
             rig.Sync();
@@ -405,6 +422,48 @@ public static class ScreenFitScreens
             LeaderboardChecks(rig, panel);
             BoostedChecks(rig, panel);
         }
+    }
+
+    // The main tab: the sort headers (a 100-unit target, type >= 16 units, label whole inside its plate) and the number
+    // cells (right-aligned in their column, at least 16 units, whole: a number that does not fit is shown compact).
+    static void MainChecks(ScreenFitRig rig, LeaderboardPanel panel, int columns)
+    {
+        if (panel.Headers.Count != columns) rig.Fail("STAGE", "main tab", panel.Headers.Count + " sort headers, expected " + columns);
+        foreach (var h in panel.Headers)
+        {
+            var rt = (RectTransform)h.transform;
+            Rect plate = rig.PixelRect(rt);
+            if (rt.rect.height + 2f * LeaderboardPanel.HeaderTouchMargin < LeaderboardPanel.MinTapUnits - .1f)
+                rig.Fail("LEADERBOARD", rt.name, "tap target under 100 units", plate);
+            var t = h.GetComponentInChildren<Text>();
+            Rect glyphs; float fontPx; bool truncated;
+            if (t == null || !rig.MeasureText(t, out glyphs, out fontPx, out truncated)) continue;
+            if (t.resizeTextForBestFit ? t.resizeTextMinSize < 16 : t.fontSize < 16)
+                rig.Fail("LEADERBOARD", rt.name, "label under the 16-unit floor", glyphs);
+            if (glyphs.xMin < plate.xMin - 1f || glyphs.xMax > plate.xMax + 1f)
+                rig.Fail("LEADERBOARD", rt.name + " \"" + t.text + "\"", "label runs out of its plate", glyphs);
+        }
+        int cells = 0;
+        var rightEdge = new Dictionary<string, float>();
+        foreach (var t in panel.GetComponentsInChildren<Text>())
+        {
+            if (!t.name.StartsWith("Cell_")) continue;
+            cells++;
+            Rect glyphs; float fontPx; bool truncated;
+            if (!rig.MeasureText(t, out glyphs, out fontPx, out truncated)) continue;
+            Rect box = rig.PixelRect(t.rectTransform);
+            if (t.fontSize < 16 || t.resizeTextForBestFit)
+                rig.Fail("LEADERBOARD", t.name + " " + t.transform.parent.name, "drawn at " + t.fontSize + " units, under the 16 floor", glyphs);
+            float overhang = fontPx * .3f;
+            if (glyphs.xMax > box.xMax + 1f + overhang || glyphs.xMin < box.xMin - 1f)
+                rig.Fail("LEADERBOARD", t.name + " " + t.transform.parent.name + " \"" + t.text + "\"", "runs out of its column (size " + t.fontSize + ")", glyphs);
+            if (t.transform.parent.parent != null && t.transform.parent.parent.name == "PlayerRow") continue;   // the own row is inset differently
+            float prev;
+            if (!rightEdge.TryGetValue(t.name, out prev)) rightEdge[t.name] = box.xMax;
+            else if (Mathf.Abs(prev - box.xMax) > 1f)
+                rig.Fail("LEADERBOARD", t.name + " column", t.transform.parent.name + " is " + (box.xMax - prev).ToString("F0") + "px out of line", box);
+        }
+        if (cells < 10 * columns) rig.Fail("STAGE", "main tab", "only " + cells + " number cells");
     }
 
     // The Boosted board's star dust / worlds block and power-ups line: whole, inside their boxes, at least 16 units.

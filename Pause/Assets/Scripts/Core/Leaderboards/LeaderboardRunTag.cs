@@ -10,11 +10,13 @@ using UnityEngine;
 // add more "<letter><digits>" fields; a reader skips the ones it does not know
 // (so "s7h4e2p3q9" still reads) rather than rejecting the whole tag.
 //
-// The POWER-UPS board (docs/leaderboards.md) adds three more fields after k, written only for a run that used a
-// booster: "d<star dust in hundredths>w<worlds cleared>u<power-up bits>", e.g. "s7h4e2p3k2d123456w12u3". Its row's
-// star dust, worlds and power-ups columns come from them (Play Games keeps one sort value per board). The longest tag
-// an in-range run can write is about 32 characters (LeaderboardTest pins it), under the 64 limit. A reader that predates them skips the
-// letters, and the normal boards' tags never carry them.
+// Run columns, after k: "d<star dust in hundredths>w<worlds cleared>u<power-up bits>r<run score>", e.g.
+// "s7h4e2p3k2d123456w12u3". Play Games keeps one sort value per board, so a row's other numbers ride in its tag.
+//   - every NORMAL-board run writes d, w and r (the main leaderboard shows score, dust and worlds from one run, whichever
+//     of the three boards is being read); no u.
+//   - a POWER-UPS run writes d (all the dust it earned), w and u; no r (its score is the board value).
+// The longest tag an in-range run can write is about 45 characters (PowerUpsLeaderboardTest pins it), under the 64 limit.
+// A reader that predates a letter skips it, and a tag without the letters (older builds) reads as "not recorded".
 //
 //   Android  the tag is the Play Games score tag, so every player's row shows
 //            their own ship and hearts.
@@ -36,14 +38,17 @@ public static class LeaderboardRunTag
     // are capped at the store board's upper limit.
     public const long MostDust = 999999999L;
     public const int MostWorlds = 9999;
+    // Run score in the r field (10 digits); a bigger one is clamped.
+    public const long MostScore = 9999999999L;
     // The bits of the u field: which boosters the run used.
     public const int PowerDust = 1, PowerClear = 2, PowerAll = PowerDust | PowerClear;
 
     // endHearts < 0 = not known: no e part. pauses < 0 = not known: no p part.
     // skin <= 0 (the default skin) writes no k part.
-    // The power-ups columns (dust >= 0 = d part, worlds >= 0 = w part, powerUps > 0 = u part) are for the Power-Ups board only.
+    // The run columns: dust >= 0 = d part, worlds >= 0 = w part, powerUps > 0 = u part (Power-Ups board only),
+    // score >= 0 = r part (normal boards only).
     public static string Encode(int ship, int hearts, int endHearts = -1, int pauses = -1, int skin = 0,
-                                long dustHundredths = -1, int worlds = -1, int powerUps = 0)
+                                long dustHundredths = -1, int worlds = -1, int powerUps = 0, long score = -1)
     {
         if (!ShipId.IsValid(ship) || PremiumShips.IsPremium(ship) || hearts < 1) return "";
         string tag = "s" + ship + "h" + hearts;
@@ -53,6 +58,7 @@ public static class LeaderboardRunTag
         if (dustHundredths >= 0) tag += "d" + System.Math.Min(dustHundredths, MostDust);
         if (worlds >= 0) tag += "w" + Mathf.Min(worlds, MostWorlds);
         if ((powerUps & PowerAll) != 0) tag += "u" + (powerUps & PowerAll);
+        if (score >= 0) tag += "r" + System.Math.Min(score, MostScore);
         return tag;
     }
 
@@ -90,6 +96,15 @@ public static class LeaderboardRunTag
     public static bool TryParse(string tag, out int ship, out int hearts, out int endHearts, out int pauses, out int skin,
                                 out long dust, out int worlds, out int powerUps)
     {
+        long runScore;
+        return TryParse(tag, out ship, out hearts, out endHearts, out pauses, out skin, out dust, out worlds, out powerUps, out runScore);
+    }
+
+    // runScore is -1 when the tag has no r field (a Power-Ups tag, or one an older build wrote).
+    public static bool TryParse(string tag, out int ship, out int hearts, out int endHearts, out int pauses, out int skin,
+                                out long dust, out int worlds, out int powerUps, out long runScore)
+    {
+        runScore = -1;
         dust = -1;
         worlds = -1;
         powerUps = 0;
@@ -108,7 +123,7 @@ public static class LeaderboardRunTag
         digits = 0;
         while (i < tag.Length && tag[i] >= '0' && tag[i] <= '9' && digits < 4) { h = h * 10 + (tag[i] - '0'); i++; digits++; }
         if (digits == 0) return false;
-        long e = -1, p = -1, k = -1, d = -1, w = -1, u = -1;
+        long e = -1, p = -1, k = -1, d = -1, w = -1, u = -1, r = -1;
         while (i < tag.Length)
         {
             char key = tag[i];
@@ -128,6 +143,7 @@ public static class LeaderboardRunTag
             else if (key == 'd' && d < 0) d = digits <= 9 ? n : MostDust;
             else if (key == 'w' && w < 0) w = digits <= 4 ? n : 1000000;
             else if (key == 'u' && u < 0) u = digits <= 2 ? n : 0;
+            else if (key == 'r' && r < 0) r = digits <= 10 ? n : MostScore;
             // any other letter is a field from a newer build: skipped
         }
         if (PremiumShips.IsPremium((int)s)) return false;   // never shown, hearts included
@@ -139,7 +155,16 @@ public static class LeaderboardRunTag
         if (d >= 0 && d <= MostDust) dust = d;
         if (w >= 0 && w <= MostWorlds) worlds = (int)w;
         if (u > 0 && u <= PowerAll) powerUps = (int)u;
+        if (r >= 0 && r <= MostScore) runScore = r;
         return ship != 0 || hearts != 0;
+    }
+
+    // Whether the tag records the run's score (the r field): the marker of a tag with the main leaderboard's columns.
+    public static bool HasRunScore(string tag)
+    {
+        int ship, hearts, end, pauses, skin, worlds, powerUps;
+        long dust, runScore;
+        return TryParse(tag, out ship, out hearts, out end, out pauses, out skin, out dust, out worlds, out powerUps, out runScore) && runScore >= 0;
     }
 
     // The row's short form: "DUST x2", "CLEAR" or "BOTH" (fits under the score at 16 units).

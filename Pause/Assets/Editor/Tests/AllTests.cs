@@ -224,6 +224,7 @@ public static class AllTests
         ("StartGlideTest", StartGlideTest.Execute),
         ("LeaderboardTest", LeaderboardTest.Execute),
         ("PowerUpsLeaderboardTest", PowerUpsLeaderboardTest.Execute),
+        ("UnifiedLeaderboardTest", UnifiedLeaderboardTest.Execute),
         ("LiftoffTest", LiftoffTest.Execute),
         ("LoopTest", LoopTest.Execute),
         ("MissingScriptsTest", MissingScriptsTest.Execute),

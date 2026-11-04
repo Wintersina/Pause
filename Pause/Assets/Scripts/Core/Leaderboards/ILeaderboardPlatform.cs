@@ -77,6 +77,10 @@ public struct LeaderboardEntry
     public long starDustHundredths;
     public int worlds;
     public int powerUps;
+    // The run's own score, from the tag's r field (normal boards): the main leaderboard's SCORE cell on the dust and
+    // worlds boards. Only meaningful when hasScore; without it the cell is a dash.
+    public bool hasScore;
+    public long runScore;
 }
 
 public sealed class LeaderboardPage

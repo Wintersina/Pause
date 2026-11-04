@@ -128,6 +128,7 @@ public sealed class LeaderboardService
     public static void Install()
     {
         MigrateWorldsBoard();
+        MigrateSeason();
         SocialBridge.SignedIn -= OnSignedInStatic;
         SocialBridge.SignedIn += OnSignedInStatic;
     }
@@ -152,6 +153,35 @@ public sealed class LeaderboardService
             table.Save(key);
         }
         PlayerPrefs.SetInt(WorldsMigratedKey, 1);
+    }
+
+    // ---- season reset ----
+    //
+    // A "season" is a set of store boards. A reset means NEW board ids (added in a later change, with
+    // LeaderboardBoards.CurrentSeason bumped in the same release); players on an older build keep writing to the old
+    // boards and never see the new ones. This is the device half: when the season stored here is behind the
+    // constant, run once, at Install:
+    //   - the submitted and pending score tables go (every board), so no old mark is queued again or read as "already sent",
+    //   - the normal and boosted local bests are SET to 0 (not deleted: a missing normal best is re-seeded from
+    //     RunScore.SavedBest, which would hand the old best straight back, including after a reinstall that restores
+    //     only the cloud save). With the key present at 0, an early-quit run is judged against the new season only,
+    //   - the account-bind backfill needs no extra reset: it offers only the submitted marks (now empty) and the
+    //     normal best (now 0), so nothing from before the reset can reach a new board.
+    // RunScore.SavedBest (the player's personal best, the Top Score NEW RECORD baseline) is NOT touched.
+    // No stored season counts as FirstSeason, so while the constant is FirstSeason nothing is ever wiped; a fresh
+    // install or a reinstall at a later season runs the wipe once too (nothing to lose, and it pins the bests to 0).
+    public const string SeasonKey = "leaderboards_season";
+
+    public static void MigrateSeason()
+    {
+        int season = LeaderboardBoards.Season;
+        if (PlayerPrefs.GetInt(SeasonKey, LeaderboardBoards.FirstSeason) >= season) return;
+        PlayerPrefs.DeleteKey(PendingKey);
+        PlayerPrefs.DeleteKey(SubmittedKey);
+        PlayerPrefs.SetInt(NormalBestKey, 0);
+        PlayerPrefs.SetInt(BoostedBestKey, 0);
+        PlayerPrefs.SetInt(SeasonKey, season);
+        PrefsSaver.SaveNow();
     }
 
     static void OnSignedInStatic() { Instance.OnSignedIn(); }
@@ -308,8 +338,10 @@ public sealed class LeaderboardService
         if (string.IsNullOrEmpty(haveTag)) return true;
         // Same value, and the new tag adds the pauses an older tag lacks.
         int s, h, e, p, s2, h2, e2, p2;
-        return LeaderboardRunTag.TryParse(tag, out s, out h, out e, out p) && p >= 0
-            && LeaderboardRunTag.TryParse(haveTag, out s2, out h2, out e2, out p2) && p2 < 0;
+        if (LeaderboardRunTag.TryParse(tag, out s, out h, out e, out p) && p >= 0
+            && LeaderboardRunTag.TryParse(haveTag, out s2, out h2, out e2, out p2) && p2 < 0) return true;
+        // Or the new tag carries the run columns (score, dust, worlds) the older one lacks.
+        return LeaderboardRunTag.HasRunScore(tag) && !LeaderboardRunTag.HasRunScore(haveTag);
     }
 
     public bool HasPending(string boardId, out long value)
@@ -680,21 +712,21 @@ public sealed class LeaderboardService
         string tag = submitted.TagOf(boardId);
         if (string.IsNullOrEmpty(tag) || !submitted.TryGet(boardId, out have)) return page;
         int ship, hearts, end, pauses, skin, worlds, powerUps;
-        long dust;
-        if (!LeaderboardRunTag.TryParse(tag, out ship, out hearts, out end, out pauses, out skin, out dust, out worlds, out powerUps)) return page;
+        long dust, runScore;
+        if (!LeaderboardRunTag.TryParse(tag, out ship, out hearts, out end, out pauses, out skin, out dust, out worlds, out powerUps, out runScore)) return page;
         for (int i = 0; i < page.entries.Count; i++)
         {
             var e = page.entries[i];
             if ((e.isLocalPlayer || (ownRank > 0 && e.rank == ownRank)) && e.value == have)
-                page.entries[i] = FillFrom(e, ship, hearts, end, pauses, skin, dust, worlds, powerUps);
+                page.entries[i] = FillFrom(e, ship, hearts, end, pauses, skin, dust, worlds, powerUps, runScore);
         }
-        if (page.hasPlayer && page.player.value == have) page.player = FillFrom(page.player, ship, hearts, end, pauses, skin, dust, worlds, powerUps);
+        if (page.hasPlayer && page.player.value == have) page.player = FillFrom(page.player, ship, hearts, end, pauses, skin, dust, worlds, powerUps, runScore);
         return page;
     }
 
     // The device-kept record fills what the store row lacks: the whole tag when
     // it has none, or just the pauses when its (older) tag has no pauses.
-    static LeaderboardEntry FillFrom(LeaderboardEntry e, int ship, int hearts, int end, int pauses, int skin, long dust, int worlds, int powerUps)
+    static LeaderboardEntry FillFrom(LeaderboardEntry e, int ship, int hearts, int end, int pauses, int skin, long dust, int worlds, int powerUps, long runScore)
     {
         if (e.startShip == 0 && e.startHearts == 0)
         {
@@ -709,6 +741,20 @@ public sealed class LeaderboardService
             e.starDustHundredths = dust;
             e.worlds = worlds;
             e.powerUps = powerUps;
+            e.hasScore = runScore >= 0;
+            e.runScore = runScore;
+        }
+        else if (!e.hasScore && runScore >= 0 && e.startShip == ship && e.startHearts == hearts)
+        {
+            // The store row's (older) tag lacks the run columns; the device record of the same run has them.
+            e.hasScore = true;
+            e.runScore = runScore;
+            if (!e.hasRunStats && dust >= 0 && worlds >= 0)
+            {
+                e.hasRunStats = true;
+                e.starDustHundredths = dust;
+                e.worlds = worlds;
+            }
         }
         else if (!e.hasPauses && pauses >= 0 && e.startShip == ship && e.startHearts == hearts)
         {

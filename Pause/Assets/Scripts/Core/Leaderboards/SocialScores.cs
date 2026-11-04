@@ -68,12 +68,12 @@ public static class SocialScores
     static LeaderboardEntry Entry(IScore s, string localUserId, Func<IScore, string> tagOf)
     {
         int ship = 0, hearts = 0, end = -1, pauses = -1, skin = 0, worlds = -1, powerUps = 0;
-        long dust = -1;
+        long dust = -1, runScore = -1;
         if (tagOf != null)
         {
             string tag = null;
             try { tag = tagOf(s); } catch (Exception) { }
-            LeaderboardRunTag.TryParse(tag, out ship, out hearts, out end, out pauses, out skin, out dust, out worlds, out powerUps);
+            LeaderboardRunTag.TryParse(tag, out ship, out hearts, out end, out pauses, out skin, out dust, out worlds, out powerUps, out runScore);
         }
         return new LeaderboardEntry
         {
@@ -81,6 +81,7 @@ public static class SocialScores
             hasEnd = end >= 0, endHearts = Mathf.Max(end, 0),
             hasPauses = pauses >= 0, pauses = Mathf.Max(pauses, 0),
             hasRunStats = dust >= 0 && worlds >= 0, starDustHundredths = dust, worlds = worlds, powerUps = powerUps,
+            hasScore = runScore >= 0, runScore = runScore,
             rank = s.rank,
             playerId = s.userID,
             value = s.value,

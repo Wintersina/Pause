@@ -5,8 +5,14 @@ using UnityEngine.UI;
 // The in-game leaderboard, opened from the home screen (startS4) -> Leaderboard.
 //
 // Built entirely at runtime on its own overlay canvas, so the scene only
-// keeps its existing button. Board tabs (enabled boards only), the top 10,
-// the player's own rank row, and "View all" for the store's native screen.
+// keeps its existing button. TWO tabs: MAIN (non-boosted runs; one table with three sortable column headers, SCORE /
+// DUST / WORLDS) and POWER-UPS (the Boosted board). Then the top 10, the player's own rank row, and "View all" for the
+// store's native screen.
+//
+// Sorting a column loads THAT column's store board (Top Score / Star Dust / Worlds) and shows its real ranks; rows
+// are never re-sorted on the client (a page is only the top N of one stat). Each row shows its three numbers from the
+// one run (carried in the score tag); the sorted column shows the board's own value, a number the row has no tag
+// for shows a dash. A header whose board is not enabled on the platform is not offered.
 //
 // States: signed out (one-tap sign-in), loading, empty, error/offline,
 // unavailable (no store on this device), no boards configured, populated.
@@ -25,11 +31,17 @@ public class LeaderboardPanel : MonoBehaviour
     public const float FillWidth = .94f, FillHeight = .95f;
 
     const float SideInset = (DesignWidth - 640f) * .5f;   // frame -> content, each side
-    const float RowHeight = 54f, RowStep = 61f;
-    const float ListTop = 276f;               // from the panel top
+    const float RowHeight = 52f, RowStep = 58f;   // 10 rows exactly fill the list at the design height
+    const float ListTop = 316f;               // from the panel top (below the sort headers)
     const float PlayerRowTop = 920f, PlayerRowHeight = 66f;
     const float ButtonsTop = 1036f, ButtonHeight = 100f;
     public const float TabTop = 144f, TabHeight = 80f, TabTouchMargin = 10f;
+    // The main tab's sort headers: 48 units of art with 26 of touch margin above and below = a 100-unit target; each
+    // is as wide as its column (100), and the three columns replace the old hearts / pauses / score block.
+    public const float HeaderTop = 262f, HeaderHeight = 48f, HeaderTouchMargin = 26f;
+    public const float ColWidth = 100f;
+    public const string MainTab = "main";
+    public const string Dash = "-";
     // Player names: NameSize, shrinking to NameMinSize at the least for a
     // long one, then cut short with an ellipsis -- never smaller. The rank
     // and score columns keep their own boxes, so they stay aligned and whole.
@@ -41,12 +53,13 @@ public class LeaderboardPanel : MonoBehaviour
     // name column is 546.7 - 130 - 14 - 170 - 6 - 2 x 66 = 94.7.
     public const float NameLeft = 130f, NameWidth = 210f;   // NameWidth: at the design width
     const float RankWidth = 62f, ShipLeft = 78f, ShipWidth = 46f;
-    const float BadgeWidth = 66f, HeartSize = 22f;   // heart / pause bars + a count of up to two digits
+    const float BadgeWidth = 66f;   // the old hearts / pauses badge width; the Power-Ups name column is still derived from it
     const float ValueWidth = 170f, ValueInset = 14f;
-    const int BadgeSize = 24, BadgeMinSize = 16;     // 16 units = 7.7 dp at the smallest scale (0.48 units per dp)
     const int ValueMinSize = 16;
     // Tab captions shrink (or wrap onto a second line) to this at the least: four tabs share the width.
     public const int TabMinSize = 16;
+    // The main tab's cells: the sorted column's value, and the other two (a little smaller), each shrinking to ValueMinSize.
+    const int SortedCellSize = 26, OtherCellSize = 22;
     // The Boosted board's row: no hearts / pauses badges; their room holds a two-line star dust + worlds block,
     // and under the score the power-ups the run used (all at 16 units or more).
     const float StatsWidth = 150f;
@@ -92,8 +105,11 @@ public class LeaderboardPanel : MonoBehaviour
     float panelW = DesignWidth, panelH = DesignHeight;
     float Inner { get { return panelW - 2f * SideInset; } }
     float Drop { get { return DesignHeight - panelH; } }   // the lower block moves up by this
-    float ListHeight { get { return PlayerRowTop - Drop - 40f - ListTop; } }
+    float ListHeight { get { return PlayerRowTop - Drop - 30f - ListTop; } }
     public float BoostedNameWidth { get { return NameColumnWidth + 2f * BadgeWidth + (ValueWidth - BoostedValueWidth) - StatsWidth; } }
+    // The main tab's name column: what the (offered) number columns leave.
+    public float MainNameWidth { get { return Inner - NameLeft - ValueInset - 6f - ColWidth * mainColumns.Count; } }
+    // The old hearts / pauses / score layout's name column; the Power-Ups tab's width is derived from it.
     public float NameColumnWidth { get { return Inner - NameLeft - ValueInset - ValueWidth - 6f - 2f * BadgeWidth; } }
     public Vector2 PanelSize { get { return new Vector2(panelW, panelH); } }
     public bool ListScrolls { get { return list != null && list.GetComponent<ScrollRect>().enabled; } }
@@ -106,7 +122,12 @@ public class LeaderboardPanel : MonoBehaviour
     public string SelectedBoard { get; private set; }
     public Layout AppliedLayout { get; private set; }
     public readonly List<Button> Tabs = new List<Button>();
+    // The tab keys: MainTab, then the Power-Ups board's id.
     public readonly List<string> TabBoards = new List<string>();
+    // The sort headers, left to right, and the store boards they load.
+    public readonly List<Button> Headers = new List<Button>();
+    public readonly List<string> HeaderBoards = new List<string>();
+    public string SelectedTab { get; private set; }
     public Button ViewAllButton { get; private set; }
     public Button CloseButton { get; private set; }
     public Button ActionButton { get; private set; }   // SIGN IN / RETRY, when shown
@@ -114,6 +135,9 @@ public class LeaderboardPanel : MonoBehaviour
     readonly List<int> shipIds = new List<int>();
     readonly List<int> shipSkins = new List<int>();
     int shipDrawing = -1;
+    // The offered number columns of the main tab (usable, not Power-Ups), in table order; and the sort kept across tab switches.
+    readonly List<LeaderboardBoard> mainColumns = new List<LeaderboardBoard>();
+    string mainSort;
     public int RowCount { get; private set; }
     public bool PlayerRowShown { get; private set; }
     public string PlayerRankText { get; private set; }
@@ -235,6 +259,8 @@ public class LeaderboardPanel : MonoBehaviour
     void BuildPanel()
     {
         panelRoot.sizeDelta = new Vector2(panelW, panelH);
+        mainColumns.Clear();
+        foreach (var b in service.UsableBoards()) if (!b.poweredUpOnly) mainColumns.Add(b);
 
         // Frame: chamfered night plate, thick ink, inner panel line.
         var frame = CelShape.Add(Fill(panelRoot, "Frame").gameObject, CelShape.Kind.Chamfer,
@@ -249,6 +275,7 @@ public class LeaderboardPanel : MonoBehaviour
 
         BuildTitle();
         BuildTabs();
+        BuildHeaders();
 
         var desc = Place(panelRoot, "Description", 0f, TabTop + TabHeight + 8f, Inner, 34f);
         descriptionText = Label(desc, "", 20, AkiraPalette.Muted, TextAnchor.MiddleLeft, 2f);
@@ -304,17 +331,21 @@ public class LeaderboardPanel : MonoBehaviour
 
     void BuildTabs()
     {
-        var boards = service.UsableBoards();
-        if (boards.Count == 0) return;
+        // Two tabs: MAIN (when any normal board is offered) and one per Power-Ups board.
+        var tabs = new List<KeyValuePair<string, string>>();
+        if (mainColumns.Count > 0) tabs.Add(new KeyValuePair<string, string>(MainTab, "MAIN"));
+        foreach (var b in service.UsableBoards())
+            if (b.poweredUpOnly) tabs.Add(new KeyValuePair<string, string>(b.id, b.displayName.ToUpperInvariant()));
+        if (tabs.Count == 0) return;
         // 80 tall plus 10 of touch margin above and below: a 100-unit target
         // (>= 48 dp / 44 pt at UiScale's 0.5 dp-per-unit floor).
         const float gap = 14f, top = TabTop, height = TabHeight;
-        float w = (Inner - gap * (boards.Count - 1)) / boards.Count;
-        for (int i = 0; i < boards.Count; i++)
+        float w = (Inner - gap * (tabs.Count - 1)) / tabs.Count;
+        for (int i = 0; i < tabs.Count; i++)
         {
-            var board = boards[i];
+            string key = tabs[i].Key;
             float x = -Inner * .5f + w * .5f + i * (w + gap);
-            var rt = Place(panelRoot, "Tab_" + board.id, x, top, w, height);
+            var rt = Place(panelRoot, "Tab_" + key, x, top, w, height);
             var shape = CelShape.Add(rt.gameObject, CelShape.Kind.Chamfer, AkiraPalette.Card, 3.5f)
                                 .Cuts(true, false, true, false);
             shape.cut = 14f;
@@ -322,14 +353,52 @@ public class LeaderboardPanel : MonoBehaviour
             shape.raycastPadding = new Vector4(0f, -TabTouchMargin, 0f, -TabTouchMargin);   // a bigger finger target, same art
             var label = Child(rt, "Label");
             Stretch(label, 10f);
-            Label(label, board.displayName.ToUpperInvariant(), 26, AkiraPalette.Muted, TextAnchor.MiddleCenter, 2.5f, TabMinSize);
+            Label(label, tabs[i].Value, 26, AkiraPalette.Muted, TextAnchor.MiddleCenter, 2.5f, TabMinSize);
+            var button = rt.gameObject.AddComponent<Button>();
+            button.targetGraphic = shape;
+            button.transition = Selectable.Transition.None;
+            button.onClick.AddListener(() => SelectTab(key));
+            Tabs.Add(button);
+            TabBoards.Add(key);
+        }
+    }
+
+    // The main tab's sort headers, one per offered column, right-aligned over the number columns.
+    void BuildHeaders()
+    {
+        int n = mainColumns.Count;
+        if (n == 0) return;
+        float right = Inner * .5f - ValueInset;
+        for (int i = 0; i < n; i++)
+        {
+            var board = mainColumns[i];
+            float x = right - (n - i - .5f) * ColWidth;
+            var rt = Place(panelRoot, "Header_" + board.id, x, HeaderTop, ColWidth - 6f, HeaderHeight);
+            var shape = CelShape.Add(rt.gameObject, CelShape.Kind.Chamfer, AkiraPalette.Card, 3f).Cuts(true, false, true, false);
+            shape.cut = 10f;
+            shape.raycastTarget = true;
+            shape.raycastPadding = new Vector4(-3f, -HeaderTouchMargin, -3f, -HeaderTouchMargin);   // 100 tall, columns touch
+            var label = Child(rt, "Label");
+            Stretch(label, 6f);
+            Label(label, HeaderLabel(board), 22, AkiraPalette.Muted, TextAnchor.MiddleCenter, 2f, TabMinSize);
             var button = rt.gameObject.AddComponent<Button>();
             button.targetGraphic = shape;
             button.transition = Selectable.Transition.None;
             string id = board.id;
             button.onClick.AddListener(() => SelectBoard(id));
-            Tabs.Add(button);
-            TabBoards.Add(id);
+            Headers.Add(button);
+            HeaderBoards.Add(id);
+        }
+    }
+
+    public static string HeaderLabel(LeaderboardBoard board)
+    {
+        switch (board.id)
+        {
+            case LeaderboardBoards.TopScore: return "SCORE";
+            case LeaderboardBoards.RunStarDust: return "DUST";
+            case LeaderboardBoards.FurthestWorld: return "WORLDS";
+            default: return board.displayName.ToUpperInvariant();
         }
     }
 
@@ -340,18 +409,37 @@ public class LeaderboardPanel : MonoBehaviour
         if (TabBoards.Count == 0)
         {
             SelectedBoard = null;
+            SelectedTab = null;
             Show(State.NoBoards);
             return;
         }
-        SelectBoard(TabBoards[0]);
+        SelectTab(TabBoards[0]);
     }
 
+    // A tab: MAIN opens the column last sorted on (SCORE the first time), a Power-Ups key its own board.
+    public void SelectTab(string key)
+    {
+        if (key == MainTab) SelectBoard(mainSort != null && IsMainColumn(mainSort) ? mainSort : mainColumns[0].id);
+        else SelectBoard(key);
+    }
+
+    bool IsMainColumn(string boardId)
+    {
+        foreach (var b in mainColumns) if (b.id == boardId) return true;
+        return false;
+    }
+
+    // Loads one STORE board: a main-tab column (the header) or the Power-Ups board. Always that board's own ranks.
     public void SelectBoard(string boardId)
     {
         SelectedBoard = boardId;
+        var board = LeaderboardBoards.Get(boardId);
+        bool main = board == null || !board.poweredUpOnly;
+        if (main) mainSort = boardId;
+        SelectedTab = main ? MainTab : boardId;
         for (int i = 0; i < Tabs.Count; i++)
         {
-            bool on = TabBoards[i] == boardId;
+            bool on = TabBoards[i] == SelectedTab;
             var shape = Tabs[i].GetComponent<CelShape>();
             shape.SetFill(on ? AkiraPalette.Red : AkiraPalette.Card);
             shape.hasShadow = on;
@@ -360,11 +448,24 @@ public class LeaderboardPanel : MonoBehaviour
             var text = Tabs[i].GetComponentInChildren<Text>();
             text.color = on ? AkiraPalette.Bone : AkiraPalette.Muted;
         }
-        var board = LeaderboardBoards.Get(boardId);
-        if (descriptionText != null && board != null)
-            descriptionText.text = board.description.ToUpperInvariant();
+        // The active header is marked: red plate, ink shadow, bone type.
+        for (int i = 0; i < Headers.Count; i++)
+        {
+            bool on = main && HeaderBoards[i] == boardId;
+            Headers[i].gameObject.SetActive(main);
+            var shape = Headers[i].GetComponent<CelShape>();
+            shape.SetFill(on ? AkiraPalette.Red : AkiraPalette.Card);
+            shape.hasShadow = on;
+            shape.shadow = AkiraPalette.Ink;
+            shape.shadowOffset = new Vector2(4f, -4f);
+            Headers[i].GetComponentInChildren<Text>().color = on ? AkiraPalette.Bone : AkiraPalette.Muted;
+        }
+        if (descriptionText != null) descriptionText.text = !main && board != null ? board.description.ToUpperInvariant() : "";
         Reload();
     }
+
+    // The header's board is the active sort (main tab only); null otherwise.
+    public string SortedBoard { get { return SelectedTab == MainTab ? SelectedBoard : null; } }
 
     public void Reload()
     {
@@ -607,90 +708,45 @@ public class LeaderboardPanel : MonoBehaviour
         }
 
         bool boosted = board != null && board.poweredUpOnly;
-        float nameWidth = boosted ? BoostedNameWidth : NameColumnWidth;
+        float nameWidth = boosted ? BoostedNameWidth : MainNameWidth;
         var name = Child(rt, "Name");
         Anchor(name, NameLeft, nameWidth);
         string who = string.IsNullOrEmpty(e.playerName) ? "PILOT" : e.playerName.ToUpperInvariant();
         if (own && e.rank > 0) who = "YOU  " + who;
         FitName(Label(name, who, NameSize, nameColor, TextAnchor.MiddleLeft, 2.5f), who, nameWidth - 4f);
 
-        if (boosted)
+        if (!boosted)
         {
-            // Star dust and worlds of the player's best powered-up run, from its score tag; blank without one.
-            if (e.hasRunStats && e.starDustHundredths >= 0 && e.worlds >= 0)
-            {
-                var stats = Child(rt, "Stats");
-                Anchor(stats, NameLeft + nameWidth + 2f, StatsWidth - 4f);
-                var statsText = Label(stats, "DUST " + Compact(e.starDustHundredths / 100) + "\nWORLDS " + Mathf.Min(e.worlds, 99),
-                                      StatsSize, AkiraPalette.Amber, TextAnchor.MiddleLeft, 2f, ValueMinSize);
-                statsText.lineSpacing = .9f;
-                FitText(statsText, StatsSize, ValueMinSize, StatsWidth - FitMargin);
-            }
-        }
-        else if (e.startHearts > 0)
-        {
-            var badge = Child(rt, "Hearts");
-            Anchor(badge, NameLeft + NameColumnWidth + 2f, BadgeWidth - 4f);
-            var heart = Child(badge, "Heart");
-            heart.anchorMin = heart.anchorMax = new Vector2(0f, .5f);
-            heart.pivot = new Vector2(0f, .5f);
-            heart.sizeDelta = new Vector2(HeartSize, HeartSize);
-            heart.anchoredPosition = Vector2.zero;
-            var heartImage = heart.gameObject.AddComponent<Image>();
-            heartImage.sprite = Resources.Load<Sprite>("Vfx/lifeHeart");
-            heartImage.preserveAspect = true;
-            heartImage.raycastTarget = false;
-            var count = Child(badge, "Count");
-            count.anchorMin = new Vector2(0f, 0f);
-            count.anchorMax = new Vector2(1f, 1f);
-            count.offsetMin = new Vector2(HeartSize + 4f, 0f);
-            count.offsetMax = Vector2.zero;
-            // Only the hearts the run started with; the end hearts stay in the tag.
-            Label(count, e.startHearts.ToString(), BadgeSize, AkiraPalette.Bone, TextAnchor.MiddleLeft, 2.5f, BadgeMinSize);
+            // The main tab: the offered columns (SCORE, DUST, WORLDS), no hearts / pauses badges (no room for them at the
+            // narrowest phone). A row with nothing to show (the "no score yet" own row) draws no cells.
+            if (e.rank > 0 || e.value != 0) MainCells(rt, e, board, mine);
+            return;
         }
 
-        // The pauses the run ended with: two bars (the pause glyph) and a count.
-        // An older tag has none: the slot stays empty, never a 0 or a stray glyph.
-        if (!boosted && e.hasPauses && e.pauses >= 0)
+        // Star dust and worlds of the player's best powered-up run, from its score tag; blank without one.
+        if (e.hasRunStats && e.starDustHundredths >= 0 && e.worlds >= 0)
         {
-            var badge = Child(rt, "Pauses");
-            Anchor(badge, NameLeft + NameColumnWidth + 2f + BadgeWidth, BadgeWidth - 4f);
-            for (int b = 0; b < 2; b++)
-            {
-                var bar = Child(badge, "Bar" + b);
-                bar.anchorMin = bar.anchorMax = new Vector2(0f, .5f);
-                bar.pivot = new Vector2(0f, .5f);
-                bar.sizeDelta = new Vector2(7f, 20f);
-                bar.anchoredPosition = new Vector2(2f + b * 11f, 0f);
-                var barImage = bar.gameObject.AddComponent<Image>();
-                barImage.color = AkiraPalette.Cyan;
-                barImage.raycastTarget = false;
-            }
-            var count = Child(badge, "Count");
-            count.anchorMin = new Vector2(0f, 0f);
-            count.anchorMax = new Vector2(1f, 1f);
-            count.offsetMin = new Vector2(HeartSize + 4f, 0f);
-            count.offsetMax = Vector2.zero;
-            Label(count, Mathf.Min(e.pauses, LeaderboardRunTag.MostPauses).ToString(), BadgeSize, AkiraPalette.Bone, TextAnchor.MiddleLeft, 2.5f, BadgeMinSize);
+            var stats = Child(rt, "Stats");
+            Anchor(stats, NameLeft + nameWidth + 2f, StatsWidth - 4f);
+            var statsText = Label(stats, "DUST " + Compact(e.starDustHundredths / 100) + "\nWORLDS " + Mathf.Min(e.worlds, 99),
+                                  StatsSize, AkiraPalette.Amber, TextAnchor.MiddleLeft, 2f, ValueMinSize);
+            statsText.lineSpacing = .9f;
+            FitText(statsText, StatsSize, ValueMinSize, StatsWidth - FitMargin);
         }
 
         if (e.rank > 0 || e.value != 0)
         {
             var value = Child(rt, "Value");
-            bool hasPowerUps = boosted && e.hasRunStats && LeaderboardRunTag.PowerUpShort(e.powerUps).Length > 0;
+            bool hasPowerUps = e.hasRunStats && LeaderboardRunTag.PowerUpShort(e.powerUps).Length > 0;
             value.anchorMin = new Vector2(1f, hasPowerUps ? .38f : 0f);
             value.anchorMax = new Vector2(1f, 1f);
             value.pivot = new Vector2(1f, .5f);
-            float valueWidth = boosted ? BoostedValueWidth : ValueWidth;
+            float valueWidth = BoostedValueWidth;
             value.sizeDelta = new Vector2(valueWidth, 0f);
             value.anchoredPosition = new Vector2(-ValueInset, 0f);
-            string shown = board != null ? board.Format(e.value) : e.value.ToString();
-            // "LOOP 2 \u00B7 WORLDS 8" is drawn on two lines (no dot glyph to depend on).
-            bool twoLines = shown.Contains(LeaderboardBoards.WorldsSeparator);
-            if (twoLines) shown = shown.Replace(LeaderboardBoards.WorldsSeparator, "\n");
-            int valueSize = hasPowerUps ? 26 : twoLines ? 24 : 30;
+            string shown = board.Format(e.value);
+            int valueSize = hasPowerUps ? 26 : 30;
             var valueText = Label(value, shown, valueSize, valueColor, TextAnchor.MiddleRight, 3f, ValueMinSize);
-            if (twoLines) valueText.lineSpacing = .9f;
             FitText(valueText, valueSize, ValueMinSize, valueWidth);
             if (hasPowerUps)
             {
@@ -708,10 +764,71 @@ public class LeaderboardPanel : MonoBehaviour
         }
     }
 
-    // The score / worlds text at `size`, shrinking one unit at a time to
-    // ValueMinSize until its widest line fits ValueWidth (never smaller, never cut).
-    // Measured with the font itself, once, when the row is built.
-    void FitValue(Text text, int size) { FitText(text, size, ValueMinSize, ValueWidth); }
+    // The row's number cells on the main tab, one per offered column ("Cell_<board id>"). The column being sorted shows the
+    // board's own value (its real rank's value); the others come from the row's score tag, or a dash when the row has none.
+    void MainCells(RectTransform rt, LeaderboardEntry e, LeaderboardBoard sortedBoard, bool mine)
+    {
+        int n = mainColumns.Count;
+        for (int i = 0; i < n; i++)
+        {
+            var col = mainColumns[i];
+            bool sorted = sortedBoard != null && col.id == sortedBoard.id;
+            string full, compact;
+            CellText(col, e, sorted, out full, out compact);
+            var cell = Child(rt, "Cell_" + col.id);
+            cell.anchorMin = new Vector2(1f, 0f);
+            cell.anchorMax = new Vector2(1f, 1f);
+            cell.pivot = new Vector2(1f, .5f);
+            float width = ColWidth - 8f;
+            cell.sizeDelta = new Vector2(width, 0f);
+            cell.anchoredPosition = new Vector2(-ValueInset - (n - 1 - i) * ColWidth - 4f, 0f);
+            int size = sorted ? SortedCellSize : OtherCellSize;
+            Color color = full == Dash ? (mine ? AkiraPalette.Bone : AkiraPalette.Muted)
+                        : sorted ? (mine ? AkiraPalette.Bone : AkiraPalette.Cyan)
+                        : (mine ? AkiraPalette.Bone : AkiraPalette.Amber);
+            var text = Label(cell, full, size, color, TextAnchor.MiddleRight, sorted ? 3f : 2f, ValueMinSize);
+            FitText(text, size, ValueMinSize, width - FitMargin);
+            // The full number does not fit even at the 16-unit floor (a long score): the compact form (1.2M) does.
+            if (compact != full && text.preferredWidth > width - FitMargin)
+            {
+                text.text = compact;
+                FitText(text, size, ValueMinSize, width - FitMargin);
+            }
+        }
+    }
+
+    // One cell's text: the full form and the compact form (the same unless the number can be long).
+    static void CellText(LeaderboardBoard col, LeaderboardEntry e, bool sorted, out string full, out string compact)
+    {
+        full = compact = Dash;
+        switch (col.id)
+        {
+            case LeaderboardBoards.TopScore:
+                if (sorted || e.hasScore)
+                {
+                    long v = sorted ? e.value : e.runScore;
+                    full = LeaderboardBoards.FormatScore(v);
+                    compact = Compact(v);
+                }
+                break;
+            case LeaderboardBoards.RunStarDust:
+                // star dust in hundredths, shown whole and compact like the Power-Ups rows
+                if (sorted || (e.hasRunStats && e.starDustHundredths >= 0))
+                    full = compact = Compact((sorted ? e.value : e.starDustHundredths) / 100L);
+                break;
+            case LeaderboardBoards.FurthestWorld:
+                if (sorted || (e.hasRunStats && e.worlds >= 0))
+                {
+                    long n = System.Math.Max(0L, sorted ? e.value : (long)e.worlds);
+                    full = n.ToString();
+                    compact = Compact(n);   // the store caps worlds at 9999; the compact form is only a net for an absurd value
+                }
+                break;
+            default:
+                if (sorted) full = compact = col.Format(e.value);
+                break;
+        }
+    }
 
     // 999 as is, then 1.2K, 12K, 1M: the star dust block is only 150 units wide.
     public static string Compact(long v)
@@ -816,6 +933,8 @@ public class LeaderboardPanel : MonoBehaviour
             // a new size (rotation, a foldable, a window): build the panel again
             Tabs.Clear();
             TabBoards.Clear();
+            Headers.Clear();
+            HeaderBoards.Clear();
             loadingCells.Clear();
             for (int i = panelRoot.childCount - 1; i >= 0; i--)
             {

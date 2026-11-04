@@ -49,16 +49,19 @@ public struct LeaderboardRunStats
 
     public bool PoweredUp { get { return powerUps != 0; } }
     public bool UsedPremium { get { return premiumRun || PremiumShips.IsPremium(startShip); } }
-    // The normal boards' tag is unchanged; a powered-up run's tag also carries its star dust, worlds and power-ups
-    // (it only ever goes to the Power-Ups board).
+    // Every tag carries the run's star dust (d) and worlds (w). A normal run (the normal boards) also carries its score (r),
+    // so the main leaderboard can show all three numbers from one run on any of the three boards. A powered-up run
+    // (the Power-Ups board only) carries the dust it earned with the booster's doubling, and its power-ups (u).
     public string Tag
     {
         get
         {
+            bool powered = PoweredUp;
             return LeaderboardRunTag.Encode(startShip, startHearts, hasEnd ? endHearts : -1, hasPauses ? endPauses : -1, startSkin,
-                PoweredUp ? (long)System.Math.Round(System.Math.Max(0f, dustEarned) * 100.0) : -1,
-                PoweredUp ? Math.Max(0, worldsCleared) : -1,
-                powerUps);
+                (long)System.Math.Round(System.Math.Max(0f, powered ? dustEarned : starDust) * 100.0),
+                Math.Max(0, worldsCleared),
+                powered ? powerUps : 0,
+                powered ? -1 : Math.Max(0L, score));
         }
     }
 }
@@ -121,6 +124,17 @@ public sealed class LeaderboardBoard
 
 public static class LeaderboardBoards
 {
+    // The leaderboard "season": bumped together with NEW store board ids, in the same release (docs/leaderboards.md,
+    // "Season reset"). When the stored season is behind this, the device forgets its submitted / pending scores and local
+    // bests once (LeaderboardService.MigrateSeason), so nothing from the old boards is offered to the new ones.
+    // Season 1 is where every existing player already is: no stored season counts as 1, so 1 changes nothing.
+    public const int CurrentSeason = 1;
+    public const int FirstSeason = 1;
+    static int? overrideSeason;
+    public static int Season { get { return overrideSeason ?? CurrentSeason; } }
+    // Tests: pretend the constant has this value (null: the real one again).
+    public static void OverrideSeasonForTests(int? season) { overrideSeason = season; }
+
     public const string TopScore = "top_score";
     public const string RunStarDust = "run_star_dust";
     public const string FurthestWorld = "furthest_world";

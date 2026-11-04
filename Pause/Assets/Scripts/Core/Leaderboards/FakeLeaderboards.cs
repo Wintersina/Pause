@@ -71,8 +71,11 @@ public sealed class FakeLeaderboards : ILeaderboardPlatform
     static LeaderboardEntry WithTag(LeaderboardEntry e, string tag)
     {
         int ship, hearts, end, pauses, skin, worlds, powerUps;
-        long dust;
-        if (!LeaderboardRunTag.TryParse(tag, out ship, out hearts, out end, out pauses, out skin, out dust, out worlds, out powerUps) || dust < 0 || worlds < 0) return e;   // only the Power-Ups board's tags (the others stay blank, like Game Center)
+        long dust, runScore;
+        // Only tags with the run columns (d / w, r) fill the row; older-style tags stay blank, like Game Center.
+        if (!LeaderboardRunTag.TryParse(tag, out ship, out hearts, out end, out pauses, out skin, out dust, out worlds, out powerUps, out runScore)
+            || ((dust < 0 || worlds < 0) && runScore < 0)) return e;
+        e.hasScore = runScore >= 0; e.runScore = runScore;
         e.startShip = ship; e.startHearts = hearts; e.startSkin = skin;
         e.hasEnd = end >= 0; e.endHearts = Mathf.Max(end, 0);
         e.hasPauses = pauses >= 0; e.pauses = Mathf.Max(pauses, 0);
@@ -154,7 +157,7 @@ public sealed class FakeLeaderboards : ILeaderboardPlatform
     }
 
     public static LeaderboardEntry Entry(int rank, string name, long value, bool local = false, int ship = 0, int hearts = 0, int endHearts = -1, int pauses = -1, int skin = 0,
-                                       long dustHundredths = -1, int worlds = -1, int powerUps = 0)
+                                       long dustHundredths = -1, int worlds = -1, int powerUps = 0, long runScore = -1)
     {
         return new LeaderboardEntry
         {
@@ -162,6 +165,7 @@ public sealed class FakeLeaderboards : ILeaderboardPlatform
             hasEnd = endHearts >= 0, endHearts = Mathf.Max(endHearts, 0),
             hasPauses = pauses >= 0, pauses = Mathf.Max(pauses, 0),
             hasRunStats = dustHundredths >= 0 && worlds >= 0, starDustHundredths = dustHundredths, worlds = worlds, powerUps = powerUps,
+            hasScore = runScore >= 0, runScore = runScore,
             rank = rank, playerId = local ? "local" : "p" + rank, playerName = name,
             value = value, isLocalPlayer = local,
         };
