@@ -196,15 +196,15 @@ public static class PowerUpsLeaderboardTest
         service.SubmitRun(Run(450, 0));
         Check("a later normal run never touches the Power-Ups board", !Pending(service, LeaderboardBoards.BoostedRuns) && Pending(service, LeaderboardBoards.TopScore));
 
-        // The normal boards' tag is unchanged: no d / w / u fields.
+        // The normal boards' tag carries the run columns (d, w, r) and never a u.
         Context();
         service = Service(fake = new FakeLeaderboards());
         service.SubmitRun(Run(500, 0));
         now = 60f;
         service.Tick();
         bool plain = fake.Submissions.Count == 2;
-        foreach (var s in fake.Submissions) plain &= s.tag == "s7h4e2p3";
-        Check("normal boards: tag unchanged (s7h4e2p3)", plain);
+        foreach (var s in fake.Submissions) plain &= s.tag == "s7h4e2p3d500w3r500";
+        Check("normal boards: tag is s7h4e2p3 + d500 w3 r500, no power-ups field", plain);
     }
 
     // ---- 2 the latch ----
@@ -540,7 +540,7 @@ public static class PowerUpsLeaderboardTest
         Check("old tags still parse, with no columns", oldOk);
         Check("old tags: the 3/4/5-argument parses still work on the new tag",
               LeaderboardRunTag.TryParse(tag, out ship, out hearts) && ship == 7 && LeaderboardRunTag.TryParse(tag, out ship, out hearts, out end, out pauses, out skin) && skin == 2);
-        Check("tag: a normal run writes none of the new fields", LeaderboardRunTag.Encode(7, 4, 2, 3, 2) == "s7h4e2p3k2");
+        Check("tag: no columns given writes none of the column fields", LeaderboardRunTag.Encode(7, 4, 2, 3, 2) == "s7h4e2p3k2");
         Check("tag: a power-ups value of 0 writes no u part", !LeaderboardRunTag.Encode(7, 4, 2, 3, 0, 5, 1, 0).Contains("u"));
         Check("tag: bad power-ups bits read as none", LeaderboardRunTag.TryParse("s7h4d5w1u9", out ship, out hearts, out end, out pauses, out skin, out dust, out worlds, out powerUps) && powerUps == 0 && dust == 5);
         Check("tag: Paragon is never encoded with columns either", LeaderboardRunTag.Encode(PremiumShips.Paragon, 14, 1, 1, 0, 5, 1, 3) == "");
@@ -572,7 +572,7 @@ public static class PowerUpsLeaderboardTest
             FakeLeaderboards.Entry(5, "KANEDA", 5000, true));
         var service = Service(fake);
         var panel = LeaderboardPanel.Open(service, null, Phone, PhoneSafe);
-        Check("panel: the Power-Ups tab is last", panel.TabBoards.Count == 3 && panel.TabBoards[2] == LeaderboardBoards.BoostedRuns);
+        Check("panel: two tabs, MAIN then Power-Ups", panel.TabBoards.Count == 2 && panel.TabBoards[0] == LeaderboardPanel.MainTab && panel.TabBoards[1] == LeaderboardBoards.BoostedRuns);
         panel.SelectBoard(LeaderboardBoards.BoostedRuns);
         Check("panel: populated", panel.CurrentState == LeaderboardPanel.State.Populated && panel.RowCount == 5);
         var rows = panel.PanelRoot.Find("List/Rows");

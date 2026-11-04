@@ -404,10 +404,10 @@ public static class LeaderboardTest
         now = 60f;
         service.Tick();
         bool tagged = fake.Submissions.Count > 0;
-        foreach (var sub in fake.Submissions) tagged &= sub.tag == "s7h4e2";
-        Check("start ship run: every board's submission carries s7h4e2", tagged);
+        foreach (var sub in fake.Submissions) tagged &= sub.tag == "s7h4e2d0w1r500";
+        Check("start ship run: every board's submission carries s7h4e2 + the run columns (d0 w1 r500)", tagged);
         Check("submitted record keeps the tag (companion for stores without tags)",
-              LeadboardTag(LeaderboardService.SubmittedKey, LeaderboardBoards.TopScore) == "s7h4e2");
+              LeadboardTag(LeaderboardService.SubmittedKey, LeaderboardBoards.TopScore) == "s7h4e2d0w1r500");
 
         // An old queue (written before tags existed) still loads and sends, tagless.
         RealRunContext();
@@ -495,16 +495,15 @@ public static class LeaderboardTest
         var panel = OpenPanel(fake);
         var rows = panel.PanelRoot.Find("List/Rows");
         Check("row with ship and hearts: both shown",
-              rows.Find("Row0/Ship") != null && rows.Find("Row0/Hearts/Heart") != null &&
-              rows.Find("Row0/Hearts/Count").GetComponent<Text>().text == "4");
+              rows.Find("Row0/Ship") != null && rows.Find("Row0/Hearts") == null);   // the main tab dropped the hearts / pauses badges
         Check("old entry (no tag): blank, no ship and no hearts", rows.Find("Row1/Ship") == null && rows.Find("Row1/Hearts") == null);
         Check("a Paragon entry never shows the cheat ship", rows.Find("Row2/Ship") == null);
         Check("own entry: filled from the device's record of the submitted score",
-              rows.Find("Row3/Ship") != null && rows.Find("Row3/Hearts/Count").GetComponent<Text>().text == "2");
+              rows.Find("Row3/Ship") != null);
         Check("an entry without end hearts shows only the start hearts", FakeLeaderboards.Entry(5, "OLD", 1, false, 3, 2).hasEnd == false);
         Check("row ships get a sprite to animate", rows.Find("Row0/Ship").GetComponent<Image>().sprite != null);
         var ownRow = panel.PanelRoot.Find("PlayerRow/Row");
-        Check("own rank row also shows ship and hearts", ownRow != null && ownRow.Find("Ship") != null && ownRow.Find("Hearts") != null);
+        Check("own rank row also shows the ship", ownRow != null && ownRow.Find("Ship") != null && ownRow.Find("Hearts") == null);
 
         // A score the store has that this device didn't make (different value) is not given this device's ship.
         fake.SetBoard(TopScoreId, FakeLeaderboards.Entry(1, "KANEDA", 750, true));
@@ -517,7 +516,7 @@ public static class LeaderboardTest
         fake.SetBoard(TopScoreId, unflagged, FakeLeaderboards.Entry(2, "KAI", 700));
         panel = OpenPanel(fake);
         Check("own top entry not flagged local: still gets the tag by rank",
-              panel.PanelRoot.Find("List/Rows/Row0/Ship") != null && panel.PanelRoot.Find("List/Rows/Row0/Hearts/Count").GetComponent<Text>().text == "2");
+              panel.PanelRoot.Find("List/Rows/Row0/Ship") != null);
         Check("another player's entry with the same value: left blank", panel.PanelRoot.Find("List/Rows/Row1/Ship") == null);
 
         // Own rank is 2 with a different value: the other player's equal-valued row 1 stays blank.
@@ -551,9 +550,9 @@ public static class LeaderboardTest
         service.Tick();
         bool sent = false; string tag = null;
         foreach (var sub in fake.Submissions) if (sub.board == worldId) { sent = true; tag = sub.tag; }
-        Check("worlds: submitted with value 3 and the s7h4e1 tag", sent && tag == "s7h4e1" && fake.Submissions.Exists(x => x.board == worldId && x.score == 3));
+        Check("worlds: submitted with value 3 and the s7h4e1 tag + run columns", sent && tag == "s7h4e1d0w3r500" && fake.Submissions.Exists(x => x.board == worldId && x.score == 3));
         Check("worlds: record keeps the tag",
-              LeadboardTag(LeaderboardService.SubmittedKey, LeaderboardBoards.FurthestWorld) == "s7h4e1");
+              LeadboardTag(LeaderboardService.SubmittedKey, LeaderboardBoards.FurthestWorld) == "s7h4e1d0w3r500");
 
         // Paragon: never encoded or sent on this board either.
         RealRunContext();
@@ -596,13 +595,12 @@ public static class LeaderboardTest
         var panel = OpenPanel(fake);
         panel.SelectBoard(LeaderboardBoards.FurthestWorld);
         var rows = panel.PanelRoot.Find("List/Rows");
-        Check("worlds tab: ship and hearts shown",
-              rows.Find("Row0/Ship") != null && rows.Find("Row0/Hearts/Count").GetComponent<Text>().text == "4");
-        Check("worlds tab: value formatted as a loop", rows.Find("Row0/Value").GetComponent<Text>().text == "LOOP 1\nWORLDS 5");
-        Check("worlds tab: untagged entry blank", rows.Find("Row1/Ship") == null && rows.Find("Row1/Hearts") == null);
+        Check("worlds sort: ship shown, no hearts badge", rows.Find("Row0/Ship") != null && rows.Find("Row0/Hearts") == null);
+        Check("worlds sort: the worlds value is a plain number", rows.Find("Row0/Cell_" + LeaderboardBoards.FurthestWorld).GetComponent<Text>().text == "5");
+        Check("worlds sort: untagged entry has no ship", rows.Find("Row1/Ship") == null);
         Check("worlds tab: Paragon entry hidden", rows.Find("Row2/Ship") == null);
         Check("worlds tab: own entry filled from the device record",
-              rows.Find("Row3/Ship") != null && rows.Find("Row3/Hearts/Count").GetComponent<Text>().text == "2");
+              rows.Find("Row3/Ship") != null);
     }
 
     // ---- worlds cleared + pauses left ----
@@ -638,7 +636,7 @@ public static class LeaderboardTest
               && LeaderboardRunTag.TryParse("s7h4k99999999", out ship, out hearts, out end, out pauses, out skin) && skin == 0);
         Check("tag: skin tag still short and URL-safe", LeaderboardRunTag.Encode(15, ShipLives.MostHearts, ShipLives.MostHearts, LeaderboardRunTag.MostPauses, 9).Length < 30);
         Check("tag: Paragon never carries a skin", LeaderboardRunTag.Encode(PremiumShips.Paragon, 10, 3, 4, 1) == "");
-        Check("tag: the run stats carry the skin", new LeaderboardRunStats { startShip = 7, startHearts = 4, startSkin = 1 }.Tag == "s7h4k1");
+        Check("tag: the run stats carry the skin", new LeaderboardRunStats { startShip = 7, startHearts = 4, startSkin = 1 }.Tag == "s7h4k1d0w0r0");
 
         // The row draws the ship in the recorded skin (stock when none / the ship has no such skin).
         RealRunContext();
@@ -681,12 +679,12 @@ public static class LeaderboardTest
         var service = Service(fake);
         var run = new LeaderboardRunStats { score = 500, worldsCleared = 3, startShip = 7, startHearts = 4, hasEnd = true, endHearts = 2, hasPauses = true, endPauses = 3 };
         Check("pauses run: accepted", service.SubmitRun(run) > 0);
-        Check("pauses run: the run's own tag", run.Tag == "s7h4e2p3");
+        Check("pauses run: the run's own tag", run.Tag == "s7h4e2p3d0w3r500");
         now = 60f;
         service.Tick();
         bool tagged = fake.Submissions.Count > 0;
-        foreach (var sub in fake.Submissions) tagged &= sub.tag == "s7h4e2p3";
-        Check("pauses run: every board's submission carries s7h4e2p3", tagged);
+        foreach (var sub in fake.Submissions) tagged &= sub.tag == "s7h4e2p3d0w3r500";
+        Check("pauses run: every board's submission carries s7h4e2p3 + the run columns", tagged);
 
         // Paragon: unranked, never submitted.
         RealRunContext();
@@ -747,17 +745,14 @@ public static class LeaderboardTest
         var panel = OpenPanel(fake);
         panel.SelectBoard(LeaderboardBoards.FurthestWorld);
         var rows = panel.PanelRoot.Find("List/Rows");
-        Check("worlds tab: pauses shown", rows.Find("Row0/Pauses/Count").GetComponent<Text>().text == "3");
-        Check("worlds tab: old tag (no pauses) shows no pauses badge", rows.Find("Row1/Pauses") == null && rows.Find("Row1/Hearts") != null);
-        Check("worlds tab: zero pauses shows 0", rows.Find("Row2/Pauses/Count").GetComponent<Text>().text == "0");
-        string v0 = rows.Find("Row0/Value").GetComponent<Text>().text;
-        Check("worlds tab: value is LOOP 2 over WORLDS 14, no dot glyph", v0 == "LOOP 2\nWORLDS 14" && !v0.Contains(">") && !v0.Contains("\u00B7"));
-        Check("worlds tab: 'WORLD 1' singular", panel.PanelRoot.Find("PlayerRow/Row/Value").GetComponent<Text>().text == "LOOP 1\nWORLD 1");
-        Check("worlds tab: no stray zero field in an old-tag row",
-              !rows.Find("Row1/Value").GetComponent<Text>().text.Contains("0 ") && rows.Find("Row1/Pauses") == null);
+        Check("worlds sort: no pauses or hearts badges (dropped on the main tab)",
+              rows.Find("Row0/Pauses") == null && rows.Find("Row1/Pauses") == null && rows.Find("Row0/Hearts") == null);
+        string v0 = rows.Find("Row0/Cell_" + LeaderboardBoards.FurthestWorld).GetComponent<Text>().text;
+        Check("worlds sort: 14 worlds is the plain number, no LOOP text or dot glyph", v0 == "14" && rows.Find("Row0/Value") == null);
+        Check("worlds sort: 'WORLD 1' is just 1", panel.PanelRoot.Find("PlayerRow/Row/Cell_" + LeaderboardBoards.FurthestWorld).GetComponent<Text>().text == "1");
         panel.SelectBoard(LeaderboardBoards.TopScore);
         rows = panel.PanelRoot.Find("List/Rows");
-        Check("top score tab: pauses shown too", rows.Find("Row0/Pauses/Count").GetComponent<Text>().text == "12" && rows.Find("Row0/Value").GetComponent<Text>().text == "5,000");
+        Check("score sort: the score is formatted", rows.Find("Row0/Cell_" + LeaderboardBoards.TopScore).GetComponent<Text>().text == "5,000");
 
         // The own row takes the pauses from the device record when the store row has none.
         RealRunContext();
@@ -769,14 +764,14 @@ public static class LeaderboardTest
         panel = OpenPanel(fake);
         panel.SelectBoard(LeaderboardBoards.FurthestWorld);
         rows = panel.PanelRoot.Find("List/Rows");
-        Check("own row: pauses filled from the device record", rows.Find("Row0/Pauses/Count") != null && rows.Find("Row0/Pauses/Count").GetComponent<Text>().text == "4");
+        Check("own row: filled from the device record (ship), still no pauses badge", rows.Find("Row0/Ship") != null && rows.Find("Row0/Pauses") == null);
         Check("own row: a record for another value is not used",
               FillCheck());
 
         // FIT by hand (panel units; 1 dp = 0.48 unit-scale at the smallest panel): see docs/leaderboards.md.
         float narrow = 626.7f - 80f;   // 320 dp wide phone: and-480x854
-        float name = narrow - LeaderboardPanel.NameLeft - 14f - 170f - 6f - 2f * 66f;
-        Check("FIT: the name column at the narrowest panel is >= 90 units", name >= 90f);
+        float name = narrow - LeaderboardPanel.NameLeft - 14f - 6f - 3f * LeaderboardPanel.ColWidth;
+        Check("FIT: the name column at the narrowest panel (three number columns) is >= 90 units", name >= 90f);
         Check("FIT: badge/value type is >= 16 units = 7.7 dp at 0.48 dp-scale", 16f * 0.48f >= 7f && 14.6f * 0.48f > 7f);
     }
 
@@ -862,12 +857,12 @@ public static class LeaderboardTest
             Invoke(tracker, "End");
             Check("death: Stats reports the pauses left (7)", tracker.Stats().hasPauses && tracker.Stats().endPauses == 7);
             string tag = LeadboardTag(LeaderboardService.PendingKey, LeaderboardBoards.TopScore);
-            Check("death: queued tag has p7 and e0", tag.EndsWith("e0p7"));
+            Check("death: queued tag has p7 and e0", tag.Contains("e0p7"));
             // The next scene resets the static; nothing may re-sample it.
             score.pauseCounter = 0;
             Invoke(tracker, "OnApplicationPause", true);
             Invoke(tracker, "OnDestroy");
-            Check("death: teardown after End keeps the p7 tag", LeadboardTag(LeaderboardService.PendingKey, LeaderboardBoards.TopScore).EndsWith("e0p7")
+            Check("death: teardown after End keeps the p7 tag", LeadboardTag(LeaderboardService.PendingKey, LeaderboardBoards.TopScore).Contains("e0p7")
                   && tracker.Stats().endPauses == 7);
             // Pause counter over the cap is capped, a negative one reads 0.
             score.pauseCounter = 150;
@@ -1271,8 +1266,9 @@ public static class LeaderboardTest
         Check("populated: state", panel.CurrentState == LeaderboardPanel.State.Populated);
         Check("populated: top 10 rows", panel.RowCount == 10);
         Check("populated: own rank row shown", panel.PlayerRowShown && panel.PlayerRankText == "#14");
-        Check("populated: one tab per enabled board", panel.Tabs.Count == LeaderboardBoards.Enabled().Count);
-        Check("populated: first tab selected", panel.SelectedBoard == LeaderboardBoards.TopScore);
+        Check("populated: the main tab (the table has no Power-Ups board here), one header per enabled normal board",
+              panel.Tabs.Count == 1 && panel.TabBoards[0] == LeaderboardPanel.MainTab && panel.Headers.Count == LeaderboardBoards.Enabled().Count);
+        Check("populated: first tab selected, sorted on score", panel.SelectedBoard == LeaderboardBoards.TopScore && panel.SortedBoard == LeaderboardBoards.TopScore);
         Check("populated: View all shown", panel.ViewAllButton.gameObject.activeSelf);
         var row0 = panel.PanelRoot.Find("List/Rows/Row0");
         var shape0 = row0 != null ? row0.GetComponent<CelShape>() : null;
