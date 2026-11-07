@@ -113,7 +113,7 @@
      "endHearts": 0,
      "pauses": 2,
      "skin": 0,
-     "powerUps": 3
+     "powerUps": 7
     },
     "byDust": {
      "score": 800,
@@ -1083,7 +1083,7 @@
    "sinceLastSeconds": 100
   },
   {
-   "name": "create denied: power-up bits above 3",
+   "name": "create denied: power-up bits above 7",
    "table": "power",
    "op": "create",
    "expect": "deny",
@@ -1100,7 +1100,7 @@
      "endHearts": 0,
      "pauses": 2,
      "skin": 0,
-     "powerUps": 4
+     "powerUps": 8
     },
     "byDust": {
      "score": 800,

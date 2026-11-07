@@ -96,7 +96,7 @@ main/{uid}  and  power/{uid}
   byWorlds    { same shape }                                                              best-WORLDS run
 ```
 
-* Units match `LeaderboardRunTag`: `dust` in hundredths, `worlds` = total cleared across loops, `score` = `RunScore.Total`, `powerUps` bits 1..3 (`power`) or 0 (`main`). Unknown = `ship 0`, `hearts 0`, `endHearts -1`, `pauses -1`, `skin 0`, as the tag does.
+* Units match `LeaderboardRunTag`: `dust` in hundredths, `worlds` = total cleared across loops, `score` = `RunScore.Total`, `powerUps` bits (`power`: 1..7, dust 1 + clear 2 + homing 4; `main`: 0). Unknown = `ship 0`, `hearts 0`, `endHearts -1`, `pauses -1`, `skin 0`, as the tag does.
 * The first upload fills all three slots with the same run. After that each slot improves on its own, so a row shown under a sort is **that column's best run, whole** (ship, hearts, and the other two numbers).
 * Sort = `orderBy` on one nested number: `byScore.score`, `byDust.dust`, `byWorlds.worlds`, descending, `limit 10`. The Dust and Worlds queries add `where <field> >= 1` on the same field (the native boards never show zero), which still uses the automatic single-field index.
 * **Indexes: none to deploy.** Single-field indexes are automatic for map subfields. No composite index. `firestore.indexes.json` is committed empty.
@@ -117,7 +117,7 @@ service cloud.firestore {
     function signedIn() { return request.auth != null; }
     function ofInt(v, lo, hi) { return v is int && v >= lo && v <= hi; }
 
-    // One run. `power` = Power-Ups table (powerUps 1..3); the main table needs powerUps 0.
+    // One run. `power` = Power-Ups table (powerUps 1..7); the main table needs powerUps 0.
     // Ship 16 (Paragon, premium) is never allowed. Ships up to 40 leave room for new ships
     // without a rules deploy.
     function validRun(r, power) {
@@ -132,7 +132,7 @@ service cloud.firestore {
         && ofInt(r.endHearts, -1, 20)
         && ofInt(r.pauses,    -1, 99)
         && ofInt(r.skin,       0, 99)
-        && (power ? ofInt(r.powerUps, 1, 3) : r.powerUps == 0);
+        && (power ? ofInt(r.powerUps, 1, 7) : r.powerUps == 0);
     }
 
     // The three slots are bests over the same set of runs, so each slot's own metric

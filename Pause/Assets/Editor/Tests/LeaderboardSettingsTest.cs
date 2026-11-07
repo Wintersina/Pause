@@ -361,8 +361,12 @@ public static class LeaderboardSettingsTest
         Check("sizes: all type is 16 units or more", type);
         Check("sizes: the phone shows the whole modal without scrolling", !modal.Scrolls);
         LeaderboardSettingsPanel.Close();
-        modal = LeaderboardSettingsPanel.Open(null, new Vector2(400f, 300f), new Rect(0f, 0f, 400f, 300f));
-        Check("sizes: a short screen scrolls the middle", modal.Scrolls);
-        LeaderboardSettingsPanel.Close();
+        // A small 480 x 640 phone at UiScale's floor gets fewer units, and the middle scrolls.
+        using (ScreenInfo.Override(480, 640, new Rect(0f, 0f, 480f, 640f)))
+        {
+            modal = LeaderboardSettingsPanel.Open(null, new Vector2(480f, 640f), new Rect(0f, 0f, 480f, 640f));
+            Check("sizes: a short screen scrolls the middle (panel " + modal.AppliedLayout.panelSize + ")", modal.Scrolls);
+            LeaderboardSettingsPanel.Close();
+        }
     }
 }
