@@ -176,7 +176,7 @@ public static class AdsTest
         Check("double dust: nothing earned, nothing to double", !AdPolicy.DoubleDustOffered(false, false, 0f));
     }
 
-    static readonly string[] BoosterKeys = { Boosters.DustBoughtKey, Boosters.DustUsedMsKey, Boosters.ClearBoughtKey, Boosters.ClearUsedKey };
+    static readonly string[] BoosterKeys = { Boosters.DustBoughtKey, Boosters.DustUsedMsKey, Boosters.ClearBoughtKey, Boosters.ClearUsedKey, Boosters.HomingBoughtKey, Boosters.HomingUsedMsKey };
 
     // The wiring itself (not only the hook): the shipped default reads the real Boosters state, so a booster being active
     // really blocks forced ads. The field initializer runs in every build and in the editor, so no init order is involved.

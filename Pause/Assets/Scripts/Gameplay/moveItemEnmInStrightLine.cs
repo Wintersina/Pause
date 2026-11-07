@@ -12,6 +12,10 @@ using System.Collections;
 // turns atoms, which used to fly them in circles back off the top of the
 // screen (see AtomWander).
 //
+// While the HOMING ATOMS booster runs (Boosters.HomingRunning) an atom on
+// screen locks onto the ship once and flies at it instead (AtomHoming); once it
+// has missed (a dodge, a teleport, a timeout) it wanders on as before.
+//
 // As a SpawnSpace pattern it is the plain scroller: its sweep is its body.
 // (Atoms are pickups, which SpawnSpace keeps apart only softly at spawn; it
 // never binds a pattern to them.)
@@ -19,6 +23,7 @@ using System.Collections;
 public class moveItemEnmInStrightLine : MonoBehaviour, IMovementFootprint, IPoolReset {
 
     AtomWander wander;
+    AtomHoming homing;
     bool atomChecked;
 
     // The enemy's behaviour, when it has one: its envelope widens the sweep.
@@ -31,6 +36,11 @@ public class moveItemEnmInStrightLine : MonoBehaviour, IMovementFootprint, IPool
 
     // The atom's wander, once it has moved (null for everything else).
     public AtomWander Wander { get { return wander; } }
+    // The atom's homing lock, once it has taken one (null before, and for anything that is not an atom).
+    public AtomHoming Homing { get { return homing; } }
+
+    // Tests: where the atoms home to (the live ship when unset).
+    public static Transform HomingTargetOverride;
 
     void Awake() { ClearTarget.Ensure(gameObject); } // ultimate's early-clear registry
 
@@ -38,6 +48,7 @@ public class moveItemEnmInStrightLine : MonoBehaviour, IMovementFootprint, IPool
     public void OnPoolAcquire()
     {
         wander = null;
+        homing = null;
         atomChecked = false;
         station = false;
         brain = null;
@@ -70,10 +81,26 @@ public class moveItemEnmInStrightLine : MonoBehaviour, IMovementFootprint, IPool
             return true;
         }
 
-        transform.position = wander.Advance(transform.position, dt, worldSpeed, viewTop);
+        if (!StepHoming(dt, worldSpeed, viewTop))
+            transform.position = wander.Advance(transform.position, dt, worldSpeed, viewTop);
         if (!AtomWander.Gone(transform.position.y, viewBottom)) return true;
         Pooled.Remove(gameObject);
         return false;
+    }
+
+    // An atom's homing step: true when AtomHoming moved it this frame (locked and not yet missed).
+    bool StepHoming(float dt, float worldSpeed, float viewTop)
+    {
+        if (homing != null && homing.Missed) return false;   // one lock per atom
+        var ship = HomingTargetOverride != null ? HomingTargetOverride : EliteSystem.Player;
+        if (ship == null || !Boosters.HomingRunning) return false;
+        if (homing == null)
+        {
+            if (!AtomHoming.CanLock(transform.position.y, viewTop)) return false;
+            homing = new AtomHoming();
+        }
+        transform.position = homing.Advance(transform.position, dt, worldSpeed, ship.position);
+        return !homing.Missed;
     }
 
     // One frame at the current board speed (headless simulations).

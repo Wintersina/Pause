@@ -36,7 +36,7 @@ public static class ShopScreenTest
         Boosters.Reload();
     }
 
-    static readonly string[] BoosterKeys = { Boosters.DustBoughtKey, Boosters.DustUsedMsKey, Boosters.ClearBoughtKey, Boosters.ClearUsedKey };
+    static readonly string[] BoosterKeys = { Boosters.DustBoughtKey, Boosters.DustUsedMsKey, Boosters.ClearBoughtKey, Boosters.ClearUsedKey, Boosters.HomingBoughtKey, Boosters.HomingUsedMsKey };
 
     static void OwnShips(int n)
     {
@@ -79,10 +79,11 @@ public static class ShopScreenTest
         var sections = ShopCatalog.Sections();
         Check("four sections: ads, ship, star dust, boosters (one list the panel lays out from)",
               sections.Count == 4 && sections[0].label == "ADS" && sections[1].label == "SHIP" && sections[2].label == "STAR DUST" &&
-              sections[3].label == "BOOSTERS" && sections[3].rows.Count == 2);
+              sections[3].label == "BOOSTERS" && sections[3].rows.Count == 3);
         var rows = ShopCatalog.Rows();
-        Check("rows: Remove Ads, Paragon, 850 / 2,500 / 6,000, then Dust x2 and Hazard Clear", rows.Count == 7 &&
-              rows[5].kind == ShopRowKind.DustBooster && rows[6].kind == ShopRowKind.HazardClear &&
+        Check("rows: Remove Ads, Paragon, 850 / 2,500 / 6,000, then Dust x2, Hazard Clear and Homing Atoms", rows.Count == 8 &&
+              rows[5].kind == ShopRowKind.DustBooster && rows[6].kind == ShopRowKind.HazardClear && rows[7].kind == ShopRowKind.HomingAtoms &&
+              rows[7].IsBooster &&
               rows[0].kind == ShopRowKind.RemoveAds && rows[1].kind == ShopRowKind.Paragon &&
               rows[2].pack.dust == 850 && rows[3].pack.dust == 2500 && rows[4].pack.dust == 6000);
         Check("Remove Ads row says what it does", rows[0].subtitle == "Support the devs by removing the ads");
@@ -213,6 +214,23 @@ public static class ShopScreenTest
               !full.Tappable && full.title.Contains("x9"));
         Check("a refused tap spent nothing", Mathf.Approximately(StarDustLedger.Saved, 5000f - 9f * 200f));
 
+        // homing atoms: 1,000 a purchase, 10 minutes each, the same one-hour cap
+        PlayerPrefs.SetFloat(StarDustLedger.CurrencyKey, 999f);
+        var homingRow = ShopCatalog.BoosterRow(Boosters.Kind.HomingAtoms);
+        Check("homing atoms: 999 dust is short of the 1,000 price",
+              homingRow.state == ShopRowState.Short && homingRow.button == "1,000 DUST" && !ShopCatalog.Tap(homingRow) &&
+              homingRow.title == Boosters.Name(Boosters.Kind.HomingAtoms));
+        PlayerPrefs.SetFloat(StarDustLedger.CurrencyKey, 1500f);
+        Check("homing atoms: a tap pays 1,000 and starts 10 minutes",
+              ShopCatalog.Tap(ShopCatalog.BoosterRow(Boosters.Kind.HomingAtoms)) && Mathf.Approximately(StarDustLedger.Saved, 500f) &&
+              Boosters.HomingActive && Mathf.Approximately(Boosters.HomingRemainingSeconds, Boosters.HomingSeconds) &&
+              ShopCatalog.BoosterRow(Boosters.Kind.HomingAtoms).title.Contains("10:00 left"));
+        PlayerPrefs.SetFloat(StarDustLedger.CurrencyKey, 100000f);
+        int homingBought = 1;
+        while (ShopCatalog.Tap(ShopCatalog.BoosterRow(Boosters.Kind.HomingAtoms)) && homingBought < 20) homingBought++;
+        Check("homing atoms stop at the one-hour stored cap (6 purchases) and then read MAX",
+              homingBought == 6 && ShopCatalog.BoosterRow(Boosters.Kind.HomingAtoms).button == "MAX");
+
         // dust x2 stops at the stored-time cap
         PlayerPrefs.SetFloat(StarDustLedger.CurrencyKey, 100000f);
         int dustBought = 0;
@@ -234,12 +252,13 @@ public static class ShopScreenTest
         PlayerPrefs.SetFloat(StarDustLedger.CurrencyKey, 1234f);
         var panel = ShopPanel.Open();
         Check("the panel opens and owns Back", panel != null && ShopPanel.IsOpen && BackNavigator.Top == (object)panel);
-        Check("it has the seven rows and scrolls vertically only",
-              panel.RowCount == 7 && panel.Scroll.vertical && !panel.Scroll.horizontal);
+        Check("it has the eight rows and scrolls vertically only",
+              panel.RowCount == 8 && panel.Scroll.vertical && !panel.Scroll.horizontal);
         Check("the star dust balance is shown", panel.DustText.text == "1,234");
         Check("booster rows read their dust price and are live with 1,234 dust",
               panel.RowButtonText(5).text == "600 DUST" && panel.RowButton(5).interactable &&
-              panel.RowButtonText(6).text == "200 DUST" && panel.RowButton(6).interactable);
+              panel.RowButtonText(6).text == "200 DUST" && panel.RowButton(6).interactable &&
+              panel.RowButtonText(7).text == "1,000 DUST" && panel.RowButton(7).interactable);
         Check("Remove Ads price on its button", panel.RowButtonText(0).text == "$3.99" && panel.RowButton(0).interactable);
         Check("Paragon carries the leaderboard warning before payment", panel.RowNotice(1).gameObject.activeSelf &&
               panel.RowNotice(1).text == PremiumShips.LeaderboardNotice);

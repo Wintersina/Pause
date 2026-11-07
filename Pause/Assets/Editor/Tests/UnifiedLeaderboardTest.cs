@@ -105,7 +105,7 @@ public static class UnifiedLeaderboardTest
                      && ship == 7 && hearts == 4 && score == -1 && !LeaderboardRunTag.HasRunScore(o);
         Check("tag: old tags still parse, with no run score", oldOk);
         Check("tag: the Power-Ups tag is unchanged and carries no r",
-              LeaderboardRunTag.Encode(7, 4, 2, 3, 2, 123456, 12, LeaderboardRunTag.PowerAll) == "s7h4e2p3k2d123456w12u3");
+              LeaderboardRunTag.Encode(7, 4, 2, 3, 2, 123456, 12, (LeaderboardRunTag.PowerDust | LeaderboardRunTag.PowerClear)) == "s7h4e2p3k2d123456w12u3");
         // An older build's parser (the 9-argument one, and any reader that skips unknown letters) still reads the new tag.
         Check("tag: the older parse overloads still read a tag with r",
               LeaderboardRunTag.TryParse(tag, out ship, out hearts, out end, out pauses, out skin, out dust, out worlds, out powerUps)

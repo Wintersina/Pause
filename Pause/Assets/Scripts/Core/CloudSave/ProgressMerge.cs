@@ -109,6 +109,8 @@ public static class ProgressMerge
             boostDustUsedMs = Math.Max(local.boostDustUsedMs, cloud.boostDustUsedMs),
             boostClearBought = Math.Max(local.boostClearBought, cloud.boostClearBought),
             boostClearUsed = Math.Max(local.boostClearUsed, cloud.boostClearUsed),
+            boostHomingBought = Math.Max(local.boostHomingBought, cloud.boostHomingBought),
+            boostHomingUsedMs = Math.Max(local.boostHomingUsedMs, cloud.boostHomingUsedMs),
         };
         return result;
     }
@@ -136,7 +138,8 @@ public static class ProgressMerge
     public static float UnpaidBoosters(ProgressSnapshot newer, ProgressSnapshot other)
     {
         return Math.Max(0, other.boostDustBought - newer.boostDustBought) * Boosters.DustBoosterPrice +
-               Math.Max(0, other.boostClearBought - newer.boostClearBought) * Boosters.HazardClearPrice;
+               Math.Max(0, other.boostClearBought - newer.boostClearBought) * Boosters.HazardClearPrice +
+               Math.Max(0, other.boostHomingBought - newer.boostHomingBought) * Boosters.HomingPrice;
     }
 
     static float ShipDustPrice(int id)

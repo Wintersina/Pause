@@ -70,7 +70,8 @@ public sealed class NewRecordTracker
     static LeaderboardRunStats DefaultLive()
     {
         return new LeaderboardRunStats { score = RunScore.Total, starDust = Boosters.RankedDust(StarDustLedger.Earned), worldsCleared = RunScore.Parts.worldCount,
-            powerUps = (Boosters.RunDustUsed ? LeaderboardRunTag.PowerDust : 0) | (HazardClear.UsedThisRun > 0 ? LeaderboardRunTag.PowerClear : 0) };
+            powerUps = (Boosters.RunDustUsed ? LeaderboardRunTag.PowerDust : 0) | (HazardClear.UsedThisRun > 0 ? LeaderboardRunTag.PowerClear : 0) |
+                       (Boosters.RunHomingUsed ? LeaderboardRunTag.PowerHoming : 0) };
     }
 
     public static bool StoredBest(LeaderboardBoard board, out long best)

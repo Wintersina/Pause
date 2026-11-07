@@ -193,6 +193,7 @@ public class movePlayer : MonoBehaviour
                     returnElapsed = 0f;
                     returning = true;
                     MarkTeleport();
+                    AtomHoming.OnTeleport();   // homing atoms locked on the old spot miss
                     TeleportFx.Play(before, land);
                     // scored by the jump to the perch, as before the slide-back
                     RunScore.OnTeleport(before, rest);

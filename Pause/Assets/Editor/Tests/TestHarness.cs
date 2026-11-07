@@ -523,6 +523,8 @@ public static class TestHarness
         keys.Add(Boosters.DustUsedMsKey);
         keys.Add(Boosters.ClearBoughtKey);
         keys.Add(Boosters.ClearUsedKey);
+        keys.Add(Boosters.HomingBoughtKey);
+        keys.Add(Boosters.HomingUsedMsKey);
 
         // DeveloperUnlocks keeps its own backup copies of the progress keys.
         var backed = new List<string>
