@@ -304,6 +304,12 @@ public class ShopPanel : MonoBehaviour
                 CutCornerShape.Apply(v.icon);
                 v.iconText.text = "CLEAR";
                 break;
+            case ShopRowKind.HomingAtoms:
+                v.icon.sprite = null;
+                v.icon.color = AkiraPalette.VioletShadow;
+                CutCornerShape.Apply(v.icon);
+                v.iconText.text = "ATOMS";
+                break;
             default:
                 v.icon.sprite = DockArt.Get("icon_dust");
                 v.icon.color = Color.white;

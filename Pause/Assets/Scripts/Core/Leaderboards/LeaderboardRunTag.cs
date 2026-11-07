@@ -41,7 +41,7 @@ public static class LeaderboardRunTag
     // Run score in the r field (10 digits); a bigger one is clamped.
     public const long MostScore = 9999999999L;
     // The bits of the u field: which boosters the run used.
-    public const int PowerDust = 1, PowerClear = 2, PowerAll = PowerDust | PowerClear;
+    public const int PowerDust = 1, PowerClear = 2, PowerHoming = 4, PowerAll = PowerDust | PowerClear | PowerHoming;
 
     // endHearts < 0 = not known: no e part. pauses < 0 = not known: no p part.
     // skin <= 0 (the default skin) writes no k part.
@@ -167,19 +167,25 @@ public static class LeaderboardRunTag
         return TryParse(tag, out ship, out hearts, out end, out pauses, out skin, out dust, out worlds, out powerUps, out runScore) && runScore >= 0;
     }
 
-    // The row's short form: "DUST x2", "CLEAR" or "BOTH" (fits under the score at 16 units).
+    // The row's short form: one booster's name, "BOTH" for two, "ALL 3" for three (fits under the score at 16 units).
     public static string PowerUpShort(int powerUps)
     {
         powerUps &= PowerAll;
-        return powerUps == PowerAll ? "BOTH" : PowerUpLabel(powerUps);
+        int n = (powerUps & PowerDust) != 0 ? 1 : 0;
+        if ((powerUps & PowerClear) != 0) n++;
+        if ((powerUps & PowerHoming) != 0) n++;
+        return n == 3 ? "ALL 3" : n == 2 ? "BOTH" : PowerUpLabel(powerUps);
     }
 
-    // "DUST x2", "CLEAR" or "DUST x2 + CLEAR"; empty for none. The row shows the short form.
+    // "DUST x2", "CLEAR", "HOMING", or the used ones joined by " + " ("DUST x2 + CLEAR"); empty for none. The row shows the short form.
     public static string PowerUpLabel(int powerUps)
     {
         powerUps &= PowerAll;
-        if (powerUps == PowerAll) return "DUST x2 + CLEAR";
-        return powerUps == PowerDust ? "DUST x2" : powerUps == PowerClear ? "CLEAR" : "";
+        string label = "";
+        if ((powerUps & PowerDust) != 0) label = "DUST x2";
+        if ((powerUps & PowerClear) != 0) label += (label.Length > 0 ? " + " : "") + "CLEAR";
+        if ((powerUps & PowerHoming) != 0) label += (label.Length > 0 ? " + " : "") + "HOMING";
+        return label;
     }
 
     // Whether a tag names the premium ship (the queue drops such an entry).

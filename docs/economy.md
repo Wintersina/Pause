@@ -44,12 +44,13 @@ doubling a 3,000-point run moves it from 0.66 to 0.78 dust at most. No retune ne
 
 ## Boosters (bought with star dust)
 
-Two repeatable purchases, `Boosters` (`Scripts/Boosters/`). No store product, no platform code: iOS is the same code.
+Three repeatable purchases, `Boosters` (`Scripts/Boosters/`). No store product, no platform code: iOS is the same code.
 
 | | Price | What it does |
 |---|---|---|
 | Dust x2 | `Boosters.DustBoosterPrice` = 600 | Doubles pickup and reward dust for 10 minutes of play (`DustBoosterSeconds` = 600). Buying again adds 10 minutes (stored time caps at an hour). |
 | Hazard clear | `Boosters.HazardClearPrice` = 200 per charge | One charge, held (max 9), fires AUTOMATICALLY when a hit would cost a heart: the heart is kept. |
+| Homing atoms | `Boosters.HomingPrice` = 1000 | For 10 minutes of play (`HomingSeconds` = 600) every atom that comes on screen flies at the ship; dodge it or teleport and it misses. Buying again adds 10 minutes (stored time caps at an hour). |
 
 **What the multiplier touches:** star and large-star pickups, the blue atom, the flight trickle, kill crumbs and elite rewards (`score.AwardStarDust`, `score.calcScore`).
 **What it never touches:** claims (achievements, Codex), purchases (packs), the end-of-run score bonus, the tutorial and practice runs. Score is never affected, and the leaderboard's "run star dust" board reads `Boosters.RankedDust` (earned minus what the booster added).
@@ -72,6 +73,13 @@ So even a flawless player never earns back the price (it is a net cost; the valu
 
 **Hazard clear, 200:** one typical 4-level run earns about 220 (same sim), so a charge costs about one run's earnings. It saves a heart (or the run, on a fatal hit), but extending a run by a level only pays about 55 dust, so it never pays for itself. Max 9 held so a hoard cannot sit on screen.
 
+### Homing atoms rules
+
+`AtomHoming` (`Scripts/Gameplay/Pickups/`), driven by the atom mover (`moveItemEnmInStrightLine.Step`), so it runs only on the frames the world moves. While `Boosters.HomingRunning` (time left, a real run, not the tutorial or a practice run), an atom that is `AtomHoming.LockBelowTop` inside the top of the view leaves its `AtomWander` drift and locks onto the ship ONCE. It flies like a slow missile: `Speed` 6 u/s (never under 1.6x its own fall), turn rate `TurnRate` 2.2 rad/s (a ~2.7 u turn circle), straight down to start. Reaching the hull collects it the ordinary way (`collisionDetection`), so it pays, scores and counts as if flown into.
+It MISSES (and goes back to its wander from where it is, never locking again) when the ship is more than `MissAngle` (100 deg) off its heading (a late side-step: a ~2 u dodge in the last ~1.5-2 u does it, an early one is followed), on any pause-jump (`movePlayer` calls `AtomHoming.OnTeleport`, which breaks every lock), or after `MaxSeconds` (4 s) without a catch.
+Only atoms home (what the mover hands to `AtomWander`): star dust is never pulled, so it does not overlap DUST x2 or the Magnetic Atom, though a homed Magnetic Atom still pulls dust as usual. Its time does not switch ads off (`AnyActive` reads the multiplier only). The clock is the multiplier's: `score.payDust` -> `Boosters.Tick`, unfrozen real-run frames only, saved in milliseconds. A run with homing time spent routes to the Power-Ups board (`LeaderboardRunTag.PowerHoming`, label HOMING).
+No payback rule is pinned for it: atoms pay score and powers, not dust, so the 70% dust rule above does not apply. Re-check if atoms ever start paying dust.
+
 ### Hazard clear rules
 
 Clears every rock, mine and ordinary ship in view, and every hostile projectile in flight (`HostileShots.ClearIn`). It leaves bosses, elites (and their drones and shot hitboxes), backdrop rocks, weather, pickups and timed area attacks (jets, waves, blast rings, strikes, lashes). Bosses and elites take no damage from it.
@@ -79,4 +87,4 @@ It is not a kill: it never calls `AwardDestroyedTarget`, so there is no run scor
 
 ### Cloud save
 
-Four monotonic counters (`ProgressSnapshot.boostDustBought`, `boostDustUsedMs`, `boostClearBought`, `boostClearUsed`), merged per counter by the LARGER value (`ProgressMerge`). Held = bought - used. A max can't duplicate a paid item (a sum would) or bring back a used one; a booster bought only on the other device is paid for from the newer balance (`UnpaidBoosters`), as ships and skins are. A purchase writes the new balance and the counter together and saves at once, so a restart never leaves "paid, nothing received".
+Six monotonic counters (`ProgressSnapshot.boostDustBought`, `boostDustUsedMs`, `boostClearBought`, `boostClearUsed`, `boostHomingBought`, `boostHomingUsedMs`), merged per counter by the LARGER value (`ProgressMerge`). Held = bought - used. A max can't duplicate a paid item (a sum would) or bring back a used one; a booster bought only on the other device is paid for from the newer balance (`UnpaidBoosters`), as ships and skins are. A purchase writes the new balance and the counter together and saves at once, so a restart never leaves "paid, nothing received".

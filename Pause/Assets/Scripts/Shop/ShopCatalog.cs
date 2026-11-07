@@ -7,7 +7,7 @@ using UnityEngine;
 // A row is never buyable unless its product is Available (Play returned a price and the billing flow is
 // connected), so on iOS, in the editor, or with no price nothing looks buyable: the row reads UNAVAILABLE.
 // The Shop entry is on the home screen on every platform (nothing here is platform-specific).
-public enum ShopRowKind { RemoveAds, Paragon, Pack, DustBooster, HazardClear }
+public enum ShopRowKind { RemoveAds, Paragon, Pack, DustBooster, HazardClear, HomingAtoms }
 
 public enum ShopRowState
 {
@@ -24,7 +24,7 @@ public sealed class ShopRow
     public ShopRowKind kind;
     public SupportPurchase.Pack pack;   // Pack rows only
     public Boosters.Kind booster;       // booster rows only
-    public bool IsBooster { get { return kind == ShopRowKind.DustBooster || kind == ShopRowKind.HazardClear; } }
+    public bool IsBooster { get { return kind == ShopRowKind.DustBooster || kind == ShopRowKind.HazardClear || kind == ShopRowKind.HomingAtoms; } }
     public ShopRowState state;
     public string title, subtitle, button;
     public bool Tappable { get { return state == ShopRowState.Buyable; } }
@@ -80,7 +80,8 @@ public static class ShopCatalog
             new ShopSection("ADS", RemoveAdsRow()),
             new ShopSection("SHIP", ParagonRow()),
             packs,
-            new ShopSection("BOOSTERS", BoosterRow(Boosters.Kind.DustMultiplier), BoosterRow(Boosters.Kind.HazardClear)),
+            new ShopSection("BOOSTERS", BoosterRow(Boosters.Kind.DustMultiplier), BoosterRow(Boosters.Kind.HazardClear),
+                            BoosterRow(Boosters.Kind.HomingAtoms)),
         };
     }
 
@@ -135,25 +136,28 @@ public static class ShopCatalog
         string status = Boosters.Status(kind);
         var row = new ShopRow
         {
-            kind = kind == Boosters.Kind.DustMultiplier ? ShopRowKind.DustBooster : ShopRowKind.HazardClear,
+            kind = RowKind(kind),
             booster = kind,
             title = Boosters.Name(kind) + (status.Length > 0 ? "  " + status : ""),
             subtitle = Boosters.Description(kind),
         };
         string price = Mathf.RoundToInt(Boosters.Price(kind)).ToString("N0") + " DUST";
         if (Boosters.CanBuy(kind)) Set(row, ShopRowState.Buyable, price);
-        else if (AtLimit(kind)) Set(row, ShopRowState.Short, MaxLabel);
+        else if (Boosters.AtLimit(kind)) Set(row, ShopRowState.Short, MaxLabel);
         else Set(row, ShopRowState.Short, price);
         return row;
     }
 
     public const string MaxLabel = "MAX";
 
-    static bool AtLimit(Boosters.Kind kind)
+    static ShopRowKind RowKind(Boosters.Kind kind)
     {
-        return kind == Boosters.Kind.DustMultiplier
-            ? Boosters.RemainingSeconds + Boosters.DustBoosterSeconds > Boosters.MaxStoredSeconds + .01f
-            : Boosters.ClearCharges >= Boosters.MaxClearCharges;
+        switch (kind)
+        {
+            case Boosters.Kind.DustMultiplier: return ShopRowKind.DustBooster;
+            case Boosters.Kind.HomingAtoms: return ShopRowKind.HomingAtoms;
+            default: return ShopRowKind.HazardClear;
+        }
     }
 
     static void Set(ShopRow row, ShopRowState state, string button) { row.state = state; row.button = button; }

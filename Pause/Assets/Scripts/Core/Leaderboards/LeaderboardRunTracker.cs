@@ -91,6 +91,7 @@ public class LeaderboardRunTracker : MonoBehaviour
         // The boosters, latched. Holding a charge or booster time without using it does not count.
         if (Boosters.RunDustUsed) powerUps |= LeaderboardRunTag.PowerDust;
         if (HazardClear.UsedThisRun > 0) powerUps |= LeaderboardRunTag.PowerClear;
+        if (Boosters.RunHomingUsed) powerUps |= LeaderboardRunTag.PowerHoming;
         if (RunScore.Scoring) runScore = System.Math.Max(runScore, RunScore.Total);
     }
 

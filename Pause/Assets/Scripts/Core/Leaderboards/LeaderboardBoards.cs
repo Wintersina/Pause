@@ -39,7 +39,7 @@ public struct LeaderboardRunStats
     // The run flew the premium (cheat) ship at any point, or ranked nothing
     // (RunScore.Unranked). Such a run is never submitted anywhere.
     public bool premiumRun;
-    // Boosters the run used (LeaderboardRunTag.PowerDust / PowerClear bits): Dust x2 active during real flight at any
+    // Boosters the run used (LeaderboardRunTag.PowerDust / PowerClear / PowerHoming bits): Dust x2 or homing atoms active during real flight at any
     // point, or a Hazard Clear charge fired. Non-zero routes the run to the Power-Ups board ONLY, and every
     // other board then gets nothing from it.
     public int powerUps;

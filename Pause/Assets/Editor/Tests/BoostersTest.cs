@@ -16,6 +16,8 @@ using Object = UnityEngine.Object;
 //   6b the AUTOMATIC save: a hit that would cost a heart spends a charge instead (collisionDetection), never when nothing was lost
 //   7  cloud save: capture / apply round trip and the merge rules
 //   8  the in-run readout (not a control): its rect on a spread of screens (phones, tall, tablet) never meets the HUD
+//   9  homing atoms: buying (1,000, 10 minutes, the hour cap), the clock, the cloud counters, and the flight itself --
+//      a still ship is reached, a late side-step or a teleport makes it miss, a miss is final, star dust never homes
 public static class BoostersTest
 {
     static int fails;
@@ -27,7 +29,7 @@ public static class BoostersTest
 
     public static void Run() { TestHarness.Exit(Execute()); }
 
-    static readonly string[] Keys = { Boosters.DustBoughtKey, Boosters.DustUsedMsKey, Boosters.ClearBoughtKey, Boosters.ClearUsedKey };
+    static readonly string[] Keys = { Boosters.DustBoughtKey, Boosters.DustUsedMsKey, Boosters.ClearBoughtKey, Boosters.ClearUsedKey, Boosters.HomingBoughtKey, Boosters.HomingUsedMsKey };
 
     static void Reset(float dust)
     {
@@ -55,12 +57,14 @@ public static class BoostersTest
             AutoSave();
             Cloud();
             Control();
+            Homing();
         }
         finally
         {
             TouchInput.PressedOverride = null;
             Boosters.TestDelta = null;
             Boosters.AdDoubled = false;
+            moveItemEnmInStrightLine.HomingTargetOverride = null;
             buttonClicks.playerDied = false;
             RunScore.EndRun(RunScore.RunId);
             StarDustLedger.EndRun(StarDustLedger.RunId);
@@ -650,5 +654,143 @@ public static class BoostersTest
         Check("the hook sits in the one place a heart is lost (the hit branch of collisionDetection, before `fatal` is decided)",
               cd.Contains("HazardClear.AutoSave(") && cd.IndexOf("HazardClear.AutoSave(", StringComparison.Ordinal) < cd.IndexOf("bool fatal =", StringComparison.Ordinal) &&
               cd.Split(new[] { "lifeCounter += 1" }, StringSplitOptions.None).Length == 2);
+    }
+
+    // ---- 9 ----
+    static void Homing()
+    {
+        // buying
+        Reset(999f);
+        Check("homing: 999 dust cannot buy it", Boosters.BuyHoming() == Boosters.BuyResult.NotEnoughDust && !Boosters.HomingActive);
+        Reset(5000f);
+        Check("homing: costs 1,000 and gives 10 minutes", Boosters.Buy(Boosters.Kind.HomingAtoms) == Boosters.BuyResult.Bought &&
+              Mathf.Approximately(PlayerPrefs.GetFloat(StarDustLedger.CurrencyKey), 4000f) &&
+              Mathf.Approximately(Boosters.HomingRemainingSeconds, 600f) && Boosters.Status(Boosters.Kind.HomingAtoms) == "10:00 left");
+        Check("homing: its time does NOT switch ads off and is not the dust multiplier", !Boosters.AnyActive && !Boosters.DustActive);
+        Boosters.Reload();
+        Check("homing: survives a restart", Boosters.BoughtHoming == 1 && Boosters.HomingActive);
+        Check("homing: buying again adds 10 minutes", Boosters.BuyHoming() == Boosters.BuyResult.Bought &&
+              Mathf.Approximately(Boosters.HomingRemainingSeconds, 1200f));
+        Reset(100000f);
+        int bought = 0;
+        while (Boosters.BuyHoming() == Boosters.BuyResult.Bought && bought < 30) bought++;
+        Check("homing: stored time stops at an hour", bought == 6 && Boosters.AtLimit(Boosters.Kind.HomingAtoms) && !Boosters.CanBuy(Boosters.Kind.HomingAtoms));
+        Reset(5000f);
+        StarDustLedger.BeginRun(true);
+        Check("homing: no buying inside a run", Boosters.BuyHoming() == Boosters.BuyResult.RunInProgress);
+        StarDustLedger.EndRun(StarDustLedger.RunId);
+
+        // the clock: real-run frames spend it, alongside Dust x2 but on its own counter
+        Reset(5000f);
+        Boosters.BuyHoming();
+        var s = BeginRealRun(5000f);
+        Check("homing: runs in a real run", Boosters.HomingRunning);
+        Boosters.TestDelta = 1f;
+        score.pauseCounter = 5;
+        TouchInput.PressedOverride = () => false;
+        s.SendMessage("Update");
+        Check("homing: a frozen world does not spend it", Mathf.Approximately(Boosters.HomingRemainingSeconds, 600f));
+        TouchInput.PressedOverride = () => true;
+        s.SendMessage("Update");
+        s.SendMessage("Update");
+        Check("homing: running frames spend it (598 s left) and latch the run", Mathf.Approximately(Boosters.HomingRemainingSeconds, 598f) &&
+              Boosters.RunHomingUsed && !Boosters.RunDustUsed);
+        Boosters.TestDelta = 10000f;
+        s.SendMessage("Update");
+        Check("homing: runs out at zero, saved in the prefs", !Boosters.HomingActive && !Boosters.HomingRunning &&
+              PlayerPrefs.GetInt(Boosters.HomingUsedMsKey) == 600000);
+        TouchInput.PressedOverride = null;
+        Boosters.TestDelta = null;
+        EndRun(s);
+
+        // cloud counters
+        Reset(5000f);
+        PlayerPrefs.SetInt(Boosters.HomingBoughtKey, 3);
+        PlayerPrefs.SetInt(Boosters.HomingUsedMsKey, 65432);
+        Boosters.Reload();
+        var snap = ProgressSnapshot.Capture(1000);
+        ProgressSnapshot parsed;
+        bool parsedOk = ProgressSnapshot.TryParse(snap.ToJson(), out parsed) == ProgressSnapshot.ParseResult.Ok;
+        Check("homing: capture + JSON carry both counters", snap.boostHomingBought == 3 && snap.boostHomingUsedMs == 65432 && snap.HasProgress() &&
+              parsedOk && parsed.boostHomingBought == 3 && parsed.boostHomingUsedMs == 65432);
+        foreach (string k in Keys) PlayerPrefs.DeleteKey(k);
+        parsed.Apply();
+        Check("homing: apply writes them back", Boosters.BoughtHoming == 3 && Boosters.UsedHomingMs == 65432);
+        var a = new ProgressSnapshot { savedAtUtc = 2000, currency = 3000f, boostHomingBought = 1, boostHomingUsedMs = 500000 };
+        var b = new ProgressSnapshot { savedAtUtc = 1000, currency = 300f, boostHomingBought = 2, boostHomingUsedMs = 100000 };
+        var m = ProgressMerge.Merge(a, b);
+        Check("homing: merge keeps the larger of each counter", m.boostHomingBought == 2 && m.boostHomingUsedMs == 500000);
+        Check("homing: a purchase only the older side has is paid for", Mathf.Approximately(ProgressMerge.UnpaidBoosters(a, b), Boosters.HomingPrice));
+
+        // ---- the flight (pure) ----
+        const float dt = 1f / 60f;
+        Vector2 still = new Vector2(0f, -4f);
+        var h = new AtomHoming();
+        Vector3 p = new Vector3(0f, 5f);
+        float t = 0f;
+        while (t < 4f && Vector2.Distance(p, still) > .01f) { p = h.Advance(p, dt, .1f, still); t += dt; }
+        Check("flight: a still ship is reached (" + t.ToString("0.00") + " s)", !h.Missed && Vector2.Distance(p, still) <= .01f && t < 2.5f);
+
+        h = new AtomHoming();
+        p = new Vector3(0f, 5f);
+        Vector2 ship = still;
+        bool moved = false;
+        float closest = 99f;
+        for (t = 0f; t < 4f && !h.Missed; t += dt)
+        {
+            if (!moved && Vector2.Distance(p, ship) < 1.5f) { ship = new Vector2(2f, -4f); moved = true; }
+            p = h.Advance(p, dt, .1f, ship);
+            closest = Mathf.Min(closest, Vector2.Distance(p, ship));
+        }
+        Check("flight: a 2-unit side-step 1.5 units out makes it miss (closest " + closest.ToString("0.00") + ")", moved && h.Missed && closest > .8f);
+        Vector3 at = p;
+        Check("flight: a miss is final (it no longer moves)", h.Advance(p, dt, .1f, ship) == at);
+
+        h = new AtomHoming();
+        p = h.Advance(new Vector3(0f, 5f), dt, .1f, still);
+        AtomHoming.OnTeleport();
+        at = p;
+        p = h.Advance(p, dt, .1f, still);
+        Check("flight: a teleport breaks the lock", h.Missed && p == at);
+        Check("flight: a new lock after the teleport homes again", !new AtomHoming().Advance(at, dt, .1f, still).Equals(at));
+
+        h = new AtomHoming { elapsed = AtomHoming.MaxSeconds };
+        h.Advance(new Vector3(0f, 5f), dt, .1f, still);
+        Check("flight: it gives up after MaxSeconds", h.Missed);
+        Check("flight: never slower than the atom's own fall in a fast world", AtomHoming.SpeedFor(1f) >= AtomWander.Descent(1f));
+
+        // ---- the mover: atoms lock on, star dust does not ----
+        Reset(5000f);
+        Boosters.BuyHoming();
+        s = BeginRealRun(5000f);
+        var target = new GameObject("~homingShip").transform;
+        target.position = still;
+        moveItemEnmInStrightLine.HomingTargetOverride = target;
+        var atom = new GameObject("~homingAtom");
+        atom.AddComponent<AtomSpin>();
+        var atomMover = atom.AddComponent<moveItemEnmInStrightLine>();
+        atom.transform.position = new Vector3(0f, 7f);
+        atomMover.Step(dt, .1f, 6f, -6f);
+        Check("mover: an atom above the view does not lock yet", atomMover.Homing == null);
+        atom.transform.position = new Vector3(0f, 5f);
+        atomMover.Step(dt, .1f, 6f, -6f);
+        Check("mover: an atom on screen locks onto the ship and flies at it", atomMover.Homing != null && !atomMover.Homing.Missed &&
+              atom.transform.position.y < 5f);
+        var dust = new GameObject("~homingDust");
+        var dustMover = dust.AddComponent<moveItemEnmInStrightLine>();
+        dust.transform.position = new Vector3(1f, 5f);
+        dustMover.Step(dt, .1f, 6f, -6f);
+        Check("mover: star dust (no AtomSpin) never homes", dustMover.Homing == null && Mathf.Approximately(dust.transform.position.x, 1f));
+        AtomHoming.OnTeleport();
+        atomMover.Step(dt, .1f, 6f, -6f);
+        Check("mover: after a miss the atom wanders on", atomMover.Homing.Missed && atomMover.Wander != null);
+        var homingBefore = atomMover.Homing;
+        atomMover.Step(dt, .1f, 6f, -6f);
+        Check("mover: one lock per atom (never re-locks)", atomMover.Homing == homingBefore && atomMover.Homing.Missed);
+        Object.DestroyImmediate(atom);
+        Object.DestroyImmediate(dust);
+        Object.DestroyImmediate(target.gameObject);
+        moveItemEnmInStrightLine.HomingTargetOverride = null;
+        EndRun(s);
     }
 }

@@ -94,6 +94,8 @@ public class ProgressSnapshot
     // charges bought and fired. Additive, no schema bump (an older blob lacks them = 0). Merged per counter by MAX: never summed (no
     // duplicated paid item), never lowered (a used charge or spent minute stays used); see ProgressMerge.
     public int boostDustBought, boostDustUsedMs, boostClearBought, boostClearUsed;
+    // Homing atoms (Boosters.Kind.HomingAtoms): purchases and milliseconds of homing play spent. Same rules as the multiplier's pair.
+    public int boostHomingBought, boostHomingUsedMs;
 
     // Hard cap per list: the Codex has ~95 entries (+ achievement acks), so this
     // only guards the cloud blob against a corrupt pref.
@@ -124,7 +126,7 @@ public class ProgressSnapshot
     // within seconds (and merge by union / max anyway).
     public bool HasProgress()
     {
-        if (adFree || boostDustBought > 0 || boostClearBought > 0) return true;
+        if (adFree || boostDustBought > 0 || boostClearBought > 0 || boostHomingBought > 0) return true;
         if (currency > 0f || highestWorld > 0 || currentWorld > 0 || bestScore > 0 || highestSpeed > 0f) return true;
         if (ownedSkins != null && ownedSkins.Length > 0) return true;
         foreach (int id in boughtShips ?? new int[0])
@@ -194,6 +196,8 @@ public class ProgressSnapshot
         s.boostDustUsedMs = PlayerPrefs.GetInt(Boosters.DustUsedMsKey, 0);
         s.boostClearBought = PlayerPrefs.GetInt(Boosters.ClearBoughtKey, 0);
         s.boostClearUsed = PlayerPrefs.GetInt(Boosters.ClearUsedKey, 0);
+        s.boostHomingBought = PlayerPrefs.GetInt(Boosters.HomingBoughtKey, 0);
+        s.boostHomingUsedMs = PlayerPrefs.GetInt(Boosters.HomingUsedMsKey, 0);
 
         var counters = new List<Counter>();
         foreach (string key in CounterKeys())
@@ -261,6 +265,8 @@ public class ProgressSnapshot
         SetOrDelete(Boosters.DustUsedMsKey, boostDustUsedMs);
         SetOrDelete(Boosters.ClearBoughtKey, boostClearBought);
         SetOrDelete(Boosters.ClearUsedKey, boostClearUsed);
+        SetOrDelete(Boosters.HomingBoughtKey, boostHomingBought);
+        SetOrDelete(Boosters.HomingUsedMsKey, boostHomingUsedMs);
         Boosters.Reload();
         Codex.OnExternalChange();   // drop the cached sets so the next write can't undo this
     }

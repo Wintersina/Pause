@@ -59,7 +59,7 @@ public static class PowerUpsLeaderboardTest
             buttonClicks.playerDied = savedDied;
             score.pauseCounter = savedPauses;
             Boosters.TestDelta = null;
-            foreach (string k in new[] { Boosters.DustBoughtKey, Boosters.DustUsedMsKey, Boosters.ClearBoughtKey, Boosters.ClearUsedKey }) PlayerPrefs.DeleteKey(k);
+            foreach (string k in new[] { Boosters.DustBoughtKey, Boosters.DustUsedMsKey, Boosters.ClearBoughtKey, Boosters.ClearUsedKey, Boosters.HomingBoughtKey, Boosters.HomingUsedMsKey }) PlayerPrefs.DeleteKey(k);
             Boosters.Reload();
             Boosters.ResetRun();
             HazardClear.BeginRun();
@@ -82,7 +82,7 @@ public static class PowerUpsLeaderboardTest
         PlayerPrefs.SetInt(DeveloperUnlocks.EnabledKey, 0);
         PlayerPrefs.SetString("HasDoneTut", "true");
         startMenu.youAreInTutorial = false;
-        foreach (string k in new[] { Boosters.DustBoughtKey, Boosters.DustUsedMsKey, Boosters.ClearBoughtKey, Boosters.ClearUsedKey }) PlayerPrefs.DeleteKey(k);
+        foreach (string k in new[] { Boosters.DustBoughtKey, Boosters.DustUsedMsKey, Boosters.ClearBoughtKey, Boosters.ClearUsedKey, Boosters.HomingBoughtKey, Boosters.HomingUsedMsKey }) PlayerPrefs.DeleteKey(k);
         Boosters.TestDelta = null;
         Boosters.Reload();
         Boosters.ResetRun();
@@ -169,7 +169,7 @@ public static class PowerUpsLeaderboardTest
         Check("Dust x2: only the Power-Ups board is offered", n == 1 && Pending(service, LeaderboardBoards.BoostedRuns));
         Check("Dust x2: no leak into the normal boards' queue", !Pending(service, LeaderboardBoards.TopScore) && !Pending(service, LeaderboardBoards.FurthestWorld));
 
-        foreach (int bits in new[] { LeaderboardRunTag.PowerClear, LeaderboardRunTag.PowerAll })
+        foreach (int bits in new[] { LeaderboardRunTag.PowerClear, (LeaderboardRunTag.PowerDust | LeaderboardRunTag.PowerClear) })
         {
             Context();
             service = Service(fake = new FakeLeaderboards());
@@ -181,7 +181,7 @@ public static class PowerUpsLeaderboardTest
         // The send itself: score is the run score, the tag carries the columns.
         Context();
         service = Service(fake = new FakeLeaderboards());
-        service.SubmitRun(Run(500, LeaderboardRunTag.PowerAll));
+        service.SubmitRun(Run(500, (LeaderboardRunTag.PowerDust | LeaderboardRunTag.PowerClear)));
         now = 60f;
         service.Tick();
         bool sent = fake.SubmissionsTo(BoostedAndroid) == 1 && fake.Submissions.Count == 1 && fake.Submissions[0].score == 500;
@@ -296,8 +296,21 @@ public static class PowerUpsLeaderboardTest
             Boosters.Tick(1f);
             SetUsedThisRun(2);
             Invoke(t, "Sample");
-            Check("latch: both used -> both bits", Bits(t) == LeaderboardRunTag.PowerAll);
+            Check("latch: both used -> both bits", Bits(t) == (LeaderboardRunTag.PowerDust | LeaderboardRunTag.PowerClear));
             SetUsedThisRun(0);
+            Object.DestroyImmediate(go); go = new GameObject("~pu-tracker");
+
+            // homing atoms: owned but not flown = nothing; flown = the HOMING bit
+            Context();
+            PlayerPrefs.SetInt(Boosters.HomingBoughtKey, 1);
+            Boosters.Reload();
+            Service(new FakeLeaderboards());
+            t = NewTracker(go);
+            Invoke(t, "Sample");
+            Check("latch: homing time owned, not flown: not powered-up", Boosters.HomingActive && Bits(t) == 0);
+            Boosters.Tick(1f);
+            Invoke(t, "Sample");
+            Check("latch: homing atoms flown -> the HOMING bit", Bits(t) == LeaderboardRunTag.PowerHoming);
             Object.DestroyImmediate(go); go = new GameObject("~pu-tracker");
 
             // a late booster: a normal snapshot at pause, the boosted end only to the Power-Ups board
@@ -509,7 +522,7 @@ public static class PowerUpsLeaderboardTest
 
     static void Tags()
     {
-        string tag = LeaderboardRunTag.Encode(7, 4, 2, 3, 2, 123456, 12, LeaderboardRunTag.PowerAll);
+        string tag = LeaderboardRunTag.Encode(7, 4, 2, 3, 2, 123456, 12, (LeaderboardRunTag.PowerDust | LeaderboardRunTag.PowerClear));
         Check("tag: full encode", tag == "s7h4e2p3k2d123456w12u3");
         int ship, hearts, end, pauses, skin, worlds, powerUps;
         long dust;
@@ -529,7 +542,7 @@ public static class PowerUpsLeaderboardTest
         Check("tag: the widest string the parser accepts is still under 64", widest.Length < 64);
         Check("tag: the real maximum is " + worst.Length + " characters", LeaderboardRunTag.MaxLength == 64 && worst.Length < LeaderboardRunTag.MaxLength);
         Check("tag: worst case parses back", LeaderboardRunTag.TryParse(worst, out ship, out hearts, out end, out pauses, out skin, out dust, out worlds, out powerUps)
-              && dust == LeaderboardRunTag.MostDust && worlds == LeaderboardRunTag.MostWorlds && powerUps == 3);
+              && dust == LeaderboardRunTag.MostDust && worlds == LeaderboardRunTag.MostWorlds && powerUps == 7);
 
         // old tags keep parsing and report no columns
         string[] old = { "s7h4", "s7h4e2", "s7h4e2p3", "s7h4e2p3k2" };
@@ -546,6 +559,12 @@ public static class PowerUpsLeaderboardTest
         Check("tag: Paragon is never encoded with columns either", LeaderboardRunTag.Encode(PremiumShips.Paragon, 14, 1, 1, 0, 5, 1, 3) == "");
         Check("tag: labels", LeaderboardRunTag.PowerUpLabel(1) == "DUST x2" && LeaderboardRunTag.PowerUpLabel(2) == "CLEAR"
               && LeaderboardRunTag.PowerUpLabel(3) == "DUST x2 + CLEAR" && LeaderboardRunTag.PowerUpShort(3) == "BOTH" && LeaderboardRunTag.PowerUpLabel(0) == "");
+        Check("tag: homing labels", LeaderboardRunTag.PowerUpLabel(LeaderboardRunTag.PowerHoming) == "HOMING"
+              && LeaderboardRunTag.PowerUpShort(LeaderboardRunTag.PowerHoming) == "HOMING"
+              && LeaderboardRunTag.PowerUpLabel(5) == "DUST x2 + HOMING" && LeaderboardRunTag.PowerUpShort(6) == "BOTH"
+              && LeaderboardRunTag.PowerUpLabel(7) == "DUST x2 + CLEAR + HOMING" && LeaderboardRunTag.PowerUpShort(7) == "ALL 3");
+        Check("tag: the homing bit round-trips", LeaderboardRunTag.TryParse(LeaderboardRunTag.Encode(7, 4, -1, -1, 0, 5, 1, LeaderboardRunTag.PowerHoming),
+              out ship, out hearts, out end, out pauses, out skin, out dust, out worlds, out powerUps) && powerUps == LeaderboardRunTag.PowerHoming);
 
         // the run's stats rounding: dust earned in hundredths
         var run = Run(10, LeaderboardRunTag.PowerDust);
@@ -565,7 +584,7 @@ public static class PowerUpsLeaderboardTest
         string id = BoostedAndroid;
         var fake = new FakeLeaderboards();
         fake.SetBoard(id,
-            FakeLeaderboards.Entry(1, "TETSUO", 9000, false, 7, 4, 2, 3, 0, 123456, 12, LeaderboardRunTag.PowerAll),
+            FakeLeaderboards.Entry(1, "TETSUO", 9000, false, 7, 4, 2, 3, 0, 123456, 12, (LeaderboardRunTag.PowerDust | LeaderboardRunTag.PowerClear)),
             FakeLeaderboards.Entry(2, "KAI", 8000, false, 3, 3, 1, 1, 0, 5000, 4, LeaderboardRunTag.PowerDust),
             FakeLeaderboards.Entry(3, "KEI", 7000, false, 2, 3, 1, 1, 0, 100, 1, LeaderboardRunTag.PowerClear),
             FakeLeaderboards.Entry(4, "OLD", 6000),   // a score with no tag
