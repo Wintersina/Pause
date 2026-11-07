@@ -1,0 +1,80 @@
+rules_version = '2';
+
+// Shared leaderboard (docs/shared-leaderboard.md). Mirrored in C# by SharedBoardLimits; both are checked
+// against test-vectors.json. App Check is enforced in the Firebase console (Cloud Firestore and Authentication),
+// not here. Change the numbers here and in SharedBoardLimits together.
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function signedIn() { return request.auth != null; }
+    function ofInt(v, lo, hi) { return v is int && v >= lo && v <= hi; }
+
+    // One run. `power` = the Power-Ups table (powerUps 1..3); the main table needs powerUps 0.
+    // Ship 16 (Paragon, the premium ship) is never allowed. Ships up to 40 leave room for new ships
+    // without a rules deploy.
+    function validRun(r, power) {
+      return r is map
+        && r.keys().hasOnly(['score', 'dust', 'worlds', 'ship', 'hearts', 'endHearts', 'pauses', 'skin', 'powerUps'])
+        && r.keys().hasAll(['score', 'dust', 'worlds', 'ship', 'hearts', 'endHearts', 'pauses', 'skin', 'powerUps'])
+        && ofInt(r.score, 1, 9999999999)
+        && ofInt(r.dust, 0, 999999999)
+        && ofInt(r.worlds, 0, 9999)
+        && ofInt(r.ship, 0, 40) && r.ship != 16
+        && ofInt(r.hearts, 0, 20)
+        && ofInt(r.endHearts, -1, 20)
+        && ofInt(r.pauses, -1, 99)
+        && ofInt(r.skin, 0, 99)
+        && (power ? ofInt(r.powerUps, 1, 3) : r.powerUps == 0);
+    }
+
+    // The three slots are bests over the same runs, so each slot's own metric dominates
+    // the other slots' value of that metric.
+    function consistent(d) {
+      return d.byScore.score >= d.byDust.score && d.byScore.score >= d.byWorlds.score
+          && d.byDust.dust >= d.byScore.dust && d.byDust.dust >= d.byWorlds.dust
+          && d.byWorlds.worlds >= d.byScore.worlds && d.byWorlds.worlds >= d.byDust.worlds;
+    }
+
+    function validDoc(d, power) {
+      return d.keys().hasOnly(['name', 'updatedAt', 'byScore', 'byDust', 'byWorlds'])
+        && d.keys().hasAll(['name', 'updatedAt', 'byScore', 'byDust', 'byWorlds'])
+        && d.name is string && d.name.size() >= 1 && d.name.size() <= 24
+        && d.updatedAt == request.time
+        && validRun(d.byScore, power) && validRun(d.byDust, power) && validRun(d.byWorlds, power)
+        && consistent(d);
+    }
+
+    // Fields only improve. Equal is allowed, so a tied best can gain its columns.
+    function improves(n, o) {
+      return n.byScore.score >= o.byScore.score
+          && n.byDust.dust >= o.byDust.dust
+          && n.byWorlds.worlds >= o.byWorlds.worlds;
+    }
+
+    function ownerOnly(uid) { return signedIn() && request.auth.uid == uid; }
+
+    match /main/{uid} {
+      allow get: if signedIn();
+      allow list: if signedIn() && request.query.limit <= 25;
+      allow create: if ownerOnly(uid) && validDoc(request.resource.data, false);
+      allow update: if ownerOnly(uid) && validDoc(request.resource.data, false)
+                    && improves(request.resource.data, resource.data)
+                    && request.time > resource.data.updatedAt + duration.value(15, 's');
+      allow delete: if ownerOnly(uid);
+    }
+
+    match /power/{uid} {
+      allow get: if signedIn();
+      allow list: if signedIn() && request.query.limit <= 25;
+      allow create: if ownerOnly(uid) && validDoc(request.resource.data, true);
+      allow update: if ownerOnly(uid) && validDoc(request.resource.data, true)
+                    && improves(request.resource.data, resource.data)
+                    && request.time > resource.data.updatedAt + duration.value(15, 's');
+      allow delete: if ownerOnly(uid);
+    }
+
+    match /{other=**} {
+      allow read, write: if false;
+    }
+  }
+}

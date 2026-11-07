@@ -8,6 +8,10 @@ Cloud project 528367766818; Review and publish is still to do). **iOS: only Top 
 is submitted to it, and a value an older build left queued under `top_speed` is dropped the next time
 the queue is sent. See "Top Speed (retired)" below.
 
+## Shared board
+
+A cross-platform Firebase board (dormant, off until the SDK is imported) sits next to the store boards: see `docs/shared-leaderboard.md`.
+
 ## Architecture
 
 All code is in `Pause/Assets/Scripts/Core/Leaderboards/`, and the panel is in `Scripts/UI/Leaderboard/`.
