@@ -185,10 +185,12 @@ public class LeaderboardRunner : MonoBehaviour
         if (!focus) return;
         AccountLink.RetrySilentOnResume();
         if (LeaderboardService.HasInstance) LeaderboardService.Instance.Flush();
+        if (SharedLeaderboardService.HasInstance) SharedLeaderboardService.Instance.Flush();
     }
 
     void Update()
     {
         if (LeaderboardService.HasInstance) LeaderboardService.Instance.Tick();
+        if (SharedLeaderboardService.HasInstance) SharedLeaderboardService.Instance.Tick();
     }
 }

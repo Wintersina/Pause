@@ -1,0 +1,13 @@
+{
+  "name": "pause-firebase",
+  "private": true,
+  "description": "Firestore rules and their emulator tests for the shared leaderboard (docs/shared-leaderboard.md).",
+  "scripts": {
+    "test": "firebase emulators:exec --only firestore --project demo-pause-shared \"node --test\""
+  },
+  "devDependencies": {
+    "@firebase/rules-unit-testing": "^6.0.0",
+    "firebase": "^13.0.0",
+    "firebase-tools": "^15.0.0"
+  }
+}

@@ -129,6 +129,7 @@ public sealed class LeaderboardService
     {
         MigrateWorldsBoard();
         MigrateSeason();
+        SharedLeaderboardService.Install();
         SocialBridge.SignedIn -= OnSignedInStatic;
         SocialBridge.SignedIn += OnSignedInStatic;
     }
@@ -265,12 +266,46 @@ public sealed class LeaderboardService
         bool powered = run.PoweredUp;
         int accepted = 0;
         string tag = run.Tag;
+        // The shared board (dormant unless Firebase is live) gets the same run under the same gates and routing.
+        SharedLeaderboardService.Instance.OfferRun(run);
         foreach (var board in UsableBoards())
         {
             if (board.poweredUpOnly != powered) continue;
             if (OfferUnchecked(board, board.Measure(run), tag)) accepted++;
         }
         return accepted;
+    }
+
+    // "Sync now": puts everything this device holds back in the queue and sends it. The submitted marks (what an
+    // earlier send confirmed) are queued again, the normal local best is offered, and the backoff is skipped. The
+    // store keeps only each player's best, so a resend can't lower a rank. Nothing happens while the session is
+    // blocked (developer mode, premium ship, tutorial). Returns how many boards are queued afterwards.
+    public int SyncNow()
+    {
+        if (SubmissionBlocked() || PremiumShips.IsPremium(ShipId.Equipped())) return 0;
+        var submitted = ScoreTable.Load(SubmittedKey);
+        var pending = ScoreTable.Load(PendingKey);
+        foreach (var e in submitted.entries)
+        {
+            var board = Usable(e.board);
+            if (board == null || LeaderboardRunTag.IsPremium(e.tag)) continue;
+            long have;
+            if (pending.TryGet(e.board, out have) && !Supersedes(board, e.value, e.tag, have, pending.TagOf(e.board))) continue;
+            pending.Set(e.board, e.value, e.tag);
+        }
+        pending.Save(PendingKey);
+        submitted.entries.Clear();
+        submitted.Save(SubmittedKey);
+        verifying.Clear();
+        failures.Clear();
+        nextSendAt.Clear();
+        var top = Usable(LeaderboardBoards.TopScore);
+        long best = LocalBest(false);
+        if (top != null && best > 0) OfferUnchecked(top, best, null);
+        PrefsSaver.SaveNow();
+        int queued = pending.entries.Count;
+        FlushNow();
+        return queued;
     }
 
     // ---- local bests, one per route ----

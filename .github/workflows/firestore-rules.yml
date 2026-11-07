@@ -1,0 +1,53 @@
+name: Firestore rules
+
+# Tests firebase/firestore.rules for the shared leaderboard (docs/shared-leaderboard.md) against the
+# Firestore emulator. Separate from the Unity pipeline, only runs when the rules or their tests change, and is
+# not a required check. The vectors in firebase/test-vectors.json are also read by SharedLeaderboardTest.
+
+on:
+  pull_request:
+    branches: [master]
+    paths:
+      - "firebase/**"
+      - ".github/workflows/firestore-rules.yml"
+  push:
+    branches: [master]
+    paths:
+      - "firebase/**"
+      - ".github/workflows/firestore-rules.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: firestore-rules-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  rules:
+    name: Firestore rules
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: firebase/package-lock.json
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+      - name: Cache the Firestore emulator
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/firebase/emulators
+          key: firebase-emulators-${{ runner.os }}-${{ hashFiles('firebase/package-lock.json') }}
+      - name: Install
+        working-directory: firebase
+        run: npm ci --no-audit --no-fund
+      - name: Test the rules
+        working-directory: firebase
+        run: npm test
