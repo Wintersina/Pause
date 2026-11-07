@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "528367766818",
+    "project_id": "euphoric-glass-511212-m2",
+    "storage_bucket": "euphoric-glass-511212-m2.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:528367766818:android:dea6ff4646524029d8a97b",
+        "android_client_info": {
+          "package_name": "me.hapticgate.pause"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "528367766818-nvhorrce8pjv159o9rmltbukjb9nlglq.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA4y1eCEGC0-QTtiOprx1s8Qx4VxsUnrZI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "528367766818-nvhorrce8pjv159o9rmltbukjb9nlglq.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

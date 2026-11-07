@@ -18,8 +18,8 @@ using GooglePlayGames;
 // Compiled only when PAUSE_FIREBASE is defined, which the SDK-import PR does together with the Firebase Unity
 // SDK 13.17.x (Auth, Firestore, AppCheck), its config files and the EDM bump. THIS FILE HAS NOT BEEN COMPILED
 // YET (CI has no SDK): it is written against the documented Unity API and the import PR is its first build.
-// Things to confirm there: the App Attest provider factory name on iOS (Firebase's Unity page shows
-// DeviceCheckProviderFactory), the Game Center credential call, and the Firestore exception type.
+// Android compiled and built in the import PR; iOS (AppAttestProviderFactory, GameCenterAuthProvider.GetCredentialAsync)
+// is checked against the SDK's iOS assembly only and still needs an Xcode build.
 public sealed class FirebaseSharedBoard : ISharedBoardBackend
 {
     FirebaseAuth auth;
@@ -33,12 +33,13 @@ public sealed class FirebaseSharedBoard : ISharedBoardBackend
         try
         {
             // App Check first, before any other Firebase service is used.
-#if UNITY_EDITOR || DEVELOPMENT_BUILD
+#if UNITY_EDITOR || DEVELOPMENT_BUILD || PAUSE_DEV
+            // Debug provider: dev builds only (its token is registered in the console, never committed).
             FirebaseAppCheck.SetAppCheckProviderFactory(DebugAppCheckProviderFactory.Instance);
 #elif UNITY_ANDROID
             FirebaseAppCheck.SetAppCheckProviderFactory(PlayIntegrityProviderFactory.Instance);
 #elif UNITY_IOS
-            FirebaseAppCheck.SetAppCheckProviderFactory(DeviceCheckProviderFactory.Instance);
+            FirebaseAppCheck.SetAppCheckProviderFactory(AppAttestProviderFactory.Instance);
 #endif
             FirebaseApp.CheckAndFixDependenciesAsync().ContinueWithOnMainThread(t =>
             {

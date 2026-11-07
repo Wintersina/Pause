@@ -14,14 +14,26 @@ dependencies {
     implementation 'androidx.lifecycle:lifecycle-process:2.6.2' // Assets/GoogleMobileAds/Editor/GoogleMobileAdsDependencies.xml:17
     implementation 'com.android.billingclient:billing:8.0.0' // Assets/Editor/PlayBillingDependencies.xml:9
     implementation 'com.google.android.gms:play-services-ads:25.5.0' // Assets/GoogleMobileAds/Editor/GoogleMobileAdsDependencies.xml:7
+    implementation 'com.google.android.gms:play-services-base:18.10.1' // Assets/Firebase/Editor/AppDependencies.xml:20
     implementation 'com.google.android.gms:play-services-games-v2:22.1.0' // Assets/GooglePlayGames/com.google.play.games/Editor/GooglePlayGamesPluginDependencies.xml:9
     implementation 'com.google.android.ump:user-messaging-platform:4.0.0' // Assets/GoogleMobileAds/Editor/GoogleUmpDependencies.xml:7
+    implementation 'com.google.firebase:firebase-analytics:23.2.0' // Assets/Firebase/Editor/FirestoreDependencies.xml:18
+    implementation 'com.google.firebase:firebase-appcheck:19.4.1' // Assets/Firebase/Editor/AppCheckDependencies.xml:16
+    implementation 'com.google.firebase:firebase-appcheck-debug:19.4.1' // Assets/Firebase/Editor/AppCheckDependencies.xml:18
+    implementation 'com.google.firebase:firebase-appcheck-playintegrity:19.4.1' // Assets/Firebase/Editor/AppCheckDependencies.xml:20
+    implementation 'com.google.firebase:firebase-appcheck-unity:13.17.1' // Assets/Firebase/Editor/AppCheckDependencies.xml:27
+    implementation 'com.google.firebase:firebase-app-unity:13.17.1' // Assets/Firebase/Editor/AppDependencies.xml:25
+    implementation 'com.google.firebase:firebase-auth:24.2.0' // Assets/Firebase/Editor/AuthDependencies.xml:16
+    implementation 'com.google.firebase:firebase-auth-unity:13.17.1' // Assets/Firebase/Editor/AuthDependencies.xml:23
+    implementation 'com.google.firebase:firebase-common:22.2.1' // Assets/Firebase/Editor/AppDependencies.xml:16
+    implementation 'com.google.firebase:firebase-firestore:26.6.0' // Assets/Firebase/Editor/FirestoreDependencies.xml:16
+    implementation 'com.google.firebase:firebase-firestore-unity:13.17.1' // Assets/Firebase/Editor/FirestoreDependencies.xml:23
 // Android Resolver Dependencies End
 **DEPS**}
 
 // Android Resolver Exclusions Start
 android {
-  packagingOptions {
+  packaging {
       exclude ('/lib/armeabi/*' + '*')
       exclude ('/lib/armeabi-v7a/*' + '*')
       exclude ('/lib/mips/*' + '*')

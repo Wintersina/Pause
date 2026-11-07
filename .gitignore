@@ -106,3 +106,8 @@ mono_crash.*.blob
 # Generated tool logs inside the Unity-ignored staging folders (names ending in ~)
 Pause/Assets/Art/**/src~/**/*.log
 Pause/Assets/Art/**/*~/**/*.log
+
+# Firebase Unity SDK build products (EDM / Firebase editor tooling regenerate them from Assets/Firebase)
+/Pause/Assets/GeneratedLocalRepo/
+/Pause/Assets/GeneratedLocalRepo.meta
+/Pause/Assets/StreamingAssets/google-services-desktop.json*

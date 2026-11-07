@@ -50,6 +50,7 @@ public static class SharedLeaderboardTest
             Reading();
             SyncAndDelete();
             Hook();
+            AdapterGuards();
         }
         finally
         {
@@ -60,6 +61,35 @@ public static class SharedLeaderboardTest
         }
         Debug.Log("[SLB] failures: " + failures);
         return failures;
+    }
+
+    // Source guards for the Firebase adapter (it compiles only with PAUSE_FIREBASE, so CI reads the text):
+    // the App Check debug provider may only sit under a conditional that names the editor or a dev build, and the
+    // release providers must be there.
+    static void AdapterGuards()
+    {
+        string path = Path.Combine(Application.dataPath, "Scripts", "Core", "Leaderboards", "Shared", "FirebaseSharedBoard.cs");
+        if (!File.Exists(path)) { Check("adapter: FirebaseSharedBoard.cs exists", false); return; }
+        string[] lines = File.ReadAllLines(path);
+        string cond = "";
+        bool debugOk = true, sawDebug = false;
+        foreach (string raw in lines)
+        {
+            string l = raw.Trim();
+            if (l.StartsWith("#if ") || l.StartsWith("#elif ")) cond = l;
+            else if (l.StartsWith("#else") || l.StartsWith("#endif")) cond = "";
+            if (l.StartsWith("//") || !l.Contains("DebugAppCheckProviderFactory")) continue;
+            sawDebug = true;
+            if (!(cond.Contains("DEVELOPMENT_BUILD") && cond.Contains("PAUSE_DEV") && cond.Contains("UNITY_EDITOR") && !cond.Contains("&&"))) debugOk = false;
+        }
+        string text = string.Join("\n", lines);
+        Check("adapter: debug App Check provider only under UNITY_EDITOR || DEVELOPMENT_BUILD || PAUSE_DEV", sawDebug && debugOk);
+        Check("adapter: Play Integrity (Android) and App Attest (iOS) providers registered", text.Contains("PlayIntegrityProviderFactory.Instance") && text.Contains("AppAttestProviderFactory.Instance"));
+#if PAUSE_FIREBASE
+        // Fail soft: on a machine without the Firebase natives (the Mac editor) the adapter must not throw, just be unavailable.
+        try { var b = new FirebaseSharedBoard(); Check("adapter: constructs without throwing", true); Check("adapter: no crash reading state", !b.IsSignedIn || b.IsAvailable); }
+        catch (Exception e) { Check("adapter: constructs without throwing (" + e.GetType().Name + ")", false); }
+#endif
     }
 
     static void Context()

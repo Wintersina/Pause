@@ -21,6 +21,9 @@ dependencyResolutionManagement {
         maven {
             url "https://maven.google.com/" // Assets/Editor/AndroidxFragmentDependencies.xml:9, Assets/Editor/PlayBillingDependencies.xml:9, Assets/GoogleMobileAds/Editor/GoogleMobileAdsDependencies.xml:7, Assets/GoogleMobileAds/Editor/GoogleMobileAdsDependencies.xml:12, Assets/GoogleMobileAds/Editor/GoogleMobileAdsDependencies.xml:17, Assets/GoogleMobileAds/Editor/GoogleMobileAdsDependencies.xml:22, Assets/GoogleMobileAds/Editor/GoogleUmpDependencies.xml:7, Assets/GooglePlayGames/com.google.play.games/Editor/GooglePlayGamesPluginDependencies.xml:9
         }
+        maven {
+            url (unityProjectPath + "/Assets/GeneratedLocalRepo/Firebase/m2repository") // Assets/Firebase/Editor/AppCheckDependencies.xml:27, Assets/Firebase/Editor/AppDependencies.xml:25, Assets/Firebase/Editor/AuthDependencies.xml:23, Assets/Firebase/Editor/FirestoreDependencies.xml:23
+        }
         mavenLocal()
 // Android Resolver Repos End
         flatDir {

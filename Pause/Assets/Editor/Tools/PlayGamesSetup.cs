@@ -23,6 +23,10 @@ public static class PlayGamesSetup
 {
     public const string AppId = "528367766818";
 
+    // OAuth web-application client of Cloud project 528367766818, used for RequestServerSideAccess (shared
+    // leaderboard sign-in, docs/shared-leaderboard.md). Public id; the client secret lives only in the Firebase console.
+    public const string WebClientId = "528367766818-nvhorrce8pjv159o9rmltbukjb9nlglq.apps.googleusercontent.com";
+
     static readonly string[] Templates = { "mainTemplate.gradle", "settingsTemplate.gradle", "gradleTemplate.properties" };
 
     public static void Run()
@@ -31,7 +35,7 @@ public static class PlayGamesSetup
         try
         {
             EnableGradleTemplates();
-            if (!GooglePlayGames.Editor.GPGSAndroidSetupUI.PerformSetup(null, AppId, null))
+            if (!GooglePlayGames.Editor.GPGSAndroidSetupUI.PerformSetup(WebClientId, AppId, null))
                 throw new Exception("GPGS setup failed");
             Debug.Log("[GPGS] app id configured: " + AppId);
             Resolve();

@@ -23,10 +23,16 @@ Status: **phases 1 and 2 implemented, dormant** (backend rules + SDK-free client
 * **Platform mark:** each shared row shows a small generic mark by the name: a robot head (Android) or an apple (iOS). The panel's text stack is the legacy `UnityEngine.UI.Text` with Orbitron, which has no colour emoji (and no TextMeshPro emoji sprite asset is in the project), so the marks are 12 x 12 pixel-art sprites built at runtime (`PlatformMark`), drawn 24 units wide. They are not the Google, Android or Apple logos and never the Apple logo character.
 * **Platform field:** every document carries `platform` (`"android"` or `"ios"`). The rules require it to match the sign-in provider: `request.auth.token.firebase.sign_in_provider` is `playgames.google.com` for `android` and `gc.apple.com` for `ios` (`PlayGamesAuthProvider` / `GameCenterAuthProvider` provider ids; Firebase's ID token documentation lists `sign_in_provider` values). The backend writes it (`ISharedBoardBackend.Platform`), `SharedBoardLimits.PlatformOk` mirrors the rule, and `test-vectors.json` covers a wrong provider, a missing and an unknown platform. No migration: nothing is deployed yet.
 
+## SDK import (done in the import PR)
+
+* Firebase Unity SDK 13.17.1 from Google's `dl.google.com/firebase/sdk/unity/dotnet4/` .unitypackages (Auth, Firestore, AppCheck; Google publishes no UPM registry for Firebase). Vendored without the desktop natives, tvOS libs and pdbs, so the Mac editor cannot run Firebase and the adapter fails soft there (shared board off).
+* Analytics: the SDK's Android dependencies include `firebase-analytics`; `Assets/Plugins/Android/FirebasePrivacy.androidlib` turns collection off (`firebase_analytics_collection_deactivated`, `google_analytics_adid_collection_enabled`). iOS pulls no Analytics.
+* iOS App Check uses `AppAttestProviderFactory`; the debug provider is compiled only for the editor, `DEVELOPMENT_BUILD` and `PAUSE_DEV` (guarded by `SharedLeaderboardTest`).
+
 ## Enabling it (follow-up PR, after the console work)
 
 1. Import Firebase Unity SDK 13.17.x (Auth, Firestore, AppCheck only), bump EDM to 1.2.189, resolve, fix the Gradle collisions, strip the desktop native libs.
-2. Put `google-services.json` and `GoogleService-Info.plist` in `Pause/Assets/`, the web client id in `PlayGamesSettings.asset` (`mWebClientId`).
+2. Put `google-services.json` and `GoogleService-Info.plist` in `Pause/Assets/Firebase/Config/` (the Firebase editor tooling finds them anywhere under `Assets/`; done in the import PR), the web client id in `PlayGamesSettings.asset` (`mWebClientId`).
 3. Define `PAUSE_FIREBASE` for Android and iOS (Player settings, scripting define symbols).
 4. Deploy `firebase/firestore.rules`; build a signed release; check the App Check metrics; only then enforce App Check.
 
@@ -252,8 +258,8 @@ Firebase / Google Cloud console (I touch none of it):
 
 | File | Where | Commit? |
 |---|---|---|
-| `google-services.json` | `Pause/Assets/` | **Yes, safe.** It holds the API key and project / app ids; Firebase documents these as identifiers, not secrets. Protection is the key restrictions (item 9), the rules and App Check. |
-| `GoogleService-Info.plist` | `Pause/Assets/` | **Yes, safe**, same reasoning. |
+| `google-services.json` | `Pause/Assets/Firebase/Config/` | **Yes, safe.** It holds the API key and project / app ids; Firebase documents these as identifiers, not secrets. Protection is the key restrictions (item 9), the rules and App Check. |
+| `GoogleService-Info.plist` | `Pause/Assets/Firebase/Config/` | **Yes, safe**, same reasoning. |
 | Web OAuth client **id** | `PlayGamesSettings.asset` `mWebClientId` | Yes (public id). |
 | Web OAuth client **secret** | Firebase console only | **Never.** |
 | Service-account JSON, `firebase login:ci` token, any `FIREBASE_TOKEN` | not in the repo | **Never** (a GitHub secret only if the optional static-JSON job is ever built). |
