@@ -867,7 +867,7 @@ public class LeaderboardPanel : MonoBehaviour
         Anchor(name, NameLeft + markRoom, nameWidth - markRoom);
         string who = string.IsNullOrEmpty(e.playerName) ? "PILOT" : e.playerName.ToUpperInvariant();
         if (own && e.rank > 0) who = "YOU  " + who;
-        FitName(Label(name, who, NameSize, nameColor, TextAnchor.MiddleLeft, 2.5f), who, nameWidth - markRoom - (markRoom > 0f ? 14f : 4f));   // a marked row is cut a little shorter: wide CJK glyphs measured 1-2 px over at the 4-unit slack
+        FitName(Label(name, who, NameSize, nameColor, TextAnchor.MiddleLeft, 2.5f), who, markRoom > 0f ? (nameWidth - markRoom) * .85f - 4f : nameWidth - 4f);   // a marked row is cut 15% shorter: the fallback CJK glyphs of the shared rows rendered wider than measured in the narrower column
 
         if (!boosted)
         {
