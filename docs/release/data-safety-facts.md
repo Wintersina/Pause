@@ -113,3 +113,46 @@ grep -rnE "UnityWebRequest|HttpClient|WebClient|https?://" Assets/Scripts --incl
 grep -rlE "Analytics|Crashlytics|Firebase|Advertisement|UnityAds|UnityEngine.Purchasing|IStoreController|advertisingIdentifier|deviceUniqueIdentifier" Assets --include='*.cs'   # nothing
 grep -rn "OpenURL" Assets/Scripts --include='*.cs'                                                  # app-settings: only (iOS)
 ```
+
+## 4. Shared cross-platform leaderboard (added 2026-11-07, DRAFT, not entered in Play Console)
+
+**Stale warning.** Sections 1 to 3 above predate the ads, purchases and this feature (they say no ads, no purchases, no Firebase). The shared leaderboard changes the "no server, no developer-side account, no Firebase" conclusions: it adds Firebase Authentication, Cloud Firestore and App Check, with a HapticGate-owned Firebase project (US, `nam5`). The full Data safety form must be re-derived for the whole app (including AdMob); the rows below are only the leaderboard's additions. Anything marked **CONFIRM** is an uncertain mapping.
+
+Google's definitions (https://support.google.com/googleplay/android-developer/answer/10787469, fetched 2026-11-07):
+
+- **Collect**: "transmitting data from your app off a user's device."
+- **Share**: "transferring user data collected from your app to a third party." Exempt: **service providers** ("an entity that processes user data on behalf of the developer", following the developer's instructions), legal purposes, and fully anonymised data. Google/Firebase processing our Firestore rows is therefore **not** "sharing".
+- **Ephemeral**: only held in memory and kept "no longer than necessary to service the specific request" in real time. Stored leaderboard rows are not ephemeral.
+- **Required vs optional**: "Optional" includes "the ability to opt into or opt out of data collection."
+- **Public display to other users**: **that page does not address it** (checked). The page defines sharing only as transfer to a third party, so showing a row to other players of our own app is not on its face a "share". Treat as **CONFIRM** (see below). Also relevant: public rows are "user-generated content" only in Google's UGC *policy* sense if players write text; our name is copied from the platform profile and we collect no free text.
+- **Deletion**: https://support.google.com/googleplay/android-developer/answer/13327111 requires, for apps that let users create an account, an in-app deletion path plus a web link where users can request deletion, naming the app or developer, with a prominently featured pathway (link, email or form), no need to reinstall the app, and an anchor if inside a privacy policy. The Firebase account is created automatically on sign-in, so assume it counts. Satisfied by `#delete-leaderboard-data` on https://hapticgategames.com/privacy/ plus the in-app "Delete my shared scores".
+
+### Answers (leaderboard data only)
+
+| Data type (Google category > type) | What | Collected | Shared | Ephemeral | Required / optional | Purposes | Encrypted in transit | Deletion request |
+|---|---|---|---|---|---|---|---|---|
+| Personal info > Name | Display name from Play Games profile (nickname, up to 24 chars), shown publicly | Yes | No (Firebase = service provider). **CONFIRM:** public display to other players is not addressed by Google's definition; if Console review says public display counts, change to Yes | No | Optional (sign-in is optional; sharing is **on by default** and can be turned off, so it is opt-out) | App functionality; Account management (Firebase account) | Yes (TLS) | Yes |
+| Personal info > User IDs | Firebase uid linked to Play Games identity (also the Firestore doc id) | Yes | No | No | Optional (opt-out as above) | App functionality; Account management; Fraud prevention, security, and compliance (App Check) | Yes | Yes |
+| App activity > Other actions | Best runs: score, star dust, worlds cleared, ship, hearts, end hearts, pauses left, skin, power-ups used (gameplay) | Yes | No (same CONFIRM on public display) | No | Optional (opt-out) | App functionality | Yes | Yes |
+| App activity > App interactions | Already declared for Play Games scores/progress; the leaderboard adds nothing new beyond Other actions. **CONFIRM:** Google may expect gameplay under App interactions or Other actions; declare both is safe | Yes | No | No | Optional | App functionality | Yes | Yes |
+| App info and performance > Crash logs / Diagnostics / Other | Firebase Analytics collection is disabled; no Crashlytics or Performance Monitoring | No | n/a | n/a | n/a | n/a | n/a | n/a |
+| Device or other IDs | Firebase Installations id and App Check (Play Integrity) tokens go to Google to protect the service. **CONFIRM:** the Firebase "Data collected by Firebase" disclosure for Auth/Firestore/App Check/Installations; if it lists an app-instance id, declare Device or other IDs: collected Yes, shared No (service provider), purpose Fraud prevention, security, and compliance + App functionality | CONFIRM (likely Yes) | No | Not ephemeral | Optional | Fraud prevention, security, and compliance | Yes | Yes (deleted with the account, **CONFIRM**) |
+| Personal info > Email, Address, Phone, Race, Political, Religion, Sexual orientation, Other info | Not collected | No | n/a | n/a | n/a | n/a | n/a | n/a |
+| Location (approximate/precise) | Not collected by the game. Google servers see the IP address; Google lists no IP category. **CONFIRM** | No | n/a | n/a | n/a | n/a | n/a | n/a |
+
+Form-level answers affected:
+
+- "Does your app collect or share any of the required user data types?" Yes (already).
+- "All data encrypted in transit?" Yes.
+- "Do you provide a way for users to request data deletion?" Yes, and now **also enter the web deletion URL** in Play Console's account-deletion link field: https://hapticgategames.com/privacy/#delete-leaderboard-data (the console field is the owner's to fill; not touched here).
+- Privacy policy must state the sharing default, public visibility, retention (until deleted or requested) and the deletion path. See `privacy-policy.md`.
+- Third-party code now present beyond section 1: Firebase Authentication, Cloud Firestore, Firebase App Check (and Firebase Installations as a dependency). Google's Data Safety form is the developer's responsibility for SDK data as well.
+
+### CONFIRM list (this section)
+
+1. Whether public display of name/scores to other users counts as "shared" (Google's definition page is silent; ask Play Console support or compare to Play Games' own handling).
+2. Whether the opt-out default ("on by default, can turn off") may be declared "Optional" (definition says opt-in or opt-out qualifies; the Play Games sign-in itself is optional).
+3. Device or other IDs via Firebase Installations / App Check.
+4. IP address handling and category.
+5. App interactions vs Other actions for gameplay data.
+6. Whether Firebase deletes the Installations record when the Auth user is deleted.
