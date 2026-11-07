@@ -81,6 +81,10 @@ public static class ScreenFitScreens
         new FitScreen { id = "options-mute-on", fullBleed = true, scene = "leaderboardS3", title = "Options: SOUND: ON row", stage = r => Options(r, 5) },
         new FitScreen { id = "options-mute-off", fullBleed = true, scene = "leaderboardS3", title = "Options: SOUND: OFF row", stage = r => Options(r, 6) },
         new FitScreen { id = "leaderboard", fullBleed = true, scene = "leaderboardS3", title = "Leaderboard panel", stage = r => Options(r, 2) },
+        new FitScreen { id = "leaderboard-shared", fullBleed = true, scene = "leaderboardS3", title = "Leaderboard panel: shared board (platform marks, off-page own row)", stage = r => Options(r, 7) },
+        new FitScreen { id = "leaderboard-settings", fullBleed = true, scene = "leaderboardS3", title = "Leaderboard Settings modal (sync result)", stage = r => Options(r, 8) },
+        new FitScreen { id = "leaderboard-settings-confirm", fullBleed = true, scene = "leaderboardS3", title = "Leaderboard Settings modal: delete confirm step", stage = r => Options(r, 9) },
+        new FitScreen { id = "leaderboard-settings-deleted", fullBleed = true, scene = "leaderboardS3", title = "Leaderboard Settings modal: delete outcome (sharing off)", stage = r => Options(r, 10) },
         new FitScreen { id = "credits", fullBleed = true, scene = "creditsS7", title = "Credits", stage = Credits },
         new FitScreen { id = "dock", fullBleed = true, scene = "shopS6", title = "Space dock", stage = r => Dock(r, 0, false) },
         new FitScreen { id = "dock-popup-owned", fullBleed = true, scene = "shopS6", title = "Dock popup: owned ship, colours + weapon", stage = r => Dock(r, 8, false) },
@@ -354,11 +358,17 @@ public static class ScreenFitScreens
         rig.Sync();
         Add<DeveloperOptions>("~DeveloperOptions");
         Add<SoundOptions>("~SoundOptions");
+        Add<LeaderboardSettingsOptions>("~LeaderboardSettingsOptions");
         SafeAreaClamp.AttachAll("leaderboardS3");
         rig.Sync();   // it may change the canvas scaler
         SafeAreaClamp.AttachAll("leaderboardS3");
         rig.Sync();
         DevBadge(rig);
+        if (shot >= 7)
+        {
+            SharedShots(rig, shot);
+            return;
+        }
         if (shot == 2)
         {
             // Stage every board with stand-in ids so both tabs and all three sort headers are on screen
@@ -422,6 +432,151 @@ public static class ScreenFitScreens
             LeaderboardChecks(rig, panel);
             BoostedChecks(rig, panel);
         }
+    }
+
+    // ---- shared board and the Leaderboard Settings modal -----------------------------
+
+    // A shared service on a fake backend: 25 players on both platforms (long names, wide numbers), the local player far
+    // down the list (rank 0: no number) with a long name of their own.
+    static FakeSharedBoard StageShared(ScreenFitRig rig)
+    {
+        for (int t = 0; t < 2; t++) for (int c = 0; c < 3; c++) PlayerPrefs.DeleteKey(SharedLeaderboardService.CachePrefix + t + "_" + c);
+        PlayerPrefs.SetInt(SharedLeaderboardService.SharingKey, 1);
+        var fakeShared = new FakeSharedBoard();
+        for (int table = 0; table < 2; table++)
+        {
+            for (int i = 0; i < 25; i++)
+            {
+                var d = new SharedDoc
+                {
+                    name = i < LongNames.Length ? LongNames[i] : i % 2 == 0 ? "TETSUO" + i : "A_RATHER_LONG_PLAYER_NAME_" + i,
+                    platform = i % 2 == 0 ? SharedBoardLimits.Android : SharedBoardLimits.Ios,
+                };
+                var run = SharedRun.Blank();
+                run.score = 99999999 - i * 137;
+                run.dust = i % 2 == 0 ? 999999 - i * 1000 : 123456 - i * 100;
+                run.worlds = 99 - i;
+                run.ship = 1 + i % 9;
+                run.skin = i % 3;
+                run.hearts = 3;
+                run.endHearts = 0;
+                run.pauses = 1;
+                run.powerUps = table == 1 ? 1 + i % 3 : 0;
+                d.Offer(run);
+                fakeShared.Seed((SharedTable)table, "p" + i, d);
+            }
+            var mine = new SharedDoc { name = "KANEDA_THE_LONG_NAMED_PILOT", platform = SharedBoardLimits.Ios };
+            var low = SharedRun.Blank();
+            low.score = 100; low.dust = 100; low.worlds = 1; low.ship = 2; low.hearts = 3;
+            low.powerUps = table == 1 ? 1 : 0;
+            mine.Offer(low);
+            fakeShared.Seed((SharedTable)table, fakeShared.Uid, mine);
+        }
+        var svc = new SharedLeaderboardService(fakeShared, () => 0f)
+        {
+            PlatformSignedIn = () => true,
+            Disconnected = () => false,
+            PlayerName = () => "KANEDA",
+            UnixNow = () => 1700000000,
+        };
+        SharedLeaderboardService.Instance = svc;
+        return fakeShared;
+    }
+
+    static void SharedShots(ScreenFitRig rig, int shot)
+    {
+        var fakeShared = StageShared(rig);
+        var svc = SharedLeaderboardService.Instance;
+        if (shot == 7)
+        {
+            var panel = LeaderboardPanel.Open(LeaderboardService.Instance, null, new Vector2(rig.W, rig.H), rig.device.Safe, true, svc);
+            rig.Sync();
+            panel.SendMessage("Update");
+            rig.Ignore("Canvas");
+            if (!panel.SharedMode) rig.Fail("STAGE", "shared board", "the panel is not in shared mode");
+            foreach (string sort in new[] { LeaderboardBoards.TopScore, LeaderboardBoards.RunStarDust, LeaderboardBoards.FurthestWorld })
+            {
+                panel.SelectBoard(sort);
+                rig.Sync();
+                panel.SendMessage("Update");
+                rig.Ignore("Canvas");
+                LeaderboardChecks(rig, panel);
+                MainChecks(rig, panel, 3);
+                SharedRowChecks(rig, panel);
+            }
+            panel.SelectBoard(LeaderboardBoards.BoostedRuns);
+            rig.Sync();
+            panel.SendMessage("Update");
+            rig.Ignore("Canvas");
+            LeaderboardChecks(rig, panel);
+            BoostedChecks(rig, panel);
+            SharedRowChecks(rig, panel);
+            // Own row off the page: no rank number.
+            if (!panel.PlayerRowShown || panel.PlayerRankText != "#--") rig.Fail("STAGE", "shared board", "own row off the page should show no rank number (" + panel.PlayerRankText + ")");
+            return;
+        }
+        var modal = LeaderboardSettingsPanel.Open(null, new Vector2(rig.W, rig.H), rig.device.Safe, true);
+        rig.Sync();
+        modal.SendMessage("Update");
+        rig.Ignore("Canvas");
+        if (shot == 8) modal.SyncButton.onClick.Invoke();
+        if (shot == 9) modal.DeleteButton.onClick.Invoke();
+        if (shot == 10)
+        {
+            fakeShared.AuthDeleteSucceeds = false;
+            modal.DeleteButton.onClick.Invoke();
+            modal.ConfirmButton.onClick.Invoke();
+        }
+        rig.Sync();
+        modal.SendMessage("Update");
+        rig.Ignore("Canvas");
+        SettingsChecks(rig, modal, shot);
+    }
+
+    // Every shared row carries a platform mark that sits clear of the name.
+    static void SharedRowChecks(ScreenFitRig rig, LeaderboardPanel panel)
+    {
+        int marks = 0;
+        foreach (var img in panel.GetComponentsInChildren<Image>())
+        {
+            if (img.name != "Platform") continue;
+            marks++;
+            Rect icon = rig.PixelRect(img.rectTransform);
+            if (img.sprite == null) rig.Fail("LEADERBOARD", "platform mark " + img.transform.parent.name, "no sprite", icon);
+            float dp = icon.height / rig.device.pxPerPt;
+            if (dp < 9f) rig.Fail("LEADERBOARD", "platform mark " + img.transform.parent.name, "mark is only " + dp.ToString("F1") + " dp tall", icon);
+            var name = img.transform.parent.Find("Name");
+            var text = name != null ? name.GetComponent<Text>() : null;
+            Rect glyphs; float fontPx; bool truncated;
+            if (text == null || !rig.MeasureText(text, out glyphs, out fontPx, out truncated)) continue;
+            if (glyphs.xMin < icon.xMax - 1f)
+                rig.Fail("LEADERBOARD", "platform mark " + img.transform.parent.name, "name runs into the mark", glyphs);
+        }
+        if (marks < 10) rig.Fail("STAGE", "shared board", "only " + marks + " platform marks");
+    }
+
+    // The settings modal: four controls that are 100-unit targets, type at least 16 units, nothing cut.
+    static void SettingsChecks(ScreenFitRig rig, LeaderboardSettingsPanel modal, int shot)
+    {
+        foreach (var t in modal.GetComponentsInChildren<Text>())
+        {
+            if (t.resizeTextForBestFit ? t.resizeTextMinSize < 16 : t.fontSize < 16)
+                rig.Fail("LEADERBOARD", "settings " + t.name, "type under the 16-unit floor", rig.PixelRect(t.rectTransform));
+        }
+        foreach (var b in modal.GetComponentsInChildren<Button>())
+        {
+            var rt = (RectTransform)b.transform;
+            if (rt.rect.height < LeaderboardPanel.MinTapUnits - .1f)
+                rig.Fail("LEADERBOARD", "settings " + b.name, "tap target under 100 units", rig.PixelRect(rt));
+        }
+        if (modal.CloseButton == null || modal.SyncButton == null || modal.ShareButton == null)
+            rig.Fail("STAGE", "settings", "a control is missing");
+        if (shot == 9 && (modal.ConfirmButton == null || modal.CancelButton == null))
+            rig.Fail("STAGE", "settings", "the confirm step shows no CANCEL / DELETE");
+        if (shot == 10 && string.IsNullOrEmpty(modal.DeleteText))
+            rig.Fail("STAGE", "settings", "no delete outcome line");
+        if (shot == 8 && string.IsNullOrEmpty(modal.SyncText))
+            rig.Fail("STAGE", "settings", "no sync result line");
     }
 
     // The main tab: the sort headers (a 100-unit target, type >= 16 units, label whole inside its plate) and the number

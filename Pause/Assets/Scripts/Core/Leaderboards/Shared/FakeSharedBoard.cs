@@ -10,6 +10,9 @@ public sealed class FakeSharedBoard : ISharedBoardBackend
     public bool SignedIn = true;
     public bool SignInSucceeds = true;
     public string Uid = "uid-local";
+    // The platform this fake plays; its sign-in provider follows unless SignInProvider is set to test a mismatch.
+    public string PlatformId = SharedBoardLimits.Android;
+    public string SignInProvider;
     // When set, uploads and loads fail with this result instead (offline, denied, quota ...).
     public SharedResult? Fail;
     public bool AuthDeleteSucceeds = true;
@@ -28,6 +31,7 @@ public sealed class FakeSharedBoard : ISharedBoardBackend
     readonly List<Action> deferred = new List<Action>();
 
     public string BackendName { get { return "Fake"; } }
+    public string Platform { get { return PlatformId; } }
     public bool IsAvailable { get { return Available; } }
     public bool IsSignedIn { get { return Available && SignedIn; } }
     public string UserId { get { return IsSignedIn ? Uid : null; } }
@@ -57,11 +61,12 @@ public sealed class FakeSharedBoard : ISharedBoardBackend
         if (Fail.HasValue) { done(Fail.Value, null); return; }
         SharedDoc server = Get(table, Uid);
         bool changed;
-        var merged = SharedBoardMerge.Apply(server, overlay, name, out changed);
+        var merged = SharedBoardMerge.Apply(server, overlay, name, out changed, PlatformId);
         if (!changed) { done(SharedResult.Ok, merged); return; }
         double since = server == null ? double.MaxValue : Now - server.updatedAtMs / 1000.0;
-        bool allowed = server == null ? SharedBoardLimits.AllowCreate(merged, table)
-                                      : SharedBoardLimits.AllowUpdate(server, merged, table, since);
+        string provider = SignInProvider ?? SharedBoardLimits.ProviderFor(PlatformId);
+        bool allowed = server == null ? SharedBoardLimits.AllowCreate(merged, table, provider)
+                                      : SharedBoardLimits.AllowUpdate(server, merged, table, since, provider);
         if (!allowed) { done(SharedResult.Denied, null); return; }
         merged.updatedAtMs = (long)(Now * 1000.0);
         Docs[(int)table][Uid] = merged;

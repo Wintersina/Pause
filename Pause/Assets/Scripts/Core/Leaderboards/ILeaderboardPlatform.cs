@@ -81,6 +81,8 @@ public struct LeaderboardEntry
     // worlds boards. Only meaningful when hasScore; without it the cell is a dash.
     public bool hasScore;
     public long runScore;
+    // The shared board's platform mark: "android", "ios" or empty (native boards, older rows: no mark).
+    public string platform;
 }
 
 public sealed class LeaderboardPage
