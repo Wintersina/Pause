@@ -116,7 +116,7 @@ public static class SharedLeaderboardTest
               run.score == 5000 && run.dust == 1234 && run.worlds == 4 && run.ship == 7 && run.hearts == 4 && run.endHearts == 2
               && run.pauses == 3 && run.powerUps == 0);
         var boosted = SharedRun.From(Stats(5000, 12.34f, 4, 7, LeaderboardRunTag.PowerAll, 20.5f));
-        Check("model: a boosted run keeps all the dust it earned and its power-up bits", boosted.dust == 2050 && boosted.powerUps == LeaderboardRunTag.PowerAll);
+        Check("model: a boosted run keeps all the dust it earned and its power-up bits", boosted.dust == 2050 && boosted.powerUps == 3);
         var unknownEnd = SharedRun.From(new LeaderboardRunStats { score = 10, startShip = 3, startHearts = 3 });
         Check("model: no end hearts and no pauses are unknown (-1)", unknownEnd.endHearts == -1 && unknownEnd.pauses == -1);
 

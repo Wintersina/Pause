@@ -9,7 +9,7 @@ service cloud.firestore {
     function signedIn() { return request.auth != null; }
     function ofInt(v, lo, hi) { return v is int && v >= lo && v <= hi; }
 
-    // One run. `power` = the Power-Ups table (powerUps 1..7: dust, clear, homing bits); the main table needs powerUps 0.
+    // One run. `power` = the Power-Ups table (powerUps 1..3); the main table needs powerUps 0.
     // Ship 16 (Paragon, the premium ship) is never allowed. Ships up to 40 leave room for new ships
     // without a rules deploy.
     function validRun(r, power) {
@@ -24,7 +24,7 @@ service cloud.firestore {
         && ofInt(r.endHearts, -1, 20)
         && ofInt(r.pauses, -1, 99)
         && ofInt(r.skin, 0, 99)
-        && (power ? ofInt(r.powerUps, 1, 7) : r.powerUps == 0);
+        && (power ? ofInt(r.powerUps, 1, 3) : r.powerUps == 0);
     }
 
     // The three slots are bests over the same runs, so each slot's own metric dominates
