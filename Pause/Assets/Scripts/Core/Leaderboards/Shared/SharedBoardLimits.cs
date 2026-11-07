@@ -54,7 +54,7 @@ public static class SharedBoardLimits
             && In(r.endHearts, -1, MaxHearts)
             && In(r.pauses, -1, MaxPauses)
             && In(r.skin, 0, MaxSkin)
-            && (table == SharedTable.Power ? In(r.powerUps, 1, 3) : r.powerUps == 0);
+            && (table == SharedTable.Power ? In(r.powerUps, 1, LeaderboardRunTag.PowerAll) : r.powerUps == 0);
     }
 
     // The three slots are bests over the same runs, so each slot's own metric dominates the others' value of it.
