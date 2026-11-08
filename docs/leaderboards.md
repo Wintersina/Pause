@@ -1,12 +1,19 @@
 # Leaderboards
 
-Status: **live on Android once the Play Games project is published** (the three boards exist as drafts in the `me.hapticgate.pause` project,
+Status: **live on Android once the Play Games project is published** (the boards exist as drafts in the `me.hapticgate.pause` project,
 Cloud project 528367766818; Review and publish is still to do). **iOS: only Top Score has an id**; the Game Center boards are still to create.
 
 **2026-10: the Top Speed board is retired.** Speed is now capped at HUD 35 (`SpeedRamp.Cap`,
 `docs/speed-and-loops.md`), so a best speed ranks nothing. The board is gone from the table, nothing
 is submitted to it, and a value an older build left queued under `top_speed` is dropped the next time
 the queue is sent. See "Top Speed (retired)" below.
+
+**2026-11-08: the native boards are just two, Top Score and Boosted (Power-Ups).** The native Star Dust (`run_star_dust`) and Worlds
+(`furthest_world`) boards are retired: nothing is submitted, queued, backfilled or read back for them on Play Games or Game Center. Dust,
+worlds, ship, hearts and pauses are metadata on those rows (the score tag already carries them). Only the shared Firebase board can still
+be sorted by dust or worlds. The old Play Console boards can't be deleted: after the release they are **hidden in Play Console** and left
+unused (see "Retired Star Dust and Worlds boards" below). Board ids and `Season` are unchanged; the new boards and the Season bump come
+later, after release.
 
 ## Shared board
 
@@ -38,17 +45,17 @@ fires. While the player is signed out in Pause (`AccountLink.Disconnected`, Paus
 
 ### Boards
 
-The table order is the panel's column order (SCORE, DUST, WORLDS; see "Unified panel"): **Top Score** is the primary board and comes first.
+The table order is the panel's tab order: **Top Score** is the primary board and comes first. The table (`LeaderboardBoards.All`) holds **two** boards, Top Score and Boosted. The panel's DUST and WORLDS columns are descriptors in `LeaderboardBoards.SharedOnlyColumns` (no store ids, so never enabled, submitted or queued).
 
 | Logical id | Name | Android id | iOS id | Sort | Format | Status |
 |---|---|---|---|---|---|---|
 | `top_score` | Top Score | `CgkIopqxqbAPEAIQPg` | `me.hapticgate.pause.top_score` | higher is better | integer with thousands separators (`RunScore.Total`, see `Scripts/Core/Scoring/ScoreRules.cs`) | enabled on Android and iOS |
 | ~~`top_speed`~~ | ~~Top Speed~~ | (retired) | (retired) | | | **retired** (2026-10, the speed cap): not in the table, `LeaderboardBoards.RetiredSpeedBoard` only names it so old queues drop it |
-| `run_star_dust` | Star Dust | `CgkIopqxqbAPEAIQPw` | empty (proposed `me.hapticgate.pause.run_star_dust`) | higher is better | hundredths shown with 2 decimals | enabled on Android; off on iOS until its Game Center id is filled in |
-| `furthest_world` | **Worlds** (logical id kept; was "Furthest Loop") | `CgkIopqxqbAPEAIQQA` (console name still "Furthest Loop"; lowest 1, no highest limit, see "Worlds cleared") | empty (proposed `me.hapticgate.pause.furthest_world`) | higher is better | `LOOP L · WORLDS N` | enabled on Android; off on iOS until its Game Center id is filled in |
+| ~~`run_star_dust`~~ | ~~Star Dust~~ | ~~`CgkIopqxqbAPEAIQPw`~~ | (never created) | | | **retired native board** (2026-11-08): not in `All`. The id survives only as the DUST column / shared-board id (`LeaderboardBoards.DustColumn`, no store ids, never enabled) and as the name the device migration drops |
+| ~~`furthest_world`~~ | ~~Worlds~~ | ~~`CgkIopqxqbAPEAIQQA`~~ (console name "Furthest Loop") | (never created) | | | **retired native board** (2026-11-08), same as above (`WorldsColumn`) |
 | `boosted_runs` | **Boosted** (Power-Ups board) | `CgkIopqxqbAPEAIQQg` | empty (Game Center cannot carry the columns) | higher is better | integer with thousands separators (`RunScore.Total`) | **off** on iOS (no Game Center id); live on Android |
 
-**Worlds cleared (value and label).** The submitted number is the TOTAL worlds the run cleared, across loops (one loop = the 7-world cycle).
+**Worlds cleared (value and label; used for the shared board and the row cells now).** The submitted number is the TOTAL worlds the run cleared, across loops (one loop = the 7-world cycle).
 A world is *cleared* when its portal / planetfall / the last world's lift-off is flown, the same event that pays the world-cleared points
 (`WorldManager.Advance` -> `RunScore.OnWorldCleared`; counted in `RunScore.Parts.worldCount`, only while the run is scoring). Entering a
 world is not clearing it, so the achievement counters (`OnWorldEntered`, `OnWorldCleared`, `OnLoop`) are untouched. A run that cleared 0 is
@@ -60,9 +67,11 @@ The label is derived from the stored number alone (`LeaderboardBoards.FormatWorl
 7 -> `LOOP 1 · WORLDS 7` (loop 1 complete), 8 -> `LOOP 2 · WORLDS 8`, 14 -> `LOOP 2 · WORLDS 14`, 15 -> `LOOP 3 · WORLDS 15`. The panel
 draws the two halves on two lines (no dot glyph needed). Rank is the number itself (higher is better; ties are the store's order).
 
-*Local migration.* The board used to hold the loop reached (1, 2, 3 ...). `LeaderboardService.MigrateWorldsBoard` (run once from `Install`) drops
-the device's queued / submitted marks for `furthest_world`, because a mark is only a "this device already sent it" note and an old loop number
-would read as a worlds count. Nothing real is lost (the board was an unpublished draft, and there is no other local "best loop").
+*Local migration.* `LeaderboardService.MigrateRetiredBoards` (run at every `Install`, replacing the old `MigrateWorldsBoard`) removes the device's
+queued and confirmed marks for `run_star_dust` and `furthest_world` from both score tables. A mark is only a "this device already sent it" note
+or a queued send; with no usable board they would never go out, and `Flush` would also drop a stale queue entry for an unusable board. Local bests are per route
+(score), not per board, so nothing else needs dropping. `SyncNow`, the account backfill and `Offer` all go through `Usable(board)`, so the retired
+ids are refused everywhere. The worlds / dust numbers of past runs still reach the shared board through the score tag of the Top Score mark.
 
 *Store clamp.* The Play Console board has no highest limit (lowest 1). Should a store board ever carry an upper limit, a value above it is refused: the read-back shows the old value, the client keeps the
 value queued and the local best, retries with the usual backoff, and after `MaxRejectedSends` (8) refused sends logs a warning and stops sending that
@@ -119,7 +128,7 @@ opens the store's own screen. The panel follows `docs/art-style.md`: flat chamfe
 
 A fourth board, **Boosted** (logical id `boosted_runs`; this page calls it the Power-Ups board), holds the runs that used a paid **booster**. It is the other half of an exclusive split:
 
-* A run that used a booster is submitted **only** to Power-Ups. Any other run is submitted **only** to Top Score, Star Dust and Worlds. Paragon stays on no board, including this one.
+* A run that used a booster is submitted **only** to Power-Ups. Any other run is submitted **only** to Top Score (its dust and worlds ride in the tag). Paragon stays on no board, including this one.
 * "Booster" means the three Shop boosters (`Boosters.cs`): **Dust x2**, **Hazard Clear** and **Homing Atoms**. Ship powers, ultimates, in-run pickups and the double-dust ad are not boosters.
 * A run counts as boosted when Dust x2 was active on at least one unfrozen frame of real flight (`Boosters.RunDustUsed`, set in `Boosters.Tick`, so it stays set when the time runs out mid-run), or when a Hazard Clear charge fired (`HazardClear.UsedThisRun > 0`), or when Homing Atoms time was spent the same way (`Boosters.RunHomingUsed`). Owning booster time or a held charge does not count. `LeaderboardRunTracker` latches the bits for the run (`powerUps`: 1 = Dust x2, 2 = Clear, 4 = Homing) at every sample, so they cannot reset mid-run.
 * Routing lives in `LeaderboardService.SubmitRun`: `board.poweredUpOnly != run.PoweredUp` skips the board. The live "NEW RECORD" popup (`NewRecordTracker.Poll`) applies the same split.
@@ -147,14 +156,14 @@ Play Console, Pause, Play Games Services, Setup and management, Leaderboards, **
 
 ## Unified panel (two tabs, sortable columns)
 
-The panel has **two tabs**: **MAIN** (non-boosted runs) and **POWER-UPS** (the Boosted board above). MAIN is one table with three sort headers, **SCORE** (default), **DUST**, **WORLDS**. The store boards are still three (Top Score, Star Dust, Worlds); only the UI merges them.
+The panel has **two tabs**: **MAIN** (non-boosted runs) and **POWER-UPS** (the Boosted board above). MAIN is one table with three columns, **SCORE** (default), **DUST**, **WORLDS**. **Native mode** (Play Games / Game Center fallback) has one store board behind MAIN (Top Score), so it ranks by score only: the DUST and WORLDS headers are drawn **disabled** (greyed, taps ignored, `Button.interactable` false) with the note "SORT DUST / WORLDS ON THE SHARED BOARD" (`LeaderboardPanel.NativeSortNote`, shrunk to 16 units if needed) under the tabs; rows still show dust, worlds, ship, hearts and pauses from the tag. **Shared mode** is unchanged: all three headers sort (one Firebase column each).
 
 * **Sorting loads a board.** Tapping a header calls `SelectBoard(<that column's board>)`: the panel loads THAT store board and shows its real ranks. Rows are never re-sorted on the client (a page is only the top 10 of one stat, so that could show a wrong #1). The active header is marked (red plate with an ink shadow, bone type; the others are card-coloured). A newer tap supersedes an older load (`request` token), so a late answer is ignored. The MAIN tab remembers its last sort across a visit to Power-Ups. The native UI ("VIEW ALL") opens the currently selected board.
 * **Each row shows three numbers from one run.** The score tag carries them: every normal-board run writes `d<dust hundredths>w<worlds>r<run score>` after `k` (e.g. `s7h4e2p3k2d123456w12r987654`), whichever of the three boards the row is on, so a row on the Dust or Worlds board knows its score. Powered-up runs still write `d`, `w`, `u` and no `r` (their score is the board value). `r` is capped at 9,999,999,999 (`LeaderboardRunTag.MostScore`). Worst case with every field at its real maximum (`u` and `r` together, which a real run never does) is under 50 characters; the widest string the parser accepts is 53; Play Games allows 64 (`UnifiedLeaderboardTest` pins the maxed normal and Power-Ups runs). Old tags parse (no `r`, `HasRunScore` false); a reader that predates `r` skips it.
 * **A sorted cell is the board's own value; the other two come from the tag.** No tag (an old row, or a store that keeps none) shows the board's own value and a dash (`-`) in the other cells. **No backfill, no merging rows across boards.** A tie that carries the run columns replaces an older tag without them (`Supersedes`), so a tied personal best gains its columns; the player's own row is also filled from the device-kept record of the same value (`FillOwnTag`).
 * **Cells.** SCORE: full number (`9,000`), compact (`1.2M`) only if the full one does not fit at 16 units. DUST: whole dust in the compact form the Power-Ups rows use (`999`, `1.2K`, `12K`, `1M`). WORLDS: a plain number (no `LOOP L . WORLDS N`). Three 100-unit columns, right-aligned, on the right of the row. Row: rank, ship, name, cells. **Hearts and pauses are not side columns:** with three 100-unit columns the name column at 626.7 units is 546.7 - 130 - 14 - 6 - 300 = 96.7, so two more columns would leave the name about 5 units. They sit on a **run line** under the name instead (below). Type is 16 units or more everywhere. Rows are 52 units on a 58 step so the ten rows still fit the design height under the new 100-unit header band.
 * **Tap targets.** Tabs: 80 art + 2 x 10 touch margin. Headers: 48 art + 2 x 26 touch margin = 100 units tall, and each is as wide as its 100-unit column. The ScreenFit `leaderboard` sheet stages every board on every test device and checks the headers, the cells (whole, in their column, aligned, 16 units or more) and the rows on each sort and on the Power-Ups tab.
-* **Platforms.** A header whose board has no id on the platform is not offered, and cells follow the headers. **iOS:** only Top Score has an id, so MAIN shows just SCORE (one column) and there is no Power-Ups tab; Game Center returns no tag for other players, so their rows have only the score and the own row is filled from the device record. When Dust and Worlds get Game Center ids their headers appear on their own, with dashes for other players.
+* **Platforms.** Same on Android and iOS: SCORE live, DUST and WORLDS disabled. **iOS:** only Top Score has an id (Boosted stays off: no Power-Ups tab, `iosId` empty); Game Center returns no tag for other players, so their rows have only the score (dashes in the other cells) and the own row is filled from the device record. The old plan to give Dust and Worlds Game Center ids is dropped.
 * **Tests:** `UnifiedLeaderboardTest` (tags, panel, season), plus the updated `LeaderboardTest` / `PowerUpsLeaderboardTest`.
 
 ## Season reset (dormant)
@@ -162,7 +171,7 @@ The panel has **two tabs**: **MAIN** (non-boosted runs) and **POWER-UPS** (the B
 A leaderboard "season" is a set of store boards. The plan for a fresh start with no carryover and only the latest build able to see it: **new store boards with new ids**; old builds keep writing to the old boards and cannot see the new ones (there is no force-update). This change builds only the device half, and leaves it dormant.
 
 * `LeaderboardBoards.CurrentSeason = 1` (`FirstSeason = 1`). The device stores `leaderboards_season` (`LeaderboardService.SeasonKey`); **no stored season counts as 1**, so at the shipped value nothing is ever wiped and no key is written.
-* `LeaderboardService.MigrateSeason()` runs once at `Install` (like `MigrateWorldsBoard`). When the stored season is behind the constant it: deletes the submitted and pending score tables (every board); **sets** `NormalBestKey` and `BoostedBestKey` to 0 (set, not deleted: a missing normal best is re-seeded from `RunScore.SavedBest`, which would hand the old best back, including after a reinstall that restores only the cloud save); and stores the new season. A stored season ahead of the constant (a downgrade) is left alone.
+* `LeaderboardService.MigrateSeason()` runs once at `Install` (like `MigrateRetiredBoards`). When the stored season is behind the constant it: deletes the submitted and pending score tables (every board); **sets** `NormalBestKey` and `BoostedBestKey` to 0 (set, not deleted: a missing normal best is re-seeded from `RunScore.SavedBest`, which would hand the old best back, including after a reinstall that restores only the cloud save); and stores the new season. A stored season ahead of the constant (a downgrade) is left alone.
 * **Backfill.** `BindAccount` offers only the submitted marks (now empty) and the normal local best (now 0), so pre-reset bests are never offered to a new board. `BoundPlayerKey` is left alone. Reinstall: the local best key is gone and the season key too, so the migration runs at the next launch and pins the best to 0 before the cloud save lands (the best is device-local, never part of the cloud save). Fresh installs end correct (best 0, season stored).
 * **Untouched:** `RunScore.SavedBest` (the personal best). Top Score's NEW RECORD popup keeps using it (`RunScore.BestAtStart`), so after a reset it fires only above the old personal best. The popups for the other boards compare against the submitted / pending tables, which a reset empties: no baseline means no popup (a first run never fires), until the player has a submitted score in the new season.
 * **Follow-up PR, once the new boards exist in Play Console / App Store Connect:** replace the Android / iOS ids of the affected boards in `LeaderboardBoards` and **bump `CurrentSeason` to 2 in the same change and the same release** (new ids without the bump would offer old bests to the new boards; the bump without new ids would wipe local state for nothing). Check: the new boards' limits and sort order, `UnifiedLeaderboardTest` still green with the override at the new value, and that an older build's boards are left as they are.
@@ -217,11 +226,8 @@ Play Console id: its iOS id is already in.
      `Pause/Assets/Scripts/Core/Leaderboards/LeaderboardBoards.cs`. Don't reuse the
      speed board's id: it is a different metric. The board turns on, and becomes the first tab, as soon
      as that string is filled in. Run `AllTests.RunAll`.
-3. For each placeholder you want live, choose **Add leaderboard**:
-   * Star Dust: Numeric, **2 decimal places**, larger is better. The game sends hundredths, so 1234
-     shows as 12.34.
-   * Worlds (the existing `furthest_world` board `CgkIopqxqbAPEAIQQA`, ids are kept): name "Worlds cleared", description "Most worlds cleared in a single run, across loops", Numeric integer (0 decimals), larger is better, **lowest 1, no highest limit** (in the console it is still named "Furthest Loop"; do not recreate it).
-   * Turn tamper protection on for each one.
+3. **Boosted (Power-Ups)** is the only other native board (`CgkIopqxqbAPEAIQQg`, a draft until published). Numeric, 0 decimals, larger is better, tamper protection on.
+   Do **not** create Star Dust or Worlds boards: they are retired (below).
 4. Copy each new id (*Get resources*) into `LeaderboardBoards`.
 5. **Publish** the Play Games Services changes. Until they're published, only the tester accounts
    listed in *Testers* can see the boards.
@@ -241,14 +247,17 @@ Play Console id: its iOS id is already in.
    * Add an **English localization**: display name "Top Score", format "Integer", suffix " pts" (or none).
    The game already sends to this id; nothing needs changing in code for iOS. (The board stays off in
    the game until the Play Console id is in too, because a board is enabled per platform by that platform's own id.)
-3. For each placeholder, create a leaderboard the same way:
-   * `me.hapticgate.pause.run_star_dust`: score format *Fixed point, to 2 places*, High to low
-   * `me.hapticgate.pause.furthest_world` ("Worlds cleared"): Integer, High to low, score range 1 to 9999 (the value is the total worlds cleared across loops, so it exceeds 7 once a run loops)
-   Then copy the ids into `LeaderboardBoards`.
-   (Adding a world later changes how many worlds a loop holds in the game but not the stored numbers; `LeaderboardBoards.WorldsPerLoop` and its
-   test are the deliberate switch for the `LOOP L` label.)
+3. Game Center only ever gets Top Score. Do not create `run_star_dust` or `furthest_world` leaderboards, and Boosted stays off on iOS.
 4. Attach the leaderboards to the app version (the Game Center section of the version page; put Top Score first so it is the default board) and
    submit them with the next build. Sandbox/TestFlight accounts can use them before release.
+
+## Retired Star Dust and Worlds boards (Play Console)
+
+The native Star Dust (`CgkIopqxqbAPEAIQPw`) and Worlds (`CgkIopqxqbAPEAIQQA`, console name "Furthest Loop") boards stop receiving scores with
+this change. Play Console cannot delete a published leaderboard, so **after the release is live, hide both boards in Play Console** (Play Games
+Services -> Leaderboards -> the board -> hide / unlist) and leave them unused. Builds from before this change keep writing to them until players update;
+that is harmless. The game never reads them back. The new boards and the Season bump (docs "Season reset") are a later PR, after release; they will be
+Top Score + Power-Ups only.
 
 ## Top Speed (retired)
 

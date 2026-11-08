@@ -136,6 +136,11 @@ public static class LeaderboardBoards
     public static void OverrideSeasonForTests(int? season) { overrideSeason = season; }
 
     public const string TopScore = "top_score";
+    // RETIRED native boards (2026-11-08). The Star Dust and Worlds boards no longer exist in `All`: nothing is submitted,
+    // queued, backfilled or read back for them on Play Games or Game Center, and the old store boards are simply left
+    // unused (they can't be deleted; hide them in Play Console). The two ids live on as (1) the column ids of the shared
+    // Firebase board and of the panel's DUST / WORLDS headers (SharedOnlyColumns below) and (2) the names the device
+    // migration drops from the saved queues (LeaderboardService.MigrateRetiredBoards).
     public const string RunStarDust = "run_star_dust";
     public const string FurthestWorld = "furthest_world";
     // Runs that used a booster (Dust x2 / Hazard Clear), ranked by run score. Its star dust, worlds and power-ups
@@ -157,6 +162,18 @@ public static class LeaderboardBoards
     static LeaderboardBoard[] overrideAll;
     public static void OverrideForTests(LeaderboardBoard[] boards) { overrideAll = boards; }
 
+    // Column descriptors for the panel's DUST and WORLDS headers and for the shared board. They are NOT native boards:
+    // both store ids are empty, so they are never Enabled / Usable and never in `All`. Get() still finds them.
+    public static readonly LeaderboardBoard DustColumn = new LeaderboardBoard(RunStarDust, "", "", "Star Dust",
+        "Most star dust collected in a single run.", LeaderboardSort.HigherIsBetter, FormatHundredths,
+        run => (long)Math.Round(run.starDust * 100.0), 1);
+    public static readonly LeaderboardBoard WorldsColumn = new LeaderboardBoard(FurthestWorld, "", "", "Worlds",
+        "Most worlds cleared in a single run, across loops.", LeaderboardSort.HigherIsBetter, FormatWorlds,
+        run => Math.Max(0, run.worldsCleared), 1);
+    public static readonly LeaderboardBoard[] SharedOnlyColumns = { DustColumn, WorldsColumn };
+
+    public static bool IsRetiredNative(string id) { return id == RunStarDust || id == FurthestWorld; }
+
     static readonly LeaderboardBoard[] table =
     {
         // The primary board. Android id from Play Console (Get resources).
@@ -169,32 +186,6 @@ public static class LeaderboardBoards
             FormatScore,
             run => run.score,
             1),   // a 0-score run is never offered
-
-        // Live on Android; the Game Center ids are still to be created (empty = off on iOS).
-        new LeaderboardBoard(RunStarDust,
-            "CgkIopqxqbAPEAIQPw",   // Play Console id
-            "",   // proposed: me.hapticgate.pause.run_star_dust
-            "Star Dust",
-            "Most star dust collected in a single run.",
-            LeaderboardSort.HigherIsBetter,
-            FormatHundredths,
-            run => (long)Math.Round(run.starDust * 100.0),   // stored in hundredths (2 decimals)
-            1),   // 0.00 star dust is never offered
-
-        // Worlds cleared across loops (logical and store ids kept from the old
-        // "Furthest Loop" board; only the meaning changed). The Play Console
-        // board has lowest limit 1 and no highest limit
-        // (docs/leaderboards.md, "Worlds cleared"). Lowest 1: a run that
-        // cleared no world is never offered.
-        new LeaderboardBoard(FurthestWorld,
-            "CgkIopqxqbAPEAIQQA",   // Play Console id (same id as the old Furthest Loop board)
-            "",   // proposed: me.hapticgate.pause.furthest_world
-            "Worlds",
-            "Most worlds cleared in a single run, across loops.",
-            LeaderboardSort.HigherIsBetter,
-            FormatWorlds,
-            run => Math.Max(0, run.worldsCleared),
-            1),
 
         // Powered-up runs only (docs/leaderboards.md, "Power-Ups board"). Live on Android; the iOS id stays empty on purpose
         // (Game Center cannot carry the columns), so the board has no tab and nothing is submitted or queued for it on iOS.
@@ -213,6 +204,7 @@ public static class LeaderboardBoards
     public static LeaderboardBoard Get(string id)
     {
         foreach (var b in All) if (b.id == id) return b;
+        foreach (var b in SharedOnlyColumns) if (b.id == id) return b;
         return null;
     }
 

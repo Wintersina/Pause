@@ -139,6 +139,7 @@ public static class PowerUpsLeaderboardTest
         Check("real table: its Android id is the Play Console id and its iOS id is empty, so it is on for Android only",
               real.androidId == "CgkIopqxqbAPEAIQQg" && real.iosId == "" && real.EnabledOn(false) && !real.EnabledOn(true));
         Check("real table: no other board is powered-up only", CountPoweredOnly() == 1);
+        Check("real table: just two native boards, Top Score then Power-Ups", LeaderboardBoards.All.Length == 2 && LeaderboardBoards.All[0].id == LeaderboardBoards.TopScore);
         bool iosTab = false;
         foreach (var b in LeaderboardBoards.All) iosTab |= b.poweredUpOnly && b.EnabledOn(true);
         Check("real table: no iOS tab for it", !iosTab);

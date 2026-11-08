@@ -26,6 +26,9 @@ public static class NewRecordTest
     {
         fails = 0;
         using var sandbox = new TestHarness.Sandbox();
+        // The tracker is generic over whatever boards are enabled. The real table only has Top Score and Power-Ups now
+        // (Star Dust / Worlds are retired natively), so the multi-board checks run on a table of their own.
+        LeaderboardBoards.OverrideForTests(Table());
         try
         {
             Wording();
@@ -39,12 +42,26 @@ public static class NewRecordTest
         }
         finally
         {
+            LeaderboardBoards.OverrideForTests(null);
             ClearTables();
             DestroyPopup();
             moveBackGround.speed = 0f;
         }
         Debug.Log("[NRC] failures: " + fails);
         return fails;
+    }
+
+    static LeaderboardBoard[] Table()
+    {
+        return new[]
+        {
+            new LeaderboardBoard(LeaderboardBoards.TopScore, "CgkTestTop", "", "Top Score", "s", LeaderboardSort.HigherIsBetter,
+                LeaderboardBoards.FormatScore, r => r.score, 1),
+            new LeaderboardBoard(LeaderboardBoards.RunStarDust, "CgkTestDust", "", "Star Dust", "d", LeaderboardSort.HigherIsBetter,
+                LeaderboardBoards.FormatHundredths, r => (long)System.Math.Round(r.starDust * 100.0), 1),
+            new LeaderboardBoard(LeaderboardBoards.FurthestWorld, "CgkTestWorlds", "", "Worlds", "w", LeaderboardSort.HigherIsBetter,
+                LeaderboardBoards.FormatWorlds, r => System.Math.Max(0, r.worldsCleared), 1),
+        };
     }
 
     static void ClearTables()
