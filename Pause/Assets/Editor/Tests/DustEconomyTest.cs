@@ -66,7 +66,7 @@ public static class DustEconomyTest
         Check("elites pay through AwardRewardDust", File.ReadAllText("Assets/Scripts/Gameplay/Elites/EliteFx.cs").Contains("score.AwardRewardDust(def.Dust)"));
         Check("base reward constants unchanged", ScoreRules.EliteDownDust == BaseElite && Mathf.Approximately(ScoreRules.DustPerDistance, BaseFlightPerDistance) &&
               ScoreRules.ScoreDustPerSqrtPoint == BaseBonusPerSqrt && ScoreRules.ScoreDustCap == BaseBonusCap);
-        Check("shop prices unchanged", shopingShips.Prices[2] == 1200f);
+        Check("shop prices unchanged", shopingShips.Prices[2] == 300f && shopingShips.Prices[8] == 500f);
         int mid = ShipId.Starter, mid2 = 0, last = 0, para = 0;
         foreach (int id in ShipId.All)
         {

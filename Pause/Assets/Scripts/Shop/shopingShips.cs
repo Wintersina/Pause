@@ -119,8 +119,8 @@ public class shopingShips : MonoBehaviour {
     // Prices, exposed so the shop buttons can show them before you tap in.
     public static readonly float[] Prices =
     {
-        0f, 0f, 1200f, 2900f, 4550f, 6600f, 9100f, 12000f,
-        1650f, 2050f, 2500f, 3350f, 3700f, 4100f, 4950f, 6150f,
+        0f, 0f, 300f, 2900f, 4550f, 6600f, 9100f, 12000f,
+        500f, 2050f, 2500f, 3350f, 3700f, 4100f, 4950f, 6150f,
         // 16 Paragon: no dust price (a real-money IAP ship, PremiumShips);
         // 0 here is never shown or charged: TryPurchase refuses it.
         0f,

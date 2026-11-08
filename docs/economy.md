@@ -1,6 +1,6 @@
 # Star dust economy
 
-Star dust is a float (`StarDustLedger`, saved as `PlayerCurrecny`). Shop prices (ships 1,200-12,000, skins 350-1,700 per colour and 850-4,300 per Special by dock row, `ShipSkins.RowPrices`)
+Star dust is a float (`StarDustLedger`, saved as `PlayerCurrecny`). Shop prices (ships 300-12,000, Volt Viper 300 and Lightning 500 being the entry ships, skins 350-1,700 per colour and 850-4,300 per Special by dock row, `ShipSkins.RowPrices`)
 and saved balances are unchanged.
 
 ## The dial
