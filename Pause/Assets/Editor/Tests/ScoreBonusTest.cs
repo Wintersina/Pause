@@ -73,7 +73,7 @@ public static class ScoreBonusTest
             Debug.Log("[BONUS] score " + sc + " -> +" + ScoreRules.ScoreDustBonus(sc).ToString("F2") + " star dust");
         Check("small: 400 points -> 0.24 (0.40 x 0.60), a whole first pass (6,645) -> the 0.90 cap",
               Mathf.Approximately(ScoreRules.ScoreDustBonus(400), .24f) && Mathf.Approximately(ScoreRules.ScoreDustBonus(6645), .9f));
-        Check("a top-up, not an income: the cap is under 1% of the cheapest ship (600)",
+        Check("a top-up, not an income: the cap is under 1% of the cheapest ship (300)",
               ScoreRules.ScoreDustCap <= shopingShips.Prices[2] * .01f);
     }
 

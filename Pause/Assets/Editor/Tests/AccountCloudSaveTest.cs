@@ -640,8 +640,8 @@ public static class AccountCloudSaveTest
     // H4: a purchase on one device is paid for from the other's balance, never refunded.
     static void PurchasesStayPaidAcrossDevices()
     {
-        // B bought ship 2 (price 1200) earlier: 3000 -> 1800. A is newer but never saw it (3000).
-        var b = Snap(1000, 1800f, new[] { 1, 2 }, 2, 0f, 0, 0, true);
+        // B bought ship 2 (price 300) earlier: 3000 -> 2700. A is newer but never saw it (3000).
+        var b = Snap(1000, 2700f, new[] { 1, 2 }, 2, 0f, 0, 0, true);
         var a = Snap(2000, 3000f, new[] { 1 }, 1, 0f, 0, 0, true);
         var m = ProgressMerge.Merge(a, b);
         Check("economy: ship bought on the older device is deducted from the newer balance",
