@@ -174,8 +174,9 @@ public static class Codex
         seenOrder.Add(id);
         PlayerPrefs.SetString(PrefsKey, string.Join(",", seenOrder));
         var found = Find(id);
-        // Star dust for the first discovery, marked paid in the same write (see PaidKey).
-        PayDiscovery(found);
+        // Star dust for the first discovery, marked paid in the same write (see PaidKey). Atoms are the exception:
+        // they stay pending, so the player collects them in the Codex (COLLECT) like the combos and the songs.
+        if (!PaysOnCollect(found)) PayDiscovery(found);
         if (found.category != CodexCategory.Log)
         {
             LoadNew();
@@ -219,10 +220,16 @@ public static class Codex
         seen.Add(trackId);
         seenOrder.Add(trackId);
         PlayerPrefs.SetString(PrefsKey, string.Join(",", seenOrder));
-        int dust = PayExtra(trackId);   // star dust for a first song / backdrop (CodexPayout.ForExtra)
+        // A song waits for COLLECT (its dust is pending); a backdrop still pays on the spot (CodexPayout.ForExtra).
+        bool song = IsSongId(trackId);
+        int dust = song ? 0 : PayExtra(trackId);
         PrefsSaver.MarkDirty();
-        if (dust > 0 && Application.isPlaying && SceneManager.GetActiveScene().name == "gameS1")
-            CodexToast.Announce(CodexToast.EntryHeading + "   +" + dust + " STAR DUST", trackId.StartsWith(CodexBackdrops.Prefix, StringComparison.Ordinal) ? "NEW BACKDROP" : "NEW MUSIC", null);
+        RaiseNewChanged();
+        if (Application.isPlaying && SceneManager.GetActiveScene().name == "gameS1")
+        {
+            if (song && CodexPayout.ForExtra(trackId) > 0) CodexToast.Announce(CodexToast.EntryHeading, "NEW MUSIC - COLLECT IN CODEX", null);
+            else if (dust > 0) CodexToast.Announce(CodexToast.EntryHeading + "   +" + dust + " STAR DUST", "NEW BACKDROP", null);
+        }
         return true;
     }
 
@@ -486,7 +493,7 @@ public static class Codex
         {
             int n = 0;
             foreach (CodexCategory c in Enum.GetValues(typeof(CodexCategory))) n += PendingIn(c);
-            return n;
+            return n + PendingComboCount + PendingMusicCount;
         }
     }
 
@@ -507,7 +514,7 @@ public static class Codex
     // Collects every pending reward.
     public static int CollectAllRewards()
     {
-        return CollectWhere(e => true);
+        return CollectWhere(e => true) + CollectCombos() + CollectMusic();
     }
 
     // Marks the entries paid and grants the dust in the same write batch, then saves once: a kill in between
@@ -557,23 +564,101 @@ public static class Codex
         return dust;
     }
 
-    // A combo (atomic fusion) fired for the first time: its dust, once, with the popup. Returns the dust paid.
-    public static int PayFusion(FusionDef f)
+    // A combo (atomic fusion) fired for the first time: it is NOT paid here, its dust waits for COLLECT in the Codex
+    // (pending: discovered and not in PaidKey). Raises the popup. Returns the dust now waiting (0: already paid,
+    // not worth anything, tutorial or developer mode).
+    public static int NoteFusion(FusionDef f)
     {
-        if (f == null) return 0;
-        int dust = PayExtra(CodexPayout.FusionPayId(f));
-        if (dust > 0)
+        if (f == null || !RewardsActive || InTutorial()) return 0;
+        string id = CodexPayout.FusionPayId(f);
+        int dust = CodexPayout.ForExtra(id);
+        if (dust <= 0 || Paid().Contains(id)) return 0;
+        PrefsSaver.MarkDirty();
+        RaiseNewChanged();
+        if (Application.isPlaying) CodexToast.Announce(CodexToast.EntryHeading, f.name + " COMBO - COLLECT IN CODEX", null);
+        return dust;
+    }
+
+    // Atoms, combos and songs are collected by the player; every other kind pays on discovery.
+    static bool PaysOnCollect(CodexEntry e) { return e != null && e.category == CodexCategory.Atoms; }
+
+    static bool IsSongId(string id) { return id != null && id.StartsWith("music_", StringComparison.Ordinal); }
+
+    // ---- pending combos and songs (not CodexEntry rows, so derived here from the saves) ----
+
+    // Ids ("fusion_bloom", "music_world_ember") found and not yet collected.
+    static List<string> PendingExtras(string prefix)
+    {
+        var list = new List<string>();
+        if (!RewardsActive) return list;
+        EnsureLoaded();
+        var done = Paid();
+        if (prefix == CodexPayout.FusionPrefix)
         {
-            PrefsSaver.MarkDirty();
-            if (Application.isPlaying) CodexToast.Announce(CodexToast.EntryHeading + "   +" + dust + " STAR DUST", f.name + " COMBO", null);
+            foreach (var f in AtomFusionTable.All)
+            {
+                string id = CodexPayout.FusionPayId(f);
+                if (FusionDiscoveryStore.IsDiscovered(f.id) && !done.Contains(id)) list.Add(id);
+            }
         }
+        else
+        {
+            foreach (string id in seenOrder)
+                if (id.StartsWith(prefix, StringComparison.Ordinal) && CodexPayout.ForExtra(id) > 0 && !done.Contains(id)) list.Add(id);
+        }
+        return list;
+    }
+
+    public static int PendingMusicCount { get { return PendingExtras("music_").Count; } }
+    public static int PendingComboCount { get { return PendingExtras(CodexPayout.FusionPrefix).Count; } }
+
+    public static int PendingMusicDust { get { return SumExtras(PendingExtras("music_")); } }
+    public static int PendingComboDust { get { return SumExtras(PendingExtras(CodexPayout.FusionPrefix)); } }
+
+    static int SumExtras(List<string> ids)
+    {
+        int n = 0;
+        foreach (string id in ids) n += CodexPayout.ForExtra(id);
+        return n;
+    }
+
+    // Every id waiting to be collected: the pending entries (catalogue order), then the combos, then the songs.
+    public static List<string> PendingIds()
+    {
+        var list = new List<string>();
+        if (!RewardsActive) return list;
+        EnsureLoaded();
+        var done = Paid();
+        foreach (var e in Entries)
+            if (e.category != CodexCategory.Log && seen.Contains(e.id) && !done.Contains(e.id)) list.Add(e.id);
+        list.AddRange(PendingExtras(CodexPayout.FusionPrefix));
+        list.AddRange(PendingExtras("music_"));
+        return list;
+    }
+
+    public static int CollectCombos() { return CollectExtras(PendingExtras(CodexPayout.FusionPrefix)); }
+    public static int CollectMusic() { return CollectExtras(PendingExtras("music_")); }
+
+    // Marks the ids paid and grants the dust in one write batch (like CollectWhere), then saves once.
+    static int CollectExtras(List<string> ids)
+    {
+        if (ids.Count == 0) return 0;
+        var done = Paid();
+        int dust = 0;
+        foreach (string id in ids)
+            if (done.Add(id)) dust += CodexPayout.ForExtra(id);
+        if (dust == 0) return 0;
+        WritePaid(done);
+        StarDustLedger.Grant(dust);
+        PrefsSaver.SaveNow();
+        RaiseNewChanged();
         return dust;
     }
 
     // Everything found that has not been paid yet and has no other payment route, once each (the paid list is
     // the guard, so running it again pays nothing): the Log entries, the ships owned and the worlds reached
     // (derived from progress, so a ship bought after the one-time back-pay lands here), the combos found, the
-    // songs heard and the backdrops seen (older saves). Entries discovered by contact are NOT touched: they pay
+    // backdrops seen (older saves). Combos, songs and atoms found stay pending for COLLECT. Entries discovered by contact are NOT touched: they pay
     // in Discover, or wait for COLLECT. Runs on the home screen. Returns the dust paid.
     public static int PaySweep()
     {
@@ -590,17 +675,11 @@ public static class Codex
             done.Add(e.id);
             dust += CodexPayout.For(e);
         }
-        foreach (var f in AtomFusionTable.All)
-        {
-            string id = CodexPayout.FusionPayId(f);
-            if (!FusionDiscoveryStore.IsDiscovered(f.id) || done.Contains(id)) continue;
-            done.Add(id);
-            dust += CodexPayout.ForExtra(id);
-        }
+        // Combos and songs are NOT swept: found ones wait for COLLECT (PendingExtras). Backdrops are.
         foreach (string id in new List<string>(seen))
         {
             int v = CodexPayout.ForExtra(id);
-            if (v <= 0 || done.Contains(id)) continue;
+            if (v <= 0 || done.Contains(id) || IsSongId(id)) continue;
             done.Add(id);
             dust += v;
         }
@@ -657,7 +736,7 @@ public static class Codex
         foreach (var e in Entries)
         {
             if (e.category == CodexCategory.Log || done.Contains(e.id) || !IsDiscovered(e)) continue;
-            if (IsStarterShip(e)) continue;   // the free starter is never a find: a fresh save pays 0
+            if (IsStarterShip(e) || PaysOnCollect(e)) continue;   // the free starter is never a find; atoms wait for COLLECT
             done.Add(e.id);
             dust += CodexPayout.For(e);
         }

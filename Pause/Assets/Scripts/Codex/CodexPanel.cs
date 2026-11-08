@@ -897,7 +897,7 @@ public class CodexPanel : MonoBehaviour
 
     public static bool TabHasReward(int i)
     {
-        return i == MusicTab ? false : i == CombosTab ? FusionDiscoveryStore.HasUnseen : i == AchievementsTab ? AchievementStore.ClaimableCount > 0 : Codex.PendingIn(CodexPanel.CategoryOfTab(i)) > 0;
+        return i == MusicTab ? Codex.PendingMusicCount > 0 : i == CombosTab ? FusionDiscoveryStore.HasUnseen || Codex.PendingComboCount > 0 : i == AchievementsTab ? AchievementStore.ClaimableCount > 0 : Codex.PendingIn(CodexPanel.CategoryOfTab(i)) > 0;
     }
 
     public Button CollectTabButton { get { return collectTabButton; } }
@@ -910,15 +910,16 @@ public class CodexPanel : MonoBehaviour
     void PaintCollect()
     {
         if (collectTabFrame == null) return;
-        bool barOn = !OtherViewOpen && !inDetail;
-        int tabPending = barOn ? Codex.PendingIn(category) : 0;
+        bool barOn = !achievementsOpen && !inDetail;
+        int tabPending = !barOn ? 0 : musicOpen ? Codex.PendingMusicCount : combosOpen ? Codex.PendingComboCount : Codex.PendingIn(category);
+        int tabDust = !barOn ? 0 : musicOpen ? Codex.PendingMusicDust : combosOpen ? Codex.PendingComboDust : Codex.PendingDustIn(category);
         bool tabShown = tabPending > 0;
         collectTabFrame.gameObject.SetActive(barOn);
         collectBarText.gameObject.SetActive(barOn);
         collectTabButton.interactable = tabShown;
         collectTabFrame.color = tabShown ? CodexHomeButton.BubbleYellow : CodexUi.Locked;
         collectTabLabel.color = tabShown ? CodexUi.Ink : CodexUi.Muted;
-        collectTabLabel.text = tabShown ? "COLLECT ALL +" + Codex.PendingDustIn(category) : "COLLECT ALL";
+        collectTabLabel.text = tabShown ? "COLLECT ALL +" + tabDust : "COLLECT ALL";
         collectBarText.text = tabShown ? tabPending + " TO COLLECT" : "NOTHING TO COLLECT";
 
         bool entryShown = inDetail && detailEntry != null && !OtherViewOpen && Codex.IsRewardPending(detailEntry);
@@ -943,12 +944,40 @@ public class CodexPanel : MonoBehaviour
 
     void OnCollectTab()
     {
-        if (OtherViewOpen || inDetail) return;
+        if (achievementsOpen || inDetail) return;
+        // The MUSIC and COMBOS views collect their own finds, then glide to the first one that was pending.
+        if (musicOpen || combosOpen)
+        {
+            string firstFind = musicOpen ? FirstPendingTrack() : FirstPendingCombo();
+            int paid = musicOpen ? Codex.CollectMusic() : Codex.CollectCombos();
+            AfterCollect(paid);
+            if (paid > 0 && firstFind != null) ScrollToFind(firstFind);
+            return;
+        }
         // Remember where the first pending find sits before it is paid, then glide the list to it.
         int first = FirstPendingCard();
         int dust = Codex.CollectRewards(category);
         AfterCollect(dust);
         if (dust > 0 && first >= 0) ScrollToCard(first);
+    }
+
+    // First pending song / combo in the order the view lists them (null: none).
+    static string FirstPendingTrack()
+    {
+        var pending = Codex.PendingIds();
+        foreach (var t in CodexMusic.All) if (pending.Contains(t.id)) return t.id;
+        return null;
+    }
+
+    static string FirstPendingCombo()
+    {
+        var pending = Codex.PendingIds();
+        foreach (var f in AtomFusionTable.All)
+        {
+            string id = CodexPayout.FusionPayId(f);
+            if (pending.Contains(id)) return id;
+        }
+        return null;
     }
 
     // Opens the tab holding a find and glides its list to it. The id is a CodexEntry id, "fusion_<key>" (a
