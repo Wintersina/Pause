@@ -83,20 +83,21 @@ public static class ShopScreenTest
         int count = 0;
         foreach (var r in ShopCatalog.Rows())
         {
-            if (r.kind == ShopRowKind.Paragon || r.kind == ShopRowKind.WatchAd) continue;   // the ad row reuses the 850 pack icon
+            if (r.kind == ShopRowKind.Paragon) continue;
             count++;
             var sprite = ShopIconArt.For(r);
             if (sprite == null) { allFound = false; continue; }
             if (!seen.Add(sprite)) distinct = false;
             pixel &= sprite.texture.filterMode == FilterMode.Point && sprite.texture.mipmapCount == 1;
         }
-        Check("Remove Ads, three packs and three boosters: " + count + " rows", count == 7);
-        Check("every Remove Ads, pack and booster row resolves to a sprite", allFound);
-        Check("each of them has its own sprite", distinct && seen.Count == 7);
+        Check("Remove Ads, three packs, three boosters and the watch-ad row: " + count + " rows", count == 8);
+        Check("every Remove Ads, pack, booster and watch-ad row resolves to a sprite", allFound);
+        Check("each of them has its own sprite", distinct && seen.Count == 8);
         Check("shop icons are Point filtered with no mipmaps (crisp pixel art)", pixel);
         var small = ShopIconArt.NameFor(new ShopRow { kind = ShopRowKind.Pack, pack = SupportPurchase.Small });
         var huge = ShopIconArt.NameFor(new ShopRow { kind = ShopRowKind.Pack, pack = SupportPurchase.Huge });
         Check("Remove Ads maps to its icon", ShopIconArt.NameFor(ShopCatalog.RemoveAdsRow()) == "remove_ads");
+        Check("the watch-ad row has its own icon", ShopIconArt.NameFor(ShopCatalog.WatchAdRow()) == "ad_dust");
         Check("packs map by size", small == "pack_850" && huge == "pack_6000");
     }
 

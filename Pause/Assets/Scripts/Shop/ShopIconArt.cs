@@ -25,7 +25,7 @@ public static class ShopIconArt
             case ShopRowKind.Pack:
                 if (r.pack == null) return null;
                 return r.pack.dust >= 5000 ? "pack_6000" : r.pack.dust >= 2000 ? "pack_2500" : "pack_850";
-            case ShopRowKind.WatchAd: return "pack_850";   // placeholder: no dedicated "watch an ad" icon yet
+            case ShopRowKind.WatchAd: return "ad_dust";
             case ShopRowKind.DustBooster: return "booster_dust_x2";
             case ShopRowKind.HazardClear: return "booster_hazard_clear";
             case ShopRowKind.HomingAtoms: return "booster_homing_atoms";

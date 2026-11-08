@@ -85,6 +85,17 @@
         "#5b5a76"
       ],
       "description": "Cream generic AD screen crossed out by a bold warm-red prohibition ring."
+    },
+    {
+      "file": "ad_dust.png",
+      "palette": [
+        "#111735",
+        "#2ec4b6",
+        "#ffb51b",
+        "#ff7b16",
+        "#fff4c7"
+      ],
+      "description": "Teal retro TV with a cream play triangle and orange-gold dust stars bursting out; the watch-an-ad row."
     }
   ]
 }
