@@ -206,6 +206,10 @@ public static class AccountSignInTest
             true, 1f);
         Check("diagnosis: Game Center 'not recognized' is a configuration error",
               gcUnknown.outcome == SignInOutcome.ConfigError);
+        var gcNotIn = SignInDiagnosis.FromGameCenter(false,
+            "The requested operation could not be completed because local player has not been authenticated.", false, 1f);
+        Check("diagnosis: Game Center 'not authenticated' is a plain sign-in-required, code NOT_AUTHENTICATED",
+              gcNotIn.outcome == SignInOutcome.SignInRequired && gcNotIn.code == "NOT_AUTHENTICATED");
         var gcOff = SignInDiagnosis.FromGameCenter(false,
             "The requested operation has been cancelled or disabled by the user.", true, .1f);
         Check("diagnosis: Game Center refusing at once is 'disabled' (Settings)", gcOff.outcome == SignInOutcome.Disabled);

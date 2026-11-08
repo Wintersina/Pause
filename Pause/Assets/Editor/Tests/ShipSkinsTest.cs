@@ -431,8 +431,8 @@ public static class ShipSkinsTest
         ShipHullArt.Get(6, 0, 0);
         Check("a preview decodes only the previewed sheet", ShipHullArt.LoadedSkinSheets == 2 && ShipHullArt.IsSkinLoaded(6, 4));
         var sheet = ShipHullArt.SheetFor(6, 4);
-        Check("decoded sheets are GPU-compressed with mips and no CPU copy",
-              sheet != null && sheet.mipmapCount > 1 && !sheet.isReadable && sheet.format != TextureFormat.RGBA32);
+        Check("decoded sheets are GPU-compressed without a mip chain and no CPU copy",
+              sheet != null && sheet.mipmapCount == 1 && !sheet.isReadable && sheet.format != TextureFormat.RGBA32);
         ShipSkins.ClearPreview();
         ShipHullArt.ReleaseUnusedSkins();
         Check("ending the preview releases its sheet, the equipped one stays",

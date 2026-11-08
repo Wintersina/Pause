@@ -189,15 +189,17 @@ public static class ShipHullArt
     {
         var bytes = SkinPng(id, skin);
         if (bytes == null) return null;
-        var sheet = new Texture2D(2, 2, TextureFormat.RGBA32, true);
+        var sheet = new Texture2D(2, 2, TextureFormat.RGBA32, false);   // no mip chain: a 2D sprite sheet, and odd mip sizes make Compress log errors
         if (!sheet.LoadImage(bytes, false)) { DestroyObject(sheet); return null; }
         sheet.name = ShipSkins.SheetName(id, skin);
         sheet.filterMode = FilterMode.Bilinear;
         sheet.wrapMode = TextureWrapMode.Clamp;
         // GPU-compress like the imported stock sheets (BC3 on desktop, ETC2 on
         // phones): a quarter of the RGBA32 memory. Then drop the CPU copy.
-        if (SystemInfo.SupportsTextureFormat(TextureFormat.DXT5) ||
-            SystemInfo.SupportsTextureFormat(TextureFormat.ETC2_RGBA8))
+        // Block compression needs both sides a multiple of 4; skip it otherwise.
+        if ((sheet.width & 3) == 0 && (sheet.height & 3) == 0 &&
+            (SystemInfo.SupportsTextureFormat(TextureFormat.DXT5) ||
+             SystemInfo.SupportsTextureFormat(TextureFormat.ETC2_RGBA8)))
             sheet.Compress(false);
         sheet.Apply(false, true);
         return sheet;

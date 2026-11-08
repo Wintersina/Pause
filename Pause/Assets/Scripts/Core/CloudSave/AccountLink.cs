@@ -563,7 +563,8 @@ public static class SignInDiagnosis
         else
         {
             report.outcome = interactive ? SignInOutcome.Failed : SignInOutcome.SignInRequired;
-            report.code = string.IsNullOrEmpty(e) ? "NOT_AUTHENTICATED" : "ERROR";
+            // "local player has not been authenticated" is just a player who isn't signed in.
+            report.code = string.IsNullOrEmpty(e) || Has(e, "not been authenticated") ? "NOT_AUTHENTICATED" : "ERROR";
         }
         return report;
     }
