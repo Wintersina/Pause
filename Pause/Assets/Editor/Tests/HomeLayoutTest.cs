@@ -29,16 +29,20 @@ public static class HomeLayoutTest
         public float logoY0, logoY1;      // PAUSE logo's drawn outline
         public float x, w, h;             // every button
         public float play, dock, shop, options, credits, codex;   // bottom edges
+        public float screenW, screenH, safeTop;   // the screen, and the unsafe strip at its top (px)
     }
 
     static readonly Pin[] Pins =
     {
         new Pin { device = "and-1080x1920", logoY0 = 1293.7f, logoY1 = 1676.2f, x = 118.8f, w = 842.4f, h = 108.8f,
                   play = 1014.4f, dock = 882.6f, shop = 750.7f, options = 618.9f, credits = 487.0f, codex = 355.2f },
-        new Pin { device = "and-1080x2340-notch", logoY0 = 1503.7f, logoY1 = 1886.2f, x = 118.8f, w = 842.4f, h = 132.6f,
-                  play = 1236.3f, dock = 1075.6f, shop = 914.9f, options = 754.3f, credits = 593.6f, codex = 432.9f },
-        new Pin { device = "iphone-13", logoY0 = 1627.5f, logoY1 = 2041.9f, x = 128.7f, w = 912.6f, h = 143.5f,
-                  play = 1337.7f, dock = 1163.9f, shop = 990.0f, options = 816.1f, credits = 642.3f, codex = 468.4f },
+        // Tall screens (>= ~21:9) lift the logo and the column (startMenu.LogoLiftFraction / ColumnExtraFraction): re-pinned 2026-11-08.
+        new Pin { device = "and-1080x2340-notch", logoY0 = 1704.4f, logoY1 = 2086.9f, x = 118.8f, w = 842.4f, h = 132.6f,
+                  play = 1455.5f, dock = 1294.8f, shop = 1134.2f, options = 973.5f, credits = 812.8f, codex = 652.1f },
+        new Pin { device = "iphone-13", logoY0 = 1842.9f, logoY1 = 2257.3f, x = 128.7f, w = 912.6f, h = 143.5f,
+                  play = 1573.0f, dock = 1399.2f, shop = 1225.3f, options = 1051.4f, credits = 877.6f, codex = 703.7f },
+        new Pin { device = "flip7-1080x2520", logoY0 = 1921.3f, logoY1 = 2303.8f, x = 118.8f, w = 842.4f, h = 142.8f,
+                  play = 1689.2f, dock = 1516.2f, shop = 1343.2f, options = 1170.1f, credits = 997.1f, codex = 824.0f },
     };
 
     public static int Execute()
@@ -46,12 +50,12 @@ public static class HomeLayoutTest
         fails = 0;
         using var sandbox = new TestHarness.Sandbox();
         PlayerPrefs.SetInt(WorldManager.PrefsHighestWorld, WorldManager.Worlds.Length - 1);
-        foreach (var id in new[] { "and-1080x1920", "and-1080x2340-notch", "iphone-13" })
+        foreach (var id in new[] { "and-1080x1920", "and-1080x2340-notch", "iphone-13", "flip7-1080x2520", "and-1080x2640", "flip7-cover-948x1048" })
         {
             bool found = false;
             foreach (var pin in Pins)
                 if (pin.device == id) { found = true; Measure(pin, false); Measure(pin, true); }
-            if (!found) { bool ok; Debug.Log("[HOMELAY] measured " + JsonUtility.ToJson(Stage(id, false, out ok))); }
+            if (!found) { bool ok; var got = Stage(id, false, out ok); Debug.Log("[HOMELAY] measured " + JsonUtility.ToJson(got)); Shape(got, id); }
         }
         Debug.Log("[HOMELAY] failures: " + fails);
         return fails;
@@ -98,6 +102,7 @@ public static class HomeLayoutTest
             var logo = title != null ? rig.TightPixelRect(title.GetComponent<SpriteRenderer>()) : default(Rect);
             var r = new Rect[Buttons.Length];
             for (int i = 0; i < r.Length; i++) r[i] = Rect_(rig, Buttons[i]);
+            pin.screenW = rig.W; pin.screenH = rig.H; pin.safeTop = rig.device.top;
             pin.logoY0 = logo.yMin; pin.logoY1 = logo.yMax;
             pin.x = r[0].x; pin.w = r[0].width; pin.h = r[0].height;
             pin.play = r[0].y; pin.dock = r[1].y; pin.shop = r[2].y; pin.options = r[3].y; pin.credits = r[4].y; pin.codex = r[5].y;
@@ -107,6 +112,23 @@ public static class HomeLayoutTest
             foreach (var m in Object.FindObjectsByType<MenuBackdrop>(FindObjectsSortMode.None)) Object.DestroyImmediate(m.gameObject);
         }
         return pin;
+    }
+
+    // Where the group sits on the screen: tall phones must not hang the column from the bottom half.
+    // Fractions are of the screen height, measured down from the top.
+    public const float TallScreenColumnCentreMax = .53f;   // Play's top .. Codex's bottom, on screens >= 2.0 tall
+    static void Shape(Pin p, string d)
+    {
+        if (p.screenW <= 0f) return;
+        float top = p.screenH - (p.play + p.h), bottom = p.screenH - p.codex;   // px from the top
+        float centre = (top + bottom) * .5f / p.screenH;
+        float tall = startMenu.Tallness(p.screenW, p.screenH);
+        float aspect = p.screenH / p.screenW;
+        Debug.Log("[HOMELAY] " + d + " column centre " + centre.ToString("F3") + " of the height from the top, logo top " + (p.screenH - p.logoY1) + " px from the top");
+        if (aspect >= 2f) Check(d + ": column centre " + centre.ToString("F3") + " <= " + TallScreenColumnCentreMax + " (not bottom-heavy)", centre <= TallScreenColumnCentreMax);
+        float logoTop = p.screenH - p.logoY1;
+        Check(d + ": logo top " + logoTop + " px clears the top safe strip " + p.safeTop, logoTop >= p.safeTop + 24f);
+        if (aspect < 1.85f) Check(d + ": a short / wide screen is not lifted (tallness " + tall + ")", tall == 0f);
     }
 
     static bool Near(float a, float b) { return Mathf.Abs(a - b) <= 1.5f; }
@@ -123,9 +145,10 @@ public static class HomeLayoutTest
         Check(d + "Play / Space dock / Shop / Options / Leaderboard / Codex at " + got.play + " " + got.dock + " " + got.shop + " " + got.options + " " + got.credits + " " + got.codex,
               Near(got.play, want.play) && Near(got.dock, want.dock) && Near(got.shop, want.shop) && Near(got.options, want.options) &&
               Near(got.credits, want.credits) && Near(got.codex, want.codex));
+        Shape(got, want.device);
         // the spacing the player sees, independent of the absolute pins
         float gap = got.logoY0 - (got.play + got.h);
-        Check(d + "the logo clears Play by " + gap + " px (" + (gap / got.h).ToString("F2") + " button heights)", gap >= got.h * .8f);
+        Check(d + "the logo clears Play by " + gap + " px (" + (gap / got.h).ToString("F2") + " button heights)", gap >= got.h * .6f);
         float pitch = got.play - got.dock;
         Check(d + "buttons are evenly spaced (pitch " + pitch + ")",
               Near(got.dock - got.shop, pitch) && Near(got.shop - got.options, pitch) && Near(got.options - got.credits, pitch) && Near(got.credits - got.codex, pitch));

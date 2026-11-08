@@ -5,7 +5,7 @@ using UnityEngine;
 // Dock / codex screens on the Z Flip7 cover screen next to a tall phone, as PNGs:
 //
 //   scripts/unity-batch.sh -executeMethod WideCapture.Run
-//   (env WIDE_CAPTURE_DIR, else /private/tmp/wide-capture; WIDE_CAPTURE_SCREENS = comma list)
+//   (env WIDE_CAPTURE_DIR, else /private/tmp/wide-capture; WIDE_CAPTURE_SCREENS / WIDE_CAPTURE_DEVICES = comma lists)
 public static class WideCapture
 {
     static readonly string[] Devices = { "flip7-cover-948x1048", "flip7-1080x2520" };
@@ -18,8 +18,10 @@ public static class WideCapture
         Directory.CreateDirectory(dir);
         string only = Environment.GetEnvironmentVariable("WIDE_CAPTURE_SCREENS");
         var ids = string.IsNullOrEmpty(only) ? Screens : only.Split(',');
+        string devs = Environment.GetEnvironmentVariable("WIDE_CAPTURE_DEVICES");   // comma list of device ids
+        var devices = string.IsNullOrEmpty(devs) ? Devices : devs.Split(',');
         foreach (var id in ids)
-            foreach (var dev in Devices)
+            foreach (var dev in devices)
                 using (new TestHarness.Sandbox())
                 {
                     var shot = ScreenFitRunner.Run(ScreenFitScreens.Find(id), FitDevice.Find(dev), Path.Combine(dir, id + "_" + dev + ".png"), 2520);

@@ -11,6 +11,8 @@ public class startMenu : MonoBehaviour {
     public static bool youAreInTutorial;
     public static int spawnTracker;
     private int layoutWidth, layoutHeight;
+    private float layoutCamSize;
+    private float logoBaseY = float.NaN;   // the scene's authored logo height, before any lift
 
     void Start()
     {
@@ -33,7 +35,9 @@ public class startMenu : MonoBehaviour {
     // Update is called once per frame
     void Update()
     {
-        if (layoutWidth != ScreenInfo.Width || layoutHeight != ScreenInfo.Height)
+        var cam = Camera.main;
+        if (layoutWidth != ScreenInfo.Width || layoutHeight != ScreenInfo.Height ||
+            (cam != null && cam.orthographic && !Mathf.Approximately(layoutCamSize, cam.orthographicSize)))
             LayoutHome();
         // Back/Escape is BackNavigator's: on the home screen it closes the
         // codex one level at a time, then quits on a second press within
@@ -48,6 +52,21 @@ public class startMenu : MonoBehaviour {
     // The menu column's height for `rows` rows: 330 units for the five rows, plus 70 for each row more (the
     // Shop row), so every row keeps its ~68-unit touch height.
     public static float HomeColumnUnits(int rows) { return 330f + Mathf.Max(0, rows - 5) * 70f; }
+
+    // Tall phones (Galaxy Z Flip7 21:9, 19.5:9 and up) have a lot of room above the logo, and a column hung
+    // from the middle of the screen sat in the bottom half. The logo and the column both rise by a share of
+    // the screen height that grows with how tall the screen is: nothing at 16:9 and shorter (tablets, the
+    // foldable's cover display), the full amount from about 21:9. The column rises a little more than the
+    // logo (the logo's gap to Play was generous) so the group reads as centred.
+    public const float TallStart = 1.85f, TallFull = 2.33f;       // screen height / width
+    public const float LogoLiftFraction = .13f, ColumnExtraFraction = .012f;   // of the screen height
+
+    // 0 at 16:9 and shorter, 1 from ~21:9, smooth between.
+    public static float Tallness(float screenW, float screenH)
+    {
+        if (screenW <= 0f) return 0f;
+        return Mathf.Clamp01((screenH / screenW - TallStart) / (TallFull - TallStart));
+    }
 
     static int ActiveRows(GameObject panel)
     {
@@ -83,7 +102,10 @@ public class startMenu : MonoBehaviour {
         var panel = SceneUtil.FindAny("UIPanel");
         // The column's top edge stays where the five-row menu had it (under the logo); the Shop row (every
         // platform) makes it a row taller, growing downward.
-        float topEdge = -height * 0.08f + Mathf.Min(HomeColumnUnits(5), height * 0.5f) * 0.5f;
+        float tall = Tallness(ScreenInfo.Width, ScreenInfo.Height);
+        float topEdge = -height * 0.08f + Mathf.Min(HomeColumnUnits(5), height * 0.5f) * 0.5f
+                        + height * (LogoLiftFraction + ColumnExtraFraction) * tall;
+        LiftLogo(LogoLiftFraction * tall);
         // The five-row cap is half the canvas; each row more earns its share of that half, so a short canvas
         // (the foldable's cover display) keeps every row at its touch height instead of squeezing six into five.
         int rowCount = ActiveRows(panel);
@@ -157,6 +179,19 @@ public class startMenu : MonoBehaviour {
         }
         layoutWidth = ScreenInfo.Width;
         layoutHeight = ScreenInfo.Height;
+    }
+
+    // The PAUSE logo is a world sprite authored for a 16:9 view: raise it by `fraction` of the view height.
+    void LiftLogo(float fraction)
+    {
+        var logo = GameObject.Find("menuTitle");
+        var cam = Camera.main;
+        if (logo == null || cam == null || !cam.orthographic) return;
+        if (float.IsNaN(logoBaseY)) logoBaseY = logo.transform.localPosition.y;
+        var p = logo.transform.localPosition;
+        p.y = logoBaseY + fraction * cam.orthographicSize * 2f;
+        logo.transform.localPosition = p;
+        layoutCamSize = cam.orthographicSize;
     }
 
     // Every row of the main menu gets the same share of the panel (the

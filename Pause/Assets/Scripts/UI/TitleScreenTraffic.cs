@@ -253,6 +253,7 @@ public partial class TitleScreenTraffic : MonoBehaviour
     float camSize = -1f, camAspect = -1f;
     Transform menuPanel;
     SpriteRenderer logoRenderer;
+    float logoRestY;
     readonly Vector3[] corners = new Vector3[4];
 
     // ---- stats, read by the tests
@@ -493,8 +494,13 @@ public partial class TitleScreenTraffic : MonoBehaviour
         float size = cam != null && cam.orthographic ? cam.orthographicSize : 5f;
         float aspect = cam != null ? cam.aspect : .5625f;
         if (!(aspect > .2f && aspect < 4f)) aspect = .5625f;
-        if (!force && ScreenInfo.Width == screenW && ScreenInfo.Height == screenH && size == camSize && aspect == camAspect)
+        // the home layout lifts the logo and the column on tall screens: re-read them when the logo moves
+        float logoY = (logoRenderer != null ? logoRenderer.transform.position.y - (logoShaking ? logoTf.localPosition.y - logoRestPos.y : 0f) : 0f)
+                      + (menuPanel != null ? menuPanel.position.y : 0f);
+        if (!force && ScreenInfo.Width == screenW && ScreenInfo.Height == screenH && size == camSize && aspect == camAspect &&
+            Mathf.Approximately(logoY, logoRestY))
             return;
+        logoRestY = logoY;
         screenW = ScreenInfo.Width; screenH = ScreenInfo.Height; camSize = size; camAspect = aspect;
 
         Vector3 c = cam != null ? cam.transform.position : Vector3.zero;
