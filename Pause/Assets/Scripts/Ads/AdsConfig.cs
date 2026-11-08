@@ -34,8 +34,8 @@ public static class AdsConfig
     // Banner on the results modal. NOT created in AdMob yet: the user must add a "Pause Banner" banner ad unit to each
     // app and paste the IDs here. While an ID still ends in the placeholder suffix, release builds request no banner.
     public const string BannerPlaceholderSuffix = "BANNER_TODO";
-    public const string AndroidBannerUnit = "ca-app-pub-4397064133944218/BANNER_TODO";        // "Pause Banner" (TODO: create)
-    public const string IosBannerUnit = "ca-app-pub-4397064133944218/BANNER_TODO";            // "Pause Banner" (TODO: create)
+    public const string AndroidBannerUnit = "ca-app-pub-4397064133944218/7474385975";        // "Pause Banner"
+    public const string IosBannerUnit = "ca-app-pub-4397064133944218/8592026521";            // "Pause Banner"
 
     public const string IosAppId = "ca-app-pub-4397064133944218~1298571462";
     public const string IosInterstitialUnit = "ca-app-pub-4397064133944218/3266259255";       // "Pause Forced Ad"
@@ -98,13 +98,13 @@ public static class AdsConfig
         get { return IsIos ? Pick(DeveloperUnlocks.Enabled, IosBannerUnit, TestIosBannerUnit) : Pick(DeveloperUnlocks.Enabled, AndroidBannerUnit, TestAndroidBannerUnit); }
     }
 
-    // True while a banner ID is still the TODO placeholder (or empty): nothing may be requested with it.
+    // True while a banner ID is empty or still a TODO placeholder: nothing may be requested with it.
     public static bool IsPlaceholder(string unit)
     {
         return string.IsNullOrEmpty(unit) || unit.EndsWith(BannerPlaceholderSuffix, System.StringComparison.Ordinal);
     }
 
-    // Whether a banner may be requested at all: false in release builds until the real unit ID is pasted in.
+    // Whether a banner may be requested at all: false only if a unit ID is empty or a placeholder.
     public static bool BannerRequestable { get { return !IsPlaceholder(BannerUnit); } }
 
     // The standard banner is 320x50 density-independent pixels.
