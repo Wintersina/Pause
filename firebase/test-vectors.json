@@ -1,8 +1,8 @@
 {
- "comment": "Shared by the C# mirror (SharedLeaderboardTest) and the rules emulator test (rules.test.js). Docs use the Firestore field names; updatedAt is added by the test.",
+ "comment": "Shared by the C# mirror (SharedLeaderboardTest) and the rules emulator test (rules.test.js). Docs use the Firestore field names (one row per player: bests score/dust/worlds + a run map); updatedAt is added by the test. rulesOnly cases need Firestore shapes the C# model cannot hold (extra/missing fields, the old per-column shape).",
  "cases": [
   {
-   "name": "create: a normal main doc",
+   "name": "create allowed: a normal main doc",
    "table": "main",
    "op": "create",
    "expect": "allow",
@@ -10,46 +10,24 @@
    "rulesOnly": false,
    "doc": {
     "name": "KANEDA",
-    "byScore": {
-     "score": 1000,
-     "dust": 500,
-     "worlds": 3,
+    "platform": "android",
+    "score": 1000,
+    "dust": 900,
+    "worlds": 5,
+    "run": {
      "ship": 7,
      "hearts": 4,
      "endHearts": 0,
      "pauses": 2,
      "skin": 0,
      "powerUps": 0
-    },
-    "byDust": {
-     "score": 800,
-     "dust": 900,
-     "worlds": 3,
-     "ship": 7,
-     "hearts": 4,
-     "endHearts": 0,
-     "pauses": 2,
-     "skin": 0,
-     "powerUps": 0
-    },
-    "byWorlds": {
-     "score": 700,
-     "dust": 400,
-     "worlds": 5,
-     "ship": 7,
-     "hearts": 4,
-     "endHearts": 0,
-     "pauses": 2,
-     "skin": 0,
-     "powerUps": 0
-    },
-    "platform": "android"
+    }
    },
    "hasExisting": false,
    "sinceLastSeconds": 100
   },
   {
-   "name": "create: a normal power doc",
+   "name": "create allowed: a normal power doc",
    "table": "power",
    "op": "create",
    "expect": "allow",
@@ -57,40 +35,18 @@
    "rulesOnly": false,
    "doc": {
     "name": "KANEDA",
-    "byScore": {
-     "score": 1000,
-     "dust": 500,
-     "worlds": 3,
+    "platform": "android",
+    "score": 1000,
+    "dust": 900,
+    "worlds": 5,
+    "run": {
      "ship": 7,
      "hearts": 4,
      "endHearts": 0,
      "pauses": 2,
      "skin": 0,
      "powerUps": 1
-    },
-    "byDust": {
-     "score": 800,
-     "dust": 900,
-     "worlds": 3,
-     "ship": 7,
-     "hearts": 4,
-     "endHearts": 0,
-     "pauses": 2,
-     "skin": 0,
-     "powerUps": 1
-    },
-    "byWorlds": {
-     "score": 700,
-     "dust": 400,
-     "worlds": 5,
-     "ship": 7,
-     "hearts": 4,
-     "endHearts": 0,
-     "pauses": 2,
-     "skin": 0,
-     "powerUps": 1
-    },
-    "platform": "android"
+    }
    },
    "hasExisting": false,
    "sinceLastSeconds": 100
@@ -104,40 +60,18 @@
    "rulesOnly": false,
    "doc": {
     "name": "",
-    "byScore": {
-     "score": 1000,
-     "dust": 500,
-     "worlds": 3,
+    "platform": "android",
+    "score": 1000,
+    "dust": 900,
+    "worlds": 5,
+    "run": {
      "ship": 7,
      "hearts": 4,
      "endHearts": 0,
      "pauses": 2,
      "skin": 0,
      "powerUps": 0
-    },
-    "byDust": {
-     "score": 800,
-     "dust": 900,
-     "worlds": 3,
-     "ship": 7,
-     "hearts": 4,
-     "endHearts": 0,
-     "pauses": 2,
-     "skin": 0,
-     "powerUps": 0
-    },
-    "byWorlds": {
-     "score": 700,
-     "dust": 400,
-     "worlds": 5,
-     "ship": 7,
-     "hearts": 4,
-     "endHearts": 0,
-     "pauses": 2,
-     "skin": 0,
-     "powerUps": 0
-    },
-    "platform": "android"
+    }
    },
    "hasExisting": false,
    "sinceLastSeconds": 100
@@ -151,40 +85,18 @@
    "rulesOnly": false,
    "doc": {
     "name": "AAAAAAAAAAAAAAAAAAAAAAAA",
-    "byScore": {
-     "score": 1000,
-     "dust": 500,
-     "worlds": 3,
+    "platform": "android",
+    "score": 1000,
+    "dust": 900,
+    "worlds": 5,
+    "run": {
      "ship": 7,
      "hearts": 4,
      "endHearts": 0,
      "pauses": 2,
      "skin": 0,
      "powerUps": 0
-    },
-    "byDust": {
-     "score": 800,
-     "dust": 900,
-     "worlds": 3,
-     "ship": 7,
-     "hearts": 4,
-     "endHearts": 0,
-     "pauses": 2,
-     "skin": 0,
-     "powerUps": 0
-    },
-    "byWorlds": {
-     "score": 700,
-     "dust": 400,
-     "worlds": 5,
-     "ship": 7,
-     "hearts": 4,
-     "endHearts": 0,
-     "pauses": 2,
-     "skin": 0,
-     "powerUps": 0
-    },
-    "platform": "android"
+    }
    },
    "hasExisting": false,
    "sinceLastSeconds": 100
@@ -198,46 +110,124 @@
    "rulesOnly": false,
    "doc": {
     "name": "AAAAAAAAAAAAAAAAAAAAAAAAA",
-    "byScore": {
-     "score": 1000,
-     "dust": 500,
-     "worlds": 3,
+    "platform": "android",
+    "score": 1000,
+    "dust": 900,
+    "worlds": 5,
+    "run": {
      "ship": 7,
      "hearts": 4,
      "endHearts": 0,
      "pauses": 2,
      "skin": 0,
      "powerUps": 0
-    },
-    "byDust": {
-     "score": 800,
-     "dust": 900,
-     "worlds": 3,
-     "ship": 7,
-     "hearts": 4,
-     "endHearts": 0,
-     "pauses": 2,
-     "skin": 0,
-     "powerUps": 0
-    },
-    "byWorlds": {
-     "score": 700,
-     "dust": 400,
-     "worlds": 5,
-     "ship": 7,
-     "hearts": 4,
-     "endHearts": 0,
-     "pauses": 2,
-     "skin": 0,
-     "powerUps": 0
-    },
-    "platform": "android"
+    }
    },
    "hasExisting": false,
    "sinceLastSeconds": 100
   },
   {
-   "name": "create denied: score 0",
+   "name": "create allowed: score unknown (0) with dust and worlds",
+   "table": "main",
+   "op": "create",
+   "expect": "allow",
+   "owner": true,
+   "rulesOnly": false,
+   "doc": {
+    "name": "KANEDA",
+    "platform": "android",
+    "score": 0,
+    "dust": 900,
+    "worlds": 5,
+    "run": {
+     "ship": 7,
+     "hearts": 4,
+     "endHearts": 0,
+     "pauses": 2,
+     "skin": 0,
+     "powerUps": 0
+    }
+   },
+   "hasExisting": false,
+   "sinceLastSeconds": 100
+  },
+  {
+   "name": "create allowed: worlds 0 with a score and dust (still on every board)",
+   "table": "main",
+   "op": "create",
+   "expect": "allow",
+   "owner": true,
+   "rulesOnly": false,
+   "doc": {
+    "name": "KANEDA",
+    "platform": "android",
+    "score": 1000,
+    "dust": 900,
+    "worlds": 0,
+    "run": {
+     "ship": 7,
+     "hearts": 4,
+     "endHearts": 0,
+     "pauses": 2,
+     "skin": 0,
+     "powerUps": 0
+    }
+   },
+   "hasExisting": false,
+   "sinceLastSeconds": 100
+  },
+  {
+   "name": "create allowed: dust 0 with a score",
+   "table": "main",
+   "op": "create",
+   "expect": "allow",
+   "owner": true,
+   "rulesOnly": false,
+   "doc": {
+    "name": "KANEDA",
+    "platform": "android",
+    "score": 1000,
+    "dust": 0,
+    "worlds": 0,
+    "run": {
+     "ship": 7,
+     "hearts": 4,
+     "endHearts": 0,
+     "pauses": 2,
+     "skin": 0,
+     "powerUps": 0
+    }
+   },
+   "hasExisting": false,
+   "sinceLastSeconds": 100
+  },
+  {
+   "name": "create allowed: only a dust best",
+   "table": "main",
+   "op": "create",
+   "expect": "allow",
+   "owner": true,
+   "rulesOnly": false,
+   "doc": {
+    "name": "KANEDA",
+    "platform": "android",
+    "score": 0,
+    "dust": 900,
+    "worlds": 0,
+    "run": {
+     "ship": 7,
+     "hearts": 4,
+     "endHearts": 0,
+     "pauses": 2,
+     "skin": 0,
+     "powerUps": 0
+    }
+   },
+   "hasExisting": false,
+   "sinceLastSeconds": 100
+  },
+  {
+   "name": "create denied: all three bests 0",
    "table": "main",
    "op": "create",
    "expect": "deny",
@@ -245,40 +235,18 @@
    "rulesOnly": false,
    "doc": {
     "name": "KANEDA",
-    "byScore": {
-     "score": 0,
-     "dust": 500,
-     "worlds": 3,
+    "platform": "android",
+    "score": 0,
+    "dust": 0,
+    "worlds": 0,
+    "run": {
      "ship": 7,
      "hearts": 4,
      "endHearts": 0,
      "pauses": 2,
      "skin": 0,
      "powerUps": 0
-    },
-    "byDust": {
-     "score": 800,
-     "dust": 900,
-     "worlds": 3,
-     "ship": 7,
-     "hearts": 4,
-     "endHearts": 0,
-     "pauses": 2,
-     "skin": 0,
-     "powerUps": 0
-    },
-    "byWorlds": {
-     "score": 700,
-     "dust": 400,
-     "worlds": 5,
-     "ship": 7,
-     "hearts": 4,
-     "endHearts": 0,
-     "pauses": 2,
-     "skin": 0,
-     "powerUps": 0
-    },
-    "platform": "android"
+    }
    },
    "hasExisting": false,
    "sinceLastSeconds": 100
@@ -292,40 +260,18 @@
    "rulesOnly": false,
    "doc": {
     "name": "KANEDA",
-    "byScore": {
-     "score": 9999999999,
-     "dust": 500,
-     "worlds": 3,
+    "platform": "android",
+    "score": 9999999999,
+    "dust": 900,
+    "worlds": 5,
+    "run": {
      "ship": 7,
      "hearts": 4,
      "endHearts": 0,
      "pauses": 2,
      "skin": 0,
      "powerUps": 0
-    },
-    "byDust": {
-     "score": 800,
-     "dust": 900,
-     "worlds": 3,
-     "ship": 7,
-     "hearts": 4,
-     "endHearts": 0,
-     "pauses": 2,
-     "skin": 0,
-     "powerUps": 0
-    },
-    "byWorlds": {
-     "score": 700,
-     "dust": 400,
-     "worlds": 5,
-     "ship": 7,
-     "hearts": 4,
-     "endHearts": 0,
-     "pauses": 2,
-     "skin": 0,
-     "powerUps": 0
-    },
-    "platform": "android"
+    }
    },
    "hasExisting": false,
    "sinceLastSeconds": 100
@@ -339,40 +285,43 @@
    "rulesOnly": false,
    "doc": {
     "name": "KANEDA",
-    "byScore": {
-     "score": 10000000000,
-     "dust": 500,
-     "worlds": 3,
+    "platform": "android",
+    "score": 10000000000,
+    "dust": 900,
+    "worlds": 5,
+    "run": {
      "ship": 7,
      "hearts": 4,
      "endHearts": 0,
      "pauses": 2,
      "skin": 0,
      "powerUps": 0
-    },
-    "byDust": {
-     "score": 800,
-     "dust": 900,
-     "worlds": 3,
+    }
+   },
+   "hasExisting": false,
+   "sinceLastSeconds": 100
+  },
+  {
+   "name": "create denied: negative score",
+   "table": "main",
+   "op": "create",
+   "expect": "deny",
+   "owner": true,
+   "rulesOnly": false,
+   "doc": {
+    "name": "KANEDA",
+    "platform": "android",
+    "score": -1,
+    "dust": 900,
+    "worlds": 5,
+    "run": {
      "ship": 7,
      "hearts": 4,
      "endHearts": 0,
      "pauses": 2,
      "skin": 0,
      "powerUps": 0
-    },
-    "byWorlds": {
-     "score": 700,
-     "dust": 400,
-     "worlds": 5,
-     "ship": 7,
-     "hearts": 4,
-     "endHearts": 0,
-     "pauses": 2,
-     "skin": 0,
-     "powerUps": 0
-    },
-    "platform": "android"
+    }
    },
    "hasExisting": false,
    "sinceLastSeconds": 100
@@ -386,40 +335,18 @@
    "rulesOnly": false,
    "doc": {
     "name": "KANEDA",
-    "byScore": {
-     "score": 1000,
-     "dust": 500,
-     "worlds": 3,
+    "platform": "android",
+    "score": 1000,
+    "dust": -1,
+    "worlds": 5,
+    "run": {
      "ship": 7,
      "hearts": 4,
      "endHearts": 0,
      "pauses": 2,
      "skin": 0,
      "powerUps": 0
-    },
-    "byDust": {
-     "score": 800,
-     "dust": -1,
-     "worlds": 3,
-     "ship": 7,
-     "hearts": 4,
-     "endHearts": 0,
-     "pauses": 2,
-     "skin": 0,
-     "powerUps": 0
-    },
-    "byWorlds": {
-     "score": 700,
-     "dust": 400,
-     "worlds": 5,
-     "ship": 7,
-     "hearts": 4,
-     "endHearts": 0,
-     "pauses": 2,
-     "skin": 0,
-     "powerUps": 0
-    },
-    "platform": "android"
+    }
    },
    "hasExisting": false,
    "sinceLastSeconds": 100
@@ -433,40 +360,18 @@
    "rulesOnly": false,
    "doc": {
     "name": "KANEDA",
-    "byScore": {
-     "score": 1000,
-     "dust": 500,
-     "worlds": 3,
+    "platform": "android",
+    "score": 1000,
+    "dust": 1000000000,
+    "worlds": 5,
+    "run": {
      "ship": 7,
      "hearts": 4,
      "endHearts": 0,
      "pauses": 2,
      "skin": 0,
      "powerUps": 0
-    },
-    "byDust": {
-     "score": 800,
-     "dust": 1000000000,
-     "worlds": 3,
-     "ship": 7,
-     "hearts": 4,
-     "endHearts": 0,
-     "pauses": 2,
-     "skin": 0,
-     "powerUps": 0
-    },
-    "byWorlds": {
-     "score": 700,
-     "dust": 400,
-     "worlds": 5,
-     "ship": 7,
-     "hearts": 4,
-     "endHearts": 0,
-     "pauses": 2,
-     "skin": 0,
-     "powerUps": 0
-    },
-    "platform": "android"
+    }
    },
    "hasExisting": false,
    "sinceLastSeconds": 100
@@ -480,40 +385,43 @@
    "rulesOnly": false,
    "doc": {
     "name": "KANEDA",
-    "byScore": {
-     "score": 1000,
-     "dust": 500,
-     "worlds": 3,
+    "platform": "android",
+    "score": 1000,
+    "dust": 900,
+    "worlds": 10000,
+    "run": {
      "ship": 7,
      "hearts": 4,
      "endHearts": 0,
      "pauses": 2,
      "skin": 0,
      "powerUps": 0
-    },
-    "byDust": {
-     "score": 800,
-     "dust": 900,
-     "worlds": 3,
+    }
+   },
+   "hasExisting": false,
+   "sinceLastSeconds": 100
+  },
+  {
+   "name": "create denied: negative worlds",
+   "table": "main",
+   "op": "create",
+   "expect": "deny",
+   "owner": true,
+   "rulesOnly": false,
+   "doc": {
+    "name": "KANEDA",
+    "platform": "android",
+    "score": 1000,
+    "dust": 900,
+    "worlds": -1,
+    "run": {
      "ship": 7,
      "hearts": 4,
      "endHearts": 0,
      "pauses": 2,
      "skin": 0,
      "powerUps": 0
-    },
-    "byWorlds": {
-     "score": 700,
-     "dust": 400,
-     "worlds": 10000,
-     "ship": 7,
-     "hearts": 4,
-     "endHearts": 0,
-     "pauses": 2,
-     "skin": 0,
-     "powerUps": 0
-    },
-    "platform": "android"
+    }
    },
    "hasExisting": false,
    "sinceLastSeconds": 100
@@ -527,87 +435,18 @@
    "rulesOnly": false,
    "doc": {
     "name": "KANEDA",
-    "byScore": {
-     "score": 1000,
-     "dust": 500,
-     "worlds": 3,
+    "platform": "android",
+    "score": 1000,
+    "dust": 900,
+    "worlds": 5,
+    "run": {
      "ship": 16,
      "hearts": 4,
      "endHearts": 0,
      "pauses": 2,
      "skin": 0,
      "powerUps": 0
-    },
-    "byDust": {
-     "score": 800,
-     "dust": 900,
-     "worlds": 3,
-     "ship": 7,
-     "hearts": 4,
-     "endHearts": 0,
-     "pauses": 2,
-     "skin": 0,
-     "powerUps": 0
-    },
-    "byWorlds": {
-     "score": 700,
-     "dust": 400,
-     "worlds": 5,
-     "ship": 7,
-     "hearts": 4,
-     "endHearts": 0,
-     "pauses": 2,
-     "skin": 0,
-     "powerUps": 0
-    },
-    "platform": "android"
-   },
-   "hasExisting": false,
-   "sinceLastSeconds": 100
-  },
-  {
-   "name": "create denied: premium ship in any slot",
-   "table": "main",
-   "op": "create",
-   "expect": "deny",
-   "owner": true,
-   "rulesOnly": false,
-   "doc": {
-    "name": "KANEDA",
-    "byScore": {
-     "score": 1000,
-     "dust": 500,
-     "worlds": 3,
-     "ship": 7,
-     "hearts": 4,
-     "endHearts": 0,
-     "pauses": 2,
-     "skin": 0,
-     "powerUps": 0
-    },
-    "byDust": {
-     "score": 800,
-     "dust": 900,
-     "worlds": 3,
-     "ship": 7,
-     "hearts": 4,
-     "endHearts": 0,
-     "pauses": 2,
-     "skin": 0,
-     "powerUps": 0
-    },
-    "byWorlds": {
-     "score": 700,
-     "dust": 400,
-     "worlds": 5,
-     "ship": 16,
-     "hearts": 4,
-     "endHearts": 0,
-     "pauses": 2,
-     "skin": 0,
-     "powerUps": 0
-    },
-    "platform": "android"
+    }
    },
    "hasExisting": false,
    "sinceLastSeconds": 100
@@ -621,40 +460,18 @@
    "rulesOnly": false,
    "doc": {
     "name": "KANEDA",
-    "byScore": {
-     "score": 1000,
-     "dust": 500,
-     "worlds": 3,
+    "platform": "android",
+    "score": 1000,
+    "dust": 900,
+    "worlds": 5,
+    "run": {
      "ship": 0,
      "hearts": 0,
      "endHearts": 0,
      "pauses": 2,
      "skin": 0,
      "powerUps": 0
-    },
-    "byDust": {
-     "score": 800,
-     "dust": 900,
-     "worlds": 3,
-     "ship": 7,
-     "hearts": 4,
-     "endHearts": 0,
-     "pauses": 2,
-     "skin": 0,
-     "powerUps": 0
-    },
-    "byWorlds": {
-     "score": 700,
-     "dust": 400,
-     "worlds": 5,
-     "ship": 7,
-     "hearts": 4,
-     "endHearts": 0,
-     "pauses": 2,
-     "skin": 0,
-     "powerUps": 0
-    },
-    "platform": "android"
+    }
    },
    "hasExisting": false,
    "sinceLastSeconds": 100
@@ -668,40 +485,18 @@
    "rulesOnly": false,
    "doc": {
     "name": "KANEDA",
-    "byScore": {
-     "score": 1000,
-     "dust": 500,
-     "worlds": 3,
+    "platform": "android",
+    "score": 1000,
+    "dust": 900,
+    "worlds": 5,
+    "run": {
      "ship": 15,
      "hearts": 4,
      "endHearts": 0,
      "pauses": 2,
      "skin": 0,
      "powerUps": 0
-    },
-    "byDust": {
-     "score": 800,
-     "dust": 900,
-     "worlds": 3,
-     "ship": 7,
-     "hearts": 4,
-     "endHearts": 0,
-     "pauses": 2,
-     "skin": 0,
-     "powerUps": 0
-    },
-    "byWorlds": {
-     "score": 700,
-     "dust": 400,
-     "worlds": 5,
-     "ship": 7,
-     "hearts": 4,
-     "endHearts": 0,
-     "pauses": 2,
-     "skin": 0,
-     "powerUps": 0
-    },
-    "platform": "android"
+    }
    },
    "hasExisting": false,
    "sinceLastSeconds": 100
@@ -715,40 +510,18 @@
    "rulesOnly": false,
    "doc": {
     "name": "KANEDA",
-    "byScore": {
-     "score": 1000,
-     "dust": 500,
-     "worlds": 3,
+    "platform": "android",
+    "score": 1000,
+    "dust": 900,
+    "worlds": 5,
+    "run": {
      "ship": 41,
      "hearts": 4,
      "endHearts": 0,
      "pauses": 2,
      "skin": 0,
      "powerUps": 0
-    },
-    "byDust": {
-     "score": 800,
-     "dust": 900,
-     "worlds": 3,
-     "ship": 7,
-     "hearts": 4,
-     "endHearts": 0,
-     "pauses": 2,
-     "skin": 0,
-     "powerUps": 0
-    },
-    "byWorlds": {
-     "score": 700,
-     "dust": 400,
-     "worlds": 5,
-     "ship": 7,
-     "hearts": 4,
-     "endHearts": 0,
-     "pauses": 2,
-     "skin": 0,
-     "powerUps": 0
-    },
-    "platform": "android"
+    }
    },
    "hasExisting": false,
    "sinceLastSeconds": 100
@@ -762,40 +535,18 @@
    "rulesOnly": false,
    "doc": {
     "name": "KANEDA",
-    "byScore": {
-     "score": 1000,
-     "dust": 500,
-     "worlds": 3,
+    "platform": "android",
+    "score": 1000,
+    "dust": 900,
+    "worlds": 5,
+    "run": {
      "ship": 7,
      "hearts": 21,
      "endHearts": 0,
      "pauses": 2,
      "skin": 0,
      "powerUps": 0
-    },
-    "byDust": {
-     "score": 800,
-     "dust": 900,
-     "worlds": 3,
-     "ship": 7,
-     "hearts": 4,
-     "endHearts": 0,
-     "pauses": 2,
-     "skin": 0,
-     "powerUps": 0
-    },
-    "byWorlds": {
-     "score": 700,
-     "dust": 400,
-     "worlds": 5,
-     "ship": 7,
-     "hearts": 4,
-     "endHearts": 0,
-     "pauses": 2,
-     "skin": 0,
-     "powerUps": 0
-    },
-    "platform": "android"
+    }
    },
    "hasExisting": false,
    "sinceLastSeconds": 100
@@ -809,40 +560,43 @@
    "rulesOnly": false,
    "doc": {
     "name": "KANEDA",
-    "byScore": {
-     "score": 1000,
-     "dust": 500,
-     "worlds": 3,
+    "platform": "android",
+    "score": 1000,
+    "dust": 900,
+    "worlds": 5,
+    "run": {
      "ship": 7,
      "hearts": 4,
      "endHearts": -2,
      "pauses": 2,
      "skin": 0,
      "powerUps": 0
-    },
-    "byDust": {
-     "score": 800,
-     "dust": 900,
-     "worlds": 3,
+    }
+   },
+   "hasExisting": false,
+   "sinceLastSeconds": 100
+  },
+  {
+   "name": "create allowed: unknown end hearts and pauses (-1)",
+   "table": "main",
+   "op": "create",
+   "expect": "allow",
+   "owner": true,
+   "rulesOnly": false,
+   "doc": {
+    "name": "KANEDA",
+    "platform": "android",
+    "score": 1000,
+    "dust": 900,
+    "worlds": 5,
+    "run": {
      "ship": 7,
      "hearts": 4,
-     "endHearts": 0,
-     "pauses": 2,
+     "endHearts": -1,
+     "pauses": -1,
      "skin": 0,
      "powerUps": 0
-    },
-    "byWorlds": {
-     "score": 700,
-     "dust": 400,
-     "worlds": 5,
-     "ship": 7,
-     "hearts": 4,
-     "endHearts": 0,
-     "pauses": 2,
-     "skin": 0,
-     "powerUps": 0
-    },
-    "platform": "android"
+    }
    },
    "hasExisting": false,
    "sinceLastSeconds": 100
@@ -856,40 +610,18 @@
    "rulesOnly": false,
    "doc": {
     "name": "KANEDA",
-    "byScore": {
-     "score": 1000,
-     "dust": 500,
-     "worlds": 3,
+    "platform": "android",
+    "score": 1000,
+    "dust": 900,
+    "worlds": 5,
+    "run": {
      "ship": 7,
      "hearts": 4,
      "endHearts": 0,
      "pauses": 100,
      "skin": 0,
      "powerUps": 0
-    },
-    "byDust": {
-     "score": 800,
-     "dust": 900,
-     "worlds": 3,
-     "ship": 7,
-     "hearts": 4,
-     "endHearts": 0,
-     "pauses": 2,
-     "skin": 0,
-     "powerUps": 0
-    },
-    "byWorlds": {
-     "score": 700,
-     "dust": 400,
-     "worlds": 5,
-     "ship": 7,
-     "hearts": 4,
-     "endHearts": 0,
-     "pauses": 2,
-     "skin": 0,
-     "powerUps": 0
-    },
-    "platform": "android"
+    }
    },
    "hasExisting": false,
    "sinceLastSeconds": 100
@@ -903,40 +635,18 @@
    "rulesOnly": false,
    "doc": {
     "name": "KANEDA",
-    "byScore": {
-     "score": 1000,
-     "dust": 500,
-     "worlds": 3,
+    "platform": "android",
+    "score": 1000,
+    "dust": 900,
+    "worlds": 5,
+    "run": {
      "ship": 7,
      "hearts": 4,
      "endHearts": 0,
      "pauses": 2,
      "skin": 100,
      "powerUps": 0
-    },
-    "byDust": {
-     "score": 800,
-     "dust": 900,
-     "worlds": 3,
-     "ship": 7,
-     "hearts": 4,
-     "endHearts": 0,
-     "pauses": 2,
-     "skin": 0,
-     "powerUps": 0
-    },
-    "byWorlds": {
-     "score": 700,
-     "dust": 400,
-     "worlds": 5,
-     "ship": 7,
-     "hearts": 4,
-     "endHearts": 0,
-     "pauses": 2,
-     "skin": 0,
-     "powerUps": 0
-    },
-    "platform": "android"
+    }
    },
    "hasExisting": false,
    "sinceLastSeconds": 100
@@ -950,40 +660,18 @@
    "rulesOnly": false,
    "doc": {
     "name": "KANEDA",
-    "byScore": {
-     "score": 1000,
-     "dust": 500,
-     "worlds": 3,
+    "platform": "android",
+    "score": 1000,
+    "dust": 900,
+    "worlds": 5,
+    "run": {
      "ship": 7,
      "hearts": 4,
      "endHearts": 0,
      "pauses": 2,
      "skin": 0,
      "powerUps": 1
-    },
-    "byDust": {
-     "score": 800,
-     "dust": 900,
-     "worlds": 3,
-     "ship": 7,
-     "hearts": 4,
-     "endHearts": 0,
-     "pauses": 2,
-     "skin": 0,
-     "powerUps": 0
-    },
-    "byWorlds": {
-     "score": 700,
-     "dust": 400,
-     "worlds": 5,
-     "ship": 7,
-     "hearts": 4,
-     "endHearts": 0,
-     "pauses": 2,
-     "skin": 0,
-     "powerUps": 0
-    },
-    "platform": "android"
+    }
    },
    "hasExisting": false,
    "sinceLastSeconds": 100
@@ -997,181 +685,18 @@
    "rulesOnly": false,
    "doc": {
     "name": "KANEDA",
-    "byScore": {
-     "score": 1000,
-     "dust": 500,
-     "worlds": 3,
+    "platform": "android",
+    "score": 1000,
+    "dust": 900,
+    "worlds": 5,
+    "run": {
      "ship": 7,
      "hearts": 4,
      "endHearts": 0,
      "pauses": 2,
      "skin": 0,
      "powerUps": 0
-    },
-    "byDust": {
-     "score": 800,
-     "dust": 900,
-     "worlds": 3,
-     "ship": 7,
-     "hearts": 4,
-     "endHearts": 0,
-     "pauses": 2,
-     "skin": 0,
-     "powerUps": 1
-    },
-    "byWorlds": {
-     "score": 700,
-     "dust": 400,
-     "worlds": 5,
-     "ship": 7,
-     "hearts": 4,
-     "endHearts": 0,
-     "pauses": 2,
-     "skin": 0,
-     "powerUps": 1
-    },
-    "platform": "android"
-   },
-   "hasExisting": false,
-   "sinceLastSeconds": 100
-  },
-  {
-   "name": "create denied: the dust run outscores the score run",
-   "table": "main",
-   "op": "create",
-   "expect": "deny",
-   "owner": true,
-   "rulesOnly": false,
-   "doc": {
-    "name": "KANEDA",
-    "byScore": {
-     "score": 1000,
-     "dust": 500,
-     "worlds": 3,
-     "ship": 7,
-     "hearts": 4,
-     "endHearts": 0,
-     "pauses": 2,
-     "skin": 0,
-     "powerUps": 0
-    },
-    "byDust": {
-     "score": 5000,
-     "dust": 900,
-     "worlds": 3,
-     "ship": 7,
-     "hearts": 4,
-     "endHearts": 0,
-     "pauses": 2,
-     "skin": 0,
-     "powerUps": 0
-    },
-    "byWorlds": {
-     "score": 700,
-     "dust": 400,
-     "worlds": 5,
-     "ship": 7,
-     "hearts": 4,
-     "endHearts": 0,
-     "pauses": 2,
-     "skin": 0,
-     "powerUps": 0
-    },
-    "platform": "android"
-   },
-   "hasExisting": false,
-   "sinceLastSeconds": 100
-  },
-  {
-   "name": "create denied: the score run out-dusts the dust run",
-   "table": "main",
-   "op": "create",
-   "expect": "deny",
-   "owner": true,
-   "rulesOnly": false,
-   "doc": {
-    "name": "KANEDA",
-    "byScore": {
-     "score": 1000,
-     "dust": 5000,
-     "worlds": 3,
-     "ship": 7,
-     "hearts": 4,
-     "endHearts": 0,
-     "pauses": 2,
-     "skin": 0,
-     "powerUps": 0
-    },
-    "byDust": {
-     "score": 800,
-     "dust": 900,
-     "worlds": 3,
-     "ship": 7,
-     "hearts": 4,
-     "endHearts": 0,
-     "pauses": 2,
-     "skin": 0,
-     "powerUps": 0
-    },
-    "byWorlds": {
-     "score": 700,
-     "dust": 400,
-     "worlds": 5,
-     "ship": 7,
-     "hearts": 4,
-     "endHearts": 0,
-     "pauses": 2,
-     "skin": 0,
-     "powerUps": 0
-    },
-    "platform": "android"
-   },
-   "hasExisting": false,
-   "sinceLastSeconds": 100
-  },
-  {
-   "name": "create denied: the dust run out-worlds the worlds run",
-   "table": "main",
-   "op": "create",
-   "expect": "deny",
-   "owner": true,
-   "rulesOnly": false,
-   "doc": {
-    "name": "KANEDA",
-    "byScore": {
-     "score": 1000,
-     "dust": 500,
-     "worlds": 3,
-     "ship": 7,
-     "hearts": 4,
-     "endHearts": 0,
-     "pauses": 2,
-     "skin": 0,
-     "powerUps": 0
-    },
-    "byDust": {
-     "score": 800,
-     "dust": 900,
-     "worlds": 9,
-     "ship": 7,
-     "hearts": 4,
-     "endHearts": 0,
-     "pauses": 2,
-     "skin": 0,
-     "powerUps": 0
-    },
-    "byWorlds": {
-     "score": 700,
-     "dust": 400,
-     "worlds": 5,
-     "ship": 7,
-     "hearts": 4,
-     "endHearts": 0,
-     "pauses": 2,
-     "skin": 0,
-     "powerUps": 0
-    },
-    "platform": "android"
+    }
    },
    "hasExisting": false,
    "sinceLastSeconds": 100
@@ -1185,76 +710,18 @@
    "rulesOnly": false,
    "doc": {
     "name": "KANEDA",
-    "byScore": {
-     "score": 1000,
-     "dust": 500,
-     "worlds": 3,
+    "platform": "android",
+    "score": 1000,
+    "dust": 900,
+    "worlds": 5,
+    "run": {
      "ship": 7,
      "hearts": 4,
      "endHearts": 0,
      "pauses": 2,
      "skin": 0,
      "powerUps": 0
-    },
-    "byDust": {
-     "score": 800,
-     "dust": 900,
-     "worlds": 3,
-     "ship": 7,
-     "hearts": 4,
-     "endHearts": 0,
-     "pauses": 2,
-     "skin": 0,
-     "powerUps": 0
-    },
-    "byWorlds": {
-     "score": 700,
-     "dust": 400,
-     "worlds": 5,
-     "ship": 7,
-     "hearts": 4,
-     "endHearts": 0,
-     "pauses": 2,
-     "skin": 0,
-     "powerUps": 0
-    },
-    "platform": "android"
-   },
-   "hasExisting": false,
-   "sinceLastSeconds": 100
-  },
-  {
-   "name": "create denied: a missing slot",
-   "table": "main",
-   "op": "create",
-   "expect": "deny",
-   "owner": true,
-   "rulesOnly": true,
-   "doc": {
-    "name": "KANEDA",
-    "byScore": {
-     "score": 1000,
-     "dust": 500,
-     "worlds": 3,
-     "ship": 7,
-     "hearts": 4,
-     "endHearts": 0,
-     "pauses": 2,
-     "skin": 0,
-     "powerUps": 0
-    },
-    "byWorlds": {
-     "score": 700,
-     "dust": 400,
-     "worlds": 5,
-     "ship": 7,
-     "hearts": 4,
-     "endHearts": 0,
-     "pauses": 2,
-     "skin": 0,
-     "powerUps": 0
-    },
-    "platform": "android"
+    }
    },
    "hasExisting": false,
    "sinceLastSeconds": 100
@@ -1268,10 +735,11 @@
    "rulesOnly": true,
    "doc": {
     "name": "KANEDA",
-    "byScore": {
-     "score": 1000,
-     "dust": 500,
-     "worlds": 3,
+    "platform": "android",
+    "score": 1000,
+    "dust": 900,
+    "worlds": 5,
+    "run": {
      "ship": 7,
      "hearts": 4,
      "endHearts": 0,
@@ -1279,36 +747,13 @@
      "skin": 0,
      "powerUps": 0
     },
-    "byDust": {
-     "score": 800,
-     "dust": 900,
-     "worlds": 3,
-     "ship": 7,
-     "hearts": 4,
-     "endHearts": 0,
-     "pauses": 2,
-     "skin": 0,
-     "powerUps": 0
-    },
-    "byWorlds": {
-     "score": 700,
-     "dust": 400,
-     "worlds": 5,
-     "ship": 7,
-     "hearts": 4,
-     "endHearts": 0,
-     "pauses": 2,
-     "skin": 0,
-     "powerUps": 0
-    },
-    "extra": 1,
-    "platform": "android"
+    "extra": 1
    },
    "hasExisting": false,
    "sinceLastSeconds": 100
   },
   {
-   "name": "create denied: an extra field on a run",
+   "name": "create denied: an extra field on the run",
    "table": "main",
    "op": "create",
    "expect": "deny",
@@ -1316,10 +761,11 @@
    "rulesOnly": true,
    "doc": {
     "name": "KANEDA",
-    "byScore": {
-     "score": 1000,
-     "dust": 500,
-     "worlds": 3,
+    "platform": "android",
+    "score": 1000,
+    "dust": 900,
+    "worlds": 5,
+    "run": {
      "ship": 7,
      "hearts": 4,
      "endHearts": 0,
@@ -1327,30 +773,31 @@
      "skin": 0,
      "powerUps": 0,
      "extra": 1
-    },
-    "byDust": {
-     "score": 800,
-     "dust": 900,
-     "worlds": 3,
+    }
+   },
+   "hasExisting": false,
+   "sinceLastSeconds": 100
+  },
+  {
+   "name": "create denied: a missing best",
+   "table": "main",
+   "op": "create",
+   "expect": "deny",
+   "owner": true,
+   "rulesOnly": true,
+   "doc": {
+    "name": "KANEDA",
+    "platform": "android",
+    "score": 1000,
+    "dust": 900,
+    "run": {
      "ship": 7,
      "hearts": 4,
      "endHearts": 0,
      "pauses": 2,
      "skin": 0,
      "powerUps": 0
-    },
-    "byWorlds": {
-     "score": 700,
-     "dust": 400,
-     "worlds": 5,
-     "ship": 7,
-     "hearts": 4,
-     "endHearts": 0,
-     "pauses": 2,
-     "skin": 0,
-     "powerUps": 0
-    },
-    "platform": "android"
+    }
    },
    "hasExisting": false,
    "sinceLastSeconds": 100
@@ -1364,1228 +811,48 @@
    "rulesOnly": true,
    "doc": {
     "name": "KANEDA",
-    "byScore": {
-     "score": 1000,
-     "dust": 500,
-     "worlds": 3,
+    "platform": "android",
+    "score": 1000,
+    "dust": 900,
+    "worlds": 5,
+    "run": {
      "ship": 7,
      "hearts": 4,
      "endHearts": 0,
-     "pauses": 2,
-     "powerUps": 0
-    },
-    "byDust": {
-     "score": 800,
-     "dust": 900,
-     "worlds": 3,
-     "ship": 7,
-     "hearts": 4,
-     "endHearts": 0,
-     "pauses": 2,
      "skin": 0,
      "powerUps": 0
-    },
-    "byWorlds": {
-     "score": 700,
-     "dust": 400,
-     "worlds": 5,
-     "ship": 7,
-     "hearts": 4,
-     "endHearts": 0,
-     "pauses": 2,
-     "skin": 0,
-     "powerUps": 0
-    },
-    "platform": "android"
+    }
    },
    "hasExisting": false,
    "sinceLastSeconds": 100
   },
   {
-   "name": "update allowed: every column improves",
-   "table": "main",
-   "op": "update",
-   "expect": "allow",
-   "owner": true,
-   "rulesOnly": false,
-   "doc": {
-    "name": "KANEDA",
-    "byScore": {
-     "score": 1500,
-     "dust": 500,
-     "worlds": 3,
-     "ship": 7,
-     "hearts": 4,
-     "endHearts": 0,
-     "pauses": 2,
-     "skin": 0,
-     "powerUps": 0
-    },
-    "byDust": {
-     "score": 800,
-     "dust": 1000,
-     "worlds": 3,
-     "ship": 7,
-     "hearts": 4,
-     "endHearts": 0,
-     "pauses": 2,
-     "skin": 0,
-     "powerUps": 0
-    },
-    "byWorlds": {
-     "score": 700,
-     "dust": 400,
-     "worlds": 6,
-     "ship": 7,
-     "hearts": 4,
-     "endHearts": 0,
-     "pauses": 2,
-     "skin": 0,
-     "powerUps": 0
-    },
-    "platform": "android"
-   },
-   "hasExisting": true,
-   "existing": {
-    "name": "KANEDA",
-    "byScore": {
-     "score": 1000,
-     "dust": 500,
-     "worlds": 3,
-     "ship": 7,
-     "hearts": 4,
-     "endHearts": 0,
-     "pauses": 2,
-     "skin": 0,
-     "powerUps": 0
-    },
-    "byDust": {
-     "score": 800,
-     "dust": 900,
-     "worlds": 3,
-     "ship": 7,
-     "hearts": 4,
-     "endHearts": 0,
-     "pauses": 2,
-     "skin": 0,
-     "powerUps": 0
-    },
-    "byWorlds": {
-     "score": 700,
-     "dust": 400,
-     "worlds": 5,
-     "ship": 7,
-     "hearts": 4,
-     "endHearts": 0,
-     "pauses": 2,
-     "skin": 0,
-     "powerUps": 0
-    },
-    "platform": "android"
-   },
-   "sinceLastSeconds": 100
-  },
-  {
-   "name": "update allowed: one column improves, the rest tie",
-   "table": "main",
-   "op": "update",
-   "expect": "allow",
-   "owner": true,
-   "rulesOnly": false,
-   "doc": {
-    "name": "KANEDA",
-    "byScore": {
-     "score": 1200,
-     "dust": 500,
-     "worlds": 3,
-     "ship": 7,
-     "hearts": 4,
-     "endHearts": 0,
-     "pauses": 2,
-     "skin": 0,
-     "powerUps": 0
-    },
-    "byDust": {
-     "score": 800,
-     "dust": 900,
-     "worlds": 3,
-     "ship": 7,
-     "hearts": 4,
-     "endHearts": 0,
-     "pauses": 2,
-     "skin": 0,
-     "powerUps": 0
-    },
-    "byWorlds": {
-     "score": 700,
-     "dust": 400,
-     "worlds": 5,
-     "ship": 7,
-     "hearts": 4,
-     "endHearts": 0,
-     "pauses": 2,
-     "skin": 0,
-     "powerUps": 0
-    },
-    "platform": "android"
-   },
-   "hasExisting": true,
-   "existing": {
-    "name": "KANEDA",
-    "byScore": {
-     "score": 1000,
-     "dust": 500,
-     "worlds": 3,
-     "ship": 7,
-     "hearts": 4,
-     "endHearts": 0,
-     "pauses": 2,
-     "skin": 0,
-     "powerUps": 0
-    },
-    "byDust": {
-     "score": 800,
-     "dust": 900,
-     "worlds": 3,
-     "ship": 7,
-     "hearts": 4,
-     "endHearts": 0,
-     "pauses": 2,
-     "skin": 0,
-     "powerUps": 0
-    },
-    "byWorlds": {
-     "score": 700,
-     "dust": 400,
-     "worlds": 5,
-     "ship": 7,
-     "hearts": 4,
-     "endHearts": 0,
-     "pauses": 2,
-     "skin": 0,
-     "powerUps": 0
-    },
-    "platform": "android"
-   },
-   "sinceLastSeconds": 100
-  },
-  {
-   "name": "update allowed: a tie keeps its values",
-   "table": "main",
-   "op": "update",
-   "expect": "allow",
-   "owner": true,
-   "rulesOnly": false,
-   "doc": {
-    "name": "KANEDA",
-    "byScore": {
-     "score": 1000,
-     "dust": 500,
-     "worlds": 3,
-     "ship": 7,
-     "hearts": 4,
-     "endHearts": 0,
-     "pauses": 2,
-     "skin": 0,
-     "powerUps": 0
-    },
-    "byDust": {
-     "score": 800,
-     "dust": 900,
-     "worlds": 3,
-     "ship": 7,
-     "hearts": 4,
-     "endHearts": 0,
-     "pauses": 2,
-     "skin": 0,
-     "powerUps": 0
-    },
-    "byWorlds": {
-     "score": 700,
-     "dust": 400,
-     "worlds": 5,
-     "ship": 7,
-     "hearts": 4,
-     "endHearts": 0,
-     "pauses": 2,
-     "skin": 0,
-     "powerUps": 0
-    },
-    "platform": "android"
-   },
-   "hasExisting": true,
-   "existing": {
-    "name": "KANEDA",
-    "byScore": {
-     "score": 1000,
-     "dust": 500,
-     "worlds": 3,
-     "ship": 7,
-     "hearts": 4,
-     "endHearts": 0,
-     "pauses": 2,
-     "skin": 0,
-     "powerUps": 0
-    },
-    "byDust": {
-     "score": 800,
-     "dust": 900,
-     "worlds": 3,
-     "ship": 7,
-     "hearts": 4,
-     "endHearts": 0,
-     "pauses": 2,
-     "skin": 0,
-     "powerUps": 0
-    },
-    "byWorlds": {
-     "score": 700,
-     "dust": 400,
-     "worlds": 5,
-     "ship": 7,
-     "hearts": 4,
-     "endHearts": 0,
-     "pauses": 2,
-     "skin": 0,
-     "powerUps": 0
-    },
-    "platform": "android"
-   },
-   "sinceLastSeconds": 100
-  },
-  {
-   "name": "update allowed: power table improves",
-   "table": "power",
-   "op": "update",
-   "expect": "allow",
-   "owner": true,
-   "rulesOnly": false,
-   "doc": {
-    "name": "KANEDA",
-    "byScore": {
-     "score": 1500,
-     "dust": 500,
-     "worlds": 3,
-     "ship": 7,
-     "hearts": 4,
-     "endHearts": 0,
-     "pauses": 2,
-     "skin": 0,
-     "powerUps": 1
-    },
-    "byDust": {
-     "score": 800,
-     "dust": 1000,
-     "worlds": 3,
-     "ship": 7,
-     "hearts": 4,
-     "endHearts": 0,
-     "pauses": 2,
-     "skin": 0,
-     "powerUps": 1
-    },
-    "byWorlds": {
-     "score": 700,
-     "dust": 400,
-     "worlds": 6,
-     "ship": 7,
-     "hearts": 4,
-     "endHearts": 0,
-     "pauses": 2,
-     "skin": 0,
-     "powerUps": 1
-    },
-    "platform": "android"
-   },
-   "hasExisting": true,
-   "existing": {
-    "name": "KANEDA",
-    "byScore": {
-     "score": 1000,
-     "dust": 500,
-     "worlds": 3,
-     "ship": 7,
-     "hearts": 4,
-     "endHearts": 0,
-     "pauses": 2,
-     "skin": 0,
-     "powerUps": 1
-    },
-    "byDust": {
-     "score": 800,
-     "dust": 900,
-     "worlds": 3,
-     "ship": 7,
-     "hearts": 4,
-     "endHearts": 0,
-     "pauses": 2,
-     "skin": 0,
-     "powerUps": 1
-    },
-    "byWorlds": {
-     "score": 700,
-     "dust": 400,
-     "worlds": 5,
-     "ship": 7,
-     "hearts": 4,
-     "endHearts": 0,
-     "pauses": 2,
-     "skin": 0,
-     "powerUps": 1
-    },
-    "platform": "android"
-   },
-   "sinceLastSeconds": 100
-  },
-  {
-   "name": "update denied: the best score drops",
-   "table": "main",
-   "op": "update",
-   "expect": "deny",
-   "owner": true,
-   "rulesOnly": false,
-   "doc": {
-    "name": "KANEDA",
-    "byScore": {
-     "score": 900,
-     "dust": 500,
-     "worlds": 3,
-     "ship": 7,
-     "hearts": 4,
-     "endHearts": 0,
-     "pauses": 2,
-     "skin": 0,
-     "powerUps": 0
-    },
-    "byDust": {
-     "score": 800,
-     "dust": 1000,
-     "worlds": 3,
-     "ship": 7,
-     "hearts": 4,
-     "endHearts": 0,
-     "pauses": 2,
-     "skin": 0,
-     "powerUps": 0
-    },
-    "byWorlds": {
-     "score": 700,
-     "dust": 400,
-     "worlds": 6,
-     "ship": 7,
-     "hearts": 4,
-     "endHearts": 0,
-     "pauses": 2,
-     "skin": 0,
-     "powerUps": 0
-    },
-    "platform": "android"
-   },
-   "hasExisting": true,
-   "existing": {
-    "name": "KANEDA",
-    "byScore": {
-     "score": 1000,
-     "dust": 500,
-     "worlds": 3,
-     "ship": 7,
-     "hearts": 4,
-     "endHearts": 0,
-     "pauses": 2,
-     "skin": 0,
-     "powerUps": 0
-    },
-    "byDust": {
-     "score": 800,
-     "dust": 900,
-     "worlds": 3,
-     "ship": 7,
-     "hearts": 4,
-     "endHearts": 0,
-     "pauses": 2,
-     "skin": 0,
-     "powerUps": 0
-    },
-    "byWorlds": {
-     "score": 700,
-     "dust": 400,
-     "worlds": 5,
-     "ship": 7,
-     "hearts": 4,
-     "endHearts": 0,
-     "pauses": 2,
-     "skin": 0,
-     "powerUps": 0
-    },
-    "platform": "android"
-   },
-   "sinceLastSeconds": 100
-  },
-  {
-   "name": "update denied: the best dust drops",
-   "table": "main",
-   "op": "update",
-   "expect": "deny",
-   "owner": true,
-   "rulesOnly": false,
-   "doc": {
-    "name": "KANEDA",
-    "byScore": {
-     "score": 1500,
-     "dust": 500,
-     "worlds": 3,
-     "ship": 7,
-     "hearts": 4,
-     "endHearts": 0,
-     "pauses": 2,
-     "skin": 0,
-     "powerUps": 0
-    },
-    "byDust": {
-     "score": 800,
-     "dust": 800,
-     "worlds": 3,
-     "ship": 7,
-     "hearts": 4,
-     "endHearts": 0,
-     "pauses": 2,
-     "skin": 0,
-     "powerUps": 0
-    },
-    "byWorlds": {
-     "score": 700,
-     "dust": 400,
-     "worlds": 6,
-     "ship": 7,
-     "hearts": 4,
-     "endHearts": 0,
-     "pauses": 2,
-     "skin": 0,
-     "powerUps": 0
-    },
-    "platform": "android"
-   },
-   "hasExisting": true,
-   "existing": {
-    "name": "KANEDA",
-    "byScore": {
-     "score": 1000,
-     "dust": 500,
-     "worlds": 3,
-     "ship": 7,
-     "hearts": 4,
-     "endHearts": 0,
-     "pauses": 2,
-     "skin": 0,
-     "powerUps": 0
-    },
-    "byDust": {
-     "score": 800,
-     "dust": 900,
-     "worlds": 3,
-     "ship": 7,
-     "hearts": 4,
-     "endHearts": 0,
-     "pauses": 2,
-     "skin": 0,
-     "powerUps": 0
-    },
-    "byWorlds": {
-     "score": 700,
-     "dust": 400,
-     "worlds": 5,
-     "ship": 7,
-     "hearts": 4,
-     "endHearts": 0,
-     "pauses": 2,
-     "skin": 0,
-     "powerUps": 0
-    },
-    "platform": "android"
-   },
-   "sinceLastSeconds": 100
-  },
-  {
-   "name": "update denied: the best worlds drops",
-   "table": "main",
-   "op": "update",
-   "expect": "deny",
-   "owner": true,
-   "rulesOnly": false,
-   "doc": {
-    "name": "KANEDA",
-    "byScore": {
-     "score": 1500,
-     "dust": 500,
-     "worlds": 3,
-     "ship": 7,
-     "hearts": 4,
-     "endHearts": 0,
-     "pauses": 2,
-     "skin": 0,
-     "powerUps": 0
-    },
-    "byDust": {
-     "score": 800,
-     "dust": 1000,
-     "worlds": 3,
-     "ship": 7,
-     "hearts": 4,
-     "endHearts": 0,
-     "pauses": 2,
-     "skin": 0,
-     "powerUps": 0
-    },
-    "byWorlds": {
-     "score": 700,
-     "dust": 400,
-     "worlds": 2,
-     "ship": 7,
-     "hearts": 4,
-     "endHearts": 0,
-     "pauses": 2,
-     "skin": 0,
-     "powerUps": 0
-    },
-    "platform": "android"
-   },
-   "hasExisting": true,
-   "existing": {
-    "name": "KANEDA",
-    "byScore": {
-     "score": 1000,
-     "dust": 500,
-     "worlds": 3,
-     "ship": 7,
-     "hearts": 4,
-     "endHearts": 0,
-     "pauses": 2,
-     "skin": 0,
-     "powerUps": 0
-    },
-    "byDust": {
-     "score": 800,
-     "dust": 900,
-     "worlds": 3,
-     "ship": 7,
-     "hearts": 4,
-     "endHearts": 0,
-     "pauses": 2,
-     "skin": 0,
-     "powerUps": 0
-    },
-    "byWorlds": {
-     "score": 700,
-     "dust": 400,
-     "worlds": 5,
-     "ship": 7,
-     "hearts": 4,
-     "endHearts": 0,
-     "pauses": 2,
-     "skin": 0,
-     "powerUps": 0
-    },
-    "platform": "android"
-   },
-   "sinceLastSeconds": 100
-  },
-  {
-   "name": "update denied: only 5 seconds after the last write",
-   "table": "main",
-   "op": "update",
-   "expect": "deny",
-   "owner": true,
-   "rulesOnly": false,
-   "doc": {
-    "name": "KANEDA",
-    "byScore": {
-     "score": 1500,
-     "dust": 500,
-     "worlds": 3,
-     "ship": 7,
-     "hearts": 4,
-     "endHearts": 0,
-     "pauses": 2,
-     "skin": 0,
-     "powerUps": 0
-    },
-    "byDust": {
-     "score": 800,
-     "dust": 1000,
-     "worlds": 3,
-     "ship": 7,
-     "hearts": 4,
-     "endHearts": 0,
-     "pauses": 2,
-     "skin": 0,
-     "powerUps": 0
-    },
-    "byWorlds": {
-     "score": 700,
-     "dust": 400,
-     "worlds": 6,
-     "ship": 7,
-     "hearts": 4,
-     "endHearts": 0,
-     "pauses": 2,
-     "skin": 0,
-     "powerUps": 0
-    },
-    "platform": "android"
-   },
-   "hasExisting": true,
-   "existing": {
-    "name": "KANEDA",
-    "byScore": {
-     "score": 1000,
-     "dust": 500,
-     "worlds": 3,
-     "ship": 7,
-     "hearts": 4,
-     "endHearts": 0,
-     "pauses": 2,
-     "skin": 0,
-     "powerUps": 0
-    },
-    "byDust": {
-     "score": 800,
-     "dust": 900,
-     "worlds": 3,
-     "ship": 7,
-     "hearts": 4,
-     "endHearts": 0,
-     "pauses": 2,
-     "skin": 0,
-     "powerUps": 0
-    },
-    "byWorlds": {
-     "score": 700,
-     "dust": 400,
-     "worlds": 5,
-     "ship": 7,
-     "hearts": 4,
-     "endHearts": 0,
-     "pauses": 2,
-     "skin": 0,
-     "powerUps": 0
-    },
-    "platform": "android"
-   },
-   "sinceLastSeconds": 5
-  },
-  {
-   "name": "update denied: another player's doc",
-   "table": "main",
-   "op": "update",
-   "expect": "deny",
-   "owner": false,
-   "rulesOnly": false,
-   "doc": {
-    "name": "KANEDA",
-    "byScore": {
-     "score": 1500,
-     "dust": 500,
-     "worlds": 3,
-     "ship": 7,
-     "hearts": 4,
-     "endHearts": 0,
-     "pauses": 2,
-     "skin": 0,
-     "powerUps": 0
-    },
-    "byDust": {
-     "score": 800,
-     "dust": 1000,
-     "worlds": 3,
-     "ship": 7,
-     "hearts": 4,
-     "endHearts": 0,
-     "pauses": 2,
-     "skin": 0,
-     "powerUps": 0
-    },
-    "byWorlds": {
-     "score": 700,
-     "dust": 400,
-     "worlds": 6,
-     "ship": 7,
-     "hearts": 4,
-     "endHearts": 0,
-     "pauses": 2,
-     "skin": 0,
-     "powerUps": 0
-    },
-    "platform": "android"
-   },
-   "hasExisting": true,
-   "existing": {
-    "name": "KANEDA",
-    "byScore": {
-     "score": 1000,
-     "dust": 500,
-     "worlds": 3,
-     "ship": 7,
-     "hearts": 4,
-     "endHearts": 0,
-     "pauses": 2,
-     "skin": 0,
-     "powerUps": 0
-    },
-    "byDust": {
-     "score": 800,
-     "dust": 900,
-     "worlds": 3,
-     "ship": 7,
-     "hearts": 4,
-     "endHearts": 0,
-     "pauses": 2,
-     "skin": 0,
-     "powerUps": 0
-    },
-    "byWorlds": {
-     "score": 700,
-     "dust": 400,
-     "worlds": 5,
-     "ship": 7,
-     "hearts": 4,
-     "endHearts": 0,
-     "pauses": 2,
-     "skin": 0,
-     "powerUps": 0
-    },
-    "platform": "android"
-   },
-   "sinceLastSeconds": 100
-  },
-  {
-   "name": "update denied: an improved doc that breaks a bound",
-   "table": "main",
-   "op": "update",
-   "expect": "deny",
-   "owner": true,
-   "rulesOnly": false,
-   "doc": {
-    "name": "KANEDA",
-    "byScore": {
-     "score": 10000000000,
-     "dust": 500,
-     "worlds": 3,
-     "ship": 7,
-     "hearts": 4,
-     "endHearts": 0,
-     "pauses": 2,
-     "skin": 0,
-     "powerUps": 0
-    },
-    "byDust": {
-     "score": 800,
-     "dust": 900,
-     "worlds": 3,
-     "ship": 7,
-     "hearts": 4,
-     "endHearts": 0,
-     "pauses": 2,
-     "skin": 0,
-     "powerUps": 0
-    },
-    "byWorlds": {
-     "score": 700,
-     "dust": 400,
-     "worlds": 5,
-     "ship": 7,
-     "hearts": 4,
-     "endHearts": 0,
-     "pauses": 2,
-     "skin": 0,
-     "powerUps": 0
-    },
-    "platform": "android"
-   },
-   "hasExisting": true,
-   "existing": {
-    "name": "KANEDA",
-    "byScore": {
-     "score": 1000,
-     "dust": 500,
-     "worlds": 3,
-     "ship": 7,
-     "hearts": 4,
-     "endHearts": 0,
-     "pauses": 2,
-     "skin": 0,
-     "powerUps": 0
-    },
-    "byDust": {
-     "score": 800,
-     "dust": 900,
-     "worlds": 3,
-     "ship": 7,
-     "hearts": 4,
-     "endHearts": 0,
-     "pauses": 2,
-     "skin": 0,
-     "powerUps": 0
-    },
-    "byWorlds": {
-     "score": 700,
-     "dust": 400,
-     "worlds": 5,
-     "ship": 7,
-     "hearts": 4,
-     "endHearts": 0,
-     "pauses": 2,
-     "skin": 0,
-     "powerUps": 0
-    },
-    "platform": "android"
-   },
-   "sinceLastSeconds": 100
-  },
-  {
-   "name": "create allowed: ios doc signed in with Game Center",
+   "name": "create denied: a missing run map",
    "table": "main",
    "op": "create",
-   "expect": "allow",
+   "expect": "deny",
    "owner": true,
-   "rulesOnly": false,
+   "rulesOnly": true,
    "doc": {
     "name": "KANEDA",
-    "byScore": {
-     "score": 1000,
-     "dust": 500,
-     "worlds": 3,
-     "ship": 7,
-     "hearts": 4,
-     "endHearts": 0,
-     "pauses": 2,
-     "skin": 0,
-     "powerUps": 0
-    },
-    "byDust": {
-     "score": 800,
-     "dust": 900,
-     "worlds": 3,
-     "ship": 7,
-     "hearts": 4,
-     "endHearts": 0,
-     "pauses": 2,
-     "skin": 0,
-     "powerUps": 0
-    },
-    "byWorlds": {
-     "score": 700,
-     "dust": 400,
-     "worlds": 5,
-     "ship": 7,
-     "hearts": 4,
-     "endHearts": 0,
-     "pauses": 2,
-     "skin": 0,
-     "powerUps": 0
-    },
-    "platform": "ios"
+    "platform": "android",
+    "score": 1000,
+    "dust": 900,
+    "worlds": 5
    },
    "hasExisting": false,
-   "sinceLastSeconds": 100,
-   "provider": "gc.apple.com"
+   "sinceLastSeconds": 100
   },
   {
-   "name": "create allowed: ios doc on the power table",
-   "table": "power",
-   "op": "create",
-   "expect": "allow",
-   "owner": true,
-   "rulesOnly": false,
-   "doc": {
-    "name": "KANEDA",
-    "byScore": {
-     "score": 1000,
-     "dust": 500,
-     "worlds": 3,
-     "ship": 7,
-     "hearts": 4,
-     "endHearts": 0,
-     "pauses": 2,
-     "skin": 0,
-     "powerUps": 1
-    },
-    "byDust": {
-     "score": 800,
-     "dust": 900,
-     "worlds": 3,
-     "ship": 7,
-     "hearts": 4,
-     "endHearts": 0,
-     "pauses": 2,
-     "skin": 0,
-     "powerUps": 1
-    },
-    "byWorlds": {
-     "score": 700,
-     "dust": 400,
-     "worlds": 5,
-     "ship": 7,
-     "hearts": 4,
-     "endHearts": 0,
-     "pauses": 2,
-     "skin": 0,
-     "powerUps": 1
-    },
-    "platform": "ios"
-   },
-   "hasExisting": false,
-   "sinceLastSeconds": 100,
-   "provider": "gc.apple.com"
-  },
-  {
-   "name": "create denied: ios doc signed in with Play Games",
+   "name": "create denied: a new doc in the old per-column shape",
    "table": "main",
    "op": "create",
    "expect": "deny",
    "owner": true,
-   "rulesOnly": false,
+   "rulesOnly": true,
    "doc": {
     "name": "KANEDA",
-    "byScore": {
-     "score": 1000,
-     "dust": 500,
-     "worlds": 3,
-     "ship": 7,
-     "hearts": 4,
-     "endHearts": 0,
-     "pauses": 2,
-     "skin": 0,
-     "powerUps": 0
-    },
-    "byDust": {
-     "score": 800,
-     "dust": 900,
-     "worlds": 3,
-     "ship": 7,
-     "hearts": 4,
-     "endHearts": 0,
-     "pauses": 2,
-     "skin": 0,
-     "powerUps": 0
-    },
-    "byWorlds": {
-     "score": 700,
-     "dust": 400,
-     "worlds": 5,
-     "ship": 7,
-     "hearts": 4,
-     "endHearts": 0,
-     "pauses": 2,
-     "skin": 0,
-     "powerUps": 0
-    },
-    "platform": "ios"
-   },
-   "hasExisting": false,
-   "sinceLastSeconds": 100,
-   "provider": "playgames.google.com"
-  },
-  {
-   "name": "create denied: android doc signed in with Game Center",
-   "table": "main",
-   "op": "create",
-   "expect": "deny",
-   "owner": true,
-   "rulesOnly": false,
-   "doc": {
-    "name": "KANEDA",
-    "byScore": {
-     "score": 1000,
-     "dust": 500,
-     "worlds": 3,
-     "ship": 7,
-     "hearts": 4,
-     "endHearts": 0,
-     "pauses": 2,
-     "skin": 0,
-     "powerUps": 0
-    },
-    "byDust": {
-     "score": 800,
-     "dust": 900,
-     "worlds": 3,
-     "ship": 7,
-     "hearts": 4,
-     "endHearts": 0,
-     "pauses": 2,
-     "skin": 0,
-     "powerUps": 0
-    },
-    "byWorlds": {
-     "score": 700,
-     "dust": 400,
-     "worlds": 5,
-     "ship": 7,
-     "hearts": 4,
-     "endHearts": 0,
-     "pauses": 2,
-     "skin": 0,
-     "powerUps": 0
-    },
-    "platform": "android"
-   },
-   "hasExisting": false,
-   "sinceLastSeconds": 100,
-   "provider": "gc.apple.com"
-  },
-  {
-   "name": "create denied: android doc with a custom provider",
-   "table": "main",
-   "op": "create",
-   "expect": "deny",
-   "owner": true,
-   "rulesOnly": false,
-   "doc": {
-    "name": "KANEDA",
-    "byScore": {
-     "score": 1000,
-     "dust": 500,
-     "worlds": 3,
-     "ship": 7,
-     "hearts": 4,
-     "endHearts": 0,
-     "pauses": 2,
-     "skin": 0,
-     "powerUps": 0
-    },
-    "byDust": {
-     "score": 800,
-     "dust": 900,
-     "worlds": 3,
-     "ship": 7,
-     "hearts": 4,
-     "endHearts": 0,
-     "pauses": 2,
-     "skin": 0,
-     "powerUps": 0
-    },
-    "byWorlds": {
-     "score": 700,
-     "dust": 400,
-     "worlds": 5,
-     "ship": 7,
-     "hearts": 4,
-     "endHearts": 0,
-     "pauses": 2,
-     "skin": 0,
-     "powerUps": 0
-    },
-    "platform": "android"
-   },
-   "hasExisting": false,
-   "sinceLastSeconds": 100,
-   "provider": "custom"
-  },
-  {
-   "name": "create denied: unknown platform",
-   "table": "main",
-   "op": "create",
-   "expect": "deny",
-   "owner": true,
-   "rulesOnly": false,
-   "doc": {
-    "name": "KANEDA",
-    "byScore": {
-     "score": 1000,
-     "dust": 500,
-     "worlds": 3,
-     "ship": 7,
-     "hearts": 4,
-     "endHearts": 0,
-     "pauses": 2,
-     "skin": 0,
-     "powerUps": 0
-    },
-    "byDust": {
-     "score": 800,
-     "dust": 900,
-     "worlds": 3,
-     "ship": 7,
-     "hearts": 4,
-     "endHearts": 0,
-     "pauses": 2,
-     "skin": 0,
-     "powerUps": 0
-    },
-    "byWorlds": {
-     "score": 700,
-     "dust": 400,
-     "worlds": 5,
-     "ship": 7,
-     "hearts": 4,
-     "endHearts": 0,
-     "pauses": 2,
-     "skin": 0,
-     "powerUps": 0
-    },
-    "platform": "windows"
-   },
-   "hasExisting": false,
-   "sinceLastSeconds": 100,
-   "provider": "playgames.google.com"
-  },
-  {
-   "name": "create denied: empty platform",
-   "table": "main",
-   "op": "create",
-   "expect": "deny",
-   "owner": true,
-   "rulesOnly": false,
-   "doc": {
-    "name": "KANEDA",
-    "byScore": {
-     "score": 1000,
-     "dust": 500,
-     "worlds": 3,
-     "ship": 7,
-     "hearts": 4,
-     "endHearts": 0,
-     "pauses": 2,
-     "skin": 0,
-     "powerUps": 0
-    },
-    "byDust": {
-     "score": 800,
-     "dust": 900,
-     "worlds": 3,
-     "ship": 7,
-     "hearts": 4,
-     "endHearts": 0,
-     "pauses": 2,
-     "skin": 0,
-     "powerUps": 0
-    },
-    "byWorlds": {
-     "score": 700,
-     "dust": 400,
-     "worlds": 5,
-     "ship": 7,
-     "hearts": 4,
-     "endHearts": 0,
-     "pauses": 2,
-     "skin": 0,
-     "powerUps": 0
-    },
-    "platform": ""
-   },
-   "hasExisting": false,
-   "sinceLastSeconds": 100,
-   "provider": "playgames.google.com"
-  },
-  {
-   "name": "create denied: missing platform",
-   "table": "main",
-   "op": "create",
-   "expect": "deny",
-   "owner": true,
-   "rulesOnly": false,
-   "doc": {
-    "name": "KANEDA",
+    "platform": "android",
     "byScore": {
      "score": 1000,
      "dust": 500,
@@ -2621,6 +888,918 @@
     }
    },
    "hasExisting": false,
+   "sinceLastSeconds": 100
+  },
+  {
+   "name": "update allowed: every best improves",
+   "table": "main",
+   "op": "update",
+   "expect": "allow",
+   "owner": true,
+   "rulesOnly": false,
+   "doc": {
+    "name": "KANEDA",
+    "platform": "android",
+    "score": 2000,
+    "dust": 1900,
+    "worlds": 6,
+    "run": {
+     "ship": 7,
+     "hearts": 4,
+     "endHearts": 0,
+     "pauses": 2,
+     "skin": 0,
+     "powerUps": 0
+    }
+   },
+   "hasExisting": true,
+   "sinceLastSeconds": 100,
+   "existing": {
+    "name": "KANEDA",
+    "platform": "android",
+    "score": 1000,
+    "dust": 900,
+    "worlds": 5,
+    "run": {
+     "ship": 7,
+     "hearts": 4,
+     "endHearts": 0,
+     "pauses": 2,
+     "skin": 0,
+     "powerUps": 0
+    }
+   }
+  },
+  {
+   "name": "update allowed: one best improves, the rest tie",
+   "table": "main",
+   "op": "update",
+   "expect": "allow",
+   "owner": true,
+   "rulesOnly": false,
+   "doc": {
+    "name": "KANEDA",
+    "platform": "android",
+    "score": 1001,
+    "dust": 900,
+    "worlds": 5,
+    "run": {
+     "ship": 7,
+     "hearts": 4,
+     "endHearts": 0,
+     "pauses": 2,
+     "skin": 0,
+     "powerUps": 0
+    }
+   },
+   "hasExisting": true,
+   "sinceLastSeconds": 100,
+   "existing": {
+    "name": "KANEDA",
+    "platform": "android",
+    "score": 1000,
+    "dust": 900,
+    "worlds": 5,
+    "run": {
+     "ship": 7,
+     "hearts": 4,
+     "endHearts": 0,
+     "pauses": 2,
+     "skin": 0,
+     "powerUps": 0
+    }
+   }
+  },
+  {
+   "name": "update allowed: a tie keeps its values",
+   "table": "main",
+   "op": "update",
+   "expect": "allow",
+   "owner": true,
+   "rulesOnly": false,
+   "doc": {
+    "name": "KANEDA",
+    "platform": "android",
+    "score": 1000,
+    "dust": 900,
+    "worlds": 5,
+    "run": {
+     "ship": 7,
+     "hearts": 4,
+     "endHearts": 0,
+     "pauses": 2,
+     "skin": 0,
+     "powerUps": 0
+    }
+   },
+   "hasExisting": true,
+   "sinceLastSeconds": 100,
+   "existing": {
+    "name": "KANEDA",
+    "platform": "android",
+    "score": 1000,
+    "dust": 900,
+    "worlds": 5,
+    "run": {
+     "ship": 7,
+     "hearts": 4,
+     "endHearts": 0,
+     "pauses": 2,
+     "skin": 0,
+     "powerUps": 0
+    }
+   }
+  },
+  {
+   "name": "update allowed: a tie that gains run details",
+   "table": "main",
+   "op": "update",
+   "expect": "allow",
+   "owner": true,
+   "rulesOnly": false,
+   "doc": {
+    "name": "KANEDA",
+    "platform": "android",
+    "score": 1000,
+    "dust": 900,
+    "worlds": 5,
+    "run": {
+     "ship": 9,
+     "hearts": 4,
+     "endHearts": 0,
+     "pauses": 2,
+     "skin": 0,
+     "powerUps": 0
+    }
+   },
+   "hasExisting": true,
+   "sinceLastSeconds": 100,
+   "existing": {
+    "name": "KANEDA",
+    "platform": "android",
+    "score": 1000,
+    "dust": 900,
+    "worlds": 5,
+    "run": {
+     "ship": 0,
+     "hearts": 0,
+     "endHearts": 0,
+     "pauses": 2,
+     "skin": 0,
+     "powerUps": 0
+    }
+   }
+  },
+  {
+   "name": "update allowed: power table improves",
+   "table": "power",
+   "op": "update",
+   "expect": "allow",
+   "owner": true,
+   "rulesOnly": false,
+   "doc": {
+    "name": "KANEDA",
+    "platform": "android",
+    "score": 2000,
+    "dust": 900,
+    "worlds": 5,
+    "run": {
+     "ship": 7,
+     "hearts": 4,
+     "endHearts": 0,
+     "pauses": 2,
+     "skin": 0,
+     "powerUps": 1
+    }
+   },
+   "hasExisting": true,
+   "sinceLastSeconds": 100,
+   "existing": {
+    "name": "KANEDA",
+    "platform": "android",
+    "score": 1000,
+    "dust": 900,
+    "worlds": 5,
+    "run": {
+     "ship": 7,
+     "hearts": 4,
+     "endHearts": 0,
+     "pauses": 2,
+     "skin": 0,
+     "powerUps": 1
+    }
+   }
+  },
+  {
+   "name": "update denied: the best score drops",
+   "table": "main",
+   "op": "update",
+   "expect": "deny",
+   "owner": true,
+   "rulesOnly": false,
+   "doc": {
+    "name": "KANEDA",
+    "platform": "android",
+    "score": 999,
+    "dust": 900,
+    "worlds": 5,
+    "run": {
+     "ship": 7,
+     "hearts": 4,
+     "endHearts": 0,
+     "pauses": 2,
+     "skin": 0,
+     "powerUps": 0
+    }
+   },
+   "hasExisting": true,
+   "sinceLastSeconds": 100,
+   "existing": {
+    "name": "KANEDA",
+    "platform": "android",
+    "score": 1000,
+    "dust": 900,
+    "worlds": 5,
+    "run": {
+     "ship": 7,
+     "hearts": 4,
+     "endHearts": 0,
+     "pauses": 2,
+     "skin": 0,
+     "powerUps": 0
+    }
+   }
+  },
+  {
+   "name": "update denied: the best dust drops",
+   "table": "main",
+   "op": "update",
+   "expect": "deny",
+   "owner": true,
+   "rulesOnly": false,
+   "doc": {
+    "name": "KANEDA",
+    "platform": "android",
+    "score": 1000,
+    "dust": 899,
+    "worlds": 5,
+    "run": {
+     "ship": 7,
+     "hearts": 4,
+     "endHearts": 0,
+     "pauses": 2,
+     "skin": 0,
+     "powerUps": 0
+    }
+   },
+   "hasExisting": true,
+   "sinceLastSeconds": 100,
+   "existing": {
+    "name": "KANEDA",
+    "platform": "android",
+    "score": 1000,
+    "dust": 900,
+    "worlds": 5,
+    "run": {
+     "ship": 7,
+     "hearts": 4,
+     "endHearts": 0,
+     "pauses": 2,
+     "skin": 0,
+     "powerUps": 0
+    }
+   }
+  },
+  {
+   "name": "update denied: the best worlds drops",
+   "table": "main",
+   "op": "update",
+   "expect": "deny",
+   "owner": true,
+   "rulesOnly": false,
+   "doc": {
+    "name": "KANEDA",
+    "platform": "android",
+    "score": 1000,
+    "dust": 900,
+    "worlds": 4,
+    "run": {
+     "ship": 7,
+     "hearts": 4,
+     "endHearts": 0,
+     "pauses": 2,
+     "skin": 0,
+     "powerUps": 0
+    }
+   },
+   "hasExisting": true,
+   "sinceLastSeconds": 100,
+   "existing": {
+    "name": "KANEDA",
+    "platform": "android",
+    "score": 1000,
+    "dust": 900,
+    "worlds": 5,
+    "run": {
+     "ship": 7,
+     "hearts": 4,
+     "endHearts": 0,
+     "pauses": 2,
+     "skin": 0,
+     "powerUps": 0
+    }
+   }
+  },
+  {
+   "name": "update denied: only 5 seconds after the last write",
+   "table": "main",
+   "op": "update",
+   "expect": "deny",
+   "owner": true,
+   "rulesOnly": false,
+   "doc": {
+    "name": "KANEDA",
+    "platform": "android",
+    "score": 2000,
+    "dust": 900,
+    "worlds": 5,
+    "run": {
+     "ship": 7,
+     "hearts": 4,
+     "endHearts": 0,
+     "pauses": 2,
+     "skin": 0,
+     "powerUps": 0
+    }
+   },
+   "hasExisting": true,
+   "sinceLastSeconds": 5,
+   "existing": {
+    "name": "KANEDA",
+    "platform": "android",
+    "score": 1000,
+    "dust": 900,
+    "worlds": 5,
+    "run": {
+     "ship": 7,
+     "hearts": 4,
+     "endHearts": 0,
+     "pauses": 2,
+     "skin": 0,
+     "powerUps": 0
+    }
+   }
+  },
+  {
+   "name": "update denied: another player's doc",
+   "table": "main",
+   "op": "update",
+   "expect": "deny",
+   "owner": false,
+   "rulesOnly": false,
+   "doc": {
+    "name": "KANEDA",
+    "platform": "android",
+    "score": 2000,
+    "dust": 900,
+    "worlds": 5,
+    "run": {
+     "ship": 7,
+     "hearts": 4,
+     "endHearts": 0,
+     "pauses": 2,
+     "skin": 0,
+     "powerUps": 0
+    }
+   },
+   "hasExisting": true,
+   "sinceLastSeconds": 100,
+   "existing": {
+    "name": "KANEDA",
+    "platform": "android",
+    "score": 1000,
+    "dust": 900,
+    "worlds": 5,
+    "run": {
+     "ship": 7,
+     "hearts": 4,
+     "endHearts": 0,
+     "pauses": 2,
+     "skin": 0,
+     "powerUps": 0
+    }
+   }
+  },
+  {
+   "name": "update denied: an improved doc that breaks a bound",
+   "table": "main",
+   "op": "update",
+   "expect": "deny",
+   "owner": true,
+   "rulesOnly": false,
+   "doc": {
+    "name": "KANEDA",
+    "platform": "android",
+    "score": 2000,
+    "dust": 900,
+    "worlds": 5,
+    "run": {
+     "ship": 7,
+     "hearts": 99,
+     "endHearts": 0,
+     "pauses": 2,
+     "skin": 0,
+     "powerUps": 0
+    }
+   },
+   "hasExisting": true,
+   "sinceLastSeconds": 100,
+   "existing": {
+    "name": "KANEDA",
+    "platform": "android",
+    "score": 1000,
+    "dust": 900,
+    "worlds": 5,
+    "run": {
+     "ship": 7,
+     "hearts": 4,
+     "endHearts": 0,
+     "pauses": 2,
+     "skin": 0,
+     "powerUps": 0
+    }
+   }
+  },
+  {
+   "name": "update denied: an improved doc that picks the premium ship",
+   "table": "main",
+   "op": "update",
+   "expect": "deny",
+   "owner": true,
+   "rulesOnly": false,
+   "doc": {
+    "name": "KANEDA",
+    "platform": "android",
+    "score": 2000,
+    "dust": 900,
+    "worlds": 5,
+    "run": {
+     "ship": 16,
+     "hearts": 4,
+     "endHearts": 0,
+     "pauses": 2,
+     "skin": 0,
+     "powerUps": 0
+    }
+   },
+   "hasExisting": true,
+   "sinceLastSeconds": 100,
+   "existing": {
+    "name": "KANEDA",
+    "platform": "android",
+    "score": 1000,
+    "dust": 900,
+    "worlds": 5,
+    "run": {
+     "ship": 7,
+     "hearts": 4,
+     "endHearts": 0,
+     "pauses": 2,
+     "skin": 0,
+     "powerUps": 0
+    }
+   }
+  },
+  {
+   "name": "update allowed: worlds 0 stays 0 while the score improves",
+   "table": "main",
+   "op": "update",
+   "expect": "allow",
+   "owner": true,
+   "rulesOnly": false,
+   "doc": {
+    "name": "KANEDA",
+    "platform": "android",
+    "score": 2000,
+    "dust": 900,
+    "worlds": 0,
+    "run": {
+     "ship": 7,
+     "hearts": 4,
+     "endHearts": 0,
+     "pauses": 2,
+     "skin": 0,
+     "powerUps": 0
+    }
+   },
+   "hasExisting": true,
+   "sinceLastSeconds": 100,
+   "existing": {
+    "name": "KANEDA",
+    "platform": "android",
+    "score": 1000,
+    "dust": 900,
+    "worlds": 0,
+    "run": {
+     "ship": 7,
+     "hearts": 4,
+     "endHearts": 0,
+     "pauses": 2,
+     "skin": 0,
+     "powerUps": 0
+    }
+   }
+  },
+  {
+   "name": "update allowed: a doc in the old shape migrates (bests carried over)",
+   "table": "main",
+   "op": "update",
+   "expect": "allow",
+   "owner": true,
+   "rulesOnly": true,
+   "doc": {
+    "name": "KANEDA",
+    "platform": "android",
+    "score": 1000,
+    "dust": 900,
+    "worlds": 5,
+    "run": {
+     "ship": 7,
+     "hearts": 4,
+     "endHearts": 0,
+     "pauses": 2,
+     "skin": 0,
+     "powerUps": 0
+    }
+   },
+   "hasExisting": true,
+   "sinceLastSeconds": 100,
+   "existing": {
+    "name": "KANEDA",
+    "platform": "android",
+    "byScore": {
+     "score": 1000,
+     "dust": 500,
+     "worlds": 3,
+     "ship": 7,
+     "hearts": 4,
+     "endHearts": 0,
+     "pauses": 2,
+     "skin": 0,
+     "powerUps": 0
+    },
+    "byDust": {
+     "score": 800,
+     "dust": 900,
+     "worlds": 3,
+     "ship": 7,
+     "hearts": 4,
+     "endHearts": 0,
+     "pauses": 2,
+     "skin": 0,
+     "powerUps": 0
+    },
+    "byWorlds": {
+     "score": 700,
+     "dust": 400,
+     "worlds": 5,
+     "ship": 7,
+     "hearts": 4,
+     "endHearts": 0,
+     "pauses": 2,
+     "skin": 0,
+     "powerUps": 0
+    }
+   }
+  },
+  {
+   "name": "update denied: migrating an old doc may not drop its best dust",
+   "table": "main",
+   "op": "update",
+   "expect": "deny",
+   "owner": true,
+   "rulesOnly": true,
+   "doc": {
+    "name": "KANEDA",
+    "platform": "android",
+    "score": 1000,
+    "dust": 100,
+    "worlds": 5,
+    "run": {
+     "ship": 7,
+     "hearts": 4,
+     "endHearts": 0,
+     "pauses": 2,
+     "skin": 0,
+     "powerUps": 0
+    }
+   },
+   "hasExisting": true,
+   "sinceLastSeconds": 100,
+   "existing": {
+    "name": "KANEDA",
+    "platform": "android",
+    "byScore": {
+     "score": 1000,
+     "dust": 500,
+     "worlds": 3,
+     "ship": 7,
+     "hearts": 4,
+     "endHearts": 0,
+     "pauses": 2,
+     "skin": 0,
+     "powerUps": 0
+    },
+    "byDust": {
+     "score": 800,
+     "dust": 900,
+     "worlds": 3,
+     "ship": 7,
+     "hearts": 4,
+     "endHearts": 0,
+     "pauses": 2,
+     "skin": 0,
+     "powerUps": 0
+    },
+    "byWorlds": {
+     "score": 700,
+     "dust": 400,
+     "worlds": 5,
+     "ship": 7,
+     "hearts": 4,
+     "endHearts": 0,
+     "pauses": 2,
+     "skin": 0,
+     "powerUps": 0
+    }
+   }
+  },
+  {
+   "name": "update denied: migrating an old doc may not drop its best score",
+   "table": "main",
+   "op": "update",
+   "expect": "deny",
+   "owner": true,
+   "rulesOnly": true,
+   "doc": {
+    "name": "KANEDA",
+    "platform": "android",
+    "score": 999,
+    "dust": 900,
+    "worlds": 5,
+    "run": {
+     "ship": 7,
+     "hearts": 4,
+     "endHearts": 0,
+     "pauses": 2,
+     "skin": 0,
+     "powerUps": 0
+    }
+   },
+   "hasExisting": true,
+   "sinceLastSeconds": 100,
+   "existing": {
+    "name": "KANEDA",
+    "platform": "android",
+    "byScore": {
+     "score": 1000,
+     "dust": 500,
+     "worlds": 3,
+     "ship": 7,
+     "hearts": 4,
+     "endHearts": 0,
+     "pauses": 2,
+     "skin": 0,
+     "powerUps": 0
+    },
+    "byDust": {
+     "score": 800,
+     "dust": 900,
+     "worlds": 3,
+     "ship": 7,
+     "hearts": 4,
+     "endHearts": 0,
+     "pauses": 2,
+     "skin": 0,
+     "powerUps": 0
+    },
+    "byWorlds": {
+     "score": 700,
+     "dust": 400,
+     "worlds": 5,
+     "ship": 7,
+     "hearts": 4,
+     "endHearts": 0,
+     "pauses": 2,
+     "skin": 0,
+     "powerUps": 0
+    }
+   }
+  },
+  {
+   "name": "create allowed: ios doc signed in with Game Center",
+   "table": "main",
+   "op": "create",
+   "expect": "allow",
+   "owner": true,
+   "rulesOnly": false,
+   "doc": {
+    "name": "KANEDA",
+    "platform": "ios",
+    "score": 1000,
+    "dust": 900,
+    "worlds": 5,
+    "run": {
+     "ship": 7,
+     "hearts": 4,
+     "endHearts": 0,
+     "pauses": 2,
+     "skin": 0,
+     "powerUps": 0
+    }
+   },
+   "hasExisting": false,
+   "sinceLastSeconds": 100,
+   "provider": "gc.apple.com"
+  },
+  {
+   "name": "create allowed: ios doc on the power table",
+   "table": "power",
+   "op": "create",
+   "expect": "allow",
+   "owner": true,
+   "rulesOnly": false,
+   "doc": {
+    "name": "KANEDA",
+    "platform": "ios",
+    "score": 1000,
+    "dust": 900,
+    "worlds": 5,
+    "run": {
+     "ship": 7,
+     "hearts": 4,
+     "endHearts": 0,
+     "pauses": 2,
+     "skin": 0,
+     "powerUps": 1
+    }
+   },
+   "hasExisting": false,
+   "sinceLastSeconds": 100,
+   "provider": "gc.apple.com"
+  },
+  {
+   "name": "create denied: ios doc signed in with Play Games",
+   "table": "main",
+   "op": "create",
+   "expect": "deny",
+   "owner": true,
+   "rulesOnly": false,
+   "doc": {
+    "name": "KANEDA",
+    "platform": "ios",
+    "score": 1000,
+    "dust": 900,
+    "worlds": 5,
+    "run": {
+     "ship": 7,
+     "hearts": 4,
+     "endHearts": 0,
+     "pauses": 2,
+     "skin": 0,
+     "powerUps": 0
+    }
+   },
+   "hasExisting": false,
+   "sinceLastSeconds": 100,
+   "provider": "playgames.google.com"
+  },
+  {
+   "name": "create denied: android doc signed in with Game Center",
+   "table": "main",
+   "op": "create",
+   "expect": "deny",
+   "owner": true,
+   "rulesOnly": false,
+   "doc": {
+    "name": "KANEDA",
+    "platform": "android",
+    "score": 1000,
+    "dust": 900,
+    "worlds": 5,
+    "run": {
+     "ship": 7,
+     "hearts": 4,
+     "endHearts": 0,
+     "pauses": 2,
+     "skin": 0,
+     "powerUps": 0
+    }
+   },
+   "hasExisting": false,
+   "sinceLastSeconds": 100,
+   "provider": "gc.apple.com"
+  },
+  {
+   "name": "create denied: android doc with a custom provider",
+   "table": "main",
+   "op": "create",
+   "expect": "deny",
+   "owner": true,
+   "rulesOnly": false,
+   "doc": {
+    "name": "KANEDA",
+    "platform": "android",
+    "score": 1000,
+    "dust": 900,
+    "worlds": 5,
+    "run": {
+     "ship": 7,
+     "hearts": 4,
+     "endHearts": 0,
+     "pauses": 2,
+     "skin": 0,
+     "powerUps": 0
+    }
+   },
+   "hasExisting": false,
+   "sinceLastSeconds": 100,
+   "provider": "custom"
+  },
+  {
+   "name": "create denied: unknown platform",
+   "table": "main",
+   "op": "create",
+   "expect": "deny",
+   "owner": true,
+   "rulesOnly": false,
+   "doc": {
+    "name": "KANEDA",
+    "platform": "web",
+    "score": 1000,
+    "dust": 900,
+    "worlds": 5,
+    "run": {
+     "ship": 7,
+     "hearts": 4,
+     "endHearts": 0,
+     "pauses": 2,
+     "skin": 0,
+     "powerUps": 0
+    }
+   },
+   "hasExisting": false,
+   "sinceLastSeconds": 100,
+   "provider": "playgames.google.com"
+  },
+  {
+   "name": "create denied: empty platform",
+   "table": "main",
+   "op": "create",
+   "expect": "deny",
+   "owner": true,
+   "rulesOnly": false,
+   "doc": {
+    "name": "KANEDA",
+    "platform": "",
+    "score": 1000,
+    "dust": 900,
+    "worlds": 5,
+    "run": {
+     "ship": 7,
+     "hearts": 4,
+     "endHearts": 0,
+     "pauses": 2,
+     "skin": 0,
+     "powerUps": 0
+    }
+   },
+   "hasExisting": false,
+   "sinceLastSeconds": 100,
+   "provider": "playgames.google.com"
+  },
+  {
+   "name": "create denied: missing platform",
+   "table": "main",
+   "op": "create",
+   "expect": "deny",
+   "owner": true,
+   "rulesOnly": false,
+   "doc": {
+    "name": "KANEDA",
+    "score": 1000,
+    "dust": 900,
+    "worlds": 5,
+    "run": {
+     "ship": 7,
+     "hearts": 4,
+     "endHearts": 0,
+     "pauses": 2,
+     "skin": 0,
+     "powerUps": 0
+    }
+   },
+   "hasExisting": false,
    "sinceLastSeconds": 100,
    "provider": "playgames.google.com"
   },
@@ -2633,40 +1812,18 @@
    "rulesOnly": false,
    "doc": {
     "name": "KANEDA",
-    "byScore": {
-     "score": 1000,
-     "dust": 500,
-     "worlds": 3,
+    "platform": "android",
+    "score": 1000,
+    "dust": 900,
+    "worlds": 5,
+    "run": {
      "ship": 7,
      "hearts": 4,
      "endHearts": 0,
      "pauses": 2,
      "skin": 0,
      "powerUps": 3
-    },
-    "byDust": {
-     "score": 800,
-     "dust": 900,
-     "worlds": 3,
-     "ship": 7,
-     "hearts": 4,
-     "endHearts": 0,
-     "pauses": 2,
-     "skin": 0,
-     "powerUps": 1
-    },
-    "byWorlds": {
-     "score": 700,
-     "dust": 400,
-     "worlds": 5,
-     "ship": 7,
-     "hearts": 4,
-     "endHearts": 0,
-     "pauses": 2,
-     "skin": 0,
-     "powerUps": 1
-    },
-    "platform": "android"
+    }
    },
    "hasExisting": false,
    "sinceLastSeconds": 100
@@ -2680,40 +1837,18 @@
    "rulesOnly": false,
    "doc": {
     "name": "KANEDA",
-    "byScore": {
-     "score": 1000,
-     "dust": 500,
-     "worlds": 3,
+    "platform": "android",
+    "score": 1000,
+    "dust": 900,
+    "worlds": 5,
+    "run": {
      "ship": 7,
      "hearts": 4,
      "endHearts": 0,
      "pauses": 2,
      "skin": 0,
      "powerUps": 4
-    },
-    "byDust": {
-     "score": 800,
-     "dust": 900,
-     "worlds": 3,
-     "ship": 7,
-     "hearts": 4,
-     "endHearts": 0,
-     "pauses": 2,
-     "skin": 0,
-     "powerUps": 1
-    },
-    "byWorlds": {
-     "score": 700,
-     "dust": 400,
-     "worlds": 5,
-     "ship": 7,
-     "hearts": 4,
-     "endHearts": 0,
-     "pauses": 2,
-     "skin": 0,
-     "powerUps": 1
-    },
-    "platform": "android"
+    }
    },
    "hasExisting": false,
    "sinceLastSeconds": 100
@@ -2727,40 +1862,18 @@
    "rulesOnly": false,
    "doc": {
     "name": "KANEDA",
-    "byScore": {
-     "score": 1000,
-     "dust": 500,
-     "worlds": 3,
+    "platform": "android",
+    "score": 1000,
+    "dust": 900,
+    "worlds": 5,
+    "run": {
      "ship": 7,
      "hearts": 4,
      "endHearts": 0,
      "pauses": 2,
      "skin": 0,
      "powerUps": 7
-    },
-    "byDust": {
-     "score": 800,
-     "dust": 900,
-     "worlds": 3,
-     "ship": 7,
-     "hearts": 4,
-     "endHearts": 0,
-     "pauses": 2,
-     "skin": 0,
-     "powerUps": 1
-    },
-    "byWorlds": {
-     "score": 700,
-     "dust": 400,
-     "worlds": 5,
-     "ship": 7,
-     "hearts": 4,
-     "endHearts": 0,
-     "pauses": 2,
-     "skin": 0,
-     "powerUps": 1
-    },
-    "platform": "android"
+    }
    },
    "hasExisting": false,
    "sinceLastSeconds": 100
@@ -2774,40 +1887,18 @@
    "rulesOnly": false,
    "doc": {
     "name": "KANEDA",
-    "byScore": {
-     "score": 1000,
-     "dust": 500,
-     "worlds": 3,
+    "platform": "android",
+    "score": 1000,
+    "dust": 900,
+    "worlds": 5,
+    "run": {
      "ship": 7,
      "hearts": 4,
      "endHearts": 0,
      "pauses": 2,
      "skin": 0,
      "powerUps": 8
-    },
-    "byDust": {
-     "score": 800,
-     "dust": 900,
-     "worlds": 3,
-     "ship": 7,
-     "hearts": 4,
-     "endHearts": 0,
-     "pauses": 2,
-     "skin": 0,
-     "powerUps": 1
-    },
-    "byWorlds": {
-     "score": 700,
-     "dust": 400,
-     "worlds": 5,
-     "ship": 7,
-     "hearts": 4,
-     "endHearts": 0,
-     "pauses": 2,
-     "skin": 0,
-     "powerUps": 1
-    },
-    "platform": "android"
+    }
    },
    "hasExisting": false,
    "sinceLastSeconds": 100
@@ -2821,40 +1912,18 @@
    "rulesOnly": false,
    "doc": {
     "name": "KANEDA",
-    "byScore": {
-     "score": 1000,
-     "dust": 500,
-     "worlds": 3,
+    "platform": "android",
+    "score": 1000,
+    "dust": 900,
+    "worlds": 5,
+    "run": {
      "ship": 7,
      "hearts": 4,
      "endHearts": 0,
      "pauses": 2,
      "skin": 0,
      "powerUps": 4
-    },
-    "byDust": {
-     "score": 800,
-     "dust": 900,
-     "worlds": 3,
-     "ship": 7,
-     "hearts": 4,
-     "endHearts": 0,
-     "pauses": 2,
-     "skin": 0,
-     "powerUps": 0
-    },
-    "byWorlds": {
-     "score": 700,
-     "dust": 400,
-     "worlds": 5,
-     "ship": 7,
-     "hearts": 4,
-     "endHearts": 0,
-     "pauses": 2,
-     "skin": 0,
-     "powerUps": 0
-    },
-    "platform": "android"
+    }
    },
    "hasExisting": false,
    "sinceLastSeconds": 100

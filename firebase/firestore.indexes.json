@@ -1,4 +1,9 @@
 {
-  "indexes": [],
+  "indexes": [
+    { "collectionGroup": "main",  "queryScope": "COLLECTION", "fields": [ { "fieldPath": "dust",   "order": "DESCENDING" }, { "fieldPath": "score", "order": "DESCENDING" } ] },
+    { "collectionGroup": "main",  "queryScope": "COLLECTION", "fields": [ { "fieldPath": "worlds", "order": "DESCENDING" }, { "fieldPath": "score", "order": "DESCENDING" } ] },
+    { "collectionGroup": "power", "queryScope": "COLLECTION", "fields": [ { "fieldPath": "dust",   "order": "DESCENDING" }, { "fieldPath": "score", "order": "DESCENDING" } ] },
+    { "collectionGroup": "power", "queryScope": "COLLECTION", "fields": [ { "fieldPath": "worlds", "order": "DESCENDING" }, { "fieldPath": "score", "order": "DESCENDING" } ] }
+  ],
   "fieldOverrides": []
 }

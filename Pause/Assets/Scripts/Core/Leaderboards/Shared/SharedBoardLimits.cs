@@ -37,19 +37,29 @@ public static class SharedBoardLimits
 
     public static string Collection(SharedTable table) { return table == SharedTable.Power ? "power" : "main"; }
 
+    // The top-level number each tab orders by.
     public static string Field(SharedColumn column)
     {
-        return column == SharedColumn.Score ? "byScore.score" : column == SharedColumn.Dust ? "byDust.dust" : "byWorlds.worlds";
+        return column == SharedColumn.Score ? "score" : column == SharedColumn.Dust ? "dust" : "worlds";
     }
 
     static bool In(long v, long lo, long hi) { return v >= lo && v <= hi; }
 
+    // One candidate run: any value may be unknown (score and dust 0, ship 0, end hearts / pauses -1), but a run
+    // must say something.
     public static bool ValidRun(SharedRun r, SharedTable table)
     {
-        return In(r.score, 1, MaxScore)
+        return In(r.score, 0, MaxScore)
             && In(r.dust, 0, MaxDust)
             && In(r.worlds, 0, MaxWorlds)
-            && In(r.ship, 0, MaxShip) && r.ship != PremiumShips.Paragon
+            && (r.score > 0 || r.dust > 0 || r.worlds > 0)
+            && ValidDetails(r, table);
+    }
+
+    // The run details on the document (`run` map).
+    public static bool ValidDetails(SharedRun r, SharedTable table)
+    {
+        return In(r.ship, 0, MaxShip) && r.ship != PremiumShips.Paragon
             && In(r.hearts, 0, MaxHearts)
             && In(r.endHearts, -1, MaxHearts)
             && In(r.pauses, -1, MaxPauses)
@@ -57,28 +67,22 @@ public static class SharedBoardLimits
             && (table == SharedTable.Power ? In(r.powerUps, 1, LeaderboardRunTag.PowerAll) : r.powerUps == 0);
     }
 
-    // The three slots are bests over the same runs, so each slot's own metric dominates the others' value of it.
-    public static bool Consistent(SharedDoc d)
-    {
-        return d.byScore.score >= d.byDust.score && d.byScore.score >= d.byWorlds.score
-            && d.byDust.dust >= d.byScore.dust && d.byDust.dust >= d.byWorlds.dust
-            && d.byWorlds.worlds >= d.byScore.worlds && d.byWorlds.worlds >= d.byDust.worlds;
-    }
-
-    // Everything but the timestamp (the server stamps it).
+    // The new document: three bests (0 = none, at least one above 0) and the run details.
     public static bool ValidDoc(SharedDoc d, SharedTable table, string provider)
     {
-        return d != null && d.IsFull
+        return d != null
             && PlatformOk(d.platform, provider)
             && d.name != null && d.name.Length >= 1 && d.name.Length <= MaxNameLength
-            && ValidRun(d.byScore, table) && ValidRun(d.byDust, table) && ValidRun(d.byWorlds, table)
-            && Consistent(d);
+            && In(d.score, 0, MaxScore) && In(d.dust, 0, MaxDust) && In(d.worlds, 0, MaxWorlds)
+            && (d.score > 0 || d.dust > 0 || d.worlds > 0)
+            && ValidDetails(d.run, table);
     }
 
-    // Fields only improve (equal is allowed: a tie may gain its columns).
+    // Each best only improves (equal is allowed: a tie may gain details). An old-shape stored document
+    // (legacy) was read with its byScore / byDust / byWorlds bests, so the same comparison migrates it.
     public static bool Improves(SharedDoc n, SharedDoc o)
     {
-        return n.byScore.score >= o.byScore.score && n.byDust.dust >= o.byDust.dust && n.byWorlds.worlds >= o.byWorlds.worlds;
+        return n.score >= o.score && n.dust >= o.dust && n.worlds >= o.worlds;
     }
 
     public static bool AllowCreate(SharedDoc d, SharedTable table, string provider) { return ValidDoc(d, table, provider); }

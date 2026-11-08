@@ -110,9 +110,8 @@ public sealed class FirebaseSharedBoard : ISharedBoardBackend
     {
         return new Dictionary<string, object>
         {
-            { "score", r.score }, { "dust", r.dust }, { "worlds", (long)r.worlds }, { "ship", (long)r.ship },
-            { "hearts", (long)r.hearts }, { "endHearts", (long)r.endHearts }, { "pauses", (long)r.pauses },
-            { "skin", (long)r.skin }, { "powerUps", (long)r.powerUps },
+            { "ship", (long)r.ship }, { "hearts", (long)r.hearts }, { "endHearts", (long)r.endHearts },
+            { "pauses", (long)r.pauses }, { "skin", (long)r.skin }, { "powerUps", (long)r.powerUps },
         };
     }
 
@@ -123,7 +122,8 @@ public sealed class FirebaseSharedBoard : ISharedBoardBackend
             { "name", d.name },
             { "platform", d.platform },
             { "updatedAt", FieldValue.ServerTimestamp },
-            { "byScore", RunToDict(d.byScore) }, { "byDust", RunToDict(d.byDust) }, { "byWorlds", RunToDict(d.byWorlds) },
+            { "score", d.score }, { "dust", d.dust }, { "worlds", (long)d.worlds },
+            { "run", RunToDict(d.run) },
         };
     }
 
@@ -133,18 +133,17 @@ public sealed class FirebaseSharedBoard : ISharedBoardBackend
         return d.TryGetValue(key, out v) && v != null ? Convert.ToInt64(v) : 0;
     }
 
-    static bool RunFromDict(object o, out SharedRun run)
+    static bool Has(Dictionary<string, object> d, string key) { object v; return d.TryGetValue(key, out v) && v != null; }
+
+    // Details from a `run` map; a missing field stays unknown.
+    static SharedRun DetailsFromDict(Dictionary<string, object> d)
     {
-        run = SharedRun.Blank();
-        var d = o as Dictionary<string, object>;
-        if (d == null) return false;
-        run = new SharedRun
-        {
-            score = L(d, "score"), dust = L(d, "dust"), worlds = (int)L(d, "worlds"), ship = (int)L(d, "ship"),
-            hearts = (int)L(d, "hearts"), endHearts = (int)L(d, "endHearts"), pauses = (int)L(d, "pauses"),
-            skin = (int)L(d, "skin"), powerUps = (int)L(d, "powerUps"),
-        };
-        return true;
+        var run = SharedRun.Blank();
+        if (d == null) return run;
+        run.ship = (int)L(d, "ship"); run.hearts = (int)L(d, "hearts"); run.skin = (int)L(d, "skin"); run.powerUps = (int)L(d, "powerUps");
+        if (Has(d, "endHearts")) run.endHearts = (int)L(d, "endHearts");
+        if (Has(d, "pauses")) run.pauses = (int)L(d, "pauses");
+        return run;
     }
 
     static SharedDoc DocFromSnapshot(DocumentSnapshot snap)
@@ -158,10 +157,25 @@ public sealed class FirebaseSharedBoard : ISharedBoardBackend
         doc.name = d.TryGetValue("name", out name) && name != null ? name.ToString() : "";
         if (d.TryGetValue("updatedAt", out ts) && ts is Timestamp) doc.updatedAtMs = new DateTimeOffset(((Timestamp)ts).ToDateTime()).ToUnixTimeMilliseconds();
         object o;
-        SharedRun r;
-        if (d.TryGetValue("byScore", out o) && RunFromDict(o, out r)) doc.Set(SharedColumn.Score, r);
-        if (d.TryGetValue("byDust", out o) && RunFromDict(o, out r)) doc.Set(SharedColumn.Dust, r);
-        if (d.TryGetValue("byWorlds", out o) && RunFromDict(o, out r)) doc.Set(SharedColumn.Worlds, r);
+        if (d.ContainsKey("byScore") || d.ContainsKey("byDust") || d.ContainsKey("byWorlds"))
+        {
+            // Old shape: a best run per column. Read best-effort; the next upload rewrites it in the new shape.
+            doc.legacy = true;
+            Dictionary<string, object> rs = d.TryGetValue("byScore", out o) ? o as Dictionary<string, object> : null;
+            Dictionary<string, object> rd = d.TryGetValue("byDust", out o) ? o as Dictionary<string, object> : null;
+            Dictionary<string, object> rw = d.TryGetValue("byWorlds", out o) ? o as Dictionary<string, object> : null;
+            if (rs != null) doc.score = L(rs, "score");
+            if (rd != null) doc.dust = L(rd, "dust");
+            if (rw != null) doc.worlds = (int)L(rw, "worlds");
+            // Details: the first old run that knows its ship (score run, then dust run, then worlds run).
+            var src = rs != null && L(rs, "ship") != 0 ? rs : rd != null && L(rd, "ship") != 0 ? rd : rw != null && L(rw, "ship") != 0 ? rw : rs;
+            doc.run = DetailsFromDict(src);
+        }
+        else
+        {
+            doc.score = L(d, "score"); doc.dust = L(d, "dust"); doc.worlds = (int)L(d, "worlds");
+            doc.run = DetailsFromDict(d.TryGetValue("run", out o) ? o as Dictionary<string, object> : null);
+        }
         return doc.IsFull ? doc : null;
     }
 
@@ -218,10 +232,11 @@ public sealed class FirebaseSharedBoard : ISharedBoardBackend
             string collection = SharedBoardLimits.Collection(table);
             string field = SharedBoardLimits.Field(column);
             Query q = db.Collection(collection);
-            // The native boards never show zero; the range filter is on the sorted field, so the automatic
-            // single-field index serves it.
-            if (column != SharedColumn.Score) q = q.WhereGreaterThanOrEqualTo(field, 1L);
-            q = q.OrderByDescending(field).Limit(count);
+            // Every player is in every tab: no filter, only the order. Ties on dust / worlds fall back to the score,
+            // which needs the composite indexes in firebase/firestore.indexes.json.
+            q = q.OrderByDescending(field);
+            if (column != SharedColumn.Score) q = q.OrderByDescending("score");
+            q = q.Limit(count);
             q.GetSnapshotAsync().ContinueWithOnMainThread(t =>
             {
                 if (t.IsFaulted || t.IsCanceled) { done(LeaderboardPage.Failed(Status(Classify(t.Exception)))); return; }

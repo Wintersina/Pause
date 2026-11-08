@@ -49,7 +49,7 @@ test('a string or fractional score is refused', async () => {
   const db = asUser(OWNER, 'playgames.google.com');
   const withScore = (score) => ({
     ...vectors[0].doc,
-    byScore: { ...vectors[0].doc.byScore, score },
+    score,
     updatedAt: serverTimestamp(),
   });
   await assertFails(setDoc(doc(db, 'main', OWNER), withScore('1000')));
@@ -77,11 +77,11 @@ test('a list needs a limit of 25 or less, signed in or not', async () => {
   await seed('power', OWNER, vectors[1].doc, 100);
   for (const db of [env.unauthenticatedContext().firestore(), env.authenticatedContext('uid-other').firestore()]) {
     for (const table of ['main', 'power']) {
-      const top = (n) => query(collection(db, table), orderBy('byScore.score', 'desc'), limit(n));
+      const top = (n) => query(collection(db, table), orderBy('score', 'desc'), limit(n));
       await assertSucceeds(getDocs(top(10)));
       await assertSucceeds(getDocs(top(25)));
       await assertFails(getDocs(top(26)));
-      await assertFails(getDocs(query(collection(db, table), orderBy('byScore.score', 'desc'))));
+      await assertFails(getDocs(query(collection(db, table), orderBy('score', 'desc'))));
     }
   }
 });
@@ -96,4 +96,23 @@ test('other collections are closed', async () => {
   const db = asUser(OWNER, 'playgames.google.com');
   await assertFails(setDoc(doc(db, 'scores', OWNER), { a: 1 }));
   await assertFails(getDoc(doc(db, 'scores', OWNER)));
+});
+
+test('every tab orders the same documents: score, dust and worlds are top-level, ties fall back to the score', async () => {
+  await seed('main', 'a', { ...vectors[0].doc, worlds: 0 }, 100);
+  await seed('main', 'b', { ...vectors[0].doc, score: 50, dust: 0, worlds: 0 }, 100);
+  const anon = env.unauthenticatedContext().firestore();
+  for (const field of ['score', 'dust', 'worlds']) {
+    const q = field === 'score'
+      ? query(collection(anon, 'main'), orderBy('score', 'desc'), limit(10))
+      : query(collection(anon, 'main'), orderBy(field, 'desc'), orderBy('score', 'desc'), limit(10));
+    const snap = await assertSucceeds(getDocs(q));
+    if (snap.size !== 2) throw new Error(`${field} tab lists ${snap.size} players, expected both`);
+  }
+});
+
+test('an old-shape document is readable by anyone', async () => {
+  const old = vectors.find((v) => v.name.startsWith('create denied: a new doc in the old per-column shape')).doc;
+  await seed('main', OWNER, old, 100);
+  await assertSucceeds(getDoc(doc(env.unauthenticatedContext().firestore(), 'main', OWNER)));
 });

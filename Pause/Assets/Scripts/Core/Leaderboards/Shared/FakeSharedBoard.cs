@@ -94,10 +94,11 @@ public sealed class FakeSharedBoard : ISharedBoardBackend
         if (Fail.HasValue) return LeaderboardPage.Failed(Fail.Value == SharedResult.SignedOut ? LeaderboardStatus.NotSignedIn : LeaderboardStatus.Error);
         var rows = new List<KeyValuePair<string, SharedDoc>>();
         foreach (var p in Docs[(int)table])
-            if (column == SharedColumn.Score || p.Value.Get(column).Metric(column) >= 1) rows.Add(p);
+            rows.Add(p);   // one row per player, in every tab
         rows.Sort((a, b) =>
         {
-            int c = b.Value.Get(column).Metric(column).CompareTo(a.Value.Get(column).Metric(column));
+            int c = b.Value.Metric(column).CompareTo(a.Value.Metric(column));
+            if (c == 0) c = b.Value.score.CompareTo(a.Value.score);   // ties: by score (the composite indexes do the same)
             return c != 0 ? c : string.CompareOrdinal(a.Key, b.Key);
         });
         var page = new LeaderboardPage { status = LeaderboardStatus.Ok };

@@ -9,30 +9,21 @@ service cloud.firestore {
     function signedIn() { return request.auth != null; }
     function ofInt(v, lo, hi) { return v is int && v >= lo && v <= hi; }
 
-    // One run. `power` = the Power-Ups table (powerUps 1..7: dust 1, clear 2, homing 4 = LeaderboardRunTag.PowerAll); the main table needs powerUps 0.
+    // The run details of a document (`run`): the loadout and end state of its best-SCORE run, falling back to the
+    // dust run, then the worlds run. Unknown stays unknown: ship 0, hearts 0, endHearts -1, pauses -1.
+    // `power` = the Power-Ups table (powerUps 1..7: dust 1, clear 2, homing 4 = LeaderboardRunTag.PowerAll); the main table needs powerUps 0.
     // Ship 16 (Paragon, the premium ship) is never allowed. Ships up to 40 leave room for new ships
     // without a rules deploy.
     function validRun(r, power) {
       return r is map
-        && r.keys().hasOnly(['score', 'dust', 'worlds', 'ship', 'hearts', 'endHearts', 'pauses', 'skin', 'powerUps'])
-        && r.keys().hasAll(['score', 'dust', 'worlds', 'ship', 'hearts', 'endHearts', 'pauses', 'skin', 'powerUps'])
-        && ofInt(r.score, 1, 9999999999)
-        && ofInt(r.dust, 0, 999999999)
-        && ofInt(r.worlds, 0, 9999)
+        && r.keys().hasOnly(['ship', 'hearts', 'endHearts', 'pauses', 'skin', 'powerUps'])
+        && r.keys().hasAll(['ship', 'hearts', 'endHearts', 'pauses', 'skin', 'powerUps'])
         && ofInt(r.ship, 0, 40) && r.ship != 16
         && ofInt(r.hearts, 0, 20)
         && ofInt(r.endHearts, -1, 20)
         && ofInt(r.pauses, -1, 99)
         && ofInt(r.skin, 0, 99)
         && (power ? ofInt(r.powerUps, 1, 7) : r.powerUps == 0);
-    }
-
-    // The three slots are bests over the same runs, so each slot's own metric dominates
-    // the other slots' value of that metric.
-    function consistent(d) {
-      return d.byScore.score >= d.byDust.score && d.byScore.score >= d.byWorlds.score
-          && d.byDust.dust >= d.byScore.dust && d.byDust.dust >= d.byWorlds.dust
-          && d.byWorlds.worlds >= d.byScore.worlds && d.byWorlds.worlds >= d.byDust.worlds;
     }
 
     // The platform shown on the row must match how the player signed in: Firebase's sign_in_provider is
@@ -42,21 +33,31 @@ service cloud.firestore {
           || (d.platform == 'ios' && request.auth.token.firebase.sign_in_provider == 'gc.apple.com');
     }
 
+    // ONE document per player: the three personal bests (each from any run; 0 = none / unknown, at least one
+    // above 0) at the top level, so every tab can orderBy one number and every player is in every tab.
     function validDoc(d, power) {
-      return d.keys().hasOnly(['name', 'platform', 'updatedAt', 'byScore', 'byDust', 'byWorlds'])
-        && d.keys().hasAll(['name', 'platform', 'updatedAt', 'byScore', 'byDust', 'byWorlds'])
+      return d.keys().hasOnly(['name', 'platform', 'updatedAt', 'score', 'dust', 'worlds', 'run'])
+        && d.keys().hasAll(['name', 'platform', 'updatedAt', 'score', 'dust', 'worlds', 'run'])
         && platformOk(d)
         && d.name is string && d.name.size() >= 1 && d.name.size() <= 24
         && d.updatedAt == request.time
-        && validRun(d.byScore, power) && validRun(d.byDust, power) && validRun(d.byWorlds, power)
-        && consistent(d);
+        && ofInt(d.score, 0, 9999999999)
+        && ofInt(d.dust, 0, 999999999)
+        && ofInt(d.worlds, 0, 9999)
+        && (d.score > 0 || d.dust > 0 || d.worlds > 0)
+        && validRun(d.run, power);
     }
 
-    // Fields only improve. Equal is allowed, so a tied best can gain its columns.
+    // The stored bests. Documents written before the one-row shape hold a best run per column
+    // (byScore.score, byDust.dust, byWorlds.worlds); the first write after the change migrates them, and must
+    // not lose any of those bests.
+    function oldScore(o) { return 'byScore' in o ? o.byScore.score : o.score; }
+    function oldDust(o) { return 'byDust' in o ? o.byDust.dust : o.dust; }
+    function oldWorlds(o) { return 'byWorlds' in o ? o.byWorlds.worlds : o.worlds; }
+
+    // Each best only improves. Equal is allowed, so a tie can gain its run details.
     function improves(n, o) {
-      return n.byScore.score >= o.byScore.score
-          && n.byDust.dust >= o.byDust.dust
-          && n.byWorlds.worlds >= o.byWorlds.worlds;
+      return n.score >= oldScore(o) && n.dust >= oldDust(o) && n.worlds >= oldWorlds(o);
     }
 
     function ownerOnly(uid) { return signedIn() && request.auth.uid == uid; }
