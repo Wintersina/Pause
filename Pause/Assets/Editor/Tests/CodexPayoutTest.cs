@@ -79,6 +79,23 @@ public static class CodexPayoutTest
         snap.Apply();
         Codex.Reload();
 
+        // ---- atoms wait for COLLECT: pending on discovery, paid once by the collect ----
+        var atom = Codex.Entries.First(e => e.id == CodexCatalogue.MagnetAtomId);
+        var plainAtom = Codex.Entries.First(e => e.category == CodexCategory.Atoms && e.id != atom.id);
+        Reset("", 100f);
+        Check("atom: first discovery pays 0 now", Codex.Discover(atom.id) && Dust() == 100f);
+        Check("atom: it is pending with its dust waiting", Codex.IsRewardPending(atom) && Codex.PendingDust(atom) == CodexPayout.MagnetAtom
+              && Codex.PendingIds().Contains(atom.id) && Codex.PendingTotal == 1);
+        Check("atom: discovering again adds nothing", !Codex.Discover(atom.id) && Dust() == 100f && Codex.PendingTotal == 1);
+        Check("atom: the sweep and back-pay leave it pending", Codex.PaySweep() == 2 * CodexPayout.LogEntry && Codex.PayBackOnce() == 0 && Codex.IsRewardPending(atom));
+        Check("atom: COLLECT pays it once", Codex.CollectReward(atom.id) == CodexPayout.MagnetAtom && Dust() == 100f + 2 * CodexPayout.LogEntry + CodexPayout.MagnetAtom
+              && !Codex.IsRewardPending(atom) && Codex.CollectReward(atom.id) == 0);
+        Codex.Reload();
+        Check("atom: after a reload it stays paid", Codex.CollectAllRewards() == 0 && !Codex.IsRewardPending(atom));
+        Reset("", 100f);
+        Codex.Discover(plainAtom.id);
+        Check("atom: COLLECT ALL of the tab pays the table value", Codex.CollectRewards(CodexCategory.Atoms) == CodexPayout.For(plainAtom));
+
         // developer mode: nothing recorded, nothing paid
         Reset("", 100f);
         DeveloperUnlocks.SetEnabled(true);
@@ -86,7 +103,7 @@ public static class CodexPayoutTest
         DeveloperUnlocks.SetEnabled(false);
 
         // ---- back-pay ----
-        var older = Codex.Entries.Where(e => e.category != CodexCategory.Log && !e.secret && e.category != CodexCategory.Ships && e.category != CodexCategory.Worlds).Take(4).ToArray();
+        var older = Codex.Entries.Where(e => e.category != CodexCategory.Log && !e.secret && e.category != CodexCategory.Ships && e.category != CodexCategory.Worlds && e.category != CodexCategory.Atoms).Take(4).ToArray();
         Reset(string.Join(",", older.Select(e => e.id)) + ",music_world_ember,bd_frost_2", 100f);
         PlayerPrefs.SetString(Codex.PaidKey, older[0].id);   // one was already collected under the old claim system
         PlayerPrefs.SetString("boughtship2", "True");        // a ship owned counts as discovered too
@@ -96,7 +113,7 @@ public static class CodexPayoutTest
         Check("back-pay: nothing flagged yet", !Codex.BackPayDone);
         int paid = Codex.PayBackOnce();
         Check("back-pay: the lump is the table sum of the unpaid discovered entries (" + paid + " = " + expect + ")", paid == expect && Dust() == 100f + expect);
-        Check("back-pay: flag set and every entry is marked paid", Codex.BackPayDone && Codex.PendingTotal == 0 && Codex.IsRewardCollected(ship.id));
+        Check("back-pay: flag set and every entry is marked paid", Codex.BackPayDone && Codex.PendingTotal == Codex.PendingMusicCount && Codex.IsRewardCollected(ship.id));
         Codex.Reload();
         Check("second launch: pays nothing", Codex.PayBackOnce() == 0 && Dust() == 100f + expect);
 
@@ -149,15 +166,19 @@ public static class CodexPayoutTest
         Reset("", 100f);
         PlayerPrefs.DeleteKey(FusionDiscoveryStore.PrefsKey);
         FusionDiscoveryStore.Reload();
-        Check("combo: first discovery pays its dust", Codex.PayFusion(bloom) == CodexPayout.FusionPair && Dust() == 100f + CodexPayout.FusionPair);
-        Check("combo: the same combo again pays nothing", Codex.PayFusion(bloom) == 0 && Dust() == 100f + CodexPayout.FusionPair);
-        Codex.Reload();
         FusionDiscoveryStore.RecordFiring(FusionId.Bloom, 1, 20261026);
-        Check("combo: after a reload the sweep does not pay it again (only the logs)", Codex.PaySweep() == logs && Dust() == 100f + CodexPayout.FusionPair + logs);
+        Check("combo: first discovery pays 0 now and leaves its dust pending", Codex.NoteFusion(bloom) == CodexPayout.FusionPair && Dust() == 100f
+              && Codex.PendingComboCount == 1 && Codex.PendingComboDust == CodexPayout.FusionPair && Codex.PendingIds().Contains("fusion_" + bloom.key));
+        Check("combo: the sweep leaves it pending", Codex.PaySweep() == logs && Dust() == 100f + logs && Codex.PendingComboCount == 1);
+        float beforeCollect = Dust();
+        Check("combo: COLLECT pays it exactly once", Codex.CollectCombos() == CodexPayout.FusionPair && Dust() == beforeCollect + CodexPayout.FusionPair
+              && Codex.CollectCombos() == 0 && Codex.NoteFusion(bloom) == 0 && Codex.PendingComboCount == 0);
+        Codex.Reload();
+        Check("combo: after a reload nothing more is paid or pending", Codex.PaySweep() == 0 && Codex.CollectAllRewards() == 0 && Dust() == beforeCollect + CodexPayout.FusionPair);
 
         Reset("", 100f);
         DeveloperUnlocks.SetEnabled(true);
-        Check("developer mode: a combo and the sweep pay nothing", Codex.PayFusion(AtomFusionTable.All[(int)FusionId.Nova]) == 0 && Codex.PaySweep() == 0 && Dust() == 100f);
+        Check("developer mode: a combo and the sweep pay nothing", Codex.NoteFusion(AtomFusionTable.All[(int)FusionId.Nova]) == 0 && Codex.PaySweep() == 0 && Dust() == 100f);
         DeveloperUnlocks.SetEnabled(false);
 
         // the sweep back-pays combos found, songs heard, backdrops seen and the logs, once; ships bought later pay once
@@ -165,26 +186,32 @@ public static class CodexPayoutTest
         PlayerPrefs.DeleteKey(FusionDiscoveryStore.PrefsKey);
         FusionDiscoveryStore.Reload();
         FusionDiscoveryStore.RecordFiring(FusionId.Singularity, 1, 20261026);
-        int expectSweep = logs + CodexPayout.FusionTriple + CodexPayout.Track + CodexPayout.BossTrack + CodexPayout.Backdrop;
+        int expectSweep = logs + CodexPayout.Backdrop;
         int swept = Codex.PaySweep();
-        Check("sweep: logs, found combos, heard songs and seen backdrops are paid together (" + swept + " = " + expectSweep + ")",
-              swept == expectSweep && Dust() == 100f + expectSweep);
+        Check("sweep: logs and seen backdrops are paid; found combos and heard songs stay pending (" + swept + " = " + expectSweep + ")",
+              swept == expectSweep && Dust() == 100f + expectSweep && Codex.PendingComboCount == 1 && Codex.PendingMusicCount == 2);
         Check("sweep: a second run pays nothing", Codex.PaySweep() == 0 && Dust() == 100f + expectSweep);
+        Check("collect all pays the older combo and songs once", Codex.CollectAllRewards() == CodexPayout.FusionTriple + CodexPayout.Track + CodexPayout.BossTrack
+              && Codex.CollectAllRewards() == 0 && Codex.PendingTotal == 0);
         PlayerPrefs.SetString("boughtship2", "True");
         Codex.Reload();
         Check("sweep: a ship bought later pays once", Codex.PaySweep() == CodexPayout.Ship && Codex.PaySweep() == 0);
 
-        // a first song / backdrop pays on the spot, once
+        // a first song waits for COLLECT, a first backdrop pays on the spot, once
         Reset("", 100f);
         PlayerPrefs.DeleteKey(FusionDiscoveryStore.PrefsKey);   // the combo found above is not part of this check
         FusionDiscoveryStore.Reload();
         string track = CodexMusic.All.First(t => t.id.StartsWith("music_world_")).id, bossTrack = CodexMusic.All.First(t => t.id.StartsWith("music_boss_")).id;
         string bd = CodexBackdrops.All[0].id;
-        Check("hear a song: pays once", Codex.HearTrack(track) && Dust() == 100f + CodexPayout.Track && !Codex.HearTrack(track) && Dust() == 100f + CodexPayout.Track);
-        Check("boss song pays its own value", Codex.HearTrack(bossTrack) && Dust() == 100f + CodexPayout.Track + CodexPayout.BossTrack);
-        Check("see a backdrop: pays once", Codex.SeeBackdrop(bd) && !Codex.SeeBackdrop(bd) && Dust() == 100f + CodexPayout.Track + CodexPayout.BossTrack + CodexPayout.Backdrop);
+        Check("hear a song: pays 0 now, its dust is pending, and hearing it again changes nothing",
+              Codex.HearTrack(track) && Dust() == 100f && !Codex.HearTrack(track) && Dust() == 100f && Codex.PendingMusicDust == CodexPayout.Track);
+        Check("boss song is pending at its own value", Codex.HearTrack(bossTrack) && Dust() == 100f && Codex.PendingMusicDust == CodexPayout.Track + CodexPayout.BossTrack
+              && Codex.PendingIds().Contains(bossTrack));
+        Check("see a backdrop: pays once, on the spot", Codex.SeeBackdrop(bd) && !Codex.SeeBackdrop(bd) && Dust() == 100f + CodexPayout.Backdrop);
+        Check("COLLECT pays both songs exactly once", Codex.CollectMusic() == CodexPayout.Track + CodexPayout.BossTrack
+              && Dust() == 100f + CodexPayout.Backdrop + CodexPayout.Track + CodexPayout.BossTrack && Codex.CollectMusic() == 0);
         Codex.Reload();
-        Check("after a reload: the sweep does not pay those again (only the logs)", Codex.PaySweep() == logs);
+        Check("after a reload: the sweep does not pay those again (only the logs)", Codex.PaySweep() == logs && Codex.PendingMusicCount == 0);
 
         Reset("", 0f);
         return fails;

@@ -116,11 +116,11 @@ public static class CodexMusicTest
         Check("hearing the boss track unlocks it", CodexMusic.IsUnlocked(boss));
         string before = PlayerPrefs.GetString(Codex.PrefsKey);
         float dust = PlayerPrefs.GetFloat(StarDustLedger.CurrencyKey);
-        Check("the first Credits visit unlocks Boom Boom and pays the unlock reward once",
+        Check("the first Credits visit unlocks Boom Boom and leaves the unlock reward pending (nothing paid yet)",
               CodexMusic.HeardCredits() && CodexMusic.IsUnlocked(CodexMusic.Find(CodexMusic.CreditsId))
-              && PlayerPrefs.GetFloat(StarDustLedger.CurrencyKey) == dust + Codex.UnlockReward);
-        Check("a second Credits visit pays nothing more",
-              !CodexMusic.HeardCredits() && PlayerPrefs.GetFloat(StarDustLedger.CurrencyKey) == dust + Codex.UnlockReward);
+              && PlayerPrefs.GetFloat(StarDustLedger.CurrencyKey) == dust && Codex.PendingIds().Contains(CodexMusic.CreditsId));
+        Check("a second Credits visit changes nothing",
+              !CodexMusic.HeardCredits() && PlayerPrefs.GetFloat(StarDustLedger.CurrencyKey) == dust);
         PlayerPrefs.SetString(Codex.PrefsKey, before);
         Codex.Reload();
         CodexMusic.HeardWorld(WorldManager.Worlds[3]);

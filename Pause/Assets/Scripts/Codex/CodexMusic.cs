@@ -114,12 +114,12 @@ public static class CodexMusic
     // ---- gameplay hooks (WorldMusic) ----
 
     // The Credits scene started its song. The first time (a real profile, not the tutorial or developer
-    // mode) it also pays UnlockReward star dust straight away and raises the "NEW CODEX ENTRY" toast;
+    // mode) it also leaves UnlockReward star dust pending for COLLECT in the Codex and raises the "NEW CODEX ENTRY" toast;
     // the heard flag in Codex.PrefsKey makes that once per profile. Returns true on that first time.
     public static bool HeardCredits()
     {
         if (!Codex.HearTrack(CreditsId)) return false;
-        // HearTrack paid CodexPayout.Track (= UnlockReward) through the paid list.
+        // HearTrack left CodexPayout.Track (= UnlockReward) pending: COLLECT pays it through the paid list.
         PrefsSaver.SaveNow();
         if (Application.isPlaying) CodexToast.Announce(CodexToast.EntryHeading, Find(CreditsId).title, null);
         return true;
