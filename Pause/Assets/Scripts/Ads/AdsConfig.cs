@@ -2,11 +2,12 @@ using UnityEngine;
 
 // Everything about ads that is a decision or an ID, in ONE file.
 //
-// MASTER SWITCH. MasterSwitch is false in the PR that adds ads: with it false the Google
-// SDK is never initialised, no consent prompt shows, no ad is requested and the double
-// dust button is not built -- the game behaves exactly as before. Flip it to true only
-// after the Play Console declarations (contains ads, Data safety, advertising ID) are
-// updated and real AdMob IDs are filled in below. Developer mode (DeveloperUnlocks, only
+// MASTER SWITCH. MasterSwitch is TRUE (flipped by the go-live PR): Android release builds
+// run UMP consent, initialise the Google SDK and show ads. Set it to false (and ship a new
+// release) to turn ads off again; with it false the SDK is never initialised, no consent
+// prompt shows, no ad is requested and AdsManifestGuard strips the ad permissions. The
+// Play Console declarations (contains ads, Data safety, advertising ID) must match a build
+// with this on. Developer mode (DeveloperUnlocks, only
 // in editor / development / PAUSE_DEV builds) forces ads on so they can be tested with
 // Google's test IDs.
 //
@@ -22,7 +23,7 @@ using UnityEngine;
 // from this file at build time, so changing an ID here is the only edit.
 public static class AdsConfig
 {
-    public const bool MasterSwitch = false;
+    public const bool MasterSwitch = true;
     public const bool EnabledOnIos = false;
 
     // ---- real IDs (AdMob account, created 2026-11-02) ----
@@ -51,7 +52,7 @@ public static class AdsConfig
 
     public static bool IsIos { get { return Application.platform == RuntimePlatform.IPhonePlayer; } }
 
-    // The live answer. False in every shipped build until MasterSwitch is flipped.
+    // The live answer. True in Android release builds; iOS release builds stay false until EnabledOnIos.
     public static bool Enabled
     {
         get { return Resolve(MasterSwitch, EnabledOnIos, IsIos, DeveloperUnlocks.Enabled); }

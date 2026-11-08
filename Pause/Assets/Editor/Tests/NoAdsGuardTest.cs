@@ -8,12 +8,10 @@ using UnityEngine;
 // scene, prefab, manifest, gradle file or package list names AdMob or an ad
 // SDK again.
 //
-// Phase 4 of the free-with-ads move adds the AdMob SDK on purpose, behind
-// AdsConfig.MasterSwitch (false). So the rule is now: an ad SDK may be named only
-// inside the sanctioned ad code and plugin files (AllowedPaths), and while any
-// ad code is present the master switch must be false -- the store's "no ads"
-// answers stay true until the owner flips it together with the Play Console
-// declarations (then update this guard in the same change).
+// Phase 4 of the free-with-ads move added the AdMob SDK on purpose behind
+// AdsConfig.MasterSwitch, and the go-live change flipped it to true. The rule is now:
+// an ad SDK may be named only inside the sanctioned ad code and plugin files
+// (AllowedPaths), and iOS stays off (EnabledOnIos false) until StoreKit ships.
 public static class NoAdsGuardTest
 {
     static int fails;
@@ -80,7 +78,7 @@ public static class NoAdsGuardTest
             Check(rel + " names no ad SDK", !File.Exists(path) || !AdTerms.IsMatch(File.ReadAllText(path)));
         }
 
-        Check("ads stay off: AdsConfig.MasterSwitch is false (flip it only with the Play Console declarations)", AdsConfig.MasterSwitch == false);
+        Check("ads are on: AdsConfig.MasterSwitch is true (free-with-ads release; the Play Console declarations must match)", AdsConfig.MasterSwitch == true);
         Check("ads stay off on iOS: AdsConfig.EnabledOnIos is false until StoreKit ships", AdsConfig.EnabledOnIos == false);
         Check("AdMob.cs is gone", !File.Exists(Path.Combine(Application.dataPath, "Scripts/UI/AdMob.cs")));
         return fails;

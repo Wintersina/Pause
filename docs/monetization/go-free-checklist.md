@@ -61,7 +61,7 @@ Ads-related declarations must be correct at the time of the release that contain
 ## 3. Code (agent)
 
 - [x] The real AdMob ids are in `AdsConfig.cs` on PR #432 (merge pending). Confirm no Google demo ids remain in the release build.
-- [ ] Set `AdsConfig.Enabled = true`. Keep `AdsConfig.EnabledOnIos = false` until StoreKit ships (section 4).
+- [x] Set `AdsConfig.MasterSwitch = true` (PR `feat/ads-master-switch-on`, 2026-11-08; the old item said `Enabled`, which is the derived getter). `EnabledOnIos` stays false until StoreKit ships (section 4). Merging that PR means the next .aab shows ads. Still unticked below: the merged-manifest check, which needs the built AAB.
 - [ ] Confirm the built AAB's merged manifest has the AdMob app id and the `AD_ID` permission, and that no debug/test ad unit ids remain.
 - [ ] Bump `AndroidBundleVersionCode` and cut the release with the `release-android` skill.
 - [ ] After release: a fresh-install test (no ads for the first 15 minutes, then ads, Remove Ads works, restore works).
