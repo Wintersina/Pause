@@ -20,7 +20,7 @@ public static class AdManager
     {
         var i = new AdPolicy.Inputs();
         i.removeAdsOwned = AdFree.IsActive;
-        // Developer mode unlocks every ship, so ownership means nothing there: ignore it and skip the free hour,
+        // Developer mode unlocks every ship, so ownership means nothing there: ignore it and skip the ad-free window,
         // so testers see ads. (Release builds can never be in developer mode.)
         bool dev = DeveloperUnlocks.Enabled;
         i.paragonOwned = !dev && ShipId.IsOwned(PremiumShips.Paragon);

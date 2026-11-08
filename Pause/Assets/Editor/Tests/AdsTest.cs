@@ -130,7 +130,7 @@ public static class AdsTest
 
     static void Policy()
     {
-        Check("policy numbers", AdPolicy.AdFreePlaySeconds == 3600f && AdPolicy.MinSecondsBetweenAds == 180f && AdPolicy.MinRunSecondsForAd == 45f);
+        Check("policy numbers", AdPolicy.AdFreePlaySeconds == 900f && AdPolicy.MinSecondsBetweenAds == 180f && AdPolicy.MinRunSecondsForAd == 45f);
         Check("policy defaults: Paragon removes ads, Remove Ads owners keep the double dust offer",
             AdPolicy.ParagonRemovesAds && AdPolicy.RemoveAdsOwnersSeeDoubleDust);
         Check("all clear -> allowed", AdPolicy.ForcedAd(Good()) == AdPolicy.Reason.Allowed && AdPolicy.MayShowForcedAd(Good()));
@@ -140,9 +140,9 @@ public static class AdsTest
         i = Good(); i.paragonOwned = true;
         Check("Paragon owner: none", AdPolicy.ForcedAd(i) == AdPolicy.Reason.ParagonOwned);
         i = Good(); i.playSeconds = AdPolicy.AdFreePlaySeconds - 0.5f;
-        Check("under one hour: none", AdPolicy.ForcedAd(i) == AdPolicy.Reason.UnderPlayTime);
+        Check("under 15 minutes: none", AdPolicy.ForcedAd(i) == AdPolicy.Reason.UnderPlayTime);
         i.playSeconds = AdPolicy.AdFreePlaySeconds;
-        Check("exactly one hour: allowed", AdPolicy.ForcedAd(i) == AdPolicy.Reason.Allowed);
+        Check("exactly 15 minutes: allowed", AdPolicy.ForcedAd(i) == AdPolicy.Reason.Allowed);
         i = Good(); i.boosterActive = true;
         Check("booster active: none", AdPolicy.ForcedAd(i) == AdPolicy.Reason.BoosterActive);
         i = Good(); i.secondsSinceLastAd = AdPolicy.MinSecondsBetweenAds - 1f;

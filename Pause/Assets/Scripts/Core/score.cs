@@ -152,7 +152,7 @@ public class score : MonoBehaviour {
         // A boss's entrance is scripted: its slow motion earns nothing (it
         // was a frozen world, timeScale 0, before the entrance had one).
         if (BossEncounter.ScriptedEntrance) return;
-        if (paysRealDust) PlayTime.Add(Time.deltaTime);   // the first ad-free hour: unfrozen real play only
+        if (paysRealDust) PlayTime.Add(Time.deltaTime);   // the first 15 ad-free minutes: unfrozen real play only
         payDust();
         RunScore.Tick(Time.deltaTime, moveBackGround.speed);
         AdaptiveDifficulty.Tick(Time.deltaTime, RunScore.Chain, collisionDetection.lifeCounter, collisionDetection.MAXLIFE);

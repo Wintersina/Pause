@@ -7,7 +7,7 @@ using System;
 // that holds is the Reason):
 //   - the player owns Remove Ads (AdFree.IsActive)
 //   - the player owns Paragon, while ParagonRemovesAds is true (default; unconfirmed)
-//   - under AdFreePlaySeconds (1 hour) of play
+//   - under AdFreePlaySeconds (15 minutes) of play
 //   - a booster is active (BoosterActiveCheck)
 //   - less than MinSecondsBetweenAds since the last ad of ANY kind (interstitial or rewarded)
 //   - the run just finished was shorter than MinRunSecondsForAd
@@ -18,7 +18,7 @@ using System;
 // Remove Ads owners still get it while RemoveAdsOwnersSeeDoubleDust is true.
 public static class AdPolicy
 {
-    public const float AdFreePlaySeconds = 3600f;
+    public const float AdFreePlaySeconds = 900f;
     public const float MinSecondsBetweenAds = 180f;
     public const float MinRunSecondsForAd = 45f;
 
