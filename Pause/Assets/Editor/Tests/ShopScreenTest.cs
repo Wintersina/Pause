@@ -163,7 +163,7 @@ public static class ShopScreenTest
         // Reset leaves only the starter owned
         var row = ShopCatalog.ParagonRow();
         Check("no Paragon gate: only the starter owned -> row is Buyable with Play's price",
-              ShipUnlocks.OwnedCount() == 0 && row.state == ShopRowState.Buyable && row.button == "$4.99" && row.Tappable);
+              ShipUnlocks.OwnedCount() == 1 && row.state == ShopRowState.Buyable && row.button == "$4.99" && row.Tappable);
         Check("no Paragon gate: RequestBuy is not refused", ParagonPurchase.RequestBuy() && launches == 1 && ParagonPurchase.Buying);
         ParagonPurchase.EndBuy();
         OwnShips(3);
