@@ -30,13 +30,14 @@ public static class OptionsRowOverlapTest
         {
             foreach (var id in Devices)
                 foreach (bool dev in new[] { true, false })
+                foreach (bool privacy in new[] { true, false })
                 {
                     // The editor always offers developer mode; "developer off" must lay out like a release build.
                     DeveloperUnlocks.TestAvailableOverride = dev ? (bool?)null : false;
-                    Measure(id, dev);
+                    Measure(id, dev, privacy);
                 }
         }
-        finally { DeveloperUnlocks.TestAvailableOverride = null; }
+        finally { DeveloperUnlocks.TestAvailableOverride = null; PrivacyOptionsRow.TestRequiredOverride = null; }
         DeveloperUnlocks.SetEnabled(false);
         Debug.Log("[OPTROWS] failures: " + fails);
         return fails;
@@ -49,14 +50,14 @@ public static class OptionsRowOverlapTest
         return c;
     }
 
-    static void Measure(string deviceId, bool dev)
+    static void Measure(string deviceId, bool dev, bool privacy)
     {
         var device = FitDevice.Find(deviceId);
         var screen = ScreenFitScreens.Find("options");
         EditorSceneLoader.Open("leaderboardS3");
         Time.timeScale = 1f;
         DeveloperUnlocks.SetEnabled(dev);
-        string tag = deviceId + (dev ? " (developer on)" : " (developer off)") + ": ";
+        string tag = deviceId + (dev ? " (developer on)" : " (developer off)") + (privacy ? " (privacy on)" : " (privacy off)") + ": ";
         using (var rig = new ScreenFitRig(device, screen.MinHalfWidth))
         {
             MenuStyler.StyleScene();
@@ -71,8 +72,8 @@ public static class OptionsRowOverlapTest
             }
             Add<SoundOptions>("~SoundOptions");
             Add<LeaderboardSettingsOptions>("~LeaderboardSettingsOptions");
-            var privacy = new GameObject("~PrivacyOptionsRow").AddComponent<PrivacyOptionsRow>();
-            privacy.Build();
+            PrivacyOptionsRow.TestRequiredOverride = privacy;
+            if (PrivacyOptionsRow.Required) new GameObject("~PrivacyOptionsRow").AddComponent<PrivacyOptionsRow>().Build();
             SafeAreaClamp.AttachAll("leaderboardS3");
             rig.Sync();
             SafeAreaClamp.AttachAll("leaderboardS3");
@@ -88,7 +89,7 @@ public static class OptionsRowOverlapTest
                 if (r.width < 1f || r.height < 1f) continue;
                 names.Add(b.name); rects.Add(r);
             }
-            Check(tag + "PRIVACY OPTIONS row exists", names.Contains(PrivacyOptionsRow.RowName));
+            Check(tag + "PRIVACY OPTIONS row " + (privacy ? "exists" : "absent"), names.Contains(PrivacyOptionsRow.RowName) == privacy);
             Check(tag + "Credits button exists", names.Contains("CreditsButton"));
             int overlaps = 0;
             for (int i = 0; i < rects.Count; i++)
