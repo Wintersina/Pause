@@ -298,30 +298,13 @@ public class ShopPanel : MonoBehaviour
                 v.icon.color = Color.white;
                 v.icon.type = Image.Type.Simple;
                 break;
-            case ShopRowKind.HazardClear:
-                v.icon.sprite = null;
-                v.icon.color = AkiraPalette.TealShadow;
-                CutCornerShape.Apply(v.icon);
-                v.iconText.text = "CLEAR";
-                break;
-            case ShopRowKind.HomingAtoms:
-                v.icon.sprite = null;
-                v.icon.color = AkiraPalette.VioletShadow;
-                CutCornerShape.Apply(v.icon);
-                v.iconText.text = "ATOMS";
-                break;
             default:
-                v.icon.sprite = DockArt.Get("icon_dust");
+                // packs and boosters each have their own pixel art (ShopIconArt)
+                v.icon.sprite = ShopIconArt.For(r);
                 v.icon.color = Color.white;
                 v.icon.type = Image.Type.Simple;
                 break;
         }
-    }
-
-    // How big a pack's star dust glyph is drawn (share of the icon box): bigger packs read bigger.
-    public static float PackIconScale(SupportPurchase.Pack p)
-    {
-        return p.dust >= 5000 ? 1f : p.dust >= 2000 ? .8f : .6f;
     }
 
     // ------------------------------------------------------------------ layout
@@ -410,12 +393,7 @@ public class ShopPanel : MonoBehaviour
         float h = paragon ? 210f : pack ? 128f : v.row.IsBooster ? 176f : 140f;   // boosters carry a 2-3 line description
         float btnW = Mathf.Min(ButtonMaxWidth, width * .36f);
         SetRect(v.icon.rectTransform, RowPad, (h - iconBox) * .5f, iconBox, iconBox, v.rt, true);
-        if (pack)
-        {
-            float k = PackIconScale(v.row.pack);
-            v.icon.rectTransform.localScale = new Vector3(k, k, 1f);
-        }
-        else v.icon.rectTransform.localScale = Vector3.one;
+        v.icon.rectTransform.localScale = Vector3.one;
         float textX = RowPad + iconBox + 16f;
         float textW = Mathf.Max(60f, width - textX - btnW - 2f * RowPad);
         bool showNotice = v.notice.gameObject.activeSelf;

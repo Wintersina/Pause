@@ -58,6 +58,7 @@ public static class ShopScreenTest
         try
         {
             Rows();
+            RowIcons();
             Gate();
             Taps();
             BoosterRows();
@@ -72,6 +73,30 @@ public static class ShopScreenTest
             ShopCatalog.OpenOnHome = false;
         }
         return failures;
+    }
+
+    // every priced row (Remove Ads and Paragon keep their own art; packs and boosters each get a sprite of their own)
+    static void RowIcons()
+    {
+        var seen = new HashSet<Sprite>();
+        bool allFound = true, distinct = true, pixel = true;
+        int count = 0;
+        foreach (var r in ShopCatalog.Rows())
+        {
+            if (r.kind == ShopRowKind.RemoveAds || r.kind == ShopRowKind.Paragon) continue;
+            count++;
+            var sprite = ShopIconArt.For(r);
+            if (sprite == null) { allFound = false; continue; }
+            if (!seen.Add(sprite)) distinct = false;
+            pixel &= sprite.texture.filterMode == FilterMode.Point && sprite.texture.mipmapCount == 1;
+        }
+        Check("three packs and three boosters: " + count + " rows", count == 6);
+        Check("every pack and booster row resolves to a sprite", allFound);
+        Check("each of them has its own sprite", distinct && seen.Count == 6);
+        Check("shop icons are Point filtered with no mipmaps (crisp pixel art)", pixel);
+        var small = ShopIconArt.NameFor(new ShopRow { kind = ShopRowKind.Pack, pack = SupportPurchase.Small });
+        var huge = ShopIconArt.NameFor(new ShopRow { kind = ShopRowKind.Pack, pack = SupportPurchase.Huge });
+        Check("packs map by size", small == "pack_850" && huge == "pack_6000");
     }
 
     static void Rows()
