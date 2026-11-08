@@ -60,6 +60,14 @@ public class LeaderboardPanel : MonoBehaviour
     // name column is 546.7 - 130 - 14 - 170 - 6 - 2 x 66 = 94.7.
     public const float NameLeft = 130f, NameWidth = 210f;   // NameWidth: at the design width
     const float RankWidth = 62f, ShipLeft = 78f, ShipWidth = 46f;
+    // The run line under the name (MAIN and Power-Ups, shared and native): the hearts the run started with (the HUD heart + a
+    // count) and the pauses it ended with (two bars + a count), as two fixed slots so they line up row to row. They sit in
+    // the name column's lower band, so they take no width from the numbers or the name (at a 320 dp phone the name column is
+    // 96.7 units, the two slots are 94). A third and fourth column beside the name would leave it about 5 units.
+    public const float RunLineHeartsLeft = 0f, RunLineHeartsWidth = 46f, RunLinePausesLeft = 48f, RunLinePausesWidth = 46f;
+    const float RunLineGlyph = 16f;
+    const int RunLineSize = 18;
+    const float NameBand = .42f;   // the name takes the top .58 of a stats row, the run line the lower .42
     const float BadgeWidth = 66f;   // the old hearts / pauses badge width; the Power-Ups name column is still derived from it
     const float ValueWidth = 170f, ValueInset = 14f;
     const int ValueMinSize = 16;
@@ -830,7 +838,7 @@ public class LeaderboardPanel : MonoBehaviour
         Label(rank, e.rank > 0 ? "#" + e.rank : "#--", 26, rankColor, TextAnchor.MiddleLeft, 2.5f);
 
         // The premium (cheat) ship is never shown: such an entry reads as unknown.
-        if (PremiumShips.IsPremium(e.startShip)) { e.startShip = 0; e.startHearts = 0; e.startSkin = 0; }
+        if (PremiumShips.IsPremium(e.startShip)) { e.startShip = 0; e.startHearts = 0; e.startSkin = 0; e.hasPauses = false; e.pauses = 0; }
         if (ShipHullArt.Has(e.startShip))
         {
             var ship = Child(rt, "Ship");
@@ -843,6 +851,13 @@ public class LeaderboardPanel : MonoBehaviour
             shipIds.Add(e.startShip);
             shipSkins.Add(e.startSkin);
         }
+        bool hasRow = e.rank > 0 || e.value != 0;   // the "no score yet" own row has nothing to show but its name
+        if (hasRow && !ShipHullArt.Has(e.startShip))
+        {
+            var none = Child(rt, "ShipNone");
+            Anchor(none, ShipLeft, ShipWidth);
+            Label(none, Dash, 22, mine ? AkiraPalette.Bone : AkiraPalette.Muted, TextAnchor.MiddleCenter, 2f, ValueMinSize);
+        }
 
         bool boosted = board != null && board.poweredUpOnly;
         float nameWidth = boosted ? BoostedNameWidth : MainNameWidth;
@@ -853,8 +868,9 @@ public class LeaderboardPanel : MonoBehaviour
         {
             // Shared board: the robot / apple mark sits before the name and takes its room from the name column.
             var mark = Child(rt, "Platform");
-            mark.anchorMin = new Vector2(0f, .5f);
-            mark.anchorMax = new Vector2(0f, .5f);
+            float markY = hasRow ? (NameBand + 1f) * .5f : .5f;   // level with the name line
+            mark.anchorMin = new Vector2(0f, markY);
+            mark.anchorMax = new Vector2(0f, markY);
             mark.pivot = new Vector2(0f, .5f);
             mark.sizeDelta = new Vector2(PlatformMark.Units, PlatformMark.Units);
             mark.anchoredPosition = new Vector2(NameLeft, 0f);
@@ -865,15 +881,20 @@ public class LeaderboardPanel : MonoBehaviour
             markRoom = PlatformMark.Reserve;
         }
         Anchor(name, NameLeft + markRoom, nameWidth - markRoom);
+        if (hasRow) { name.anchorMin = new Vector2(0f, NameBand); name.anchorMax = new Vector2(0f, 1f); }
         string who = string.IsNullOrEmpty(e.playerName) ? "PILOT" : e.playerName.ToUpperInvariant();
         if (own && e.rank > 0) who = "YOU  " + who;
-        FitName(Label(name, who, NameSize, nameColor, TextAnchor.MiddleLeft, 2.5f), who, nameWidth - markRoom - 4f);
+        // A marked (shared) row measures CJK a few units wider in the pixel layout than FitName's measure (the waiver this
+        // replaces): leave that much more room before the cut.
+        FitName(Label(name, who, NameSize, nameColor, TextAnchor.MiddleLeft, 2.5f), who, nameWidth - markRoom - 4f - (markRoom > 0f ? 6f : 0f));
+
+        if (hasRow) RunLine(rt, e, mine);
 
         if (!boosted)
         {
-            // The main tab: the offered columns (SCORE, DUST, WORLDS), no hearts / pauses badges (no room for them at the
-            // narrowest phone). A row with nothing to show (the "no score yet" own row) draws no cells.
-            if (e.rank > 0 || e.value != 0) MainCells(rt, e, board, mine);
+            // The main tab: the offered columns (SCORE, DUST, WORLDS); hearts and pauses ride on the run line under the name.
+            // A row with nothing to show (the "no score yet" own row) draws no cells.
+            if (hasRow) MainCells(rt, e, board, mine);
             return;
         }
 
@@ -916,6 +937,75 @@ public class LeaderboardPanel : MonoBehaviour
                 usedText.horizontalOverflow = HorizontalWrapMode.Wrap;   // fitted above, so it never wraps; right-aligned Overflow text is laid out from the wrong edge
             }
         }
+    }
+
+    // The run line under the name: "Hearts" (heart glyph + the start hearts) and "Pauses" (two bars + the pauses left at the end).
+    // A value the entry does not carry (an old score, a store with no tag, the premium ship) shows a dash.
+    void RunLine(RectTransform rt, LeaderboardEntry e, bool mine)
+    {
+        float left = NameLeft;
+        int hearts = e.startHearts > 0 ? e.startHearts : -1;   // Row() already blanked a premium entry
+        int pauses = e.hasPauses ? Mathf.Clamp(e.pauses, 0, LeaderboardRunTag.MostPauses) : -1;
+        Color numColor = mine ? AkiraPalette.Bone : AkiraPalette.Amber;
+
+        var h = RunSlot(rt, "Hearts", left + RunLineHeartsLeft, RunLineHeartsWidth);
+        var heart = Child(h, "Glyph");
+        GlyphBox(heart);
+        var heartImage = heart.gameObject.AddComponent<Image>();
+        heartImage.sprite = Resources.Load<Sprite>(ShipLivesIndicator.HeartSpritePath);
+        heartImage.preserveAspect = true;
+        heartImage.raycastTarget = false;
+        RunCount(h, hearts, RunLineHeartsWidth, numColor, mine);
+
+        var p = RunSlot(rt, "Pauses", left + RunLinePausesLeft, RunLinePausesWidth);
+        var glyph = Child(p, "Glyph");
+        GlyphBox(glyph);
+        for (int i = 0; i < 2; i++)
+        {
+            var bar = Child(glyph, "Bar" + i);
+            bar.anchorMin = bar.anchorMax = new Vector2(0f, .5f);
+            bar.pivot = new Vector2(0f, .5f);
+            bar.sizeDelta = new Vector2(4f, RunLineGlyph - 2f);
+            bar.anchoredPosition = new Vector2(2f + i * 7f, 0f);
+            var img = bar.gameObject.AddComponent<Image>();
+            img.color = pauses >= 0 ? numColor : (mine ? AkiraPalette.Bone : AkiraPalette.Muted);
+            img.raycastTarget = false;
+        }
+        RunCount(p, pauses, RunLinePausesWidth, numColor, mine);
+    }
+
+    RectTransform RunSlot(RectTransform rt, string name, float left, float width)
+    {
+        var slot = Child(rt, name);
+        slot.anchorMin = new Vector2(0f, 0f);
+        slot.anchorMax = new Vector2(0f, NameBand);
+        slot.pivot = new Vector2(0f, .5f);
+        slot.sizeDelta = new Vector2(width, 0f);
+        slot.anchoredPosition = new Vector2(left, 0f);
+        return slot;
+    }
+
+    static void GlyphBox(RectTransform glyph)
+    {
+        glyph.anchorMin = glyph.anchorMax = new Vector2(0f, .5f);
+        glyph.pivot = new Vector2(0f, .5f);
+        glyph.sizeDelta = new Vector2(RunLineGlyph, RunLineGlyph);
+        glyph.anchoredPosition = Vector2.zero;
+    }
+
+    void RunCount(RectTransform slot, int value, float width, Color color, bool mine)
+    {
+        var count = Child(slot, "Count");
+        float x = RunLineGlyph + 2f;
+        count.anchorMin = new Vector2(0f, 0f);
+        count.anchorMax = new Vector2(0f, 1f);
+        count.pivot = new Vector2(0f, .5f);
+        count.sizeDelta = new Vector2(width - x, 0f);
+        count.anchoredPosition = new Vector2(x, 0f);
+        string shown = value >= 0 ? value.ToString() : Dash;
+        var text = Label(count, shown, RunLineSize, value >= 0 ? color : (mine ? AkiraPalette.Bone : AkiraPalette.Muted),
+                         TextAnchor.MiddleLeft, 2f, ValueMinSize);
+        FitText(text, RunLineSize, ValueMinSize, width - x - 2f);
     }
 
     // The row's number cells on the main tab, one per offered column ("Cell_<board id>"). The column being sorted shows the

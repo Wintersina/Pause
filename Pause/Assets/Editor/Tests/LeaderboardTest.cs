@@ -494,16 +494,23 @@ public static class LeaderboardTest
         companion.Save(LeaderboardService.SubmittedKey);
         var panel = OpenPanel(fake);
         var rows = panel.PanelRoot.Find("List/Rows");
-        Check("row with ship and hearts: both shown",
-              rows.Find("Row0/Ship") != null && rows.Find("Row0/Hearts") == null);   // the main tab dropped the hearts / pauses badges
-        Check("old entry (no tag): blank, no ship and no hearts", rows.Find("Row1/Ship") == null && rows.Find("Row1/Hearts") == null);
-        Check("a Paragon entry never shows the cheat ship", rows.Find("Row2/Ship") == null);
+        Check("row with ship and hearts: both shown (hearts on the run line under the name)",
+              rows.Find("Row0/Ship") != null && RunCount(rows, "Row0", "Hearts") == "4");
+        Check("row with no pauses in its tag: a dash, never a 0", RunCount(rows, "Row0", "Pauses") == LeaderboardPanel.Dash);
+        Check("old entry (no tag): a dash for the ship, the hearts and the pauses",
+              rows.Find("Row1/Ship") == null && rows.Find("Row1/ShipNone") != null
+              && RunCount(rows, "Row1", "Hearts") == LeaderboardPanel.Dash && RunCount(rows, "Row1", "Pauses") == LeaderboardPanel.Dash);
+        Check("a Paragon entry never shows the cheat ship, its hearts or its pauses",
+              rows.Find("Row2/Ship") == null && RunCount(rows, "Row2", "Hearts") == LeaderboardPanel.Dash
+              && RunCount(rows, "Row2", "Pauses") == LeaderboardPanel.Dash);
+        Check("the run line glyphs are drawn (heart sprite, two pause bars)",
+              rows.Find("Row0/Hearts/Glyph").GetComponent<Image>().sprite != null && rows.Find("Row0/Pauses/Glyph/Bar1") != null);
         Check("own entry: filled from the device's record of the submitted score",
               rows.Find("Row3/Ship") != null);
         Check("an entry without end hearts shows only the start hearts", FakeLeaderboards.Entry(5, "OLD", 1, false, 3, 2).hasEnd == false);
         Check("row ships get a sprite to animate", rows.Find("Row0/Ship").GetComponent<Image>().sprite != null);
         var ownRow = panel.PanelRoot.Find("PlayerRow/Row");
-        Check("own rank row also shows the ship", ownRow != null && ownRow.Find("Ship") != null && ownRow.Find("Hearts") == null);
+        Check("own rank row also shows the ship", ownRow != null && ownRow.Find("Ship") != null && ownRow.Find("Hearts") != null);
 
         // A score the store has that this device didn't make (different value) is not given this device's ship.
         fake.SetBoard(TopScoreId, FakeLeaderboards.Entry(1, "KANEDA", 750, true));
@@ -595,7 +602,7 @@ public static class LeaderboardTest
         var panel = OpenPanel(fake);
         panel.SelectBoard(LeaderboardBoards.FurthestWorld);
         var rows = panel.PanelRoot.Find("List/Rows");
-        Check("worlds sort: ship shown, no hearts badge", rows.Find("Row0/Ship") != null && rows.Find("Row0/Hearts") == null);
+        Check("worlds sort: ship shown, no hearts badge", rows.Find("Row0/Ship") != null && RunCount(rows, "Row0", "Hearts") == "4");
         Check("worlds sort: the worlds value is a plain number", rows.Find("Row0/Cell_" + LeaderboardBoards.FurthestWorld).GetComponent<Text>().text == "5");
         Check("worlds sort: untagged entry has no ship", rows.Find("Row1/Ship") == null);
         Check("worlds tab: Paragon entry hidden", rows.Find("Row2/Ship") == null);
@@ -745,8 +752,9 @@ public static class LeaderboardTest
         var panel = OpenPanel(fake);
         panel.SelectBoard(LeaderboardBoards.FurthestWorld);
         var rows = panel.PanelRoot.Find("List/Rows");
-        Check("worlds sort: no pauses or hearts badges (dropped on the main tab)",
-              rows.Find("Row0/Pauses") == null && rows.Find("Row1/Pauses") == null && rows.Find("Row0/Hearts") == null);
+        Check("worlds sort: the run line shows pauses 3 / dash and hearts 4",
+              RunCount(rows, "Row0", "Pauses") == "3" && RunCount(rows, "Row1", "Pauses") == LeaderboardPanel.Dash && RunCount(rows, "Row0", "Hearts") == "4");
+        Check("a pauses count of 0 is a real 0, not a dash", RunCount(rows, "Row2", "Pauses") == "0");
         string v0 = rows.Find("Row0/Cell_" + LeaderboardBoards.FurthestWorld).GetComponent<Text>().text;
         Check("worlds sort: 14 worlds is the plain number, no LOOP text or dot glyph", v0 == "14" && rows.Find("Row0/Value") == null);
         Check("worlds sort: 'WORLD 1' is just 1", panel.PanelRoot.Find("PlayerRow/Row/Cell_" + LeaderboardBoards.FurthestWorld).GetComponent<Text>().text == "1");
@@ -764,7 +772,7 @@ public static class LeaderboardTest
         panel = OpenPanel(fake);
         panel.SelectBoard(LeaderboardBoards.FurthestWorld);
         rows = panel.PanelRoot.Find("List/Rows");
-        Check("own row: filled from the device record (ship), still no pauses badge", rows.Find("Row0/Ship") != null && rows.Find("Row0/Pauses") == null);
+        Check("own row: filled from the device record (ship, pauses 4)", rows.Find("Row0/Ship") != null && RunCount(rows, "Row0", "Pauses") == "4");
         Check("own row: a record for another value is not used",
               FillCheck());
 
@@ -785,7 +793,14 @@ public static class LeaderboardTest
         companion.Save(LeaderboardService.SubmittedKey);
         var panel = OpenPanel(fake);
         panel.SelectBoard(LeaderboardBoards.FurthestWorld);
-        return panel.PanelRoot.Find("List/Rows/Row0/Pauses") == null;
+        return RunCount(panel.PanelRoot.Find("List/Rows"), "Row0", "Pauses") == LeaderboardPanel.Dash;
+    }
+
+    // The text of a row's run line slot ("Hearts" / "Pauses"): the count, or the dash.
+    internal static string RunCount(Transform rows, string row, string slot)
+    {
+        var t = rows.Find(row + "/" + slot + "/Count");
+        return t != null ? t.GetComponent<Text>().text : null;
     }
 
     // ---- the pauses a run died with reach the board ----
