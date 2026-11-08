@@ -201,10 +201,18 @@ run-android:
 	done
 
 # Simulator build: Unity exports an Xcode project with the Simulator SDK
-# (BuildScript.BuildIOSSim), then xcodebuild compiles it for iphonesimulator.
+# (BuildScript.BuildIOSSim, arm64 simulator: the iOS 27 runtimes have no x86_64), then:
+#  1. the Firebase Unity SDK static libs are device-only for arm64, so their export copies are
+#     retagged for the simulator (scripts/ios-sim-firebase-libs.py);
+#  2. `pod install` resolves Firebase + AdMob/UMP (the CocoaPods CLI must be installed:
+#     `brew install cocoapods`);
+#  3. xcodebuild builds the generated .xcworkspace (NOT the .xcodeproj, which has no pods).
+IOS_SIM_DIR := $(PROJECT)/Builds/iOS-sim
 build-ios-sim:
 	$(UNITY_CMD) -executeMethod BuildScript.BuildIOSSim
-	xcodebuild -project "$(PROJECT)/Builds/iOS-sim/Unity-iPhone.xcodeproj" -scheme Unity-iPhone -configuration Debug -sdk iphonesimulator -destination "generic/platform=iOS Simulator" -derivedDataPath "$(IOS_SIM_DERIVED_DATA)" build
+	python3 -I scripts/ios-sim-firebase-libs.py "$(IOS_SIM_DIR)"/Libraries/Plugins/iOS/Firebase/*.a
+	cd "$(IOS_SIM_DIR)" && LANG=en_US.UTF-8 pod install
+	xcodebuild -workspace "$(IOS_SIM_DIR)/Unity-iPhone.xcworkspace" -scheme Unity-iPhone -configuration Debug -sdk iphonesimulator -destination "generic/platform=iOS Simulator" -derivedDataPath "$(IOS_SIM_DERIVED_DATA)" ARCHS=arm64 ONLY_ACTIVE_ARCH=YES CODE_SIGNING_ALLOWED=NO build
 
 # Always rebuilds the simulator app from the current source first.
 install-ios: check-ios-target build-ios-sim
