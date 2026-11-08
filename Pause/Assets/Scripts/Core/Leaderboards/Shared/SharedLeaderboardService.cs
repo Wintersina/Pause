@@ -321,6 +321,7 @@ public sealed class SharedLeaderboardService
                 lane.nextSendAt = clock() + LeaderboardService.BackoffSeconds(lane.failures++);
                 break;
         }
+        Debug.Log("[SharedBoard] upload to " + SharedBoardLimits.Collection(table) + " failed: " + result + ".");
         float due = lane.nextSendAt;
         if (!parked && (flushDueAt < 0f || due < flushDueAt)) flushDueAt = due;
     }
