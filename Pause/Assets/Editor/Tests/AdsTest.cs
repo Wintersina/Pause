@@ -210,11 +210,12 @@ public static class AdsTest
         Check("CHOICE: a booster blocks the forced ad, not the banner", AdPolicy.ChooseRunEndAd(i, 3, true, true) == AdPolicy.RunEndAd.Banner);
 
         // banner ids
-        Check("BANNER: test ids are Google's, the real ones are the TODO placeholder",
+        Check("BANNER: test ids are Google's, the real ones are the Pause Banner units",
             AdsConfig.TestAndroidBannerUnit.StartsWith(AdsConfig.TestPublisher) && AdsConfig.TestIosBannerUnit.StartsWith(AdsConfig.TestPublisher)
-            && AdsConfig.IsPlaceholder(AdsConfig.AndroidBannerUnit) && AdsConfig.IsPlaceholder(AdsConfig.IosBannerUnit)
+            && AdsConfig.AndroidBannerUnit == "ca-app-pub-4397064133944218/7474385975" && AdsConfig.IosBannerUnit == "ca-app-pub-4397064133944218/8592026521"
+            && !AdsConfig.IsPlaceholder(AdsConfig.AndroidBannerUnit) && !AdsConfig.IsPlaceholder(AdsConfig.IosBannerUnit)
             && !AdsConfig.IsPlaceholder(AdsConfig.TestAndroidBannerUnit) && AdsConfig.IsPlaceholder(""));
-        Check("BANNER: a release build requests nothing while the real id is a placeholder", !AdsConfig.BannerRequestable);
+        Check("BANNER: a release build requests the real unit", AdsConfig.BannerRequestable && AdsConfig.BannerUnit.StartsWith("ca-app-pub-4397064133944218/"));
         PlayerPrefs.SetInt(DeveloperUnlocks.EnabledKey, 1);
         Check("BANNER: developer mode uses the test unit, so it is requestable", AdsConfig.BannerRequestable && AdsConfig.BannerUnit.StartsWith(AdsConfig.TestPublisher));
         PlayerPrefs.DeleteKey(DeveloperUnlocks.EnabledKey);
@@ -280,9 +281,9 @@ public static class AdsTest
         r.provider.loadSucceeds = true; r.provider.rewardedReady = true;
         Check("PARAGON: the shop ad is still on", c.ShopAdReady && c.TryShowShopReward(null, null));
 
-        // banner unit missing (placeholder) -> nothing requested
+        // provider has no banner -> nothing requested
         r = new Rig(); r.provider.bannerAvailable = false; r.BootReady(); r.controller.OnRunEnd(true);
-        Check("BANNER: no real unit -> nothing is requested", r.controller.TryRunEndAd(Good(), null) == AdPolicy.RunEndAd.None && r.provider.bannerShows == 0);
+        Check("BANNER: provider cannot show one -> nothing is requested", r.controller.TryRunEndAd(Good(), null) == AdPolicy.RunEndAd.None && r.provider.bannerShows == 0);
         // disabled: nothing at all
         r = new Rig { enabled = false };
         Check("DISABLED: no banner, no interstitial, no shop ad",
