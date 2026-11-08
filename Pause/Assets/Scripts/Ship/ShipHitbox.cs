@@ -219,7 +219,13 @@ public class ShipHitbox : MonoBehaviour
 
     PolygonCollider2D NewZone(bool trigger)
     {
+        // AddComponent auto-traces the SpriteRenderer's sprite, which logs "Sprite outline
+        // generation failed" on non-readable textures; the path is set right after anyway.
+        var sr = GetComponent<SpriteRenderer>();
+        var held = sr != null ? sr.sprite : null;
+        if (sr != null) sr.sprite = null;
         var c = gameObject.AddComponent<PolygonCollider2D>();
+        if (sr != null) sr.sprite = held;
         c.isTrigger = trigger;
         c.enabled = false;
         return c;
