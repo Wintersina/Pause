@@ -103,6 +103,8 @@ public struct ShipLoadout
     public float range;
     public float width;
     public float speed;
+    // Hits a deployed piece of the attack takes before enemies shoot it down (the Gold Warden's sentries); 0: untouchable.
+    public int hits;
 
     // The top price tier flies a cinematic attack (the world is never slowed).
     public bool IsTopTier => ShipLoadoutTable.IsCinematic(attack);
@@ -123,14 +125,14 @@ public static class ShipLoadoutTable
                            SecretPower power, string powerName, string powerLine,
                            PowerTrigger trigger, int count, float radius,
                            int shots = 1, int maxHits = 1, float duration = 0f,
-                           float range = 0f, float width = 0f, float speed = 0f)
+                           float range = 0f, float width = 0f, float speed = 0f, int hits = 0)
     {
         return new ShipLoadout
         {
             shipId = id, attack = attack, attackName = attackName, attackLine = attackLine,
             power = power, powerName = powerName, powerLine = powerLine,
             trigger = trigger, triggerCount = count, triggerRadius = radius,
-            shots = shots, maxHits = maxHits, duration = duration, range = range, width = width, speed = speed,
+            shots = shots, maxHits = maxHits, duration = duration, range = range, width = width, speed = speed, hits = hits,
         };
     }
 
@@ -173,7 +175,7 @@ public static class ShipLoadoutTable
         Row(7, ShipAttack.WardenSentries, "WARDEN SENTRIES", "Three sentry pods deploy across the screen and shoot the nearest targets for 6 s.",
             SecretPower.GoldMagnet, "GOLD MAGNET", "Pulls in star dust for 5 s, worth double meanwhile.",
             PowerTrigger.PickupsOnScreen, 4, 0f,
-            shots: 3, duration: 6f, range: 6f, speed: 1.5f),   // speed = shots a second per pod (was 3; halved)
+            shots: 3, duration: 6f, range: 6f, speed: 1.5f, hits: 2),   // speed = shots a second per pod (was 3; halved); hits = enemy hits that shoot a sentry down
         // 8 Lightning (1650)
         Row(8, ShipAttack.SkyJavelins, "SKY JAVELINS", "Rockets climb, then javelins strike down three lanes; colours add lanes up to five.",
             SecretPower.Thunderclap, "THUNDERCLAP", "Lightning strikes everything within 2.6 dead, bosses take half a hit.",
