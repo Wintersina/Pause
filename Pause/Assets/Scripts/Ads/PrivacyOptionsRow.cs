@@ -8,7 +8,9 @@ using UnityEngine.UI;
 public class PrivacyOptionsRow : MonoBehaviour
 {
     public const string RowName = "PrivacyOptions";
-    public const float RowY = -133f, DevRowY = -223f, RowH = 88f, RowW = 520f;
+    // The row sits where the DEVELOPER switch sits in dev builds (-133), sharing it half and half like the boss rush /
+    // fusion pair: -223 (its old dev slot) landed on the Credits button at -233, and the Options stack has no free slot.
+    public const float RowY = -133f, RowH = 88f, RowW = 520f, HalfW = 270f, HalfX = 140f;
     public const string Caption = "PRIVACY OPTIONS";
 
     [RuntimeInitializeOnLoadMethod]
@@ -28,25 +30,36 @@ public class PrivacyOptionsRow : MonoBehaviour
     {
         // UMP may still be gathering consent when the screen opens; wait for it.
         if (!AdManager.PrivacyOptionsRequired) { StartCoroutine(Wait()); return; }
-        Build();
+        StartCoroutine(BuildNextFrame());
     }
+
+    // One frame late so the developer rows (built in their own Start) exist and can be shared with.
+    System.Collections.IEnumerator BuildNextFrame() { yield return null; Build(); }
 
     System.Collections.IEnumerator Wait()
     {
         for (float t = 0f; t < 30f; t += Time.unscaledDeltaTime)
         {
-            if (AdManager.PrivacyOptionsRequired) { Build(); yield break; }
+            if (AdManager.PrivacyOptionsRequired) { yield return null; Build(); yield break; }
             yield return null;
         }
     }
 
-    void Build()
+    public void Build()
     {
         var template = SceneUtil.FindAny("Tutorial");
         if (template == null) return;
-        float y = DeveloperUnlocks.Available ? DevRowY : RowY;
+        bool shared = DeveloperUnlocks.Available;
+        if (shared)
+        {
+            // Developer builds: the DEVELOPER switch takes the left half, this row the right half.
+            var toggle = SceneUtil.FindAny("DeveloperToggle");
+            var rect = toggle != null ? toggle.GetComponent<RectTransform>() : null;
+            if (rect != null) { rect.anchoredPosition = new Vector2(-HalfX, RowY); rect.sizeDelta = new Vector2(HalfW, RowH); }
+        }
         var row = DeveloperOptions.Clone(template, template.transform.parent, RowName,
-                        new Vector2(0f, y), new Vector2(RowW, RowH), () => AdManager.ShowPrivacyOptions(null));
+                        new Vector2(shared ? HalfX : 0f, RowY), new Vector2(shared ? HalfW : RowW, RowH),
+                        () => AdManager.ShowPrivacyOptions(null));
         var label = row.GetComponentInChildren<Text>(true);
         if (label == null) return;
         label.text = Caption;
