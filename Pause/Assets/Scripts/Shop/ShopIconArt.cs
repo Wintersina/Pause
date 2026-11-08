@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-// The Shop's pixel-art row icons (Resources/ShopIcons, 256x256, Point filter), one per star dust pack and per booster.
+// The Shop's pixel-art row icons (Resources/ShopIcons, 256x256, Point filter), one per star dust pack, per booster and Remove Ads.
 // Source and previews live in Assets/Art/Shop~/icons.
 public static class ShopIconArt
 {
@@ -16,11 +16,12 @@ public static class ShopIconArt
         return s;
     }
 
-    // The icon file for a row, or null for rows that keep their own art (Remove Ads, Paragon).
+    // The icon file for a row, or null for rows that keep their own art (Paragon).
     public static string NameFor(ShopRow r)
     {
         switch (r.kind)
         {
+            case ShopRowKind.RemoveAds: return "remove_ads";
             case ShopRowKind.Pack:
                 if (r.pack == null) return null;
                 return r.pack.dust >= 5000 ? "pack_6000" : r.pack.dust >= 2000 ? "pack_2500" : "pack_850";

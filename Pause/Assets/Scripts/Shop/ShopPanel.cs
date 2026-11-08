@@ -287,11 +287,9 @@ public class ShopPanel : MonoBehaviour
         switch (r.kind)
         {
             case ShopRowKind.RemoveAds:
-                // placeholder: a plain tile (art is a separate decision)
-                v.icon.sprite = null;
-                v.icon.color = AkiraPalette.RedShadow;
-                CutCornerShape.Apply(v.icon);
-                v.iconText.text = "NO\nADS";
+                v.icon.sprite = ShopIconArt.For(r);
+                v.icon.color = Color.white;
+                v.icon.type = Image.Type.Simple;
                 break;
             case ShopRowKind.Paragon:
                 v.icon.sprite = ShipHullArt.Get(PremiumShips.Paragon, 0, 0, 0);

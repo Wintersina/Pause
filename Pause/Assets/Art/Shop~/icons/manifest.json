@@ -72,6 +72,19 @@
         "#2ec4b6"
       ],
       "description": "Violet atom with orbit loops, lock-on reticle, and inward homing trail."
+    },
+    {
+      "file": "remove_ads.png",
+      "palette": [
+        "#111735",
+        "#c0392b",
+        "#7f1d32",
+        "#ff5a36",
+        "#fff4c7",
+        "#b8b5c7",
+        "#5b5a76"
+      ],
+      "description": "Cream generic AD screen crossed out by a bold warm-red prohibition ring."
     }
   ]
-}\n
+}
