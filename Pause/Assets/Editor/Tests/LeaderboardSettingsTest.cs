@@ -110,11 +110,11 @@ public static class LeaderboardSettingsTest
         };
     }
 
-    static SharedDoc Doc(string name, string platform, long score, long dust, int worlds, int ship, int powerUps = 0)
+    static SharedDoc Doc(string name, string platform, long score, long dust, int worlds, int ship, int powerUps = 0, int hearts = 3, int pauses = 1)
     {
         var d = new SharedDoc { name = name, platform = platform };
         var run = SharedRun.Blank();
-        run.score = score; run.dust = dust; run.worlds = worlds; run.ship = ship; run.hearts = 3; run.endHearts = 0; run.pauses = 1; run.powerUps = powerUps;
+        run.score = score; run.dust = dust; run.worlds = worlds; run.ship = ship; run.hearts = hearts; run.endHearts = 0; run.pauses = pauses; run.powerUps = powerUps;
         d.Offer(run);
         return d;
     }
@@ -127,7 +127,9 @@ public static class LeaderboardSettingsTest
             for (int i = 0; i < 12; i++)
                 sharedFake.Seed((SharedTable)t, "p" + i,
                     Doc("PILOT" + i, i % 2 == 0 ? SharedBoardLimits.Android : SharedBoardLimits.Ios,
-                        10000 - i * 100, 100 + i * 50, 3 + i, 1 + i % 9, t == 1 ? 1 : 0));
+                        10000 - i * 100, 100 + i * 50, 3 + i,
+                        i == 4 ? PremiumShips.Paragon : 1 + i % 9, t == 1 ? 1 : 0,
+                        i == 3 ? 0 : 3 + i % 3, i == 2 ? -1 : i % 4));
             sharedFake.Seed((SharedTable)t, sharedFake.Uid, Doc("KANEDA", SharedBoardLimits.Ios, 50, 10, 1, 2, t == 1 ? 1 : 0));
         }
     }
@@ -194,6 +196,16 @@ public static class LeaderboardSettingsTest
               panel.PlayerRowShown && panel.PlayerRankText == "#--" && panel.UnrankedNote == null);
         Check("shared: every row carries a platform mark (10 rows + own)", MarkCount(panel) == 11);
 
+        var shRows = panel.PanelRoot.Find("List/Rows");
+        Check("shared: ship icon, hearts (3) and pauses (0) columns render on a normal row",
+              shRows.Find("Row0/Ship").GetComponent<Image>().sprite != null && LeaderboardTest.RunCount(shRows, "Row0", "Hearts") == "3"
+              && LeaderboardTest.RunCount(shRows, "Row0", "Pauses") == "0" && LeaderboardTest.RunCount(shRows, "Row1", "Pauses") == "1");
+        Check("shared: unknown pauses and unknown hearts show a dash",
+              LeaderboardTest.RunCount(shRows, "Row2", "Pauses") == LeaderboardPanel.Dash && LeaderboardTest.RunCount(shRows, "Row3", "Hearts") == LeaderboardPanel.Dash
+              && shRows.Find("Row3/Ship") != null);
+        Check("shared: the Paragon ship, its hearts and pauses are never shown (dashes)",
+              shRows.Find("Row4/Ship") == null && shRows.Find("Row4/ShipNone") != null && LeaderboardTest.RunCount(shRows, "Row4", "Hearts") == LeaderboardPanel.Dash
+              && LeaderboardTest.RunCount(shRows, "Row4", "Pauses") == LeaderboardPanel.Dash);
         panel.SelectBoard(LeaderboardBoards.RunStarDust);
         Check("shared: the DUST header loads that sort from the service", sharedFake.LoadCalls == 2 && panel.SortedBoard == LeaderboardBoards.RunStarDust);
         var first = panel.PanelRoot.Find("List/Rows/Row0/Name");
@@ -204,6 +216,10 @@ public static class LeaderboardSettingsTest
         panel.SelectBoard(LeaderboardBoards.BoostedRuns);
         Check("shared: the POWER-UPS tab reads the power table", sharedFake.LoadCalls == 3 && panel.SelectedTab == LeaderboardBoards.BoostedRuns
               && panel.CurrentState == LeaderboardPanel.State.Populated);
+        var puRows = panel.PanelRoot.Find("List/Rows");
+        Check("shared: the POWER-UPS rows carry the ship, hearts and pauses too",
+              puRows.Find("Row0/Ship") != null && LeaderboardTest.RunCount(puRows, "Row0", "Hearts") == "3"
+              && LeaderboardTest.RunCount(puRows, "Row1", "Pauses") == "1" && LeaderboardTest.RunCount(puRows, "Row4", "Pauses") == LeaderboardPanel.Dash);
         LeaderboardPanel.Close();
 
         // The same page opened again inside the TTL costs nothing, and says nothing of its age.

@@ -600,9 +600,10 @@ public static class PowerUpsLeaderboardTest
         Check("panel: row 1 shows Dust x2", rows.Find("Row1/PowerUps").GetComponent<Text>().text == "DUST x2");
         Check("panel: row 2 shows Clear", rows.Find("Row2/PowerUps").GetComponent<Text>().text == "CLEAR");
         Check("panel: score is the value", rows.Find("Row0/Value").GetComponent<Text>().text == "9,000");
-        Check("panel: ship shown, no hearts or pauses badges", rows.Find("Row0/Ship") != null && rows.Find("Row0/Hearts") == null && rows.Find("Row0/Pauses") == null);
+        Check("panel: ship shown, hearts and pauses on the run line under the name", rows.Find("Row0/Ship") != null && rows.Find("Row0/Hearts") != null && rows.Find("Row0/Pauses") != null);
         Check("panel: an untagged score shows its score and blank columns", rows.Find("Row3/Value") != null && rows.Find("Row3/Stats") == null
-              && rows.Find("Row3/PowerUps") == null && rows.Find("Row3/Ship") == null);
+              && rows.Find("Row3/PowerUps") == null && rows.Find("Row3/Ship") == null
+              && LeaderboardTest.RunCount(rows, "Row3", "Hearts") == LeaderboardPanel.Dash && LeaderboardTest.RunCount(rows, "Row3", "Pauses") == LeaderboardPanel.Dash);
         var own = panel.PanelRoot.Find("PlayerRow/Row");
         Check("panel: own row without tag data is blank in the columns, no crash", own != null && own.Find("Stats") == null && own.Find("PowerUps") == null && own.Find("Value") != null);
 

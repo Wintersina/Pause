@@ -51,11 +51,6 @@ public static class ScreenFitScreens
         // Developer-only rows: left as they are on purpose (user decision).
         new FitWaiver { screen = "options", kind = "TAPSIZE", element = "Canvas/Developer",
                         reason = "DEVELOPER-ONLY rows (DeveloperUnlocks.Available builds; not shipped to players): left as is by decision" },
-        // Shared board rows (platform mark takes 28 units from the name column): the Japanese stage name, cut with an
-        // ellipsis by FitName, measures wider in the rig than FitName measured on these two devices (the native board's
-        // identical name passes at its wider column). Root cause not found; the cut is correct on every other device.
-        new FitWaiver { screen = "leaderboard-shared", kind = "LEADERBOARD", element = "name Row", devices = "iphone-16pm,flip7-cover-948x1048",
-                        reason = "CJK stage name in the narrower marked name column measures over its box on this device in the rig; open follow-up" },
         // The flight-complete panel was never laid out for a near-square screen: its small type sits exactly on the
         // floor (7.0 dp) on the Flip7 cover. Open follow-up (dock + codex are the wide-screen pass).
         new FitWaiver { screen = "game-death", kind = "SMALLTEXT", element = "Panel/", devices = "flip7-cover-948x1048",
@@ -403,7 +398,9 @@ public static class ScreenFitScreens
                         value = b.id == LeaderboardBoards.FurthestWorld ? 9999 - i * 137 : 99999999 - i * 137,
                         isLocalPlayer = i == 3,
                         // Ships 1-9 in their skins 0..2 (a skin a ship lacks draws stock).
-                        startShip = 1 + i % 9, startHearts = 3, startSkin = i % 3,
+                        // Every fifth row has no hearts (unknown: a dash), every fourth no pauses; pauses read 99 or 7.
+                        startShip = 1 + i % 9, startHearts = i % 5 == 4 ? 0 : 3 + i % 6, startSkin = i % 3,
+                        hasPauses = i % 4 != 3, pauses = i % 2 == 0 ? 99 : 7,
                         // The Boosted board's columns: widest values on some rows, none on every third.
                         hasRunStats = i % 3 != 2, starDustHundredths = i % 2 == 0 ? 999999 : 123456, worlds = i % 2 == 0 ? 99 : 12,
                         powerUps = 1 + i % 3,
@@ -463,9 +460,9 @@ public static class ScreenFitScreens
                 run.worlds = 99 - i;
                 run.ship = 1 + i % 9;
                 run.skin = i % 3;
-                run.hearts = 3;
+                run.hearts = i % 5 == 4 ? 0 : 3 + i % 6;
                 run.endHearts = 0;
-                run.pauses = 1;
+                run.pauses = i % 4 == 3 ? -1 : i % 2 == 0 ? 99 : 7;
                 run.powerUps = table == 1 ? 1 + i % 3 : 0;
                 d.Offer(run);
                 fakeShared.Seed((SharedTable)table, "p" + i, d);
@@ -659,6 +656,50 @@ public static class ScreenFitScreens
         "KEI",
     };
 
+    // The run line under each name: a heart + count and a pause glyph + count (or a dash), 16 units or more, whole inside
+    // their slots, glyph drawn, clear of the name above, and the slots lined up row to row.
+    static void RunLineChecks(ScreenFitRig rig, LeaderboardPanel panel)
+    {
+        int slots = 0, dashes = 0, counts = 0;
+        float heartX = float.NaN, pauseX = float.NaN;
+        foreach (var t in panel.GetComponentsInChildren<Text>())
+        {
+            if (t.name != "Count") continue;
+            var slot = t.transform.parent;
+            if (slot == null || (slot.name != "Hearts" && slot.name != "Pauses")) continue;
+            var row = slot.parent;
+            slots++;
+            if (t.text == LeaderboardPanel.Dash) dashes++; else counts++;
+            Rect glyphs; float fontPx; bool truncated;
+            if (!rig.MeasureText(t, out glyphs, out fontPx, out truncated)) continue;
+            Rect box = rig.PixelRect(t.rectTransform);
+            string what = slot.name + " " + row.name + " \"" + t.text + "\"";
+            if (t.fontSize < 16 || t.resizeTextForBestFit)
+                rig.Fail("LEADERBOARD", what, "drawn at " + t.fontSize + " units, under the 16 floor", glyphs);
+            if (glyphs.xMax > box.xMax + 1f + fontPx * .3f || glyphs.xMin < box.xMin - 1f)
+                rig.Fail("LEADERBOARD", what, "runs out of its slot (size " + t.fontSize + ")", glyphs);
+            var glyph = slot.Find("Glyph");
+            if (glyph == null) { rig.Fail("LEADERBOARD", what, "no glyph"); continue; }
+            var img = glyph.GetComponent<Image>();
+            if (slot.name == "Hearts" && (img == null || img.sprite == null)) rig.Fail("LEADERBOARD", what, "no heart sprite", rig.PixelRect(slot as RectTransform));
+            var name = row.Find("Name");
+            if (name != null)
+            {
+                Rect nameBox = rig.PixelRect(name as RectTransform), slotBox = rig.PixelRect(slot as RectTransform);
+                if (slotBox.yMax > nameBox.yMin + 1.5f && slotBox.yMin < nameBox.yMax - 1.5f)
+                    rig.Fail("LEADERBOARD", what, "sits on top of the name", slotBox);
+            }
+            if (row.parent != null && row.parent.name == "PlayerRow") continue;
+            Rect slotRect = rig.PixelRect(slot as RectTransform);
+            ref float col = ref (slot.name == "Hearts" ? ref heartX : ref pauseX);
+            if (float.IsNaN(col)) col = slotRect.xMin;
+            else if (Mathf.Abs(col - slotRect.xMin) > 1f)
+                rig.Fail("LEADERBOARD", slot.name + " column", row.name + " is " + (slotRect.xMin - col).ToString("F0") + "px out of line", slotRect);
+        }
+        if (slots < 20) rig.Fail("STAGE", "leaderboard", "only " + slots + " hearts / pauses slots");
+        if (dashes == 0 || counts == 0) rig.Fail("STAGE", "leaderboard", "the staged rows show " + counts + " counts and " + dashes + " dashes");
+    }
+
     // Names: one line, at least LeaderboardPanel.NameMinSize, inside their
     // box (cut with an ellipsis when too long); rank and score columns lined
     // up row to row and never cut.
@@ -695,6 +736,7 @@ public static class ScreenFitScreens
                     rig.Fail("LEADERBOARD", t.name + " column", row.name + " is " + (x - col).ToString("F0") + "px out of line", box);
             }
         }
+        RunLineChecks(rig, panel);
         if (names < 10) rig.Fail("STAGE", "leaderboard", "only " + names + " name cells");
         if (cut < 3) rig.Fail("LEADERBOARD", "names", "the long names were not cut with an ellipsis (" + cut + ")");
     }
