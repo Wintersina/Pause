@@ -73,7 +73,7 @@ public sealed class FirebaseSharedBoard : ISharedBoardBackend
             // v2 plugin: needs the OAuth web client id in PlayGamesSettings (mWebClientId). The code is single-use.
             PlayGamesPlatform.Instance.RequestServerSideAccess(false, code =>
             {
-                if (string.IsNullOrEmpty(code)) { done(false); return; }
+                if (string.IsNullOrEmpty(code)) { Debug.Log("[SharedBoard] Play Games gave no server auth code; not signed in to Firebase."); done(false); return; }
                 Finish(auth.SignInWithCredentialAsync(PlayGamesAuthProvider.GetCredential(code)), done);
             });
 #elif UNITY_IOS
@@ -94,6 +94,7 @@ public sealed class FirebaseSharedBoard : ISharedBoardBackend
         task.ContinueWithOnMainThread(t =>
         {
             if (t.IsFaulted || t.IsCanceled) Debug.Log("[SharedBoard] Firebase sign-in refused: " + (t.Exception != null ? t.Exception.Message : "canceled"));
+            else Debug.Log("[SharedBoard] Firebase signed in.");
             done(!t.IsFaulted && !t.IsCanceled);
         });
     }
