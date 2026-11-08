@@ -34,6 +34,9 @@ public static class DeveloperUnlocks
     {
         get
         {
+#if UNITY_EDITOR
+            if (TestAvailableOverride.HasValue) return TestAvailableOverride.Value;
+#endif
 #if UNITY_EDITOR || DEVELOPMENT_BUILD || PAUSE_DEV
             return true;
 #else
@@ -41,6 +44,11 @@ public static class DeveloperUnlocks
 #endif
         }
     }
+
+#if UNITY_EDITOR
+    // Edit-mode tests only: lets a test lay a screen out the way a release build (no developer switch) gets it.
+    public static bool? TestAvailableOverride;
+#endif
 
     public static bool IsDevBuild
     {

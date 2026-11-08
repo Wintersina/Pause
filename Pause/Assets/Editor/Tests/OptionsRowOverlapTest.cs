@@ -26,9 +26,17 @@ public static class OptionsRowOverlapTest
         fails = 0;
         using var sandbox = new TestHarness.Sandbox();
         PlayerPrefs.SetString("HasDoneTut", "true");
-        foreach (var id in Devices)
-            foreach (bool dev in new[] { true, false })
-                Measure(id, dev);
+        try
+        {
+            foreach (var id in Devices)
+                foreach (bool dev in new[] { true, false })
+                {
+                    // The editor always offers developer mode; "developer off" must lay out like a release build.
+                    DeveloperUnlocks.TestAvailableOverride = dev ? (bool?)null : false;
+                    Measure(id, dev);
+                }
+        }
+        finally { DeveloperUnlocks.TestAvailableOverride = null; }
         DeveloperUnlocks.SetEnabled(false);
         Debug.Log("[OPTROWS] failures: " + fails);
         return fails;
