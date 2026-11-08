@@ -258,7 +258,7 @@ public class startMenu : MonoBehaviour {
     // the home screen; its "View all" opens the store's own screen.
     public void leaderboard()
     {
-        LeaderboardPanel.Open();
+        LeaderboardPanel.OpenHome();
     }
     public void shop()
     {

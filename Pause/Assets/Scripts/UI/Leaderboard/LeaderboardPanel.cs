@@ -17,6 +17,12 @@ using UnityEngine.UI;
 // States: signed out (one-tap sign-in), loading, empty, error/offline,
 // unavailable (no store on this device), no boards configured, populated.
 //
+// Shared mode (OpenHome / Open with a SharedLeaderboardService): the same panel reads the cross-platform Firebase
+// board instead. MAIN tab (SCORE / DUST / WORLDS headers, each loads that sort from SharedLeaderboardService, never
+// re-sorted here) and POWER-UPS tab; the player's own row shows even off the page (rank 0 = no number); each row carries
+// a small robot (Android) or apple (iOS) mark by the name. A failed shared load shows the error state with a
+// "show Play Games / Game Center board" action that switches this panel to the native boards.
+//
 // Look: docs/art-style.md -- flat cel plates with thick INK contours and one
 // hard offset shadow, chamfered corners, the red title slab, Orbitron type
 // with an ink stroke. Kaneda red marks the player's own row.
@@ -35,6 +41,7 @@ public class LeaderboardPanel : MonoBehaviour
     const float ListTop = 316f;               // from the panel top (below the sort headers)
     const float PlayerRowTop = 920f, PlayerRowHeight = 66f;
     const float ButtonsTop = 1036f, ButtonHeight = 100f;
+    internal const float ButtonsTopUnits = ButtonsTop;
     public const float TabTop = 144f, TabHeight = 80f, TabTouchMargin = 10f;
     // The main tab's sort headers: 48 units of art with 26 of touch margin above and below = a 100-unit target; each
     // is as wide as its column (100), and the three columns replace the old hearts / pauses / score block.
@@ -148,6 +155,11 @@ public class LeaderboardPanel : MonoBehaviour
     public RectTransform PanelRoot { get { return panelRoot; } }
 
     LeaderboardService service;
+    SharedLeaderboardService shared;   // non-null: the panel shows the shared board
+    bool forceReload;                  // the next shared load bypasses the cache (RETRY)
+    public bool SharedMode { get { return shared != null; } }
+    public Button NativeButton { get; private set; }   // the error state's "show the native board" action, shared mode
+    public string AgeNote { get; private set; }
     Font font;
     Canvas canvas;
     CanvasScaler scaler;
@@ -167,13 +179,29 @@ public class LeaderboardPanel : MonoBehaviour
         return Open(service, font, new Vector2(ScreenInfo.Width, ScreenInfo.Height), ScreenInfo.SafeArea, false);
     }
 
+    // The home Leaderboard button: the shared board when sharing is on and the shared backend is usable, else the
+    // native Play Games / Game Center panel exactly as before.
+    public static LeaderboardPanel OpenHome()
+    {
+        return OpenHome(new Vector2(ScreenInfo.Width, ScreenInfo.Height), ScreenInfo.SafeArea, false);
+    }
+
+    // Tests pass an explicit screen and safe area.
+    public static LeaderboardPanel OpenHome(Vector2 screen, Rect safe, bool overrideScreen)
+    {
+        var sharedService = SharedLeaderboardService.Instance;
+        bool useShared = sharedService != null && sharedService.BoardUsable;
+        return Open(null, null, screen, safe, overrideScreen, useShared ? sharedService : null);
+    }
+
     // Tests pass an explicit screen and safe area.
     public static LeaderboardPanel Open(LeaderboardService service, Font font, Vector2 screen, Rect safe,
-                                       bool overrideScreen = true)
+                                       bool overrideScreen = true, SharedLeaderboardService sharedBoard = null)
     {
         Close();
         var go = new GameObject("~LeaderboardPanel", typeof(RectTransform));
         var panel = go.AddComponent<LeaderboardPanel>();
+        panel.shared = sharedBoard;
         panel.service = service ?? LeaderboardService.Instance;
         panel.font = font != null ? font : DockArt.FindSceneFont();
         panel.screenOverridden = overrideScreen;
@@ -188,6 +216,11 @@ public class LeaderboardPanel : MonoBehaviour
         // reloads once the store confirms it.
         panel.service.Confirmed += panel.OnConfirmed;
         panel.service.FlushNow();
+        if (panel.shared != null)
+        {
+            panel.shared.Uploaded += panel.OnSharedUploaded;
+            panel.shared.FlushNow();
+        }
         return panel;
     }
 
@@ -224,9 +257,15 @@ public class LeaderboardPanel : MonoBehaviour
         if (boardId == SelectedBoard) Reload();
     }
 
+    void OnSharedUploaded(SharedTable table)
+    {
+        if (shared != null && SelectedBoard != null && TableOf(SelectedBoard) == table) Reload();
+    }
+
     void OnDestroy()
     {
         if (service != null) service.Confirmed -= OnConfirmed;
+        if (shared != null) shared.Uploaded -= OnSharedUploaded;
         BackNavigator.Unregister(this);
         if (Current == this) Current = null;
     }
@@ -260,7 +299,7 @@ public class LeaderboardPanel : MonoBehaviour
     {
         panelRoot.sizeDelta = new Vector2(panelW, panelH);
         mainColumns.Clear();
-        foreach (var b in service.UsableBoards()) if (!b.poweredUpOnly) mainColumns.Add(b);
+        foreach (var b in PanelBoards()) if (!b.poweredUpOnly) mainColumns.Add(b);
 
         // Frame: chamfered night plate, thick ink, inner panel line.
         var frame = CelShape.Add(Fill(panelRoot, "Frame").gameObject, CelShape.Kind.Chamfer,
@@ -309,6 +348,34 @@ public class LeaderboardPanel : MonoBehaviour
                                    "VIEW ALL", AkiraPalette.Cyan, ViewAll);
     }
 
+    // The boards this panel offers: the native ones the platform has ids for, or, in shared mode, all four (the shared
+    // board has no per-platform ids).
+    List<LeaderboardBoard> PanelBoards()
+    {
+        if (shared == null) return service.UsableBoards();
+        var list = new List<LeaderboardBoard>();
+        foreach (string id in SharedBoardIds)
+        {
+            var b = LeaderboardBoards.Get(id);
+            if (b != null) list.Add(b);
+        }
+        return list;
+    }
+
+    public static readonly string[] SharedBoardIds =
+    {
+        LeaderboardBoards.TopScore, LeaderboardBoards.RunStarDust, LeaderboardBoards.FurthestWorld, LeaderboardBoards.BoostedRuns,
+    };
+
+    // Which shared table and sort column a board id stands for.
+    public static SharedTable TableOf(string boardId) { return boardId == LeaderboardBoards.BoostedRuns ? SharedTable.Power : SharedTable.Main; }
+
+    public static SharedColumn ColumnOf(string boardId)
+    {
+        return boardId == LeaderboardBoards.RunStarDust ? SharedColumn.Dust
+             : boardId == LeaderboardBoards.FurthestWorld ? SharedColumn.Worlds : SharedColumn.Score;
+    }
+
     void BuildTitle()
     {
         var slabRect = Place(panelRoot, "TitleSlab", -6f, 34f, Inner + 30f, 96f);
@@ -334,7 +401,7 @@ public class LeaderboardPanel : MonoBehaviour
         // Two tabs: MAIN (when any normal board is offered) and one per Power-Ups board.
         var tabs = new List<KeyValuePair<string, string>>();
         if (mainColumns.Count > 0) tabs.Add(new KeyValuePair<string, string>(MainTab, "MAIN"));
-        foreach (var b in service.UsableBoards())
+        foreach (var b in PanelBoards())
             if (b.poweredUpOnly) tabs.Add(new KeyValuePair<string, string>(b.id, b.displayName.ToUpperInvariant()));
         if (tabs.Count == 0) return;
         // 80 tall plus 10 of touch margin above and below: a 100-unit target
@@ -470,6 +537,7 @@ public class LeaderboardPanel : MonoBehaviour
     public void Reload()
     {
         if (SelectedBoard == null) { Show(State.NoBoards); return; }
+        if (shared != null) { ReloadShared(); return; }
         var platform = service.Platform;
         if (!platform.IsAvailable) { Show(State.Unavailable); return; }
         if (!service.SignedIn) { Show(State.SignedOut); return; }
@@ -482,6 +550,53 @@ public class LeaderboardPanel : MonoBehaviour
             if (this == null || token != request) return;   // closed, or another tab since
             OnLoaded(boardId, top, me);
         });
+    }
+
+    // Shared mode: one load of (table, sort column) from the shared service, which owns the cache. RETRY bypasses it
+    // (at most once a minute per board, the service's rule). Rows are shown in the order the service returns them.
+    void ReloadShared()
+    {
+        int token = ++request;
+        string boardId = SelectedBoard;
+        bool force = forceReload;
+        forceReload = false;
+        Show(State.Loading);
+        shared.LoadBoard(TableOf(boardId), ColumnOf(boardId), force, loaded =>
+        {
+            if (this == null || token != request) return;
+            var page = loaded != null ? loaded.page : null;
+            if (page == null || !page.Ok)
+            {
+                Show(State.Error);   // offline, denied, quota, signed out of the shared board: native board offered
+                return;
+            }
+            AgeNote = loaded.fromCache && loaded.ageSeconds >= 60 ? AgeText(loaded.ageSeconds) : null;
+            var board = LeaderboardBoards.Get(boardId);
+            if (descriptionText != null)
+            {
+                string desc = board != null && board.poweredUpOnly ? board.description.ToUpperInvariant() : "";
+                descriptionText.text = AgeNote ?? desc;
+            }
+            bool hasPlayer = page.hasPlayer;
+            if (page.entries.Count == 0 && !hasPlayer) { Show(State.Empty); return; }
+            Show(State.Populated, board, page, hasPlayer ? page.player : (LeaderboardEntry?)null);
+        });
+    }
+
+    public static string AgeText(long seconds)
+    {
+        long minutes = seconds / 60;
+        return minutes < 60 ? "UPDATED " + System.Math.Max(1, minutes) + " MIN AGO" : "UPDATED " + (minutes / 60) + " H AGO";
+    }
+
+    // Shared mode, error state: this panel becomes the native Play Games / Game Center board.
+    public void SwitchToNative()
+    {
+        if (shared == null) return;
+        shared.Uploaded -= OnSharedUploaded;
+        shared = null;
+        AgeNote = null;
+        Rebuild();
     }
 
     void OnLoaded(string boardId, LeaderboardPage top, LeaderboardPage me)
@@ -507,6 +622,12 @@ public class LeaderboardPanel : MonoBehaviour
             if (ok) Reload();
             else Show(State.SignedOut);
         });
+    }
+
+    void RetryShared()
+    {
+        forceReload = true;
+        Reload();
     }
 
     void ViewAll()
@@ -541,6 +662,8 @@ public class LeaderboardPanel : MonoBehaviour
         MessageText = null;
 
         string platformName = service.Platform.PlatformName;
+        NativeButton = null;
+        AgeNote = state == State.Populated ? AgeNote : null;
         switch (state)
         {
             case State.SignedOut:
@@ -556,7 +679,20 @@ public class LeaderboardPanel : MonoBehaviour
                 break;
             case State.Error:
                 Message("CAN'T REACH THE RANKINGS", "You may be offline. Your best runs are kept and sent later.");
-                ActionButton = MakeButton(body, "Retry", 0f, 330f, 420f, ButtonHeight, "RETRY", AkiraPalette.Red, Reload, true);
+                if (shared == null)
+                {
+                    ActionButton = MakeButton(body, "Retry", 0f, 330f, 420f, ButtonHeight, "RETRY", AkiraPalette.Red, Reload, true);
+                    break;
+                }
+                // Shared board failed: RETRY, and the native board as the way out (never a dead end).
+                if (service.Platform.IsAvailable)
+                {
+                    float half = (Inner - 16f) * .5f;
+                    ActionButton = MakeButton(body, "Retry", -half * .5f - 8f, 330f, half, ButtonHeight, "RETRY", AkiraPalette.Red, RetryShared, true);
+                    NativeButton = MakeButton(body, "ShowNative", half * .5f + 8f, 330f, half, ButtonHeight,
+                                              "SHOW " + StoreName(platformName).ToUpperInvariant() + " BOARD", AkiraPalette.Cyan, SwitchToNative);
+                }
+                else ActionButton = MakeButton(body, "Retry", 0f, 330f, 420f, ButtonHeight, "RETRY", AkiraPalette.Red, RetryShared, true);
                 break;
             case State.Unavailable:
                 Message("RANKINGS UNAVAILABLE", "Leaderboards need Google Play Games or Game Center.");
@@ -569,7 +705,8 @@ public class LeaderboardPanel : MonoBehaviour
                 break;
         }
 
-        bool storeReachable = state == State.Populated || state == State.Empty || state == State.Error;
+        bool storeReachable = (state == State.Populated || state == State.Empty || state == State.Error)
+                              && (shared == null || service.Platform.IsAvailable);
         ViewAllButton.gameObject.SetActive(storeReachable);
         // Alone, BACK sits in the middle.
         var back = (RectTransform)CloseButton.transform;
@@ -660,7 +797,7 @@ public class LeaderboardPanel : MonoBehaviour
             if (string.IsNullOrEmpty(me.playerName)) me.playerName = "YOU";
             Row(rowRect, me, board, true, true);
             PlayerRankText = me.rank > 0 ? "#" + me.rank : "#--";
-            if (me.rank <= 0)
+            if (me.rank <= 0 && shared == null)
             {
                 // The store kept the score but gave it no public rank: say why, under the row.
                 UnrankedNote = UnrankedMessage(service.Platform.PlatformName);
@@ -710,10 +847,27 @@ public class LeaderboardPanel : MonoBehaviour
         bool boosted = board != null && board.poweredUpOnly;
         float nameWidth = boosted ? BoostedNameWidth : MainNameWidth;
         var name = Child(rt, "Name");
-        Anchor(name, NameLeft, nameWidth);
+        float markRoom = 0f;
+        var markSprite = PlatformMark.For(e.platform);
+        if (markSprite != null)
+        {
+            // Shared board: the robot / apple mark sits before the name and takes its room from the name column.
+            var mark = Child(rt, "Platform");
+            mark.anchorMin = new Vector2(0f, .5f);
+            mark.anchorMax = new Vector2(0f, .5f);
+            mark.pivot = new Vector2(0f, .5f);
+            mark.sizeDelta = new Vector2(PlatformMark.Units, PlatformMark.Units);
+            mark.anchoredPosition = new Vector2(NameLeft, 0f);
+            var markImage = mark.gameObject.AddComponent<Image>();
+            markImage.sprite = markSprite;
+            markImage.preserveAspect = true;
+            markImage.raycastTarget = false;
+            markRoom = PlatformMark.Reserve;
+        }
+        Anchor(name, NameLeft + markRoom, nameWidth - markRoom);
         string who = string.IsNullOrEmpty(e.playerName) ? "PILOT" : e.playerName.ToUpperInvariant();
         if (own && e.rank > 0) who = "YOU  " + who;
-        FitName(Label(name, who, NameSize, nameColor, TextAnchor.MiddleLeft, 2.5f), who, nameWidth - 4f);
+        FitName(Label(name, who, NameSize, nameColor, TextAnchor.MiddleLeft, 2.5f), who, nameWidth - markRoom - 4f);
 
         if (!boosted)
         {
@@ -928,9 +1082,13 @@ public class LeaderboardPanel : MonoBehaviour
         safeRoot.anchorMin = new Vector2(layout.safe.xMin / screen.x, layout.safe.yMin / screen.y);
         safeRoot.anchorMax = new Vector2(layout.safe.xMax / screen.x, layout.safe.yMax / screen.y);
         safeRoot.offsetMin = safeRoot.offsetMax = Vector2.zero;
-        if (resized)
+        if (resized) Rebuild();   // a new size (rotation, a foldable, a window): build the panel again
+    }
+
+    // Builds the panel again for its current size and mode, keeping the board it showed.
+    void Rebuild()
+    {
         {
-            // a new size (rotation, a foldable, a window): build the panel again
             Tabs.Clear();
             TabBoards.Clear();
             Headers.Clear();
@@ -948,7 +1106,7 @@ public class LeaderboardPanel : MonoBehaviour
 
     // ---- building blocks ----
 
-    static RectTransform Child(Transform parent, string name)
+    internal static RectTransform Child(Transform parent, string name)
     {
         var go = new GameObject(name, typeof(RectTransform));
         var rt = go.GetComponent<RectTransform>();
@@ -956,7 +1114,7 @@ public class LeaderboardPanel : MonoBehaviour
         return rt;
     }
 
-    static void Stretch(RectTransform rt, float inset = 0f)
+    internal static void Stretch(RectTransform rt, float inset = 0f)
     {
         rt.anchorMin = Vector2.zero;
         rt.anchorMax = Vector2.one;
@@ -964,7 +1122,7 @@ public class LeaderboardPanel : MonoBehaviour
         rt.offsetMax = new Vector2(-inset, 0f);
     }
 
-    static RectTransform Fill(RectTransform parent, string name)
+    internal static RectTransform Fill(RectTransform parent, string name)
     {
         var rt = Child(parent, name);
         Stretch(rt);
@@ -972,7 +1130,7 @@ public class LeaderboardPanel : MonoBehaviour
     }
 
     // Centre x, top y (downwards from the parent's top edge), size.
-    static RectTransform Place(RectTransform parent, string name, float x, float top, float w, float h)
+    internal static RectTransform Place(RectTransform parent, string name, float x, float top, float w, float h)
     {
         var rt = Child(parent, name);
         rt.anchorMin = rt.anchorMax = new Vector2(.5f, 1f);
@@ -993,6 +1151,11 @@ public class LeaderboardPanel : MonoBehaviour
     }
 
     Text Label(RectTransform rt, string s, int size, Color color, TextAnchor align, float ink, int minSize = 0)
+    {
+        return LabelWith(font, rt, s, size, color, align, ink, minSize);
+    }
+
+    internal static Text LabelWith(Font font, RectTransform rt, string s, int size, Color color, TextAnchor align, float ink, int minSize = 0)
     {
         var text = rt.gameObject.AddComponent<Text>();
         text.font = font;
@@ -1021,6 +1184,12 @@ public class LeaderboardPanel : MonoBehaviour
     Button MakeButton(RectTransform parent, string name, float x, float top, float w, float h, string caption,
                       Color accent, UnityEngine.Events.UnityAction onClick, bool filled = false)
     {
+        return ButtonWith(font, parent, name, x, top, w, h, caption, accent, onClick, filled);
+    }
+
+    internal static Button ButtonWith(Font font, RectTransform parent, string name, float x, float top, float w, float h, string caption,
+                                      Color accent, UnityEngine.Events.UnityAction onClick, bool filled = false)
+    {
         var rt = Place(parent, name, x, top, w, h);
         var shape = CelShape.Add(rt.gameObject, CelShape.Kind.Chamfer, filled ? accent : AkiraPalette.Card, 4f)
                             .Shadow(filled ? AkiraPalette.Ink : accent, new Vector2(6f, -6f));
@@ -1028,7 +1197,7 @@ public class LeaderboardPanel : MonoBehaviour
         shape.raycastTarget = true;
         var label = Child(rt, "Label");
         Stretch(label, 12f);
-        Label(label, caption, 34, AkiraPalette.Bone, TextAnchor.MiddleCenter, 3.5f);
+        LabelWith(font, label, caption, 34, AkiraPalette.Bone, TextAnchor.MiddleCenter, 3.5f);
         var button = rt.gameObject.AddComponent<Button>();
         button.targetGraphic = shape;
         button.transition = Selectable.Transition.None;

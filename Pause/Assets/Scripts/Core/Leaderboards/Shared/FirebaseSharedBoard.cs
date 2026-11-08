@@ -57,6 +57,7 @@ public sealed class FirebaseSharedBoard : ISharedBoardBackend
     }
 
     public string BackendName { get { return "Firebase"; } }
+    public string Platform { get { return Application.platform == RuntimePlatform.IPhonePlayer ? SharedBoardLimits.Ios : SharedBoardLimits.Android; } }
     public bool IsAvailable { get { return ready && !failed; } }
     public bool IsSignedIn { get { return IsAvailable && auth.CurrentUser != null; } }
     public string UserId { get { return IsSignedIn ? auth.CurrentUser.UserId : null; } }
@@ -118,6 +119,7 @@ public sealed class FirebaseSharedBoard : ISharedBoardBackend
         return new Dictionary<string, object>
         {
             { "name", d.name },
+            { "platform", d.platform },
             { "updatedAt", FieldValue.ServerTimestamp },
             { "byScore", RunToDict(d.byScore) }, { "byDust", RunToDict(d.byDust) }, { "byWorlds", RunToDict(d.byWorlds) },
         };
@@ -149,6 +151,8 @@ public sealed class FirebaseSharedBoard : ISharedBoardBackend
         var d = snap.ToDictionary();
         var doc = new SharedDoc();
         object name, ts;
+        object plat;
+        doc.platform = d.TryGetValue("platform", out plat) && plat != null ? plat.ToString() : "";
         doc.name = d.TryGetValue("name", out name) && name != null ? name.ToString() : "";
         if (d.TryGetValue("updatedAt", out ts) && ts is Timestamp) doc.updatedAtMs = new DateTimeOffset(((Timestamp)ts).ToDateTime()).ToUnixTimeMilliseconds();
         object o;
@@ -172,7 +176,7 @@ public sealed class FirebaseSharedBoard : ISharedBoardBackend
             {
                 SharedDoc server = DocFromSnapshot(t.Result);
                 bool changed;
-                var merged = SharedBoardMerge.Apply(server, overlay, name, out changed);
+                var merged = SharedBoardMerge.Apply(server, overlay, name, out changed, Platform);
                 if (changed) tx.Set(reference, DocToDict(merged));
                 return merged;
             })).ContinueWithOnMainThread(t =>

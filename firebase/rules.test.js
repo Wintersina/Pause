@@ -11,6 +11,8 @@ const {
 
 const vectors = JSON.parse(fs.readFileSync(path.join(__dirname, 'test-vectors.json'), 'utf8')).cases;
 const OWNER = 'uid-owner';
+const PROVIDERS = { android: 'playgames.google.com', ios: 'gc.apple.com' };
+const asUser = (uid, provider) => env.authenticatedContext(uid, { firebase: { sign_in_provider: provider, identities: {} } }).firestore();
 
 let env;
 
@@ -37,14 +39,14 @@ async function seed(table, uid, data, secondsAgo) {
 for (const v of vectors) {
   test(`${v.name} [${v.table} ${v.op}]`, async () => {
     if (v.hasExisting) await seed(v.table, OWNER, v.existing, v.sinceLastSeconds);
-    const db = env.authenticatedContext(v.owner ? OWNER : 'uid-other').firestore();
+    const db = asUser(v.owner ? OWNER : 'uid-other', v.provider || PROVIDERS[v.doc.platform] || 'custom');
     const write = setDoc(doc(db, v.table, OWNER), { ...v.doc, updatedAt: serverTimestamp() });
     if (v.expect === 'allow') await assertSucceeds(write); else await assertFails(write);
   });
 }
 
 test('a string or fractional score is refused', async () => {
-  const db = env.authenticatedContext(OWNER).firestore();
+  const db = asUser(OWNER, 'playgames.google.com');
   const withScore = (score) => ({
     ...vectors[0].doc,
     byScore: { ...vectors[0].doc.byScore, score },
@@ -55,24 +57,33 @@ test('a string or fractional score is refused', async () => {
 });
 
 test('a client-chosen timestamp is refused', async () => {
-  const db = env.authenticatedContext(OWNER).firestore();
+  const db = asUser(OWNER, 'playgames.google.com');
   await assertFails(setDoc(doc(db, 'main', OWNER), { ...vectors[0].doc, updatedAt: Timestamp.fromMillis(Date.now() - 100000) }));
 });
 
-test('reads need sign-in', async () => {
+test('boards are publicly readable and writes need sign-in', async () => {
   await seed('main', OWNER, vectors[0].doc, 100);
-  await assertFails(getDoc(doc(env.unauthenticatedContext().firestore(), 'main', OWNER)));
+  await seed('power', OWNER, vectors[1].doc, 100);
+  const anon = env.unauthenticatedContext().firestore();
+  await assertSucceeds(getDoc(doc(anon, 'main', OWNER)));
+  await assertSucceeds(getDoc(doc(anon, 'power', OWNER)));
   await assertSucceeds(getDoc(doc(env.authenticatedContext('uid-other').firestore(), 'main', OWNER)));
+  await assertFails(setDoc(doc(anon, 'main', OWNER), { ...vectors[0].doc, updatedAt: serverTimestamp() }));
+  await assertFails(deleteDoc(doc(anon, 'main', OWNER)));
 });
 
-test('a list needs a limit of 25 or less', async () => {
+test('a list needs a limit of 25 or less, signed in or not', async () => {
   await seed('main', OWNER, vectors[0].doc, 100);
-  const db = env.authenticatedContext('uid-other').firestore();
-  const top = (n) => query(collection(db, 'main'), orderBy('byScore.score', 'desc'), limit(n));
-  await assertSucceeds(getDocs(top(10)));
-  await assertSucceeds(getDocs(top(25)));
-  await assertFails(getDocs(top(26)));
-  await assertFails(getDocs(query(collection(db, 'main'), orderBy('byScore.score', 'desc'))));
+  await seed('power', OWNER, vectors[1].doc, 100);
+  for (const db of [env.unauthenticatedContext().firestore(), env.authenticatedContext('uid-other').firestore()]) {
+    for (const table of ['main', 'power']) {
+      const top = (n) => query(collection(db, table), orderBy('byScore.score', 'desc'), limit(n));
+      await assertSucceeds(getDocs(top(10)));
+      await assertSucceeds(getDocs(top(25)));
+      await assertFails(getDocs(top(26)));
+      await assertFails(getDocs(query(collection(db, table), orderBy('byScore.score', 'desc'))));
+    }
+  }
 });
 
 test('the owner deletes their doc, others cannot', async () => {
@@ -82,7 +93,7 @@ test('the owner deletes their doc, others cannot', async () => {
 });
 
 test('other collections are closed', async () => {
-  const db = env.authenticatedContext(OWNER).firestore();
+  const db = asUser(OWNER, 'playgames.google.com');
   await assertFails(setDoc(doc(db, 'scores', OWNER), { a: 1 }));
   await assertFails(getDoc(doc(db, 'scores', OWNER)));
 });

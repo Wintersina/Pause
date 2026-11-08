@@ -60,7 +60,7 @@ public sealed class SharedLeaderboardService
 
     static void OnSignedInStatic() { Instance.Flush(); }
 
-    // The player's sharing switch (phase 2 puts a toggle on it). Default on.
+    // The player's sharing switch (Leaderboard Settings toggle). Default on.
     public static bool SharingOn
     {
         get { return PlayerPrefs.GetInt(SharingKey, 1) == 1; }
@@ -128,6 +128,10 @@ public sealed class SharedLeaderboardService
 
     // The shared board is live: a usable backend and the player's switch on.
     public bool Enabled { get { return SharingOn && Backend.IsAvailable; } }
+
+    // The home Leaderboard button shows the shared board only when it can actually be read: live, and the Firebase
+    // user exists. Otherwise the native Play Games / Game Center panel opens as it always did.
+    public bool BoardUsable { get { return Enabled && Backend.IsSignedIn; } }
 
     // ---- stored state ----
 

@@ -103,6 +103,7 @@ public struct SharedRun
 public sealed class SharedDoc
 {
     public string name = "";
+    public string platform = "";   // SharedBoardLimits.Android / Ios: shown as a small mark on the row
     public long updatedAtMs;
     public bool hasScore, hasDust, hasWorlds;
     public SharedRun byScore, byDust, byWorlds;
@@ -160,13 +161,13 @@ public static class SharedBoardMerge
 {
     // `server` is null when the player has no document yet. `overlay` holds the device's candidate runs (its
     // partial slots). Returns the document to write; `changed` is false when nothing improved (nothing is written).
-    public static SharedDoc Apply(SharedDoc server, SharedDoc overlay, string name, out bool changed)
+    public static SharedDoc Apply(SharedDoc server, SharedDoc overlay, string name, out bool changed, string platform = SharedBoardLimits.Android)
     {
         var doc = server != null ? server.Clone() : new SharedDoc();
         changed = false;
         foreach (var c in SharedDoc.Columns)
             if (overlay.Has(c) && doc.Offer(overlay.Get(c))) changed = true;
-        if (changed) doc.name = name ?? "";
+        if (changed) { doc.name = name ?? ""; doc.platform = platform ?? ""; }
         return doc;
     }
 }

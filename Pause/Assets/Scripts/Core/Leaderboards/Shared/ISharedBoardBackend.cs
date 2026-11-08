@@ -19,6 +19,9 @@ public interface ISharedBoardBackend
 {
     string BackendName { get; }
 
+    // "android" or "ios": written on the player's document; the rules tie it to the Firebase sign-in provider.
+    string Platform { get; }
+
     // The SDK is compiled in, its config file is present and it initialised.
     bool IsAvailable { get; }
 
@@ -64,6 +67,7 @@ public static class SharedBoardBackends
 public sealed class NullSharedBoard : ISharedBoardBackend
 {
     public string BackendName { get { return "none"; } }
+    public string Platform { get { return SharedBoardLimits.Android; } }
     public bool IsAvailable { get { return false; } }
     public bool IsSignedIn { get { return false; } }
     public string UserId { get { return null; } }
@@ -104,6 +108,7 @@ public static class SharedBoardRows
             powerUps = r.powerUps,
             hasScore = true,
             runScore = r.score,
+            platform = doc.platform,
         };
     }
 }

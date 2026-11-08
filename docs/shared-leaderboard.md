@@ -1,6 +1,8 @@
 # Shared leaderboard (Firebase, Spark plan): design note
 
-Status: **phase 1 of 3 implemented, dormant** (backend rules + SDK-free client service + Firebase adapter under `#if PAUSE_FIREBASE`). Phase 2 is the settings modal and the panel reading from it. A follow-up PR imports the SDK (see "Enabling it").
+Status: **phases 1 and 2 implemented, dormant** (backend rules + SDK-free client service + Firebase adapter under `#if PAUSE_FIREBASE`, and the UI: Leaderboard Settings modal, shared panel). A follow-up PR imports the SDK (see "Enabling it").
+
+**The boards are publicly readable (names, platform marks and scores).** Anyone, signed in or not, can `get` a document and `list` up to 25 documents of `main` and `power`; the website shows the top scores this way. Writes and deletes stay owner-only. The privacy policy and store data-safety answers must say that the display name and scores are public. Reading is a change from the first draft below, which required sign-in for reads.
 
 ## As built (differences from the first draft of this note)
 
@@ -10,6 +12,16 @@ Status: **phase 1 of 3 implemented, dormant** (backend rules + SDK-free client s
 * **Cache invalidation.** An own upload drops that table's cached pages (all three sorts), not just the rank.
 * **Backfill on first sign-in.** Once per install the service signs in to Firebase even with an empty queue and offers the device's bests (native marks plus the normal local best), as the native `BindAccount` does. A different uid re-queues them.
 * **Everything is under `Pause/Assets/Scripts/Core/Leaderboards/Shared/`**; tests are `SharedLeaderboardTest` (service, fake, C# rules mirror) and `firebase/rules.test.js` (emulator), both reading `firebase/test-vectors.json`.
+
+## Phase 2: the UI (as built)
+
+* **Options > LEADERBOARD SETTINGS** (`LeaderboardSettingsOptions`, row at y 340 above VIBRATION, every build) opens `LeaderboardSettingsPanel`, a modal on its own overlay canvas in the leaderboard panel's look. Top to bottom: one line on what is shared (display name and scores, public), **SYNC NOW**, its result line, **SHARE SCORES: ON/OFF**, a note that turning sharing off stops uploads but deletes nothing, **DELETE MY SHARED SCORES** (separate; pressing it shows an in-game CANCEL / DELETE step, no OS dialog; then an outcome line), and **PRIVACY POLICY** (opens `ExternalLinks.PrivacyPolicy`, the link the home screen already uses). BACK and the BackNavigator back button close it. The middle scrolls on a short screen; type is 16 units or more, every button is a 100-unit target.
+* **Sync now** runs `LeaderboardSync.Now()` (native boards, and the shared board while sharing is on). Results: `Synced` once both queues are empty, `Offline, will retry` if they are still not empty after 12 s (the queues keep retrying on their own), `Sign in to sync` when neither Play Games / Game Center nor the shared board is signed in.
+* **Persisted state:** `shared_leaderboard_on` (PlayerPrefs, default on, `SharedLeaderboardService.SharingOn`). The modal adds no other key. Delete turns it off through the service (uploads stay off until the player turns it back on).
+* **Home Leaderboard button** (`LeaderboardPanel.OpenHome`): the shared board when `SharedLeaderboardService.BoardUsable` (sharing on, backend available, Firebase user signed in), otherwise the native panel exactly as before. Today the real backend is the Null one, so every build still opens the native panel.
+* **Shared panel:** the same panel in shared mode. MAIN tab with SCORE / DUST / WORLDS headers and a POWER-UPS tab; each header calls `SharedLeaderboardService.LoadBoard(table, column, ...)` and shows the rows in the order returned (never re-sorted). The player's own row shows even off the page; rank 0 shows `#--` and no unranked note. The service's caching rule applies (5 min, retry bypasses it at most once a minute per board, a failed refresh serves the cached page and shows `UPDATED N MIN AGO`). If the load fails and there is no cache, the error state offers RETRY and **SHOW <PLAY GAMES / GAME CENTER> BOARD**, which turns the panel into the native board in place.
+* **Platform mark:** each shared row shows a small generic mark by the name: a robot head (Android) or an apple (iOS). The panel's text stack is the legacy `UnityEngine.UI.Text` with Orbitron, which has no colour emoji (and no TextMeshPro emoji sprite asset is in the project), so the marks are 12 x 12 pixel-art sprites built at runtime (`PlatformMark`), drawn 24 units wide. They are not the Google, Android or Apple logos and never the Apple logo character.
+* **Platform field:** every document carries `platform` (`"android"` or `"ios"`). The rules require it to match the sign-in provider: `request.auth.token.firebase.sign_in_provider` is `playgames.google.com` for `android` and `gc.apple.com` for `ios` (`PlayGamesAuthProvider` / `GameCenterAuthProvider` provider ids; Firebase's ID token documentation lists `sign_in_provider` values). The backend writes it (`ISharedBoardBackend.Platform`), `SharedBoardLimits.PlatformOk` mirrors the rule, and `test-vectors.json` covers a wrong provider, a missing and an unknown platform. No migration: nothing is deployed yet.
 
 ## Enabling it (follow-up PR, after the console work)
 
@@ -77,13 +89,14 @@ Two top-level collections, **`main`** and **`power`** (Power-Ups). One doc per p
 ```
 main/{uid}  and  power/{uid}
   name        string 1..24
+  platform    "android" | "ios"   (must match the sign-in provider, see Phase 2)
   updatedAt   timestamp   (== request.time, server timestamp)
   byScore     { score, dust, worlds, ship, hearts, endHearts, pauses, skin, powerUps }   best-SCORE run
   byDust      { same shape }                                                              best-DUST run
   byWorlds    { same shape }                                                              best-WORLDS run
 ```
 
-* Units match `LeaderboardRunTag`: `dust` in hundredths, `worlds` = total cleared across loops, `score` = `RunScore.Total`, `powerUps` bits 1..3 (`power`) or 0 (`main`). Unknown = `ship 0`, `hearts 0`, `endHearts -1`, `pauses -1`, `skin 0`, as the tag does.
+* Units match `LeaderboardRunTag`: `dust` in hundredths, `worlds` = total cleared across loops, `score` = `RunScore.Total`, `powerUps` bits 1..7 (`power`: dust 1, clear 2, homing 4 = `LeaderboardRunTag.PowerAll`) or 0 (`main`). Unknown = `ship 0`, `hearts 0`, `endHearts -1`, `pauses -1`, `skin 0`, as the tag does.
 * The first upload fills all three slots with the same run. After that each slot improves on its own, so a row shown under a sort is **that column's best run, whole** (ship, hearts, and the other two numbers).
 * Sort = `orderBy` on one nested number: `byScore.score`, `byDust.dust`, `byWorlds.worlds`, descending, `limit 10`. The Dust and Worlds queries add `where <field> >= 1` on the same field (the native boards never show zero), which still uses the automatic single-field index.
 * **Indexes: none to deploy.** Single-field indexes are automatic for map subfields. No composite index. `firestore.indexes.json` is committed empty.
@@ -104,7 +117,7 @@ service cloud.firestore {
     function signedIn() { return request.auth != null; }
     function ofInt(v, lo, hi) { return v is int && v >= lo && v <= hi; }
 
-    // One run. `power` = Power-Ups table (powerUps 1..3); the main table needs powerUps 0.
+    // One run. `power` = Power-Ups table (powerUps 1..7); the main table needs powerUps 0.
     // Ship 16 (Paragon, premium) is never allowed. Ships up to 40 leave room for new ships
     // without a rules deploy.
     function validRun(r, power) {
@@ -119,7 +132,7 @@ service cloud.firestore {
         && ofInt(r.endHearts, -1, 20)
         && ofInt(r.pauses,    -1, 99)
         && ofInt(r.skin,       0, 99)
-        && (power ? ofInt(r.powerUps, 1, 3) : r.powerUps == 0);
+        && (power ? ofInt(r.powerUps, 1, 7) : r.powerUps == 0);
     }
 
     // The three slots are bests over the same set of runs, so each slot's own metric
@@ -130,9 +143,15 @@ service cloud.firestore {
           && d.byWorlds.worlds >= d.byScore.worlds  && d.byWorlds.worlds >= d.byDust.worlds;
     }
 
+    function platformOk(d) {
+      return (d.platform == 'android' && request.auth.token.firebase.sign_in_provider == 'playgames.google.com')
+          || (d.platform == 'ios' && request.auth.token.firebase.sign_in_provider == 'gc.apple.com');
+    }
+
     function validDoc(d, power) {
-      return d.keys().hasOnly(['name','updatedAt','byScore','byDust','byWorlds'])
-        && d.keys().hasAll(['name','updatedAt','byScore','byDust','byWorlds'])
+      return d.keys().hasOnly(['name','platform','updatedAt','byScore','byDust','byWorlds'])
+        && d.keys().hasAll(['name','platform','updatedAt','byScore','byDust','byWorlds'])
+        && platformOk(d)
         && d.name is string && d.name.size() >= 1 && d.name.size() <= 24
         && d.updatedAt == request.time
         && validRun(d.byScore, power) && validRun(d.byDust, power) && validRun(d.byWorlds, power)
@@ -149,8 +168,8 @@ service cloud.firestore {
     function ownerOnly(uid) { return signedIn() && request.auth.uid == uid; }
 
     match /main/{uid} {
-      allow get: if signedIn();
-      allow list: if signedIn() && request.query.limit <= 25;
+      allow get: if true;                              // public read (names, platform, scores)
+      allow list: if request.query.limit <= 25;
       allow create: if ownerOnly(uid) && validDoc(request.resource.data, false);
       allow update: if ownerOnly(uid) && validDoc(request.resource.data, false)
                     && improves(request.resource.data, resource.data)
@@ -159,8 +178,8 @@ service cloud.firestore {
     }
 
     match /power/{uid} {
-      allow get: if signedIn();
-      allow list: if signedIn() && request.query.limit <= 25;
+      allow get: if true;                              // public read (names, platform, scores)
+      allow list: if request.query.limit <= 25;
       allow create: if ownerOnly(uid) && validDoc(request.resource.data, true);
       allow update: if ownerOnly(uid) && validDoc(request.resource.data, true)
                     && improves(request.resource.data, resource.data)
@@ -175,7 +194,7 @@ service cloud.firestore {
 
 Notes and limits:
 
-* Reads need sign-in too (no anonymous scraping or quota burn), and a list must carry a limit of 25 or less.
+* **Reads are public** (changed in phase 2, so the website can show the top scores without sign-in): `get` is open to anyone and `list` is open to anyone with a limit of 25 or less. The documents hold only the display name, platform and scores. Writes and deletes stay owner-only. Scripted reads can spend the free read quota; the client cache and the 25 limit are the brakes. Note that enforcing App Check on Cloud Firestore also refuses reads that carry no App Check token, which includes a website reading directly; the website should register its own web App Check provider or read a cached static copy (see the Hosting JSON escape hatch in section 5).
 * **App Check** is enforced in the console for Cloud Firestore **and** Authentication, not in rules (I found no documented rules field I would trust for it). Roll out: leave unenforced until the metrics show real tokens from both platforms, then enforce. Dev builds use the debug provider with a console-registered token (never committed).
 * The 15 s interval applies to updates only (create is free). The client respects it too, so a normal flush is one write per table per run.
 * **Honest limit:** rules bound values and block replays, scripts and a Paragon row; they cannot tell a patched client's 9,999,999,999 from a real run. Spark has no Cloud Functions (Blaze required), so there is no server-side verification. Same trust level as the native boards' tamper protection, which only clamps ranges.

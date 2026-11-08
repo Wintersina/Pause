@@ -15,6 +15,25 @@ public static class SharedBoardLimits
     public const int MaxHearts = 20;
     public const int MaxPauses = 99;
     public const int MaxSkin = 99;
+    public const string Android = "android";
+    public const string Ios = "ios";
+    // Firebase's sign_in_provider claim for each platform's sign-in (Play Games / Game Center).
+    public const string ProviderAndroid = "playgames.google.com";
+    public const string ProviderIos = "gc.apple.com";
+
+    public static string ProviderFor(string platform)
+    {
+        return platform == Android ? ProviderAndroid : platform == Ios ? ProviderIos : "";
+    }
+
+    // The platform must be one of the two and match how the player signed in.
+    public static bool PlatformOk(string platform, string provider)
+    {
+        return !string.IsNullOrEmpty(platform) && platform == (provider == ProviderAndroid ? Android : provider == ProviderIos ? Ios : null);
+    }
+
+    // Boards are public: get is open, a list needs a limit of 25 or less, signed in or not.
+    public static bool AllowList(int limit) { return limit >= 1 && limit <= MaxListLimit; }
 
     public static string Collection(SharedTable table) { return table == SharedTable.Power ? "power" : "main"; }
 
@@ -35,7 +54,7 @@ public static class SharedBoardLimits
             && In(r.endHearts, -1, MaxHearts)
             && In(r.pauses, -1, MaxPauses)
             && In(r.skin, 0, MaxSkin)
-            && (table == SharedTable.Power ? In(r.powerUps, 1, 3) : r.powerUps == 0);
+            && (table == SharedTable.Power ? In(r.powerUps, 1, LeaderboardRunTag.PowerAll) : r.powerUps == 0);
     }
 
     // The three slots are bests over the same runs, so each slot's own metric dominates the others' value of it.
@@ -47,9 +66,10 @@ public static class SharedBoardLimits
     }
 
     // Everything but the timestamp (the server stamps it).
-    public static bool ValidDoc(SharedDoc d, SharedTable table)
+    public static bool ValidDoc(SharedDoc d, SharedTable table, string provider)
     {
         return d != null && d.IsFull
+            && PlatformOk(d.platform, provider)
             && d.name != null && d.name.Length >= 1 && d.name.Length <= MaxNameLength
             && ValidRun(d.byScore, table) && ValidRun(d.byDust, table) && ValidRun(d.byWorlds, table)
             && Consistent(d);
@@ -61,11 +81,11 @@ public static class SharedBoardLimits
         return n.byScore.score >= o.byScore.score && n.byDust.dust >= o.byDust.dust && n.byWorlds.worlds >= o.byWorlds.worlds;
     }
 
-    public static bool AllowCreate(SharedDoc d, SharedTable table) { return ValidDoc(d, table); }
+    public static bool AllowCreate(SharedDoc d, SharedTable table, string provider) { return ValidDoc(d, table, provider); }
 
-    public static bool AllowUpdate(SharedDoc old, SharedDoc d, SharedTable table, double secondsSinceLastWrite)
+    public static bool AllowUpdate(SharedDoc old, SharedDoc d, SharedTable table, double secondsSinceLastWrite, string provider)
     {
-        return ValidDoc(d, table) && Improves(d, old) && secondsSinceLastWrite > MinWriteIntervalSeconds;
+        return ValidDoc(d, table, provider) && Improves(d, old) && secondsSinceLastWrite > MinWriteIntervalSeconds;
     }
 
     // The name shown on the row: the platform profile name, control characters dropped, at most 24 characters.

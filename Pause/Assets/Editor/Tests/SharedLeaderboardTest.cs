@@ -172,6 +172,7 @@ public static class SharedLeaderboardTest
         public bool owner, rulesOnly, hasExisting;
         public SharedDoc doc, existing;
         public int sinceLastSeconds;
+        public string provider;
     }
 
     [Serializable]
@@ -190,15 +191,35 @@ public static class SharedLeaderboardTest
             var table = v.table == "power" ? SharedTable.Power : SharedTable.Main;
             v.doc.hasScore = v.doc.hasDust = v.doc.hasWorlds = true;
             bool allow;
+            string provider = string.IsNullOrEmpty(v.provider) ? SharedBoardLimits.ProviderFor(v.doc.platform) : v.provider;
             if (!v.owner) allow = false;
             else if (v.hasExisting)
             {
                 v.existing.hasScore = v.existing.hasDust = v.existing.hasWorlds = true;
-                allow = SharedBoardLimits.AllowUpdate(v.existing, v.doc, table, v.sinceLastSeconds);
+                allow = SharedBoardLimits.AllowUpdate(v.existing, v.doc, table, v.sinceLastSeconds, provider);
             }
-            else allow = SharedBoardLimits.AllowCreate(v.doc, table);
+            else allow = SharedBoardLimits.AllowCreate(v.doc, table, provider);
             ran++;
             if (allow != (v.expect == "allow")) { wrong++; Check("vectors: " + v.name, false); }
+        }
+        Check("rules mirror: lists of 25 or fewer are open to anyone, 26 or none are refused",
+              SharedBoardLimits.AllowList(10) && SharedBoardLimits.AllowList(25) && !SharedBoardLimits.AllowList(26) && !SharedBoardLimits.AllowList(0));
+        Check("rules mirror: the provider ids", SharedBoardLimits.ProviderFor("android") == "playgames.google.com" && SharedBoardLimits.ProviderFor("ios") == "gc.apple.com");
+        {
+            var board = new FakeSharedBoard { PlatformId = SharedBoardLimits.Ios };
+            var ov = new SharedDoc();
+            var run = SharedRun.Blank(); run.score = 100; run.ship = 3; run.hearts = 3;
+            ov.Offer(run);
+            SharedResult res = SharedResult.Error;
+            board.Upload(SharedTable.Main, "IOSPILOT", ov, (r, d) => res = r);
+            var stored = board.Get(SharedTable.Main, board.Uid);
+            Check("platform: an ios upload stores platform ios and the row carries it",
+                  res == SharedResult.Ok && stored != null && stored.platform == "ios"
+                  && SharedBoardRows.ToEntry(1, "u", stored, SharedColumn.Score, false).platform == "ios");
+            var bad = new FakeSharedBoard { PlatformId = SharedBoardLimits.Ios, SignInProvider = SharedBoardLimits.ProviderAndroid };
+            res = SharedResult.Ok;
+            bad.Upload(SharedTable.Main, "X", ov, (r, d) => res = r);
+            Check("platform: ios with the Play Games provider is denied", res == SharedResult.Denied);
         }
         Check("vectors: the C# mirror agrees with every non-rules-only case (" + ran + " run)", ran >= 25 && wrong == 0);
     }
