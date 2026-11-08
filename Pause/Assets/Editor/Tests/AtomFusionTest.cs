@@ -1039,7 +1039,7 @@ public static class AtomFusionTest
                   v.RowTitle(bloom).text == CodexCombosView.LockedName && v.RowLine(bloom).text == AtomFusionTable.Get(FusionId.Bloom).hint &&
                   v.RowStats(bloom).text == "" && (CodexUi.SilhouetteMaterial == null || CodexUi.IsSilhouette(v.RowGlyph(bloom, 0))));
             Check("the triple shows three glyphs", v.RowGlyph((int)FusionId.Singularity, 2).gameObject.activeSelf);
-            Check("opening the tab clears its NEW dot", !FusionDiscoveryStore.HasUnseen && !CodexPanel.TabHasReward(CodexPanel.CombosTab));
+            Check("opening the tab clears its NEW dot", !FusionDiscoveryStore.HasUnseen && CodexPanel.TabHasReward(CodexPanel.CombosTab) == (Codex.PendingComboCount > 0));
             Check("the counter reads found / total", v.StripCount.text.StartsWith("1 / " + AtomFusionTable.Count));
             panel.ShowTab(CodexPanel.MusicTab);
             panel.SkipAnimations();

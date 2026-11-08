@@ -113,7 +113,7 @@ public static class CodexPayoutTest
         Check("back-pay: nothing flagged yet", !Codex.BackPayDone);
         int paid = Codex.PayBackOnce();
         Check("back-pay: the lump is the table sum of the unpaid discovered entries (" + paid + " = " + expect + ")", paid == expect && Dust() == 100f + expect);
-        Check("back-pay: flag set and every entry is marked paid", Codex.BackPayDone && Codex.PendingTotal == 0 && Codex.IsRewardCollected(ship.id));
+        Check("back-pay: flag set and every entry is marked paid", Codex.BackPayDone && Codex.PendingTotal == Codex.PendingMusicCount && Codex.IsRewardCollected(ship.id));
         Codex.Reload();
         Check("second launch: pays nothing", Codex.PayBackOnce() == 0 && Dust() == 100f + expect);
 

@@ -51,10 +51,10 @@ public static class CodexNewDotsTest
             Check("the candidates pay 5 star dust each", inA.All(e => CodexPayout.For(e) == 5) && CodexPayout.For(inB) == 5);
 
             // ---- old save: discoveries from before the feature (no PaidKey) are claimable once, never auto-paid ----
-            PlayerPrefs.SetString(Codex.PrefsKey, inA[0].id + "," + inB.id + ",music_world_ember,bd_frost_2");
+            PlayerPrefs.SetString(Codex.PrefsKey, inA[0].id + "," + inB.id + ",bd_frost_2");
             PlayerPrefs.DeleteKey(Codex.PaidKey);
             Codex.Reload();
-            Check("old save: both old entries are pending (tracks and backdrops are not entries), nothing auto-paid",
+            Check("old save: both old entries are pending (backdrops are not entries; songs pending are covered in CodexPayoutTest), nothing auto-paid",
                   Codex.IsRewardPending(inA[0]) && Codex.IsRewardPending(inB) && Codex.PendingTotal == 2 && Dust() == 100f && CodexHomeButton.Total() == 2);
             Check("old save: the Pilot's Log never pays", !Codex.IsRewardPending(log) && Codex.CollectReward(log.id) == 0 && Dust() == 100f);
             Check("old save: collect all pays 2 x 5 once, then nothing", Codex.CollectAllRewards() == 10 && Dust() == 110f && Codex.CollectAllRewards() == 0 && Dust() == 110f && Codex.PendingTotal == 0);
@@ -141,7 +141,7 @@ public static class CodexNewDotsTest
             Check("collect tab B: dot gone, bubble hidden, total paid 15", Dust() == 115f && !panel.TabNewDot(tabB).gameObject.activeSelf && !home.BadgeVisible);
 
             // ---- developer mode shows and pays nothing ----
-            PlayerPrefs.SetString(Codex.PrefsKey, inA[0].id + "," + inB.id + ",music_world_ember");
+            PlayerPrefs.SetString(Codex.PrefsKey, inA[0].id + "," + inB.id);
             PlayerPrefs.DeleteKey(Codex.PaidKey);
             Codex.Reload();
             DeveloperUnlocks.SetEnabled(true);
