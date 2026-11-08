@@ -22,7 +22,7 @@ Pause is moving from a paid game to a free game with ads. This page tracks the d
 6. ~~**Hazard clear and leaderboards.**~~ **Resolved 2026-11-03 by routing, not by blocking:** a run that used a booster (Dust x2 active in real flight, or a Hazard Clear charge that fired) counts only on the new Power-Ups leaderboard and never on Top Score, Star Dust or Worlds; every other run counts only on those three. Paragon stays on no board. The Power-Ups board exists in Play Console and its Android id is wired in (iOS stays off); see [leaderboards.md](../leaderboards.md), "Power-Ups board".
 7. **Booster prices.** 600 dust for 10 minutes of x2, 200 per hazard clear charge (derived in `docs/economy.md`). OK, or should the multiplier be cheaper/pricier?
 8. **A cut-off sentence.** The message said "we also wanna always offer the options to ..." and then stopped. What was the rest?
-9.  **Paragon's "own 5 ships" gate.** Today the Shop still refuses to sell Paragon until 5 ships are owned (shown as "OWN 5 SHIPS"). Should it go, now that Paragon is sold from a shop? It is one switch: `ShipUnlocks.GatesParagon = false`. Until decided, the gate stays.
+9.  **Paragon's "own 5 ships" gate.** DECIDED: "Paragon: no ownership gate, user 2026-11-08". `ShipUnlocks.GatesParagon` is now `false`; Paragon can be bought with only the starter owned. Jade Phantom and Gold Warden keep their 4-owned gates. One switch to bring it back if ever wanted.
 
 ## Work phases
 

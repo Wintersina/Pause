@@ -40,33 +40,33 @@ public static class ShipUnlocksTest
         Check("three ships are gated, the dearest three in dock order, Paragon last",
               g.Length == 3 && g[2] == PremiumShips.Paragon && shopingShips.Roster[g[0]] == "Jade Phantom" &&
               shopingShips.Roster[g[1]] == "Gold Warden");
-        Check("thresholds are 4, 4 and 5; other ships are ungated",
+        Check("thresholds are 4, 4 and 0 (Paragon ungated); other ships are ungated",
               ShipUnlocks.RequiredOwned(g[0]) == 4 && ShipUnlocks.RequiredOwned(g[1]) == 4 &&
-              ShipUnlocks.RequiredOwned(g[2]) == 5 && ShipUnlocks.RequiredOwned(1) == 0 && ShipUnlocks.RequiredOwned(2) == 0);
+              ShipUnlocks.RequiredOwned(g[2]) == 0 && !ShipUnlocks.GatesParagon && ShipUnlocks.RequiredOwned(1) == 0 && ShipUnlocks.RequiredOwned(2) == 0);
 
         PlayerPrefs.SetFloat(StarDustLedger.CurrencyKey, 100000f);
 
         OwnExactly(3);
         Check("3 owned: OwnedCount reads the save", ShipUnlocks.OwnedCount() == 3);
-        Check("3 owned: all three are locked", ShipUnlocks.IsLocked(g[0]) && ShipUnlocks.IsLocked(g[1]) && ShipUnlocks.IsLocked(g[2]));
+        Check("3 owned: the two dust ships are locked, Paragon is not", ShipUnlocks.IsLocked(g[0]) && ShipUnlocks.IsLocked(g[1]) && !ShipUnlocks.IsLocked(g[2]));
         float dust = PlayerPrefs.GetFloat(StarDustLedger.CurrencyKey);
         Check("3 owned: a locked purchase is refused, takes no dust and grants nothing",
               !shopingShips.TryPurchase(g[0], 1f) && !shopingShips.TryPurchase(g[1], 1f) &&
               !ShipId.IsOwned(g[0]) && !ShipId.IsOwned(g[1]) &&
               Mathf.Approximately(PlayerPrefs.GetFloat(StarDustLedger.CurrencyKey), dust));
-        Check("3 owned: the button reads OWN 4 SHIPS / OWN 5 SHIPS",
-              ShipUnlocks.LockedButtonText(g[0]) == "OWN 4 SHIPS" && ShipUnlocks.LockedButtonText(g[2]) == "OWN 5 SHIPS" &&
+        Check("3 owned: the button reads OWN 4 SHIPS",
+              ShipUnlocks.LockedButtonText(g[0]) == "OWN 4 SHIPS" && ShipUnlocks.LockedButtonText(g[1]) == "OWN 4 SHIPS" &&
               ShipUnlocks.LockedMessage(g[1]) == "OWN 4 SHIPS TO UNLOCK");
 
         OwnExactly(4);
-        Check("4 owned: the first two open, the last stays locked",
-              !ShipUnlocks.IsLocked(g[0]) && !ShipUnlocks.IsLocked(g[1]) && ShipUnlocks.IsLocked(g[2]));
-        Check("4 owned: the last cannot be bought (dust path or store tap)",
-              !shopingShips.TryPurchase(g[2], 1f) && !ParagonPurchase.RequestBuy() && !ShipId.IsOwned(g[2]));
+        Check("4 owned: all three are open",
+              !ShipUnlocks.IsLocked(g[0]) && !ShipUnlocks.IsLocked(g[1]) && !ShipUnlocks.IsLocked(g[2]));
+        Check("4 owned: Paragon is not a dust purchase (real money only)",
+              !shopingShips.TryPurchase(g[2], 1f) && !ShipId.IsOwned(g[2]));
         Check("4 owned: the first one can be bought",
               shopingShips.TryPurchase(g[0], 1f) && ShipId.IsOwned(g[0]));
         Check("the ship being bought is not counted: now 5 owned", ShipUnlocks.OwnedCount() == 5 && ShipUnlocks.OwnedCount(g[0]) == 4);
-        Check("5 owned: the last opens", !ShipUnlocks.IsLocked(g[2]));
+        Check("5 owned: Paragon stays open", !ShipUnlocks.IsLocked(g[2]));
 
         OwnExactly(5);
         Check("5 owned: all three are purchasable", !ShipUnlocks.IsLocked(g[0]) && !ShipUnlocks.IsLocked(g[1]) && !ShipUnlocks.IsLocked(g[2]));

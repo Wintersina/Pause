@@ -158,13 +158,22 @@ public static class ShopScreenTest
     {
         Connect();
         ParagonPurchase.SetPrice("$4.99");
-        OwnShips(3);
+        int launches = 0;
+        ParagonPurchase.LaunchFlow = () => launches++;
+        // Reset leaves only the starter owned
         var row = ShopCatalog.ParagonRow();
-        Check("Paragon gate: 3 ships owned -> OWN 5 SHIPS, refused even with a price",
-              row.state == ShopRowState.Locked && row.button == "OWN 5 SHIPS" && !row.Tappable && !ParagonPurchase.RequestBuy() && !ShopCatalog.Tap(row));
-        OwnShips(5);
-        Check("Paragon gate: 5 ships owned -> buyable", ShopCatalog.ParagonRow().state == ShopRowState.Buyable);
-        Check("the gate is one switch (ShipUnlocks.GatesParagon), on today", ShipUnlocks.GatesParagon);
+        Check("no Paragon gate: only the starter owned -> row is Buyable with Play's price",
+              ShipUnlocks.OwnedCount() == 0 && row.state == ShopRowState.Buyable && row.button == "$4.99" && row.Tappable);
+        Check("no Paragon gate: RequestBuy is not refused", ParagonPurchase.RequestBuy() && launches == 1 && ParagonPurchase.Buying);
+        ParagonPurchase.EndBuy();
+        OwnShips(3);
+        Check("no Paragon gate: still buyable with 3 ships owned", ShopCatalog.ParagonRow().state == ShopRowState.Buyable);
+        Check("the gate is one switch (ShipUnlocks.GatesParagon), off today", !ShipUnlocks.GatesParagon);
+        var g = ShipUnlocks.GatedIds;
+        Reset();
+        Check("the other two gated ships stay locked with only the starter owned",
+              ShipUnlocks.IsLocked(g[0]) && ShipUnlocks.IsLocked(g[1]) && !ShipUnlocks.IsLocked(g[2]) &&
+              ShipUnlocks.RequiredOwned(g[0]) == 4 && ShipUnlocks.RequiredOwned(g[1]) == 4 && g[2] == PremiumShips.Paragon);
         Reset();
     }
 
