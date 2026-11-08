@@ -27,8 +27,10 @@ public static class AdsTest
     class FakeStore : IRewardStore
     {
         public long paid; public int pays; public float total;
+        public int grants; public float granted;
         public long LastPaidToken { get { return paid; } }
         public void Pay(long token, float amount) { paid = token; pays++; total += amount; }
+        public void Grant(float amount) { grants++; granted += amount; }
     }
 
     class Rig
@@ -74,6 +76,9 @@ public static class AdsTest
             BoosterWiring(savedBooster);
             DoubleDust();
             DoubleDustWithBooster();
+            Cadence();
+            RunEndAndShopFlow();
+            BannerLayout();
             Controller();
             Environment();
             BuildSync();
@@ -171,6 +176,149 @@ public static class AdsTest
         Check("double dust: Remove Ads owners still see it (default)", AdPolicy.DoubleDustOffered(true, false, 3f));
         Check("double dust: not in the tutorial or practice", !AdPolicy.DoubleDustOffered(false, true, 3f));
         Check("double dust: nothing earned, nothing to double", !AdPolicy.DoubleDustOffered(false, false, 0f));
+    }
+
+    // ---- run cadence, banner vs interstitial, the shop ad, the banner layout ----
+
+    static void Cadence()
+    {
+        Check("CADENCE: the full ad fires every 3rd eligible run end (one constant)", AdPolicy.RunsPerInterstitial == 3);
+        Check("CADENCE: runs 1 and 2 are not due, 3 is, 4 and 5 are not, 6 is",
+            !AdPolicy.CadenceDue(1) && !AdPolicy.CadenceDue(2) && AdPolicy.CadenceDue(3) && !AdPolicy.CadenceDue(4) && !AdPolicy.CadenceDue(5) && AdPolicy.CadenceDue(6));
+        Check("CADENCE: run 0 or below is never due", !AdPolicy.CadenceDue(0) && !AdPolicy.CadenceDue(-3));
+
+        // banner vs interstitial selection
+        Check("CHOICE: eligible run 1 -> banner, 2 -> banner, 3 -> interstitial, 4 -> banner",
+            AdPolicy.ChooseRunEndAd(Good(), 1, true, true) == AdPolicy.RunEndAd.Banner
+            && AdPolicy.ChooseRunEndAd(Good(), 2, true, true) == AdPolicy.RunEndAd.Banner
+            && AdPolicy.ChooseRunEndAd(Good(), 3, true, true) == AdPolicy.RunEndAd.Interstitial
+            && AdPolicy.ChooseRunEndAd(Good(), 4, true, true) == AdPolicy.RunEndAd.Banner);
+        Check("CHOICE: due but no interstitial loaded -> banner", AdPolicy.ChooseRunEndAd(Good(), 3, false, true) == AdPolicy.RunEndAd.Banner);
+        Check("CHOICE: no banner unit (placeholder) -> nothing on a non-due run", AdPolicy.ChooseRunEndAd(Good(), 1, true, false) == AdPolicy.RunEndAd.None);
+        var i = Good(); i.removeAdsOwned = true;
+        Check("CHOICE: Remove Ads -> no banner and no forced ad, even on a due run",
+            AdPolicy.ChooseRunEndAd(i, 3, true, true) == AdPolicy.RunEndAd.None && !AdPolicy.BannerAllowed(i));
+        i = Good(); i.paragonOwned = true;
+        Check("CHOICE: Paragon -> nothing", AdPolicy.ChooseRunEndAd(i, 3, true, true) == AdPolicy.RunEndAd.None);
+        i = Good(); i.playSeconds = AdPolicy.AdFreePlaySeconds - 1f;
+        Check("CHOICE: first 15 minutes -> nothing", AdPolicy.ChooseRunEndAd(i, 3, true, true) == AdPolicy.RunEndAd.None);
+        i = Good(); i.tutorialOrPractice = true;
+        Check("CHOICE: tutorial or practice -> nothing", AdPolicy.ChooseRunEndAd(i, 3, true, true) == AdPolicy.RunEndAd.None);
+        i = Good(); i.secondsSinceLastAd = 5f;
+        Check("CHOICE: a due run too soon after an ad gets only the banner", AdPolicy.ChooseRunEndAd(i, 3, true, true) == AdPolicy.RunEndAd.Banner);
+        i = Good(); i.boosterActive = true;
+        Check("CHOICE: a booster blocks the forced ad, not the banner", AdPolicy.ChooseRunEndAd(i, 3, true, true) == AdPolicy.RunEndAd.Banner);
+
+        // banner ids
+        Check("BANNER: test ids are Google's, the real ones are the TODO placeholder",
+            AdsConfig.TestAndroidBannerUnit.StartsWith(AdsConfig.TestPublisher) && AdsConfig.TestIosBannerUnit.StartsWith(AdsConfig.TestPublisher)
+            && AdsConfig.IsPlaceholder(AdsConfig.AndroidBannerUnit) && AdsConfig.IsPlaceholder(AdsConfig.IosBannerUnit)
+            && !AdsConfig.IsPlaceholder(AdsConfig.TestAndroidBannerUnit) && AdsConfig.IsPlaceholder(""));
+        Check("BANNER: a release build requests nothing while the real id is a placeholder", !AdsConfig.BannerRequestable);
+        PlayerPrefs.SetInt(DeveloperUnlocks.EnabledKey, 1);
+        Check("BANNER: developer mode uses the test unit, so it is requestable", AdsConfig.BannerRequestable && AdsConfig.BannerUnit.StartsWith(AdsConfig.TestPublisher));
+        PlayerPrefs.DeleteKey(DeveloperUnlocks.EnabledKey);
+        Check("BANNER: 50 dp is 50 px at 160 dpi and 131 px at 420 dpi; no density counts as 160",
+            Mathf.Approximately(AdsConfig.BannerHeightPx(160f), 50f) && Mathf.Approximately(AdsConfig.BannerHeightPx(420f), 131.25f) && Mathf.Approximately(AdsConfig.BannerHeightPx(0f), 50f));
+    }
+
+    static void RunEndAndShopFlow()
+    {
+        // three eligible run ends: banner, banner, interstitial (auto-plays BEFORE the results build)
+        var r = new Rig();
+        r.BootReady();
+        r.controller.OnRunEnd(true); r.controller.Tick();
+        int built = 0;
+        var c = r.controller;
+        Check("FLOW: run end 1 -> a banner, results build at once (caller proceeds)",
+            c.TryRunEndAd(Good(), () => built++) == AdPolicy.RunEndAd.Banner && built == 0 && r.provider.bannerShows == 1 && c.BannerShowing && r.provider.interstitialShows == 0);
+        c.OnRunStart();
+        Check("FLOW: a run start takes the banner down", !c.BannerShowing && r.provider.bannerHides == 1 && !r.provider.bannerUp);
+        c.OnRunEnd(true); c.Tick();
+        Check("FLOW: run end 2 -> a banner", c.TryRunEndAd(Good(), () => built++) == AdPolicy.RunEndAd.Banner && r.provider.bannerShows == 2);
+        c.OnRunStart(); c.OnRunEnd(true); c.Tick();
+        Check("FLOW: run end 3 -> the interstitial takes over, no banner, results wait",
+            c.TryRunEndAd(Good(), () => built++) == AdPolicy.RunEndAd.Interstitial && r.provider.interstitialShows == 1 && built == 0 && !c.BannerShowing && c.Busy);
+        r.provider.lastEvents.opened(); r.provider.lastEvents.closed();
+        Check("FLOW: the results build once, when the interstitial closes", built == 1 && !c.Busy);
+        c.OnRunStart(); c.OnRunEnd(true); c.Tick();
+        Check("FLOW: right after an ad the next run end gets a banner and does not count as eligible",
+            c.TryRunEndAd(Good(), () => built++) == AdPolicy.RunEndAd.Banner && c.EligibleRunEnds == 3);
+
+        // Remove Ads: no banner, no forced ad; the shop ad stays
+        r = new Rig(); r.BootReady(); r.controller.OnRunEnd(true); r.controller.Tick();
+        c = r.controller;
+        var owner = Good(); owner.removeAdsOwned = true;
+        for (int n = 0; n < 4; n++) c.TryRunEndAd(owner, () => built++);
+        Check("REMOVE ADS: four run ends show no banner and no interstitial", r.provider.bannerShows == 0 && r.provider.interstitialShows == 0 && !c.BannerShowing);
+        float paid = -1f;
+        bool done = false;
+        Check("REMOVE ADS: the shop ad still starts", c.ShopAdReady && c.TryShowShopReward(x => paid = x, () => done = true) && r.provider.rewardedShows == 1);
+        Check("SHOP AD: nothing is credited before the SDK's reward callback", r.store.grants == 0 && r.store.granted == 0f);
+        r.provider.lastEvents.opened();
+        r.provider.lastEvents.closed();
+        Check("SHOP AD: closing without earning pays nothing, the flow still ends", r.store.grants == 0 && done && !c.Busy);
+
+        r.provider.rewardedReady = true; done = false;
+        Check("SHOP AD: repeatable (a second show starts)", c.TryShowShopReward(x => paid = x, () => done = true));
+        r.provider.lastEvents.opened();
+        r.provider.lastEvents.earned();
+        r.provider.lastEvents.earned();
+        Check("SHOP AD: +50 star dust on the reward callback, once", r.store.grants == 1 && Mathf.Approximately(r.store.granted, 50f) && Mathf.Approximately(paid, 50f) && AdController.ShopAdDust == 50f);
+        r.provider.lastEvents.closed();
+        Check("SHOP AD: it does not touch the death token or the death-ad flag", r.store.pays == 0 && !c.WatchedRewardedAtDeath);
+        Check("SHOP AD: counts as an ad for the minimum gap (a forced ad cannot follow)",
+            c.SecondsSinceLastAd < AdPolicy.MinSecondsBetweenAds && !c.TryShowInterstitial(Good(), null));
+
+        // Paragon owner keeps it too; loading state when nothing is loaded
+        r = new Rig(); r.BootReady(); c = r.controller;
+        r.provider.rewardedReady = false; r.provider.loadSucceeds = false;
+        Check("SHOP AD: no ad loaded -> not ready, cannot start", !c.ShopAdReady && !c.TryShowShopReward(null, null) && r.provider.rewardedShows == 0);
+        var par = Good(); par.paragonOwned = true;
+        c.OnRunEnd(true);
+        Check("PARAGON: no banner either", c.TryRunEndAd(par, null) == AdPolicy.RunEndAd.None && r.provider.bannerShows == 0);
+        r.provider.loadSucceeds = true; r.provider.rewardedReady = true;
+        Check("PARAGON: the shop ad is still on", c.ShopAdReady && c.TryShowShopReward(null, null));
+
+        // banner unit missing (placeholder) -> nothing requested
+        r = new Rig(); r.provider.bannerAvailable = false; r.BootReady(); r.controller.OnRunEnd(true);
+        Check("BANNER: no real unit -> nothing is requested", r.controller.TryRunEndAd(Good(), null) == AdPolicy.RunEndAd.None && r.provider.bannerShows == 0);
+        // disabled: nothing at all
+        r = new Rig { enabled = false };
+        Check("DISABLED: no banner, no interstitial, no shop ad",
+            r.controller.TryRunEndAd(Good(), null) == AdPolicy.RunEndAd.None && !r.controller.TryShowShopReward(null, null) && r.provider.bannerShows == 0);
+    }
+
+    // The banner never overlaps the panel (so Replay, Home, the score and the double dust tab), on tall phones, a foldable and a tablet.
+    static void BannerLayout()
+    {
+        Check("LAYOUT: no banner -> the area is untouched", DeathPanelView.ReserveBottomForBanner(new Rect(0, 0, 1080, 2400), 0f, true) == new Rect(0, 0, 1080, 2400));
+        var screens = new[]
+        {
+            new { name = "tall phone", w = 1080, h = 2520, safe = new Rect(0, 90, 1080, 2250), dpi = 420f },
+            new { name = "phone gesture bar", w = 1080, h = 2400, safe = new Rect(0, 63, 1080, 2230), dpi = 420f },
+            new { name = "foldable open", w = 2208, h = 1840, safe = new Rect(0, 0, 2208, 1840), dpi = 420f },
+            new { name = "tablet", w = 1600, h = 2560, safe = new Rect(0, 0, 1600, 2560), dpi = 280f },
+            new { name = "short phone", w = 1080, h = 1920, safe = new Rect(0, 0, 1080, 1920), dpi = 420f },
+        };
+        foreach (var sc in screens)
+        {
+            foreach (bool tab in new[] { false, true })
+            {
+                float banner = AdsConfig.BannerHeightPx(sc.dpi);
+                float bannerTop = sc.safe.yMin + banner;   // conservative: the banner may sit above the safe inset
+                var area = DeathPanelView.ReserveBottomForBanner(sc.safe, banner, tab);
+                DeathPanelView.ComputeFit(area, null, out var centre, out var scale);
+                float panelBottom = centre.y - DeathPanelView.Height * scale * .5f;
+                float tabBottom = tab ? panelBottom - (DoubleDustOffer.Drop + DoubleDustOffer.Height) * scale : panelBottom;
+                float frameBottom = centre.y - DeathPanelView.FrameHeight * scale * .5f;
+                Check("LAYOUT " + sc.name + (tab ? " + tab" : "") + ": panel, glow and the double dust tab all sit above the banner",
+                    panelBottom >= bannerTop && frameBottom >= bannerTop - 0.5f && tabBottom >= bannerTop - 0.5f);
+                Check("LAYOUT " + sc.name + (tab ? " + tab" : "") + ": the panel stays inside the safe area's sides and top",
+                    centre.y + DeathPanelView.FrameHeight * scale * .5f <= sc.safe.yMax + 0.5f && scale > .1f
+                    && centre.x - DeathPanelView.Width * scale * .5f >= sc.safe.xMin - 0.5f && centre.x + DeathPanelView.Width * scale * .5f <= sc.safe.xMax + 0.5f);
+            }
+        }
     }
 
     static readonly string[] BoosterKeys = Boosters.AllKeys;

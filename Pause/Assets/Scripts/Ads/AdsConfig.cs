@@ -31,6 +31,12 @@ public static class AdsConfig
     public const string AndroidInterstitialUnit = "ca-app-pub-4397064133944218/9827798178";   // "Pause Forced Ad"
     public const string AndroidRewardedUnit = "ca-app-pub-4397064133944218/3137607605";       // "Pause Double Dust"
 
+    // Banner on the results modal. NOT created in AdMob yet: the user must add a "Pause Banner" banner ad unit to each
+    // app and paste the IDs here. While an ID still ends in the placeholder suffix, release builds request no banner.
+    public const string BannerPlaceholderSuffix = "BANNER_TODO";
+    public const string AndroidBannerUnit = "ca-app-pub-4397064133944218/BANNER_TODO";        // "Pause Banner" (TODO: create)
+    public const string IosBannerUnit = "ca-app-pub-4397064133944218/BANNER_TODO";            // "Pause Banner" (TODO: create)
+
     public const string IosAppId = "ca-app-pub-4397064133944218~1298571462";
     public const string IosInterstitialUnit = "ca-app-pub-4397064133944218/3266259255";       // "Pause Forced Ad"
     public const string IosRewardedUnit = "ca-app-pub-4397064133944218/8095466996";           // "Pause Double Dust"
@@ -42,6 +48,8 @@ public static class AdsConfig
     public const string TestIosAppId = "ca-app-pub-3940256099942544~1458002511";
     public const string TestIosInterstitialUnit = "ca-app-pub-3940256099942544/4411468910";
     public const string TestIosRewardedUnit = "ca-app-pub-3940256099942544/1712485313";
+    public const string TestAndroidBannerUnit = "ca-app-pub-3940256099942544/6300978111";
+    public const string TestIosBannerUnit = "ca-app-pub-3940256099942544/2934735716";
 
     // The shown text for the iOS App Tracking Transparency system prompt (NSUserTrackingUsageDescription).
     public const string TrackingUsageDescription =
@@ -83,6 +91,30 @@ public static class AdsConfig
     public static string RewardedUnit
     {
         get { return IsIos ? Pick(DeveloperUnlocks.Enabled, IosRewardedUnit, TestIosRewardedUnit) : Pick(DeveloperUnlocks.Enabled, AndroidRewardedUnit, TestAndroidRewardedUnit); }
+    }
+
+    public static string BannerUnit
+    {
+        get { return IsIos ? Pick(DeveloperUnlocks.Enabled, IosBannerUnit, TestIosBannerUnit) : Pick(DeveloperUnlocks.Enabled, AndroidBannerUnit, TestAndroidBannerUnit); }
+    }
+
+    // True while a banner ID is still the TODO placeholder (or empty): nothing may be requested with it.
+    public static bool IsPlaceholder(string unit)
+    {
+        return string.IsNullOrEmpty(unit) || unit.EndsWith(BannerPlaceholderSuffix, System.StringComparison.Ordinal);
+    }
+
+    // Whether a banner may be requested at all: false in release builds until the real unit ID is pasted in.
+    public static bool BannerRequestable { get { return !IsPlaceholder(BannerUnit); } }
+
+    // The standard banner is 320x50 density-independent pixels.
+    public const float BannerHeightDp = 50f;
+
+    // Its height in screen pixels at a screen density (a missing density counts as 160 dpi = 1 px per dp).
+    public static float BannerHeightPx(float dpi)
+    {
+        float d = dpi > 20f && dpi < 1000f ? dpi : 160f;
+        return BannerHeightDp * d / 160f;
     }
 
     // True when the IDs the running game uses are Google test IDs (developer mode).

@@ -22,6 +22,10 @@ public static class AdPolicy
     public const float MinSecondsBetweenAds = 180f;
     public const float MinRunSecondsForAd = 45f;
 
+    // The full interstitial fires on every Nth ELIGIBLE run end (one that passes every guard below); the eligible run
+    // ends between show a small banner on the results modal instead.
+    public const int RunsPerInterstitial = 3;
+
     // Defaults the user has not confirmed (tracker open questions 2 and 3): one constant each.
     public const bool ParagonRemovesAds = true;
     public const bool RemoveAdsOwnersSeeDoubleDust = true;
@@ -90,5 +94,35 @@ public static class AdPolicy
     {
         if (tutorialOrPractice || !(dustEarned > 0f)) return false;
         return !removeAdsOwned || RemoveAdsOwnersSeeDoubleDust;
+    }
+
+    // ---- run-end ad choice: interstitial, banner or nothing ----
+
+    public enum RunEndAd { None, Interstitial, Banner }
+
+    // `eligibleRunNumber` is 1 for the first eligible run end, 2 for the second, and so on.
+    public static bool CadenceDue(int eligibleRunNumber)
+    {
+        return eligibleRunNumber > 0 && eligibleRunNumber % RunsPerInterstitial == 0;
+    }
+
+    // A banner is for run ends the player could see ads at: not Remove Ads, not Paragon (while it removes ads), not inside the
+    // first 15 ad-free minutes, and never the tutorial or practice. The rest of the forced-ad guards (booster, min gap, short
+    // run, watched the rewarded ad) only hold back the interstitial, not the small banner.
+    public static bool BannerAllowed(Inputs i)
+    {
+        if (i.removeAdsOwned) return false;
+        if (ParagonRemovesAds && i.paragonOwned) return false;
+        if (i.playSeconds < AdFreePlaySeconds) return false;
+        if (i.tutorialOrPractice) return false;
+        return true;
+    }
+
+    // What this run end gets. `eligibleRunNumber` counts this run when ForcedAd is Allowed (the caller owns the counter).
+    // When the interstitial is due but not loaded the run end falls back to a banner.
+    public static RunEndAd ChooseRunEndAd(Inputs i, int eligibleRunNumber, bool interstitialReady, bool bannerAvailable)
+    {
+        if (ForcedAd(i) == Reason.Allowed && CadenceDue(eligibleRunNumber) && interstitialReady) return RunEndAd.Interstitial;
+        return bannerAvailable && BannerAllowed(i) ? RunEndAd.Banner : RunEndAd.None;
     }
 }

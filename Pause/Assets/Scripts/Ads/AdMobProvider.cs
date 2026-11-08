@@ -205,6 +205,31 @@ public sealed class AdMobProvider : IAdProvider
         catch (Exception e) { Fail(events, e.Message); }
     }
 
+    BannerView banner;
+
+    // No real banner unit yet (placeholder ID): a release build requests nothing.
+    public bool BannerAvailable { get { return AdsConfig.BannerRequestable; } }
+
+    public void ShowBanner()
+    {
+        if (!AdsConfig.BannerRequestable) return;
+        try
+        {
+            HideBanner();
+            banner = new BannerView(AdsConfig.BannerUnit, AdSize.Banner, AdPosition.Bottom);
+            banner.LoadAd(new AdRequest());
+        }
+        catch (Exception e) { Debug.Log("[ADS] banner threw: " + e.Message); banner = null; }
+    }
+
+    public void HideBanner()
+    {
+        var b = banner;
+        banner = null;
+        if (b == null) return;
+        try { b.Destroy(); } catch (Exception) { }
+    }
+
     static void Fail(AdShowEvents events, string message)
     {
         Debug.Log("[ADS] show failed: " + message);

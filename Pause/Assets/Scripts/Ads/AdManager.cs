@@ -6,7 +6,7 @@ using UnityEngine;
 //
 //   AdManager.OnRunStart()                  score.Start, real runs
 //   AdManager.OnRunEnd(died)                death panel / leaving a run
-//   AdManager.TryShowBeforeReplay(proceed)  buttonClicks.replay: true = an interstitial took over
+//   AdManager.TryRunEndAd(proceed)          playerIsDead.BeginResults: true = an interstitial took over (else banner / none)
 //   AdManager.TryShowRewardedDouble(...)    the death panel's double dust button
 //   AdManager.PrivacyOptionsRequired / ShowPrivacyOptions   the Options entry
 public static class AdManager
@@ -52,10 +52,27 @@ public static class AdManager
 
     public static bool ShowInProgress { get { return Controller != null && Controller.Busy; } }
 
-    public static bool TryShowBeforeReplay(Action proceed)
+    // The end of a real run, before the results modal. True when a full interstitial took over: it auto-plays and
+    // `proceed` (build the modal) runs when it ends. False: the caller proceeds itself (a banner may now be up under the
+    // modal -- see BannerHeightPx -- or nothing).
+    public static bool TryRunEndAd(Action proceed)
     {
-        if (!EnsureBooted() || !buttonClicks.playerDied) return false;   // only after the death screen
-        return Controller.TryShowInterstitial(LiveInputs(), proceed);
+        if (!EnsureBooted()) return false;
+        return Controller.TryRunEndAd(LiveInputs(), proceed) == AdPolicy.RunEndAd.Interstitial;
+    }
+
+    public static void HideBanner() { if (Controller != null) Controller.HideBanner(); }
+    public static bool BannerShowing { get { return Controller != null && Controller.BannerShowing; } }
+
+    // Screen pixels the banner covers at the bottom of the screen (0 when none is up): the modal lays out above it.
+    public static float BannerHeightPx { get { return BannerShowing ? AdsConfig.BannerHeightPx(ScreenInfo.Dpi) : 0f; } }
+
+    // The Shop's "watch an ad: +50 star dust" row: always on (not an AdPolicy matter), needs only a loaded rewarded ad.
+    public static bool ShopAdEnabled { get { return AdsConfig.Enabled; } }
+    public static bool ShopAdReady { get { return EnsureBooted() && Controller.ShopAdReady; } }
+    public static bool TryShowShopReward(Action<float> onPaid, Action onDone)
+    {
+        return EnsureBooted() && Controller.TryShowShopReward(onPaid, onDone);
     }
 
     public static bool RewardedReady { get { return EnsureBooted() && Controller.RewardedReady && !Controller.Busy; } }
@@ -109,7 +126,9 @@ public sealed class AdRunner : MonoBehaviour
     static void OnSceneLoaded(UnityEngine.SceneManagement.Scene scene, UnityEngine.SceneManagement.LoadSceneMode mode)
     {
         var c = AdManager.Controller;
-        if (c != null && scene.name != "gameS1" && scene.name != score.TutorialScene) c.OnRunEnd(false);
+        if (c == null) return;
+        c.HideBanner();   // a banner never outlives its modal: any scene change takes it down
+        if (scene.name != "gameS1" && scene.name != score.TutorialScene) c.OnRunEnd(false);
     }
 
     void Update()
@@ -181,6 +200,12 @@ public sealed class PrefsRewardStore : IRewardStore
             long v;
             return long.TryParse(PlayerPrefs.GetString(DoubleDustRules.PaidTokenKey, "0"), out v) ? v : 0L;
         }
+    }
+
+    public void Grant(float amount)
+    {
+        StarDustLedger.Grant(amount);
+        PrefsSaver.SaveNow();
     }
 
     public void Pay(long token, float amount)

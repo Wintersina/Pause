@@ -83,7 +83,7 @@ public static class ShopScreenTest
         int count = 0;
         foreach (var r in ShopCatalog.Rows())
         {
-            if (r.kind == ShopRowKind.Paragon) continue;
+            if (r.kind == ShopRowKind.Paragon || r.kind == ShopRowKind.WatchAd) continue;   // the ad row reuses the 850 pack icon
             count++;
             var sprite = ShopIconArt.For(r);
             if (sprite == null) { allFound = false; continue; }
@@ -103,11 +103,11 @@ public static class ShopScreenTest
     static void Rows()
     {
         var sections = ShopCatalog.Sections();
-        Check("four sections: ads, ship, star dust, boosters (one list the panel lays out from)",
-              sections.Count == 4 && sections[0].label == "ADS" && sections[1].label == "SHIP" && sections[2].label == "STAR DUST" &&
+        Check("five sections: ads, ship, star dust, boosters, free star dust (one list the panel lays out from)",
+              sections.Count == 5 && sections[4].label == "FREE STAR DUST" && sections[4].rows.Count == 1 && sections[4].rows[0].kind == ShopRowKind.WatchAd && sections[0].label == "ADS" && sections[1].label == "SHIP" && sections[2].label == "STAR DUST" &&
               sections[3].label == "BOOSTERS" && sections[3].rows.Count == 3);
         var rows = ShopCatalog.Rows();
-        Check("rows: Remove Ads, Paragon, 850 / 2,500 / 6,000, then Dust x2, Hazard Clear and Homing Atoms", rows.Count == 8 &&
+        Check("rows: Remove Ads, Paragon, 850 / 2,500 / 6,000, then Dust x2, Hazard Clear and Homing Atoms", rows.Count == 9 &&
               rows[5].kind == ShopRowKind.DustBooster && rows[6].kind == ShopRowKind.HazardClear && rows[7].kind == ShopRowKind.HomingAtoms &&
               rows[7].IsBooster &&
               rows[0].kind == ShopRowKind.RemoveAds && rows[1].kind == ShopRowKind.Paragon &&
@@ -300,8 +300,8 @@ public static class ShopScreenTest
         PlayerPrefs.SetFloat(StarDustLedger.CurrencyKey, 1234f);
         var panel = ShopPanel.Open();
         Check("the panel opens and owns Back", panel != null && ShopPanel.IsOpen && BackNavigator.Top == (object)panel);
-        Check("it has the eight rows and scrolls vertically only",
-              panel.RowCount == 8 && panel.Scroll.vertical && !panel.Scroll.horizontal);
+        Check("it has the nine rows and scrolls vertically only",
+              panel.RowCount == 9 && panel.Scroll.vertical && !panel.Scroll.horizontal);
         Check("the star dust balance is shown", panel.DustText.text == "1,234");
         Check("booster rows read their dust price and are live with 1,234 dust",
               panel.RowButtonText(5).text == "600 DUST" && panel.RowButton(5).interactable &&

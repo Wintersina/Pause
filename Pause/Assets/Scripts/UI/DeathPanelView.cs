@@ -1002,6 +1002,11 @@ public class DeathPanelView : MonoBehaviour, IPointerDownHandler
         var safeUnits = new Rect(safe.x / sf - rootRect.width * .5f, safe.y / sf - rootRect.height * .5f,
                                  safe.width / sf, safe.height / sf);
 
+        // A small banner ad sits at the bottom of the screen on some run ends (AdManager): the panel and the double dust tab
+        // stay entirely above it.
+        bool hasTab = panel != null && panel.Find(DoubleDustOffer.ObjectName) != null;
+        safeUnits = ReserveBottomForBanner(safeUnits, AdManager.BannerHeightPx / sf, hasTab);
+
         Rect? blocker = null;
         float minX = float.MaxValue, minY = float.MaxValue, maxX = float.MinValue, maxY = float.MinValue;
         var corners = new Vector3[4];
@@ -1044,6 +1049,20 @@ public class DeathPanelView : MonoBehaviour, IPointerDownHandler
         PadButtonTouch(buttonSlots, fitScale, ButtonHeight);
         SplitRowGap(fitScale);
     }
+
+    // Raises the bottom of the usable area above a banner ad of `bannerUnits` canvas units (0 = none: unchanged), plus the
+    // double dust tab that hangs off the panel's bottom edge when there is one. The banner is anchored to the screen's bottom;
+    // the safe area's own bottom inset is already part of `safe`, so cutting from it covers a banner that sits inside or below.
+    public static Rect ReserveBottomForBanner(Rect safe, float bannerUnits, bool doubleDustTab)
+    {
+        if (!(bannerUnits > 0f)) return safe;
+        float cut = bannerUnits + 8f + (doubleDustTab ? DoubleDustOffer.Height + DoubleDustOffer.Drop : 0f);
+        cut = Mathf.Min(cut, safe.height * .5f);
+        safe.yMin += cut;
+        return safe;
+    }
+
+    void OnDestroy() { AdManager.HideBanner(); }   // a banner never outlives its modal
 
     // REPLAY / MENU sit a 16-unit gap above SPACE DOCK. On a short screen the
     // panel shrinks and PadButtonTouch grows every touch area by more than half

@@ -24,6 +24,19 @@ Pause is moving from a paid game to a free game with ads. This page tracks the d
 8. **A cut-off sentence.** The message said "we also wanna always offer the options to ..." and then stopped. What was the rest?
 9.  **Paragon's "own 5 ships" gate.** DECIDED: "Paragon: no ownership gate, user 2026-11-08". `ShipUnlocks.GatesParagon` is now `false`; Paragon can be bought with only the starter owned. Jade Phantom and Gold Warden keep their 4-owned gates. One switch to bring it back if ever wanted.
 
+## Ads flow v2 (2026-11-08): auto-play, cadence, banners, shop ad
+
+What changed, and why: the forced interstitial used to fire when the player tapped REPLAY (an ad hung off the Replay tap), and the "watch an ad, double star dust" button was a tab tacked under the bottom of the flight-end modal. Now:
+
+1. **End of a real run: the ad comes first.** `playerIsDead.BeginResults` asks `AdManager.TryRunEndAd` before the results modal is built. Every 3rd eligible run end (`AdPolicy.RunsPerInterstitial = 3`; "eligible" = passes every `AdPolicy.ForcedAd` guard) auto-plays the full interstitial, and the results modal (with Replay) builds when it closes. Replay no longer shows any ad.
+2. **The other run ends get a banner.** A small 320x50 banner sits at the bottom of the screen under the results modal. The modal (and the double dust tab) is fitted above it (`DeathPanelView.ReserveBottomForBanner`, safe-area aware). It comes down when the modal is destroyed, when any scene loads and when a run starts; never during gameplay.
+3. **Guards.** Interstitial: every old guard (Remove Ads, Paragon, first 15 minutes, booster, 3-minute gap, 45-second run, watched the rewarded ad at this death, tutorial/practice). Banner: not for Remove Ads, Paragon, the first 15 minutes, tutorial/practice (a booster, the gap and a short run only hold back the interstitial). If the interstitial is due but not loaded, that run end gets a banner. The cadence counter lives in memory (resets each launch).
+4. **Remove Ads** removes banners and forced interstitials. It does NOT remove the optional double dust offer or the Shop ad.
+5. **Shop: "WATCH AN AD" row (FREE STAR DUST section, last).** A rewarded ad for +50 star dust (`AdController.ShopAdDust`), every time, for everyone including Remove Ads and Paragon owners. Credited only on the SDK reward callback via `StarDustLedger.Grant`; shows a disabled LOADING state while no ad is loaded; counts as an ad for the minimum gap. Icon is the 850 pack icon as a placeholder (no dedicated art). There is no analytics layer in the project (`AdTracking` is only the iOS ATT poll), so events are `[ADS]` log lines only.
+6. **Banner unit.** `AdsConfig` has Google's test banner IDs (used in developer mode) and a placeholder for the real ones (`ca-app-pub-4397064133944218/BANNER_TODO`). While the real ID is the placeholder, release builds request no banner (`AdsConfig.BannerRequestable`), so nothing shows until the IDs are pasted in.
+
+**Open item (user): create the "Pause Banner" ad unit.** AdMob > Apps > Pause (Android) > Ad units > Add ad unit > Banner, name "Pause Banner"; do the same on the iOS app. Paste the two IDs into `AndroidBannerUnit` and `IosBannerUnit` in `AdsConfig.cs` (replacing `BANNER_TODO`) and ship a new build. Until then the cadence still runs the full ad every 3rd run and the other run ends simply show nothing.
+
 ## Work phases
 
 - [ ] **1. Products in Play Console and billing code.** Code: PR https://github.com/Wintersina/Pause/pull/427 (Remove Ads entitlement and handler, cloud-save merge, 6,000 pack, dust-pack wording, tests, docs). Not complete until a real test purchase has been made.
