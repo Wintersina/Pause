@@ -96,6 +96,10 @@ public class ProgressSnapshot
     public int boostDustBought, boostDustUsedMs, boostClearBought, boostClearUsed;
     // Homing atoms (Boosters.Kind.HomingAtoms): purchases and milliseconds of homing play spent. Same rules as the multiplier's pair.
     public int boostHomingBought, boostHomingUsedMs;
+    // boostDustBought / boostHomingBought above are the LEGACY 10-minute purchases (Boosters.*BoughtLegacyKey: the old keys, so an
+    // older build still reads them). Purchases since the 5-minute change (Nov 2026) go here instead. Additive, no schema bump (an
+    // older blob lacks them = 0), merged by MAX like the rest.
+    public int boostDustBought5m, boostHomingBought5m;
 
     // Hard cap per list: the Codex has ~95 entries (+ achievement acks), so this
     // only guards the cloud blob against a corrupt pref.
@@ -126,7 +130,7 @@ public class ProgressSnapshot
     // within seconds (and merge by union / max anyway).
     public bool HasProgress()
     {
-        if (adFree || boostDustBought > 0 || boostClearBought > 0 || boostHomingBought > 0) return true;
+        if (adFree || boostDustBought > 0 || boostClearBought > 0 || boostHomingBought > 0 || boostDustBought5m > 0 || boostHomingBought5m > 0) return true;
         if (currency > 0f || highestWorld > 0 || currentWorld > 0 || bestScore > 0 || highestSpeed > 0f) return true;
         if (ownedSkins != null && ownedSkins.Length > 0) return true;
         foreach (int id in boughtShips ?? new int[0])
@@ -192,11 +196,13 @@ public class ProgressSnapshot
         s.adFree = AdFree.IsActive;
         s.playTimeSeconds = PlayTime.WholeSeconds;
         Boosters.Flush();   // the in-memory boosted-play clock, so the snapshot has the latest second
-        s.boostDustBought = PlayerPrefs.GetInt(Boosters.DustBoughtKey, 0);
+        s.boostDustBought = PlayerPrefs.GetInt(Boosters.DustBoughtLegacyKey, 0);
+        s.boostDustBought5m = PlayerPrefs.GetInt(Boosters.DustBoughtKey, 0);
         s.boostDustUsedMs = PlayerPrefs.GetInt(Boosters.DustUsedMsKey, 0);
         s.boostClearBought = PlayerPrefs.GetInt(Boosters.ClearBoughtKey, 0);
         s.boostClearUsed = PlayerPrefs.GetInt(Boosters.ClearUsedKey, 0);
-        s.boostHomingBought = PlayerPrefs.GetInt(Boosters.HomingBoughtKey, 0);
+        s.boostHomingBought = PlayerPrefs.GetInt(Boosters.HomingBoughtLegacyKey, 0);
+        s.boostHomingBought5m = PlayerPrefs.GetInt(Boosters.HomingBoughtKey, 0);
         s.boostHomingUsedMs = PlayerPrefs.GetInt(Boosters.HomingUsedMsKey, 0);
 
         var counters = new List<Counter>();
@@ -261,11 +267,13 @@ public class ProgressSnapshot
         FusionDiscoveryStore.Reload();
         if (adFree) PlayerPrefs.SetInt(AdFree.Key, 1);   // never cleared: a snapshot without it (older save, other account) can't take the purchase away
         PlayTime.RestoreAtLeast(playTimeSeconds);   // never lowered: the larger value wins
-        SetOrDelete(Boosters.DustBoughtKey, boostDustBought);
+        SetOrDelete(Boosters.DustBoughtLegacyKey, boostDustBought);
+        SetOrDelete(Boosters.DustBoughtKey, boostDustBought5m);
         SetOrDelete(Boosters.DustUsedMsKey, boostDustUsedMs);
         SetOrDelete(Boosters.ClearBoughtKey, boostClearBought);
         SetOrDelete(Boosters.ClearUsedKey, boostClearUsed);
-        SetOrDelete(Boosters.HomingBoughtKey, boostHomingBought);
+        SetOrDelete(Boosters.HomingBoughtLegacyKey, boostHomingBought);
+        SetOrDelete(Boosters.HomingBoughtKey, boostHomingBought5m);
         SetOrDelete(Boosters.HomingUsedMsKey, boostHomingUsedMs);
         Boosters.Reload();
         Codex.OnExternalChange();   // drop the cached sets so the next write can't undo this

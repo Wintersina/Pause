@@ -25,7 +25,8 @@ public static class HazardClear
     public const int MaxAudio = 3;
     public const int MaxBursts = 14;
 
-    public enum Block { None, NoCharge, NotInRun, Dead, Scripted }
+    // SwitchedOff: charges are held but the player switched Hazard Clear off in the Shop (Boosters.SetOn), so it never auto-fires.
+    public enum Block { None, NoCharge, NotInRun, Dead, Scripted, SwitchedOff }
 
     // Per run (tests, the death panel could read them).
     public static int UsedThisRun { get; private set; }
@@ -42,7 +43,8 @@ public static class HazardClear
         if (buttonClicks.playerDied || DeathCrash.Running) return Block.Dead;
         if (WorldEntry.Active || Liftoff.HoldsShip || Planetfall.HoldsShip || PortalArrival.HoldsShip || WorldTransition.InProgress ||
             BossEncounter.ScriptedEntrance || ShipPowerController.CinematicClearActive) return Block.Scripted;
-        if (!Boosters.ClearAvailable) return Block.NoCharge;
+        if (Boosters.ClearCharges <= 0) return Block.NoCharge;
+        if (!Boosters.IsOn(Boosters.Kind.HazardClear)) return Block.SwitchedOff;
         return Block.None;
     }
 

@@ -8,7 +8,7 @@ using Object = UnityEngine.Object;
 
 // The star-dust boosters (Boosters, HazardClear, HazardClearReadout):
 //   1  the pure stacking rule (booster + rewarded ad capped at 3x)
-//   2  PRICES: simulated typical dust in 10 minutes of play; the multiplier's extra dust stays under 70% of its price
+//   2  PRICES: simulated typical dust in 10 minutes of play; the multiplier's extra dust over one purchase (5 minutes) stays under 70% of its price
 //   3  buying: pay once, extension, limits, restart safety, no buying inside a run
 //   4  the clock: ticks only on unfrozen real-run frames; practice runs never tick or multiply
 //   5  what it multiplies (pickups, rewards, flight) and what it must not (claims, purchases, score, leaderboard dust)
@@ -16,8 +16,12 @@ using Object = UnityEngine.Object;
 //   6b the AUTOMATIC save: a hit that would cost a heart spends a charge instead (collisionDetection), never when nothing was lost
 //   7  cloud save: capture / apply round trip and the merge rules
 //   8  the in-run readout (not a control): its rect on a spread of screens (phones, tall, tablet) never meets the HUD
-//   9  homing atoms: buying (1,000, 10 minutes, the hour cap), the clock, the cloud counters, and the flight itself --
+//   9  homing atoms: buying (1,000, 5 minutes, the hour cap), the clock, the cloud counters, and the flight itself --
 //      a still ship is reached, a late side-step or a teleport makes it miss, a miss is final, star dust never homes
+//   10 the Shop's ON/OFF switch: off freezes the time left and stops every effect, survives a restart, on resumes, buying switches on;
+//      Hazard Clear off never auto-fires
+//   11 legacy 10-minute purchases keep their 10 minutes next to the new 5-minute ones (prefs and cloud)
+//   12 the read-only API the HUD reads (IsTimed / Owns / IsOn / IsActive / SecondsLeft / ChargesLeft / Changed)
 public static class BoostersTest
 {
     static int fails;
@@ -29,7 +33,7 @@ public static class BoostersTest
 
     public static void Run() { TestHarness.Exit(Execute()); }
 
-    static readonly string[] Keys = { Boosters.DustBoughtKey, Boosters.DustUsedMsKey, Boosters.ClearBoughtKey, Boosters.ClearUsedKey, Boosters.HomingBoughtKey, Boosters.HomingUsedMsKey };
+    static readonly string[] Keys = Boosters.AllKeys;
 
     static void Reset(float dust)
     {
@@ -58,6 +62,9 @@ public static class BoostersTest
             Cloud();
             Control();
             Homing();
+            Switch();
+            Legacy();
+            ReadApi();
         }
         finally
         {
@@ -108,12 +115,12 @@ public static class BoostersTest
         const int seeds = 12;
         for (int s = 1; s <= seeds; s++) sum += SimulatedDust(s * 7919 + 5, 5);   // 5 levels x 120 s = 10 minutes
         float per10 = sum / seeds;
-        float extra = per10 * (Boosters.DustMultiplier(true, false) - 1f);            // what the doubling adds
+        float extra = per10 * (Boosters.DustBoosterSeconds / 600f) * (Boosters.DustMultiplier(true, false) - 1f);   // what the doubling adds over one purchase
         float flawless = extra * 1.35f;                                                // adaptive difficulty's best case (docs/adaptive-difficulty.md)
         float cap = Boosters.MaxPaybackShare * Boosters.DustBoosterPrice;
-        Debug.Log(string.Format("[BOOSTERS] 10 min of play: {0:F0} dust; the x2 adds {1:F0} ({2:P0} of the {3:F0} price); flawless {4:F0} ({5:P0})",
+        Debug.Log(string.Format("[BOOSTERS] 10 min of play: {0:F0} dust; one purchase of x2 adds {1:F0} ({2:P0} of the {3:F0} price); flawless {4:F0} ({5:P0})",
             per10, extra, extra / Boosters.DustBoosterPrice, Boosters.DustBoosterPrice, flawless, flawless / Boosters.DustBoosterPrice));
-        Check("the dust multiplier pays back less than 70% of its price in 10 minutes (typical)", extra < cap);
+        Check("the dust multiplier pays back less than 70% of its price over one purchase (typical)", extra < cap);
         Check("... and also for a flawless run (x1.35 income)", flawless < cap);
         Check("the multiplier is a net cost: the extra never reaches the price", flawless < Boosters.DustBoosterPrice);
 
@@ -123,7 +130,7 @@ public static class BoostersTest
         Debug.Log("[BOOSTERS] a typical 4-level run earns " + run.ToString("F0") + " dust; a hazard clear costs " + Boosters.HazardClearPrice);
         Check("a hazard clear costs about one typical run's earnings (0.5x to 1.5x)", Boosters.HazardClearPrice > .5f * run && Boosters.HazardClearPrice < 1.5f * run);
         Check("prices sit far under a ship (Gold Warden 12,000)", Boosters.DustBoosterPrice * 10f < 12000f);
-        Check("10 minutes per purchase", Boosters.DustBoosterSeconds == 600f);
+        Check("5 minutes per purchase (Dust x2 and Homing Atoms)", Boosters.DustBoosterSeconds == 300f && Boosters.HomingSeconds == 300f);
     }
 
     // ---- 3 ----
@@ -131,12 +138,12 @@ public static class BoostersTest
     {
         Reset(1000f);
         var r = Boosters.BuyDustBooster();
-        Check("buying the multiplier takes the price once and adds 10 minutes",
+        Check("buying the multiplier takes the price once and adds 5 minutes",
               r == Boosters.BuyResult.Bought && Mathf.Approximately(PlayerPrefs.GetFloat(StarDustLedger.CurrencyKey), 1000f - Boosters.DustBoosterPrice) &&
-              Boosters.BoughtDust == 1 && Mathf.Approximately(Boosters.RemainingSeconds, 600f) && Boosters.DustActive && Boosters.AnyActive);
+              Boosters.BoughtDust == 1 && Mathf.Approximately(Boosters.RemainingSeconds, 300f) && Boosters.DustActive && Boosters.AnyActive);
         Boosters.Reload();   // a restart right after the purchase
         Check("a restart keeps it: same balance, same time, no second charge",
-              Mathf.Approximately(PlayerPrefs.GetFloat(StarDustLedger.CurrencyKey), 400f) && Boosters.BoughtDust == 1 && Mathf.Approximately(Boosters.RemainingSeconds, 600f));
+              Mathf.Approximately(PlayerPrefs.GetFloat(StarDustLedger.CurrencyKey), 400f) && Boosters.BoughtDust == 1 && Mathf.Approximately(Boosters.RemainingSeconds, 300f));
         Check("not enough dust: nothing changes", Boosters.BuyDustBooster() == Boosters.BuyResult.NotEnoughDust &&
               PlayerPrefs.GetFloat(StarDustLedger.CurrencyKey) == 400f && Boosters.BoughtDust == 1 && !Boosters.CanBuy(Boosters.Kind.DustMultiplier));
 
@@ -146,11 +153,11 @@ public static class BoostersTest
         PlayerPrefs.SetInt(Boosters.DustUsedMsKey, 100000);   // 100 s spent
         Boosters.Reload();
         Boosters.BuyDustBooster();
-        Check("buying while active extends: 500 s left + 600 s = 1100 s", Mathf.Approximately(Boosters.RemainingSeconds, 1100f) && Boosters.BoughtDust == 2);
+        Check("buying while active stacks: 200 s left + 300 s = 500 s", Mathf.Approximately(Boosters.RemainingSeconds, 500f) && Boosters.BoughtDust == 2);
         Reset(100000f);
         int ok = 0;
         while (Boosters.BuyDustBooster() == Boosters.BuyResult.Bought && ok < 20) ok++;
-        Check("stored time stops at an hour (6 purchases)", ok == 6 && Mathf.Approximately(Boosters.RemainingSeconds, Boosters.MaxStoredSeconds));
+        Check("stored time stops at an hour (12 purchases)", ok == 12 && Mathf.Approximately(Boosters.RemainingSeconds, Boosters.MaxStoredSeconds));
 
         Reset(5000f);
         Check("a hazard charge costs 200 and is held", Boosters.BuyHazardClear() == Boosters.BuyResult.Bought && Boosters.ClearCharges == 1 &&
@@ -171,7 +178,7 @@ public static class BoostersTest
         Reset(5000f);
         Check("shop API: names, text and prices", Boosters.Name(Boosters.Kind.DustMultiplier).Length > 0 && Boosters.Description(Boosters.Kind.HazardClear).Length > 0 &&
               Boosters.Price(Boosters.Kind.DustMultiplier) == Boosters.DustBoosterPrice && Boosters.Status(Boosters.Kind.DustMultiplier) == "" &&
-              Boosters.Buy(Boosters.Kind.DustMultiplier) == Boosters.BuyResult.Bought && Boosters.Status(Boosters.Kind.DustMultiplier) == "10:00 left");
+              Boosters.Buy(Boosters.Kind.DustMultiplier) == Boosters.BuyResult.Bought && Boosters.Status(Boosters.Kind.DustMultiplier) == "5:00 left");
     }
 
     static score MakeScore()
@@ -212,19 +219,19 @@ public static class BoostersTest
         score.pauseCounter = 5;
         TouchInput.PressedOverride = () => false;   // the finger is up: the world is frozen
         for (int i = 0; i < 5; i++) s.SendMessage("Update");
-        Check("a frozen run (finger up, pauses left) does not spend the clock", Mathf.Approximately(Boosters.RemainingSeconds, 600f));
+        Check("a frozen run (finger up, pauses left) does not spend the clock", Mathf.Approximately(Boosters.RemainingSeconds, 300f));
         TouchInput.PressedOverride = () => true;
         buttonClicks.playerDied = true;
         s.SendMessage("Update");
         buttonClicks.playerDied = false;
-        Check("a dead player does not spend it", Mathf.Approximately(Boosters.RemainingSeconds, 600f));
+        Check("a dead player does not spend it", Mathf.Approximately(Boosters.RemainingSeconds, 300f));
         s.SendMessage("Update");
         s.SendMessage("Update");
-        Check("running frames spend it (1 s each in this test): 598 s left", Mathf.Approximately(Boosters.RemainingSeconds, 598f));
+        Check("running frames spend it (1 s each in this test): 298 s left", Mathf.Approximately(Boosters.RemainingSeconds, 298f));
         Boosters.TestDelta = 10000f;
         s.SendMessage("Update");
         Check("it never goes below zero and then the booster is off", Boosters.RemainingSeconds == 0f && !Boosters.DustActive && !Boosters.AnyActive);
-        Check("what it spent is in the prefs (restart-proof)", PlayerPrefs.GetInt(Boosters.DustUsedMsKey) == 600000);
+        Check("what it spent is in the prefs (restart-proof)", PlayerPrefs.GetInt(Boosters.DustUsedMsKey) == 300000);
         TouchInput.PressedOverride = null;
         EndRun(s);
 
@@ -232,7 +239,7 @@ public static class BoostersTest
         Reset(5000f);
         Boosters.BuyDustBooster();
         Boosters.TestDelta = 1f;
-        Check("no run, no ticking (Tick is only called by a running real run)", Mathf.Approximately(Boosters.RemainingSeconds, 600f));
+        Check("no run, no ticking (Tick is only called by a running real run)", Mathf.Approximately(Boosters.RemainingSeconds, 300f));
 
         // practice run: never ticks, never multiplies
         Reset(5000f);
@@ -247,7 +254,7 @@ public static class BoostersTest
         TouchInput.PressedOverride = () => true;
         s.SendMessage("Update");
         score.AwardStarDust(1f);
-        Check("a practice (tutorial) run neither ticks nor multiplies", Mathf.Approximately(Boosters.RemainingSeconds, 600f) &&
+        Check("a practice (tutorial) run neither ticks nor multiplies", Mathf.Approximately(Boosters.RemainingSeconds, 300f) &&
               score.tutorialCurrency >= 1f && score.tutorialCurrency < 1.5f);
         Check("... the multiplier reads 1 there", Boosters.RunDustMultiplier == 1f);
         TouchInput.PressedOverride = null;
@@ -390,14 +397,14 @@ public static class BoostersTest
         PlayerPrefs.SetInt(Boosters.ClearUsedKey, 1);
         Boosters.Reload();
         var snap = ProgressSnapshot.Capture(1000);
-        Check("capture reads the four counters", snap.boostDustBought == 2 && snap.boostDustUsedMs == 123456 && snap.boostClearBought == 4 && snap.boostClearUsed == 1 && snap.HasProgress());
+        Check("capture reads the counters (new purchases in the 5-minute field)", snap.boostDustBought5m == 2 && snap.boostDustBought == 0 && snap.boostDustUsedMs == 123456 && snap.boostClearBought == 4 && snap.boostClearUsed == 1 && snap.HasProgress());
         ProgressSnapshot parsed;
         Check("they survive the JSON", ProgressSnapshot.TryParse(snap.ToJson(), out parsed) == ProgressSnapshot.ParseResult.Ok &&
-              parsed.boostDustBought == 2 && parsed.boostDustUsedMs == 123456 && parsed.boostClearBought == 4 && parsed.boostClearUsed == 1);
+              parsed.boostDustBought5m == 2 && parsed.boostDustUsedMs == 123456 && parsed.boostClearBought == 4 && parsed.boostClearUsed == 1);
         foreach (string k in Keys) PlayerPrefs.DeleteKey(k);
         parsed.Apply();
         Check("apply writes them back and reloads the cache", Boosters.BoughtDust == 2 && Boosters.UsedMs == 123456 && Boosters.ClearCharges == 3 &&
-              Mathf.Approximately(Boosters.RemainingSeconds, 1200f - 123.456f));
+              Mathf.Approximately(Boosters.RemainingSeconds, 600f - 123.456f));
 
         var a = new ProgressSnapshot { savedAtUtc = 2000, currency = 500f, boostDustBought = 2, boostDustUsedMs = 100000, boostClearBought = 3, boostClearUsed = 1 };
         var b = new ProgressSnapshot { savedAtUtc = 1000, currency = 300f, boostDustBought = 1, boostDustUsedMs = 400000, boostClearBought = 2, boostClearUsed = 2 };
@@ -663,18 +670,18 @@ public static class BoostersTest
         Reset(999f);
         Check("homing: 999 dust cannot buy it", Boosters.BuyHoming() == Boosters.BuyResult.NotEnoughDust && !Boosters.HomingActive);
         Reset(5000f);
-        Check("homing: costs 1,000 and gives 10 minutes", Boosters.Buy(Boosters.Kind.HomingAtoms) == Boosters.BuyResult.Bought &&
+        Check("homing: costs 1,000 and gives 5 minutes", Boosters.Buy(Boosters.Kind.HomingAtoms) == Boosters.BuyResult.Bought &&
               Mathf.Approximately(PlayerPrefs.GetFloat(StarDustLedger.CurrencyKey), 4000f) &&
-              Mathf.Approximately(Boosters.HomingRemainingSeconds, 600f) && Boosters.Status(Boosters.Kind.HomingAtoms) == "10:00 left");
+              Mathf.Approximately(Boosters.HomingRemainingSeconds, 300f) && Boosters.Status(Boosters.Kind.HomingAtoms) == "5:00 left");
         Check("homing: its time does NOT switch ads off and is not the dust multiplier", !Boosters.AnyActive && !Boosters.DustActive);
         Boosters.Reload();
         Check("homing: survives a restart", Boosters.BoughtHoming == 1 && Boosters.HomingActive);
-        Check("homing: buying again adds 10 minutes", Boosters.BuyHoming() == Boosters.BuyResult.Bought &&
-              Mathf.Approximately(Boosters.HomingRemainingSeconds, 1200f));
+        Check("homing: buying again adds 5 minutes", Boosters.BuyHoming() == Boosters.BuyResult.Bought &&
+              Mathf.Approximately(Boosters.HomingRemainingSeconds, 600f));
         Reset(100000f);
         int bought = 0;
         while (Boosters.BuyHoming() == Boosters.BuyResult.Bought && bought < 30) bought++;
-        Check("homing: stored time stops at an hour", bought == 6 && Boosters.AtLimit(Boosters.Kind.HomingAtoms) && !Boosters.CanBuy(Boosters.Kind.HomingAtoms));
+        Check("homing: stored time stops at an hour", bought == 12 && Boosters.AtLimit(Boosters.Kind.HomingAtoms) && !Boosters.CanBuy(Boosters.Kind.HomingAtoms));
         Reset(5000f);
         StarDustLedger.BeginRun(true);
         Check("homing: no buying inside a run", Boosters.BuyHoming() == Boosters.BuyResult.RunInProgress);
@@ -689,16 +696,16 @@ public static class BoostersTest
         score.pauseCounter = 5;
         TouchInput.PressedOverride = () => false;
         s.SendMessage("Update");
-        Check("homing: a frozen world does not spend it", Mathf.Approximately(Boosters.HomingRemainingSeconds, 600f));
+        Check("homing: a frozen world does not spend it", Mathf.Approximately(Boosters.HomingRemainingSeconds, 300f));
         TouchInput.PressedOverride = () => true;
         s.SendMessage("Update");
         s.SendMessage("Update");
-        Check("homing: running frames spend it (598 s left) and latch the run", Mathf.Approximately(Boosters.HomingRemainingSeconds, 598f) &&
+        Check("homing: running frames spend it (298 s left) and latch the run", Mathf.Approximately(Boosters.HomingRemainingSeconds, 298f) &&
               Boosters.RunHomingUsed && !Boosters.RunDustUsed);
         Boosters.TestDelta = 10000f;
         s.SendMessage("Update");
         Check("homing: runs out at zero, saved in the prefs", !Boosters.HomingActive && !Boosters.HomingRunning &&
-              PlayerPrefs.GetInt(Boosters.HomingUsedMsKey) == 600000);
+              PlayerPrefs.GetInt(Boosters.HomingUsedMsKey) == 300000);
         TouchInput.PressedOverride = null;
         Boosters.TestDelta = null;
         EndRun(s);
@@ -711,8 +718,8 @@ public static class BoostersTest
         var snap = ProgressSnapshot.Capture(1000);
         ProgressSnapshot parsed;
         bool parsedOk = ProgressSnapshot.TryParse(snap.ToJson(), out parsed) == ProgressSnapshot.ParseResult.Ok;
-        Check("homing: capture + JSON carry both counters", snap.boostHomingBought == 3 && snap.boostHomingUsedMs == 65432 && snap.HasProgress() &&
-              parsedOk && parsed.boostHomingBought == 3 && parsed.boostHomingUsedMs == 65432);
+        Check("homing: capture + JSON carry both counters", snap.boostHomingBought5m == 3 && snap.boostHomingUsedMs == 65432 && snap.HasProgress() &&
+              parsedOk && parsed.boostHomingBought5m == 3 && parsed.boostHomingUsedMs == 65432);
         foreach (string k in Keys) PlayerPrefs.DeleteKey(k);
         parsed.Apply();
         Check("homing: apply writes them back", Boosters.BoughtHoming == 3 && Boosters.UsedHomingMs == 65432);
@@ -792,5 +799,155 @@ public static class BoostersTest
         Object.DestroyImmediate(target.gameObject);
         moveItemEnmInStrightLine.HomingTargetOverride = null;
         EndRun(s);
+    }
+    // ---- 10 ----
+    static void Switch()
+    {
+        int changed = 0;
+        System.Action onChanged = () => changed++;
+        Boosters.Changed += onChanged;
+        try
+        {
+            Reset(5000f);
+            Check("switch: nothing held -> switching off is refused and it stays on",
+                  !Boosters.SetOn(Boosters.Kind.DustMultiplier, false) && Boosters.IsOn(Boosters.Kind.DustMultiplier) &&
+                  !Boosters.Owns(Boosters.Kind.DustMultiplier) && !Boosters.IsActive(Boosters.Kind.DustMultiplier));
+            changed = 0;
+            Boosters.BuyDustBooster();
+            Check("switch: a purchase raises Changed", changed > 0);
+            Check("switch: bought -> on and active", Boosters.IsOn(Boosters.Kind.DustMultiplier) && Boosters.IsActive(Boosters.Kind.DustMultiplier) && Boosters.DustActive);
+            changed = 0;
+            Check("switch: off goes through", Boosters.SetOn(Boosters.Kind.DustMultiplier, false) && !Boosters.IsOn(Boosters.Kind.DustMultiplier));
+            Check("switch: ... raises Changed and is saved at once", changed > 0 && PlayerPrefs.GetInt(Boosters.DustOffKey, 0) == 1);
+            Check("switch: off -> still owned, time kept, but not active: no x2, ads back on",
+                  Boosters.Owns(Boosters.Kind.DustMultiplier) && Mathf.Approximately(Boosters.RemainingSeconds, 300f) &&
+                  !Boosters.IsActive(Boosters.Kind.DustMultiplier) && !Boosters.DustActive && !Boosters.AnyActive);
+
+            var s = BeginRealRun(5000f);
+            Boosters.TestDelta = 1f;
+            TouchInput.PressedOverride = () => true;
+            s.SendMessage("Update");
+            s.SendMessage("Update");
+            Check("switch: off in a real run -> the clock is frozen (300 s), nothing multiplies, the run is not powered-up",
+                  Mathf.Approximately(Boosters.RemainingSeconds, 300f) && Boosters.RunDustMultiplier == 1f && !Boosters.RunDustUsed);
+            Boosters.Reload();   // a restart
+            Check("switch: off and the frozen time survive a restart", !Boosters.IsOn(Boosters.Kind.DustMultiplier) && Mathf.Approximately(Boosters.RemainingSeconds, 300f));
+            Boosters.SetOn(Boosters.Kind.DustMultiplier, true);
+            s.SendMessage("Update");
+            s.SendMessage("Update");
+            Check("switch: on again resumes the countdown (298 s) and doubles again",
+                  Mathf.Approximately(Boosters.RemainingSeconds, 298f) && Boosters.RunDustMultiplier == 2f && Boosters.RunDustUsed);
+            Boosters.SetOn(Boosters.Kind.DustMultiplier, false);
+            Check("switch: switching off writes the clock with the flag", PlayerPrefs.GetInt(Boosters.DustUsedMsKey) == 2000 && PlayerPrefs.GetInt(Boosters.DustOffKey) == 1);
+            Boosters.Reload();
+            Check("switch: ... so a restart reads 298 s, off", Mathf.Approximately(Boosters.RemainingSeconds, 298f) && !Boosters.IsOn(Boosters.Kind.DustMultiplier));
+            TouchInput.PressedOverride = null;
+            Boosters.TestDelta = null;
+            EndRun(s);
+
+            Reset(5000f);
+            Boosters.BuyDustBooster();
+            Boosters.SetOn(Boosters.Kind.DustMultiplier, false);
+            Check("switch: buying more stacks the time and switches it back on",
+                  Boosters.BuyDustBooster() == Boosters.BuyResult.Bought && Boosters.IsOn(Boosters.Kind.DustMultiplier) &&
+                  Mathf.Approximately(Boosters.RemainingSeconds, 600f) && Boosters.DustActive);
+
+            // homing atoms off: atoms do not home, the clock does not run
+            Reset(5000f);
+            Boosters.BuyHoming();
+            Boosters.SetOn(Boosters.Kind.HomingAtoms, false);
+            s = BeginRealRun(5000f);
+            Boosters.TestDelta = 1f;
+            TouchInput.PressedOverride = () => true;
+            s.SendMessage("Update");
+            Check("switch: homing off -> no homing in a real run, 300 s kept, not latched",
+                  !Boosters.HomingRunning && !Boosters.HomingActive && Mathf.Approximately(Boosters.HomingRemainingSeconds, 300f) && !Boosters.RunHomingUsed);
+            Boosters.SetOn(Boosters.Kind.HomingAtoms, true);
+            s.SendMessage("Update");
+            Check("switch: homing on -> homes and ticks (299 s)", Boosters.HomingRunning && Mathf.Approximately(Boosters.HomingRemainingSeconds, 299f));
+            TouchInput.PressedOverride = null;
+            Boosters.TestDelta = null;
+            EndRun(s);
+
+            // hazard clear off: charges kept, never auto-fires
+            Reset(5000f);
+            Boosters.BuyHazardClear();
+            Boosters.BuyHazardClear();
+            s = BeginRealRun(5000f);
+            Check("switch: hazard clear on in a real run -> allowed", HazardClear.BlockedBy() == HazardClear.Block.None);
+            Boosters.SetOn(Boosters.Kind.HazardClear, false);
+            Check("switch: hazard clear off -> SwitchedOff, not available, nothing spent",
+                  HazardClear.BlockedBy() == HazardClear.Block.SwitchedOff && !Boosters.ClearAvailable && !HazardClear.AutoSave(Vector3.zero) &&
+                  !Boosters.ConsumeClear() && Boosters.ClearCharges == 2 && Boosters.Owns(Boosters.Kind.HazardClear));
+            Boosters.Reload();
+            Check("switch: hazard clear off survives a restart", !Boosters.IsOn(Boosters.Kind.HazardClear) && Boosters.ClearCharges == 2);
+            Boosters.SetOn(Boosters.Kind.HazardClear, true);
+            Check("switch: hazard clear on -> allowed again", HazardClear.BlockedBy() == HazardClear.Block.None && Boosters.ClearAvailable);
+            EndRun(s);
+        }
+        finally
+        {
+            Boosters.Changed -= onChanged;
+            TouchInput.PressedOverride = null;
+            Boosters.TestDelta = null;
+        }
+        Reset(0f);
+    }
+
+    // ---- 11 ----
+    static void Legacy()
+    {
+        Reset(5000f);
+        PlayerPrefs.SetInt(Boosters.DustBoughtLegacyKey, 1);   // bought before the change: 10 minutes
+        PlayerPrefs.SetInt(Boosters.HomingBoughtLegacyKey, 2);
+        Boosters.Reload();
+        Check("legacy: an old 10-minute purchase keeps its 10 minutes", Mathf.Approximately(Boosters.RemainingSeconds, 600f) && Boosters.BoughtDust == 1 &&
+              Mathf.Approximately(Boosters.HomingRemainingSeconds, 1200f));
+        Boosters.BuyDustBooster();
+        Check("legacy: a new purchase stacks 5 minutes onto it and only counts in the new key",
+              Mathf.Approximately(Boosters.RemainingSeconds, 900f) && Boosters.BoughtDust == 2 &&
+              PlayerPrefs.GetInt(Boosters.DustBoughtLegacyKey) == 1 && PlayerPrefs.GetInt(Boosters.DustBoughtKey) == 1);
+        var snap = ProgressSnapshot.Capture(1000);
+        Check("legacy: the cloud snapshot carries both (old field = old purchases)",
+              snap.boostDustBought == 1 && snap.boostDustBought5m == 1 && snap.boostHomingBought == 2 && snap.boostHomingBought5m == 0);
+        foreach (string k in Keys) PlayerPrefs.DeleteKey(k);
+        snap.Apply();
+        Check("legacy: apply restores 15 minutes of Dust x2 and 20 of homing", Mathf.Approximately(Boosters.RemainingSeconds, 900f) &&
+              Mathf.Approximately(Boosters.HomingRemainingSeconds, 1200f));
+        ProgressSnapshot old;
+        Check("legacy: an older blob (no 5-minute fields) parses with none",
+              ProgressSnapshot.TryParse("{\"schemaVersion\":1,\"boostDustBought\":2}", out old) == ProgressSnapshot.ParseResult.Ok &&
+              old.boostDustBought == 2 && old.boostDustBought5m == 0 && old.boostHomingBought5m == 0);
+        var a = new ProgressSnapshot { savedAtUtc = 2000, currency = 5000f, boostDustBought5m = 3, boostHomingBought5m = 1 };
+        var b = new ProgressSnapshot { savedAtUtc = 1000, currency = 300f, boostDustBought5m = 1, boostHomingBought5m = 2 };
+        var m = ProgressMerge.Merge(a, b);
+        Check("legacy: the 5-minute counters merge by max", m.boostDustBought5m == 3 && m.boostHomingBought5m == 2);
+        Check("legacy: a 5-minute purchase only the other side has is charged on merge",
+              Mathf.Approximately(ProgressMerge.UnpaidBoosters(a, b), Boosters.HomingPrice) &&
+              Mathf.Approximately(ProgressMerge.UnpaidBoosters(b, a), 2f * Boosters.DustBoosterPrice));
+        Check("legacy: a snapshot with only new purchases has progress", new ProgressSnapshot { boostDustBought5m = 1 }.HasProgress());
+        Reset(0f);
+    }
+
+    // ---- 12 ----
+    static void ReadApi()
+    {
+        Reset(5000f);
+        Check("api: timed kinds", Boosters.IsTimed(Boosters.Kind.DustMultiplier) && Boosters.IsTimed(Boosters.Kind.HomingAtoms) && !Boosters.IsTimed(Boosters.Kind.HazardClear));
+        Check("api: nothing held", !Boosters.Owns(Boosters.Kind.DustMultiplier) && !Boosters.Owns(Boosters.Kind.HazardClear) &&
+              Boosters.SecondsLeft(Boosters.Kind.HomingAtoms) == 0f && Boosters.ChargesLeft(Boosters.Kind.HazardClear) == 0 &&
+              Boosters.Status(Boosters.Kind.DustMultiplier) == "" && Boosters.Status(Boosters.Kind.HazardClear) == "");
+        Boosters.BuyHoming();
+        Boosters.BuyHazardClear();
+        Boosters.BuyHazardClear();
+        Boosters.BuyHazardClear();
+        Check("api: time and charges", Mathf.Approximately(Boosters.SecondsLeft(Boosters.Kind.HomingAtoms), 300f) &&
+              Boosters.ChargesLeft(Boosters.Kind.HazardClear) == 3 && Boosters.ChargesLeft(Boosters.Kind.HomingAtoms) == 0 &&
+              Boosters.SecondsLeft(Boosters.Kind.HazardClear) == 0f && Boosters.IsActive(Boosters.Kind.HomingAtoms) && Boosters.IsActive(Boosters.Kind.HazardClear));
+        Check("api: the shop's words", Boosters.Status(Boosters.Kind.HomingAtoms) == "5:00 left" && Boosters.Status(Boosters.Kind.HazardClear) == "x3");
+        Boosters.Toggle(Boosters.Kind.HomingAtoms);
+        Check("api: off is owned but not active, time still read", Boosters.Owns(Boosters.Kind.HomingAtoms) && !Boosters.IsActive(Boosters.Kind.HomingAtoms) &&
+              Mathf.Approximately(Boosters.SecondsLeft(Boosters.Kind.HomingAtoms), 300f) && Boosters.Status(Boosters.Kind.HomingAtoms) == "5:00 left");
+        Reset(0f);
     }
 }

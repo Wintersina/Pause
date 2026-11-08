@@ -11,7 +11,9 @@ using UnityEngine.UI;
 //     ADS          Remove Ads (one-time, owned/not)
 //     SHIP         Paragon (one-time; bought here, then it sits in the Space Dock)
 //     STAR DUST    the 850 / 2,500 / 6,000 packs (repeatable)
-//     BOOSTERS     Dust x2 and Hazard Clear (bought with star dust, no store)
+//     BOOSTERS     Dust x2, Hazard Clear and Homing Atoms (bought with star dust, no store). Each row has a held line under its
+//                  name (ON 4:32 left / OFF x3 / NOT OWNED) and, while something is held, a small pixel switch under the
+//                  buy button that turns the booster off (time frozen, nothing fires) and on again (Boosters.SetOn).
 //     a restore note, BACK
 //
 // Rows are flat bands (no outlines), type and buttons in the codex's cel style. Every state comes from
@@ -33,6 +35,9 @@ public class ShopPanel : MonoBehaviour
     public const float HeaderHeight = 84f;
     public const float FooterHeight = ButtonHeight + 48f;
     public const float PollSeconds = .25f;
+    public const float BoosterRowHeight = 216f;  // pad + buy button + switch tap strip (ButtonHeight) + pad
+    public const float StatusHeight = 30f;
+    public const float SwitchTrackW = 84f, SwitchTrackH = 40f, SwitchInset = 4f, SwitchKnob = 24f;
 
     static ShopPanel instance;
     public static ShopPanel Current { get { return instance; } }
@@ -53,6 +58,10 @@ public class ShopPanel : MonoBehaviour
         public Image band, icon, button, edge;
         public Text title, sub, notice, buttonText, iconText;
         public Button click;
+        // booster rows: the held line and the on/off switch (a transparent finger-sized hit strip holding the pixel track)
+        public Text status, switchLabel;
+        public Image switchHit, track, trackFill, knob;
+        public Button switchClick;
         public float height;
     }
 
@@ -86,6 +95,10 @@ public class ShopPanel : MonoBehaviour
     public Text RowButtonText(int i) { return rows[i].buttonText; }
     public Text RowSubtitle(int i) { return rows[i].sub; }
     public Text RowNotice(int i) { return rows[i].notice; }
+    public Text RowStatus(int i) { return rows[i].status; }
+    public Button RowSwitch(int i) { return rows[i].switchClick; }
+    public Text RowSwitchLabel(int i) { return rows[i].switchLabel; }
+    public RectTransform RowSwitchKnob(int i) { return rows[i].knob != null ? rows[i].knob.rectTransform : null; }
     public Canvas CanvasOf { get { return canvas; } }
 
     static ShopPanel Build()
@@ -231,7 +244,32 @@ public class ShopPanel : MonoBehaviour
         CodexUi.Stretch(v.buttonText.rectTransform);
         v.buttonText.rectTransform.offsetMin = new Vector2(8f, 0f);
         v.buttonText.rectTransform.offsetMax = new Vector2(-8f, 0f);
+        if (row.IsBooster) BuildSwitch(v);
         return v;
+    }
+
+    // The booster's held line and its switch: flat pixel blocks (an ink frame, a teal / gunmetal fill, a bone knob), no sprite.
+    void BuildSwitch(RowView v)
+    {
+        v.status = CodexUi.NewText("Status", v.rt, font, "", 22, AkiraPalette.Amber, TextAnchor.MiddleLeft);
+        CodexUi.AddOutline(v.status.gameObject, CodexUi.Ink, 2f);
+        FitText(v.status, 15, 22);
+        v.switchHit = CodexUi.NewImage("Switch", v.rt, null, new Color(0f, 0f, 0f, 0f));
+        v.switchHit.raycastTarget = true;
+        v.track = CodexUi.NewImage("Track", v.switchHit.rectTransform, null, CodexUi.Ink);
+        v.track.raycastTarget = false;
+        v.trackFill = CodexUi.NewImage("Fill", v.track.rectTransform, null, AkiraPalette.Teal);
+        v.trackFill.raycastTarget = false;
+        v.knob = CodexUi.NewImage("Knob", v.track.rectTransform, null, AkiraPalette.Bone);
+        v.knob.raycastTarget = false;
+        v.switchLabel = CodexUi.NewText("Label", v.switchHit.rectTransform, font, ShopCatalog.OnLabel, 22, CodexUi.Body, TextAnchor.MiddleRight);
+        CodexUi.AddOutline(v.switchLabel.gameObject, CodexUi.Ink, 2f);
+        FitText(v.switchLabel, 15, 22);
+        v.switchClick = v.switchHit.gameObject.AddComponent<Button>();
+        v.switchClick.targetGraphic = v.trackFill;
+        var colors = v.switchClick.colors; colors.pressedColor = CodexUi.Select; colors.fadeDuration = .08f; v.switchClick.colors = colors;
+        var captured = v;
+        v.switchClick.onClick.AddListener(() => SwitchTapped(captured));
     }
 
     static Color WithAlpha(Color c, float a) { c.a = a; return c; }
@@ -250,7 +288,7 @@ public class ShopPanel : MonoBehaviour
         dust.text = Mathf.FloorToInt(StarDustLedger.Saved).ToString("N0");
         storeNote.text = ShopCatalog.StoreDownText;
         storeNote.gameObject.SetActive(ShopCatalog.StoreDown);
-        signature = Signature();
+        signature = Signature(fresh);
         dirty = true;
         Layout();
     }
@@ -274,10 +312,36 @@ public class ShopPanel : MonoBehaviour
         if (other) { v.edge.color = CodexUi.Locked; v.button.color = new Color(.8f, .8f, .9f, 1f); v.buttonText.color = CodexUi.Muted; }
         v.click.interactable = !other && (live || r.state == ShopRowState.Locked);
         PaintIcon(v);
+        PaintSwitch(v);
         bool paragon = r.kind == ShopRowKind.Paragon;
         v.notice.gameObject.SetActive(paragon && r.state != ShopRowState.Owned);
         if (paragon) v.notice.text = PremiumShips.LeaderboardNotice;
         v.sub.color = r.state == ShopRowState.Locked ? AkiraPalette.RedHi : CodexUi.Muted;
+    }
+
+    void PaintSwitch(RowView v)
+    {
+        if (v.status == null) return;
+        var r = v.row;
+        v.status.text = r.status ?? "";
+        // held and on: amber; held and off: bone (paused, still yours); nothing held: muted
+        v.status.color = !r.owned ? CodexUi.Muted : r.switchedOn ? AkiraPalette.Amber : CodexUi.Body;
+        v.switchHit.gameObject.SetActive(r.HasSwitch);
+        v.switchClick.interactable = r.HasSwitch;
+        v.switchLabel.text = r.switchedOn ? ShopCatalog.OnLabel : ShopCatalog.OffLabel;
+        v.switchLabel.color = r.switchedOn ? CodexUi.Body : CodexUi.Muted;
+        v.trackFill.color = r.switchedOn ? AkiraPalette.Teal : AkiraPalette.Gun;
+        v.knob.color = r.switchedOn ? AkiraPalette.Bone : AkiraPalette.GunHi;
+        // the icon dims while the booster is off, so the row reads "paused" at a glance
+        v.icon.color = r.owned && !r.switchedOn ? new Color(.55f, .55f, .65f, 1f) : Color.white;
+        PlaceKnob(v);
+    }
+
+    void PlaceKnob(RowView v)
+    {
+        float travel = SwitchTrackW - 2f * (SwitchInset + 4f) - SwitchKnob;
+        float x = SwitchInset + 4f + (v.row.switchedOn ? travel : 0f);
+        SetRect(v.knob.rectTransform, x, (SwitchTrackH - SwitchKnob) * .5f, SwitchKnob, SwitchKnob, v.track.rectTransform, true);
     }
 
     void PaintIcon(RowView v)
@@ -388,7 +452,8 @@ public class ShopPanel : MonoBehaviour
         bool paragon = v.row.kind == ShopRowKind.Paragon;
         bool pack = v.row.kind == ShopRowKind.Pack;
         float iconBox = paragon ? 150f : 96f;
-        float h = paragon ? 210f : pack ? 128f : v.row.IsBooster ? 176f : 140f;   // boosters carry a 2-3 line description
+        bool booster = v.row.IsBooster;
+        float h = paragon ? 210f : pack ? 128f : booster ? BoosterRowHeight : 140f;   // boosters: held line, 2-3 line description, switch
         float btnW = Mathf.Min(ButtonMaxWidth, width * .36f);
         SetRect(v.icon.rectTransform, RowPad, (h - iconBox) * .5f, iconBox, iconBox, v.rt, true);
         v.icon.rectTransform.localScale = Vector3.one;
@@ -397,7 +462,8 @@ public class ShopPanel : MonoBehaviour
         bool showNotice = v.notice.gameObject.activeSelf;
         float noticeH = showNotice ? 56f : 0f;
         float titleH = 44f;
-        float subTop = RowPad + titleH + 2f;
+        float statusH = booster ? StatusHeight : 0f;
+        float subTop = RowPad + titleH + statusH + 2f;
         float subH = Mathf.Max(24f, h - subTop - RowPad - noticeH);
         if (!pack || string.IsNullOrEmpty(v.sub.text))
         {
@@ -413,7 +479,22 @@ public class ShopPanel : MonoBehaviour
             SetRect(v.sub.rectTransform, textX, h - RowPad, textW, 1f, v.rt, true);
         }
         SetRect(v.notice.rectTransform, textX, h - RowPad - noticeH, textW + btnW * .0f, noticeH, v.rt, true);
-        SetRect(v.button.rectTransform, width - RowPad - btnW, (h - ButtonHeight) * .5f, btnW, ButtonHeight, v.rt, true);
+        if (booster)
+        {
+            // buy plate on top, the switch's finger-sized strip under it (to the band's bottom edge)
+            float btnX = width - RowPad - btnW;
+            SetRect(v.button.rectTransform, btnX, RowPad, btnW, ButtonHeight, v.rt, true);
+            SetRect(v.status.rectTransform, textX, RowPad + titleH, textW, statusH, v.rt, true);
+            float hitTop = RowPad + ButtonHeight;
+            SetRect(v.switchHit.rectTransform, btnX, hitTop, btnW, h - hitTop, v.rt, true);
+            float trackX = btnW - SwitchTrackW - 8f;
+            float trackY = (h - hitTop - SwitchTrackH) * .5f;
+            SetRect(v.track.rectTransform, trackX, trackY, SwitchTrackW, SwitchTrackH, v.switchHit.rectTransform, true);
+            SetRect(v.trackFill.rectTransform, SwitchInset, SwitchInset, SwitchTrackW - 2f * SwitchInset, SwitchTrackH - 2f * SwitchInset, v.track.rectTransform, true);
+            PlaceKnob(v);
+            SetRect(v.switchLabel.rectTransform, 0f, trackY, Mathf.Max(30f, trackX - 10f), SwitchTrackH, v.switchHit.rectTransform, true);
+        }
+        else SetRect(v.button.rectTransform, width - RowPad - btnW, (h - ButtonHeight) * .5f, btnW, ButtonHeight, v.rt, true);
         return h;
     }
 
@@ -459,6 +540,12 @@ public class ShopPanel : MonoBehaviour
         Refresh();   // Buying flips on at once
     }
 
+    void SwitchTapped(RowView v)
+    {
+        ShopCatalog.TapSwitch(v.row);
+        Refresh();
+    }
+
     void Show()
     {
         if (open) return;
@@ -471,6 +558,7 @@ public class ShopPanel : MonoBehaviour
         SupportPurchase.Changed += OnChanged;
         SupportPurchase.Rewarded += OnRewarded;
         DeveloperUnlocks.Changed += OnChanged;
+        Boosters.Changed += OnChanged;
         Refresh();
         scroll.verticalNormalizedPosition = 1f;
     }
@@ -485,6 +573,7 @@ public class ShopPanel : MonoBehaviour
         SupportPurchase.Changed -= OnChanged;
         SupportPurchase.Rewarded -= OnRewarded;
         DeveloperUnlocks.Changed -= OnChanged;
+        Boosters.Changed -= OnChanged;
         gameObject.SetActive(false);
         HideMenu(false);
         var handler = Closed;
@@ -527,6 +616,7 @@ public class ShopPanel : MonoBehaviour
         SupportPurchase.Changed -= OnChanged;
         SupportPurchase.Rewarded -= OnRewarded;
         DeveloperUnlocks.Changed -= OnChanged;
+        Boosters.Changed -= OnChanged;
     }
 
     void OnDestroy()
@@ -537,10 +627,15 @@ public class ShopPanel : MonoBehaviour
         if (instance == this) instance = null;
     }
 
-    string Signature()
+    // What the rows would show right now, read FRESH from the catalog (not the painted rows), so the poll sees a store answer, a
+    // booster's time or charges, or its switch changing without an event.
+    string Signature() { return Signature(ShopCatalog.Rows()); }
+
+    static string Signature(List<ShopRow> fresh)
     {
         var sb = new System.Text.StringBuilder();
-        foreach (var v in rows) sb.Append((int)v.row.state).Append(v.row.button).Append(v.row.title).Append('|');
+        foreach (var r in fresh)
+            sb.Append((int)r.state).Append(r.button).Append(r.title).Append(r.status).Append(r.switchedOn ? '1' : '0').Append('|');
         sb.Append(Mathf.FloorToInt(StarDustLedger.Saved));
         return sb.ToString();
     }

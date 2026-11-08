@@ -17,7 +17,7 @@ using System.Collections.Generic;
 //                                    stays acknowledged
 //   Remove Ads (adFree)              true if either side has it (never lost)
 //   play time (playTimeSeconds)      max
-//   boosters (4 counters)            per counter the LARGER (never summed, never lowered):
+//   boosters (8 counters)            per counter the LARGER (never summed, never lowered):
 //                                    dust-multiplier purchases, milliseconds of
 //                                    boosted play spent, hazard-clear charges
 //                                    bought, charges fired. Held = bought - used,
@@ -111,6 +111,8 @@ public static class ProgressMerge
             boostClearUsed = Math.Max(local.boostClearUsed, cloud.boostClearUsed),
             boostHomingBought = Math.Max(local.boostHomingBought, cloud.boostHomingBought),
             boostHomingUsedMs = Math.Max(local.boostHomingUsedMs, cloud.boostHomingUsedMs),
+            boostDustBought5m = Math.Max(local.boostDustBought5m, cloud.boostDustBought5m),
+            boostHomingBought5m = Math.Max(local.boostHomingBought5m, cloud.boostHomingBought5m),
         };
         return result;
     }
@@ -139,7 +141,9 @@ public static class ProgressMerge
     {
         return Math.Max(0, other.boostDustBought - newer.boostDustBought) * Boosters.DustBoosterPrice +
                Math.Max(0, other.boostClearBought - newer.boostClearBought) * Boosters.HazardClearPrice +
-               Math.Max(0, other.boostHomingBought - newer.boostHomingBought) * Boosters.HomingPrice;
+               Math.Max(0, other.boostHomingBought - newer.boostHomingBought) * Boosters.HomingPrice +
+               Math.Max(0, other.boostDustBought5m - newer.boostDustBought5m) * Boosters.DustBoosterPrice +
+               Math.Max(0, other.boostHomingBought5m - newer.boostHomingBought5m) * Boosters.HomingPrice;
     }
 
     static float ShipDustPrice(int id)

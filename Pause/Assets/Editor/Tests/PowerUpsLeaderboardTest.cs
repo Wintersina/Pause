@@ -59,7 +59,7 @@ public static class PowerUpsLeaderboardTest
             buttonClicks.playerDied = savedDied;
             score.pauseCounter = savedPauses;
             Boosters.TestDelta = null;
-            foreach (string k in new[] { Boosters.DustBoughtKey, Boosters.DustUsedMsKey, Boosters.ClearBoughtKey, Boosters.ClearUsedKey, Boosters.HomingBoughtKey, Boosters.HomingUsedMsKey }) PlayerPrefs.DeleteKey(k);
+            foreach (string k in Boosters.AllKeys) PlayerPrefs.DeleteKey(k);
             Boosters.Reload();
             Boosters.ResetRun();
             HazardClear.BeginRun();
@@ -82,7 +82,7 @@ public static class PowerUpsLeaderboardTest
         PlayerPrefs.SetInt(DeveloperUnlocks.EnabledKey, 0);
         PlayerPrefs.SetString("HasDoneTut", "true");
         startMenu.youAreInTutorial = false;
-        foreach (string k in new[] { Boosters.DustBoughtKey, Boosters.DustUsedMsKey, Boosters.ClearBoughtKey, Boosters.ClearUsedKey, Boosters.HomingBoughtKey, Boosters.HomingUsedMsKey }) PlayerPrefs.DeleteKey(k);
+        foreach (string k in Boosters.AllKeys) PlayerPrefs.DeleteKey(k);
         Boosters.TestDelta = null;
         Boosters.Reload();
         Boosters.ResetRun();
