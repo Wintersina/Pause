@@ -110,7 +110,7 @@ public static class ShopCatalog
         if (ShipId.IsOwned(id)) { row.subtitle = ParagonOwnedText; Set(row, ShopRowState.Owned, OwnedLabel); }
         else if (ShipUnlocks.IsLocked(id))
         {
-            // The gate (ShipUnlocks.GatesParagon): shown, and the purchase refused, even when Play has a price.
+            // Only while ShipUnlocks.GatesParagon is on (off today): shown, and the purchase refused, even when Play has a price.
             row.subtitle = ShipUnlocks.LockedMessage(id);
             Set(row, ShopRowState.Locked, ShipUnlocks.LockedButtonText(id));
         }

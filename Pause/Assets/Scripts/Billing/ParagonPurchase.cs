@@ -61,7 +61,7 @@ public static class ParagonPurchase
     public static bool RequestBuy()
     {
         if (!Available || Buying || ShopCatalog.AnyBuying || ShipId.IsOwned(PremiumShips.Paragon)) return false;
-        if (ShipUnlocks.IsLocked(PremiumShips.Paragon)) return false;   // own enough ships first (ShipUnlocks.GatesParagon switches this off) (restore never comes through here)
+        if (ShipUnlocks.IsLocked(PremiumShips.Paragon)) return false;   // own enough ships first (never while ShipUnlocks.GatesParagon is off, as today) (restore never comes through here)
         Buying = true;
         LaunchFlow();
         return true;

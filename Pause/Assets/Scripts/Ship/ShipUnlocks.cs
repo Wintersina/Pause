@@ -5,7 +5,8 @@ using UnityEngine;
 //
 // The three dearest roster ships (price ascending, the dock's own order, with
 // the premium Paragon last) cannot be bought until the pilot already owns
-// enough other ships: the first two need 4 owned, the last one 5. "Owned"
+// enough other ships: the first two need 4 owned, the last one 5 (Paragon's
+// 5 is switched off by GatesParagon, so today only the first two gate). "Owned"
 // counts the free starter and every ship in the roster (Paragon too, if
 // granted), read from the saved boughtship<id> keys through ShipId.IsOwned --
 // the ship being bought is not counted. A ship the player already owns stays
@@ -15,10 +16,11 @@ public static class ShipUnlocks
 {
     public const int GatedCount = 3;
 
-    // The Shop sells Paragon, whose purchase is still refused until 5 ships are owned. Flip this to false to
-    // drop that gate (the Shop row, ParagonPurchase.RequestBuy and the dock all follow); the two dust-bought
-    // gated ships keep theirs. Open product question: see docs/monetization/ads-free-tracker.md.
-    public static readonly bool GatesParagon = true;
+    // Paragon (the real-money ship) has no ownership gate: it can be bought with only the starter owned (user
+    // decision 2026-11-08, see docs/monetization/ads-free-tracker.md). Flip to true to restore the "own 5 ships"
+    // gate (the Shop row, ParagonPurchase.RequestBuy and the dock all follow); the two dust-bought gated ships
+    // keep theirs either way (GatedIds is worked out over the whole roster, so their order and counts never shift).
+    public static readonly bool GatesParagon = false;
 
     // Ships owned before each gated berth opens, in dock order.
     static readonly int[] required = { 4, 4, 5 };
