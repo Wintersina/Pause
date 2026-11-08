@@ -10,7 +10,7 @@ the queue is sent. See "Top Speed (retired)" below.
 
 ## Shared board
 
-A cross-platform Firebase board (dormant, off until the SDK is imported) sits next to the store boards: see `docs/shared-leaderboard.md`.
+A cross-platform Firebase board (live on Android builds, SDK imported and rules deployed; iOS unverified; dormant in the Editor and Mac) sits next to the store boards: see `docs/shared-leaderboard.md`.
 
 ## Architecture
 
