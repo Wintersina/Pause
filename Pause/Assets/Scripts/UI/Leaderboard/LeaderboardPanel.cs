@@ -884,9 +884,7 @@ public class LeaderboardPanel : MonoBehaviour
         if (hasRow) { name.anchorMin = new Vector2(0f, NameBand); name.anchorMax = new Vector2(0f, 1f); }
         string who = string.IsNullOrEmpty(e.playerName) ? "PILOT" : e.playerName.ToUpperInvariant();
         if (own && e.rank > 0) who = "YOU  " + who;
-        // A marked (shared) row measures CJK a few units wider in the pixel layout than FitName's measure (the waiver this
-        // replaces): leave that much more room before the cut.
-        FitName(Label(name, who, NameSize, nameColor, TextAnchor.MiddleLeft, 2.5f), who, nameWidth - markRoom - 4f - (markRoom > 0f ? 6f : 0f));
+        FitName(Label(name, who, NameSize, nameColor, TextAnchor.MiddleLeft, 2.5f), who, nameWidth - markRoom - 4f);
 
         if (hasRow) RunLine(rt, e, mine);
 

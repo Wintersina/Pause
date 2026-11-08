@@ -130,7 +130,7 @@ public static class LeaderboardSettingsTest
                 sharedFake.Seed((SharedTable)t, "p" + i,
                     Doc("PILOT" + i, i % 2 == 0 ? SharedBoardLimits.Android : SharedBoardLimits.Ios,
                         10000 - i * 100, 100 + i * 50, 3 + i,
-                        i == 4 ? PremiumShips.Paragon : 1 + i % 9, t == 1 ? 1 : 0,
+                        1 + i % 9, t == 1 ? 1 : 0,
                         i == 3 ? 0 : 3 + i % 3, i == 2 ? -1 : i % 4));
             sharedFake.Seed((SharedTable)t, sharedFake.Uid, Doc("KANEDA", SharedBoardLimits.Ios, 50, 10, 1, 2, t == 1 ? 1 : 0));
         }
@@ -205,9 +205,10 @@ public static class LeaderboardSettingsTest
         Check("shared: unknown pauses and unknown hearts show a dash",
               LeaderboardTest.RunCount(shRows, "Row2", "Pauses") == LeaderboardPanel.Dash && LeaderboardTest.RunCount(shRows, "Row3", "Hearts") == LeaderboardPanel.Dash
               && shRows.Find("Row3/Ship") != null);
-        Check("shared: the Paragon ship, its hearts and pauses are never shown (dashes)",
-              shRows.Find("Row4/Ship") == null && shRows.Find("Row4/ShipNone") != null && LeaderboardTest.RunCount(shRows, "Row4", "Hearts") == LeaderboardPanel.Dash
-              && LeaderboardTest.RunCount(shRows, "Row4", "Pauses") == LeaderboardPanel.Dash);
+        // The board's rules never accept the premium ship, but a premium tag read from elsewhere still reads as unknown.
+        var paragonDoc = Doc("CHEAT", SharedBoardLimits.Android, 100, 1, 1, PremiumShips.Paragon, 0, 14, 9);
+        var paragon = SharedBoardRows.ToEntry(1, "x", paragonDoc, SharedColumn.Score, false);
+        Check("shared: a Paragon run reads as no ship, no hearts (the panel then shows dashes)", paragon.startShip == 0 && paragon.startHearts == 0);
         panel.SelectBoard(LeaderboardBoards.RunStarDust);
         Check("shared: the DUST header loads that sort from the service", sharedFake.LoadCalls == 2 && panel.SortedBoard == LeaderboardBoards.RunStarDust);
         var first = panel.PanelRoot.Find("List/Rows/Row0/Name");
@@ -221,7 +222,7 @@ public static class LeaderboardSettingsTest
         var puRows = panel.PanelRoot.Find("List/Rows");
         Check("shared: the POWER-UPS rows carry the ship, hearts and pauses too",
               puRows.Find("Row0/Ship") != null && LeaderboardTest.RunCount(puRows, "Row0", "Hearts") == "3"
-              && LeaderboardTest.RunCount(puRows, "Row1", "Pauses") == "1" && LeaderboardTest.RunCount(puRows, "Row4", "Pauses") == LeaderboardPanel.Dash);
+              && LeaderboardTest.RunCount(puRows, "Row1", "Pauses") == "1" && LeaderboardTest.RunCount(puRows, "Row2", "Pauses") == LeaderboardPanel.Dash);
         LeaderboardPanel.Close();
 
         // The same page opened again inside the TTL costs nothing, and says nothing of its age.
