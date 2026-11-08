@@ -1,12 +1,12 @@
 using UnityEngine;
 
-// Seconds of real play, for the first ad-free hour (AdPolicy.AdFreePlaySeconds).
+// Seconds of real play, for the first 15 ad-free minutes (AdPolicy.AdFreePlaySeconds).
 //
 // What counts: frames of a real run (score.paysRealDust: not the menus, not the
 // tutorial or practice) in which the ship is actually flying -- score.StepRunning,
 // which does not run while the world is frozen by a PAUSE and does not run during a
 // world entry or a boss entrance. Frozen PAUSE time deliberately does NOT count:
-// that is the stricter reading, so "one hour" is an honest hour of flying. A
+// that is the stricter reading, so "15 minutes" is an honest 15 minutes of flying. A
 // backgrounded app runs no Update, and one step is clamped to MaxStep, so a stall
 // or a resume spike cannot add time.
 //
