@@ -6,7 +6,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using Object = UnityEngine.Object;
 
-// The star-dust boosters (Boosters, HazardClear, HazardClearReadout):
+// The star-dust boosters (Boosters, HazardClear, BoosterHud / BoosterHudSource):
 //   1  the pure stacking rule (booster + rewarded ad capped at 3x)
 //   2  PRICES: simulated typical dust in 10 minutes of play; the multiplier's extra dust over one purchase (5 minutes) stays under 70% of its price
 //   3  buying: pay once, extension, limits, restart safety, no buying inside a run
@@ -15,7 +15,8 @@ using Object = UnityEngine.Object;
 //   6  hazard clear: what it removes, what it leaves, and that it pays no score, kills, dust or achievements
 //   6b the AUTOMATIC save: a hit that would cost a heart spends a charge instead (collisionDetection), never when nothing was lost
 //   7  cloud save: capture / apply round trip and the merge rules
-//   8  the in-run readout (not a control): its rect on a spread of screens (phones, tall, tablet) never meets the HUD
+//   8  the active-booster column (not a control): its slots on every ScreenFit device never meet the HUD, the Shop icons
+//      drawn crisp, countdowns frozen with the world, icons come and go as boosters start / run out / are switched off
 //   9  homing atoms: buying (1,000, 5 minutes, the hour cap), the clock, the cloud counters, and the flight itself --
 //      a still ship is reached, a late side-step or a teleport makes it miss, a miss is final, star dust never homes
 //   10 the Shop's ON/OFF switch: off freezes the time left and stops every effect, survives a restart, on resumes, buying switches on;
@@ -72,6 +73,7 @@ public static class BoostersTest
             Boosters.TestDelta = null;
             Boosters.AdDoubled = false;
             moveItemEnmInStrightLine.HomingTargetOverride = null;
+            startMenu.youAreInTutorial = false;
             buttonClicks.playerDied = false;
             RunScore.EndRun(RunScore.RunId);
             StarDustLedger.EndRun(StarDustLedger.RunId);
@@ -430,56 +432,201 @@ public static class BoostersTest
         Reset(0f);
     }
 
-    // ---- 8 ----
+    // ---- 8: the active-booster column (BoosterHud / BoosterHudSource) ----
+    static Rect AuthoredHud(TopBand.Frame band, Vector2 screen)
+    {
+        float hudScale = HudStyler.ScaleWithScreenSize(screen, new Vector2(800f, 600f), CanvasScaler.ScreenMatchMode.MatchWidthOrHeight, 0f);
+        return HudStyler.HudScreenRect(band, screen, hudScale, new Vector2(351f, 131f));
+    }
+
     static void Control()
     {
-        var screens = new[]
+        // ---- placement on every ScreenFit device (tall phones, the Flip7 cover screen, foldables, tablets), with and without rails ----
+        bool allFit = true, noClash = true, topHalf = true, apart = true, crisp = true, small = true;
+        string firstBad = null;
+        foreach (var d in FitDevice.All)
         {
-            new Vector2(1080f, 2400f),   // tall phone
-            new Vector2(1080f, 1920f),   // 16:9 phone
-            new Vector2(720f, 1280f),    // small phone
-            new Vector2(1290f, 2796f),   // iPhone Pro Max
-            new Vector2(2048f, 2732f),   // tablet
-            new Vector2(1200f, 1920f),   // small tablet
-        };
-        bool allFit = true, noClash = true, bigEnough = true;
-        foreach (var screen in screens)
-        {
-            Rect safe = new Rect(0f, screen.y * .03f, screen.x, screen.y * .94f);   // a notch and a home bar
+            var screen = new Vector2(d.w, d.h);
+            Rect safe = d.Safe;
             foreach (float rail in new[] { 0f, 2.2f })
             {
-                var band = TopBand.FrameFor(safe, screen, rail, new Rect[0]);
-                Rect clear = HazardClearReadout.RectFor(band, screen);
-                Rect pair = PauseQuickActions.ScreenRectFor(band, screen);
-                float boardBottom = band.top - HudStyler.ReadoutHeightFor(screen) * HudStyler.ReadoutFitFor(band, screen);
-                allFit &= clear.xMin >= safe.xMin && clear.xMax <= safe.xMax && clear.yMin >= safe.yMin && clear.yMax <= safe.yMax;
-                noClash &= !clear.Overlaps(pair) && clear.yMax <= pair.yMin && clear.xMax <= band.right;
-                // below the score board's bottom edge, or clear of the board horizontally
-                noClash &= clear.yMax <= boardBottom + .5f;
-                bigEnough &= clear.width >= 40f && Mathf.Approximately(clear.width, clear.height);
-                // the lower half of the screen (the thumb's play area) is left alone
-                noClash &= clear.yMin > screen.y * .5f;
+                var band = TopBand.FrameFor(safe, screen, rail, d.Cutouts);
+                Rect hud = AuthoredHud(band, screen);
+                Rect actions = PauseQuickActions.ScreenRectFor(band, screen);
+                var warning = BossWarningHud.ComputeLayout(safe, screen, hud, band);
+                var rects = new Rect[BoosterHud.MaxSlots];
+                for (int i = 0; i < rects.Length; i++)
+                {
+                    Rect r = rects[i] = BoosterHud.SlotRect(band, safe, screen, hud, i);
+                    Rect icon = BoosterHud.IconRect(r, screen);
+                    bool fit = r.xMin >= safe.xMin && r.xMax <= safe.xMax && r.yMin >= safe.yMin && r.yMax <= safe.yMax && r.xMax <= band.right;
+                    float portalScale = Mathf.Min(screen.x / 800f, screen.y / 1200f);
+                    bool clash = r.Overlaps(actions) || r.Overlaps(warning.chip) || r.Overlaps(warning.banner) || (hud.height > 0f && r.Overlaps(hud)) ||
+                                 r.Overlaps(PortalPressureHud.ChipScreenRect(band, portalScale));
+                    bool high = r.yMin >= screen.y * BoosterHud.LowestShare - .5f;
+                    for (int j = 0; j < i; j++) apart &= !r.Overlaps(rects[j]);
+                    allFit &= fit;
+                    noClash &= !clash;
+                    topHalf &= high;
+                    crisp &= (icon.width % BoosterHud.ArtGrid == 0 || icon.width == BoosterHud.ArtGrid / 2) && icon.width == icon.height && icon.x == Mathf.Round(icon.x) && icon.y == Mathf.Round(icon.y)
+                             && icon.xMin >= r.xMin && icon.xMax <= r.xMax && icon.yMin >= r.yMin;
+                    small &= icon.width <= screen.x * BoosterHud.MaxWidthShare;
+                    if ((!fit || clash || !high) && firstBad == null) firstBad = d.id + " rail " + rail + " slot " + i + " " + r;
+                }
             }
         }
-        Check("the control sits inside the safe area on every screen", allFit);
-        Check("... under the Replay/Home pair, clear of the score board, in the top half only", noClash);
-        Check("... and is a square at least as big as a tap target", bigEnough);
-        Check("the tutorial gets no button (gameS1 only)", System.IO.File.ReadAllText("Assets/Scripts/Boosters/HazardClearReadout.cs").Contains("scene.name != \"gameS1\""));
-        string readout = System.IO.File.ReadAllText("Assets/Scripts/Boosters/HazardClearReadout.cs");
+        Check("the booster column sits inside the safe area and the top band's lane on every device" + (firstBad != null ? " (first bad: " + firstBad + ")" : ""), allFit);
+        Check("... clear of the Replay/Home pair, the boss chip and banner, PORTAL DANGER's chip and the score read-out", noClash);
+        Check("... never in the bottom " + BoosterHud.LowestShare.ToString("0%") + " of the screen (the ship and the thumb), wrapping into a second column if it must", topHalf);
+        Check("... slots never overlap each other", apart);
+        Check("... icons drawn at a whole multiple of the art's 64 px grid (half on a very narrow screen) on whole pixels (crisp, point filtered)", crisp);
+        Check("... and they are small (at most a tenth of the screen's width)", small);
+
+        string hudSrc = System.IO.File.ReadAllText("Assets/Scripts/Boosters/BoosterHud.cs");
         string move = System.IO.File.ReadAllText("Assets/Scripts/Ship/movePlayer.cs");
         string scoreSrc = System.IO.File.ReadAllText("Assets/Scripts/Core/score.cs");
-        Check("the readout is not interactive: no Button, no GraphicRaycaster, every graphic raycastTarget off, canvas group blocks nothing",
-              !readout.Contains("typeof(Button)") && !readout.Contains("typeof(GraphicRaycaster)") && !readout.Contains("PointerOnButton") &&
-              readout.Contains("plate.raycastTarget = false") && readout.Contains("glyph.raycastTarget = false") && readout.Contains("count.raycastTarget = false") &&
-              readout.Contains("group.blocksRaycasts = false"));
-        Check("a press on the readout's area is an ordinary press: movePlayer and score.Update no longer ask about it (the Replay/Home guard stays)",
-              !move.Contains("HazardClear") && !scoreSrc.Contains("PointerOnButton") && !scoreSrc.Contains("HazardClearReadout") &&
-              move.Contains("PauseQuickActions.IsScreenPointOnAction(TouchInput.Position)"));
-        // behaviour: a press at the readout's centre is not on a quick action, so movePlayer takes it as a teleport press
+        Check("the run scene only (gameS1, never the tutorial)", hudSrc.Contains("scene.name != \"gameS1\""));
+        Check("the column is not interactive: no Button, no GraphicRaycaster, every graphic raycastTarget off, canvas group blocks nothing",
+              !hudSrc.Contains("typeof(Button)") && !hudSrc.Contains("typeof(GraphicRaycaster)") &&
+              hudSrc.Contains("slot.icon.raycastTarget = false") && hudSrc.Contains("slot.label.raycastTarget = false") &&
+              hudSrc.Contains("group.blocksRaycasts = false"));
+        Check("a press on the column is an ordinary press: movePlayer and score.Update never ask about it",
+              !move.Contains("BoosterHud") && !scoreSrc.Contains("BoosterHud") && move.Contains("PauseQuickActions.IsScreenPointOnAction(TouchInput.Position)"));
+        Check("one system: the old Hazard Clear readout is gone", !System.IO.File.Exists("Assets/Scripts/Boosters/HazardClearReadout.cs") &&
+              System.Type.GetType("HazardClearReadout, Assembly-CSharp") == null);
         var tallScreen = new Vector2(1080f, 2400f);
-        var tallBand = TopBand.FrameFor(new Rect(0f, 72f, 1080f, 2256f), tallScreen, 0f, new Rect[0]);
-        Vector2 centre = HazardClearReadout.RectFor(tallBand, tallScreen).center;
-        Check("... and that point is on no quick action (so the teleport press is not swallowed)", !PauseQuickActions.IsScreenPointOnAction(centre));
+        var tallSafe = new Rect(0f, 72f, 1080f, 2256f);
+        var tallBand = TopBand.FrameFor(tallSafe, tallScreen, 0f, new Rect[0]);
+        Vector2 centre = BoosterHud.SlotRect(tallBand, tallSafe, tallScreen, AuthoredHud(tallBand, tallScreen), 0).center;
+        Check("... and its centre is on no quick action (so the teleport press is not swallowed)", !PauseQuickActions.IsScreenPointOnAction(centre));
+
+        foreach (var k in BoosterHudSource.Order)
+        {
+            var sprite = ShopIconArt.Get(BoosterHudSource.IconName(k));
+            Check("the " + k + " icon is the Shop's own icon, point filtered", sprite != null && sprite.texture.filterMode == FilterMode.Point &&
+                  sprite == ShopIconArt.Get(ShopIconArt.NameFor(new ShopRow { kind = k == Boosters.Kind.DustMultiplier ? ShopRowKind.DustBooster :
+                                                                                    k == Boosters.Kind.HomingAtoms ? ShopRowKind.HomingAtoms : ShopRowKind.HazardClear })));
+        }
+
+        HudBehaviour();
+    }
+
+    static List<BoosterHudSource.Entry> HudEntries()
+    {
+        var list = new List<BoosterHudSource.Entry>();
+        BoosterHudSource.Read(list);
+        return list;
+    }
+
+    static bool Has(List<BoosterHudSource.Entry> list, Boosters.Kind k, out BoosterHudSource.Entry e)
+    {
+        foreach (var x in list) if (x.kind == k) { e = x; return true; }
+        e = default(BoosterHudSource.Entry);
+        return false;
+    }
+
+    // What the column shows, and when (the adapter and the live component).
+    static void HudBehaviour()
+    {
+        BoosterHudSource.Entry e;
+        string full = Boosters.FormatTime(Boosters.DustBoosterSeconds), fullHoming = Boosters.FormatTime(Boosters.HomingSeconds);
+        string twoLess = Boosters.FormatTime(Boosters.DustBoosterSeconds - 2f);
+        Reset(10000f);
+        Boosters.BuyDustBooster();
+        Boosters.BuyHazardClear();
+        Boosters.BuyHazardClear();
+        var s = BeginRealRun(PlayerPrefs.GetFloat(StarDustLedger.CurrencyKey));
+        var list = HudEntries();
+        Check("a real run shows Dust x2 with its countdown (" + full + ") and Hazard Clear with its count (x2), homing (not bought) does not",
+              list.Count == 2 && Has(list, Boosters.Kind.DustMultiplier, out e) && e.timed && e.Label == full &&
+              Has(list, Boosters.Kind.HazardClear, out e) && !e.timed && e.Label == "x2" && !Has(list, Boosters.Kind.HomingAtoms, out e));
+        Check("... in order: timed first, then the held charges", list.Count == 2 && list[0].kind == Boosters.Kind.DustMultiplier && list[1].kind == Boosters.Kind.HazardClear);
+
+        // the live column builds and shows them, with the Shop icons and the labels
+        var host = new GameObject(BoosterHud.HostName);
+        var hud = host.AddComponent<BoosterHud>();
+        hud.SendMessage("Update");
+        var images = host.GetComponentsInChildren<Image>(false);
+        var texts = host.GetComponentsInChildren<Text>(false);
+        bool dustIcon = false, clearIcon = false, dustLabel = false, clearLabel = false;
+        foreach (var im in images)
+        {
+            dustIcon |= im.sprite != null && im.sprite == ShopIconArt.Get("booster_dust_x2");
+            clearIcon |= im.sprite != null && im.sprite == ShopIconArt.Get("booster_hazard_clear");
+        }
+        foreach (var t in texts) { dustLabel |= t.text == full; clearLabel |= t.text == "x2"; }
+        Check("the live column shows two icons (the Shop's Dust x2 and Hazard Clear art) with its countdown and \"x2\" under them",
+              hud.VisibleCount == 2 && images.Length == 2 && dustIcon && clearIcon && dustLabel && clearLabel);
+        bool inert = host.GetComponentsInChildren<GraphicRaycaster>(true).Length == 0 && host.GetComponentsInChildren<Button>(true).Length == 0;
+        foreach (var g in host.GetComponentsInChildren<Graphic>(true)) inert &= !g.raycastTarget;
+        Check("... and none of it takes a touch", inert);
+
+        // the countdown is the booster clock: frozen frames hold it, running frames spend it
+        Boosters.TestDelta = 1f;
+        score.pauseCounter = 5;
+        TouchInput.PressedOverride = () => false;   // the finger is up: the world is frozen
+        for (int i = 0; i < 5; i++) { s.SendMessage("Update"); hud.SendMessage("Update"); }
+        Check("a frozen world freezes the countdown (still " + full + ")", Has(HudEntries(), Boosters.Kind.DustMultiplier, out e) && e.Label == full);
+        TouchInput.PressedOverride = () => true;
+        buttonClicks.playerDied = true;
+        s.SendMessage("Update");
+        buttonClicks.playerDied = false;
+        s.SendMessage("Update");
+        s.SendMessage("Update");
+        hud.SendMessage("Update");
+        bool ticked = false;
+        foreach (var t in host.GetComponentsInChildren<Text>(false)) ticked |= t.text == twoLess;
+        Check("running frames count it down (" + twoLess + " after two 1 s frames), on the live label too", Has(HudEntries(), Boosters.Kind.DustMultiplier, out e) && e.Label == twoLess && ticked);
+
+        // a booster the pilot switched off never shows
+        Boosters.SetOn(Boosters.Kind.DustMultiplier, false);
+        hud.SendMessage("Update");
+        Check("a booster switched off in the Shop does not show", !Has(HudEntries(), Boosters.Kind.DustMultiplier, out e) && hud.VisibleCount == 1);
+        Boosters.SetOn(Boosters.Kind.HazardClear, false);
+        hud.SendMessage("Update");
+        Check("... Hazard Clear switched off does not show either", HudEntries().Count == 0 && hud.VisibleCount == 0);
+        Boosters.SetOn(Boosters.Kind.DustMultiplier, true);
+        Boosters.SetOn(Boosters.Kind.HazardClear, true);
+        hud.SendMessage("Update");
+        Check("... and both show again when switched back on, the time left where it was", hud.VisibleCount == 2 &&
+              Has(HudEntries(), Boosters.Kind.DustMultiplier, out e) && e.Label == twoLess);
+
+        // a charge spent: the count drops; the last one spent: the icon goes
+        Boosters.ConsumeClear();
+        Check("a spent charge drops the count (x1)", Has(HudEntries(), Boosters.Kind.HazardClear, out e) && e.Label == "x1");
+        Boosters.ConsumeClear();
+        hud.SendMessage("Update");
+        Check("... and the last one spent removes the icon", !Has(HudEntries(), Boosters.Kind.HazardClear, out e) && hud.VisibleCount == 1);
+
+        // the time runs out: the icon goes
+        Boosters.TestDelta = 100000f;
+        s.SendMessage("Update");
+        hud.SendMessage("Update");
+        Check("the timer running out removes the icon (nothing left showing)", HudEntries().Count == 0 && hud.VisibleCount == 0 &&
+              host.GetComponentsInChildren<Image>(false).Length == 0);
+
+        // homing appears when bought; never for a dead pilot
+        Boosters.TestDelta = null;
+        TouchInput.PressedOverride = null;
+        Object.DestroyImmediate(host);
+        EndRun(s);
+        Reset(10000f);
+        Boosters.BuyHoming();
+        s = BeginRealRun(PlayerPrefs.GetFloat(StarDustLedger.CurrencyKey));   // a new scene: a new column
+        host = new GameObject(BoosterHud.HostName);
+        hud = host.AddComponent<BoosterHud>();
+        hud.SendMessage("Update");
+        Check("homing atoms shows with its countdown", Has(HudEntries(), Boosters.Kind.HomingAtoms, out e) && e.timed && e.Label == fullHoming && hud.VisibleCount == 1);
+        buttonClicks.playerDied = true;
+        hud.SendMessage("Update");
+        Check("a dead pilot sees no booster icons", HudEntries().Count == 0 && hud.VisibleCount == 0);
+        buttonClicks.playerDied = false;
+        startMenu.youAreInTutorial = true;
+        Check("the tutorial shows none", HudEntries().Count == 0);
+        startMenu.youAreInTutorial = false;
+        Object.DestroyImmediate(host);
+        EndRun(s);
+        Reset(0f);
     }
 
     // ---- 6b: the automatic save in the one place a heart is lost (collisionDetection.OnTriggerEnter2D) ----
