@@ -399,6 +399,8 @@ public static class LeaderboardTest
         fake.Submissions.Clear();
 
         // Sign-in success flushes, exactly once.
+        // (a device already on the shipped season: Install's MigrateSeason would otherwise wipe the queue, Season 2 onward)
+        PlayerPrefs.SetInt(LeaderboardService.SeasonKey, LeaderboardBoards.CurrentSeason);
         LeaderboardService.Install();
         SocialBridge.NotifySignedIn();
         Check("sign-in flushes the queue", fake.SubmissionsTo(TopScoreId) == 1 && fake.Submissions[0].score == 160);
@@ -408,6 +410,7 @@ public static class LeaderboardTest
         Check("a second sign-in sends nothing more", fake.Submissions.Count == 1);
         Check("queue cleared after the flush", !relaunched.HasPending(LeaderboardBoards.TopScore, out v));
         Check("pending key removed once empty", !PlayerPrefs.HasKey(LeaderboardService.PendingKey));
+        PlayerPrefs.DeleteKey(LeaderboardService.SeasonKey);
     }
 
     static void Blocked()
