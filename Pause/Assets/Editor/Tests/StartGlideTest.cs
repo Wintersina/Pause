@@ -2,10 +2,12 @@ using System.Reflection;
 using UnityEngine;
 using UnityEngine.UI;
 
-// The launch glide: a finger already down when GO fires no longer teleports
-// the ship onto it; it glides there. Pause-teleport after the glide, a lift
-// mid-glide, and a finger landing after GO are unchanged. Drives the real
-// movePlayer.Update with injected touch and frame time.
+// The launch glide: the first touch glides the ship to the finger (never a
+// teleport), and the ship follows the finger through READY and GO alike -- a
+// finger already moving before GO used to leave the ship stuck until GO.
+// Pause-teleport after GO, a lift mid-glide, and a finger landing after GO
+// are unchanged. Drives the real movePlayer.Update with injected touch and
+// frame time.
 public static class StartGlideTest
 {
     static int fails;
@@ -138,41 +140,87 @@ public static class StartGlideTest
         return fails;
     }
 
+    static bool IsGo() { return GameObject.Find("goText").GetComponent<Text>().text == movePlayer.GoLabel; }
+
     static void Glide()
     {
         Build();
         Vector2 sp = new Vector2(480, 800);
-        pressed = true; screen = sp;
-        Vector3 start0 = Pos;
-        int go = RunToGo(sp);
-        Check("GO fires with the finger down", go > 0);
         Vector3 target = FingerTarget(sp);
-        Check("the ship was not moved before GO", Vector3.Distance(Pos, start0) < Mathf.Max(0.0001f, Vector3.Distance(Pos, target)) && Vector3.Distance(start0, target) > 3f);
+        Vector3 start0 = Pos;
+        Check("the finger starts far from the ship", Vector3.Distance(start0, target) > 3f);
+        pressed = true; screen = sp;
         float maxJump = movePlayer.GlideMaxSpeed * Dt + 1e-3f;
         float prevDist = Vector3.Distance(Pos, target);
-        Check("the GO frame itself does not land on the finger", prevDist > 0.5f);
-        bool monotonic = true, capped = true, arrived = false;
+        bool monotonic = true, capped = true, arrived = false, readyAll = true;
         Vector3 prev = Pos;
         int frames = 0;
         for (int i = 0; i < 120 && !arrived; i++)
         {
             Frame(); frames++;
+            if (IsGo()) readyAll = false;
             float d = Vector3.Distance(Pos, target);
             if (d > prevDist + 1e-4f) monotonic = false;
             if (Vector3.Distance(Pos, prev) > maxJump) capped = false;
             prevDist = d; prev = Pos;
             arrived = d < 1e-4f;
         }
+        Check("the first touch moves the ship during READY (no freeze until GO)", Vector3.Distance(Pos, start0) > 3f);
+        Check("the glide reaches the finger while READY is still up", arrived && readyAll);
         Check("distance to the finger only shrinks during the glide", monotonic);
-        Check("no frame moves more than the speed cap", capped);
-        Check("the glide ends exactly at the finger", arrived);
+        Check("no frame moves more than the speed cap (no snap)", capped);
         Check("the glide is 0.2 .. 0.65 s (" + frames + " frames)", frames >= 12 && frames <= 39);
+        int go = RunToGo(sp);
+        Check("GO still fires with the finger down", go >= 0);
         for (int i = 0; i < 20; i++) Frame();
-        Check("after the glide the ship follows the held finger 1:1", Vector3.Distance(Pos, target) < 1e-4f);
+        Check("after GO the ship follows the held finger 1:1", Vector3.Distance(Pos, target) < 1e-4f);
+        Teardown();
+
+        // The bug: a finger already moving before GO. The ship must follow it
+        // every frame of READY, through the GO frame and after, never stuck.
+        Build();
+        pressed = true;
+        bool followedAll = true, sawGo = false, stuckFrame = false, smooth = true;
+        float maxFingerStep = 0f;
+        Vector3 last = Pos;
+        for (int i = 0; i < 150; i++)
+        {
+            float x = 100f + 340f * Mathf.PingPong(i * 6f, 340f) / 340f;
+            Vector2 prevSp = screen;
+            screen = new Vector2(x, 400f + i);
+            if (i > 0) maxFingerStep = Mathf.Max(maxFingerStep, Vector3.Distance(FingerTarget(prevSp), FingerTarget(screen)));
+            Frame();
+            if (IsGo()) sawGo = true;
+            // once the launch glide is over (<= GlideMaxSeconds) the ship sits on the finger
+            if (i * Dt > movePlayer.GlideMaxSeconds + Dt && Vector3.Distance(Pos, FingerTarget(screen)) > 1e-4f) followedAll = false;
+            if (i * Dt > movePlayer.GlideMaxSeconds + Dt && i > 0 && Vector3.Distance(Pos, last) < 1e-6f) stuckFrame = true;
+            if (Vector3.Distance(Pos, last) > Mathf.Max(maxJump, maxFingerStep) + 1e-3f) smooth = false;
+            last = Pos;
+        }
+        Check("a moving finger before GO: GO still fires", sawGo);
+        Check("a moving finger before GO is followed every frame, before and after GO", followedAll);
+        Check("... the ship is never stuck in place while the finger moves", !stuckFrame);
+        Check("... and never snaps (no step bigger than the glide cap or the finger's own step)", smooth);
+        Teardown();
+
+        // Held through the run's entry: the hand-back left the ship under the
+        // finger. READY must not hold it there while the finger moves on.
+        Build();
+        sp = new Vector2(200, 600);
+        mp.transform.position = FingerTarget(sp);
+        pressed = true; screen = sp;
+        Frame();
+        Check("a hand-back under the finger is not pulled away (no jump)", Vector3.Distance(Pos, FingerTarget(sp)) < 0.06f);
+        for (int i = 0; i < 10; i++) Frame();
+        Vector2 sp2 = new Vector2(380, 640); screen = sp2;
+        for (int i = 0; i < 3; i++) Frame();
+        Check("still READY", !IsGo());
+        Check("during READY the ship follows the moving finger (" + Vector3.Distance(Pos, FingerTarget(sp2)) + ")", Vector3.Distance(Pos, FingerTarget(sp2)) < 1e-4f);
+        Teardown();
 
         // finger moves during the glide: glide tracks the live finger and ends on it
-        Teardown(); Build();
-        sp = new Vector2(100, 700); RunToGo(sp);
+        Build();
+        pressed = true; screen = new Vector2(100, 700); Frame(); Frame();
         sp = new Vector2(440, 700); screen = sp;
         for (int i = 0; i < 80; i++) Frame();
         Check("a finger that moves during the glide is still reached", Vector3.Distance(Pos, FingerTarget(sp)) < 1e-4f);
@@ -200,17 +248,31 @@ public static class StartGlideTest
     {
         Build();
         Vector2 sp = new Vector2(480, 800);
-        RunToGo(sp);
+        pressed = true; screen = sp;
         for (int i = 0; i < 3; i++) Frame();
         Vector3 target = FingerTarget(sp);
-        Check("mid-glide the ship is between start and finger", Vector3.Distance(Pos, target) > 0.3f);
+        Check("mid-glide (READY) the ship is between start and finger", Vector3.Distance(Pos, target) > 0.3f);
         pressed = false;
         Frame(); Vector3 held = Pos; Frame(); Frame();
         Check("lifting the finger (pause) freezes the glide in place", Vector3.Distance(Pos, held) < 1e-4f);
+        Check("READY is still up after the lift", !IsGo());
         Vector2 sp2 = new Vector2(80, 200);
         pressed = true; screen = sp2;
+        Vector3 before = Pos;
         Frame();
-        LandsOnFingerThenReturns("touching while paused mid-glide", sp2);
+        Check("a press again before GO glides, it does not blink onto the finger",
+              Vector3.Distance(Pos, before) <= movePlayer.GlideMaxSpeed * Dt + 1e-3f &&
+              Vector3.Distance(Pos, movePlayer.LandingPoint(FingerWorld(sp2))) > 0.3f);
+        for (int i = 0; i < 60; i++) Frame();
+        Check("... and ends on the finger", Vector3.Distance(Pos, FingerTarget(sp2)) < 1e-4f);
+
+        // after GO, a lift mid-glide then a press is the ordinary pause-teleport
+        Teardown(); Build();
+        RunToGo(sp);
+        pressed = false; Frame(); Frame();
+        pressed = true; screen = sp2;
+        Frame();
+        LandsOnFingerThenReturns("touching while paused after GO", sp2);
         Teardown();
     }
 
