@@ -194,7 +194,9 @@ public static class BuildScript
     {
         var sdkWas = PlayerSettings.iOS.sdkVersion;
         PlayerSettings.iOS.sdkVersion = iOSSdkVersion.SimulatorSDK;
-        try { Run(BuildTarget.iOS, Path.Combine(OutputRoot, "iOS-sim"), DevDefine); }
+        // PAUSE_SIM_NODEV=1 exports the normal (non-dev) build.
+        var defines = Environment.GetEnvironmentVariable("PAUSE_SIM_NODEV") == "1" ? new string[0] : new[] { DevDefine };
+        try { Run(BuildTarget.iOS, Path.Combine(OutputRoot, "iOS-sim"), defines); }
         finally { PlayerSettings.iOS.sdkVersion = sdkWas; }
     }
 
