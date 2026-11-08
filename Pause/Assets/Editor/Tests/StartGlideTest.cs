@@ -83,7 +83,7 @@ public static class StartGlideTest
         Make("boostText").AddComponent<RectTransform>();
         Make("hypeText").AddComponent<RectTransform>();
         var goText = Make("goText");
-        goText.AddComponent<Text>();
+        goLabel = goText.AddComponent<Text>();
         Make("GOSound").AddComponent<AudioSource>();
         var ship = Make("StartGlideShip");
         ship.transform.position = new Vector3(0, -3.5f, 0);
@@ -107,8 +107,7 @@ public static class StartGlideTest
         for (int i = 0; i < 200; i++)
         {
             Frame();
-            var t = GameObject.Find("goText").GetComponent<Text>();
-            if (t.text == movePlayer.GoLabel) return i;
+            if (IsGo()) return i;
         }
         return -1;
     }
@@ -140,7 +139,10 @@ public static class StartGlideTest
         return fails;
     }
 
-    static bool IsGo() { return GameObject.Find("goText").GetComponent<Text>().text == movePlayer.GoLabel; }
+    // goText is deactivated once GO has faded, so GameObject.Find can't reach
+    // it then: read the Text built for this ship instead.
+    static Text goLabel;
+    static bool IsGo() { return goLabel != null && goLabel.text == movePlayer.GoLabel; }
 
     static void Glide()
     {
