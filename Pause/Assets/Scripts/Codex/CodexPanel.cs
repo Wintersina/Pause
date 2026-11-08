@@ -951,6 +951,30 @@ public class CodexPanel : MonoBehaviour
         if (dust > 0 && first >= 0) ScrollToCard(first);
     }
 
+    // Opens the tab holding a find and glides its list to it. The id is a CodexEntry id, "fusion_<key>" (a
+    // combo) or "music_..." (a track), i.e. the ids kept in Codex.PaidKey.
+    public void ScrollToFind(string id)
+    {
+        if (string.IsNullOrEmpty(id) || inDetail) return;
+        if (id.StartsWith(CodexPayout.FusionPrefix, System.StringComparison.Ordinal))
+        {
+            if (!combosOpen) ShowTab(CombosTab);
+            combos.GlideToCombo(id);
+            return;
+        }
+        if (id.StartsWith("music_", System.StringComparison.Ordinal))
+        {
+            if (!musicOpen) ShowTab(MusicTab);
+            music.GlideToTrack(id);
+            return;
+        }
+        var e = Codex.Find(id);
+        if (e == null) return;
+        if (OtherViewOpen || category != e.category) ShowTab(TabOfCategory(e.category));
+        for (int i = 0; i < shownCount; i++)
+            if (cards[i].entry == e) { ScrollToCard(i); return; }
+    }
+
     // Index (into the shown cards) of the first entry whose dust is still pending, or -1.
     public int FirstPendingCard()
     {
@@ -2241,6 +2265,7 @@ public class CodexPanel : MonoBehaviour
         UpdatePulse();
         if (achievementsOpen) ach.Tick(Time.unscaledTime);
         if (musicOpen) music.Tick();
+        if (combosOpen) combos.Tick();
         if (phase != Phase.Hidden) TickAnimations(Time.unscaledDeltaTime);
     }
 

@@ -16,3 +16,14 @@ public class CodexCollectScrollTest
         Assert.AreEqual(0f, CodexPanel.CardScrollY(500f, 40f, 0f), .001f);
     }
 }
+
+public class CodexGlideTest
+{
+    [Test]
+    public void GlideTargetIsClampedToTheList()
+    {
+        Assert.AreEqual(100f, CodexGlide.TargetY(100f, 0f, 500f), .001f);
+        Assert.AreEqual(0f, CodexGlide.TargetY(5f, 8f, 500f), .001f);
+        Assert.AreEqual(500f, CodexGlide.TargetY(900f, 0f, 500f), .001f);
+    }
+}

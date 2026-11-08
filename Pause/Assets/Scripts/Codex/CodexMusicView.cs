@@ -71,6 +71,15 @@ public sealed class CodexMusicView
         for (int i = 0; i < shownCount; i++) if (rows[i].track.id == id) return i;
         return -1;
     }
+    readonly CodexGlide glide = new CodexGlide();
+    // Smooth-scrolls so the track's row is at the top of the list.
+    public void GlideToTrack(string id)
+    {
+        int i = RowIndexOf(id);
+        if (i < 0) return;
+        scroll.StopMovement();
+        glide.Start(content, CodexGlide.TargetY(-rows[i].rt.anchoredPosition.y, 0f, Mathf.Max(0f, content.sizeDelta.y - viewport.rect.height)));
+    }
     public Button StopButton { get { return stopButton; } }
     public Text StripCount { get { return stripCount; } }
     public Text StripLine { get { return stripLine; } }
@@ -249,6 +258,7 @@ public sealed class CodexMusicView
 
     public void Tick()
     {
+        glide.Tick(content);
         CodexMusicPlayer.Tick();
     }
 
