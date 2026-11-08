@@ -2,7 +2,7 @@ using System;
 using UnityEditor;
 using UnityEngine;
 
-// Ads: the master switch (default off, iOS gate), AdPolicy (every forced-ad rule), the double dust
+// Ads: the master switch (on for Android, iOS gate closed), AdPolicy (every forced-ad rule), the double dust
 // rules, and AdController on a stub provider (boot, consent, preload, interstitial, rewarded, timeouts,
 // failures, exactly-once). No SDK, no network.
 public static class AdsTest
@@ -93,8 +93,9 @@ public static class AdsTest
 
     static void Config()
     {
-        Check("MASTER SWITCH: AdsConfig.MasterSwitch defaults to false", AdsConfig.MasterSwitch == false);
-        Check("MASTER SWITCH: AdsConfig.Enabled is false by default", AdsConfig.Enabled == false);
+        Check("MASTER SWITCH: AdsConfig.MasterSwitch is on (the free-with-ads release)", AdsConfig.MasterSwitch == true);
+        Check("MASTER SWITCH: a release Android build shows ads", AdsConfig.Resolve(AdsConfig.MasterSwitch, AdsConfig.EnabledOnIos, false, false));
+        Check("MASTER SWITCH: a release iOS build never shows ads (no StoreKit)", !AdsConfig.Resolve(AdsConfig.MasterSwitch, AdsConfig.EnabledOnIos, true, false));
         Check("EnabledOnIos defaults to false (no StoreKit yet)", AdsConfig.EnabledOnIos == false);
         Check("resolve: off stays off", !AdsConfig.Resolve(false, false, false, false) && !AdsConfig.Resolve(false, true, true, false));
         Check("resolve: master on, Android", AdsConfig.Resolve(true, false, false, false));
@@ -122,10 +123,6 @@ public static class AdsTest
         Check("in developer mode the live units are Google's test units", AdsConfig.UsingTestIds && AdsConfig.RewardedUnit.StartsWith(AdsConfig.TestPublisher));
         PlayerPrefs.DeleteKey(DeveloperUnlocks.EnabledKey);
         Check("tracking text is set", !string.IsNullOrEmpty(AdsConfig.TrackingUsageDescription));
-        // The live switch off means the manager never builds a controller.
-        AdManager.Reset();
-        Check("manager does not boot while ads are off", !AdManager.EnsureBooted() && AdManager.Controller == null);
-        Check("manager hooks are inert while ads are off", !AdManager.TryShowBeforeReplay(() => { }) && !AdManager.RewardedReady && !AdManager.PrivacyOptionsRequired);
     }
 
     static void Policy()

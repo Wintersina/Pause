@@ -10,8 +10,8 @@ using UnityEngine;
 // starts the SDK at app launch, and WorkManager's foreground service and wake lock. This removes them from the app manifest at build time.
 //
 // It does NOT apply to dev builds (BuildScript.BuildAndroidDev, or Unity's Development Build checkbox),
-// where ads are forced on for testing with Google's test IDs. When MasterSwitch is flipped to true nothing
-// is removed and the SDK behaves as shipped.
+// where ads are forced on for testing with Google's test IDs. With MasterSwitch true (the shipped state) nothing
+// is removed, so AD_ID is merged in and the SDK behaves as shipped.
 public class AdsManifestGuard : IPostGenerateGradleAndroidProject
 {
     public static bool DevBuild;   // set by BuildScript.BuildAndroidDev
