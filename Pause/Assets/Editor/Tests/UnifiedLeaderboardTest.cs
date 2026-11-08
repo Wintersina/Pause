@@ -291,11 +291,12 @@ public static class UnifiedLeaderboardTest
         string iosScore = LeaderboardBoards.Get(LeaderboardBoards.TopScore).PlatformId(true);
         ios.SetBoard(iosScore, FakeLeaderboards.Entry(1, "TETSUO", 5000), FakeLeaderboards.Entry(2, "KANEDA", 4000, true));
         panel = LeaderboardPanel.Open(Service(ios, true), null, Phone, PhoneSafe);
-        Check("iOS: only the headers whose board is enabled are offered (just SCORE), and no Power-Ups tab",
-              panel.Headers.Count == 1 && panel.HeaderBoards[0] == LeaderboardBoards.TopScore && panel.Tabs.Count == 1);
+        Check("iOS: SCORE is the one live header; DUST and WORLDS are there but disabled; no Power-Ups tab",
+              panel.Headers.Count == 3 && panel.HeaderBoards[0] == LeaderboardBoards.TopScore && panel.Tabs.Count == 1
+              && panel.Headers[0].interactable && !panel.Headers[1].interactable && !panel.Headers[2].interactable);
         Check("iOS: other players' rows show the score and nothing else; one column", panel.CurrentState == LeaderboardPanel.State.Populated
               && Cell(panel.PanelRoot.Find("List/Rows"), "Row0", LeaderboardBoards.TopScore) == "5,000"
-              && panel.PanelRoot.Find("List/Rows/Row0/Cell_" + LeaderboardBoards.RunStarDust) == null);
+              && Cell(panel.PanelRoot.Find("List/Rows"), "Row0", LeaderboardBoards.RunStarDust) == LeaderboardPanel.Dash);
 
         // A table where the Star Dust board has no id here: no DUST header.
         Context();
@@ -303,8 +304,9 @@ public static class UnifiedLeaderboardTest
         LeaderboardBoards.OverrideForTests(new[] { table[0], new LeaderboardBoard(LeaderboardBoards.RunStarDust, "", "", "Star Dust", "d", LeaderboardSort.HigherIsBetter,
             LeaderboardBoards.FormatHundredths, r => 0, 1), table[2], table[3] });
         panel = LeaderboardPanel.Open(Service(new FakeLeaderboards()), null, Phone, PhoneSafe);
-        Check("a disabled board's header is not offered (no DUST)",
-              panel.Headers.Count == 2 && panel.HeaderBoards[0] == LeaderboardBoards.TopScore && panel.HeaderBoards[1] == LeaderboardBoards.FurthestWorld);
+        Check("a board with no store id here has its header disabled (DUST), the others stay live",
+              panel.Headers.Count == 3 && panel.HeaderBoards[0] == LeaderboardBoards.TopScore && panel.HeaderBoards[1] == LeaderboardBoards.RunStarDust
+              && panel.HeaderBoards[2] == LeaderboardBoards.FurthestWorld && !panel.Headers[1].interactable && panel.Headers[2].interactable);
         LeaderboardBoards.OverrideForTests(FullTable());
 
         // Tap targets, type floors and column fit on the full panel.

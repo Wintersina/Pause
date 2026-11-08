@@ -33,6 +33,7 @@ public static class LeaderboardTest
         // Console id) ...
         Registry();
         RetiredSpeedBoard();
+        RetiredNativeBoards();
         // ... and a table with the score and world boards switched on, so the
         // submission rules and the panel have live boards to work on.
         LeaderboardBoards.OverrideForTests(LiveTable());
@@ -120,8 +121,7 @@ public static class LeaderboardTest
         bool unique = true;
         foreach (var b in LeaderboardBoards.All) unique &= ids.Add(b.id);
         Check("registry: logical ids are unique", unique);
-        Check("registry: score and star dust boards never take a zero",
-              LeaderboardBoards.Get(LeaderboardBoards.TopScore).minValue == 1 && LeaderboardBoards.Get(LeaderboardBoards.RunStarDust).minValue == 1);
+        Check("registry: the score board never takes a zero", LeaderboardBoards.Get(LeaderboardBoards.TopScore).minValue == 1);
 
         bool both = true, named = true;
         foreach (var b in LeaderboardBoards.Enabled())
@@ -145,16 +145,17 @@ public static class LeaderboardTest
         Check("Top Score uses me.hapticgate.pause.top_score on iOS",
               score != null && score.iosId == AchievementIds.IosPrefix + "top_score");
 
+        // Star Dust and Worlds are retired as native boards: not in the table, so never enabled, queued or submitted.
         var dust = LeaderboardBoards.Get(LeaderboardBoards.RunStarDust);
         var world = LeaderboardBoards.Get(LeaderboardBoards.FurthestWorld);
-        Check("Android ids: Top Score / Star Dust / Worlds (the old furthest_world id is kept)",
-              score.androidId == "CgkIopqxqbAPEAIQPg" && dust.androidId == "CgkIopqxqbAPEAIQPw" && world.androidId == "CgkIopqxqbAPEAIQQA");
-        Check("a board is enabled per platform: all three on Android", score.EnabledOn(false) && dust.EnabledOn(false) && world.EnabledOn(false));
-        Check("a board is enabled per platform: only Top Score on iOS until the other Game Center ids exist",
-              score.EnabledOn(true) && !dust.EnabledOn(true) && !world.EnabledOn(true) &&
-              dust.PlatformId(true) == null && world.PlatformId(true) == null && dust.PlatformId(false) == dust.androidId);
-        Check("Worlds: renamed, logical id kept",
-              world.id == "furthest_world" && world.displayName == "Worlds" && world.description == "Most worlds cleared in a single run, across loops.");
+        Check("native table: exactly Top Score and Power-Ups",
+              LeaderboardBoards.All.Length == 2 && LeaderboardBoards.All[0].id == LeaderboardBoards.TopScore && LeaderboardBoards.All[1].id == LeaderboardBoards.BoostedRuns);
+        Check("Android ids: Top Score and Power-Ups", score.androidId == "CgkIopqxqbAPEAIQPg" && LeaderboardBoards.Get(LeaderboardBoards.BoostedRuns).androidId == "CgkIopqxqbAPEAIQQg");
+        Check("iOS: only Top Score has a Game Center id; Power-Ups stays off",
+              score.EnabledOn(true) && !LeaderboardBoards.Get(LeaderboardBoards.BoostedRuns).EnabledOn(true));
+        Check("Star Dust / Worlds are column descriptors only: no store ids, never enabled, not in All",
+              dust != null && world != null && !dust.EnabledOn(false) && !dust.EnabledOn(true) && !world.EnabledOn(false) && !world.EnabledOn(true)
+              && !LeaderboardBoards.All.Contains(dust) && !LeaderboardBoards.All.Contains(world) && dust.androidId == "" && world.androidId == "");
         Check("Worlds: value is the cumulative worlds cleared, no cap; below 1 is never offered",
               world.Measure(new LeaderboardRunStats { worldsCleared = 1 }) == 1 && world.Measure(new LeaderboardRunStats { worldsCleared = 40 }) == 40 &&
               world.Measure(new LeaderboardRunStats()) == 0 && world.minValue == 1);
@@ -173,6 +174,101 @@ public static class LeaderboardTest
         int accepted = service.SubmitRun(new LeaderboardRunStats { score = 500, starDust = 3f, worldsCleared = 2 });
         Check("a run end only queues enabled boards", accepted == LeaderboardBoards.Enabled().FindAll(b => !b.poweredUpOnly).Count);
         Check("only enabled boards appear as panel tabs", service.UsableBoards().Count == LeaderboardBoards.Enabled().Count);
+    }
+
+    // 2026-11-08: the native boards are just Top Score and Power-Ups. Real table, no override.
+    static void RetiredNativeBoards()
+    {
+        string topId = LeaderboardBoards.Get(LeaderboardBoards.TopScore).androidId;
+        string boostedId = LeaderboardBoards.Get(LeaderboardBoards.BoostedRuns).androidId;
+        string dustStore = "CgkIopqxqbAPEAIQPw", worldsStore = "CgkIopqxqbAPEAIQQA";   // the old store boards, left unused
+        long v;
+
+        // A normal run: Top Score only, whatever its dust and worlds.
+        RealRunContext();
+        var fake = new FakeLeaderboards();
+        var service = Service(fake);
+        int n = service.SubmitRun(new LeaderboardRunStats { score = 900, starDust = 12f, worldsCleared = 4 });
+        now = 60f;
+        service.Tick();
+        Check("only 2 native boards are submitted to: a normal run queues one board", n == 1 && service.HasPending(LeaderboardBoards.TopScore, out v) && v == 900);
+        Check("... nothing is queued for Star Dust or Worlds",
+              !service.HasPending(LeaderboardBoards.RunStarDust, out v) && !service.HasPending(LeaderboardBoards.FurthestWorld, out v));
+        Check("... and the store saw Top Score only, never the old Star Dust / Worlds boards",
+              fake.SubmissionsTo(topId) == 1 && fake.SubmissionsTo(dustStore) == 0 && fake.SubmissionsTo(worldsStore) == 0 && fake.Submissions.Count == 1);
+        Check("... the score tag still carries dust and worlds for the rows",
+              LeaderboardRunTag.TryParse(fake.Submissions[0].tag, out int s0, out int h0, out int e0, out int p0, out int k0, out long d0, out int w0, out int u0, out long r0)
+              && d0 == 1200 && w0 == 4);
+        Check("... offers to the retired ids are refused", !service.Offer(LeaderboardBoards.RunStarDust, 500) && !service.Offer(LeaderboardBoards.FurthestWorld, 5));
+
+        // A boosted run: Power-Ups only.
+        RealRunContext();
+        fake = new FakeLeaderboards();
+        service = Service(fake);
+        n = service.SubmitRun(new LeaderboardRunStats { score = 800, starDust = 3f, worldsCleared = 2, powerUps = LeaderboardRunTag.PowerDust, dustEarned = 6f });
+        now = 60f;
+        service.Tick();
+        Check("a boosted run goes to the Power-Ups board only", n == 1 && fake.Submissions.Count == 1 && fake.SubmissionsTo(boostedId) == 1);
+
+        // Leftovers from an older build: pending and submitted marks for the retired ids.
+        RealRunContext();
+        var pending = new LeaderboardService.ScoreTable();
+        pending.Set(LeaderboardBoards.RunStarDust, 900, "s7h4e1d900w3r500");
+        pending.Set(LeaderboardBoards.FurthestWorld, 5, "s7h4e1");
+        pending.Set(LeaderboardBoards.TopScore, 700, "s7h4e1");
+        pending.Save(LeaderboardService.PendingKey);
+        var sub = new LeaderboardService.ScoreTable();
+        sub.Set(LeaderboardBoards.RunStarDust, 800);
+        sub.Save(LeaderboardService.SubmittedKey);
+        LeaderboardService.MigrateRetiredBoards();
+        Check("pending Star Dust / Worlds entries are dropped, Top Score stays",
+              !LeaderboardService.ScoreTable.Load(LeaderboardService.PendingKey).TryGet(LeaderboardBoards.RunStarDust, out v)
+              && !LeaderboardService.ScoreTable.Load(LeaderboardService.PendingKey).TryGet(LeaderboardBoards.FurthestWorld, out v)
+              && LeaderboardService.ScoreTable.Load(LeaderboardService.PendingKey).TryGet(LeaderboardBoards.TopScore, out v) && v == 700);
+        Check("the submitted Star Dust mark is dropped too", !LeaderboardService.ScoreTable.Load(LeaderboardService.SubmittedKey).TryGet(LeaderboardBoards.RunStarDust, out v));
+
+        // And even without the migration, a flush never sends a retired entry (no usable board) and clears it.
+        RealRunContext();
+        pending = new LeaderboardService.ScoreTable();
+        pending.Set(LeaderboardBoards.RunStarDust, 900, "s7h4e1");
+        pending.Set(LeaderboardBoards.FurthestWorld, 5, "s7h4e1");
+        pending.Save(LeaderboardService.PendingKey);
+        fake = new FakeLeaderboards();
+        service = Service(fake);
+        service.FlushNow();
+        now = 60f;
+        service.Tick();
+        Check("a flush never sends a retired entry and the queue empties",
+              fake.Submissions.Count == 0 && LeaderboardService.ScoreTable.Load(LeaderboardService.PendingKey).entries.Count == 0);
+
+        // Sync now: nothing for the retired boards is re-queued from an old submitted mark.
+        RealRunContext();
+        sub = new LeaderboardService.ScoreTable();
+        sub.Set(LeaderboardBoards.FurthestWorld, 5, "s7h4e1");
+        sub.Save(LeaderboardService.SubmittedKey);
+        fake = new FakeLeaderboards();
+        service = Service(fake);
+        service.SyncNow();
+        Check("Sync now does not re-queue a retired board", !service.HasPending(LeaderboardBoards.FurthestWorld, out v) && fake.SubmissionsTo(worldsStore) == 0);
+
+        // The native panel: score only; DUST and WORLDS headers are there but disabled, with the note.
+        RealRunContext();
+        EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
+        var panel = OpenPanel(FakeLeaderboards.Demo());
+        Check("native panel: SCORE, DUST, WORLDS headers in that order",
+              panel.Headers.Count == 3 && panel.HeaderBoards[0] == LeaderboardBoards.TopScore && panel.HeaderBoards[1] == LeaderboardBoards.RunStarDust
+              && panel.HeaderBoards[2] == LeaderboardBoards.FurthestWorld);
+        Check("native panel: the DUST and WORLDS headers are disabled, SCORE is live",
+              panel.Headers[0].interactable && !panel.Headers[1].interactable && !panel.Headers[2].interactable);
+        panel.SelectBoard(LeaderboardBoards.RunStarDust);
+        panel.SelectBoard(LeaderboardBoards.FurthestWorld);
+        Check("native panel: tapping a disabled header changes nothing, it stays ranked by score",
+              panel.SelectedBoard == LeaderboardBoards.TopScore && panel.SortedBoard == LeaderboardBoards.TopScore);
+        var note = panel.PanelRoot.Find("Description");
+        Check("native panel: a short note points to the shared board",
+              note != null && note.GetComponent<UnityEngine.UI.Text>().text == LeaderboardPanel.NativeSortNote && LeaderboardPanel.NativeSortNote.Length <= 40);
+        LeaderboardPanel.Close();
+        RealRunContext();
     }
 
     // A score an older build queued for the speed board while signed out is
@@ -718,21 +814,25 @@ public static class LeaderboardTest
         Check("pauses: a tie with an older (pauses-less) tag is queued with the pauses", service.Offer(LeaderboardBoards.FurthestWorld, 5, "s7h4e1p2"));
         Check("pauses: a tie with no new information is ignored", !service.Offer(LeaderboardBoards.FurthestWorld, 5, "s7h4e1"));
 
-        // Migration: an old loop mark is dropped once.
+        // Migration: marks of the retired native boards are dropped from both tables, the rest is kept.
         RealRunContext();
-        PlayerPrefs.DeleteKey(LeaderboardService.WorldsMigratedKey);
         old = new LeaderboardService.ScoreTable();
         old.Set(LeaderboardBoards.FurthestWorld, 3, "s7h4e1");
+        old.Set(LeaderboardBoards.RunStarDust, 800, "s7h4e1");
         old.Set(LeaderboardBoards.TopScore, 900, "s7h4e1");
         old.Save(LeaderboardService.SubmittedKey);
-        LeaderboardService.MigrateWorldsBoard();
+        var pendingOld = new LeaderboardService.ScoreTable();
+        pendingOld.Set(LeaderboardBoards.FurthestWorld, 5, "s7h4e1");
+        pendingOld.Set(LeaderboardBoards.RunStarDust, 900, "s7h4e1");
+        pendingOld.Save(LeaderboardService.PendingKey);
+        int removed = LeaderboardService.MigrateRetiredBoards();
         var after = LeaderboardService.ScoreTable.Load(LeaderboardService.SubmittedKey);
+        var afterPending = LeaderboardService.ScoreTable.Load(LeaderboardService.PendingKey);
         long m;
-        Check("migration: old furthest_world mark dropped, others kept", !after.TryGet(LeaderboardBoards.FurthestWorld, out m) && after.TryGet(LeaderboardBoards.TopScore, out m) && m == 900);
-        old.Set(LeaderboardBoards.FurthestWorld, 4);
-        old.Save(LeaderboardService.SubmittedKey);
-        LeaderboardService.MigrateWorldsBoard();
-        Check("migration: runs once", LeaderboardService.ScoreTable.Load(LeaderboardService.SubmittedKey).TryGet(LeaderboardBoards.FurthestWorld, out m) && m == 4);
+        Check("migration: old Worlds / Star Dust marks dropped from submitted and pending, Top Score kept",
+              removed == 4 && !after.TryGet(LeaderboardBoards.FurthestWorld, out m) && !after.TryGet(LeaderboardBoards.RunStarDust, out m)
+              && after.TryGet(LeaderboardBoards.TopScore, out m) && m == 900 && afterPending.entries.Count == 0);
+        Check("migration: a second run finds nothing", LeaderboardService.MigrateRetiredBoards() == 0);
 
         // Ranking: higher cleared count first; a refused store value parks the board after MaxRejectedSends.
         var board = LeaderboardBoards.Get(LeaderboardBoards.FurthestWorld);
@@ -1282,7 +1382,7 @@ public static class LeaderboardTest
         Check("populated: top 10 rows", panel.RowCount == 10);
         Check("populated: own rank row shown", panel.PlayerRowShown && panel.PlayerRankText == "#14");
         Check("populated: the main tab (the table has no Power-Ups board here), one header per enabled normal board",
-              panel.Tabs.Count == 1 && panel.TabBoards[0] == LeaderboardPanel.MainTab && panel.Headers.Count == LeaderboardBoards.Enabled().Count);
+              panel.Tabs.Count == 1 && panel.TabBoards[0] == LeaderboardPanel.MainTab && panel.Headers.Count == 3 && !panel.Headers[1].interactable);
         Check("populated: first tab selected, sorted on score", panel.SelectedBoard == LeaderboardBoards.TopScore && panel.SortedBoard == LeaderboardBoards.TopScore);
         Check("populated: View all shown", panel.ViewAllButton.gameObject.activeSelf);
         var row0 = panel.PanelRoot.Find("List/Rows/Row0");

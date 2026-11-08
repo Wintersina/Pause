@@ -127,33 +127,38 @@ public sealed class LeaderboardService
     // Hooks sign-in success (SocialBridge.SignedIn) up to Flush. Idempotent.
     public static void Install()
     {
-        MigrateWorldsBoard();
+        MigrateRetiredBoards();
         MigrateSeason();
         SharedLeaderboardService.Install();
         SocialBridge.SignedIn -= OnSignedInStatic;
         SocialBridge.SignedIn += OnSignedInStatic;
     }
 
-    // The furthest_world board changed meaning once: it held the LOOP a run
-    // reached (1, 2, 3 ...) and now holds the WORLDS CLEARED across loops. A
-    // device mark of the old kind (queued or submitted) would be read as a
-    // worlds count, so it is dropped once. Nothing real is lost: the board only
-    // existed as an unpublished draft, and a mark is only a "this device
-    // already sent it" note, so the next run offers its worlds again.
-    public const string WorldsMigratedKey = "leaderboards_worldsMigrated";
-
-    public static void MigrateWorldsBoard()
+    // The native Star Dust and Worlds boards are retired (2026-11-08): only Top Score and Power-Ups are sent to Play
+    // Games / Game Center. A device may still hold queued or confirmed marks for the two old ids (an older build wrote
+    // them); they would never be sent (no usable board) and would just sit in the saved tables, so they are removed
+    // from both tables. Runs at every Install; harmless once they are gone. Local bests are per route (score), not per
+    // board, so there is nothing else to drop.
+    public static int MigrateRetiredBoards()
     {
-        if (PlayerPrefs.GetInt(WorldsMigratedKey, 0) == 1) return;
+        int removed = 0;
+        bool changed = false;
         foreach (string key in new[] { PendingKey, SubmittedKey })
         {
             var table = ScoreTable.Load(key);
-            long unused;
-            if (!table.TryGet(LeaderboardBoards.FurthestWorld, out unused)) continue;
-            table.Remove(LeaderboardBoards.FurthestWorld);
-            table.Save(key);
+            bool touched = false;
+            foreach (string id in new[] { LeaderboardBoards.RunStarDust, LeaderboardBoards.FurthestWorld })
+            {
+                long unused;
+                if (!table.TryGet(id, out unused)) continue;
+                table.Remove(id);
+                touched = true;
+                removed++;
+            }
+            if (touched) { table.Save(key); changed = true; }
         }
-        PlayerPrefs.SetInt(WorldsMigratedKey, 1);
+        if (changed) PrefsSaver.SaveNow();
+        return removed;
     }
 
     // ---- season reset ----

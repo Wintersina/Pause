@@ -376,17 +376,14 @@ public static class ScreenFitScreens
         }
         if (shot == 2)
         {
-            // Stage every board with stand-in ids so both tabs and all three sort headers are on screen
-            // (the shipped table has no iOS ids for Star Dust / Worlds, which would offer one header there).
+            // Stage the two native boards (Top Score, Power-Ups) with stand-in ids on both stores so both tabs are on
+            // screen (the shipped table has no iOS id for Power-Ups). The DUST and WORLDS headers are the disabled ones
+            // the native panel always draws, with the "sort on the shared board" note under the tabs.
             var real = LeaderboardBoards.Get(LeaderboardBoards.TopScore);
             LeaderboardBoards.OverrideForTests(new[]
             {
                 new LeaderboardBoard(real.id, "fit_android_top_score", "fit_ios_top_score", real.displayName, real.description,
                                      real.sort, LeaderboardBoards.FormatScore, run => run.score),
-                new LeaderboardBoard(LeaderboardBoards.RunStarDust, "fit_android_dust", "fit_ios_dust", "Star Dust", "Star dust.",
-                                     LeaderboardSort.HigherIsBetter, LeaderboardBoards.FormatHundredths, run => (long)run.starDust, 1),
-                new LeaderboardBoard(LeaderboardBoards.FurthestWorld, "fit_android_worlds", "fit_ios_worlds", "Worlds", "Worlds.",
-                                     LeaderboardSort.HigherIsBetter, LeaderboardBoards.FormatWorlds, run => run.worldsCleared, 1),
                 new LeaderboardBoard(LeaderboardBoards.BoostedRuns, "fit_android_boosted", "fit_ios_boosted", "Boosted", "Runs that used a booster.",
                                      LeaderboardSort.HigherIsBetter, LeaderboardBoards.FormatScore, run => run.score, 1, true),
             });
@@ -399,8 +396,7 @@ public static class ScreenFitScreens
                         rank = i + 1,
                         playerId = i == 3 ? fake.LocalPlayerId : "p" + i,
                         playerName = i < LongNames.Length ? LongNames[i] : i % 2 == 0 ? "TETSUO" + i : "A_RATHER_LONG_PLAYER_NAME_" + i,
-                        // Worlds are capped at 9999 by the store board; the other boards hold big numbers.
-                        value = b.id == LeaderboardBoards.FurthestWorld ? 9999 - i * 137 : 99999999 - i * 137,
+                        value = 99999999 - i * 137,
                         isLocalPlayer = i == 3,
                         // Ships 1-9 in their skins 0..2 (a skin a ship lacks draws stock).
                         // Every fifth row has no hearts (unknown: a dash), every fourth no pauses; pauses read 99 or 7.
@@ -421,16 +417,11 @@ public static class ScreenFitScreens
             rig.Ignore("Canvas");
             LeaderboardChecks(rig, panel);
             MainChecks(rig, panel, 3);
-            // Each other column sorted: the same row checks and the cells again.
-            foreach (string sort in new[] { LeaderboardBoards.RunStarDust, LeaderboardBoards.FurthestWorld })
-            {
-                panel.SelectBoard(sort);
-                rig.Sync();
-                panel.SendMessage("Update");
-                rig.Ignore("Canvas");
-                LeaderboardChecks(rig, panel);
-                MainChecks(rig, panel, 3);
-            }
+            // DUST and WORLDS are disabled natively: they must be there, greyed, and tapping them sorts nothing.
+            if (panel.Headers.Count != 3 || panel.Headers[1].interactable || panel.Headers[2].interactable)
+                rig.Fail("STAGE", "native headers", "DUST and WORLDS are not drawn disabled");
+            panel.SelectBoard(LeaderboardBoards.RunStarDust);
+            if (panel.SortedBoard != LeaderboardBoards.TopScore) rig.Fail("STAGE", "native headers", "a disabled header changed the sort");
             // The Boosted tab (last): the same row checks, plus its own columns.
             panel.SelectBoard(LeaderboardBoards.BoostedRuns);
             rig.Sync();

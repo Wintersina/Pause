@@ -80,8 +80,6 @@ public struct SharedRun
         switch (boardId)
         {
             case LeaderboardBoards.TopScore: run.score = Math.Max(1, value); break;
-            case LeaderboardBoards.RunStarDust: run.dust = Math.Max(0, value); break;
-            case LeaderboardBoards.FurthestWorld: run.worlds = (int)Math.Min(Math.Max(0, value), int.MaxValue); break;
             case LeaderboardBoards.BoostedRuns:
                 run.score = Math.Max(1, value);
                 if (run.powerUps == 0) return false;

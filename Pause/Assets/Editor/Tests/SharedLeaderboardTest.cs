@@ -196,10 +196,8 @@ public static class SharedLeaderboardTest
         SharedRun m;
         Check("marks: a Top Score mark with its tag becomes the whole run",
               SharedRun.TryFromMark(LeaderboardBoards.TopScore, 5000, tag, out m) && m.score == 5000 && m.dust == 1234 && m.worlds == 4 && m.ship == 7);
-        Check("marks: a Worlds mark with no tag has only the worlds",
-              SharedRun.TryFromMark(LeaderboardBoards.FurthestWorld, 6, "", out m) && m.worlds == 6 && m.ship == 0 && m.score == 0 && m.dust == 0);
-        Check("marks: a Dust mark with no tag has only the dust (score unknown, not 1)",
-              SharedRun.TryFromMark(LeaderboardBoards.RunStarDust, 5868, "", out m) && m.dust == 5868 && m.score == 0 && m.worlds == 0 && m.ship == 0);
+        Check("marks: the retired Worlds and Star Dust boards no longer make a run (their marks are dropped at Install)",
+              !SharedRun.TryFromMark(LeaderboardBoards.FurthestWorld, 6, "", out m) && !SharedRun.TryFromMark(LeaderboardBoards.RunStarDust, 5868, "", out m));
         Check("marks: a Top Score mark with a bare tag has no dust (unknown, not 0.00 as a fact)",
               SharedRun.TryFromMark(LeaderboardBoards.TopScore, 2032, "", out m) && m.score == 2032 && m.dust == 0 && m.ship == 0);
         Check("marks: a Power-Ups mark without power-up bits is refused", !SharedRun.TryFromMark(LeaderboardBoards.BoostedRuns, 100, "s7h4", out m));
@@ -553,16 +551,14 @@ public static class SharedLeaderboardTest
         // The native record: a Top Score mark with its run, a Worlds mark with a different run, a Power-Ups mark.
         var marks = LeaderboardService.ScoreTable.Load(LeaderboardService.SubmittedKey);
         marks.Set(LeaderboardBoards.TopScore, 9000, LeaderboardRunTag.Encode(5, 4, 2, 3, 0, 150, 2, 0, 9000));
-        marks.Set(LeaderboardBoards.RunStarDust, 4000, LeaderboardRunTag.Encode(6, 4, 1, 1, 0, 4000, 3, 0, 3000));
-        marks.Set(LeaderboardBoards.FurthestWorld, 9, LeaderboardRunTag.Encode(8, 4, 0, 0, 0, 200, 9, 0, 2000));
         marks.Set(LeaderboardBoards.BoostedRuns, 8000, LeaderboardRunTag.Encode(5, 4, 2, 3, 0, 900, 2, 1));
         marks.Save(LeaderboardService.SubmittedKey);
         int queued = s.SyncNow();
-        Check("sync: the marks are queued for both tables", queued >= 6);
+        Check("sync: the marks are queued for both tables", queued >= 3);
         var main = fake.Get(SharedTable.Main, fake.Uid);
         var power = fake.Get(SharedTable.Power, fake.Uid);
-        Check("sync: Main takes the three bests from the marks, the details from the score run",
-              main != null && main.score == 9000 && main.dust == 4000 && main.worlds == 9 && main.run.ship == 5);
+        Check("sync: Main takes the bests and details from the Top Score mark's tag",
+              main != null && main.score == 9000 && main.dust == 150 && main.worlds == 2 && main.run.ship == 5);
         Check("sync: Power-Ups is rebuilt from its mark", power != null && power.score == 8000 && power.run.powerUps == 1);
         Check("sync: nothing is written twice", fake.UploadCalls == 2);
 

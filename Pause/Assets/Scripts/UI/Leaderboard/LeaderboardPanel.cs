@@ -308,6 +308,18 @@ public class LeaderboardPanel : MonoBehaviour
         panelRoot.sizeDelta = new Vector2(panelW, panelH);
         mainColumns.Clear();
         foreach (var b in PanelBoards()) if (!b.poweredUpOnly) mainColumns.Add(b);
+        // Native mode ranks by score only (the Star Dust and Worlds store boards are retired): the DUST and WORLDS
+        // columns still show each row's numbers from its tag, and their headers are there but disabled.
+        // Canonical order: SCORE, DUST, WORLDS (a column a store board still backs keeps its own board).
+        if (shared == null && IsMainColumn(LeaderboardBoards.TopScore))
+        {
+            var ordered = new List<LeaderboardBoard> { mainColumns.Find(c => c.id == LeaderboardBoards.TopScore) };
+            foreach (var col in LeaderboardBoards.SharedOnlyColumns)
+                ordered.Add(mainColumns.Find(c => c.id == col.id) ?? col);
+            foreach (var c in mainColumns) if (!ordered.Exists(o => o.id == c.id)) ordered.Add(c);
+            mainColumns.Clear();
+            mainColumns.AddRange(ordered);
+        }
 
         // Frame: chamfered night plate, thick ink, inner panel line.
         var frame = CelShape.Add(Fill(panelRoot, "Frame").gameObject, CelShape.Kind.Chamfer,
@@ -461,10 +473,20 @@ public class LeaderboardPanel : MonoBehaviour
             button.transition = Selectable.Transition.None;
             string id = board.id;
             button.onClick.AddListener(() => SelectBoard(id));
+            button.interactable = ColumnEnabled(id);   // a disabled header is greyed (SelectBoard) and ignores taps
             Headers.Add(button);
             HeaderBoards.Add(id);
         }
     }
+
+    // A header can be sorted on: always in shared mode, and in native mode only when a store board backs it.
+    bool ColumnEnabled(string boardId)
+    {
+        return shared != null || service.Usable(boardId) != null;
+    }
+
+    // The short note shown under the headers in native mode while the disabled DUST / WORLDS headers are there.
+    public const string NativeSortNote = "SORT DUST / WORLDS ON THE SHARED BOARD";
 
     public static string HeaderLabel(LeaderboardBoard board)
     {
@@ -504,9 +526,16 @@ public class LeaderboardPanel : MonoBehaviour
         return false;
     }
 
+    bool AnyDisabledHeader()
+    {
+        foreach (var h in Headers) if (!h.interactable) return true;
+        return false;
+    }
+
     // Loads one STORE board: a main-tab column (the header) or the Power-Ups board. Always that board's own ranks.
     public void SelectBoard(string boardId)
     {
+        if (boardId != null && LeaderboardBoards.IsRetiredNative(boardId) && !ColumnEnabled(boardId)) return;   // a retired native column: no sort
         SelectedBoard = boardId;
         var board = LeaderboardBoards.Get(boardId);
         bool main = board == null || !board.poweredUpOnly;
@@ -533,9 +562,15 @@ public class LeaderboardPanel : MonoBehaviour
             shape.hasShadow = on;
             shape.shadow = AkiraPalette.Ink;
             shape.shadowOffset = new Vector2(4f, -4f);
-            Headers[i].GetComponentInChildren<Text>().color = on ? AkiraPalette.Bone : AkiraPalette.Muted;
+            Headers[i].GetComponentInChildren<Text>().color = !Headers[i].interactable ? AkiraPalette.WithAlpha(AkiraPalette.Muted, .4f)
+                : on ? AkiraPalette.Bone : AkiraPalette.Muted;
         }
-        if (descriptionText != null) descriptionText.text = !main && board != null ? board.description.ToUpperInvariant() : "";
+        if (descriptionText != null)
+        {
+            bool note = main && shared == null && AnyDisabledHeader();
+            descriptionText.text = !main && board != null ? board.description.ToUpperInvariant() : note ? NativeSortNote : "";
+            FitText(descriptionText, 20, ValueMinSize, Inner - FitMargin);
+        }
         Reload();
     }
 
