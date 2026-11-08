@@ -195,6 +195,7 @@ public static class UnusedAssetGuardTest
     static readonly string[] ExemptPrefixes =
     {
         "Assets/Plugins/", "Assets/GooglePlayGames/", "Assets/ExternalDependencyManager/", "Assets/GoogleMobileAds/",
+        "Assets/Firebase/", "Assets/Editor Default Resources/",
         "Assets/Art/AppIcon/", "Assets/Art/Enemies/Elite/",
     };
 

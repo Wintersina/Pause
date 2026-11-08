@@ -968,7 +968,8 @@ PlayerSettings:
   webWasm2023: 0
   webEnableSubmoduleStrippingCompatibility: 0
   scriptingDefineSymbols:
-    Android: 
+    Android: PAUSE_FIREBASE
+    iPhone: PAUSE_FIREBASE
   additionalCompilerArguments: {}
   platformArchitecture: {}
   scriptingBackend:
