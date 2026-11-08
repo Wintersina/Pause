@@ -27,14 +27,15 @@ public class movePlayer : MonoBehaviour
 
     private float nextTeleportAt;
 
-    // The launch glide. A finger already down when GO fires used to teleport
-    // the ship onto it (the first steered frame was a plain placement, or a
-    // full blink with FX when the finger had lifted and re-landed during
-    // READY). Now the ship glides there instead: an exponential ease-out
-    // toward the live finger, speed capped so a far finger is still a fast
-    // glide, then it hands over to the normal 1:1 follow. Only the first GO of
-    // this ship's life starts one (playoneshot); lifting the finger cancels it
-    // (that is the pause), so pause-teleport works as ever, mid-glide too.
+    // The launch glide. The first press of this ship's life (and any press
+    // after a lift while READY is still up) glides the ship to the finger
+    // instead of blinking it there: an exponential ease-out toward the live
+    // finger, speed capped so a far finger is still a fast glide, then it
+    // hands over to the normal 1:1 follow. It starts on the press itself, not
+    // at GO: the ship follows the finger through READY and GO alike (it used
+    // to sit frozen until GO, so a finger already moving lost the ship).
+    // Lifting the finger cancels it (that is the pause); after GO a new press
+    // is an ordinary pause-teleport, mid-glide too.
     public const float GlideRate = 14f;        // 1/s: ~95% of the gap in 0.2 s
     public const float GlideMaxSpeed = 60f;    // world units / s
     public const float GlideSettleDistance = 0.05f;
@@ -44,6 +45,9 @@ public class movePlayer : MonoBehaviour
     const float GlideMaxStep = 0.05f;          // dt clamp (hitch frames)
     private bool gliding;
     private float glideElapsed;
+    // A press is down and already gliding/following during the countdown
+    // (before GO). Cleared when the finger lifts.
+    private bool launchHeld;
 
     // The pause-jump is a targeting move: the ship lands ON the finger so the
     // landing blast hits what the finger is on, then slides back up to its
@@ -57,8 +61,8 @@ public class movePlayer : MonoBehaviour
     private Vector3 returnOffset;
 
     // The launch countdown: one second of "READY" from the first touch, then
-    // "GO!!!!" and the ship steers on that same frame. GO only lingers as a
-    // fade-out; it never holds control back. (It used to be a 2s count plus a
+    // "GO!!!!". Purely a banner: the ship steers through READY and GO alike.
+    // GO only lingers as a fade-out; it never holds control back. (It used to be a 2s count plus a
     // 2s GO banner, so the start felt about three seconds long.)
     public const float CountdownSeconds = 1f;
     public const float GoSeconds = 0.5f;
@@ -137,86 +141,95 @@ public class movePlayer : MonoBehaviour
             bool live = StepLaunch(ref startTimerCounter, Dt());
             startTimer.fontSize = CountdownFontSize(startTimerBaseFontSize, startTimerCounter);
 
-            if (live)
+            if (playoneshot)
             {
-                if (playoneshot)
+                // READY no longer holds the ship. It used to sit frozen until
+                // GO, so a finger already down and moving (held through the
+                // run's entry, or just landed) lost the ship for the whole
+                // countdown. Now every press before GO glides to the live
+                // finger and then follows it 1:1; a lift is still the pause,
+                // and a press before GO never blinks.
+                if (!launchHeld)
                 {
-                    // GO text, GO sound and control all land on this frame.
+                    gliding = true;
+                    glideElapsed = 0f;
+                    launchHeld = true;
+                }
+                returning = false;
+                teleported = false;
+                teleportLockedUntilRelease = false;
+
+                if (live)
+                {
+                    // GO text and GO sound land on this frame; steering
+                    // carries straight on through it, no snap.
                     startTimer.text = LaunchLabel(startTimerCounter);
                     goClip.Play();
                     playoneshot = false;
-                    // The launch never blinks: glide to the finger instead.
-                    gliding = true;
-                    glideElapsed = 0f;
-                    returning = false;
-                    teleported = false;
-                    teleportLockedUntilRelease = false;
-                }
-
-                if (TouchInput.IsPressed)
-                {
-                    fingerPos = CameraFit.Main.ScreenToWorldPoint(new Vector3(TouchInput.Position.x, TouchInput.Position.y, 0));
-                    textPos = CameraFit.Main.WorldToScreenPoint(transform.position);
                 }
                 else
-                    teleported = true;
+                    startTimer.text = LaunchLabel(startTimerCounter);
+            }
 
-                if (gliding)
-                {
-                    float dt = Mathf.Min(Dt(), GlideMaxStep);
-                    Vector3 target = FollowTarget(fingerPos);
-                    bool done;
-                    Vector3 next = GlideStep(transform.position, target, glideElapsed, dt, out done);
-                    glideElapsed += dt;
-                    PlaceShip(next);
-                    if (done) gliding = false;
-                }
-                else if (teleported)
-                {
-                    // `teleported` is set the moment the finger lifts, so the
-                    // next touch is an arrival rather than a drag. Do the
-                    // cooldown check *before* moving: restoring position after
-                    // a move only blocked one frame of a held touch.
-                    teleported = false;
-                    if (!CanTeleport())
-                    {
-                        teleportLockedUntilRelease = true;
-                        TeleportFx.Denied(transform.position);
-                        return;
-                    }
-
-                    Vector3 before = transform.position;
-                    Vector3 rest = FollowTarget(fingerPos);
-                    Vector3 land = LandingPoint(fingerPos);
-                    PlaceShip(land);
-                    returnOffset = land - rest;
-                    returnElapsed = 0f;
-                    returning = true;
-                    MarkTeleport();
-                    AtomHoming.OnTeleport();   // homing atoms locked on the old spot miss
-                    TeleportFx.Play(before, land);
-                    // scored by the jump to the perch, as before the slide-back
-                    RunScore.OnTeleport(before, rest);
-                    AchievementTracker.OnTeleport(before, rest);
-                }
-                else if (returning)
-                {
-                    float dt = Mathf.Min(Dt(), GlideMaxStep);
-                    returnElapsed += dt;
-                    PlaceShip(ReturnPosition(FollowTarget(fingerPos), returnOffset, returnElapsed));
-                    if (returnElapsed >= ReturnSeconds) returning = false;
-                }
-                else if (!teleportLockedUntilRelease)
-                {
-                    // Normal held-touch steering remains responsive. A touch
-                    // that was refused by the no-pause cooldown cannot steer
-                    // or blink until it has been released.
-                    moveLeft_Right(fingerPos);
-                }
+            if (TouchInput.IsPressed)
+            {
+                fingerPos = CameraFit.Main.ScreenToWorldPoint(new Vector3(TouchInput.Position.x, TouchInput.Position.y, 0));
+                textPos = CameraFit.Main.WorldToScreenPoint(transform.position);
             }
             else
+                teleported = true;
+
+            if (gliding)
             {
-                startTimer.text = LaunchLabel(startTimerCounter);
+                float dt = Mathf.Min(Dt(), GlideMaxStep);
+                Vector3 target = FollowTarget(fingerPos);
+                bool done;
+                Vector3 next = GlideStep(transform.position, target, glideElapsed, dt, out done);
+                glideElapsed += dt;
+                PlaceShip(next);
+                if (done) gliding = false;
+            }
+            else if (teleported)
+            {
+                // `teleported` is set the moment the finger lifts, so the
+                // next touch is an arrival rather than a drag. Do the
+                // cooldown check *before* moving: restoring position after
+                // a move only blocked one frame of a held touch.
+                teleported = false;
+                if (!CanTeleport())
+                {
+                    teleportLockedUntilRelease = true;
+                    TeleportFx.Denied(transform.position);
+                    return;
+                }
+
+                Vector3 before = transform.position;
+                Vector3 rest = FollowTarget(fingerPos);
+                Vector3 land = LandingPoint(fingerPos);
+                PlaceShip(land);
+                returnOffset = land - rest;
+                returnElapsed = 0f;
+                returning = true;
+                MarkTeleport();
+                AtomHoming.OnTeleport();   // homing atoms locked on the old spot miss
+                TeleportFx.Play(before, land);
+                // scored by the jump to the perch, as before the slide-back
+                RunScore.OnTeleport(before, rest);
+                AchievementTracker.OnTeleport(before, rest);
+            }
+            else if (returning)
+            {
+                float dt = Mathf.Min(Dt(), GlideMaxStep);
+                returnElapsed += dt;
+                PlaceShip(ReturnPosition(FollowTarget(fingerPos), returnOffset, returnElapsed));
+                if (returnElapsed >= ReturnSeconds) returning = false;
+            }
+            else if (!teleportLockedUntilRelease)
+            {
+                // Normal held-touch steering remains responsive. A touch
+                // that was refused by the no-pause cooldown cannot steer
+                // or blink until it has been released.
+                moveLeft_Right(fingerPos);
             }
 
         }
@@ -228,6 +241,7 @@ public class movePlayer : MonoBehaviour
             returning = false;
             teleported = true;
             teleportLockedUntilRelease = false;
+            launchHeld = false;
         }
 
     }
