@@ -488,7 +488,9 @@ public static class TutorialRebuildTest
         float idle0 = hints.IdleClock;
         Frames(240);
         Check("finger up: the atom holds still while frozen", atom != null && Mathf.Approximately(atom.position.y, y0));
-        Check("finger up: the tutorial waits (idle clock stays " + hints.IdleClock.ToString("0.00") + ")", Mathf.Approximately(hints.IdleClock, idle0) && hints.CurrentStep == 2);
+        // the hold reminder ("Keep your finger on the screen!") owns the robot while the finger is up: the idle
+        // clock is held at 0 (no idle re-prompt on top of it) and the step still waits, never advancing
+        Check("finger up: the tutorial waits, nagging instead of the idle re-prompt (idle clock " + hints.IdleClock.ToString("0.00") + ", was " + idle0.ToString("0.00") + ")", hints.IdleClock <= idle0 + .001f && hints.CurrentStep == 2);
         Check("the line stays up while frozen", hints.Speaker.LineFinished && hints.Speaker.Text.text.Length > 0);
         pressed = true;
         Frames(30);
