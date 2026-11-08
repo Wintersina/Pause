@@ -22,6 +22,8 @@ public interface IRewardStore
     long LastPaidToken { get; }
     // Persists the paid token and credits the dust together (one save).
     void Pay(long token, float amount);
+    // Credits dust that has no death token (the Shop's rewarded ad) and saves.
+    void Grant(float amount);
 }
 
 public sealed class AdController
@@ -54,6 +56,12 @@ public sealed class AdController
     bool sessionRewarded, sessionPaid, lateOpen;
     long sessionToken; float sessionEarned; Action<float> sessionOnPaid;
 
+    // Shop rewarded ad: always available, no death token.
+    public const float ShopAdDust = 50f;
+    bool sessionShop;
+    int eligibleRunEnds;     // run ends that passed every forced-ad guard: every RunsPerInterstitial-th gets the full ad
+    bool bannerUp;
+
     float lastAdAt = float.NegativeInfinity;
     bool watchedRewardedAtDeath;
 
@@ -77,7 +85,24 @@ public sealed class AdController
 
     // ---- run lifecycle (called by the game) ----
 
-    public void OnRunStart() { runActive = true; watchedRewardedAtDeath = false; }
+    public void OnRunStart() { runActive = true; watchedRewardedAtDeath = false; HideBanner(); }
+
+    public bool BannerShowing { get { return bannerUp; } }
+    public int EligibleRunEnds { get { return eligibleRunEnds; } }
+
+    public void ShowBanner()
+    {
+        if (!enabled() || phase != Phase.Ready || !provider.BannerAvailable) return;
+        try { provider.ShowBanner(); bannerUp = true; }
+        catch (Exception e) { Debug.Log("[ADS] banner show threw: " + e.Message); }
+    }
+
+    public void HideBanner()
+    {
+        if (!bannerUp) return;
+        bannerUp = false;
+        try { provider.HideBanner(); } catch (Exception) { }
+    }
 
     // The death panel is up (or the run was left): loads are allowed again, and an ad that was
     // not ready is asked for now.
@@ -239,6 +264,50 @@ public sealed class AdController
         return true;
     }
 
+    // The ad for the end of a run, decided BEFORE the results modal: the full interstitial on every Nth eligible run end
+    // (it auto-plays; `proceed` builds the modal when it ends, was abandoned or failed -- exactly once), otherwise a small
+    // banner that stays up while the modal is open (returns Banner, nothing to wait for), or nothing. On Interstitial the
+    // caller must NOT proceed itself; on Banner / None it does.
+    public AdPolicy.RunEndAd TryRunEndAd(AdPolicy.Inputs inputs, Action proceed)
+    {
+        if (!enabled() || phase != Phase.Ready || busy) return AdPolicy.RunEndAd.None;
+        inputs.secondsSinceLastAd = SecondsSinceLastAd;
+        inputs.watchedRewardedAtDeath = watchedRewardedAtDeath;
+        if (AdPolicy.MayShowForcedAd(inputs)) eligibleRunEnds++;
+        var choice = AdPolicy.ChooseRunEndAd(inputs, eligibleRunEnds, provider.InterstitialReady, provider.BannerAvailable);
+        if (choice == AdPolicy.RunEndAd.Interstitial)
+        {
+            BeginShow(false);
+            sessionDone = proceed;
+            int mark = session;
+            var events = Events(mark);
+            try { provider.ShowInterstitial(events); }
+            catch (Exception e) { Debug.Log("[ADS] interstitial show threw: " + e.Message); FinishShow(false); }
+        }
+        else if (choice == AdPolicy.RunEndAd.Banner) ShowBanner();
+        return choice;
+    }
+
+    // ---- the Shop's rewarded ad (+ShopAdDust star dust, every time, for everyone) ----
+
+    public bool ShopAdReady { get { return RewardedReady && !busy; } }
+
+    // Shows the rewarded ad for the Shop. The dust is credited ONLY from the SDK's reward callback (once per show), through
+    // the reward store; no AdPolicy guard applies (Remove Ads and Paragon owners keep it). `onDone` runs when the flow ends.
+    public bool TryShowShopReward(Action<float> onPaid, Action onDone)
+    {
+        if (!enabled() || phase != Phase.Ready || busy || !provider.RewardedReady) return false;
+        BeginShow(true);
+        sessionShop = true;
+        sessionDone = onDone;
+        sessionOnPaid = onPaid;
+        int mark = session;
+        var events = Events(mark);
+        try { provider.ShowRewarded(events); }
+        catch (Exception e) { Debug.Log("[ADS] shop rewarded show threw: " + e.Message); FinishShow(false); }
+        return true;
+    }
+
     // ---- the rewarded double dust ----
 
     // Shows the rewarded ad for one death. `onPaid(extra)` runs when the reward was credited
@@ -266,6 +335,7 @@ public sealed class AdController
         sessionStarted = clock();
         sessionOpened = sessionFinished = sessionPaid = lateOpen = false;
         sessionRewarded = rewarded;
+        sessionShop = false;
         sessionOnPaid = null;
     }
 
@@ -283,13 +353,13 @@ public sealed class AdController
                 if (mark != session || sessionFinished || sessionOpened) return;
                 sessionOpened = true;
                 sessionOpenedAt = clock();
-                if (sessionRewarded) watchedRewardedAtDeath = true;
+                if (sessionRewarded && !sessionShop) watchedRewardedAtDeath = true;
                 env.Suspend();
             },
             earned = () =>
             {
                 if (mark != session || sessionFinished || !sessionRewarded) return;
-                Pay();
+                if (sessionShop) PayShop(); else Pay();
             },
             closed = () =>
             {
@@ -298,6 +368,17 @@ public sealed class AdController
             },
             failed = message => { if (mark == session && !sessionFinished) FinishShow(sessionOpened); },
         };
+    }
+
+    void PayShop()
+    {
+        if (sessionPaid) return;
+        sessionPaid = true;
+        try { store.Grant(ShopAdDust); }
+        catch (Exception e) { Debug.Log("[ADS] shop reward store threw: " + e.Message); return; }
+        Debug.Log("[ADS] shop ad rewarded +" + ShopAdDust);
+        var cb = sessionOnPaid;
+        if (cb != null) { try { cb(ShopAdDust); } catch (Exception) { } }
     }
 
     void Pay()

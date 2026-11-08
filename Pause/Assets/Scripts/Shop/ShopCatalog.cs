@@ -7,7 +7,7 @@ using UnityEngine;
 // A row is never buyable unless its product is Available (Play returned a price and the billing flow is
 // connected), so on iOS, in the editor, or with no price nothing looks buyable: the row reads UNAVAILABLE.
 // The Shop entry is on the home screen on every platform (nothing here is platform-specific).
-public enum ShopRowKind { RemoveAds, Paragon, Pack, DustBooster, HazardClear, HomingAtoms }
+public enum ShopRowKind { RemoveAds, Paragon, Pack, DustBooster, HazardClear, HomingAtoms, WatchAd }
 
 public enum ShopRowState
 {
@@ -87,6 +87,7 @@ public static class ShopCatalog
             packs,
             new ShopSection("BOOSTERS", BoosterRow(Boosters.Kind.DustMultiplier), BoosterRow(Boosters.Kind.HazardClear),
                             BoosterRow(Boosters.Kind.HomingAtoms)),
+            new ShopSection("FREE STAR DUST", WatchAdRow()),
         };
     }
 
@@ -131,6 +132,25 @@ public static class ShopCatalog
         if (pack.Buying) Set(row, ShopRowState.Buying, BuyingLabel);
         else if (pack.Available) Set(row, ShopRowState.Buyable, pack.Price);
         else Set(row, ShopRowState.Unavailable, UnavailableLabel);
+        return row;
+    }
+
+    public const string WatchAdTitle = "WATCH AN AD";
+    public const string WatchAdText = "Watch a 30 second ad for +50 star dust. As often as you like, even with Remove Ads.";
+    public const string WatchAdLoadingLabel = "LOADING";
+    public const string WatchAdButton = "+50 DUST";
+    public const float WatchAdDust = AdController.ShopAdDust;
+
+    // "Watch an ad: +50 Star Dust": ALWAYS on offer (Remove Ads and Paragon owners too), repeatable. Buyable only while a
+    // rewarded ad is loaded; otherwise a disabled LOADING state (UNAVAILABLE where ads are off altogether). The dust is
+    // credited only by the SDK's reward callback (AdController.TryShowShopReward -> StarDustLedger.Grant).
+    public static ShopRow WatchAdRow()
+    {
+        var row = new ShopRow { kind = ShopRowKind.WatchAd, title = WatchAdTitle, subtitle = WatchAdText };
+        if (!AdManager.ShopAdEnabled) Set(row, ShopRowState.Unavailable, UnavailableLabel);
+        else if (AdManager.ShowInProgress) Set(row, ShopRowState.Buying, BuyingLabel);
+        else if (AdManager.ShopAdReady) Set(row, ShopRowState.Buyable, WatchAdButton);
+        else Set(row, ShopRowState.Unavailable, WatchAdLoadingLabel);
         return row;
     }
 
@@ -206,6 +226,8 @@ public static class ShopCatalog
         if (row == null || !row.Tappable) return false;
         // Booster rows spend star dust on the spot: no sheet, so they neither wait for nor block a purchase flow.
         if (row.IsBooster) return Boosters.Buy(row.booster) == Boosters.BuyResult.Bought;
+        // The ad row has no purchase flow either: it never waits on, or blocks, a store sheet.
+        if (row.kind == ShopRowKind.WatchAd) return AdManager.TryShowShopReward(null, null);
         if (AnyBuying) return false;
         switch (row.kind)
         {

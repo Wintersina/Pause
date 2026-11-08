@@ -11,6 +11,8 @@ public class StubAdProvider : IAdProvider
     public bool autoCompleteCallbacks = true;   // consent / tracking / init / load callbacks fire synchronously
     public int consentCalls, trackingCalls, initCalls, interstitialLoads, rewardedLoads, interstitialShows, rewardedShows;
     public AdShowEvents lastEvents;
+    public bool bannerAvailable = true, bannerUp;
+    public int bannerShows, bannerHides;
     public Action<bool> pendingConsent;
     public Action pendingInit;
 
@@ -62,4 +64,8 @@ public class StubAdProvider : IAdProvider
         rewardedReady = false;
         lastEvents = events;
     }
+
+    public bool BannerAvailable { get { return bannerAvailable; } }
+    public void ShowBanner() { bannerShows++; bannerUp = true; }
+    public void HideBanner() { bannerHides++; bannerUp = false; }
 }

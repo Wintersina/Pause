@@ -36,4 +36,10 @@ public interface IAdProvider
     void LoadRewarded(Action<bool> done);
     void ShowInterstitial(AdShowEvents events);
     void ShowRewarded(AdShowEvents events);
+
+    // The small banner on the results modal, bottom centre of the screen. Never requested when no real unit ID exists
+    // (BannerAvailable false). Show is fire-and-forget; Hide removes it at once.
+    bool BannerAvailable { get; }
+    void ShowBanner();
+    void HideBanner();
 }

@@ -73,44 +73,52 @@ public class playerIsDead : MonoBehaviour
         // (KillCamArchive; only the latest such death, each replaces the last).
         SaveKillCam(results.newBest, results.ranked, results.score);
 
-        var canvas = SceneUtil.FindAny("PopUpCanvas");
-        if (canvas == null) return;
-
-        // After a second death in a row, maybe offer an affordable upgrade
-        // first (UpgradeOfferRules); either answer goes on to the results.
-        UpgradeOfferRules.Candidate offer;
-        if (score.paysRealDust)
+        // Ads: the end-of-run ad comes BEFORE the results, so Replay is never reachable while it plays. Every Nth eligible run
+        // end auto-plays a full interstitial and the results build when it ends; the other run ends get a small banner under
+        // the results instead (AdManager.TryRunEndAd decides; nothing at all while ads are off).
+        System.Action showResults = () =>
         {
-            UpgradeOfferStore.RunDied();
-            if (UpgradeOfferStore.TryGetOffer(out offer))
+            var canvas = SceneUtil.FindAny("PopUpCanvas");
+            if (canvas == null) return;
+
+            // After a second death in a row, maybe offer an affordable upgrade
+            // first (UpgradeOfferRules); either answer goes on to the results.
+            UpgradeOfferRules.Candidate offer;
+            if (score.paysRealDust)
             {
-                float balance = PlayerPrefs.GetFloat(StarDustLedger.CurrencyKey);
-                UpgradeOfferCard.Show(canvas.transform, deathHighScoreText.font, offer, balance, bought =>
+                UpgradeOfferStore.RunDied();
+                if (UpgradeOfferStore.TryGetOffer(out offer))
                 {
-                    // The panel's TOTAL line is built from this: keep it the real balance.
-                    if (bought) results.dustAtStart -= offer.price;
-                    DeathPanelView.Build(canvas.transform, deathScoreText, deathSpareText,
-                                         deathHighScoreText, FindButton("Replay"), FindButton("MainMenu"), results);
-                });
-                return;
-            }
-            // Same moment and backoff, but the flown ship has nothing left
-            // to upgrade: offer the next roster ship instead (ShipOfferRules).
-            ShipOfferRules.Offer shipOffer;
-            if (ShipOfferStore.TryGetOffer(out shipOffer))
-            {
-                float balance = PlayerPrefs.GetFloat(StarDustLedger.CurrencyKey);
-                ShipOfferCard.Show(canvas.transform, deathHighScoreText.font, shipOffer, balance, bought =>
+                    float balance = PlayerPrefs.GetFloat(StarDustLedger.CurrencyKey);
+                    UpgradeOfferCard.Show(canvas.transform, deathHighScoreText.font, offer, balance, bought =>
+                    {
+                        // The panel's TOTAL line is built from this: keep it the real balance.
+                        if (bought) results.dustAtStart -= offer.price;
+                        DeathPanelView.Build(canvas.transform, deathScoreText, deathSpareText,
+                                             deathHighScoreText, FindButton("Replay"), FindButton("MainMenu"), results);
+                    });
+                    return;
+                }
+                // Same moment and backoff, but the flown ship has nothing left
+                // to upgrade: offer the next roster ship instead (ShipOfferRules).
+                ShipOfferRules.Offer shipOffer;
+                if (ShipOfferStore.TryGetOffer(out shipOffer))
                 {
-                    if (bought) results.dustAtStart -= shipOffer.price;
-                    DeathPanelView.Build(canvas.transform, deathScoreText, deathSpareText,
-                                         deathHighScoreText, FindButton("Replay"), FindButton("MainMenu"), results);
-                });
-                return;
+                    float balance = PlayerPrefs.GetFloat(StarDustLedger.CurrencyKey);
+                    ShipOfferCard.Show(canvas.transform, deathHighScoreText.font, shipOffer, balance, bought =>
+                    {
+                        if (bought) results.dustAtStart -= shipOffer.price;
+                        DeathPanelView.Build(canvas.transform, deathScoreText, deathSpareText,
+                                             deathHighScoreText, FindButton("Replay"), FindButton("MainMenu"), results);
+                    });
+                    return;
+                }
             }
-        }
-        DeathPanelView.Build(canvas.transform, deathScoreText, deathSpareText,
-                             deathHighScoreText, FindButton("Replay"), FindButton("MainMenu"), results);
+            DeathPanelView.Build(canvas.transform, deathScoreText, deathSpareText,
+                                 deathHighScoreText, FindButton("Replay"), FindButton("MainMenu"), results);
+        };
+        if (AdManager.TryRunEndAd(showResults)) return;
+        showResults();
     }
 
     static void SaveKillCam(bool newBest, bool ranked, long runScore)

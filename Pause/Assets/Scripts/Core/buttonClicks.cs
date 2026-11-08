@@ -34,10 +34,7 @@ public class buttonClicks : MonoBehaviour {
     {
         if (replayFrame == Time.frameCount) return;
         replayFrame = Time.frameCount;
-        if (AdManager.ShowInProgress) return;   // an ad is on its way up: Replay continues when it ends
-        // Between runs, after the death screen: maybe an interstitial first (AdPolicy; never while
-        // ads are off). It takes over only when one is loaded, and always gives Replay back.
-        if (AdManager.TryShowBeforeReplay(ReplayNow)) return;
+        if (AdManager.ShowInProgress) return;   // an ad is up (late open / rewarded): Replay is ignored until it ends
         ReplayNow();
     }
 
