@@ -188,10 +188,10 @@ public static class LeaderboardTest
         RealRunContext();
         var fake = new FakeLeaderboards();
         var service = Service(fake);
-        int n = service.SubmitRun(new LeaderboardRunStats { score = 900, starDust = 12f, worldsCleared = 4 });
+        int n = service.SubmitRun(new LeaderboardRunStats { score = 900, starDust = 12f, worldsCleared = 4, startShip = 7, startHearts = 4 });
         now = 60f;
         service.Tick();
-        Check("only 2 native boards are submitted to: a normal run queues one board", n == 1 && service.HasPending(LeaderboardBoards.TopScore, out v) && v == 900);
+        Check("only 2 native boards are submitted to: a normal run queues one board", n == 1 && fake.SubmissionsTo(topId) == 1 && fake.Submissions[0].score == 900);
         Check("... nothing is queued for Star Dust or Worlds",
               !service.HasPending(LeaderboardBoards.RunStarDust, out v) && !service.HasPending(LeaderboardBoards.FurthestWorld, out v));
         Check("... and the store saw Top Score only, never the old Star Dust / Worlds boards",

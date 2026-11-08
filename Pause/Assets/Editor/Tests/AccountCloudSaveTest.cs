@@ -650,7 +650,7 @@ public static class AccountCloudSaveTest
         Check("economy: same result either way round", m.currency == 3000f - shopingShips.Prices[2]);
         // Purchase made on the newer side: nothing extra is charged.
         m = ProgressMerge.Merge(b, Snap(1, 3000f, new[] { 1 }, 1, 0f, 0, 0, true));
-        Check("economy: a purchase on the newer side is not charged twice", m.currency == 1800f);
+        Check("economy: a purchase on the newer side is not charged twice", m.currency == 3000f - shopingShips.Prices[2]);
         // A skin (id 2, skin 1) owned only on the older side.
         var skinOlder = Snap(1000, 50f, new[] { 1, 2 }, 2, 0f, 0, 0, true);
         skinOlder.ownedSkins = new[] { 2 * ProgressSnapshot.SkinCode + 1 };
