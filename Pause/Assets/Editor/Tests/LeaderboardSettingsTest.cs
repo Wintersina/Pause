@@ -50,6 +50,7 @@ public static class LeaderboardSettingsTest
         var native = LeaderboardService.HasInstance ? LeaderboardService.Instance : null;
         var opener = ExternalLinks.Opener;
         var clock = LeaderboardSettingsPanel.Clock;
+        var deviceOffline = LeaderboardSettingsPanel.DeviceOffline;
         LeaderboardService.CloudSettling = () => false;
         LeaderboardBoards.OverrideForTests(FullTable());
         try
@@ -69,6 +70,7 @@ public static class LeaderboardSettingsTest
             ExternalLinks.Opener = opener;
             ExternalLinks.ResetGuard();
             LeaderboardSettingsPanel.Clock = clock;
+            LeaderboardSettingsPanel.DeviceOffline = deviceOffline;
         }
         Debug.Log("[LBS] failures: " + failures);
         return failures;
@@ -264,20 +266,25 @@ public static class LeaderboardSettingsTest
               modal.SyncText == LeaderboardSettingsPanel.SyncedText && !modal.Syncing && sharedFake.UploadCalls >= 1);
         LeaderboardSettingsPanel.Close();
 
-        // Sync: nothing confirms, then it is reported as offline.
-        Setup();
-        nativeFake.SubmitSucceeds = false;
-        float t = 0f;
-        LeaderboardSettingsPanel.Clock = () => t;
-        Mark(LeaderboardService.PendingKey);
-        modal = LeaderboardSettingsPanel.Open(null, Phone, PhoneSafe);
-        modal.SyncButton.onClick.Invoke();
-        Check("sync: an unconfirmed send shows Syncing first", modal.Syncing && modal.SyncText == LeaderboardSettingsPanel.SyncingText);
-        t = LeaderboardSettingsPanel.SyncWaitSeconds + 1f;
-        modal.SendMessage("Update");
-        Check("sync: and Offline, will retry once it times out", !modal.Syncing && modal.SyncText == LeaderboardSettingsPanel.OfflineText);
-        LeaderboardSettingsPanel.Clock = () => Time.unscaledTime;
-        LeaderboardSettingsPanel.Close();
+        // Sync: nothing confirms. Offline only when the device is offline; otherwise a plain "couldn't sync".
+        foreach (bool offline in new[] { true, false })
+        {
+            Setup();
+            nativeFake.SubmitSucceeds = false;
+            float t = 0f;
+            LeaderboardSettingsPanel.Clock = () => t;
+            LeaderboardSettingsPanel.DeviceOffline = () => offline;
+            Mark(LeaderboardService.PendingKey);
+            modal = LeaderboardSettingsPanel.Open(null, Phone, PhoneSafe);
+            modal.SyncButton.onClick.Invoke();
+            Check("sync: an unconfirmed send shows Syncing first", modal.Syncing && modal.SyncText == LeaderboardSettingsPanel.SyncingText);
+            t = LeaderboardSettingsPanel.SyncWaitSeconds + 1f;
+            modal.SendMessage("Update");
+            string want = offline ? LeaderboardSettingsPanel.OfflineText : LeaderboardSettingsPanel.FailedText;
+            Check("sync: times out as " + want + (offline ? " (device offline)" : " (device online)"), !modal.Syncing && modal.SyncText == want);
+            LeaderboardSettingsPanel.Clock = () => Time.unscaledTime;
+            LeaderboardSettingsPanel.Close();
+        }
 
         // The sharing switch.
         Setup();

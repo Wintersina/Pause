@@ -6,7 +6,7 @@ using UnityEngine.UI;
 // The Leaderboard Settings modal, opened from the Options screen (LeaderboardSettingsOptions).
 //
 //   SYNC NOW          sends this device's best scores to Play Games / Game Center, and to the shared board while
-//                     sharing is on (LeaderboardSync.Now); then says "Synced", "Offline, will retry" or "Sign in to sync".
+//                     sharing is on (LeaderboardSync.Now); then says "Synced", "Offline, will retry" (device offline), "Couldn't sync, will retry" (online but a board refused) or "Sign in to sync".
 //   SHARE SCORES      the cross-platform sharing switch (SharedLeaderboardService.SharingOn, on by default, persisted).
 //                     Off stops uploads; it deletes nothing.
 //   DELETE MY SHARED SCORES   a separate button with an in-game confirm step (no OS dialog); then says what happened.
@@ -25,6 +25,7 @@ public class LeaderboardSettingsPanel : MonoBehaviour
     public const string OffNote = "Turning sharing off stops uploads. It does not delete what you already shared.";
     public const string SyncedText = "Synced";
     public const string OfflineText = "Offline, will retry";
+    public const string FailedText = "Couldn't sync, will retry";
     public const string SignInText = "Sign in to sync";
     public const string SyncingText = "Syncing...";
     public const string ConfirmText = "Delete your shared scores? This can't be undone.";
@@ -39,8 +40,12 @@ public class LeaderboardSettingsPanel : MonoBehaviour
     // How long a sync may stay unconfirmed before it is reported as offline (the queue keeps retrying on its own).
     public const float SyncWaitSeconds = 12f;
     public static Func<float> Clock = () => Time.unscaledTime;
+    // True when the device has no network; only then is a stalled sync reported as offline.
+    public static Func<bool> DeviceOffline = () => Application.internetReachability == NetworkReachability.NotReachable;
 
-    const float ContentTop = 150f, ContentGap = 12f, ButtonH = 100f, BottomGap = 14f;
+    // Title breathing room (the leaderboard's own slab sits at 34 with a 36 inset and content from 150; this longer title needs more).
+    const float TitleTop = 46f, TitleSideInset = 56f;
+    const float ContentTop = 170f, ContentGap = 12f, ButtonH = 100f, BottomGap = 14f;
 
     public static LeaderboardSettingsPanel Current { get; private set; }
     public static bool IsOpen { get { return Current != null; } }
@@ -159,12 +164,12 @@ public class LeaderboardSettingsPanel : MonoBehaviour
 
         // Title slab, as the leaderboard's.
         float inner = Inner;
-        var slabRect = LeaderboardPanel.Place(panelRoot, "TitleSlab", -6f, 34f, inner + 30f, 96f);
+        var slabRect = LeaderboardPanel.Place(panelRoot, "TitleSlab", -6f, TitleTop, inner + 30f, 96f);
         var slab = CelShape.Add(slabRect.gameObject, CelShape.Kind.Slab, AkiraPalette.Red, 4f).Shadow(AkiraPalette.Ink, new Vector2(8f, -8f));
         slab.slant = 24f;
         var title = LeaderboardPanel.Child(slabRect, "Title");
-        LeaderboardPanel.Stretch(title, 36f);
-        LeaderboardPanel.LabelWith(font, title, Title, 44, AkiraPalette.Bone, TextAnchor.MiddleCenter, 3.5f, 24);
+        LeaderboardPanel.Stretch(title, TitleSideInset);
+        LeaderboardPanel.LabelWith(font, title, Title, 40, AkiraPalette.Bone, TextAnchor.MiddleCenter, 3.5f, 24);
 
         // The scrolling middle.
         float viewH = Mathf.Max(100f, LeaderboardPanel.ButtonsTopUnits - Drop - BottomGap - ContentTop);
@@ -302,7 +307,7 @@ public class LeaderboardSettingsPanel : MonoBehaviour
     {
         if (!Syncing) return;
         if (!SyncPending()) { Syncing = false; SyncText = SyncedText; }
-        else if (Clock() - syncStartedAt >= SyncWaitSeconds) { Syncing = false; SyncText = OfflineText; }
+        else if (Clock() - syncStartedAt >= SyncWaitSeconds) { Syncing = false; SyncText = DeviceOffline() ? OfflineText : FailedText; }
     }
 
     void OnSharePressed()
