@@ -4,10 +4,10 @@ using System.IO;
 using UnityEngine;
 
 // The shared (Firebase) leaderboard, SDK-free half (docs/shared-leaderboard.md), against FakeSharedBoard:
-//   1  the model: runs, the per-column merge, marks from the native boards
+//   1  the model: runs, the one-row merge (three bests + one run's details), marks from the native boards
 //   2  the rules mirror: SharedBoardLimits against firebase/test-vectors.json (the same file the emulator test reads)
 //   3  the service: dormant, routing, improve-only queue, offline/denied/quota, sign-in, uid binding, sign-out
-//   4  reading: true #1 per column, the caching rule, failures serve the cache
+//   4  reading: one row per player in every tab, true #1 per column, the caching rule, failures serve the cache
 //   5  sync now and delete my shared scores
 //   6  the hook in LeaderboardService.SubmitRun and the native SyncNow
 public static class SharedLeaderboardTest
@@ -150,27 +150,44 @@ public static class SharedLeaderboardTest
         var unknownEnd = SharedRun.From(new LeaderboardRunStats { score = 10, startShip = 3, startHearts = 3 });
         Check("model: no end hearts and no pauses are unknown (-1)", unknownEnd.endHearts == -1 && unknownEnd.pauses == -1);
 
-        // The per-column merge: each slot keeps its own best run, whole.
+        // One row per player: three personal bests (from any run) plus the details of one run.
         var a = SharedRun.From(Stats(9000, 1f, 2, 5));   // best score
         var b = SharedRun.From(Stats(4000, 30f, 3, 6));  // best dust
         var c = SharedRun.From(Stats(3000, 2f, 9, 8));   // best worlds
         var doc = new SharedDoc();
         bool changed = doc.Offer(a);
-        Check("model: the first run fills all three slots", changed && doc.IsFull && doc.byScore.ship == 5 && doc.byDust.ship == 5 && doc.byWorlds.ship == 5);
+        Check("model: the first run sets all three bests and the details", changed && doc.IsFull && doc.score == 9000 && doc.dust == 100 && doc.worlds == 2 && doc.run.ship == 5);
         doc.Offer(b); doc.Offer(c);
-        Check("model: each slot holds its column's own best run",
-              doc.byScore.ship == 5 && doc.byDust.ship == 6 && doc.byWorlds.ship == 8
-              && doc.byScore.score == 9000 && doc.byDust.dust == 3000 && doc.byWorlds.worlds == 9);
+        Check("model: each best is the personal best of its column, across runs",
+              doc.score == 9000 && doc.dust == 3000 && doc.worlds == 9);
+        Check("model: the details stay with the best-SCORE run", doc.run.ship == 5 && doc.run.hearts == 4);
         Check("model: a worse run changes nothing", !doc.Offer(SharedRun.From(Stats(10, 0.1f, 1))));
-        Check("model: slots stay consistent after merges", SharedBoardLimits.Consistent(doc));
         var tieWithShip = SharedRun.From(Stats(9000, 1f, 2, 11));
         var blank = new SharedDoc(); var tagless = SharedRun.Blank(); tagless.score = 9000; tagless.dust = 100; tagless.worlds = 2;
         blank.Offer(tagless);
-        Check("model: a tie that adds the ship replaces a ship-less run", blank.Offer(tieWithShip) && blank.byScore.ship == 11);
+        Check("model: a tie that adds the ship fills a ship-less run", blank.run.ship == 0 && blank.Offer(tieWithShip) && blank.run.ship == 11);
+
+        // Unknown stays unknown.
+        var worldsOnly = new SharedDoc();
+        var wr = SharedRun.Blank(); wr.worlds = 6;
+        worldsOnly.Offer(wr);
+        Check("unknown: a worlds-only run leaves score and dust at 0 (unknown), not 1", worldsOnly.IsFull && worldsOnly.score == 0 && worldsOnly.dust == 0 && worldsOnly.worlds == 6 && worldsOnly.run.ship == 0 && worldsOnly.run.endHearts == -1 && worldsOnly.run.pauses == -1);
+        var dustFirst = new SharedDoc();
+        var dr = SharedRun.Blank(); dr.dust = 5000; dr.ship = 6; dr.hearts = 4; dr.endHearts = 1; dr.pauses = 2;
+        dustFirst.Offer(dr);
+        var sr = SharedRun.Blank(); sr.score = 700;
+        dustFirst.Offer(sr);
+        Check("fallback: a score run that does not know its ship takes the dust run's ship, hearts and pauses",
+              dustFirst.score == 700 && dustFirst.dust == 5000 && dustFirst.run.ship == 6 && dustFirst.run.hearts == 4 && dustFirst.run.pauses == 2);
+        var sr2 = SharedRun.Blank(); sr2.score = 900; sr2.ship = 3; sr2.hearts = 5;
+        dustFirst.Offer(sr2);
+        Check("fallback: a later score run that knows its ship wins the details", dustFirst.run.ship == 3 && dustFirst.run.hearts == 5 && dustFirst.run.pauses == 2);
+        var legacyDoc = new SharedDoc { legacy = true, score = 5, name = "N" };
+        Check("legacy: an old-shape document is rewritten even when nothing improves", legacyDoc.Offer(SharedRun.Blank()));
 
         bool ch;
         var merged = SharedBoardMerge.Apply(null, doc, "NAME", out ch);
-        Check("model: merge into no document creates it with the name", ch && merged.name == "NAME" && merged.IsFull);
+        Check("model: merge into no document creates it with the name", ch && merged.name == "NAME" && merged.IsFull && merged.score == 9000 && merged.dust == 3000 && merged.worlds == 9);
         merged = SharedBoardMerge.Apply(merged, doc, "OTHER", out ch);
         Check("model: merging the same runs again changes nothing and keeps the name", !ch && merged.name == "NAME");
 
@@ -180,7 +197,11 @@ public static class SharedLeaderboardTest
         Check("marks: a Top Score mark with its tag becomes the whole run",
               SharedRun.TryFromMark(LeaderboardBoards.TopScore, 5000, tag, out m) && m.score == 5000 && m.dust == 1234 && m.worlds == 4 && m.ship == 7);
         Check("marks: a Worlds mark with no tag has only the worlds",
-              SharedRun.TryFromMark(LeaderboardBoards.FurthestWorld, 6, "", out m) && m.worlds == 6 && m.ship == 0 && m.score == 1);
+              SharedRun.TryFromMark(LeaderboardBoards.FurthestWorld, 6, "", out m) && m.worlds == 6 && m.ship == 0 && m.score == 0 && m.dust == 0);
+        Check("marks: a Dust mark with no tag has only the dust (score unknown, not 1)",
+              SharedRun.TryFromMark(LeaderboardBoards.RunStarDust, 5868, "", out m) && m.dust == 5868 && m.score == 0 && m.worlds == 0 && m.ship == 0);
+        Check("marks: a Top Score mark with a bare tag has no dust (unknown, not 0.00 as a fact)",
+              SharedRun.TryFromMark(LeaderboardBoards.TopScore, 2032, "", out m) && m.score == 2032 && m.dust == 0 && m.ship == 0);
         Check("marks: a Power-Ups mark without power-up bits is refused", !SharedRun.TryFromMark(LeaderboardBoards.BoostedRuns, 100, "s7h4", out m));
         Check("marks: a Power-Ups mark with bits is kept",
               SharedRun.TryFromMark(LeaderboardBoards.BoostedRuns, 100, LeaderboardRunTag.Encode(7, 4, 2, 3, 0, 500, 2, 3), out m) && m.powerUps == 3 && m.score == 100);
@@ -219,13 +240,11 @@ public static class SharedLeaderboardTest
         {
             if (v.rulesOnly) continue;
             var table = v.table == "power" ? SharedTable.Power : SharedTable.Main;
-            v.doc.hasScore = v.doc.hasDust = v.doc.hasWorlds = true;
             bool allow;
             string provider = string.IsNullOrEmpty(v.provider) ? SharedBoardLimits.ProviderFor(v.doc.platform) : v.provider;
             if (!v.owner) allow = false;
             else if (v.hasExisting)
             {
-                v.existing.hasScore = v.existing.hasDust = v.existing.hasWorlds = true;
                 allow = SharedBoardLimits.AllowUpdate(v.existing, v.doc, table, v.sinceLastSeconds, provider);
             }
             else allow = SharedBoardLimits.AllowCreate(v.doc, table, provider);
@@ -250,6 +269,19 @@ public static class SharedLeaderboardTest
             res = SharedResult.Ok;
             bad.Upload(SharedTable.Main, "X", ov, (r, d) => res = r);
             Check("platform: ios with the Play Games provider is denied", res == SharedResult.Denied);
+        }
+        {
+            // An old-shape document (read best-effort with legacy set) is migrated by the next upload, even one that improves nothing.
+            var board = new FakeSharedBoard { Now = 1000 };
+            board.Seed(SharedTable.Main, board.Uid, new SharedDoc { name = "OLD", platform = "android", score = 2032, legacy = true });
+            var ov = new SharedDoc();
+            var low = SharedRun.Blank(); low.score = 100;
+            ov.Offer(low);
+            SharedResult res = SharedResult.Error;
+            board.Upload(SharedTable.Main, "OLD", ov, (r, d) => res = r);
+            var stored = board.Get(SharedTable.Main, board.Uid);
+            Check("legacy: the next upload rewrites an old-shape document in the new shape and keeps its bests",
+                  res == SharedResult.Ok && stored != null && !stored.legacy && stored.score == 2032);
         }
         Check("vectors: the C# mirror agrees with every non-rules-only case (" + ran + " run)", ran >= 25 && wrong == 0);
     }
@@ -290,35 +322,34 @@ public static class SharedLeaderboardTest
         bool tutorialBlocked = LeaderboardService.SubmissionBlocked();
         Check("routing: the tutorial is queued nowhere", !tutorialBlocked || s.OfferRun(Stats(5000, 1f, 1)) == 0);
         startMenu.youAreInTutorial = false;
-        Check("routing: a run with an out-of-range value is refused", s.OfferRun(Stats(0, 1f, 1)) == 0 && !s.HasPending);
+        Check("routing: a run that says nothing is refused", s.OfferRun(Stats(0, 0f, 0)) == 0 && !s.HasPending);
 
         // Improve-only queue, debounce, one upload per table.
         s = Service();
         s.OfferRun(Stats(9000, 1f, 2, 5));
         s.OfferRun(Stats(4000, 30f, 3, 6));
         s.OfferRun(Stats(3000, 2f, 9, 8));
-        Check("queue: three runs fill three slots (each column's best)",
-              s.Pending(SharedTable.Main).byScore.ship == 5 && s.Pending(SharedTable.Main).byDust.ship == 6 && s.Pending(SharedTable.Main).byWorlds.ship == 8);
+        Check("queue: three runs queue each column's best, the details follow the best score",
+              s.Pending(SharedTable.Main).score == 9000 && s.Pending(SharedTable.Main).dust == 3000 && s.Pending(SharedTable.Main).worlds == 9 && s.Pending(SharedTable.Main).run.ship == 5);
         Check("queue: nothing is sent before the debounce", fake.UploadCalls == 0);
         Advance(s, 1f);
         Check("queue: still nothing at 1 s", fake.UploadCalls == 0);
         Advance(s, 1.5f);
         Check("queue: one upload after the debounce", fake.UploadCalls == 1 && fake.Uploads.Count == 1);
         var server = fake.Get(SharedTable.Main, fake.Uid);
-        Check("queue: the server doc holds each column's own best run, named",
-              server != null && server.name == "KANEDA" && server.byScore.score == 9000 && server.byDust.dust == 3000 && server.byWorlds.worlds == 9
-              && server.byScore.ship == 5 && server.byDust.ship == 6 && server.byWorlds.ship == 8);
+        Check("queue: the server doc holds the three bests and the best-score run's details, named",
+              server != null && server.name == "KANEDA" && server.score == 9000 && server.dust == 3000 && server.worlds == 9 && server.run.ship == 5);
         Check("queue: a confirmed upload empties the queue and is remembered",
               !s.HasPending && s.Submitted(SharedTable.Main).IsFull && s.UploadCount == 1);
         Check("queue: a worse run is dropped (improve-only)", s.OfferRun(Stats(100, 0.5f, 1)) == 0 && !s.HasPending);
         Check("queue: a run that improves one column is queued for that column only",
-              s.OfferRun(Stats(9500, 1f, 2, 9)) == 1 && s.Pending(SharedTable.Main).hasScore && !s.Pending(SharedTable.Main).hasDust);
+              s.OfferRun(Stats(9500, 1f, 2, 9)) == 1 && s.Pending(SharedTable.Main).Has(SharedColumn.Score) && !s.Pending(SharedTable.Main).Has(SharedColumn.Dust));
 
         // The server's 15 s write interval is respected by the client (the fake enforces it like the rules).
         Advance(s, 2.5f);
         Check("interval: the second upload waits for the write interval", fake.UploadCalls == 1);
         Advance(s, 13f);
-        Check("interval: and then goes out without a denial", fake.UploadCalls == 2 && !s.HasPending && fake.Get(SharedTable.Main, fake.Uid).byScore.score == 9500);
+        Check("interval: and then goes out without a denial", fake.UploadCalls == 2 && !s.HasPending && fake.Get(SharedTable.Main, fake.Uid).score == 9500);
 
         // Offline: stays queued, retried with backoff.
         s = Service();
@@ -408,19 +439,11 @@ public static class SharedLeaderboardTest
 
     static SharedDoc Player(string name, long score, long dust, int worlds, int ship, int powerUps = 0)
     {
-        var d = new SharedDoc { name = name };
-        var run = SharedRun.Blank();
-        run.ship = ship; run.hearts = 4; run.powerUps = powerUps;
-        var r1 = run; r1.score = score;
-        var r2 = run; r2.score = Math.Max(1, score / 2); r2.dust = dust;
-        var r3 = run; r3.score = Math.Max(1, score / 3); r3.worlds = worlds;
-        d.Set(SharedColumn.Score, r1); d.Set(SharedColumn.Dust, r2); d.Set(SharedColumn.Worlds, r3);
-        // dominate: keep the slots consistent
-        r1.dust = Math.Max(r1.dust, dust); r1.worlds = Math.Max(r1.worlds, worlds);
-        d.Set(SharedColumn.Score, r1);
-        r2.worlds = worlds; d.Set(SharedColumn.Dust, r2);
-        r3.dust = dust; d.Set(SharedColumn.Worlds, r3);
-        return d;
+        return new SharedDoc
+        {
+            name = name, score = score, dust = dust, worlds = worlds,
+            run = new SharedRun { ship = ship, hearts = 4, endHearts = -1, pauses = -1, powerUps = powerUps },
+        };
     }
 
     static void Reading()
@@ -431,6 +454,7 @@ public static class SharedLeaderboardTest
         fake.Seed(SharedTable.Main, "bob", Player("BOB", 3000, 9000, 3, 4));
         fake.Seed(SharedTable.Main, "cyd", Player("CYD", 2400, 500, 9, 5));
         fake.Seed(SharedTable.Main, "zed", Player("ZED", 100, 0, 0, 6));
+        fake.Seed(SharedTable.Main, "yan", Player("YAN", 500, 0, 0, 0));
         Loaded(s, SharedTable.Main, SharedColumn.Score, false, out var byScore);
         Loaded(s, SharedTable.Main, SharedColumn.Dust, false, out var byDust);
         Loaded(s, SharedTable.Main, SharedColumn.Worlds, false, out var byWorlds);
@@ -439,8 +463,18 @@ public static class SharedLeaderboardTest
               byDust.page.entries[0].playerName == "BOB" && byDust.page.entries[0].value == 9000 && byDust.page.entries[0].startShip == 4
               && byDust.page.entries[0].hasRunStats && byDust.page.entries[0].starDustHundredths == 9000);
         Check("read: sorting by Worlds puts the most worlds first", byWorlds.page.entries[0].playerName == "CYD" && byWorlds.page.entries[0].worlds == 9);
-        Check("read: players with nothing in Dust / Worlds are left out of those boards",
-              byDust.page.entries.TrueForAll(e => e.playerName != "ZED") && byWorlds.page.entries.TrueForAll(e => e.playerName != "ZED"));
+        Check("read: one leaderboard, every player is in every tab (also 0 worlds, no dust)",
+              byScore.page.entries.Count == 5 && byDust.page.entries.Count == 5 && byWorlds.page.entries.Count == 5);
+        Check("read: ties on the tab's own column fall back to the score (YAN 500 before ZED 100)",
+              byDust.page.entries[3].playerName == "YAN" && byDust.page.entries[4].playerName == "ZED"
+              && byWorlds.page.entries[3].playerName == "YAN" && byWorlds.page.entries[4].playerName == "ZED");
+        var adaScore = byScore.page.entries[0]; var adaDust = byDust.page.entries.Find(e => e.playerName == "ADA");
+        Check("read: a player's row is the same in every tab (score, dust, worlds, ship), only the order differs",
+              adaDust.runScore == adaScore.runScore && adaDust.starDustHundredths == adaScore.starDustHundredths && adaDust.worlds == adaScore.worlds
+              && adaDust.startShip == adaScore.startShip && adaDust.hasScore && adaScore.runScore == 9000 && adaScore.starDustHundredths == 100);
+        var zedRow = byDust.page.entries[4];
+        Check("read: unknown values are not facts (ZED: no dust -> dash value, YAN: no ship)",
+              zedRow.starDustHundredths < 0 && byDust.page.entries[3].startShip == 0 && zedRow.worlds == 0);
         Check("read: ranks count from 1", byScore.page.entries[0].rank == 1 && byScore.page.entries[1].rank == 2);
         Check("read: no own document yet, so no own row", !byScore.page.hasPlayer);
 
@@ -527,15 +561,15 @@ public static class SharedLeaderboardTest
         Check("sync: the marks are queued for both tables", queued >= 6);
         var main = fake.Get(SharedTable.Main, fake.Uid);
         var power = fake.Get(SharedTable.Power, fake.Uid);
-        Check("sync: Main is rebuilt per column from the marks' runs",
-              main != null && main.byScore.ship == 5 && main.byScore.score == 9000 && main.byDust.ship == 6 && main.byDust.dust == 4000
-              && main.byWorlds.ship == 8 && main.byWorlds.worlds == 9);
-        Check("sync: Power-Ups is rebuilt from its mark", power != null && power.byScore.score == 8000 && power.byScore.powerUps == 1);
+        Check("sync: Main takes the three bests from the marks, the details from the score run",
+              main != null && main.score == 9000 && main.dust == 4000 && main.worlds == 9 && main.run.ship == 5);
+        Check("sync: Power-Ups is rebuilt from its mark", power != null && power.score == 8000 && power.run.powerUps == 1);
         Check("sync: nothing is written twice", fake.UploadCalls == 2);
 
         s = Service();
         PlayerPrefs.SetInt(LeaderboardService.NormalBestKey, 1234);
-        Check("sync: the local best alone is offered as a score-only run", s.SyncNow() == 3 && fake.Get(SharedTable.Main, fake.Uid).byScore.score == 1234);
+        Check("sync: the local best alone is offered as a score-only run (dust and ship stay unknown)", s.SyncNow() == 1 && fake.Get(SharedTable.Main, fake.Uid).score == 1234
+              && fake.Get(SharedTable.Main, fake.Uid).dust == 0 && fake.Get(SharedTable.Main, fake.Uid).run.ship == 0);
         s = Service();
         PlayerPrefs.SetInt(DeveloperUnlocks.EnabledKey, 1);
         PlayerPrefs.SetInt(LeaderboardService.NormalBestKey, 1234);
@@ -590,7 +624,7 @@ public static class SharedLeaderboardTest
         LeaderboardService.Instance = native;
         int accepted = native.SubmitRun(Stats(5000, 2f, 3));
         Check("hook: SubmitRun feeds the native boards and the shared board", accepted > 0 && !s.Pending(SharedTable.Main).IsEmpty);
-        Check("hook: the shared queue holds the same run the native tag describes", s.Pending(SharedTable.Main).byScore.score == 5000 && s.Pending(SharedTable.Main).byScore.ship == 7);
+        Check("hook: the shared queue holds the same run the native tag describes", s.Pending(SharedTable.Main).score == 5000 && s.Pending(SharedTable.Main).run.ship == 7);
 
         s = Service();
         native = new LeaderboardService(platform, () => now) { Ios = false, PlayerId = () => "p1" };

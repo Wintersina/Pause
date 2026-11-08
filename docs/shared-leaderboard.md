@@ -90,113 +90,34 @@ Firebase Auth, one provider per platform, no anonymous or email fallback. **No p
 
 ## 3. Data model
 
-Two top-level collections, **`main`** and **`power`** (Power-Ups). One doc per player per table, **doc id = Firebase uid**. The doc holds the player's best run **per column**, in full:
+Two top-level collections, **`main`** and **`power`** (Power-Ups). **One doc, so one row, per player per table**, doc id = Firebase uid. The doc holds the player's three personal bests plus the details of one run. The SCORE / DUST / WORLDS tabs only change the order of the same rows (this replaced an older per-column shape, `byScore` / `byDust` / `byWorlds`, whose tabs looked like three different boards).
 
 ```
 main/{uid}  and  power/{uid}
   name        string 1..24
   platform    "android" | "ios"   (must match the sign-in provider, see Phase 2)
   updatedAt   timestamp   (== request.time, server timestamp)
-  byScore     { score, dust, worlds, ship, hearts, endHearts, pauses, skin, powerUps }   best-SCORE run
-  byDust      { same shape }                                                              best-DUST run
-  byWorlds    { same shape }                                                              best-WORLDS run
+  score       int  best score         0 = none / unknown (shown as a dash)
+  dust        int  best star dust, in hundredths   0 = none (dash)
+  worlds      int  most worlds cleared   0 is shown as 0
+  run         { ship, hearts, endHearts, pauses, skin, powerUps }   details of the best-SCORE run,
+              else the dust run, else the worlds run
 ```
 
-* Units match `LeaderboardRunTag`: `dust` in hundredths, `worlds` = total cleared across loops, `score` = `RunScore.Total`, `powerUps` bits 1..7 (`power`: dust 1, clear 2, homing 4 = `LeaderboardRunTag.PowerAll`) or 0 (`main`). Unknown = `ship 0`, `hearts 0`, `endHearts -1`, `pauses -1`, `skin 0`, as the tag does.
-* The first upload fills all three slots with the same run. After that each slot improves on its own, so a row shown under a sort is **that column's best run, whole** (ship, hearts, and the other two numbers).
-* Sort = `orderBy` on one nested number: `byScore.score`, `byDust.dust`, `byWorlds.worlds`, descending, `limit 10`. The Dust and Worlds queries add `where <field> >= 1` on the same field (the native boards never show zero), which still uses the automatic single-field index.
-* **Indexes: none to deploy.** Single-field indexes are automatic for map subfields. No composite index. `firestore.indexes.json` is committed empty.
-* **Power-Ups sorting:** today that tab ranks by score only. Proposal: it gets the same three slots anyway (one rules function, no extra cost) so phase 2 can add sorting there later; the panel can keep showing only `byScore` until then.
+* At least one of `score`, `dust`, `worlds` is above 0. The three bests may come from different runs (that is intended); ship, hearts and pauses always come from one run, falling back score run -> dust run -> worlds run when the better one does not know them. **Unknown stays unknown:** `ship 0`, `hearts 0`, `endHearts -1`, `pauses -1`, a best of 0; never a made-up 1 (the old model's `SharedRun` defaulted `score` to 1, so a native dust mark became a "score 1" run).
+* Units match `LeaderboardRunTag`: `dust` in hundredths, `worlds` = total cleared across loops, `score` = `RunScore.Total`, `run.powerUps` bits 1..7 (`power`: dust 1, clear 2, homing 4 = `LeaderboardRunTag.PowerAll`) or 0 (`main`).
+* Each best only improves (`SharedDoc.Offer` on the client, `improves()` in the rules). Equal is allowed, so a tie can gain run details.
+* Sort = `orderBy` on one top-level number: `score`, `dust` or `worlds`, descending, `limit 10`, **no filter**, so every player is in every tab. Dust and Worlds add `orderBy score desc` as the tie-break (many players have 0 worlds).
+* **Indexes: deploy them with the rules** (`firebase deploy --only firestore:rules,firestore:indexes`). `firestore.indexes.json` holds the four composite indexes (`dust,score` and `worlds,score` on `main` and `power`); the score tab uses the automatic single-field index.
+* **Old-shape documents.** A document written before this change is read best-effort (`score` = `byScore.score`, `dust` = `byDust.dust`, `worlds` = `byWorlds.worlds`, details from the first old run that knows its ship) and is rewritten in the new shape by that player's next upload (the rules' `improves()` reads either shape, so the migrating write may not lose a best). It does not appear in the top-N queries until then, because those order on the new top-level fields; **press SYNC NOW** (or finish a run) to migrate it.
+* **Power-Ups sorting:** today that tab ranks by score only.
 * **Season reset** (dormant, as natively): a new season is new collection names (`main2`, `power2`) plus a rules edit, bumped together with `LeaderboardBoards.CurrentSeason`. No field filter, so no index.
 * **Read cost per panel open:** top 10 of one table and sort is **10 reads**; the player's own rank when outside the top 10 is one `count()` aggregate of `field > mine` (1 read per 1,000 index entries, minimum 1). So **11 reads**; switching sort costs another 11. The own doc is not read for display (the upload record is cached). `count()` is not used yet (see "As built"): an off-page own row has no rank number.
 * **Upload cost:** a transaction that reads the own doc (1 read) then writes it (1 write), only when a slot improves. A transaction fails offline, which is what we want: the improve-only queue keeps the run.
 
 ## 4. Security rules
 
-Full draft, committed as `firebase/firestore.rules` in step B:
-
-```
-rules_version = '2';
-service cloud.firestore {
-  match /databases/{database}/documents {
-
-    function signedIn() { return request.auth != null; }
-    function ofInt(v, lo, hi) { return v is int && v >= lo && v <= hi; }
-
-    // One run. `power` = Power-Ups table (powerUps 1..7); the main table needs powerUps 0.
-    // Ship 16 (Paragon, premium) is never allowed. Ships up to 40 leave room for new ships
-    // without a rules deploy.
-    function validRun(r, power) {
-      return r is map
-        && r.keys().hasOnly(['score','dust','worlds','ship','hearts','endHearts','pauses','skin','powerUps'])
-        && r.keys().hasAll(['score','dust','worlds','ship','hearts','endHearts','pauses','skin','powerUps'])
-        && ofInt(r.score,      1, 9999999999)
-        && ofInt(r.dust,       0, 999999999)
-        && ofInt(r.worlds,     0, 9999)
-        && ofInt(r.ship,       0, 40) && r.ship != 16
-        && ofInt(r.hearts,     0, 20)
-        && ofInt(r.endHearts, -1, 20)
-        && ofInt(r.pauses,    -1, 99)
-        && ofInt(r.skin,       0, 99)
-        && (power ? ofInt(r.powerUps, 1, 7) : r.powerUps == 0);
-    }
-
-    // The three slots are bests over the same set of runs, so each slot's own metric
-    // dominates the other slots' value of that metric.
-    function consistent(d) {
-      return d.byScore.score   >= d.byDust.score    && d.byScore.score   >= d.byWorlds.score
-          && d.byDust.dust     >= d.byScore.dust    && d.byDust.dust     >= d.byWorlds.dust
-          && d.byWorlds.worlds >= d.byScore.worlds  && d.byWorlds.worlds >= d.byDust.worlds;
-    }
-
-    function platformOk(d) {
-      return (d.platform == 'android' && request.auth.token.firebase.sign_in_provider == 'playgames.google.com')
-          || (d.platform == 'ios' && request.auth.token.firebase.sign_in_provider == 'gc.apple.com');
-    }
-
-    function validDoc(d, power) {
-      return d.keys().hasOnly(['name','platform','updatedAt','byScore','byDust','byWorlds'])
-        && d.keys().hasAll(['name','platform','updatedAt','byScore','byDust','byWorlds'])
-        && platformOk(d)
-        && d.name is string && d.name.size() >= 1 && d.name.size() <= 24
-        && d.updatedAt == request.time
-        && validRun(d.byScore, power) && validRun(d.byDust, power) && validRun(d.byWorlds, power)
-        && consistent(d);
-    }
-
-    // Fields only improve. Equal is allowed, so a tied best can gain its columns.
-    function improves(n, o) {
-      return n.byScore.score   >= o.byScore.score
-          && n.byDust.dust     >= o.byDust.dust
-          && n.byWorlds.worlds >= o.byWorlds.worlds;
-    }
-
-    function ownerOnly(uid) { return signedIn() && request.auth.uid == uid; }
-
-    match /main/{uid} {
-      allow get: if true;                              // public read (names, platform, scores)
-      allow list: if request.query.limit <= 25;
-      allow create: if ownerOnly(uid) && validDoc(request.resource.data, false);
-      allow update: if ownerOnly(uid) && validDoc(request.resource.data, false)
-                    && improves(request.resource.data, resource.data)
-                    && request.time > resource.data.updatedAt + duration.value(15, 's');
-      allow delete: if ownerOnly(uid);
-    }
-
-    match /power/{uid} {
-      allow get: if true;                              // public read (names, platform, scores)
-      allow list: if request.query.limit <= 25;
-      allow create: if ownerOnly(uid) && validDoc(request.resource.data, true);
-      allow update: if ownerOnly(uid) && validDoc(request.resource.data, true)
-                    && improves(request.resource.data, resource.data)
-                    && request.time > resource.data.updatedAt + duration.value(15, 's');
-      allow delete: if ownerOnly(uid);
-    }
-
-    match /{other=**} { allow read, write: if false; }
-  }
-}
-```
+The rules are `firebase/firestore.rules` (the source of truth, mirrored in C# by `SharedBoardLimits` and checked against `firebase/test-vectors.json` by both the emulator test and `SharedLeaderboardTest`). In short: owner-only writes, `validDoc` (exact key set, name 1..24, platform tied to the sign-in provider, bests 0..max with at least one above 0, `validRun` details with ship != 16 and `powerUps` 0 on `main` / 1..7 on `power`), `improves()` per best (reading the old or the new stored shape), a 15 s write interval, public `get` and `list` with `limit <= 25`.
 
 Notes and limits:
 

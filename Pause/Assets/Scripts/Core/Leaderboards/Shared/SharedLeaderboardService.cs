@@ -180,13 +180,14 @@ public sealed class SharedLeaderboardService
         var submitted = LoadStore(SubmittedKey).Of(table);
         var pending = pendingStore.Of(table);
         int taken = 0;
+        var filtered = run;
         foreach (var c in SharedDoc.Columns)
         {
-            if (submitted.Has(c) && !run.Supersedes(submitted.Get(c), c)) continue;
-            if (pending.Has(c) && !run.Supersedes(pending.Get(c), c)) continue;
-            pending.Set(c, run);
-            taken++;
+            if (Beats(run, submitted, c) && Beats(run, pending, c)) { taken++; continue; }
+            // not an improvement in this column: the run must not drag it along
+            if (c == SharedColumn.Score) filtered.score = 0; else if (c == SharedColumn.Dust) filtered.dust = 0; else filtered.worlds = 0;
         }
+        if (taken > 0) pending.Offer(filtered);
         if (taken == 0) return 0;
         SaveStore(PendingKey, pendingStore);
         var lane = lanes[(int)table];
@@ -195,6 +196,16 @@ public sealed class SharedLeaderboardService
         PrefsSaver.SaveNow();   // a run end: must survive the app being killed
         flushDueAt = clock() + DebounceSeconds;
         return taken;
+    }
+
+    // Better in this column, or a tie that adds the ship the stored details lack (as the native marks do).
+    static bool Beats(SharedRun run, SharedDoc have, SharedColumn c)
+    {
+        long mine = run.Metric(c);
+        if (mine <= 0) return false;
+        long theirs = have.Metric(c);
+        if (mine != theirs) return mine > theirs;
+        return have.run.ship == 0 && run.ship != 0;
     }
 
     // ---- sending ----
@@ -292,7 +303,7 @@ public sealed class SharedLeaderboardService
                 var pending = pendingStore.Of(table);
                 var known = LoadStore(SubmittedKey).Of(table);
                 if (known.IsFull) pending.Prune(known);
-                else foreach (var c in SharedDoc.Columns) if (sent.Has(c) && pending.Has(c) && SameRun(pending.Get(c), sent.Get(c))) pending.Clear(c);
+                else foreach (var c in SharedDoc.Columns) if (sent.Has(c) && pending.Has(c) && pending.Metric(c) <= sent.Metric(c)) pending.Clear(c);
                 SaveStore(PendingKey, pendingStore);
                 InvalidateCache(table);
                 PrefsSaver.MarkDirty();
@@ -330,14 +341,10 @@ public sealed class SharedLeaderboardService
     {
         target.name = source.name;
         target.updatedAtMs = source.updatedAtMs;
-        foreach (var c in SharedDoc.Columns) target.Set(c, source.Get(c));
-    }
-
-    static bool SameRun(SharedRun a, SharedRun b)
-    {
-        return a.score == b.score && a.dust == b.dust && a.worlds == b.worlds && a.ship == b.ship
-            && a.hearts == b.hearts && a.endHearts == b.endHearts && a.pauses == b.pauses
-            && a.skin == b.skin && a.powerUps == b.powerUps;
+        target.platform = source.platform;
+        target.score = source.score; target.dust = source.dust; target.worlds = source.worlds;
+        target.run = source.run;
+        target.legacy = false;
     }
 
     // The submitted records belong to one Firebase uid. A different uid forgets them and queues this device's

@@ -1046,7 +1046,8 @@ public class LeaderboardPanel : MonoBehaviour
         switch (col.id)
         {
             case LeaderboardBoards.TopScore:
-                if (sorted || e.hasScore)
+                // a shared row can have no known score (0): a dash, never "0"
+                if ((sorted && e.value > 0) || (!sorted && e.hasScore))
                 {
                     long v = sorted ? e.value : e.runScore;
                     full = LeaderboardBoards.FormatScore(v);
@@ -1055,7 +1056,7 @@ public class LeaderboardPanel : MonoBehaviour
                 break;
             case LeaderboardBoards.RunStarDust:
                 // star dust in hundredths, shown whole and compact like the Power-Ups rows
-                if (sorted || (e.hasRunStats && e.starDustHundredths >= 0))
+                if ((sorted && e.value > 0) || (!sorted && e.hasRunStats && e.starDustHundredths >= 0))
                     full = compact = Compact((sorted ? e.value : e.starDustHundredths) / 100L);
                 break;
             case LeaderboardBoards.FurthestWorld:

@@ -86,14 +86,14 @@ public static class SharedBoardRows
 {
     public static LeaderboardEntry ToEntry(int rank, string uid, SharedDoc doc, SharedColumn column, bool isLocal)
     {
-        var r = doc.Get(column);
+        var r = doc.run;
         bool premium = PremiumShips.IsPremium(r.ship);   // never shown, as a premium tag read from a native board
         return new LeaderboardEntry
         {
             rank = rank,
             playerId = uid,
             playerName = doc.name,
-            value = r.Metric(column),
+            value = doc.Metric(column),
             isLocalPlayer = isLocal,
             startShip = premium ? 0 : r.ship,
             startHearts = premium ? 0 : r.hearts,
@@ -102,12 +102,13 @@ public static class SharedBoardRows
             endHearts = Math.Max(0, r.endHearts),
             hasPauses = r.pauses >= 0,
             pauses = Math.Max(0, r.pauses),
+            // Every tab shows the same row: the player's three bests. An unknown dust / score is a dash.
             hasRunStats = true,
-            starDustHundredths = r.dust,
-            worlds = r.worlds,
+            starDustHundredths = doc.dust > 0 ? doc.dust : -1,
+            worlds = doc.worlds,
             powerUps = r.powerUps,
-            hasScore = true,
-            runScore = r.score,
+            hasScore = doc.score > 0,
+            runScore = doc.score,
             platform = doc.platform,
         };
     }
