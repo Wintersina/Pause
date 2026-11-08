@@ -58,6 +58,19 @@ public sealed class CodexCombosView
     public Text RowStats(int i) { return rows[i].stats; }
     public Image RowGlyph(int i, int g) { return rows[i].glyphs[g]; }
     public RectTransform RowRect(int i) { return rows[i].rt; }
+    readonly CodexGlide glide = new CodexGlide();
+    public void Tick() { glide.Tick(content); }
+    // Smooth-scrolls so the combo's row (by pay id, "fusion_<key>") is at the top of the list.
+    public void GlideToCombo(string payId)
+    {
+        for (int i = 0; i < rows.Length; i++)
+        {
+            if (rows[i].def == null || CodexPayout.FusionPayId(rows[i].def) != payId) continue;
+            scroll.StopMovement();
+            glide.Start(content, CodexGlide.TargetY(-rows[i].rt.anchoredPosition.y, 0f, Mathf.Max(0f, content.sizeDelta.y - viewport.rect.height)));
+            return;
+        }
+    }
     public Text StripCount { get { return stripCount; } }
     public Rect ListRect { get { return listRect; } }
 

@@ -944,7 +944,68 @@ public class CodexPanel : MonoBehaviour
     void OnCollectTab()
     {
         if (OtherViewOpen || inDetail) return;
-        AfterCollect(Codex.CollectRewards(category));
+        // Remember where the first pending find sits before it is paid, then glide the list to it.
+        int first = FirstPendingCard();
+        int dust = Codex.CollectRewards(category);
+        AfterCollect(dust);
+        if (dust > 0 && first >= 0) ScrollToCard(first);
+    }
+
+    // Opens the tab holding a find and glides its list to it. The id is a CodexEntry id, "fusion_<key>" (a
+    // combo) or "music_..." (a track), i.e. the ids kept in Codex.PaidKey.
+    public void ScrollToFind(string id)
+    {
+        if (string.IsNullOrEmpty(id) || inDetail) return;
+        if (id.StartsWith(CodexPayout.FusionPrefix, System.StringComparison.Ordinal))
+        {
+            if (!combosOpen) ShowTab(CombosTab);
+            combos.GlideToCombo(id);
+            return;
+        }
+        if (id.StartsWith("music_", System.StringComparison.Ordinal))
+        {
+            if (!musicOpen) ShowTab(MusicTab);
+            music.GlideToTrack(id);
+            return;
+        }
+        var e = Codex.Find(id);
+        if (e == null) return;
+        if (OtherViewOpen || category != e.category) ShowTab(TabOfCategory(e.category));
+        for (int i = 0; i < shownCount; i++)
+            if (cards[i].entry == e) { ScrollToCard(i); return; }
+    }
+
+    // Index (into the shown cards) of the first entry whose dust is still pending, or -1.
+    public int FirstPendingCard()
+    {
+        for (int i = 0; i < shownCount; i++)
+            if (cards[i].entry != null && Codex.IsRewardPending(cards[i].entry)) return i;
+        return -1;
+    }
+
+    // Smooth-scrolls so the card's row sits just under the pinned header (or the top of the list).
+    public void ScrollToCard(int i)
+    {
+        if (i < 0 || i >= shownCount || inDetail) return;
+        float top = -cards[i].rt.anchoredPosition.y - layout.cardHeight * .5f;
+        ScrollTo(CardScrollY(top, sectioned ? SectionHeaderHeight + SectionHeaderGap : 0f, MaxScroll));
+    }
+
+    // Content y that puts a row whose top edge is cardTop just under the pinned header, kept inside the list.
+    public static float CardScrollY(float cardTop, float pinnedHeight, float maxScroll)
+    {
+        return Mathf.Clamp(cardTop - pinnedHeight - GridInset, 0f, Mathf.Max(0f, maxScroll));
+    }
+
+    void ScrollTo(float y)
+    {
+        scroll.StopMovement();
+        jumpFrom = content.anchoredPosition.y;
+        jumpTo = y;
+        jumpAt = Time.unscaledTime;
+        lastSetY = jumpFrom;
+        jumping = true;
+        jumpTarget = -1;
     }
 
     void OnCollectDetail()
@@ -2204,6 +2265,7 @@ public class CodexPanel : MonoBehaviour
         UpdatePulse();
         if (achievementsOpen) ach.Tick(Time.unscaledTime);
         if (musicOpen) music.Tick();
+        if (combosOpen) combos.Tick();
         if (phase != Phase.Hidden) TickAnimations(Time.unscaledDeltaTime);
     }
 
