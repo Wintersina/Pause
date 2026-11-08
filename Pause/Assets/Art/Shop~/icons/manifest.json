@@ -1,0 +1,77 @@
+{
+  "grid_size": 64,
+  "upscale": "nearest-neighbor 4x",
+  "canvas": "256x256 RGBA transparent",
+  "outline": "#111735",
+  "lighting": "top-left",
+  "icons": [
+    {
+      "file": "pack_850.png",
+      "palette": [
+        "#111735",
+        "#ffb51b",
+        "#ff7b16",
+        "#fff4c7"
+      ],
+      "description": "Small cluster of four canonical orange-gold dust stars; no heart."
+    },
+    {
+      "file": "pack_2500.png",
+      "palette": [
+        "#111735",
+        "#ffbd22",
+        "#ff8615",
+        "#fff4c7",
+        "#9a3d28"
+      ],
+      "description": "Medium heap of canonical dust stars spilling from a compact pouch/crate."
+    },
+    {
+      "file": "pack_6000.png",
+      "palette": [
+        "#111735",
+        "#ffc42a",
+        "#ff8a16",
+        "#fff4c7",
+        "#8f3428",
+        "#c5522f"
+      ],
+      "description": "Largest overflowing orange-gold dust-star chest with abundant spill."
+    },
+    {
+      "file": "booster_dust_x2.png",
+      "palette": [
+        "#111735",
+        "#ffc42a",
+        "#ff7b16",
+        "#fff4c7",
+        "#2ec4b6"
+      ],
+      "description": "Two overlapping dust stars, bold x2 mark, and timer hint."
+    },
+    {
+      "file": "booster_hazard_clear.png",
+      "palette": [
+        "#111735",
+        "#2ec4b6",
+        "#13a99d",
+        "#8be9df",
+        "#fff4c7",
+        "#f05678"
+      ],
+      "description": "Teal protective shockwave around a cleared hazard shard and protected heart."
+    },
+    {
+      "file": "booster_homing_atoms.png",
+      "palette": [
+        "#111735",
+        "#7a4dff",
+        "#bd75ff",
+        "#4e20b8",
+        "#fff4c7",
+        "#2ec4b6"
+      ],
+      "description": "Violet atom with orbit loops, lock-on reticle, and inward homing trail."
+    }
+  ]
+}\n
