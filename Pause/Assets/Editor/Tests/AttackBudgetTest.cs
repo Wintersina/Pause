@@ -73,7 +73,7 @@ public static class AttackBudgetTest
         { "roster:frost_fighter_3", new Pin(138, 2000, 911) },   // 6.9 % bot, 45.6 % standing; shown in 2000/2000; Shot x2 volleys 3 cooldown 2.2 tell 0.55
         { "roster:frost_fighter_4", new Pin(50, 2000, 548) },   // 2.5 % bot, 27.4 % standing; shown in 2000/2000; Shot x5 volleys 3 cooldown 3.4 tell 1.0
         { "roster:verdant_mine", new Pin(29, 2000, 1196) },   // 1.5 % bot, 59.8 % standing; shown in 2000/2000; Laser x1 volleys 2 cooldown 1.0 tell 1.0
-        { "roster:verdant_big", new Pin(0, 2000, 0) },   // 0.0 % bot, 0.0 % standing; shown in 2000/2000; Lob x1 volleys 3 cooldown 3.5 tell 0.9
+        { "roster:verdant_big", new Pin(0, 2000, 2000) },   // 0.0 % bot, 100.0 % standing (was 0.0 %: the glob landed behind the ship, the lob now leads the board); shown in 2000/2000; Lob x1 volleys 3 cooldown 3.5 tell 0.9
         { "roster:verdant_fighter_2", new Pin(0, 2000, 0) },   // 0.0 % bot, 0.0 % standing; shown in 2000/2000; Lunge x1 volleys 1 cooldown 2.0 tell 0.5
         { "roster:verdant_fighter_3", new Pin(0, 2000, 0) },   // 0.0 % bot, 0.0 % standing; shown in 2000/2000; Lunge x1 volleys 3 cooldown 1.3 tell 0.6
         { "roster:verdant_fighter_4", new Pin(184, 2000, 2000) },   // 9.2 % bot, 100.0 % standing; shown in 2000/2000; Shot x3 volleys 4 cooldown 2.6 tell 0.8
