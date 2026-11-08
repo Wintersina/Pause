@@ -66,6 +66,7 @@ public static class HostileShots
     public static void Register(IHostileZone z) { if (z != null && !zones.Contains(z)) zones.Add(z); }
     public static void Unregister(IHostileZone z) { zones.Remove(z); }
     public static IReadOnlyList<IHostileZone> Zones => zones;
+    public static IReadOnlyList<BossBeam> Beams => beams;   // (the Gold Warden's sentries test against live beams)
 
     public static void ResetCounters() { Clashes = Pops = BeamBurns = ShotDown = ZoneBurns = PowerCleared = Wiped = 0; }
 

@@ -6,6 +6,8 @@ using UnityEngine;
 // straight up with its pivot on the cell centre; its muzzle tip is 24 px from the top of the cell, so
 // 104 / 256 of a unit from the pivot. The head always sorts one above the base, so the barrel never draws under it.
 // Plain object (no per-frame allocation): ShipAttackRunner owns one per sentry and steps it with gameplay time.
+// Enemies can shoot it down (ShipAttackRunner.SentryContacts): Hurt() is the hit's brief warm flash and jolt away
+// from the blow; the fold-away is reused, quicker, as its death.
 public sealed class SentryTurret
 {
     public const float MuzzlePixels = 104f, CellPixels = 256f;
@@ -15,10 +17,13 @@ public sealed class SentryTurret
     public const float IdleSweep = 25f, IdleRate = 1.3f;          // no target: the head sweeps +-25 deg about straight up
     public const int BaseOrder = 68, HeadOrder = 69;
     public const float SentryScaleForTests = .9f;   // the size the sentries deploy at (ShipAttackRunner.SentryTurretSize)
+    public const float HurtSeconds = .14f, HurtKick = .06f;      // a hit: a short jolt away from the blow and a warm flash
+    static readonly Color HurtTint = new Color(1f, .62f, .5f, 1f);
 
     GameObject root;
     SpriteRenderer baseSr, headSr;
-    float scale = .9f, shown = 1f, idleClock;
+    float scale = .9f, shown = 1f, idleClock, hurt;
+    Vector2 kick;
     static Sprite baseSprite, headSprite;
 
     public float Angle { get; private set; }   // the head's turn, degrees counter-clockwise from straight up
@@ -68,6 +73,8 @@ public sealed class SentryTurret
         scale = size;
         Angle = 0f;
         idleClock = 0f;
+        hurt = 0f;
+        baseSr.transform.localPosition = headSr.transform.localPosition = Vector3.zero;
         root.transform.position = at;
         headSr.transform.localRotation = Quaternion.identity;
         Unfold(0f);
@@ -85,6 +92,32 @@ public sealed class SentryTurret
         var c = new Color(1f, 1f, 1f, Mathf.Clamp01(k * 3f));
         baseSr.color = c;
         headSr.color = c;
+    }
+
+    // A hit from `from` (world): the turret jolts away from it and flashes warm for HurtSeconds (Tick plays it out).
+    public void Hurt(Vector3 from)
+    {
+        if (root == null) return;
+        Vector2 away = (Vector2)(Pivot - from);
+        kick = (away.sqrMagnitude > 1e-6f ? away.normalized : Vector2.up) * HurtKick;
+        hurt = HurtSeconds;
+        Tick(0f);
+    }
+
+    public bool Hurting { get { return hurt > 0f; } }
+
+    // Plays out a hit's jolt and flash (gameplay time). Call after Unfold, which owns the alpha.
+    public void Tick(float dt)
+    {
+        if (root == null || (hurt <= 0f && dt > 0f)) return;
+        hurt = Mathf.Max(0f, hurt - dt);
+        float k = hurt / HurtSeconds;
+        Vector3 off = (Vector3)(kick * k) / Mathf.Max(.01f, root.transform.localScale.x);
+        baseSr.transform.localPosition = headSr.transform.localPosition = off;
+        float a = baseSr.color.a;
+        var c = Color.Lerp(Color.white, HurtTint, k);
+        c.a = a;
+        baseSr.color = headSr.color = c;
     }
 
     public void SetPosition(Vector3 at) { if (root != null) root.transform.position = at; }

@@ -29,6 +29,7 @@ public static class ShipSignatures2Test
         GoldBoltsPierceAndSentriesDrift();
         GoldSentriesIgnoreScenery();
         GoldTurretsAimAllAround();
+        GoldSentriesCanBeShotDown();
         ParanoidBlastGrowsWithTheLevel();
         SaboteurBlastGrowsAndChains();
 
@@ -360,6 +361,125 @@ public static class ShipSignatures2Test
         Check("no target: no bolts", idle.Runner.SentryBolts == 0);
         Check("no target: the head idles within its sweep", it != null && Mathf.Abs(Mathf.DeltaAngle(0f, it.Angle)) <= SentryTurret.IdleSweep + .5f);
         Teardown(idle, 7);
+    }
+
+    // Gold Warden: enemies can shoot the deployed sentries down. An enemy shot that touches one is spent and costs it a
+    // hit; an enemy body touching it costs it a hit and is not hurt; the loadout's hit count destroys it (it folds away
+    // early). Nothing lands while the world is frozen; scenery, pickups and the player's own shots never hurt it; with
+    // nothing touching them they still fold away on their timer.
+    static void GoldSentriesCanBeShotDown()
+    {
+        int hits = ShipWeaponUpgrades.LoadoutFor(7).hits;
+        Check("shot down: the Warden's loadout gives sentries a small hit count (" + hits + ")", hits >= 1 && hits <= 4);
+
+        FreshScene();
+        var gold = Ship(7, 1);
+        gold.Runner.Fire();
+        Steps(gold.Runner, 1.5f);   // pods flown and unfolded
+        int deployed = gold.Runner.SentriesNow;
+        Check("shot down: the sentries deployed (" + deployed + ")", deployed >= 3);
+        var parked = new List<GameObject>();
+        if (deployed >= 3)
+        {
+            Vector3 p0 = gold.Runner.SentryTurretOf(0).Pivot, p1 = gold.Runner.SentryTurretOf(1).Pivot, p2 = gold.Runner.SentryTurretOf(2).Pivot;
+            Vector3 p3 = deployed > 3 ? gold.Runner.SentryTurretOf(3).Pivot : p2;
+
+            // scenery, a pickup and nothing else on the last one: it is never hit
+            var rock = Hazard(p3.x, p3.y);
+            rock.tag = "Astr";
+            rock.GetComponent<ClearTarget>().Scenery = true;
+            rock.AddComponent<FakeRock>();
+            var pickup = new GameObject("pickupOnSentry");
+            pickup.tag = "pickUp";
+            pickup.transform.position = p3;
+            ClearTarget.Ensure(pickup).SetRadius(.3f);
+            parked.Add(rock);
+            parked.Add(pickup);
+
+            // an enemy shot on sentry 0: one hit, the shot is spent
+            var shot = FakeShot.At(p0);
+            parked.Add(shot.gameObject);
+            Steps(gold.Runner, .04f);
+            Check("shot down: an enemy shot hits a sentry (hp " + gold.Runner.SentryHp(0) + " of " + hits + ")", gold.Runner.SentryHp(0) == hits - 1);
+            Check("shot down: the enemy shot is spent on it", shot.popped && !shot.ShotCollidable);
+
+            // frozen world (finger lifted): a shot on sentry 2 lands nothing until the world runs again
+            var frozenShot = FakeShot.At(p2);
+            parked.Add(frozenShot.gameObject);
+            int before = gold.Runner.SentryHitsTaken;
+            Time.timeScale = 0f;
+            gold.Runner.Step(ShipAttackRunner.ScaledDelta());
+            Steps(gold.Runner, .2f);
+            Check("shot down: no hit while the world is frozen", gold.Runner.SentryHitsTaken == before && !frozenShot.popped && gold.Runner.SentryHp(2) == hits);
+            Time.timeScale = 1f;
+            Steps(gold.Runner, .04f);
+            Check("shot down: the same shot hits once the world runs", frozenShot.popped && gold.Runner.SentryHp(2) == hits - 1);
+
+            // an enemy body parked on sentry 1: it costs hits, is never hurt, and the hit count destroys the sentry
+            var body = Hazard(p1.x, p1.y + .1f);
+            var bodyHits = body.AddComponent<FakeBoss>();
+            parked.Add(body);
+            Steps(gold.Runner, .04f);
+            Check("shot down: an enemy body touching a sentry hits it (hp " + gold.Runner.SentryHp(1) + ")", gold.Runner.SentryHp(1) == hits - 1);
+            int downBefore = gold.Runner.SentriesShotDown;
+            Steps(gold.Runner, ShipAttackRunner.SentryHitGuard * hits + .1f);
+            Check("shot down: " + hits + " hits destroy it", gold.Runner.SentryDowned(1) || !(gold.Runner.SentryTurretOf(1).Visible));
+            Check("shot down: counted once (" + (gold.Runner.SentriesShotDown - downBefore) + ")", gold.Runner.SentriesShotDown - downBefore == 1);
+            Check("shot down: the body that touched it is not hurt", Alive(body) && body.GetComponent<ClearTarget>().isActiveAndEnabled);
+            Steps(gold.Runner, ShipAttackRunner.DeploySeconds);
+            Check("shot down: it has folded away", !gold.Runner.SentryTurretOf(1).Visible);
+            Check("shot down: the sentries that were not destroyed fight on", gold.Runner.SentriesNow == deployed - 1);
+            if (deployed > 3)
+                Check("shot down: scenery and a pickup never hit a sentry", gold.Runner.SentryHp(3) == hits && rock.GetComponent<FakeRock>().hits == 0);
+
+            // the player's own shots: an attack projectile in flight across sentry 2 is not a hit
+            int beforeOwn = gold.Runner.SentryHitsTaken;
+            var own = AttackPool.Projectile();
+            if (own != null) own.transform.position = p2;
+            Steps(gold.Runner, ShipAttackRunner.SentryHitGuard + .1f);
+            Check("shot down: the player's own projectiles never hit a sentry", gold.Runner.SentryHitsTaken == beforeOwn);
+        }
+        foreach (var g in parked) if (g != null) { var fs = g.GetComponent<FakeShot>(); if (fs != null) HostileShots.Unregister(fs); Object.DestroyImmediate(g); }
+        Time.timeScale = 1f;
+        Teardown(gold, 7);
+
+        // nothing touching them: every sentry still folds away on its own timer, none shot down
+        FreshScene();
+        var calm = Ship(7, 1);
+        calm.Runner.Fire();
+        Steps(calm.Runner, 1.5f);
+        int n = calm.Runner.SentriesNow;
+        Steps(calm.Runner, 2f);
+        Check("timer: untouched sentries stand through their life (" + calm.Runner.SentriesNow + " of " + n + ")", n > 0 && calm.Runner.SentriesNow == n);
+        float life = ShipWeaponUpgrades.LoadoutFor(7).duration;
+        Steps(calm.Runner, life + 2f * ShipAttackRunner.DeploySeconds);
+        Check("timer: they fold away on their timer (" + calm.Runner.SentriesNow + " left), none shot down",
+              calm.Runner.SentriesNow == 0 && calm.Runner.SentriesShotDown == 0);
+        Teardown(calm, 7);
+    }
+
+    // A hostile shot sitting still (an enemy bolt as the shot registry sees it).
+    sealed class FakeShot : MonoBehaviour, IHostileShot
+    {
+        public bool popped;
+        public static FakeShot At(Vector3 at)
+        {
+            var go = new GameObject("fakeEnemyShot");
+            go.transform.position = at;
+            var s = go.AddComponent<FakeShot>();
+            HostileShots.Register(s);
+            return s;
+        }
+        public bool ShotCollidable => !popped;
+        public Vector2 ShotPosition => transform.position;
+        public float ShotRadius => .12f;
+        public int ShotOwner => 4242;
+        public float ShotAge => 1f;
+        public int ShotMass => HostileShots.Light;
+        public Color ShotTint => Color.white;
+        public void ShotPop(Vector2 at) { popped = true; }
+        public bool ShotShovable => false;
+        public void ShotShove(Vector2 by) { }
     }
 
     // Paranoid: a neighbour 1.5 from the mark dies from level 2 on, one 1.8 away only at level 4. The neighbour

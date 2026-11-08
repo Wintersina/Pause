@@ -445,12 +445,22 @@ public partial class ShipAttackRunner
     // l.shots sentry pods launch from the nose to hover points spread across the lower-middle of the screen,
     // unfold on arrival (the cinematic slow motion ends once they are deployed), then shoot slim bolts at the
     // nearest target in range at l.speed shots a second for l.duration of normal time, and fold away. They
-    // hold their screen position and nothing hits them. A bolt weighs 1 / (shots over a sentry's life), so a
-    // sentry is worth about one boss hit.
+    // hold their screen position. A bolt weighs 1 / (shots over a sentry's life), so a sentry is worth about
+    // one boss hit.
+    //
+    // ENEMIES CAN SHOOT THEM DOWN (SentryContacts): a deployed sentry (unfolding or firing) takes l.hits hits.
+    // A hit is an enemy, elite or boss shot touching it (the shot is spent, as on the hull), a live area hazard
+    // or boss beam, or an enemy body touching it (the body is not hurt). After a hit it is untouchable for
+    // SentryHitGuard (one contact is one hit); the last hit folds it away quickly with a small burst. The pod in
+    // flight and a folding sentry cannot be hit. Never: the player's own shots, scenery, pickups, terrain, or
+    // anything while the world is frozen (no gameplay time passes).
 
     public const int MaxSentries = 8, MaxBolts = 16;
     public const float SentryFlightSeconds = .4f, SentryStagger = .08f, SentryBoltSpeed = 30f, SentrySpacing = 2.6f;
     public const float SentryQuickShare = .5f;
+    public const float SentryHitRadius = .3f;     // a deployed turret's body, world units
+    public const float SentryHitGuard = .35f;     // seconds a sentry cannot be hit again after a hit
+    public const float SentryDeathFold = .5f;     // a shot-down sentry folds this share of DeploySeconds
 
     public static float DeploySeconds { get { return 8 * WeaponArt.Tick; } }
 
@@ -468,6 +478,10 @@ public partial class ShipAttackRunner
         public float anchorX;         // the ship's x at the deploy
         public SentryTurret turret;   // the open turret: static base + a head that turns toward its mark
         public ClearTarget aim;       // what the head is turned toward (null: idle sweep, no fire)
+        public int hp;                // hits left before enemies shoot it down (0 at the deploy: untouchable)
+        public bool mortal;           // it can be hit at all (l.hits > 0)
+        public bool downed;           // shot down: folding away early
+        public float guard;           // seconds of no-hit after a hit
     }
 
     class Bolt
@@ -486,6 +500,10 @@ public partial class ShipAttackRunner
     Bolt[] bolts;
     public int SentriesNow { get { int n = 0; if (sentries != null) for (int i = 0; i < sentries.Length; i++) if (sentries[i].on) n++; return n; } }
     public int SentryBolts { get; private set; }
+    public int SentryHitsTaken { get; private set; }    // every hit a sentry took (tests)
+    public int SentriesShotDown { get; private set; }   // sentries enemies destroyed (tests)
+    public int SentryHp(int i) { return sentries != null && sentries[i].on ? sentries[i].hp : 0; }
+    public bool SentryDowned(int i) { return sentries != null && sentries[i].on && sentries[i].downed; }
 
     // Where sentry i of n hovers: spread across the screen, 3-5 u above the ship, centre ones higher.
     public static Vector3 SentryPoint(int i, int n, Vector3 shipPos, Rect view)
@@ -536,6 +554,10 @@ public partial class ShipAttackRunner
             s.drift = ShipSignatures2.SentriesDriftAt(l.weaponLevel);
             s.home = s.to;
             s.anchorX = transform.position.x;
+            s.hp = Mathf.Max(0, l.hits);
+            s.mortal = s.hp > 0;
+            s.downed = false;
+            s.guard = 0f;
             made++;
         }
         if (made == 0) run.Stop();
@@ -563,6 +585,8 @@ public partial class ShipAttackRunner
             var s = sentries[i];
             if (!s.on) continue;
             s.t += dt;
+            if (s.guard > 0f) s.guard -= dt;
+            if ((s.stage == 2 || s.stage == 3) && s.mortal && s.guard <= 0f && dt > 0f && Time.timeScale > 0f) SentryContacts(s);
             switch (s.stage)
             {
                 case 0:
@@ -583,12 +607,14 @@ public partial class ShipAttackRunner
                     break;
                 case 2:
                     s.turret.Unfold(s.t / DeploySeconds);
+                    s.turret.Tick(dt);
                     if (s.t < DeploySeconds) break;
                     s.turret.Unfold(1f);
                     s.stage = 3;
                     s.t = 0f;
                     break;
                 case 3:
+                    s.turret.Tick(dt);
                     if (s.drift) DriftSentry(s, dt);
                     AimSentry(s, dt);
                     s.fireClock += dt;
@@ -606,7 +632,8 @@ public partial class ShipAttackRunner
                     s.aim = null;
                     break;
                 default:
-                    if (s.t < DeploySeconds) { s.turret.Unfold(1f - s.t / DeploySeconds); break; }
+                    float fold = DeploySeconds * (s.downed ? SentryDeathFold : 1f);
+                    if (s.t < fold) { s.turret.Unfold(1f - s.t / fold); s.turret.Tick(dt); break; }
                     if (s.turret != null) s.turret.Hide();
                     if (s.sprite != null && s.sprite.Active) s.sprite.Stop();
                     s.sprite = null;
@@ -614,6 +641,74 @@ public partial class ShipAttackRunner
                     break;
             }
         }
+    }
+
+    // ---- what can hit a deployed sentry (see the header). No allocation: walks the existing registries.
+    void SentryContacts(Sentry s)
+    {
+        Vector2 p = s.turret != null ? (Vector2)s.turret.Pivot : (Vector2)s.to;
+        float r = SentryHitRadius;
+        // enemy, elite and boss shots: the shot is spent on it (a landed pool is not)
+        var shots = HostileShots.All;
+        for (int i = 0; i < shots.Count; i++)
+        {
+            var h = shots[i];
+            if (h == null || (h is Object o && o == null) || !h.ShotCollidable) continue;
+            Vector2 at = h.ShotPosition;
+            float reach = r + h.ShotRadius;
+            if ((at - p).sqrMagnitude > reach * reach) continue;
+            if (h.ShotMass != HostileShots.Fixed) h.ShotPop(at);
+            HitSentry(s, at);
+            return;
+        }
+        // live area hazards (jets, waves, blast rings, strikes, lashes) and boss beams: not spent
+        var zones = HostileShots.Zones;
+        for (int i = 0; i < zones.Count; i++)
+        {
+            var z = zones[i];
+            if (z == null || (z is Object o && o == null) || !z.ZoneLive || !z.ZoneTouches(p, r)) continue;
+            HitSentry(s, p + Vector2.up * r);
+            return;
+        }
+        var beams = HostileShots.Beams;
+        for (int i = 0; i < beams.Count; i++)
+        {
+            var b = beams[i];
+            if (b == null || !b.Live || !b.Touches(p, r)) continue;
+            HitSentry(s, p + Vector2.up * r);
+            return;
+        }
+        // enemy bodies (fighters, mines, rocks, elites and their drones, a boss's body): they are not hurt by it
+        var live = ClearTarget.Live;
+        for (int i = 0; i < live.Count; i++)
+        {
+            var t = live[i];
+            if (t == null || !ShipTargets.IsThreat(t) || t.IsShotHitbox) continue;
+            Vector2 at = t.transform.position;
+            float reach = r + t.Radius;
+            if ((at - p).sqrMagnitude > reach * reach) continue;
+            HitSentry(s, at);
+            return;
+        }
+    }
+
+    void HitSentry(Sentry s, Vector2 from)
+    {
+        SentryHitsTaken++;
+        s.hp--;
+        s.guard = SentryHitGuard;
+        if (s.turret != null) s.turret.Hurt(from);
+        if (s.hp > 0) return;
+        // shot down: a small burst (the bolt's own impact, faint) and a quick fold-away
+        SentriesShotDown++;
+        s.downed = true;
+        s.stage = 4;
+        s.t = 0f;
+        s.aim = null;
+        Vector3 at = s.turret != null ? s.turret.Pivot : s.to;
+        AttackPool.Sprite().Play(AttackSprite.Source.AttackBurst, ship, at, Vector3.one * .55f, 0f,
+            ShipFxArt.BurstTicks, false, 0f, null, Vector3.zero, 71).Strip("attack_shot", 8, false)
+            .Alpha(ShipFxArt.AttackBurstAlpha * SentryBurstAlphaK);
     }
 
     public const float SentryBurstAlphaK = .5f;   // a sentry bolt's impact burst is half as opaque (they fire all the time)
