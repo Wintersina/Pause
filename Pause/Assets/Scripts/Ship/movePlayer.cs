@@ -198,8 +198,15 @@ public class movePlayer : MonoBehaviour
                 teleported = false;
                 if (!CanTeleport())
                 {
+                    // No blink, but a held finger still pulls the ship: it
+                    // flies there with the ordinary glide (speed capped, so
+                    // spamming still gets no teleport) and then follows 1:1.
+                    // Nothing here is invulnerable: it collides on the way.
                     teleportLockedUntilRelease = true;
                     TeleportFx.Denied(transform.position);
+                    gliding = true;
+                    glideElapsed = 0f;
+                    returning = false;
                     return;
                 }
 
@@ -224,11 +231,11 @@ public class movePlayer : MonoBehaviour
                 PlaceShip(ReturnPosition(FollowTarget(fingerPos), returnOffset, returnElapsed));
                 if (returnElapsed >= ReturnSeconds) returning = false;
             }
-            else if (!teleportLockedUntilRelease)
+            else
             {
-                // Normal held-touch steering remains responsive. A touch
-                // that was refused by the no-pause cooldown cannot steer
-                // or blink until it has been released.
+                // Normal held-touch steering. A touch refused by the no-pause
+                // cooldown still steers (it glides in, then follows); it just
+                // cannot blink until it has been released and pressed again.
                 moveLeft_Right(fingerPos);
             }
 

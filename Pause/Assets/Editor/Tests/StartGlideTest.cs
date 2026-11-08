@@ -126,6 +126,7 @@ public static class StartGlideTest
             LateFinger();
             LiftMidGlide();
             PauseTeleportAfterGlide();
+            CooldownFollow();
             Constants();
         }
         finally
@@ -293,6 +294,94 @@ public static class StartGlideTest
         Vector2 sp3 = new Vector2(300, 600); pressed = true; screen = sp3; Frame();
         LandsOnFingerThenReturns("a later pause/resume never glides", sp3);
         Teardown();
+    }
+
+    // Out of pauses: a press inside the tap cooldown never blinks, but a held
+    // finger glides the ship in (capped speed, no jump) and it can still hit
+    // things on the way. With pauses left nothing about this applies.
+    static void CooldownFollow()
+    {
+        int saved = score.pauseCounter;
+        score.pauseCounter = 0;
+        Build();
+        RunToGo(new Vector2(270, 480));
+        for (int i = 0; i < 60; i++) Frame();
+        // first blink is allowed (cooldown not yet started), and starts the cooldown
+        pressed = false; Frame();
+        Vector2 a = new Vector2(100, 300); pressed = true; screen = a; Frame();
+        Check("out of pauses: the first blink still lands on the finger", Vector3.Distance(Pos, movePlayer.LandingPoint(FingerWorld(a))) < 1e-4f);
+        for (int i = 0; i < 30; i++) Frame();
+
+        // spam taps inside the cooldown: no blink, ever
+        bool blinked = false;
+        for (int n = 0; n < 6; n++)
+        {
+            pressed = false; Frame();
+            Vector3 before = Pos;
+            Vector2 sp = new Vector2(100 + 60 * n, 800);
+            pressed = true; screen = sp; Frame();
+            if (Vector3.Distance(Pos, before) > movePlayer.GlideMaxSpeed * Dt + 1e-3f) blinked = true;
+        }
+        Check("spam taps inside the cooldown never teleport", !blinked);
+
+        // a held finger inside the cooldown: flies down to it, smoothly
+        pressed = false; Frame();
+        Vector2 held = new Vector2(430, 120);
+        Vector3 target = FingerTarget(held);
+        Vector3 start = Pos;
+        pressed = true; screen = held;
+        float cap = movePlayer.GlideMaxSpeed * Dt + 1e-3f;
+        bool shrinks = true, capped = true;
+        float prevD = Vector3.Distance(Pos, target);
+        Vector3 prev = Pos;
+        int frames = 0;
+        for (int i = 0; i < 90; i++)
+        {
+            Frame(); frames++;
+            float d = Vector3.Distance(Pos, target);
+            if (d > prevD + 1e-4f) shrinks = false;
+            if (Vector3.Distance(Pos, prev) > cap) capped = false;
+            prevD = d; prev = Pos;
+        }
+        Check("held finger in the cooldown: the ship moved toward it", Vector3.Distance(start, target) > 3f && Vector3.Distance(Pos, start) > 3f);
+        Check("... distance only shrinks", shrinks);
+        Check("... no frame jumps past the speed cap (" + frames + ")", capped);
+        Check("... and it ends on the finger", Vector3.Distance(Pos, target) < 1e-4f);
+
+        // collisions still apply along the way
+        pressed = false; Frame();
+        var hz = Make("CooldownHazard");
+        var box = hz.AddComponent<BoxCollider2D>();
+        box.size = new Vector2(2f, 0.6f);
+        Vector2 far = new Vector2(430, 800);
+        Vector3 farT = FingerTarget(far);
+        Vector3 mid = Vector3.Lerp(Pos, farT, 0.5f);
+        hz.transform.position = mid;
+        Physics2D.SyncTransforms();
+        pressed = true; screen = far;
+        bool hit = false;
+        for (int i = 0; i < 60; i++)
+        {
+            Frame();
+            if (box.OverlapPoint(Pos)) hit = true;
+        }
+        Check("the ship still touches a hazard in its path during the cooldown fly", hit);
+        Teardown();
+
+        // pauses left: the blink is unchanged (never denied, lands on the finger)
+        score.pauseCounter = 3;
+        Build();
+        RunToGo(new Vector2(270, 480));
+        for (int i = 0; i < 60; i++) Frame();
+        for (int n = 0; n < 3; n++)
+        {
+            pressed = false; Frame();
+            Vector2 sp = new Vector2(80 + 150 * n, 200 + 200 * n);
+            pressed = true; screen = sp; Frame();
+            Check("with pauses left tap " + n + " still blinks onto the finger", Vector3.Distance(Pos, movePlayer.LandingPoint(FingerWorld(sp))) < 1e-4f);
+        }
+        Teardown();
+        score.pauseCounter = saved;
     }
 
     static void Constants()
