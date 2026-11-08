@@ -1240,6 +1240,15 @@ public static class EnemyVolley
 {
     public static int Fired, Volleys;   // tests, the probe
 
+    // Where a lob is thrown so it comes down on `spot` (the pilot's spot on SCREEN, locked at the tell): the glob's landing
+    // spot rides the board while it is in the air (EliteShot.Lob), so it is thrown that far up the board, as every elite's
+    // lob is (EliteAttacks, VerdantElites, EmberElites). Without the lead the pool landed Scroll * LobSeconds BELOW the
+    // ship -- the glob flew over the hull, harmless in the air, and splashed behind it.
+    public static Vector2 LobAim(Vector2 spot)
+    {
+        return spot + Vector2.up * (EliteSystem.Scroll * EnemyBehaviours.LobSeconds);
+    }
+
     public static int Fire(EnemyBrain brain, EnemyBehaviour b, Vector2 at, Vector2 aim, Vector2 lobTarget)
     {
         var pool = EliteSystem.Shots;
@@ -1256,7 +1265,7 @@ public static class EnemyVolley
                 var s = pool.Fire(null, style, EliteShots.Kind.Glob, at, Vector2.zero, true, source.GetInstanceID());
                 if (s == null) break;
                 s.AsRosterShot(source, 0f);
-                s.Lob(lobTarget, EnemyBehaviours.LobSeconds);
+                s.Lob(LobAim(lobTarget), EnemyBehaviours.LobSeconds);
                 n = 1;
                 break;
             }

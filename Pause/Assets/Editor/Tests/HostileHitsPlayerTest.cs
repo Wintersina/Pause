@@ -128,8 +128,11 @@ public static class HostileHitsPlayerTest
         Check("every boss's projectile (" + BossCatalog.All.Length + " bosses, both styles, twice over the pool) hurts an unshielded ship through the physics step (" + n + " tried; failed:" + (bad == "" ? " none" : bad) + ")", bad == "");
     }
 
-    static void BloomMawBrain(DeathCrashTest.Rig rig)
+    // `boardSpeed` is moveBackGround.speed: with the board scrolling, the glob's spot rides it while the glob is in the air, so
+    // the Maw has to throw it ahead (EnemyVolley.LobAim) or it lands behind the ship after flying over it (the old miss).
+    static void BloomMawBrain(DeathCrashTest.Rig rig, float boardSpeed)
     {
+        moveBackGround.speed = boardSpeed;
         var ship = rig.ship.transform;
         collisionDetection.lifeCounter = 0;
         PlayerInvuln.Reset();
@@ -151,7 +154,8 @@ public static class HostileHitsPlayerTest
             Object.DestroyImmediate(go);
             brain = null;
         }
-        Check("a Bloom Maw can be made armed", brain != null);
+        string tag = " (board " + boardSpeed.ToString("F2") + ", scroll " + EliteSystem.Scroll.ToString("F1") + " u/s)";
+        Check("a Bloom Maw can be made armed" + tag, brain != null);
         if (brain == null) return;
         int landed = 0; bool touched = false; float clock = 100f;
         var seen = new System.Collections.Generic.HashSet<EliteShot>();
@@ -178,13 +182,57 @@ public static class HostileHitsPlayerTest
                 }
         }
         log += " | state " + brain.State + " stage " + brain.Stage + " windups " + brain.Windups + " pos " + brain.transform.position + " pilot " + brain.IsPilot + " behaviourAttack " + brain.Behaviour.attack;
-        Check("Bloom Maw brain: volleys " + brain.ShotsFired + ", landed-frames " + landed + ", touched " + touched + ", hearts " + collisionDetection.lifeCounter + log, touched && collisionDetection.lifeCounter >= 1);
+        Check("Bloom Maw brain" + tag + ": volleys " + brain.ShotsFired + ", landed-frames " + landed + ", touched " + touched + ", hearts " + collisionDetection.lifeCounter + log, touched && collisionDetection.lifeCounter >= 1);
+    }
+
+    // The roster lob's aim leads the scrolling board: thrown at EnemyVolley.LobAim(ship) the glob comes down ON the ship (its
+    // spot rode the board down onto it) and the pool costs a heart; thrown at the ship's spot itself it lands behind the ship.
+    static void BloomMawLeadsTheBoard(DeathCrashTest.Rig rig, EliteDef d)
+    {
+        var ship = rig.ship.transform;
+        moveBackGround.speed = .2f;   // a mid-run board: 6 u/s, the old miss was 5.4 units
+        float scroll = EliteSystem.Scroll;
+        Vector2 spot = new Vector2(0f, -2f);
+        Vector2 aimed = EnemyVolley.LobAim(spot);
+        Check("the lob aim is the spot plus the board's travel in the glob's flight (" + aimed + " for " + spot + ", scroll " + scroll + ")",
+              Mathf.Abs(aimed.x - spot.x) < 1e-4f && Mathf.Abs(aimed.y - (spot.y + scroll * EnemyBehaviours.LobSeconds)) < 1e-3f && scroll > 1f);
+
+        ship.position = new Vector3(spot.x, spot.y, 0f);
+        Physics2D.SyncTransforms();
+        Physics2D.Simulate(Dt);
+        collisionDetection.lifeCounter = 0;
+        PlayerInvuln.Reset();
+        var s = EliteSystem.Shots.Fire(null, d, EliteShots.Kind.Glob, new Vector2(0f, 3f), Vector2.zero, true, 0);
+        s.AsRosterShot(null, 0f);
+        s.Lob(aimed, EnemyBehaviours.LobSeconds);
+        bool touched = Fly(rig, s, Mathf.RoundToInt((EnemyBehaviours.LobSeconds + .6f) / Dt));
+        Check("on a scrolling board a led lob comes down on the ship and costs a heart (touch " + touched + ", hearts lost " + collisionDetection.lifeCounter + ")",
+              touched && collisionDetection.lifeCounter >= 1);
+        if (s.Active) s.Recycle();
+
+        // the old aim (the spot itself) lands Scroll * LobSeconds below the ship: the miss this guards against
+        collisionDetection.lifeCounter = 0;
+        PlayerInvuln.Reset();
+        var old = EliteSystem.Shots.Fire(null, d, EliteShots.Kind.Glob, new Vector2(0f, 3f), Vector2.zero, true, 0);
+        old.AsRosterShot(null, 0f);
+        old.Lob(spot, EnemyBehaviours.LobSeconds);
+        float landedY = float.NaN;
+        for (int i = 0; i < Mathf.RoundToInt((EnemyBehaviours.LobSeconds + .2f) / Dt) && old.Active; i++)
+        {
+            Step(1);
+            if (!old.Airborne) { landedY = old.transform.position.y; break; }
+        }
+        Check("unled, the same lob lands behind the ship (landed y " + landedY + ", ship y " + spot.y + ")",
+              !float.IsNaN(landedY) && landedY < spot.y - 2f);
+        if (old.Active) old.Recycle();
+        moveBackGround.speed = 0f;
     }
 
     public static int Execute()
     {
         fails = 0;
         var mode = Physics2D.simulationMode;
+        float savedBoard = moveBackGround.speed;
         using (new TestHarness.Sandbox())
         {
             DeathCrashTest.Rig rig = null;
@@ -233,13 +281,17 @@ public static class HostileHitsPlayerTest
                 bool touched3 = Fly(rig, s3, Mathf.RoundToInt((EnemyBehaviours.LobSeconds + .3f) / Dt));
                 Check("under a shield the pool touches but costs no heart (touch " + touched3 + ", " + collisionDetection.lifeCounter + ")", touched3 && collisionDetection.lifeCounter == 0);
                 collisionDetection.atomCheck = false;
-                BloomMawBrain(rig);
+                BloomMawLeadsTheBoard(rig, d);
+                BloomMawBrain(rig, 0f);
+                BloomMawBrain(rig, .15f);
+                moveBackGround.speed = 0f;
                 EveryKindEveryWorld(rig);
                 EveryBossShot(rig);
             }
             finally
             {
                 Physics2D.simulationMode = mode;
+                moveBackGround.speed = savedBoard;
                 if (rig != null) rig.Dispose();
                 collisionDetection.lifeCounter = 0;
                 collisionDetection.atomCheck = false;
