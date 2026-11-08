@@ -285,21 +285,23 @@ public class Hints : MonoBehaviour {
     {
         float progress = Progress();
         if (!Mathf.Approximately(progress, lastProgress)) { lastProgress = progress; idleClock = 0f; return; }
-        bool wantsFinger = current.advance == TutorialAdvance.WallFrozen || current.advance == TutorialAdvance.CrossWall
-                          || current.advance == TutorialAdvance.TeleportKill;
+        bool wantsFinger = TutorialSafety.WantsLift(current);
+        // the finger reminder owns the robot while it is up: never both lines
+        if (holdReminder.Saying) { idleClock = 0f; return; }
         if (!signals.worldMoving && !wantsFinger) return;
         if (!speaker.LineFinished) return;
         idleClock += dt;
         if (idleClock >= IdleHintSeconds) { idleClock = 0f; Reprompt(); }
     }
 
-    // Before the pause step is taught, a lifted finger freezes the world (as
-    // it always has) and the robot asks for it back, every few seconds, until
-    // it is down again; then the step's own line is said again. After the pause
-    // step, and in the ending, lifting is the point: no reminder.
+    // A lifted finger freezes the world (as it always has) and, on every step
+    // that does not ask for a lift, the robot asks for it back every few
+    // seconds until it is down again; then the step's own line is said again.
+    // The pause, jump and strike steps want the lift (TutorialSafety.WantsLift),
+    // and the ending and fly-in are over / not started: no reminder there.
     void TickHoldReminder(float dt)
     {
-        var act = holdReminder.Tick(dt, step, TutorialSafety.PauseStepIndex(TutorialScript.Steps),
+        var act = holdReminder.Tick(dt, step, step >= 0 && TutorialSafety.WantsLift(TutorialScript.Steps[step]),
                                     signals.pressed, signals.presses > 0, endedAt >= 0f || FlyingIn);
         if (act == TutorialSafety.HoldReminderAction.Say) speaker.Say(keepFingerLine);
         else if (act == TutorialSafety.HoldReminderAction.Restore && step >= 0) speaker.Say(lines[step]);

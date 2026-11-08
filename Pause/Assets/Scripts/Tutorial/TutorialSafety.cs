@@ -39,20 +39,20 @@ public static class TutorialSafety
     public const float HoldReminderGrace = .3f;
     public const float HoldReminderRepeatSeconds = 2.8f;
 
-    // Index of the step that teaches pause (the first one that wants the
-    // finger lifted), or -1 when the table has none.
-    public static int PauseStepIndex(TutorialStep[] steps)
+    // Does this step ask for a lifted finger (the pause lesson, the wall jump,
+    // the alien strike)? Lifting there IS the action: no reminder, and the
+    // idle re-prompt keeps running. Every other step wants the finger down.
+    public static bool WantsLift(TutorialStep step)
     {
-        for (int i = 0; i < steps.Length; i++)
-            if (steps[i].advance == TutorialAdvance.WallFrozen) return i;
-        return -1;
+        return step.advance == TutorialAdvance.WallFrozen || step.advance == TutorialAdvance.CrossWall
+            || step.advance == TutorialAdvance.TeleportKill;
     }
 
     public enum HoldReminderAction { None, Say, Restore }
 
     // The reminder's whole state: no coroutines, no timers outside Tick, so
     // there is nothing to tear down. Hints feeds it every frame (unscaled dt);
-    // it is Say while the finger is up before the pause step (first after the
+    // it is Say while the finger is up on any step that does not ask for a lift (first after the
     // grace, then every repeat), Restore on the frame the finger comes back
     // after a reminder was spoken (the step's own line is said again), and
     // None otherwise. It never touches the step, the signals or the pause.
@@ -64,13 +64,14 @@ public static class TutorialSafety
 
         public bool Saying { get { return saying; } }
 
-        // step: current step index (-1 before the first); pauseStep: PauseStepIndex;
+        // step: current step index (-1 before the first); liftWanted: the
+        // step asks for a lifted finger (WantsLift);
         // everPressed: the player has touched down at least once (so the
         // tutorial's opening, finger not yet down, stays quiet); over: the
         // tutorial is ending or done, or the fly-in is playing.
-        public HoldReminderAction Tick(float dt, int step, int pauseStep, bool pressed, bool everPressed, bool over)
+        public HoldReminderAction Tick(float dt, int step, bool liftWanted, bool pressed, bool everPressed, bool over)
         {
-            bool active = !over && everPressed && step >= 0 && pauseStep >= 0 && step < pauseStep;
+            bool active = !over && everPressed && step >= 0 && !liftWanted;
             if (!active || pressed)
             {
                 bool wasSaying = saying;
