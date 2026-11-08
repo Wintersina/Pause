@@ -65,6 +65,8 @@ public class Hints : MonoBehaviour {
     TutorialGuides guides;
     TutorialSkip skip;
     SpokenLine[] lines;
+    SpokenLine keepFingerLine;
+    TutorialSafety.HoldReminder holdReminder;
     SpokenLine closingLine, retryLine, rescueLine, tryAgainLine;
     Text pauseReadout;
     RectTransform hudPanel;
@@ -133,6 +135,8 @@ public class Hints : MonoBehaviour {
         pendingCrashes = 0;
         pendingAtCap = false;
         skipOfferLine = TutorialScript.Speak(TutorialSafety.SkipOfferLine);
+        keepFingerLine = TutorialScript.Speak(TutorialSafety.KeepFingerLine);
+        holdReminder = default(TutorialSafety.HoldReminder);
 
         speaker = RobotSpeaker.Create(font);
         guides = TutorialGuides.Create(speaker.Root);
@@ -180,6 +184,7 @@ public class Hints : MonoBehaviour {
 
         if (endedAt >= 0f)
         {
+            holdReminder = default(TutorialSafety.HoldReminder);
             RunEnding();
             return;
         }
@@ -209,6 +214,7 @@ public class Hints : MonoBehaviour {
         TickEnemy(dt);
         KeepHeartsRight();
         TickIdle(current, dt);
+        TickHoldReminder(dt);
 
         if (TutorialScript.CanAdvance(current, stepStart, signals, speaker.LineFinished, speaker.SinceLineFinished, readSeconds))
         {
@@ -285,6 +291,18 @@ public class Hints : MonoBehaviour {
         if (!speaker.LineFinished) return;
         idleClock += dt;
         if (idleClock >= IdleHintSeconds) { idleClock = 0f; Reprompt(); }
+    }
+
+    // Before the pause step is taught, a lifted finger freezes the world (as
+    // it always has) and the robot asks for it back, every few seconds, until
+    // it is down again; then the step's own line is said again. After the pause
+    // step, and in the ending, lifting is the point: no reminder.
+    void TickHoldReminder(float dt)
+    {
+        var act = holdReminder.Tick(dt, step, TutorialSafety.PauseStepIndex(TutorialScript.Steps),
+                                    signals.pressed, signals.presses > 0, endedAt >= 0f || FlyingIn);
+        if (act == TutorialSafety.HoldReminderAction.Say) speaker.Say(keepFingerLine);
+        else if (act == TutorialSafety.HoldReminderAction.Restore && step >= 0) speaker.Say(lines[step]);
     }
 
     float Progress()

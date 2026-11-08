@@ -51,6 +51,95 @@ public static class TutorialSafetyTest
         Check("no crash, no reply", TutorialSafety.DecideCrash(0, 0, true, 99f, false, false) == R);
         Check("the crash lines speak and fit the box", TutorialScript.Speak(TutorialSafety.OuchLine).SyllableCount > 0
               && TutorialSafety.PlayfulLine.Length <= 70 && TutorialSafety.OuchLine.Length <= 70);
+        HoldReminderChecks();
         return fails;
+    }
+
+    // ---- finger-off reminder ----
+
+    static int Run(ref TutorialSafety.HoldReminder r, float seconds, int step, bool pressed, bool everPressed, bool over, System.Action<TutorialSafety.HoldReminderAction> on = null)
+    {
+        const float dt = 1f / 60f;
+        int says = 0;
+        for (float t = 0f; t < seconds; t += dt)
+        {
+            var a = r.Tick(dt, step, TutorialSafety.PauseStepIndex(TutorialScript.Steps), pressed, everPressed, over);
+            if (a == TutorialSafety.HoldReminderAction.Say) says++;
+            if (on != null) on(a);
+        }
+        return says;
+    }
+
+    static void HoldReminderChecks()
+    {
+        int pause = TutorialSafety.PauseStepIndex(TutorialScript.Steps);
+        Check("the pause step is the freeze step, after hold / dust / heal", pause == 3 && TutorialScript.Steps[pause].id == "freeze");
+        Check("the reminder line fits the bubble and speaks", TutorialSafety.KeepFingerLine.Length <= TutorialScript.MaxLineLength
+              && TutorialScript.ToPlainText(TutorialSafety.KeepFingerLine) == "Keep your finger on the screen!"
+              && TutorialScript.Speak(TutorialSafety.KeepFingerLine).SyllableCount > 0);
+
+        // lifted before the pause step: shown, then repeats
+        for (int step = 0; step < pause; step++)
+        {
+            var r = new TutorialSafety.HoldReminder();
+            int says = Run(ref r, 10f, step, false, true, false);
+            Check("step " + step + ": a lifted finger gets the reminder, repeating (" + says + " in 10 s)", says >= 3 && says <= 4);
+        }
+        var rr = new TutorialSafety.HoldReminder();
+        Check("nothing before the grace period", Run(ref rr, TutorialSafety.HoldReminderGrace * .5f, 0, false, true, false) == 0);
+        rr = new TutorialSafety.HoldReminder();
+        var first = TutorialSafety.HoldReminderAction.None;
+        float at = 0f;
+        for (float t = 0f; t < 1f && first == TutorialSafety.HoldReminderAction.None; t += 1f / 60f) { first = rr.Tick(1f / 60f, 0, pause, false, true, false); at = t; }
+        Check("the first reminder comes just after the grace, not seconds later", first == TutorialSafety.HoldReminderAction.Say && at < TutorialSafety.HoldReminderGrace + .05f);
+        rr = new TutorialSafety.HoldReminder();
+        int repeats = Run(ref rr, TutorialSafety.HoldReminderGrace + TutorialSafety.HoldReminderRepeatSeconds * 2f + .1f, 1, false, true, false);
+        Check("repeat interval is about 2.8 s", repeats == 3);
+        Check("the interval suits the existing bubble pacing", TutorialSafety.HoldReminderRepeatSeconds >= 2.5f && TutorialSafety.HoldReminderRepeatSeconds <= 3f);
+
+        // finger back down: stops, the step's own line is restored once
+        rr = new TutorialSafety.HoldReminder();
+        Run(ref rr, 4f, 1, false, true, false);
+        Check("saying while up", rr.Saying);
+        Check("finger down: the step line is restored once", rr.Tick(.016f, 1, pause, true, true, false) == TutorialSafety.HoldReminderAction.Restore);
+        Check("finger down: no more reminder", !rr.Saying && Run(ref rr, 10f, 1, true, true, false) == 0);
+        Check("a short lift under the grace says nothing and restores nothing",
+              Run(ref rr, .1f, 1, false, true, false) == 0 && rr.Tick(.016f, 1, pause, true, true, false) == TutorialSafety.HoldReminderAction.None);
+
+        // opening: finger never down yet
+        rr = new TutorialSafety.HoldReminder();
+        Check("finger not yet down once: no reminder", Run(ref rr, 10f, 0, false, false, false) == 0);
+
+        // pause step and after: lifting is the point
+        for (int step = pause; step < TutorialScript.Steps.Length; step++)
+        {
+            rr = new TutorialSafety.HoldReminder();
+            Check("step " + step + " (" + TutorialScript.Steps[step].id + "): lifting is quiet", Run(ref rr, 10f, step, false, true, false) == 0);
+        }
+        // moving on into the pause step while a reminder is up cancels it without a restore
+        rr = new TutorialSafety.HoldReminder();
+        Run(ref rr, 4f, pause - 1, false, true, false);
+        Check("reaching the pause step ends the reminder", rr.Tick(.016f, pause, pause, false, true, false) == TutorialSafety.HoldReminderAction.None && !rr.Saying);
+
+        // finished
+        rr = new TutorialSafety.HoldReminder();
+        Check("tutorial over (ending / done): no reminder", Run(ref rr, 10f, 1, false, true, true) == 0);
+        rr = new TutorialSafety.HoldReminder();
+        Run(ref rr, 4f, 1, false, true, false);
+        Check("ending tears the reminder down with no restore", rr.Tick(.016f, 1, pause, false, true, true) == TutorialSafety.HoldReminderAction.None && !rr.Saying);
+        rr = new TutorialSafety.HoldReminder();
+        Check("before the first step (-1): no reminder", Run(ref rr, 10f, -1, false, true, false) == 0);
+
+        // never advances a step: the reminder is only a speech decision, and the step table stays unmet
+        bool advances = false;
+        foreach (var step in TutorialScript.Steps)
+            if (TutorialScript.CanAdvance(step, new TutorialSignals(), new TutorialSignals { pressed = false }, true, 99f, 0f)) advances = true;
+        Check("a lifted finger with no action done advances no step", !advances);
+        // odd frame times
+        rr = new TutorialSafety.HoldReminder();
+        bool quiet = true;
+        foreach (float d in new[] { float.NaN, -1f, float.PositiveInfinity, 0f })
+            if (rr.Tick(d, 1, pause, false, true, false) != TutorialSafety.HoldReminderAction.None) quiet = false;
+        Check("odd frame times say nothing", quiet);
     }
 }

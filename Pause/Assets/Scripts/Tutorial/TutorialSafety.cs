@@ -31,6 +31,70 @@ public static class TutorialSafety
         return !healed && maxLife >= 2 ? maxLife - 1 : 0;
     }
 
+    // ---- Finger-off reminder: before pause is taught, lifting is a mistake ----
+
+    public const string KeepFingerLine = "Keep your *finger* on the screen!";
+    // Seconds the finger must stay up before the first reminder (a one-frame
+    // flicker between touches says nothing), and between repeats after it.
+    public const float HoldReminderGrace = .3f;
+    public const float HoldReminderRepeatSeconds = 2.8f;
+
+    // Index of the step that teaches pause (the first one that wants the
+    // finger lifted), or -1 when the table has none.
+    public static int PauseStepIndex(TutorialStep[] steps)
+    {
+        for (int i = 0; i < steps.Length; i++)
+            if (steps[i].advance == TutorialAdvance.WallFrozen) return i;
+        return -1;
+    }
+
+    public enum HoldReminderAction { None, Say, Restore }
+
+    // The reminder's whole state: no coroutines, no timers outside Tick, so
+    // there is nothing to tear down. Hints feeds it every frame (unscaled dt);
+    // it is Say while the finger is up before the pause step (first after the
+    // grace, then every repeat), Restore on the frame the finger comes back
+    // after a reminder was spoken (the step's own line is said again), and
+    // None otherwise. It never touches the step, the signals or the pause.
+    public struct HoldReminder
+    {
+        float upFor;
+        float sinceSaid;
+        bool saying;
+
+        public bool Saying { get { return saying; } }
+
+        // step: current step index (-1 before the first); pauseStep: PauseStepIndex;
+        // everPressed: the player has touched down at least once (so the
+        // tutorial's opening, finger not yet down, stays quiet); over: the
+        // tutorial is ending or done, or the fly-in is playing.
+        public HoldReminderAction Tick(float dt, int step, int pauseStep, bool pressed, bool everPressed, bool over)
+        {
+            bool active = !over && everPressed && step >= 0 && pauseStep >= 0 && step < pauseStep;
+            if (!active || pressed)
+            {
+                bool wasSaying = saying;
+                upFor = 0f;
+                sinceSaid = 0f;
+                saying = false;
+                return wasSaying && active ? HoldReminderAction.Restore : HoldReminderAction.None;
+            }
+            if (!(dt > 0f) || float.IsInfinity(dt)) return HoldReminderAction.None;
+            upFor += dt;
+            if (!saying)
+            {
+                if (upFor < HoldReminderGrace) return HoldReminderAction.None;
+                saying = true;
+                sinceSaid = 0f;
+                return HoldReminderAction.Say;
+            }
+            sinceSaid += dt;
+            if (sinceSaid < HoldReminderRepeatSeconds) return HoldReminderAction.None;
+            sinceSaid = 0f;
+            return HoldReminderAction.Say;
+        }
+    }
+
     // ---- Crashes: play-friendly, never punishing, always recoverable ----
 
     public enum CrashReply { None, Ouch, Playful, Recover }
