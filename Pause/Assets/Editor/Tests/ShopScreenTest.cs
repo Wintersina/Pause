@@ -36,7 +36,7 @@ public static class ShopScreenTest
         Boosters.Reload();
     }
 
-    static readonly string[] BoosterKeys = { Boosters.DustBoughtKey, Boosters.DustUsedMsKey, Boosters.ClearBoughtKey, Boosters.ClearUsedKey, Boosters.HomingBoughtKey, Boosters.HomingUsedMsKey };
+    static readonly string[] BoosterKeys = Boosters.AllKeys;
 
     static void OwnShips(int n)
     {
@@ -240,31 +240,44 @@ public static class ShopScreenTest
 
         // hazard clear: 200 each, max 9
         PlayerPrefs.SetFloat(StarDustLedger.CurrencyKey, 5000f);
-        Check("Dust x2 now reads its time left on the row", ShopCatalog.BoosterRow(Boosters.Kind.DustMultiplier).title.Contains("left"));
+        var heldRow = ShopCatalog.BoosterRow(Boosters.Kind.DustMultiplier);
+        Check("Dust x2 now reads ON and its time left on the row's held line", heldRow.status == "ON  5:00 left" && heldRow.owned && heldRow.switchedOn &&
+              heldRow.HasSwitch && heldRow.title == Boosters.Name(Boosters.Kind.DustMultiplier));
+        Check("the switch turns it off: the held line reads OFF with the time frozen",
+              ShopCatalog.TapSwitch(heldRow) && !Boosters.IsOn(Boosters.Kind.DustMultiplier) &&
+              ShopCatalog.BoosterRow(Boosters.Kind.DustMultiplier).status == "OFF  5:00 left" && !Boosters.AnyActive);
+        Check("... and on again", ShopCatalog.TapSwitch(ShopCatalog.BoosterRow(Boosters.Kind.DustMultiplier)) && Boosters.IsOn(Boosters.Kind.DustMultiplier) &&
+              ShopCatalog.BoosterRow(Boosters.Kind.DustMultiplier).status.StartsWith("ON"));
+        Check("a row with nothing held reads NOT OWNED and has no switch",
+              ShopCatalog.BoosterRow(Boosters.Kind.HazardClear).status == ShopCatalog.NotOwnedLabel && !ShopCatalog.BoosterRow(Boosters.Kind.HazardClear).HasSwitch &&
+              !ShopCatalog.TapSwitch(ShopCatalog.BoosterRow(Boosters.Kind.HazardClear)));
         int bought = 0;
         while (ShopCatalog.Tap(ShopCatalog.BoosterRow(Boosters.Kind.HazardClear)) && bought < 20) bought++;
         var full = ShopCatalog.BoosterRow(Boosters.Kind.HazardClear);
         Check("hazard clear sells up to 9 charges, then reads MAX and is dead",
               bought == Boosters.MaxClearCharges && Boosters.ClearCharges == 9 && full.state == ShopRowState.Short && full.button == "MAX" &&
-              !full.Tappable && full.title.Contains("x9"));
+              !full.Tappable && full.status == "ON  x9");
+        Check("hazard clear can be switched off so it stops auto-firing", ShopCatalog.TapSwitch(full) &&
+              ShopCatalog.BoosterRow(Boosters.Kind.HazardClear).status == "OFF  x9" && !Boosters.ClearAvailable);
+        Boosters.SetOn(Boosters.Kind.HazardClear, true);
         Check("a refused tap spent nothing", Mathf.Approximately(StarDustLedger.Saved, 5000f - 9f * 200f));
 
-        // homing atoms: 1,000 a purchase, 10 minutes each, the same one-hour cap
+        // homing atoms: 1,000 a purchase, 5 minutes each, the same one-hour cap
         PlayerPrefs.SetFloat(StarDustLedger.CurrencyKey, 999f);
         var homingRow = ShopCatalog.BoosterRow(Boosters.Kind.HomingAtoms);
         Check("homing atoms: 999 dust is short of the 1,000 price",
               homingRow.state == ShopRowState.Short && homingRow.button == "1,000 DUST" && !ShopCatalog.Tap(homingRow) &&
-              homingRow.title == Boosters.Name(Boosters.Kind.HomingAtoms));
+              homingRow.title == Boosters.Name(Boosters.Kind.HomingAtoms) && homingRow.status == ShopCatalog.NotOwnedLabel);
         PlayerPrefs.SetFloat(StarDustLedger.CurrencyKey, 1500f);
-        Check("homing atoms: a tap pays 1,000 and starts 10 minutes",
+        Check("homing atoms: a tap pays 1,000 and starts 5 minutes",
               ShopCatalog.Tap(ShopCatalog.BoosterRow(Boosters.Kind.HomingAtoms)) && Mathf.Approximately(StarDustLedger.Saved, 500f) &&
               Boosters.HomingActive && Mathf.Approximately(Boosters.HomingRemainingSeconds, Boosters.HomingSeconds) &&
-              ShopCatalog.BoosterRow(Boosters.Kind.HomingAtoms).title.Contains("10:00 left"));
+              ShopCatalog.BoosterRow(Boosters.Kind.HomingAtoms).status == "ON  5:00 left");
         PlayerPrefs.SetFloat(StarDustLedger.CurrencyKey, 100000f);
         int homingBought = 1;
         while (ShopCatalog.Tap(ShopCatalog.BoosterRow(Boosters.Kind.HomingAtoms)) && homingBought < 20) homingBought++;
-        Check("homing atoms stop at the one-hour stored cap (6 purchases) and then read MAX",
-              homingBought == 6 && ShopCatalog.BoosterRow(Boosters.Kind.HomingAtoms).button == "MAX");
+        Check("homing atoms stop at the one-hour stored cap (12 purchases) and then read MAX",
+              homingBought == 12 && ShopCatalog.BoosterRow(Boosters.Kind.HomingAtoms).button == "MAX");
 
         // dust x2 stops at the stored-time cap
         PlayerPrefs.SetFloat(StarDustLedger.CurrencyKey, 100000f);
@@ -297,6 +310,37 @@ public static class ShopScreenTest
         Check("Remove Ads price on its button", panel.RowButtonText(0).text == "$3.99" && panel.RowButton(0).interactable);
         Check("Paragon carries the leaderboard warning before payment", panel.RowNotice(1).gameObject.activeSelf &&
               panel.RowNotice(1).text == PremiumShips.LeaderboardNotice);
+
+        // booster rows: held line and the switch
+        Check("booster rows show NOT OWNED and no switch while nothing is held",
+              panel.RowStatus(5).text == ShopCatalog.NotOwnedLabel && !panel.RowSwitch(5).gameObject.activeSelf &&
+              panel.RowStatus(6).text == ShopCatalog.NotOwnedLabel && panel.RowStatus(7).text == ShopCatalog.NotOwnedLabel);
+        panel.RowButton(5).onClick.Invoke();   // buy Dust x2 (600 of 1,234)
+        Check("after buying Dust x2 the row reads ON 5:00 left and shows its switch, knob to the right",
+              panel.RowStatus(5).text == "ON  5:00 left" && panel.RowSwitch(5).gameObject.activeSelf && panel.RowSwitch(5).interactable &&
+              panel.RowSwitchLabel(5).text == ShopCatalog.OnLabel && panel.RowSwitchKnob(5).anchoredPosition.x > 30f);
+        float knobOn = panel.RowSwitchKnob(5).anchoredPosition.x;
+        panel.RowSwitch(5).onClick.Invoke();
+        Check("tapping the switch turns it off: OFF, time frozen, knob slides left",
+              !Boosters.IsOn(Boosters.Kind.DustMultiplier) && panel.RowStatus(5).text == "OFF  5:00 left" &&
+              panel.RowSwitchLabel(5).text == ShopCatalog.OffLabel && panel.RowSwitchKnob(5).anchoredPosition.x < knobOn);
+        panel.RowSwitch(5).onClick.Invoke();
+        Check("tapping again turns it back on", Boosters.IsOn(Boosters.Kind.DustMultiplier) && panel.RowStatus(5).text.StartsWith("ON"));
+        PlayerPrefs.SetInt(Boosters.DustUsedMsKey, 28000);   // 28 s of play spent elsewhere (a run)
+        Boosters.Reload();
+        Check("the open Shop follows a change without a tap (Changed / poll)", panel.RowStatus(5).text == "ON  4:32 left");
+        var sw = (RectTransform)panel.RowSwitch(5).transform;
+        var buy = (RectTransform)panel.RowButton(5).transform;
+        Check("the switch's tap strip is finger-sized and sits under the buy plate inside the row",
+              sw.sizeDelta.y >= ShopPanel.ButtonHeight - .5f && sw.anchoredPosition.y <= buy.anchoredPosition.y - buy.sizeDelta.y + .5f &&
+              -sw.anchoredPosition.y + sw.sizeDelta.y <= ShopPanel.BoosterRowHeight + .5f);
+        Check("the held line is readable (min size >= 15) and does not overlap the description",
+              panel.RowStatus(5).resizeTextMinSize >= 15 && panel.RowSwitchLabel(5).resizeTextMinSize >= 15 &&
+              panel.RowStatus(5).rectTransform.anchoredPosition.y - panel.RowStatus(5).rectTransform.sizeDelta.y >= panel.RowSubtitle(5).rectTransform.anchoredPosition.y - .5f);
+        PlayerPrefs.SetFloat(StarDustLedger.CurrencyKey, 1234f);
+        foreach (string k in BoosterKeys) PlayerPrefs.DeleteKey(k);
+        Boosters.Reload();
+        panel.Refresh();
 
         // a pack paid while open: the balance follows
         SupportPurchase.Handle(new PlayPurchase { productId = SupportPurchase.Small.productId, token = "shop-t1", state = PlayPurchaseState.Purchased },

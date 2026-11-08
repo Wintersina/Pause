@@ -2,21 +2,30 @@ using UnityEngine;
 
 // BOOSTERS: three repeatable star-dust purchases (docs/economy.md, "Boosters").
 //
-//   DUST MULTIPLIER  2x star dust for 10 minutes of PLAY. The clock runs only on unfrozen frames of a real run (score.payDust),
-//                    never in a menu, a frozen world, a scripted entrance or the tutorial. Buying more while it is active
-//                    adds 10 minutes. Doubles pickups and rewards (score.AwardStarDust / flight trickle / kills / elites);
+//   DUST MULTIPLIER  2x star dust for 5 minutes of PLAY. The clock runs only on unfrozen frames of a real run (score.payDust),
+//                    never in a menu, a frozen world, a scripted entrance or the tutorial. Buying more adds 5 minutes onto
+//                    what is left. Doubles pickups and rewards (score.AwardStarDust / flight trickle / kills / elites);
 //                    never a claim (achievements, Codex), a purchase (packs) or the end-of-run score bonus. Score is untouched.
 //   HAZARD CLEAR     a charge held in inventory, fires BY ITSELF when a hit would cost a heart (collisionDetection -> HazardClear.AutoSave), saving the heart.
-//   HOMING ATOMS     10 minutes of PLAY (the same clock rules as the multiplier) during which every atom that comes on screen locks
+//   HOMING ATOMS     5 minutes of PLAY (the same clock rules as the multiplier) during which every atom that comes on screen locks
 //                    onto the ship and flies at it (AtomHoming): dodge it or teleport and it misses. Star dust is not pulled.
 //
 // All are bought here with dust and nothing else: no store product, no platform code (iOS = Android).
 //
-// STATE is six monotonic counters in PlayerPrefs (and the cloud save), never "how many are left":
-//   boughtDust      purchases of the multiplier        remaining seconds = boughtDust x 600 - usedMs / 1000
+// THE ON/OFF SWITCH (Shop row). A booster that is held can be switched OFF: it then does nothing (no x2, no homing, no auto-fired
+// clear, ads come back) and, because its clock is PLAY time that only Tick spends, its time left simply stays where it was. ON
+// again resumes it. Buying one switches it on. The switch is a device-local PlayerPrefs flag (DustOffKey / HomingOffKey /
+// ClearOffKey, 1 = off), not synced: a restore never flips it.
+//
+// STATE is eight monotonic counters in PlayerPrefs (and the cloud save), never "how many are left":
+//   boughtDust      purchases of the multiplier (5 min)          remaining seconds = boughtDustLegacy x 600 + boughtDust x 300
+//   boughtDustLegacy purchases made before Nov 2026 (10 min each)                     - usedMs / 1000
 //   usedMs          milliseconds of boosted play spent
-//   boughtHoming    purchases of homing atoms          remaining seconds = boughtHoming x 600 - usedHomingMs / 1000
+//   boughtHoming    purchases of homing atoms (5 min)            remaining seconds = boughtHomingLegacy x 600 + boughtHoming x 300
+//   boughtHomingLegacy purchases made before Nov 2026 (10 min)                         - usedHomingMs / 1000
 //   usedHomingMs    milliseconds of homing play spent
+// The legacy counters keep the old keys ("boosterDustBought", "boosterHomingBought") and the old cloud fields, so time bought at
+// 10 minutes stays 10 minutes on every device and an older build still reads them; nothing new is ever added to them.
 //   boughtClear     charges ever bought                 charges held      = boughtClear - usedClear
 //   usedClear       charges ever fired
 // Counters merge by MAX across devices (ProgressMerge), which can neither duplicate a paid item (a max, never a sum) nor
@@ -28,22 +37,36 @@ public static class Boosters
 {
     // ---- named constants (prices are derived in docs/economy.md and proved by BoostersTest) ----
     public const float DustBoosterPrice = 600f;
-    public const float DustBoosterSeconds = 600f;       // 10 minutes of play per purchase
+    public const float DustBoosterSeconds = 300f;       // 5 minutes of play per purchase
     public const float HazardClearPrice = 200f;         // per charge
     public const int MaxClearCharges = 9;               // held at once
     public const float HomingPrice = 1000f;
-    public const float HomingSeconds = 600f;            // 10 minutes of play per purchase
+    public const float HomingSeconds = 300f;            // 5 minutes of play per purchase
+    public const float LegacyBoosterSeconds = 600f;     // what a purchase gave before Nov 2026 (the legacy counters)
     public const float MaxStoredSeconds = 3600f;        // remaining boosted time never stacks past an hour
     public const float MaxDustMultiplier = 3f;          // booster + rewarded ad, together
     // The share of the price a typical player may earn back in 10 minutes. The multiplier's extra dust must stay below this.
     public const float MaxPaybackShare = .70f;
 
-    public const string DustBoughtKey = "boosterDustBought";
+    public const string DustBoughtKey = "boosterDustBought5m";
+    public const string DustBoughtLegacyKey = "boosterDustBought";      // 10-minute purchases, frozen
     public const string DustUsedMsKey = "boosterDustUsedMs";
     public const string ClearBoughtKey = "boosterClearBought";
     public const string ClearUsedKey = "boosterClearUsed";
-    public const string HomingBoughtKey = "boosterHomingBought";
+    public const string HomingBoughtKey = "boosterHomingBought5m";
+    public const string HomingBoughtLegacyKey = "boosterHomingBought";  // 10-minute purchases, frozen
     public const string HomingUsedMsKey = "boosterHomingUsedMs";
+    // the player's switch, 1 = off (device-local, not synced)
+    public const string DustOffKey = "boosterDustOff";
+    public const string HomingOffKey = "boosterHomingOff";
+    public const string ClearOffKey = "boosterClearOff";
+
+    // Every pref the boosters own (tests and the sandbox clear / restore these).
+    public static readonly string[] AllKeys =
+    {
+        DustBoughtKey, DustBoughtLegacyKey, DustUsedMsKey, ClearBoughtKey, ClearUsedKey,
+        HomingBoughtKey, HomingBoughtLegacyKey, HomingUsedMsKey, DustOffKey, HomingOffKey, ClearOffKey,
+    };
 
     public enum Kind { DustMultiplier, HazardClear, HomingAtoms }
     public enum BuyResult { Bought, NotEnoughDust, AtLimit, RunInProgress }
@@ -61,7 +84,8 @@ public static class Boosters
 
     // ---- cached counters ----
     static bool loaded;
-    static int boughtDust, usedMs, boughtClear, usedClear, boughtHoming, usedHomingMs;
+    static int boughtDust, boughtDustLegacy, usedMs, boughtClear, usedClear, boughtHoming, boughtHomingLegacy, usedHomingMs;
+    static bool dustOff, homingOff, clearOff;
     static float fracMs, fracHomingMs;
 
     static void EnsureLoaded() { if (!loaded) Reload(); }
@@ -71,29 +95,43 @@ public static class Boosters
     {
         loaded = true;
         boughtDust = Mathf.Max(0, PlayerPrefs.GetInt(DustBoughtKey, 0));
+        boughtDustLegacy = Mathf.Max(0, PlayerPrefs.GetInt(DustBoughtLegacyKey, 0));
         usedMs = Mathf.Max(0, PlayerPrefs.GetInt(DustUsedMsKey, 0));
         boughtClear = Mathf.Max(0, PlayerPrefs.GetInt(ClearBoughtKey, 0));
         usedClear = Mathf.Max(0, PlayerPrefs.GetInt(ClearUsedKey, 0));
         boughtHoming = Mathf.Max(0, PlayerPrefs.GetInt(HomingBoughtKey, 0));
+        boughtHomingLegacy = Mathf.Max(0, PlayerPrefs.GetInt(HomingBoughtLegacyKey, 0));
         usedHomingMs = Mathf.Max(0, PlayerPrefs.GetInt(HomingUsedMsKey, 0));
+        dustOff = PlayerPrefs.GetInt(DustOffKey, 0) == 1;
+        homingOff = PlayerPrefs.GetInt(HomingOffKey, 0) == 1;
+        clearOff = PlayerPrefs.GetInt(ClearOffKey, 0) == 1;
         fracMs = fracHomingMs = 0f;
+        RaiseChanged();
     }
 
-    public static int BoughtDust { get { EnsureLoaded(); return boughtDust; } }
+    // Purchases of each kind, old (10 min) and new (5 min) together.
+    public static int BoughtDust { get { EnsureLoaded(); return boughtDust + boughtDustLegacy; } }
     public static int UsedMs { get { EnsureLoaded(); return usedMs; } }
     public static int BoughtClear { get { EnsureLoaded(); return boughtClear; } }
     public static int UsedClear { get { EnsureLoaded(); return usedClear; } }
-    public static int BoughtHoming { get { EnsureLoaded(); return boughtHoming; } }
+    public static int BoughtHoming { get { EnsureLoaded(); return boughtHoming + boughtHomingLegacy; } }
     public static int UsedHomingMs { get { EnsureLoaded(); return usedHomingMs; } }
 
     // ---- state ----
-    static long RemainingMs { get { EnsureLoaded(); return System.Math.Max(0L, (long)boughtDust * (long)(DustBoosterSeconds * 1000f) - usedMs); } }
+    static long GrantedMs(int bought, int legacy, float seconds)
+    {
+        return (long)bought * (long)(seconds * 1000f) + (long)legacy * (long)(LegacyBoosterSeconds * 1000f);
+    }
+    static long RemainingMs { get { EnsureLoaded(); return System.Math.Max(0L, GrantedMs(boughtDust, boughtDustLegacy, DustBoosterSeconds) - usedMs); } }
+    // Time held, whether switched on or off (off: frozen).
     public static float RemainingSeconds { get { return RemainingMs / 1000f; } }
-    public static bool DustActive { get { return RemainingMs > 0; } }
+    // The multiplier works: time left AND switched on.
+    public static bool DustActive { get { return RemainingMs > 0 && !dustOff; } }
     public static int ClearCharges { get { EnsureLoaded(); return Mathf.Max(0, boughtClear - usedClear); } }
-    static long HomingRemainingMs { get { EnsureLoaded(); return System.Math.Max(0L, (long)boughtHoming * (long)(HomingSeconds * 1000f) - usedHomingMs); } }
+    static long HomingRemainingMs { get { EnsureLoaded(); return System.Math.Max(0L, GrantedMs(boughtHoming, boughtHomingLegacy, HomingSeconds) - usedHomingMs); } }
     public static float HomingRemainingSeconds { get { return HomingRemainingMs / 1000f; } }
-    public static bool HomingActive { get { return HomingRemainingMs > 0; } }
+    // Homing works: time left AND switched on.
+    public static bool HomingActive { get { return HomingRemainingMs > 0 && !homingOff; } }
     // Atoms home in on the ship right now: time left and a real run (never the tutorial or a practice run). AtomHoming reads it.
     public static bool HomingRunning { get { return score.paysRealDust && !startMenu.youAreInTutorial && HomingActive; } }
 
@@ -102,8 +140,78 @@ public static class Boosters
     // (it is a play aid, not the paid ad-free 10 minutes of the multiplier).
     public static bool AnyActive { get { return DustActive; } }
 
-    // A charge is held. Developer mode grants nothing here: it fires, and spends, only on real held charges (buy them in the Shop).
-    public static bool ClearAvailable { get { return ClearCharges > 0; } }
+    // A charge is held and the switch is on. Developer mode grants nothing here: it fires, and spends, only on real held charges.
+    public static bool ClearAvailable { get { return ClearCharges > 0 && !clearOff; } }
+
+    // ================================================================== READ-ONLY API (Shop rows, the in-game HUD)
+    // Stable: other screens read boosters only through these (plus Changed). Nothing here writes.
+
+    // Fired after anything a booster readout shows may have changed: a purchase, the switch, a spent charge, a timed booster
+    // running out, a cloud apply / Reload. NOT every second of a ticking clock: poll SecondsLeft for the countdown.
+    public static event System.Action Changed;
+    static void RaiseChanged()
+    {
+        var h = Changed;
+        if (h == null) return;
+        try { h(); } catch (System.Exception e) { Debug.LogException(e); }
+    }
+
+    // Dust x2 and Homing Atoms count play time; Hazard Clear counts charges.
+    public static bool IsTimed(Kind kind) { return kind != Kind.HazardClear; }
+
+    // Something is held: time left (timed) or a charge (Hazard Clear), switched on or off.
+    public static bool Owns(Kind kind) { return IsTimed(kind) ? SecondsLeft(kind) > 0f : ChargesLeft(kind) > 0; }
+
+    // The player's switch (default on). A booster that is off keeps what is left and does nothing.
+    public static bool IsOn(Kind kind)
+    {
+        EnsureLoaded();
+        switch (kind)
+        {
+            case Kind.DustMultiplier: return !dustOff;
+            case Kind.HomingAtoms: return !homingOff;
+            default: return !clearOff;
+        }
+    }
+
+    // Held AND switched on: it works in the next real run (Dust x2 doubles, atoms home, a charge auto-fires).
+    public static bool IsActive(Kind kind) { return Owns(kind) && IsOn(kind); }
+
+    // Seconds of play left on a timed booster (frozen while off); 0 for Hazard Clear.
+    public static float SecondsLeft(Kind kind)
+    {
+        switch (kind)
+        {
+            case Kind.DustMultiplier: return RemainingSeconds;
+            case Kind.HomingAtoms: return HomingRemainingSeconds;
+            default: return 0f;
+        }
+    }
+
+    // Hazard Clear charges held; 0 for the timed boosters.
+    public static int ChargesLeft(Kind kind) { return kind == Kind.HazardClear ? ClearCharges : 0; }
+
+    // ================================================================== the switch (Shop only)
+
+    // Switches a booster on or off; saved at once. Off is refused (false) when nothing is held; on always goes through.
+    public static bool SetOn(Kind kind, bool on)
+    {
+        EnsureLoaded();
+        if (!on && !Owns(kind)) return false;
+        if (IsOn(kind) == on) return true;
+        switch (kind)
+        {
+            case Kind.DustMultiplier: dustOff = !on; PlayerPrefs.SetInt(DustOffKey, on ? 0 : 1); break;
+            case Kind.HomingAtoms: homingOff = !on; PlayerPrefs.SetInt(HomingOffKey, on ? 0 : 1); break;
+            default: clearOff = !on; PlayerPrefs.SetInt(ClearOffKey, on ? 0 : 1); break;
+        }
+        Flush();   // the clock as it stands, so the frozen time is on disk with the switch
+        PrefsSaver.SaveNow();
+        RaiseChanged();
+        return true;
+    }
+
+    public static bool Toggle(Kind kind) { return SetOn(kind, !IsOn(kind)); }
 
     // The multiplier applied to dust earned in the live run right now (1 in the tutorial and practice runs).
     public static float RunDustMultiplier
@@ -144,16 +252,20 @@ public static class Boosters
     {
         if (TestDelta.HasValue) dt = TestDelta.Value;
         if (dt <= 0f) return;
+        bool ranOut = false;
         if (DustActive)
         {
             RunDustUsed = true;
             if (Spend(ref usedMs, ref fracMs, RemainingMs, dt)) WriteUsed();
+            ranOut |= !DustActive;
         }
         if (HomingActive)
         {
             RunHomingUsed = true;
             if (Spend(ref usedHomingMs, ref fracHomingMs, HomingRemainingMs, dt)) WriteHomingUsed();
+            ranOut |= !HomingActive;
         }
+        if (ranOut) RaiseChanged();
     }
 
     // Adds `dt` to one clock's used milliseconds, never past the `left` it had. True when the prefs should be written:
@@ -202,7 +314,9 @@ public static class Boosters
         PlayerPrefs.SetFloat(StarDustLedger.CurrencyKey, have - DustBoosterPrice);
         boughtDust++;
         PlayerPrefs.SetInt(DustBoughtKey, boughtDust);
+        dustOff = false; PlayerPrefs.SetInt(DustOffKey, 0);   // buying switches it on
         PrefsSaver.SaveNow();
+        RaiseChanged();
         return BuyResult.Bought;
     }
 
@@ -216,7 +330,9 @@ public static class Boosters
         PlayerPrefs.SetFloat(StarDustLedger.CurrencyKey, have - HazardClearPrice);
         boughtClear++;
         PlayerPrefs.SetInt(ClearBoughtKey, boughtClear);
+        clearOff = false; PlayerPrefs.SetInt(ClearOffKey, 0);
         PrefsSaver.SaveNow();
+        RaiseChanged();
         return BuyResult.Bought;
     }
 
@@ -230,18 +346,21 @@ public static class Boosters
         PlayerPrefs.SetFloat(StarDustLedger.CurrencyKey, have - HomingPrice);
         boughtHoming++;
         PlayerPrefs.SetInt(HomingBoughtKey, boughtHoming);
+        homingOff = false; PlayerPrefs.SetInt(HomingOffKey, 0);
         PrefsSaver.SaveNow();
+        RaiseChanged();
         return BuyResult.Bought;
     }
 
-    // Spends one charge (the clear fired). False when there is none (developer mode included).
+    // Spends one charge (the clear fired). False when there is none (developer mode included) or it is switched off.
     public static bool ConsumeClear()
     {
         EnsureLoaded();
-        if (ClearCharges <= 0) return false;
+        if (!ClearAvailable) return false;
         usedClear++;
         PlayerPrefs.SetInt(ClearUsedKey, usedClear);
         PrefsSaver.MarkDirty();
+        RaiseChanged();
         return true;
     }
 
@@ -267,9 +386,9 @@ public static class Boosters
         switch (kind)
         {
             case Kind.DustMultiplier:
-                return "Double star dust for 10 minutes of play. Pickups and rewards only. Buy again to add time. No ads while it runs.";
+                return "Double star dust for 5 minutes of play. Pickups and rewards only. Buy again to add 5 minutes. No ads while it runs.";
             case Kind.HomingAtoms:
-                return "For 10 minutes of play every atom flies at your ship. Dodge or teleport and it misses. Buy again to add time.";
+                return "For 5 minutes of play every atom flies at your ship. Dodge or teleport and it misses. Buy again to add 5 minutes.";
             default:
                 return "Fires by itself when a hit would cost a heart: saves the heart and wipes rocks, mines and shots on screen. No score. Bosses stay.";
         }
@@ -285,15 +404,11 @@ public static class Boosters
         }
     }
 
-    // "8:20 left" / "x3" / "" -- what is held.
+    // "4:32 left" / "x3" / "" -- what is held (on or off; IsOn says which).
     public static string Status(Kind kind)
     {
-        switch (kind)
-        {
-            case Kind.DustMultiplier: return DustActive ? FormatTime(RemainingSeconds) + " left" : "";
-            case Kind.HomingAtoms: return HomingActive ? FormatTime(HomingRemainingSeconds) + " left" : "";
-            default: return ClearCharges > 0 ? "x" + ClearCharges : "";
-        }
+        if (!Owns(kind)) return "";
+        return IsTimed(kind) ? FormatTime(SecondsLeft(kind)) + " left" : "x" + ChargesLeft(kind);
     }
 
     public static BuyResult Buy(Kind kind)

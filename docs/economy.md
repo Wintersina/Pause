@@ -48,11 +48,15 @@ Three repeatable purchases, `Boosters` (`Scripts/Boosters/`). No store product, 
 
 | | Price | What it does |
 |---|---|---|
-| Dust x2 | `Boosters.DustBoosterPrice` = 600 | Doubles pickup and reward dust for 10 minutes of play (`DustBoosterSeconds` = 600). Buying again adds 10 minutes (stored time caps at an hour). |
+| Dust x2 | `Boosters.DustBoosterPrice` = 600 | Doubles pickup and reward dust for 5 minutes of play (`DustBoosterSeconds` = 300). Buying again adds 5 minutes onto what is left (stored time caps at an hour). |
 | Hazard clear | `Boosters.HazardClearPrice` = 200 per charge | One charge, held (max 9), fires AUTOMATICALLY when a hit would cost a heart: the heart is kept. |
-| Homing atoms | `Boosters.HomingPrice` = 1000 | For 10 minutes of play (`HomingSeconds` = 600) every atom that comes on screen flies at the ship; dodge it or teleport and it misses. Buying again adds 10 minutes (stored time caps at an hour). |
+| Homing atoms | `Boosters.HomingPrice` = 1000 | For 5 minutes of play (`HomingSeconds` = 300) every atom that comes on screen flies at the ship; dodge it or teleport and it misses. Buying again adds 5 minutes onto what is left (stored time caps at an hour). |
 
 **What the multiplier touches:** star and large-star pickups, the blue atom, the flight trickle, kill crumbs and elite rewards (`score.AwardStarDust`, `score.calcScore`).
+**On/off switch:** each held booster has a switch on its Shop row (`Boosters.SetOn`). Off, it does nothing (no x2, no homing, no auto-fired Hazard Clear, ads come back) and, since the timed boosters count play time that only `Boosters.Tick` spends, its time left stays frozen. On resumes it; buying one switches it on. The flag is a device-local pref (`boosterDustOff` / `boosterHomingOff` / `boosterClearOff`), not synced.
+
+**Purchases before the 5-minute change** (10 minutes each) stay in the old counters (`boosterDustBought`, `boosterHomingBought`, cloud `boostDustBought` / `boostHomingBought`) and keep their 10 minutes; new purchases count in `boosterDustBought5m` / `boosterHomingBought5m` (cloud `boostDustBought5m` / `boostHomingBought5m`).
+
 **What it never touches:** claims (achievements, Codex), purchases (packs), the end-of-run score bonus, the tutorial and practice runs. Score is never affected, and the leaderboard's "run star dust" board reads `Boosters.RankedDust` (earned minus what the booster added).
 **The clock** counts only unfrozen frames of a real run (`score.payDust`, called from `StepRunning`): not in a menu, not while the world is frozen with the finger up, not during a scripted entrance, a dead player, or a practice run. It is saved in milliseconds, so a restart keeps it.
 **Stacking:** `Boosters.DustMultiplier(boosterActive, adDoubled)` is additive (1 + 1 + 1), capped at 3x. Never 4x.

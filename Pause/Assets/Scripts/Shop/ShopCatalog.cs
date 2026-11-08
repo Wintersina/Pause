@@ -27,6 +27,11 @@ public sealed class ShopRow
     public bool IsBooster { get { return kind == ShopRowKind.DustBooster || kind == ShopRowKind.HazardClear || kind == ShopRowKind.HomingAtoms; } }
     public ShopRowState state;
     public string title, subtitle, button;
+    // Booster rows only: what is held, as one line ("ON  4:32 left", "OFF  x3", "NOT OWNED"), and the on/off switch.
+    public string status;
+    public bool owned;        // time left / a charge held
+    public bool switchedOn;   // the player's switch (Boosters.IsOn)
+    public bool HasSwitch { get { return IsBooster && owned; } }
     public bool Tappable { get { return state == ShopRowState.Buyable; } }
 }
 
@@ -133,14 +138,16 @@ public static class ShopCatalog
     // connected and is never held up by the purchase-flow guard (AnyBuying). It is buyable whenever Boosters.CanBuy.
     public static ShopRow BoosterRow(Boosters.Kind kind)
     {
-        string status = Boosters.Status(kind);
         var row = new ShopRow
         {
             kind = RowKind(kind),
             booster = kind,
-            title = Boosters.Name(kind) + (status.Length > 0 ? "  " + status : ""),
+            title = Boosters.Name(kind),
             subtitle = Boosters.Description(kind),
+            owned = Boosters.Owns(kind),
+            switchedOn = Boosters.IsOn(kind),
         };
+        row.status = BoosterStatus(kind);
         string price = Mathf.RoundToInt(Boosters.Price(kind)).ToString("N0") + " DUST";
         if (Boosters.CanBuy(kind)) Set(row, ShopRowState.Buyable, price);
         else if (Boosters.AtLimit(kind)) Set(row, ShopRowState.Short, MaxLabel);
@@ -149,6 +156,24 @@ public static class ShopCatalog
     }
 
     public const string MaxLabel = "MAX";
+    public const string NotOwnedLabel = "NOT OWNED";
+    public const string OnLabel = "ON";
+    public const string OffLabel = "OFF";
+
+    // The row's held line: "ON  4:32 left" / "OFF  4:32 left" (timed, frozen while off), "ON  x3" / "OFF  x3", or NOT OWNED.
+    public static string BoosterStatus(Boosters.Kind kind)
+    {
+        if (!Boosters.Owns(kind)) return NotOwnedLabel;
+        return (Boosters.IsOn(kind) ? OnLabel : OffLabel) + "  " + Boosters.Status(kind);
+    }
+
+    // A tap on a booster row's switch: flips it when something is held. True when it changed.
+    public static bool TapSwitch(ShopRow row)
+    {
+        if (row == null || !row.HasSwitch) return false;
+        bool want = !Boosters.IsOn(row.booster);
+        return Boosters.SetOn(row.booster, want) && Boosters.IsOn(row.booster) == want;
+    }
 
     static ShopRowKind RowKind(Boosters.Kind kind)
     {
