@@ -290,32 +290,56 @@ public static class AdsTest
             r.controller.TryRunEndAd(Good(), null) == AdPolicy.RunEndAd.None && !r.controller.TryShowShopReward(null, null) && r.provider.bannerShows == 0);
     }
 
-    // The banner never overlaps the panel (so Replay, Home, the score and the double dust tab), on tall phones, a foldable and a tablet.
+    // The banner never overlaps the panel or the double dust button under its frame, on tall phones, foldables (the Flip
+    // cover screen too) and tablets; the button never overlaps REPLAY / MENU / SPACE DOCK and its label fits one line.
     static void BannerLayout()
     {
-        Check("LAYOUT: no banner -> the area is untouched", DeathPanelView.ReserveBottomForBanner(new Rect(0, 0, 1080, 2400), 0f, true) == new Rect(0, 0, 1080, 2400));
+        Check("LAYOUT: no banner -> the area is untouched", DeathPanelView.ReserveBottomForBanner(new Rect(0, 0, 1080, 2400), 0f) == new Rect(0, 0, 1080, 2400));
         var screens = new[]
         {
             new { name = "tall phone", w = 1080, h = 2520, safe = new Rect(0, 90, 1080, 2250), dpi = 420f },
             new { name = "phone gesture bar", w = 1080, h = 2400, safe = new Rect(0, 63, 1080, 2230), dpi = 420f },
             new { name = "foldable open", w = 2208, h = 1840, safe = new Rect(0, 0, 2208, 1840), dpi = 420f },
+            new { name = "flip cover", w = 720, h = 748, safe = new Rect(0, 0, 720, 748), dpi = 306f },
             new { name = "tablet", w = 1600, h = 2560, safe = new Rect(0, 0, 1600, 2560), dpi = 280f },
             new { name = "short phone", w = 1080, h = 1920, safe = new Rect(0, 0, 1080, 1920), dpi = 420f },
         };
+        var tabRect = DoubleDustOffer.PanelRect;
+        Check("TAB: sits below the frame's glow edge, not on the frame art", tabRect.yMax <= -DeathPanelView.FrameHeight * .5f + .01f);
+        Check("TAB: hangs BelowFrame under the frame", Mathf.Abs(-DeathPanelView.FrameHeight * .5f - tabRect.yMin - DoubleDustOffer.BelowFrame) < .01f);
+        Check("TAB: caption is one short line", !DoubleDustOffer.Caption().Contains("\n") && DoubleDustOffer.Caption().Length <= 24);
+        // Bold caps run about .75 em per glyph; at the minimum font size the whole caption still fits inside the plate.
+        float needed = DoubleDustOffer.Caption().Length * DoubleDustOffer.MinFontSize * .75f;
+        Check("TAB: caption fits one line at the minimum font size", needed <= DoubleDustOffer.Width - 2f * DoubleDustOffer.LabelInset);
+        Check("TAB: minimum font size is at the 2 units per dp floor of 7 dp", DoubleDustOffer.MinFontSize >= UiScale.MinTextPt * 2f - .01f);
+        for (int world = 0; world < 6; world++)
+        {
+            foreach (var r in DeathPanelView.ButtonRects(world))
+                Check("TAB: world " + world + " does not overlap a button", !r.Overlaps(tabRect));
+        }
         foreach (var sc in screens)
         {
             foreach (bool tab in new[] { false, true })
             {
                 float banner = AdsConfig.BannerHeightPx(sc.dpi);
                 float bannerTop = sc.safe.yMin + banner;   // conservative: the banner may sit above the safe inset
-                var area = DeathPanelView.ReserveBottomForBanner(sc.safe, banner, tab);
-                DeathPanelView.ComputeFit(area, null, out var centre, out var scale);
+                var area = DeathPanelView.ReserveBottomForBanner(sc.safe, banner);
+                DeathPanelView.ComputeFit(area, null, out var centre, out var scale, tab ? DoubleDustOffer.BelowFrame : 0f);
                 float panelBottom = centre.y - DeathPanelView.Height * scale * .5f;
-                float tabBottom = tab ? panelBottom - (DoubleDustOffer.Drop + DoubleDustOffer.Height) * scale : panelBottom;
                 float frameBottom = centre.y - DeathPanelView.FrameHeight * scale * .5f;
-                Check("LAYOUT " + sc.name + (tab ? " + tab" : "") + ": panel, glow and the double dust tab all sit above the banner",
-                    panelBottom >= bannerTop && frameBottom >= bannerTop - 0.5f && tabBottom >= bannerTop - 0.5f);
-                Check("LAYOUT " + sc.name + (tab ? " + tab" : "") + ": the panel stays inside the safe area's sides and top",
+                float tabBottom = centre.y + tabRect.yMin * scale;
+                float tabTop = centre.y + tabRect.yMax * scale;
+                string tag = "LAYOUT " + sc.name + (tab ? " + tab" : "") + ": ";
+                Check(tag + "panel and glow sit above the banner", panelBottom >= bannerTop && frameBottom >= bannerTop - 0.5f);
+                if (tab)
+                {
+                    Check(tag + "the double dust button is above the banner", tabBottom >= bannerTop - 0.5f);
+                    Check(tag + "the double dust button is inside the screen",
+                        tabBottom >= 0f && tabTop <= sc.h && centre.x - DoubleDustOffer.Width * scale * .5f >= 0f && centre.x + DoubleDustOffer.Width * scale * .5f <= sc.w);
+                    Check(tag + "the double dust button is below the frame", tabTop <= frameBottom + .5f);
+                    Check(tag + "the double dust button is inside the safe area", tabBottom >= sc.safe.yMin - .5f);
+                }
+                Check(tag + "the panel stays inside the safe area's sides and top",
                     centre.y + DeathPanelView.FrameHeight * scale * .5f <= sc.safe.yMax + 0.5f && scale > .1f
                     && centre.x - DeathPanelView.Width * scale * .5f >= sc.safe.xMin - 0.5f && centre.x + DeathPanelView.Width * scale * .5f <= sc.safe.xMax + 0.5f);
             }

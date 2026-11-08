@@ -1002,10 +1002,10 @@ public class DeathPanelView : MonoBehaviour, IPointerDownHandler
         var safeUnits = new Rect(safe.x / sf - rootRect.width * .5f, safe.y / sf - rootRect.height * .5f,
                                  safe.width / sf, safe.height / sf);
 
-        // A small banner ad sits at the bottom of the screen on some run ends (AdManager): the panel and the double dust tab
-        // stay entirely above it.
+        // A small banner ad sits at the bottom of the screen on some run ends (AdManager): the panel and the double dust
+        // button under its frame stay entirely above it (ComputeFit scales the panel so both fit the area).
         bool hasTab = panel != null && panel.Find(DoubleDustOffer.ObjectName) != null;
-        safeUnits = ReserveBottomForBanner(safeUnits, AdManager.BannerHeightPx / sf, hasTab);
+        safeUnits = ReserveBottomForBanner(safeUnits, AdManager.BannerHeightPx / sf);
 
         Rect? blocker = null;
         float minX = float.MaxValue, minY = float.MaxValue, maxX = float.MinValue, maxY = float.MinValue;
@@ -1043,20 +1043,20 @@ public class DeathPanelView : MonoBehaviour, IPointerDownHandler
                                (maxX - minX) / sf, (maxY - minY) / sf);
 
         Vector2 centre;
-        ComputeFit(safeUnits, blocker, out centre, out fitScale);
+        ComputeFit(safeUnits, blocker, out centre, out fitScale, hasTab ? DoubleDustOffer.BelowFrame : 0f);
         panel.anchoredPosition = centre;
         if (finalApplied) panel.localScale = Vector3.one * fitScale;
         PadButtonTouch(buttonSlots, fitScale, ButtonHeight);
         SplitRowGap(fitScale);
     }
 
-    // Raises the bottom of the usable area above a banner ad of `bannerUnits` canvas units (0 = none: unchanged), plus the
-    // double dust tab that hangs off the panel's bottom edge when there is one. The banner is anchored to the screen's bottom;
+    // Raises the bottom of the usable area above a banner ad of `bannerUnits` canvas units (0 = none: unchanged). The
+    // double dust button under the frame is fitted inside this area by ComputeFit (its `below`). The banner is anchored to the screen's bottom;
     // the safe area's own bottom inset is already part of `safe`, so cutting from it covers a banner that sits inside or below.
-    public static Rect ReserveBottomForBanner(Rect safe, float bannerUnits, bool doubleDustTab)
+    public static Rect ReserveBottomForBanner(Rect safe, float bannerUnits)
     {
         if (!(bannerUnits > 0f)) return safe;
-        float cut = bannerUnits + 8f + (doubleDustTab ? DoubleDustOffer.Height + DoubleDustOffer.Drop : 0f);
+        float cut = bannerUnits + 8f;
         cut = Mathf.Min(cut, safe.height * .5f);
         safe.yMin += cut;
         return safe;
@@ -1104,17 +1104,19 @@ public class DeathPanelView : MonoBehaviour, IPointerDownHandler
     // its glow) inside `safe` with a small margin, never above full size, and
     // drops it below `blocker` (the top band: the top-right quick actions and
     // the top-left score read-out) if they would otherwise overlap.
-    public static void ComputeFit(Rect safe, Rect? blocker, out Vector2 centre, out float scale)
+    // `below`: panel units that hang under the frame (the double dust button); they are fitted too.
+    public static void ComputeFit(Rect safe, Rect? blocker, out Vector2 centre, out float scale, float below = 0f)
     {
         const float margin = 12f;
         Rect area = safe;
         for (int pass = 0; pass < 2; pass++)
         {
             float w = Width + 2f * GlowMargin, h = Height + 2f * GlowMargin;
-            scale = Mathf.Min(1f, (area.width - 2f * margin) / w, (area.height - 2f * margin) / h);
+            scale = Mathf.Min(1f, (area.width - 2f * margin) / w, (area.height - 2f * margin) / (h + below));
             scale = Mathf.Max(scale, .1f);
             centre = area.center;
-            var visual = new Rect(centre.x - w * scale * .5f, centre.y - h * scale * .5f, w * scale, h * scale);
+            centre.y += below * scale * .5f;   // the panel rides up so frame plus button are centred
+            var visual = new Rect(centre.x - w * scale * .5f, centre.y - h * scale * .5f - below * scale, w * scale, (h + below) * scale);
             if (pass == 0 && blocker.HasValue && blocker.Value.Overlaps(visual))
             {
                 area.yMax = Mathf.Min(area.yMax, blocker.Value.yMin - 4f);
@@ -1122,8 +1124,9 @@ public class DeathPanelView : MonoBehaviour, IPointerDownHandler
             }
             return;
         }
-        centre = area.center;
         scale = .1f;
+        centre = area.center;
+        centre.y += below * scale * .5f;
     }
 
     // ---------------------------------------------------------------------
