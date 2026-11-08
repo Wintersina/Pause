@@ -944,7 +944,44 @@ public class CodexPanel : MonoBehaviour
     void OnCollectTab()
     {
         if (OtherViewOpen || inDetail) return;
-        AfterCollect(Codex.CollectRewards(category));
+        // Remember where the first pending find sits before it is paid, then glide the list to it.
+        int first = FirstPendingCard();
+        int dust = Codex.CollectRewards(category);
+        AfterCollect(dust);
+        if (dust > 0 && first >= 0) ScrollToCard(first);
+    }
+
+    // Index (into the shown cards) of the first entry whose dust is still pending, or -1.
+    public int FirstPendingCard()
+    {
+        for (int i = 0; i < shownCount; i++)
+            if (cards[i].entry != null && Codex.IsRewardPending(cards[i].entry)) return i;
+        return -1;
+    }
+
+    // Smooth-scrolls so the card's row sits just under the pinned header (or the top of the list).
+    public void ScrollToCard(int i)
+    {
+        if (i < 0 || i >= shownCount || inDetail) return;
+        float top = -cards[i].rt.anchoredPosition.y - layout.cardHeight * .5f;
+        ScrollTo(CardScrollY(top, sectioned ? SectionHeaderHeight + SectionHeaderGap : 0f, MaxScroll));
+    }
+
+    // Content y that puts a row whose top edge is cardTop just under the pinned header, kept inside the list.
+    public static float CardScrollY(float cardTop, float pinnedHeight, float maxScroll)
+    {
+        return Mathf.Clamp(cardTop - pinnedHeight - GridInset, 0f, Mathf.Max(0f, maxScroll));
+    }
+
+    void ScrollTo(float y)
+    {
+        scroll.StopMovement();
+        jumpFrom = content.anchoredPosition.y;
+        jumpTo = y;
+        jumpAt = Time.unscaledTime;
+        lastSetY = jumpFrom;
+        jumping = true;
+        jumpTarget = -1;
     }
 
     void OnCollectDetail()
