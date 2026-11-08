@@ -128,7 +128,7 @@ public static class LeaderboardBoards
     // "Season reset"). When the stored season is behind this, the device forgets its submitted / pending scores and local
     // bests once (LeaderboardService.MigrateSeason), so nothing from the old boards is offered to the new ones.
     // Season 1 is where every existing player already is: no stored season counts as 1, so 1 changes nothing.
-    public const int CurrentSeason = 1;
+    public const int CurrentSeason = 2;
     public const int FirstSeason = 1;
     static int? overrideSeason;
     public static int Season { get { return overrideSeason ?? CurrentSeason; } }
@@ -178,7 +178,7 @@ public static class LeaderboardBoards
     {
         // The primary board. Android id from Play Console (Get resources).
         new LeaderboardBoard(TopScore,
-            "CgkIopqxqbAPEAIQPg",   // Play Console id
+            "CgkIopqxqbAPEAIQRA",   // Play Console id (Season 2 board; Season 1 was CgkIopqxqbAPEAIQPg, retired)
             AchievementIds.IosPrefix + "top_score",
             "Top Score",
             "Best score in a single run.",

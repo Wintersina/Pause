@@ -150,7 +150,7 @@ public static class LeaderboardTest
         var world = LeaderboardBoards.Get(LeaderboardBoards.FurthestWorld);
         Check("native table: exactly Top Score and Power-Ups",
               LeaderboardBoards.All.Length == 2 && LeaderboardBoards.All[0].id == LeaderboardBoards.TopScore && LeaderboardBoards.All[1].id == LeaderboardBoards.BoostedRuns);
-        Check("Android ids: Top Score and Power-Ups", score.androidId == "CgkIopqxqbAPEAIQPg" && LeaderboardBoards.Get(LeaderboardBoards.BoostedRuns).androidId == "CgkIopqxqbAPEAIQQg");
+        Check("Android ids: Top Score and Power-Ups", score.androidId == "CgkIopqxqbAPEAIQRA" && LeaderboardBoards.Get(LeaderboardBoards.BoostedRuns).androidId == "CgkIopqxqbAPEAIQQg");
         Check("iOS: only Top Score has a Game Center id; Power-Ups stays off",
               score.EnabledOn(true) && !LeaderboardBoards.Get(LeaderboardBoards.BoostedRuns).EnabledOn(true));
         Check("Star Dust / Worlds are column descriptors only: no store ids, never enabled, not in All",

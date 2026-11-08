@@ -49,7 +49,7 @@ The table order is the panel's tab order: **Top Score** is the primary board and
 
 | Logical id | Name | Android id | iOS id | Sort | Format | Status |
 |---|---|---|---|---|---|---|
-| `top_score` | Top Score | `CgkIopqxqbAPEAIQPg` | `me.hapticgate.pause.top_score` | higher is better | integer with thousands separators (`RunScore.Total`, see `Scripts/Core/Scoring/ScoreRules.cs`) | enabled on Android and iOS |
+| `top_score` | Top Score | `CgkIopqxqbAPEAIQRA` | `me.hapticgate.pause.top_score` | higher is better | integer with thousands separators (`RunScore.Total`, see `Scripts/Core/Scoring/ScoreRules.cs`) | enabled on Android and iOS |
 | ~~`top_speed`~~ | ~~Top Speed~~ | (retired) | (retired) | | | **retired** (2026-10, the speed cap): not in the table, `LeaderboardBoards.RetiredSpeedBoard` only names it so old queues drop it |
 | ~~`run_star_dust`~~ | ~~Star Dust~~ | ~~`CgkIopqxqbAPEAIQPw`~~ | (never created) | | | **retired native board** (2026-11-08): not in `All`. The id survives only as the DUST column / shared-board id (`LeaderboardBoards.DustColumn`, no store ids, never enabled) and as the name the device migration drops |
 | ~~`furthest_world`~~ | ~~Worlds~~ | ~~`CgkIopqxqbAPEAIQQA`~~ (console name "Furthest Loop") | (never created) | | | **retired native board** (2026-11-08), same as above (`WorldsColumn`) |
@@ -166,11 +166,11 @@ The panel has **two tabs**: **MAIN** (non-boosted runs) and **POWER-UPS** (the B
 * **Platforms.** Same on Android and iOS: SCORE live, DUST and WORLDS disabled. **iOS:** only Top Score has an id (Boosted stays off: no Power-Ups tab, `iosId` empty); Game Center returns no tag for other players, so their rows have only the score (dashes in the other cells) and the own row is filled from the device record. The old plan to give Dust and Worlds Game Center ids is dropped.
 * **Tests:** `UnifiedLeaderboardTest` (tags, panel, season), plus the updated `LeaderboardTest` / `PowerUpsLeaderboardTest`.
 
-## Season reset (dormant)
+## Season reset (live: Season 2)
 
-A leaderboard "season" is a set of store boards. The plan for a fresh start with no carryover and only the latest build able to see it: **new store boards with new ids**; old builds keep writing to the old boards and cannot see the new ones (there is no force-update). This change builds only the device half, and leaves it dormant.
+A leaderboard "season" is a set of store boards. The plan for a fresh start with no carryover and only the latest build able to see it: **new store boards with new ids**; old builds keep writing to the old boards and cannot see the new ones (there is no force-update). Season 2 is live: it shipped with the new Top Score board `CgkIopqxqbAPEAIQRA` (Season 1 board `CgkIopqxqbAPEAIQPg` is renamed "Top Score (Season 1)" and retired; the Power-Ups board kept its id because it had no scores).
 
-* `LeaderboardBoards.CurrentSeason = 1` (`FirstSeason = 1`). The device stores `leaderboards_season` (`LeaderboardService.SeasonKey`); **no stored season counts as 1**, so at the shipped value nothing is ever wiped and no key is written.
+* `LeaderboardBoards.CurrentSeason = 2` (`FirstSeason = 1`). The device stores `leaderboards_season` (`LeaderboardService.SeasonKey`); **no stored season counts as 1**, so every existing device is wiped once at its first launch on Season 2 and stores season 2.
 * `LeaderboardService.MigrateSeason()` runs once at `Install` (like `MigrateRetiredBoards`). When the stored season is behind the constant it: deletes the submitted and pending score tables (every board); **sets** `NormalBestKey` and `BoostedBestKey` to 0 (set, not deleted: a missing normal best is re-seeded from `RunScore.SavedBest`, which would hand the old best back, including after a reinstall that restores only the cloud save); and stores the new season. A stored season ahead of the constant (a downgrade) is left alone.
 * **Backfill.** `BindAccount` offers only the submitted marks (now empty) and the normal local best (now 0), so pre-reset bests are never offered to a new board. `BoundPlayerKey` is left alone. Reinstall: the local best key is gone and the season key too, so the migration runs at the next launch and pins the best to 0 before the cloud save lands (the best is device-local, never part of the cloud save). Fresh installs end correct (best 0, season stored).
 * **Untouched:** `RunScore.SavedBest` (the personal best). Top Score's NEW RECORD popup keeps using it (`RunScore.BestAtStart`), so after a reset it fires only above the old personal best. The popups for the other boards compare against the submitted / pending tables, which a reset empties: no baseline means no popup (a first run never fires), until the player has a submitted score in the new season.

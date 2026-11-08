@@ -366,9 +366,25 @@ public static class UnifiedLeaderboardTest
             pend.Save(LeaderboardService.PendingKey);
         };
 
-        // The constant as shipped: Install changes nothing for an existing player.
-        Check("season: the shipped constant is the first season (a stored season of none means it)",
-              LeaderboardBoards.CurrentSeason == LeaderboardBoards.FirstSeason && LeaderboardBoards.Season == LeaderboardBoards.CurrentSeason);
+        // The shipped constant is Season 2 (new Top Score board for the free launch): an existing Season 1 device is wiped once.
+        Check("season: the shipped constant is Season 2 and Season follows it",
+              LeaderboardBoards.CurrentSeason == 2 && LeaderboardBoards.Season == 2 && LeaderboardBoards.FirstSeason == 1);
+        {
+            seed();
+            LeaderboardService.MigrateSeason();
+            Check("season 2 shipped: an existing device's old bests, marks and queue are cleared, personal best kept",
+                  LeaderboardService.ScoreTable.Load(LeaderboardService.SubmittedKey).entries.Count == 0
+                  && LeaderboardService.ScoreTable.Load(LeaderboardService.PendingKey).entries.Count == 0
+                  && LeaderboardService.LocalBest(false) == 0 && LeaderboardService.LocalBest(true) == 0
+                  && RunScore.SavedBest == Old && PlayerPrefs.GetInt(LeaderboardService.SeasonKey, 0) == 2);
+            var f = new FakeLeaderboards();
+            var sv = Service(f, false, "gp-A");
+            sv.Flush();
+            Check("season 2 shipped: the old best is not resubmitted to the new Top Score board", f.Submissions.Count == 0);
+        }
+
+        // Season 1 value (an override): Install changes nothing for an existing player.
+        LeaderboardBoards.OverrideSeasonForTests(1);
         seed();
         LeaderboardService.MigrateSeason();
         Check("season: at the current value nothing is cleared and no season is stored",
@@ -436,7 +452,7 @@ public static class UnifiedLeaderboardTest
         Check("reinstall after a bump: the backfill offers nothing", fake.Submissions.Count == 0);
 
         // A fresh install at the first season: no wipe, the normal best seeds from the saved best exactly as before.
-        LeaderboardBoards.OverrideSeasonForTests(null);
+        LeaderboardBoards.OverrideSeasonForTests(1);
         Context();
         PlayerPrefs.SetInt(RunScore.BestScoreKey, Old);
         LeaderboardService.MigrateSeason();

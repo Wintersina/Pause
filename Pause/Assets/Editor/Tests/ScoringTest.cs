@@ -768,7 +768,7 @@ public static class ScoringTest
         var top = LeaderboardBoards.Get(LeaderboardBoards.TopScore);
         Check("top_score is the first (primary) board", all.Length > 0 && all[0].id == LeaderboardBoards.TopScore);
         Check("Top Score: iOS id me.hapticgate.pause.top_score", top != null && top.iosId == "me.hapticgate.pause.top_score");
-        Check("Top Score: Play Console id filled in, enabled on both platforms", top != null && top.androidId == "CgkIopqxqbAPEAIQPg" && top.Enabled &&
+        Check("Top Score: Play Console id filled in, enabled on both platforms", top != null && top.androidId == "CgkIopqxqbAPEAIQRA" && top.Enabled &&
               top.PlatformId(true) == top.iosId && top.PlatformId(false) == top.androidId);
         Check("Top Score never reuses the retired speed board's ids",
               !top.iosId.EndsWith("highest_speed") && top.androidId != "CgkI3eXNjrQcEAIQAA");
