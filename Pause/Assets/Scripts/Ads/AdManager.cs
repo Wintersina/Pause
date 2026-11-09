@@ -83,6 +83,12 @@ public static class AdManager
         return EnsureBooted() && Controller.TryShowShopReward(onPaid, onDone);
     }
 
+    public static bool ShopQuickReady { get { return EnsureBooted() && Controller.ShopQuickReady; } }
+    public static bool TryShowQuickReward(Action<float> onPaid, Action onDone)
+    {
+        return EnsureBooted() && Controller.TryShowQuickReward(onPaid, onDone);
+    }
+
     public static bool RewardedReady { get { return EnsureBooted() && Controller.RewardedReady && !Controller.Busy; } }
 
     public static bool TryShowRewardedDouble(long token, float earned, Action<float> onPaid, Action onDone)

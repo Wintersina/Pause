@@ -311,7 +311,7 @@ public class ShopPanel : MonoBehaviour
         // a locked Paragon still takes the tap (it explains the gate); other non-buyable rows do not
         // (and nothing is while another product's sheet is open: one purchase flow at a time)
         // (booster rows spend dust, not a store sheet, so an open sheet never greys them)
-        bool other = ShopCatalog.AnyBuying && r.state != ShopRowState.Buying && !r.IsBooster && r.kind != ShopRowKind.WatchAd;
+        bool other = ShopCatalog.AnyBuying && r.state != ShopRowState.Buying && !r.IsBooster && r.kind != ShopRowKind.WatchAd && r.kind != ShopRowKind.QuickAd;
         if (other) { v.edge.color = CodexUi.Locked; v.button.color = new Color(.8f, .8f, .9f, 1f); v.buttonText.color = CodexUi.Muted; }
         v.click.interactable = !other && (live || r.state == ShopRowState.Locked);
         PaintIcon(v);
@@ -649,7 +649,7 @@ public class ShopPanel : MonoBehaviour
         for (int i = 0; i < rows.Count && from_ == null; i++)
         {
             var r = rows[i].row;
-            if (pack ? (r.pack != null && r.pack.dust == Mathf.RoundToInt(amount)) : r.kind == ShopRowKind.WatchAd) from_ = rows[i].button.rectTransform;
+            if (pack ? (r.pack != null && r.pack.dust == Mathf.RoundToInt(amount)) : r.kind == (Mathf.Approximately(amount, ShopCatalog.QuickAdDust) ? ShopRowKind.QuickAd : ShopRowKind.WatchAd)) from_ = rows[i].button.rectTransform;
         }
         if (from_ == null) from_ = panel;
         fx.Begin(LocalOf(from_), LocalOf(dust.rectTransform), from, to, dustIcon.sprite);
