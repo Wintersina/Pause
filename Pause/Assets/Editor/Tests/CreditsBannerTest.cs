@@ -67,8 +67,8 @@ public static class CreditsBannerTest
 
         var owner = Good(); owner.removeAdsOwned = true;
         Check("Remove Ads owner: no banner", !AdManager.TryShowMenuBanner(owner) && !p.bannerUp);
-        var paragon = Good(); paragon.paragonOwned = true;
-        Check("Paragon owner: no banner", !AdManager.TryShowMenuBanner(paragon));
+        Check("Paragon owner: banner as normal (only Remove Ads removes ads)", AdManager.TryShowMenuBanner(Good()));
+        AdManager.HideBanner();
         var early = Good(); early.playSeconds = AdPolicy.AdFreePlaySeconds - 1f;
         Check("inside the ad-free window: no banner", !AdManager.TryShowMenuBanner(early) && !p.bannerUp);
 

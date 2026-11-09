@@ -59,9 +59,8 @@ public sealed class AdController
     // Shop rewarded ad: always available, no death token.
     public const float ShopAdDust = 50f;
     bool sessionShop;
-    int eligibleRunEnds;     // run ends that passed every forced-ad guard: every RunsPerInterstitial-th gets the full ad
+    int eligibleRunEnds;     // run ends (any length) counted since the last forced interstitial; RunsPerInterstitial or more = one is owed
     bool bannerUp;
-    bool interstitialOwed;   // the Nth eligible run end came and no interstitial was loaded: the next eligible one gets it
 
     float lastAdAt = float.NegativeInfinity;
     bool watchedRewardedAtDeath;
@@ -256,6 +255,7 @@ public sealed class AdController
         if (!AdPolicy.MayShowForcedAd(inputs)) return false;
         if (!provider.InterstitialReady) return false;
 
+        ForcedAdShown();
         BeginShow(false);
         sessionDone = proceed;
         int mark = session;
@@ -274,16 +274,13 @@ public sealed class AdController
         if (!enabled() || phase != Phase.Ready || busy) return AdPolicy.RunEndAd.None;
         inputs.secondsSinceLastAd = SecondsSinceLastAd;
         inputs.watchedRewardedAtDeath = watchedRewardedAtDeath;
-        bool eligible = AdPolicy.MayShowForcedAd(inputs);
-        if (eligible) eligibleRunEnds++;
-        // A due interstitial that found none loaded stays owed (otherwise the miss pushes it a whole cycle away).
-        int number = interstitialOwed && eligible ? AdPolicy.RunsPerInterstitial : eligibleRunEnds;
-        var choice = AdPolicy.ChooseRunEndAd(inputs, number, provider.InterstitialReady, provider.BannerAvailable);
-        if (eligible && choice != AdPolicy.RunEndAd.Interstitial && AdPolicy.CadenceDue(number)) interstitialOwed = true;
+        // Every run end counts, however short. A due interstitial that cannot show (none loaded, booster, inside the
+        // spacing) stays owed -- the count is not reset -- and shows at the next run end where it can.
+        if (AdPolicy.CountsRunEnd(inputs)) eligibleRunEnds++;
+        var choice = AdPolicy.ChooseRunEndAd(inputs, eligibleRunEnds, provider.InterstitialReady, provider.BannerAvailable);
         if (choice == AdPolicy.RunEndAd.Interstitial)
         {
-            interstitialOwed = false;
-            ReplayAdCounter.Reset();
+            ForcedAdShown();
             BeginShow(false);
             sessionDone = proceed;
             int mark = session;
@@ -295,7 +292,15 @@ public sealed class AdController
         return choice;
     }
 
-    // A results-screen Replay press (buttonClicks.replay after a death). Counts every press while ads
+    // A forced interstitial is about to show: it satisfies both counters, so a death's run-end ad and the Replay that follows
+    // (or the other way round) can never be two ads back to back.
+    void ForcedAdShown()
+    {
+        eligibleRunEnds = 0;
+        ReplayAdCounter.Reset();
+    }
+
+    // A Replay press (results screen, pause menu or quick actions: buttonClicks.replay) (buttonClicks.replay after a death). Counts every press while ads
     // apply; the ReplaysPerForcedAd-th shows an interstitial BEFORE the new run starts (`proceed` starts it, exactly once,
     // when the ad ends / fails). Returns true when the ad took over; false: the caller proceeds itself. With no ad loaded
     // it never blocks and keeps the count, so the ad comes at the next press.
@@ -306,7 +311,7 @@ public sealed class AdController
         int n = ReplayAdCounter.Increment();
         if (!AdPolicy.ReplayAdDue(n) || busy || !provider.InterstitialReady) return false;
 
-        ReplayAdCounter.Reset();
+        ForcedAdShown();
         BeginShow(false);
         sessionDone = proceed;
         int mark = session;
@@ -321,7 +326,7 @@ public sealed class AdController
     public bool ShopAdReady { get { return RewardedReady && !busy; } }
 
     // Shows the rewarded ad for the Shop. The dust is credited ONLY from the SDK's reward callback (once per show), through
-    // the reward store; no AdPolicy guard applies (Remove Ads and Paragon owners keep it). `onDone` runs when the flow ends.
+    // the reward store; no AdPolicy guard applies (Remove Ads owners keep it). `onDone` runs when the flow ends.
     public bool TryShowShopReward(Action<float> onPaid, Action onDone)
     {
         if (!enabled() || phase != Phase.Ready || busy || !provider.RewardedReady) return false;

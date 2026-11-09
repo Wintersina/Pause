@@ -141,7 +141,7 @@ public static class ShopCatalog
     public const string WatchAdButton = "+50 DUST";
     public const float WatchAdDust = AdController.ShopAdDust;
 
-    // "Watch an ad: +50 Star Dust": ALWAYS on offer (Remove Ads and Paragon owners too), repeatable. Buyable only while a
+    // "Watch an ad: +50 Star Dust": ALWAYS on offer (Remove Ads owners too), repeatable. Buyable only while a
     // rewarded ad is loaded; otherwise a disabled LOADING state (UNAVAILABLE where ads are off altogether). The dust is
     // credited only by the SDK's reward callback (AdController.TryShowShopReward -> StarDustLedger.Grant).
     // Raised (main thread) once the ad's star dust is granted and saved; the open Shop plays its burst and count-up.
