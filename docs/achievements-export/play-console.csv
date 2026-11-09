@@ -66,3 +66,4 @@ Order,Name,Description,Points,Incremental steps (blank = standard),Initial state
 65,Hold Your Breath,Clear a world without spending a pause.,20,,Revealed,pause_no_pause_world.png
 66,Time Banker,Hold 15 pauses at once.,10,,Revealed,pause_hoarder.png
 67,Perfect Pause,Blink out of a hostile shot's path.,25,,Hidden,pause_perfect_dodge.png
+68,Hot Escape,Survive 10 portal danger levels in a single escape.,10,,Revealed,escape_danger_10.png

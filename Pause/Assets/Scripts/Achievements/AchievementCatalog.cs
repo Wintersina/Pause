@@ -1,12 +1,12 @@
 using System;
 using System.Collections.Generic;
 
-// The 67 achievements in one reviewable table (docs/achievements-redesign.md
+// The 68 achievements in one reviewable table (docs/achievements-redesign.md
 // has the design; this is its code form, and the store CSV exporter and the
 // tests read it). Ids are stable snake_case keys: they name the saved state,
 // the badge art (Resources/Achievements/<id>) and the store rows.
 //
-// All 67 are live.
+// All 68 are live.
 //
 // Counters (lifetime, shared between achievements):
 //   kills rocks mines elites stars deaths blinks spent   Add()ed per event
@@ -33,8 +33,8 @@ public static class AchievementCatalog
             return n;
         }
     }
-    public const int Count = 67;
-    public const int TotalPoints = 990;
+    public const int Count = 68;
+    public const int TotalPoints = 1000;
 
     // Single-run score thresholds. The design table had 10k / 50k / 150k, but a
     // whole first pass Space -> Ember scores ~6,600 and a second loop ~8,100
@@ -138,6 +138,7 @@ public static class AchievementCatalog
         D("pause_no_pause_world", "Hold Your Breath", "Clear a world without spending a pause.", 20, S, Pause, "score.pauseCounterFunction + WorldManager.Advance"),
         D("pause_hoarder", "Time Banker", "Hold 15 pauses at once.", 10, S, Pause, "score.incromentPause"),
         D("pause_perfect_dodge", "Perfect Pause", "Blink out of a hostile shot's path.", 25, G, Pause, "movePlayer teleport probe + AchievementEvents.PlayerHurt", hidden: true),
+        D("escape_danger_10", "Hot Escape", "Survive 10 portal danger levels in a single escape.", 10, G, Skill, "PortalPressure.Tick -> AchievementTracker.OnDangerSurvived(10)"),
     };
 
     // Points that the stores see (Play Games / Game Center: tier-independent).

@@ -150,6 +150,8 @@ public static class PortalPressure
     public static bool Pressing { get { return Active && Seconds >= GraceSeconds; } }
     public static bool EarningsClosed { get { return Pressing; } }
     public static bool AdmitsPilots { get { return Pressing; } }
+    // The highest DANGER number survived since this portal opened (0: none yet).
+    public static int DangersSurvived { get; private set; }
     // "DANGER 1" as the pressure starts, +1 each Level.
     public static int DangerNumber { get { return Pressing ? 1 + Mathf.FloorToInt(Level) : 0; } }
 
@@ -175,6 +177,7 @@ public static class PortalPressure
     {
         Active = true;
         Seconds = 0f;
+        DangersSurvived = 0;
         Destination = destination;
         Urge = UrgeBanner;
         Chip = ChipPrefix;
@@ -189,8 +192,16 @@ public static class PortalPressure
         float before = Seconds;
         Seconds += dt;
         Refresh();
+        int levelBefore = Mathf.FloorToInt(LevelAt(before)), levelNow = Mathf.FloorToInt(LevelAt(Seconds));
         if (before < GraceSeconds && Seconds >= GraceSeconds) Raise(Signal.GraceOver);
-        else if (Mathf.FloorToInt(LevelAt(Seconds)) > Mathf.FloorToInt(LevelAt(before))) Raise(Signal.LevelUp);
+        else if (levelNow > levelBefore) Raise(Signal.LevelUp);
+        // Each whole Level passed is a DANGER number survived (1 when Level reaches 1, ...): once each, in order.
+        for (int n = levelBefore + 1; n <= levelNow; n++)
+        {
+            DangersSurvived = n;
+            RunScore.OnDangerSurvived(n);
+            AchievementTracker.OnDangerSurvived(n);
+        }
     }
 
     // The portal is gone: flown through (`entered`) or removed.
@@ -212,6 +223,7 @@ public static class PortalPressure
         PostBossLeg.End();   // (the next world starts at its normal rock density)
         Active = false;
         Seconds = 0f;
+        DangersSurvived = 0;
         Destination = -1;
         Urge = UrgeBanner;
         Chip = ChipPrefix;

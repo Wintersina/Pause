@@ -1,5 +1,8 @@
 # Achievements store setup (Google Play Games Services and Game Center)
 
+> **Update (68 achievements, 1000 points).** `escape_danger_10` "Hot Escape" (10 points, Revealed, standard, icon `play-icons-512/escape_danger_10.png`)
+> is new and still needs creating in Play Console and App Store Connect; until its id is pasted into `Resources/AchievementStoreIds.csv` it is never reported.
+
 > **Update 2026-10-25 (67 achievements, 990 points).** Early thresholds were raised and 7 achievements added (world reached: Storm, Desert;
 > boss: Storm, Desert; elite sets: Tide, Storm, Desert). The tables below are the original 60 and are kept for history; the current catalogue
 > is `AchievementCatalog.cs` and `docs/achievements-export/*.csv` (regenerated, 67 rows). Total points were rebalanced so the game stays at

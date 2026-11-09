@@ -26,7 +26,7 @@ public static class RunScore
 {
     public const string BestScoreKey = "BestScore";
 
-    public enum Source { Distance, Kill, Dust, Atom, Teleport, Boss, World, Elite, Shield, Escape, BossEscape }
+    public enum Source { Distance, Kill, Dust, Atom, Teleport, Boss, World, Elite, Shield, Escape, BossEscape, Danger }
 
     // Totals stay small on purpose: see ScoreRules (speed multiplier on
     // flight + kills, loop scaling on boss + world bonuses).
@@ -455,6 +455,18 @@ public static class RunScore
         parts.worldCount++;
         teleportsThisWorld = 0;
         Raise(points, new Vector3(float.NaN, float.NaN, 0f), Source.World);
+        return points;
+    }
+
+    // PORTAL DANGER level `level` was survived (PortalPressure.Tick): ScoreRules.DangerSurvivedPoints, through the
+    // booster multiplier, counted on the WORLDS row (it is the cost of the escape; the world count is not touched).
+    // Pays while earnings are closed on purpose: it is the one thing the pressure pays. Live only.
+    public static int OnDangerSurvived(int level)
+    {
+        if (!Live || level <= 0) return 0;
+        int points = ScoreMultiplier.Gain(ScoreRules.DangerSurvivedPoints(level, RunLoop.Index));
+        parts.worlds += points;
+        Raise(points, new Vector3(float.NaN, float.NaN, 0f), Source.Danger);
         return points;
     }
 

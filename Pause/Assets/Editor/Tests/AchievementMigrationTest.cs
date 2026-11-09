@@ -144,8 +144,8 @@ public static class AchievementMigrationTest
         Check("snapshot carries the unlocked / claimed flags, counters and sets",
               local.CounterValue("ach_u_loop_1") == 1 && local.CounterValue("ach_c_loop_1") == 1 &&
               local.CounterValue("ach_n_kills") == 321 && local.CounterValue(AchievementStore.BossFlagKey(1)) == 1);
-        Check("the sync keys include every achievement's flags", ProgressSnapshot.CounterKeys().Count(k => k.StartsWith("ach_u_")) == 67 &&
-              ProgressSnapshot.CounterKeys().Count(k => k.StartsWith("ach_c_")) == 67);
+        Check("the sync keys include every achievement's flags", ProgressSnapshot.CounterKeys().Count(k => k.StartsWith("ach_u_")) == 68 &&
+              ProgressSnapshot.CounterKeys().Count(k => k.StartsWith("ach_c_")) == 68);
 
         // another device: claimed a different one, unlocked a third, more kills, a different boss
         Clear();

@@ -66,3 +66,4 @@ Pause pause_blink_100,me.hapticgate.pause.ach_pause_blink_100,5,No,No,Blink Mast
 Pause pause_no_pause_world,me.hapticgate.pause.ach_pause_no_pause_world,20,No,No,Hold Your Breath,Clear a world without spending a pause.,Clear a world without spending a pause.,pause_no_pause_world_1024.png
 Pause pause_hoarder,me.hapticgate.pause.ach_pause_hoarder,10,No,No,Time Banker,Hold 15 pauses at once.,Hold 15 pauses at once.,pause_hoarder_1024.png
 Pause pause_perfect_dodge,me.hapticgate.pause.ach_pause_perfect_dodge,25,Yes,No,Perfect Pause,Blink out of a hostile shot's path.,Blink out of a hostile shot's path.,pause_perfect_dodge_1024.png
+Pause escape_danger_10,me.hapticgate.pause.ach_escape_danger_10,10,No,No,Hot Escape,Survive 10 portal danger levels in a single escape.,Survive 10 portal danger levels in a single escape.,escape_danger_10_1024.png

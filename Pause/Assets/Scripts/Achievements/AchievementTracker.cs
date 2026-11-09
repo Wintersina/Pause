@@ -169,6 +169,19 @@ public static class AchievementTracker
         if (!bossHurt) AchievementStore.Unlock(AchievementCatalog.Find("boss_no_hit"));
     }
 
+    // ---- portal danger ----
+
+    // The PORTAL DANGER number that must be SURVIVED (its 10 s lived out, so DANGER 11 begins) in one escape.
+    public const int EscapeDangerLevel = 10;
+
+    // PortalPressure.Tick: DANGER `level` was survived. Each escape starts again from 1, so the level itself is the
+    // test: reaching it in one escape, whenever, unlocks once (the store ignores an unlocked one).
+    public static void OnDangerSurvived(int level)
+    {
+        if (!Achievements.Real || RunScore.Unranked || level < EscapeDangerLevel) return;
+        AchievementStore.Unlock(AchievementCatalog.Find("escape_danger_10"));
+    }
+
     // ---- worlds & loops ----
 
     // WorldManager.Start / Advance: the run is now in `index`.
