@@ -127,6 +127,7 @@ public sealed class LeaderboardService
     // Hooks sign-in success (SocialBridge.SignedIn) up to Flush. Idempotent.
     public static void Install()
     {
+        NewBestReset.Run();
         MigrateRetiredBoards();
         MigrateSeason();
         SharedLeaderboardService.Install();

@@ -2,7 +2,7 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 
 // A banner ad at the bottom of the Credits screen (creditsS7), under the same rules as the run-end banner (AdPolicy:
-// never for Remove Ads / Paragon owners, never inside the first ad-free minutes; developer mode skips the window).
+// never for Remove Ads owners, never inside the first ad-free minutes; developer mode skips the window).
 // The layout keeps clear of it: SafeAreaClamp lifts BACK above it and CreditsMove's roll never bounces into it
 // (both read AdManager.BannerReserveUnits). It is hidden when the screen closes, when the app is paused (and put back on
 // resume) and on any scene change, so it never leaks onto the title screen or into a run.

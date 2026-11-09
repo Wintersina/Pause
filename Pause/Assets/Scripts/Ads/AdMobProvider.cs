@@ -15,7 +15,8 @@ public sealed class AdMobProvider : IAdProvider
 
     InterstitialAd interstitial;
     RewardedAd rewarded;
-    float interstitialLoadedAt, rewardedLoadedAt;
+    RewardedInterstitialAd quick;
+    float interstitialLoadedAt, rewardedLoadedAt, quickLoadedAt;
     bool consentFormShowing;
     public bool ConsentFormShowing { get { return consentFormShowing; } }
 
@@ -144,6 +145,32 @@ public sealed class AdMobProvider : IAdProvider
         }
     }
 
+    public bool QuickReady
+    {
+        get
+        {
+            try { return quick != null && quick.CanShowAd() && Time.realtimeSinceStartup - quickLoadedAt < MaxAdAgeSeconds; }
+            catch (Exception) { return false; }
+        }
+    }
+
+    public void LoadQuick(Action<bool> done)
+    {
+        try
+        {
+            PurgeRetiredQuick();
+            if (quick != null) { quick.Destroy(); quick = null; }
+            RewardedInterstitialAd.Load(AdsConfig.QuickUnit, new AdRequest(), (ad, error) =>
+            {
+                if (error != null || ad == null) { Debug.Log("[ADS] quick load failed: " + (error != null ? error.GetMessage() : "null")); done(false); return; }
+                quick = ad;
+                quickLoadedAt = Time.realtimeSinceStartup;
+                done(true);
+            });
+        }
+        catch (Exception e) { Debug.Log("[ADS] quick load threw: " + e.Message); done(false); }
+    }
+
     public void LoadInterstitial(Action<bool> done)
     {
         try
@@ -220,6 +247,35 @@ public sealed class AdMobProvider : IAdProvider
             // and destroyed a while later (Retire).
             ad.OnAdFullScreenContentClosed += () => { Retire(ad); if (events.closed != null) events.closed(); };
             ad.OnAdFullScreenContentFailed += error => { Retire(ad); Fail(events, error != null ? error.GetMessage() : "failed"); };
+            ad.Show(reward => { if (events.earned != null) events.earned(); });
+        }
+        catch (Exception e) { Fail(events, e.Message); }
+    }
+
+    readonly List<KeyValuePair<RewardedInterstitialAd, float>> retiredQuick = new List<KeyValuePair<RewardedInterstitialAd, float>>();
+
+    void PurgeRetiredQuick()
+    {
+        for (int i = retiredQuick.Count - 1; i >= 0; i--)
+        {
+            if (Time.realtimeSinceStartup - retiredQuick[i].Value < RetireSeconds) continue;
+            try { retiredQuick[i].Key.Destroy(); } catch (Exception) { }
+            retiredQuick.RemoveAt(i);
+        }
+    }
+
+    // Same contract as ShowRewarded: the ad is parked (not destroyed) on close, as the reward can still arrive after it.
+    public void ShowQuick(AdShowEvents events)
+    {
+        PurgeRetiredQuick();
+        var ad = quick;
+        quick = null;
+        if (ad == null) { Fail(events, "not loaded"); return; }
+        try
+        {
+            ad.OnAdFullScreenContentOpened += () => { if (events.opened != null) events.opened(); };
+            ad.OnAdFullScreenContentClosed += () => { retiredQuick.Add(new KeyValuePair<RewardedInterstitialAd, float>(ad, Time.realtimeSinceStartup)); if (events.closed != null) events.closed(); };
+            ad.OnAdFullScreenContentFailed += error => { retiredQuick.Add(new KeyValuePair<RewardedInterstitialAd, float>(ad, Time.realtimeSinceStartup)); Fail(events, error != null ? error.GetMessage() : "failed"); };
             ad.Show(reward => { if (events.earned != null) events.earned(); });
         }
         catch (Exception e) { Fail(events, e.Message); }

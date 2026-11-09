@@ -19,7 +19,11 @@ public sealed class NewRecordTracker
     public BaselineFn Baseline = StoredBest;
     public Func<LeaderboardRunStats> Live = DefaultLive;
 
-    struct Entry { public LeaderboardBoard board; public long best; public bool crossed; }
+    // Seam for tests: true = the shared board is live (compare against the player's own shared row).
+    public Func<bool> SharedMode = NewBestCheck.DefaultSharedMode;
+    public Func<SharedTable, SharedColumn, long> SharedBest = NewBestCheck.Baseline;
+
+    struct Entry { public LeaderboardBoard board; public long best; public bool crossed; public bool power; }
     readonly List<Entry> entries = new List<Entry>();
     readonly List<string> fresh = new List<string>();
 
@@ -36,10 +40,27 @@ public sealed class NewRecordTracker
     {
         entries.Clear();
         if (!Eligible()) return;
+        if (SharedMode())
+        {
+            // Sharing on: every column against the player's own shared row. No row yet = a first run is a new best.
+            AddShared(SharedTable.Main, LeaderboardBoards.Get(LeaderboardBoards.TopScore));
+            AddShared(SharedTable.Power, LeaderboardBoards.Get(LeaderboardBoards.BoostedRuns));
+            return;
+        }
         foreach (var board in LeaderboardBoards.Enabled())
         {
             long best;
-            if (Baseline(board, out best)) entries.Add(new Entry { board = board, best = best });
+            if (Baseline(board, out best)) entries.Add(new Entry { board = board, best = best, power = board.poweredUpOnly });
+        }
+    }
+
+    void AddShared(SharedTable table, LeaderboardBoard scoreBoard)
+    {
+        var boards = new[] { scoreBoard, LeaderboardBoards.DustColumn, LeaderboardBoards.WorldsColumn };
+        for (int i = 0; i < boards.Length; i++)
+        {
+            if (boards[i] == null) continue;
+            entries.Add(new Entry { board = boards[i], best = SharedBest(table, SharedDoc.Columns[i]), power = table == SharedTable.Power });
         }
     }
 
@@ -53,8 +74,11 @@ public sealed class NewRecordTracker
         {
             var e = entries[i];
             // Routing: a run that used a booster only chases the Power-Ups board, any other run only the normal boards.
-            if (e.board.poweredUpOnly != run.PoweredUp) continue;
-            if (e.crossed || !e.board.IsBetter(e.board.Measure(run), e.best)) continue;
+            if (e.power != run.PoweredUp) continue;
+            var measured = run;
+            if (e.power) measured.starDust = run.dustEarned;   // a Power-Ups row keeps everything the run earned
+            long value = e.board.Measure(measured);
+            if (e.crossed || !e.board.IsBetter(value, e.best)) continue;
             e.crossed = true;
             entries[i] = e;
             fresh.Add(e.board.id);
@@ -67,9 +91,9 @@ public sealed class NewRecordTracker
         return RunScore.Scoring && RunScore.SavesBest && !RunScore.Unranked && !RunScore.Ended;
     }
 
-    static LeaderboardRunStats DefaultLive()
+    public static LeaderboardRunStats DefaultLive()
     {
-        return new LeaderboardRunStats { score = RunScore.Total, starDust = Boosters.RankedDust(StarDustLedger.Earned), worldsCleared = RunScore.Parts.worldCount,
+        return new LeaderboardRunStats { score = RunScore.Total, starDust = Boosters.RankedDust(StarDustLedger.Earned), worldsCleared = RunScore.Parts.worldCount, dustEarned = StarDustLedger.Earned,
             powerUps = (Boosters.RunDustUsed ? LeaderboardRunTag.PowerDust : 0) | (HazardClear.UsedThisRun > 0 ? LeaderboardRunTag.PowerClear : 0) |
                        (Boosters.RunHomingUsed ? LeaderboardRunTag.PowerHoming : 0) };
     }

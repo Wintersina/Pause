@@ -31,6 +31,8 @@ public static class AdsConfig
     public const string AndroidInterstitialUnit = "ca-app-pub-4397064133944218/9827798178";   // "Pause Forced Ad"
     public const string AndroidRewardedUnit = "ca-app-pub-4397064133944218/3137607605";       // "Pause Double Dust"
 
+    public const string AndroidQuickUnit = "ca-app-pub-4397064133944218/7000577403";          // "Pause Quick Dust" (rewarded interstitial)
+
     // Banner on the results modal. NOT created in AdMob yet: the user must add a "Pause Banner" banner ad unit to each
     // app and paste the IDs here. While an ID still ends in the placeholder suffix, release builds request no banner.
     public const string BannerPlaceholderSuffix = "BANNER_TODO";
@@ -40,6 +42,7 @@ public static class AdsConfig
     public const string IosAppId = "ca-app-pub-4397064133944218~1298571462";
     public const string IosInterstitialUnit = "ca-app-pub-4397064133944218/3266259255";       // "Pause Forced Ad"
     public const string IosRewardedUnit = "ca-app-pub-4397064133944218/8095466996";           // "Pause Double Dust"
+    public const string IosQuickUnit = "ca-app-pub-4397064133944218/2869760700";               // "Pause Quick Dust" (rewarded interstitial)
 
     // ---- Google's published test IDs (safe to ship and to click) ----
     public const string TestAndroidAppId = "ca-app-pub-3940256099942544~3347511713";
@@ -48,6 +51,8 @@ public static class AdsConfig
     public const string TestIosAppId = "ca-app-pub-3940256099942544~1458002511";
     public const string TestIosInterstitialUnit = "ca-app-pub-3940256099942544/4411468910";
     public const string TestIosRewardedUnit = "ca-app-pub-3940256099942544/1712485313";
+    public const string TestAndroidQuickUnit = "ca-app-pub-3940256099942544/5354046379";   // Google's rewarded interstitial test unit
+    public const string TestIosQuickUnit = "ca-app-pub-3940256099942544/6978759866";
     public const string TestAndroidBannerUnit = "ca-app-pub-3940256099942544/6300978111";
     public const string TestIosBannerUnit = "ca-app-pub-3940256099942544/2934735716";
 
@@ -91,6 +96,11 @@ public static class AdsConfig
     public static string RewardedUnit
     {
         get { return IsIos ? Pick(DeveloperUnlocks.Enabled, IosRewardedUnit, TestIosRewardedUnit) : Pick(DeveloperUnlocks.Enabled, AndroidRewardedUnit, TestAndroidRewardedUnit); }
+    }
+
+    public static string QuickUnit
+    {
+        get { return IsIos ? Pick(DeveloperUnlocks.Enabled, IosQuickUnit, TestIosQuickUnit) : Pick(DeveloperUnlocks.Enabled, AndroidQuickUnit, TestAndroidQuickUnit); }
     }
 
     public static string BannerUnit

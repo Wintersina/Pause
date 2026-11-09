@@ -44,6 +44,7 @@ public class LeaderboardRunTracker : MonoBehaviour
     void Start()
     {
         LeaderboardService.SeedLocalBests();
+        NewBestCheck.Capture();   // the shared-row baselines for the NEW BEST badges, before this run can be queued
         normalBestAtStart = LeaderboardService.LocalBest(false);
         boostedBestAtStart = LeaderboardService.LocalBest(true);
         powerUps = 0;
