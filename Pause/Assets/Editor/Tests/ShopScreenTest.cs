@@ -289,6 +289,8 @@ public static class ShopScreenTest
         Reset();
     }
 
+    static void RunFx(ShopPanel panel) { for (int n = 0; n < 400 && panel.FxActive; n++) panel.StepFx(1f / 60f); }
+
     static void Panel()
     {
         EditorSceneManager.OpenScene("Assets/Scenes/startS4.unity", OpenSceneMode.Single);
@@ -346,7 +348,53 @@ public static class ShopScreenTest
         // a pack paid while open: the balance follows
         SupportPurchase.Handle(new PlayPurchase { productId = SupportPurchase.Small.productId, token = "shop-t1", state = PlayPurchaseState.Purchased },
                                (t, done) => done(true));
-        Check("after a pack is granted the balance updates", panel.DustText.text == "2,084");
+        Check("a pack grant starts the burst; the shown total begins at the old balance", panel.FxActive && panel.DustText.text == "1,234" && Mathf.FloorToInt(StarDustLedger.Saved) == 2084);
+        RunFx(panel);
+        Check("after a pack is granted the balance updates (count-up ends at the true balance)", !panel.FxActive && panel.DustText.text == "2,084");
+
+        // a pending / ignored purchase and a cancelled one play nothing
+        SupportPurchase.Handle(new PlayPurchase { productId = SupportPurchase.Small.productId, token = "shop-pend", state = PlayPurchaseState.Pending }, (t, done) => done(true));
+        SupportPurchase.Handle(new PlayPurchase { productId = SupportPurchase.Small.productId, token = "", state = PlayPurchaseState.Purchased }, (t, done) => done(true));
+        Check("pending / cancelled purchase: no animation, no dust", !panel.FxActive && panel.DustText.text == "2,084" && Mathf.FloorToInt(StarDustLedger.Saved) == 2084);
+        SupportPurchase.Handle(new PlayPurchase { productId = SupportPurchase.Small.productId, token = "shop-t1", state = PlayPurchaseState.Purchased }, (t, done) => done(true));
+        Check("the same purchase delivered again: no second animation", !panel.FxActive && Mathf.FloorToInt(StarDustLedger.Saved) == 2084);
+
+        // the watch-ad reward: +50 one at a time, ends at the saved balance; an early leave and a second reward are safe
+        PlayerPrefs.SetFloat(StarDustLedger.CurrencyKey, 2134f);   // the ad's grant (already saved)
+        ShopCatalog.RaiseAdRewarded(50f);
+        Check("ad reward: burst on, total starts at 2,084", panel.FxActive && panel.DustText.text == "2,084" && panel.Fx.Count == 50);
+        var seen = new List<int>();
+        for (int n = 0; n < 400 && panel.FxActive; n++) { panel.StepFx(1f / 60f); seen.Add(panel.DustShown); }
+        bool steps = true; for (int i = 1; i < seen.Count; i++) if (seen[i] - seen[i - 1] > 2 || seen[i] < seen[i - 1]) steps = false;
+        Check("ad reward: +1 (at most +2 per frame) and ends at 2,134", steps && !panel.FxActive && panel.DustText.text == "2,134" && seen.Count >= 72 && seen.Count <= 108);
+        PlayerPrefs.SetFloat(StarDustLedger.CurrencyKey, 2184f);
+        ShopCatalog.RaiseAdRewarded(50f);
+        for (int n = 0; n < 40; n++) panel.StepFx(1f / 60f);
+        PlayerPrefs.SetFloat(StarDustLedger.CurrencyKey, 2234f);
+        ShopCatalog.RaiseAdRewarded(50f);   // another reward lands mid-flight
+        RunFx(panel);
+        Check("a second reward mid-animation does not double count: ends at 2,234", panel.DustText.text == "2,234");
+        PlayerPrefs.SetFloat(StarDustLedger.CurrencyKey, 2284f);
+        ShopCatalog.RaiseAdRewarded(50f);
+        for (int n = 0; n < 20; n++) panel.StepFx(1f / 60f);
+        bool threw = false;
+        try { panel.Close(); panel.StepFx(.5f); } catch (System.Exception) { threw = true; }
+        Check("leaving the Shop mid-animation does not throw and snaps to the true balance", !threw && !panel.FxActive && panel.DustText.text == "2,284");
+        ShopPanel.Open();
+
+        // the timeline itself: 50, and a 6,000 pack, take about the same time and land exactly
+        foreach (int amount in new[] { 50, 850, 2500, 6000 })
+        {
+            var m = new ShopDustFx(null);
+            m.Begin(Vector2.zero, new Vector2(100f, 100f), 1000, 1000 + amount, null);
+            float t = 0f; int last = 1000; bool mono = true;
+            while (m.Active && t < 5f) { m.Step(1f / 60f); t += 1f / 60f; if (m.Displayed < last) mono = false; last = m.Displayed; }
+            Check("fx timeline " + amount + ": ends at the true balance in 1.2-1.8 s", mono && !m.Active && m.Displayed == 1000 + amount && t >= 1.2f && t <= 1.8f);
+        }
+        var mid = new ShopDustFx(null);
+        mid.Begin(Vector2.zero, Vector2.one, 10, 60, null);
+        mid.Step(.5f); mid.Finish(); mid.Finish();
+        Check("fx Finish mid-way snaps to the end and is repeatable", !mid.Active && mid.Displayed == 60 && mid.Pulse == 1f);
 
         // a store sheet open: the packs grey out, the dust-bought booster rows stay live
         RemoveAdsPurchase.LaunchFlow = () => { };

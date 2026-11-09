@@ -1,5 +1,6 @@
 #if UNITY_ANDROID || UNITY_IOS
 using System;
+using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using GoogleMobileAds.Api;
 using GoogleMobileAds.Ump.Api;
@@ -163,6 +164,7 @@ public sealed class AdMobProvider : IAdProvider
     {
         try
         {
+            PurgeRetired();
             if (rewarded != null) { rewarded.Destroy(); rewarded = null; }
             RewardedAd.Load(AdsConfig.RewardedUnit, new AdRequest(), (ad, error) =>
             {
@@ -190,16 +192,34 @@ public sealed class AdMobProvider : IAdProvider
         catch (Exception e) { Fail(events, e.Message); }
     }
 
+    readonly System.Collections.Generic.List<KeyValuePair<RewardedAd, float>> retired = new System.Collections.Generic.List<KeyValuePair<RewardedAd, float>>();
+    const float RetireSeconds = 20f;
+
+    void Retire(RewardedAd ad) { retired.Add(new KeyValuePair<RewardedAd, float>(ad, Time.realtimeSinceStartup)); }
+
+    void PurgeRetired()
+    {
+        for (int i = retired.Count - 1; i >= 0; i--)
+        {
+            if (Time.realtimeSinceStartup - retired[i].Value < RetireSeconds) continue;
+            try { retired[i].Key.Destroy(); } catch (Exception) { }
+            retired.RemoveAt(i);
+        }
+    }
+
     public void ShowRewarded(AdShowEvents events)
     {
+        PurgeRetired();
         var ad = rewarded;
         rewarded = null;
         if (ad == null) { Fail(events, "not loaded"); return; }
         try
         {
             ad.OnAdFullScreenContentOpened += () => { if (events.opened != null) events.opened(); };
-            ad.OnAdFullScreenContentClosed += () => { ad.Destroy(); if (events.closed != null) events.closed(); };
-            ad.OnAdFullScreenContentFailed += error => { ad.Destroy(); Fail(events, error != null ? error.GetMessage() : "failed"); };
+            // Not destroyed on close: the reward callback can still arrive after the close, so the ad is parked
+            // and destroyed a while later (Retire).
+            ad.OnAdFullScreenContentClosed += () => { Retire(ad); if (events.closed != null) events.closed(); };
+            ad.OnAdFullScreenContentFailed += error => { Retire(ad); Fail(events, error != null ? error.GetMessage() : "failed"); };
             ad.Show(reward => { if (events.earned != null) events.earned(); });
         }
         catch (Exception e) { Fail(events, e.Message); }
