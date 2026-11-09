@@ -256,6 +256,26 @@ public static class ScoreBonusTest
         Check("everything still sits inside the panel (the panel is 952 tall since the KILLED BY card)",
               inside && DeathPanelView.Height == 952f && DeathPanelView.Width == 680f);
         Object.DestroyImmediate(view.gameObject);
+
+        // A new best dust record plus a bonus must not put the gold pill behind the bonus line.
+        EditorSceneManager.OpenScene("Assets/Scenes/gameS1.unity", OpenSceneMode.Single);
+        canvas = SceneUtil.FindAny("PopUpCanvas");
+        best = SceneUtil.FindAny("playerDeadHighestSpeed").GetComponent<Text>();
+        run = SceneUtil.FindAny("deathSpeedReachedThisRoundText").GetComponent<Text>();
+        dust = SceneUtil.FindAny("playerDeadHighScore").GetComponent<Text>();
+        var rec = DeathPanelView.Build(canvas.transform, best, run, dust,
+            SceneUtil.FindAny("Replay").GetComponent<Button>(), SceneUtil.FindAny("MainMenu").GetComponent<Button>(),
+            new DeathPanelView.Results { score = parts.Total, bestScore = 9000, ranked = true, parts = parts, newDust = true,
+                                         dustAtStart = 10f, dustWon = 3.25f, dustBonus = 1.5f });
+        rec.Skip();
+        var recCard = rec.Panel.Find("Card2");
+        Check("bonus row has no pill background (no NewBestDust badge behind it)", recCard.Find("NewBestDust") == null);
+        bool pill = false;
+        foreach (var img in recCard.GetComponentsInChildren<Image>(true))
+            if (img.sprite != null && img.sprite.name == "dp_pill") pill = true;
+        Check("no pill sprite anywhere on the bonus card", !pill);
+        Check("the bonus line is still there", recCard.Find(DeathPanelView.ScoreBonusName) != null);
+        Object.DestroyImmediate(rec.gameObject);
     }
 
     static Rect PanelSpace(RectTransform panel, RectTransform rt)

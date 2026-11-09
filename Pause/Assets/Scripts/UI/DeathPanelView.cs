@@ -478,7 +478,8 @@ public class DeathPanelView : MonoBehaviour, IPointerDownHandler
         dustValueCentre = Shifted(CardRects[2].center + new Vector2(ValueRight - 95f, 13f));
         bestValueCentre = Shifted(CardRects[0].center + new Vector2(ValueRight - 90f, 0f));
 
-        if (results.newDust)
+        // The score bonus line takes the same slot: never put the gold pill behind it.
+        if (results.newDust && results.dustBonus <= 0f)
         {
             var dp = NewImage("NewBestDust", cards[2], Load("dp_pill"), Gold);
             dp.type = Image.Type.Sliced;
