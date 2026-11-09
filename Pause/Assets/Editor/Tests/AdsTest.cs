@@ -78,6 +78,7 @@ public static class AdsTest
             DoubleDustWithBooster();
             Cadence();
             RunEndAndShopFlow();
+            ReplaySpam();
             BannerLayout();
             Controller();
             Environment();
@@ -292,6 +293,102 @@ public static class AdsTest
 
     // The banner never overlaps the panel or the double dust button under its frame, on tall phones, foldables (the Flip
     // cover screen too) and tablets; the button never overlaps REPLAY / MENU / SPACE DOCK and its label fits one line.
+    // Replay presses (results Replay, pause-menu / quick-action Replay) count toward a forced ad; run length is irrelevant.
+    static void ReplaySpam()
+    {
+        PlayerPrefs.DeleteKey(ReplayAdCounter.Key);
+        Check("REPLAY: the constant is 3", AdPolicy.ReplaysPerForcedAd == 3);
+        var quick = Good(); quick.runSeconds = 5f;   // far under MinRunSecondsForAd
+        var r = new Rig(); r.BootReady();
+        var c = r.controller;
+        int started = 0, tookOver = 0;
+        for (int n = 1; n <= 2; n++)
+        {
+            c.OnRunStart(); c.OnRunEnd(false);
+            if (c.TryReplayAd(quick, () => started++)) tookOver++;
+        }
+        Check("REPLAY: 2 quick replays (runs < 45 s) show nothing, the count is 2",
+            tookOver == 0 && r.provider.interstitialShows == 0 && ReplayAdCounter.Count == 2);
+        Check("REPLAY: the 3rd replay takes over with an interstitial before the new run starts",
+            c.TryReplayAd(quick, () => started++) && r.provider.interstitialShows == 1 && started == 0 && c.Busy);
+        r.provider.lastEvents.opened(); r.provider.lastEvents.closed();
+        Check("REPLAY: the new run starts once the ad closes, the counter is reset", started == 1 && !c.Busy && ReplayAdCounter.Count == 0);
+
+        // then it starts over: 5 more
+        r.now += 1000f; r.provider.interstitialReady = true;
+        for (int n = 1; n <= 2; n++) c.TryReplayAd(quick, () => started++);
+        Check("REPLAY: after the reset it takes 3 more (exactly one ad per 3)", r.provider.interstitialShows == 1 && ReplayAdCounter.Count == 2);
+
+        // persistence: the count lives in PlayerPrefs, a new controller (app restart) continues from it
+        var r2 = new Rig(); r2.BootReady();
+        Check("REPLAY: the counter survives an app restart (new controller)",
+            ReplayAdCounter.Count == 2 && r2.controller.TryReplayAd(quick, () => started++) && r2.provider.interstitialShows == 1);
+        r2.provider.lastEvents.closed();
+
+        // no ad loaded: never blocks, keeps the count, fires at the next press
+        PlayerPrefs.DeleteKey(ReplayAdCounter.Key);
+        r = new Rig(); r.BootReady(); c = r.controller;
+        r.provider.loadSucceeds = false; r.provider.interstitialReady = false;
+        int go = 0;
+        bool blocked = false;
+        for (int n = 1; n <= 4; n++) blocked |= c.TryReplayAd(quick, () => go++);
+        Check("REPLAY: no ad loaded -> never takes over (the game is never blocked), the count keeps growing",
+            !blocked && ReplayAdCounter.Count == 4 && r.provider.interstitialShows == 0 && !c.Busy);
+        r.provider.interstitialReady = true;
+        Check("REPLAY: an ad loads later -> the very next press shows it and resets",
+            c.TryReplayAd(quick, () => go++) && r.provider.interstitialShows == 1 && ReplayAdCounter.Count == 0);
+        r.provider.lastEvents.closed();
+
+        // exemptions
+        PlayerPrefs.DeleteKey(ReplayAdCounter.Key);
+        r = new Rig(); r.BootReady(); c = r.controller;
+        var owner = quick; owner.removeAdsOwned = true;
+        for (int n = 0; n < 12; n++) c.TryReplayAd(owner, null);
+        Check("REPLAY: Remove Ads owners never get one (and nothing is counted)", r.provider.interstitialShows == 0 && ReplayAdCounter.Count == 0);
+        var fresh = quick; fresh.playSeconds = AdPolicy.AdFreePlaySeconds - 1f;
+        for (int n = 0; n < 12; n++) c.TryReplayAd(fresh, null);
+        Check("REPLAY: inside the first 15 minutes never", r.provider.interstitialShows == 0 && ReplayAdCounter.Count == 0);
+        var par = quick; par.paragonOwned = true;
+        for (int n = 0; n < 12; n++) c.TryReplayAd(par, null);
+        Check("REPLAY: Paragon owners never (while it removes ads)", r.provider.interstitialShows == 0);
+        r.enabled = false;
+        for (int n = 0; n < 12; n++) c.TryReplayAd(quick, null);
+        Check("REPLAY: ads disabled -> nothing", r.provider.interstitialShows == 0 && ReplayAdCounter.Count == 0);
+
+        // the original loophole: runs under MinRunSecondsForAd never became eligible, so replay spam skipped the every-3rd ad
+        PlayerPrefs.DeleteKey(ReplayAdCounter.Key);
+        r = new Rig(); r.BootReady(); c = r.controller;
+        int bannersOrNone = 0;
+        for (int n = 0; n < 6; n++)
+        {
+            c.OnRunStart(); c.OnRunEnd(true); c.Tick();
+            if (c.TryRunEndAd(quick, null) != AdPolicy.RunEndAd.Interstitial) bannersOrNone++;
+        }
+        Check("LOOPHOLE: run ends under 45 s never reach the every-3rd interstitial on their own", bannersOrNone == 6 && r.provider.interstitialShows == 0 && c.EligibleRunEnds == 0);
+        int ok = 0;
+        for (int n = 0; n < 3; n++) { c.OnRunStart(); if (c.TryReplayAd(quick, () => ok++)) break; }
+        Check("LOOPHOLE: ... but 3 results replays of those quick runs do show one", r.provider.interstitialShows == 1);
+        r.provider.lastEvents.closed();
+
+        // a run-end interstitial that was shown also resets the replay count
+        PlayerPrefs.SetInt(ReplayAdCounter.Key, 2);
+        r = new Rig(); r.BootReady(); c = r.controller;
+        c.OnRunEnd(true); c.Tick();
+        for (int n = 0; n < 3; n++) c.TryRunEndAd(Good(), null);
+        Check("REPLAY: a shown run-end interstitial resets the replay count", r.provider.interstitialShows == 1 && ReplayAdCounter.Count == 0);
+
+        // a due run-end interstitial that found no ad stays owed (the miss does not push it a whole cycle away)
+        r = new Rig(); r.BootReady(); c = r.controller;
+        r.provider.loadSucceeds = false; r.provider.interstitialReady = false;
+        c.OnRunEnd(true);
+        for (int n = 0; n < 3; n++) c.TryRunEndAd(Good(), null);
+        Check("OWED: the 3rd eligible run end found no ad -> banner, no interstitial", r.provider.interstitialShows == 0);
+        r.provider.interstitialReady = true;
+        Check("OWED: the very next eligible run end gets the interstitial", c.TryRunEndAd(Good(), null) == AdPolicy.RunEndAd.Interstitial && r.provider.interstitialShows == 1);
+        r.provider.lastEvents.closed();
+        PlayerPrefs.DeleteKey(ReplayAdCounter.Key);
+    }
+
     static void BannerLayout()
     {
         Check("LAYOUT: no banner -> the area is untouched", DeathPanelView.ReserveBottomForBanner(new Rect(0, 0, 1080, 2400), 0f) == new Rect(0, 0, 1080, 2400));

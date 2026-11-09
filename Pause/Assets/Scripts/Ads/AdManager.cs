@@ -7,6 +7,7 @@ using UnityEngine;
 //   AdManager.OnRunStart()                  score.Start, real runs
 //   AdManager.OnRunEnd(died)                death panel / leaving a run
 //   AdManager.TryRunEndAd(proceed)          playerIsDead.BeginResults: true = an interstitial took over (else banner / none)
+//   AdManager.TryReplayAd(proceed)          buttonClicks.replay: the 3rd results Replay since the last forced ad shows one
 //   AdManager.TryShowRewardedDouble(...)    the death panel's double dust button
 //   AdManager.PrivacyOptionsRequired / ShowPrivacyOptions   the Options entry
 public static class AdManager
@@ -59,6 +60,13 @@ public static class AdManager
     {
         if (!EnsureBooted()) return false;
         return Controller.TryRunEndAd(LiveInputs(), proceed) == AdPolicy.RunEndAd.Interstitial;
+    }
+
+    // Every Replay press (buttonClicks.replay): true when a forced interstitial took over; `proceed` starts the new run after it.
+    public static bool TryReplayAd(Action proceed)
+    {
+        if (!EnsureBooted()) return false;
+        return Controller.TryReplayAd(LiveInputs(), proceed);
     }
 
     public static void HideBanner() { if (Controller != null) Controller.HideBanner(); }
