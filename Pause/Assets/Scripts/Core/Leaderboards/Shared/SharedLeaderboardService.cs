@@ -159,6 +159,14 @@ public sealed class SharedLeaderboardService
     // What this device still owes the server, for tests and diagnostics.
     public SharedDoc Pending(SharedTable table) { return LoadStore(PendingKey).Of(table).Clone(); }
     public SharedDoc Submitted(SharedTable table) { return LoadStore(SubmittedKey).Of(table).Clone(); }
+    // The best this device knows the player's own row holds in one column: the last server document it saw or
+    // the run still queued for it, whichever is higher. 0 = no row / none yet. Local only, never blocks.
+    public long KnownBest(SharedTable table, SharedColumn column)
+    {
+        var store = LoadStore(SubmittedKey).Of(table);
+        var queued = LoadStore(PendingKey).Of(table);
+        return Math.Max(store.Metric(column), queued.Metric(column));
+    }
     public bool HasPending { get { var s = LoadStore(PendingKey); return !s.main.IsEmpty || !s.power.IsEmpty; } }
 
     // ---- offering runs ----

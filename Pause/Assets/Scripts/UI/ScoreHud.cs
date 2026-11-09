@@ -321,7 +321,7 @@ public class ScoreHud : MonoBehaviour
         for (int i = 0; i < fresh.Count; i++)
         {
             NewRecordPopup.Show(fresh[i]);
-            if (fresh[i] == LeaderboardBoards.TopScore && newTag != null) { newTag.text = NewTagLabel; newTagAt = now; }
+            if ((fresh[i] == LeaderboardBoards.TopScore || fresh[i] == LeaderboardBoards.BoostedRuns) && newTag != null) { newTag.text = NewTagLabel; newTagAt = now; }
         }
         if (newTag != null && newTagAt >= 0f)
         {
