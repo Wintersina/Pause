@@ -76,9 +76,13 @@ public static class HomeLayoutTest
     // The home screen as the rig stages it, reduced to numbers.
     public static Pin Stage(string deviceId, bool withBackdrop, out bool ok)
     {
-        var pin = new Pin { device = deviceId };
+        return Stage(FitDevice.Find(deviceId), withBackdrop, out ok);
+    }
+
+    public static Pin Stage(FitDevice device, bool withBackdrop, out bool ok)
+    {
+        var pin = new Pin { device = device.id };
         ok = false;
-        var device = FitDevice.Find(deviceId);
         var screen = ScreenFitScreens.Find("home");
         EditorSceneLoader.Open(screen.scene);
         Time.timeScale = 1f;

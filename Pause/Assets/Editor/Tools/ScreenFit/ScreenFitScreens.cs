@@ -49,7 +49,7 @@ public static class ScreenFitScreens
     public static readonly FitWaiver[] Waivers =
     {
         // Developer-only rows: left as they are on purpose (user decision).
-        new FitWaiver { screen = "options", kind = "TAPSIZE", element = "Canvas/Developer",
+        new FitWaiver { screen = "options", kind = "TAPSIZE", element = "/Developer",
                         reason = "DEVELOPER-ONLY rows (DeveloperUnlocks.Available builds; not shipped to players): left as is by decision" },
         // Shared board rows (platform mark takes 28 units from the name column): the Japanese stage name, cut with an
         // ellipsis by FitName, measures wider in the rig than FitName measured on these two devices (the native board's

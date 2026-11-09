@@ -27,7 +27,7 @@ public struct DockLayout
     public const int MinColumns = 3;
     public const int MaxColumns = 3;
 
-    public const float WideAspect = .8f;       // view width / height from here up
+    public const float WideAspect = ScreenLayout.WideAspect;       // view width / height from here up
     public const float CardShare = .62f;       // the card pane never takes more than this share of the width
     public const float PaneGap = .3f;          // between the panes
     public const float Gutter = .3f;           // clear of the view's left and right edges (both panes)
@@ -60,7 +60,7 @@ public struct DockLayout
 
     public static bool IsWide(float viewHalfWidth, float viewHalfHeight)
     {
-        return viewHalfHeight > 0f && viewHalfWidth / viewHalfHeight >= WideAspect;
+        return ScreenLayout.IsWide(viewHalfWidth, viewHalfHeight);
     }
 
     // The two panes of a wide view: the card pane on the right, as wide as the card wants (cardWidth, world

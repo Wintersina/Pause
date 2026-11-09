@@ -372,6 +372,7 @@ public static class AllTests
         ("MenuNavTest", MenuNavTest.Execute),
         ("HomeLayoutTest", HomeLayoutTest.Execute),
         ("OptionsRowOverlapTest", OptionsRowOverlapTest.Execute),
+        ("ResponsiveLayoutTest", ResponsiveLayoutTest.Execute),
         ("CreditsBannerTest", CreditsBannerTest.Execute),
         ("HomeHighlightShapeTest", HomeHighlightShapeTest.Execute),
         ("FrostBackdropTest", FrostBackdropTest.Execute),

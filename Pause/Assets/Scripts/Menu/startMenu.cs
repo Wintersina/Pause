@@ -13,6 +13,7 @@ public class startMenu : MonoBehaviour {
     private int layoutWidth, layoutHeight;
     private float layoutCamSize;
     private float logoBaseY = float.NaN;   // the scene's authored logo height, before any lift
+    private Vector3 logoBaseScale = Vector3.one;
 
     void Start()
     {
@@ -177,8 +178,59 @@ public class startMenu : MonoBehaviour {
                 label.resizeTextMaxSize = name == "QuitButton" || name == PrivacyButtonName ? 28 : 38;
             }
         }
+        // Short / wide screens: the column rose (footer deficit) or the canvas floor scaled it up while the world-space
+        // logo stayed put. Whatever the shape, the logo ends up clear of the column (lifted, then shrunk if need be).
+        float rowShare = (columnHeight - group_spacing * (rowCount - 1)) / rowCount;
+        FitLogo(canvas != null ? canvas.scaleFactor : 1f, (height * 0.5f + topEdge) * (canvas != null ? canvas.scaleFactor : 1f),
+                LogoClearShare * rowShare);
         layoutWidth = ScreenInfo.Width;
         layoutHeight = ScreenInfo.Height;
+    }
+
+    const float group_spacing = 12f;
+    // The least gap kept between the logo's drawn bottom and the column's top, as a share of one menu row.
+    public const float LogoClearShare = .5f;
+    public const float LogoTopMarginPx = 28f;
+
+    // Lifts the logo (up to the top safe edge), then shrinks it about its top, until its drawn bottom is `clearUnits`
+    // (canvas units) above the column's top edge `columnTopPx` (screen px from the bottom). Does nothing when it already clears.
+    void FitLogo(float scale, float columnTopPx, float clearUnits)
+    {
+        var logo = GameObject.Find("menuTitle");
+        var sr = logo != null ? logo.GetComponent<SpriteRenderer>() : null;
+        var cam = Camera.main;
+        if (sr == null || sr.sprite == null || cam == null || !cam.orthographic || float.IsNaN(logoBaseY) || ScreenInfo.Height <= 0) return;
+        float ppw = ScreenInfo.Height / (cam.orthographicSize * 2f);
+        float minBottom = columnTopPx + clearUnits * scale;
+        float bottom, top;
+        LogoExtent(sr, cam, ppw, out bottom, out top);
+        if (bottom >= minBottom) return;
+        float maxTop = ScreenInfo.Height - ScreenInfo.SafeTopInset - LogoTopMarginPx;
+        float lift = Mathf.Min(minBottom - bottom, Mathf.Max(0f, maxTop - top));
+        var t = logo.transform;
+        t.localPosition += new Vector3(0f, lift / ppw, 0f);
+        bottom += lift; top += lift;
+        if (bottom >= minBottom) return;
+        float k = Mathf.Clamp((top - minBottom) / Mathf.Max(1f, top - bottom), .55f, 1f);
+        if (k >= 1f) return;
+        t.localScale = new Vector3(t.localScale.x * k, t.localScale.y * k, t.localScale.z);
+        float newBottom, newTop;
+        LogoExtent(sr, cam, ppw, out newBottom, out newTop);
+        t.localPosition += new Vector3(0f, (top - newTop) / ppw, 0f);   // shrink about the top edge
+    }
+
+    // The logo's drawn outline (tight sprite mesh), in screen px from the bottom.
+    static void LogoExtent(SpriteRenderer sr, Camera cam, float ppw, out float bottom, out float top)
+    {
+        float lo = float.MaxValue, hi = float.MinValue;
+        foreach (var v in sr.sprite.vertices)
+        {
+            float wy = sr.transform.TransformPoint(new Vector3(0f, sr.flipY ? -v.y : v.y, 0f)).y;
+            lo = Mathf.Min(lo, wy); hi = Mathf.Max(hi, wy);
+        }
+        float mid = ScreenInfo.Height * .5f, cy = cam.transform.position.y;
+        bottom = (lo - cy) * ppw + mid;
+        top = (hi - cy) * ppw + mid;
     }
 
     // The PAUSE logo is a world sprite authored for a 16:9 view: raise it by `fraction` of the view height.
@@ -187,7 +239,8 @@ public class startMenu : MonoBehaviour {
         var logo = GameObject.Find("menuTitle");
         var cam = Camera.main;
         if (logo == null || cam == null || !cam.orthographic) return;
-        if (float.IsNaN(logoBaseY)) logoBaseY = logo.transform.localPosition.y;
+        if (float.IsNaN(logoBaseY)) { logoBaseY = logo.transform.localPosition.y; logoBaseScale = logo.transform.localScale; }
+        logo.transform.localScale = logoBaseScale;   // FitLogo may have shrunk it for a short screen
         var p = logo.transform.localPosition;
         p.y = logoBaseY + fraction * cam.orthographicSize * 2f;
         logo.transform.localPosition = p;

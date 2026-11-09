@@ -30,7 +30,7 @@ public class LeaderboardSettingsOptions : MonoBehaviour
     {
         var template = SceneUtil.FindAny("Tutorial");
         if (template == null) return;
-        var row = DeveloperOptions.Clone(template, template.transform.parent, RowName,
+        var row = DeveloperOptions.Clone(template, OptionsScroll.RowParent(template), RowName,
                         new Vector2(0f, RowY), new Vector2(RowW, RowH), () => LeaderboardSettingsPanel.Open());
         var button = row.GetComponent<Button>();
         if (button != null && button.targetGraphic != null)
