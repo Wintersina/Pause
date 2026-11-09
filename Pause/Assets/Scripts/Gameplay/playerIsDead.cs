@@ -53,11 +53,14 @@ public class playerIsDead : MonoBehaviour
         AdManager.OnRunEnd(true);       // ads: loads are allowed again; the rewarded flag resets for this death
         AdManager.OnDeathPanel();
 
+        var bests = NewBestCheck.Evaluate(NewRecordTracker.DefaultLive());
         var results = new DeathPanelView.Results
         {
             score = RunScore.Total,
             bestScore = RunScore.SavesBest ? System.Math.Max(RunScore.BestAtStart, RunScore.Total) : RunScore.BestAtStart,
-            newBest = RunScore.IsNewBest,
+            newBest = bests.score,
+            newDust = bests.dust,
+            newWorlds = bests.worlds,
             ranked = RunScore.SavesBest,
             practice = !RunScore.Scoring,
             unranked = RunScore.Unranked,
@@ -71,7 +74,7 @@ public class playerIsDead : MonoBehaviour
 
         // A new best on a ranked run: its kill cam is kept for the codex
         // (KillCamArchive; only the latest such death, each replaces the last).
-        SaveKillCam(results.newBest, results.ranked, results.score);
+        SaveKillCam(RunScore.IsNewBest, results.ranked, results.score);
 
         // Ads: the end-of-run ad comes BEFORE the results, so Replay is never reachable while it plays. Every Nth eligible run
         // end auto-plays a full interstitial and the results build when it ends; the other run ends get a small banner under
