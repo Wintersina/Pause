@@ -307,13 +307,38 @@ public class DeathPanelView : MonoBehaviour, IPointerDownHandler
     public bool PracticeRun { get { return results.practice; } }
     public static Sprite ButtonArt() { return TranslucentButtonSprite(Load("dp_button")); }
 
-    // The rewarded double dust was credited: show it in the star dust card.
+    // The rewarded double dust was credited: the star dust card counts up from what it showed to the new amount
+    // (both the run's earned line and the total), with a small pop and the card's own dust burst.
     public void AddDustWon(float extra)
     {
         if (!(extra > 0f)) return;
+        int before = Mathf.RoundToInt(results.dustWon * 100f);
         results.dustWon += extra;
-        shownDustCents = -1;
-        if (finalApplied) AnimateIntro(IntroDuration);
+        int after = Mathf.RoundToInt(results.dustWon * 100f);
+        if (!finalApplied || dustValue == null) { shownDustCents = -1; return; }   // the intro is still counting: it lands on the new amount
+        dustTick.Begin(shownDustCents >= 0 ? shownDustCents : before, after, Time.unscaledTime);
+        if (!dustTick.Active) ShowDustCents(after);
+    }
+
+    readonly DustTickUp dustTick = new DustTickUp();
+
+    void ShowDustCents(int cents)
+    {
+        if (cents == shownDustCents || dustValue == null) return;
+        shownDustCents = cents;
+        dustValue.text = "+" + Dust(cents / 100f);
+        dustTotal.text = "TOTAL  " + Dust(results.dustAtStart + cents / 100f);
+    }
+
+    void TickDust()
+    {
+        if (!dustTick.Active) return;
+        float now = Time.unscaledTime;
+        float p = dustTick.Progress(now);
+        ShowDustCents(p >= 1f ? dustTick.Target : dustTick.Value(now));
+        float pop = p >= 1f ? 1f : 1f + .12f * Mathf.Sin(Mathf.Clamp01(p * 2.5f) * Mathf.PI);
+        dustValue.rectTransform.localScale = Vector3.one * pop;
+        AnimateBurst(dustBurst, p, dustValueCentre, .8f);
     }
 
     // ---------------------------------------------------------------------
@@ -808,6 +833,7 @@ public class DeathPanelView : MonoBehaviour, IPointerDownHandler
         if (startedAt < 0f) startedAt = Time.unscaledTime;
         if (ScreenInfo.Width != lastScreenW || ScreenInfo.Height != lastScreenH) Fit();
         ApplyAt(Time.unscaledTime - startedAt);
+        TickDust();
     }
 
     public void OnPointerDown(PointerEventData eventData)
@@ -1062,7 +1088,7 @@ public class DeathPanelView : MonoBehaviour, IPointerDownHandler
         return safe;
     }
 
-    void OnDestroy() { AdManager.HideBanner(); }   // a banner never outlives its modal
+    void OnDestroy() { dustTick.Finish(); AdManager.HideBanner(); }   // a banner never outlives its modal
 
     // REPLAY / MENU sit a 16-unit gap above SPACE DOCK. On a short screen the
     // panel shrinks and PadButtonTouch grows every touch area by more than half

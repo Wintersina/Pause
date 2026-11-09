@@ -76,6 +76,7 @@ public static class AdsTest
             BoosterWiring(savedBooster);
             DoubleDust();
             DoubleDustWithBooster();
+            DustTickUpCases();
             Cadence();
             RunEndAndShopFlow();
             BannerLayout();
@@ -415,6 +416,49 @@ public static class AdsTest
         Check("store starts unpaid", store.LastPaidToken == 0L);
         store.Pay(777L, 2.5f);
         Check("store credits the dust and remembers the death", Mathf.Approximately(PlayerPrefs.GetFloat(StarDustLedger.CurrencyKey), 12.5f) && store.LastPaidToken == 777L);
+    }
+
+    // The results screen's star dust tick-up after the ad pays (DustTickUp, driven by DeathPanelView.AddDustWon).
+    static void DustTickUpCases()
+    {
+        // Paid ad: the counter eases from the old amount and lands exactly on the doubled one.
+        var r = new Rig(); r.BootReady();
+        var tick = new DustTickUp();
+        int shown = 10030;                        // 100.30 earned
+        r.controller.TryShowRewarded(950L, 100.30f, extra => tick.Begin(shown, shown + Mathf.RoundToInt(extra * 100f), 5f), null);
+        r.provider.lastEvents.opened();
+        Check("TICKUP: nothing animates before the reward", !tick.Active);
+        r.provider.lastEvents.earned(); r.provider.lastEvents.closed();
+        Check("TICKUP: a paid ad starts the tick-up", tick.Active && tick.Target == 20060);
+        Check("TICKUP: starts at the old value", tick.Value(5f) == 10030);
+        int mid = tick.Value(5.3f);
+        Check("TICKUP: counts up through the middle, eased out", mid > 10030 && mid < 20060 && mid > 10030 + (20060 - 10030) * .3f);
+        Check("TICKUP: never overshoots and only climbs", tick.Value(5.6f) >= mid && tick.Value(5.9f) <= 20060);
+        Check("TICKUP: ends exactly on the doubled amount", tick.Value(6.5f) == 20060 && !tick.Active);
+        Check("TICKUP: stays on it after the tick", tick.Value(99f) == 20060);
+
+        // Cancelled (closed without the reward) and failed ads never animate.
+        var t2 = new DustTickUp(); int calls = 0;
+        r = new Rig(); r.BootReady();
+        r.controller.TryShowRewarded(951L, 8f, extra => { calls++; t2.Begin(800, 1600, 0f); }, null);
+        r.provider.lastEvents.opened(); r.provider.lastEvents.closed();
+        Check("TICKUP: a cancelled ad does not animate or double", calls == 0 && !t2.Active);
+        r = new Rig(); r.BootReady();
+        r.controller.TryShowRewarded(952L, 8f, extra => { calls++; t2.Begin(800, 1600, 0f); }, null);
+        r.provider.lastEvents.failed("no fill");
+        Check("TICKUP: a failed ad does not animate or double", calls == 0 && !t2.Active);
+
+        // Teardown mid-animation is safe and leaves the true amount; an empty tick is a no-op.
+        var t3 = new DustTickUp();
+        t3.Begin(500, 1000, 0f);
+        t3.Value(.4f);
+        bool threw = false; int left = 0;
+        try { left = t3.Finish(); t3.Finish(); } catch (Exception) { threw = true; }
+        Check("TICKUP: leaving mid-animation does not throw and holds the true amount", !threw && left == 1000 && !t3.Active && t3.Value(.5f) == 1000);
+        var idle = new DustTickUp();
+        Check("TICKUP: an unused ticker is idle and harmless", !idle.Active && idle.Value(1f) == 0 && idle.Finish() == 0);
+        t3.Begin(700, 700, 0f);
+        Check("TICKUP: no change, no animation", !t3.Active);
     }
 
     static void Controller()
