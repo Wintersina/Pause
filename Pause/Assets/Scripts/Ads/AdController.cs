@@ -61,6 +61,7 @@ public sealed class AdController
     bool sessionShop;
     int eligibleRunEnds;     // run ends that passed every forced-ad guard: every RunsPerInterstitial-th gets the full ad
     bool bannerUp;
+    bool interstitialOwed;   // the Nth eligible run end came and no interstitial was loaded: the next eligible one gets it
 
     float lastAdAt = float.NegativeInfinity;
     bool watchedRewardedAtDeath;
@@ -273,10 +274,16 @@ public sealed class AdController
         if (!enabled() || phase != Phase.Ready || busy) return AdPolicy.RunEndAd.None;
         inputs.secondsSinceLastAd = SecondsSinceLastAd;
         inputs.watchedRewardedAtDeath = watchedRewardedAtDeath;
-        if (AdPolicy.MayShowForcedAd(inputs)) eligibleRunEnds++;
-        var choice = AdPolicy.ChooseRunEndAd(inputs, eligibleRunEnds, provider.InterstitialReady, provider.BannerAvailable);
+        bool eligible = AdPolicy.MayShowForcedAd(inputs);
+        if (eligible) eligibleRunEnds++;
+        // A due interstitial that found none loaded stays owed (otherwise the miss pushes it a whole cycle away).
+        int number = interstitialOwed && eligible ? AdPolicy.RunsPerInterstitial : eligibleRunEnds;
+        var choice = AdPolicy.ChooseRunEndAd(inputs, number, provider.InterstitialReady, provider.BannerAvailable);
+        if (eligible && choice != AdPolicy.RunEndAd.Interstitial && AdPolicy.CadenceDue(number)) interstitialOwed = true;
         if (choice == AdPolicy.RunEndAd.Interstitial)
         {
+            interstitialOwed = false;
+            ReplayAdCounter.Reset();
             BeginShow(false);
             sessionDone = proceed;
             int mark = session;
@@ -286,6 +293,27 @@ public sealed class AdController
         }
         else if (choice == AdPolicy.RunEndAd.Banner) ShowBanner();
         return choice;
+    }
+
+    // A results-screen Replay press (buttonClicks.replay after a death). Counts every press while ads
+    // apply; the ReplaysPerForcedAd-th shows an interstitial BEFORE the new run starts (`proceed` starts it, exactly once,
+    // when the ad ends / fails). Returns true when the ad took over; false: the caller proceeds itself. With no ad loaded
+    // it never blocks and keeps the count, so the ad comes at the next press.
+    public bool TryReplayAd(AdPolicy.Inputs inputs, Action proceed)
+    {
+        if (!enabled() || phase != Phase.Ready) return false;
+        if (!AdPolicy.ReplayCounts(inputs)) return false;
+        int n = ReplayAdCounter.Increment();
+        if (!AdPolicy.ReplayAdDue(n) || busy || !provider.InterstitialReady) return false;
+
+        ReplayAdCounter.Reset();
+        BeginShow(false);
+        sessionDone = proceed;
+        int mark = session;
+        var events = Events(mark);
+        try { provider.ShowInterstitial(events); }
+        catch (Exception e) { Debug.Log("[ADS] interstitial show threw: " + e.Message); FinishShow(false); }
+        return true;
     }
 
     // ---- the Shop's rewarded ad (+ShopAdDust star dust, every time, for everyone) ----

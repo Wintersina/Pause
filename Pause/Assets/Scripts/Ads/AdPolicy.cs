@@ -26,6 +26,10 @@ public static class AdPolicy
     // ends between show a small banner on the results modal instead.
     public const int RunsPerInterstitial = 3;
 
+    // Every results-screen (flight end) Replay press, whatever the run length, counts; the Nth since the last forced ad was shown gets a
+    // full interstitial before the new run starts. Closes the quick-replay skip: short runs never became eligible for the run-end ad.
+    public const int ReplaysPerForcedAd = 3;
+
     // Defaults the user has not confirmed (tracker open questions 2 and 3): one constant each.
     public const bool ParagonRemovesAds = true;
     public const bool RemoveAdsOwnersSeeDoubleDust = true;
@@ -95,6 +99,17 @@ public static class AdPolicy
         if (tutorialOrPractice || !(dustEarned > 0f)) return false;
         return !removeAdsOwned || RemoveAdsOwnersSeeDoubleDust;
     }
+
+    // Whether a Replay press counts toward ReplaysPerForcedAd (and may show the ad): the same exemptions as forced ads
+    // (Remove Ads, Paragon, the first 15 minutes) -- but not run length, cooldown, booster or tutorial, which is the point.
+    public static bool ReplayCounts(Inputs i)
+    {
+        if (i.removeAdsOwned) return false;
+        if (ParagonRemovesAds && i.paragonOwned) return false;
+        return i.playSeconds >= AdFreePlaySeconds;
+    }
+
+    public static bool ReplayAdDue(int replaysSinceAd) { return replaysSinceAd >= ReplaysPerForcedAd; }
 
     // ---- run-end ad choice: interstitial, banner or nothing ----
 

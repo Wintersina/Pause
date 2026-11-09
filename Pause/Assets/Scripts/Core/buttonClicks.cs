@@ -35,6 +35,8 @@ public class buttonClicks : MonoBehaviour {
         if (replayFrame == Time.frameCount) return;
         replayFrame = Time.frameCount;
         if (AdManager.ShowInProgress) return;   // an ad is up (late open / rewarded): Replay is ignored until it ends
+        // The flight-end (results) Replay counts toward a forced interstitial; a mid-run pause-menu restart does not.
+        if (playerDied && AdManager.TryReplayAd(ReplayNow)) return;
         ReplayNow();
     }
 
