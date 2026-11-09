@@ -177,6 +177,17 @@ public static class LeaderboardRunTag
         return n == 3 ? "ALL 3" : n == 2 ? "BOTH" : PowerUpLabel(powerUps);
     }
 
+    // The Shop/HUD icon names of the boosters a row used, in the HUD order (dust, homing, clear); empty for none.
+    public static string[] PowerUpIcons(int powerUps)
+    {
+        powerUps &= PowerAll;
+        var list = new System.Collections.Generic.List<string>(3);
+        if ((powerUps & PowerDust) != 0) list.Add("booster_dust_x2");
+        if ((powerUps & PowerHoming) != 0) list.Add("booster_homing_atoms");
+        if ((powerUps & PowerClear) != 0) list.Add("booster_hazard_clear");
+        return list.ToArray();
+    }
+
     // "DUST x2", "CLEAR", "HOMING", or the used ones joined by " + " ("DUST x2 + CLEAR"); empty for none. The row shows the short form.
     public static string PowerUpLabel(int powerUps)
     {
