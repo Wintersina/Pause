@@ -693,4 +693,17 @@ def build():
   sheet.save(SRC/filename)
  print(f"built {len(cells)} badges, four tier frames, and {len(groups)} group accessories")
 
-if __name__=="__main__":build()
+def build_hot_escape():
+ """escape_danger_10 (Hot Escape): Codex-painted lens art in raw/escape_danger_10_raw.png (1024, flat navy),
+ nearest-reduced to 128, pasted into the gold frame's glass lens, then glass + skill accessory + round alpha."""
+ raw=Image.open(SRC/"raw"/"escape_danger_10_raw.png").convert("RGB").resize((128,128),N).convert("RGBA")
+ frame_im=Image.open(SRC/"frames"/"gold_frame_128.png").convert("RGBA")
+ lens=Image.new("L",(128,128));ImageDraw.Draw(lens).ellipse((29,29,98,98),fill=255)
+ im=frame_im.copy();im.paste(raw,(0,0),lens);glass(im)
+ im.alpha_composite(Image.open(SRC/"frames"/"skill_accessory_128.png").convert("RGBA"))
+ a=im.getchannel("A");im.putalpha(Image.composite(a,Image.new("L",(128,128)),frame_im.getchannel("A")))
+ im.save(OUT/"escape_danger_10.png")
+ master=Image.new("RGB",(128,128),BG);master.paste(im,(0,0),im)
+ master.resize((1024,1024),N).save(SRC/"escape_danger_10_1024.png")
+
+if __name__=="__main__":build();build_hot_escape()
