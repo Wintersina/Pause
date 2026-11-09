@@ -400,6 +400,8 @@ public static class LeaderboardTest
 
         // Sign-in success flushes, exactly once.
         // (a device already on the shipped season: Install's MigrateSeason would otherwise wipe the queue, Season 2 onward)
+        // (and one past the one-time best-score reset, which Install would otherwise run and wipe the queue)
+        PlayerPrefs.SetInt(NewBestReset.FlagKey, 1);
         PlayerPrefs.SetInt(LeaderboardService.SeasonKey, LeaderboardBoards.CurrentSeason);
         LeaderboardService.Install();
         SocialBridge.NotifySignedIn();

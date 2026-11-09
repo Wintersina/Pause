@@ -435,6 +435,9 @@ public static class AdsTest
         Check("REPLAY: the restart proceeds exactly once after the ad, counter reset", mixed == 1 && !c.Busy && ReplayAdCounter.Count == 0);
 
         // persistence: the count lives in PlayerPrefs, a new controller (app restart) continues from it
+        // (the ad above reset the counter, so press twice first: the count is 2 when the app is killed)
+        c.OnRunStart(); c.TryReplayAd(quick, () => mixed++);
+        c.OnRunStart(); c.TryReplayAd(quick, () => mixed++);
         var r2 = new Rig(); r2.BootReady();
         Check("REPLAY: the counter survives an app restart (new controller)",
             ReplayAdCounter.Count == 2 && r2.controller.TryReplayAd(quick, () => started++) && r2.provider.interstitialShows == 1);
