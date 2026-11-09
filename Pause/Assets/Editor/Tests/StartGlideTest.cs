@@ -360,10 +360,17 @@ public static class StartGlideTest
         Physics2D.SyncTransforms();
         pressed = true; screen = far;
         bool hit = false;
+        Vector3 last = Pos;
         for (int i = 0; i < 60; i++)
         {
             Frame();
-            if (box.OverlapPoint(Pos)) hit = true;
+            // The glide moves up to GlideMaxSpeed*Dt (1 unit) per frame, more
+            // than the hazard is tall, so a point test at frame ends can step
+            // over it. Test the whole path travelled this frame (the physics
+            // sweep does the same for the real ship collider).
+            for (int k = 0; k <= 40; k++)
+                if (box.OverlapPoint(Vector3.Lerp(last, Pos, k / 40f))) hit = true;
+            last = Pos;
         }
         Check("the ship still touches a hazard in its path during the cooldown fly", hit);
         Teardown();
