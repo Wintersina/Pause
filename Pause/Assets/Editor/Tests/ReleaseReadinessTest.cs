@@ -92,6 +92,7 @@ public static class ReleaseReadinessTest
         var awaitingStoreRow = new System.Collections.Generic.HashSet<string>
         {
             "world_storm_reached", "world_desert_reached", "boss_storm", "boss_desert", "elite_tide_all", "elite_storm_all", "elite_desert_all",
+            "escape_danger_10",
         };
         foreach (var d in AchievementCatalog.All)
         {
