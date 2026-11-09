@@ -110,7 +110,7 @@ public static class ShopScreenTest
               sections[3].label == "BOOSTERS" && sections[3].rows.Count == 3);
         var rows = ShopCatalog.Rows();
         Check("rows: Remove Ads, Paragon, 850 / 2,500 / 6,000, then Dust x2, Hazard Clear and Homing Atoms, then the two ad rows", rows.Count == 10 &&
-              rows[8].title == ShopCatalog.WatchAdTitle && rows[9].title == ShopCatalog.QuickAdTitle && ShopCatalog.WatchAdDust == 100f && ShopCatalog.QuickAdDust == 40f &&
+              rows[8].title == ShopCatalog.WatchAdTitle && rows[9].title == ShopCatalog.QuickAdTitle && ShopCatalog.WatchAdDust == 55f && ShopCatalog.QuickAdDust == 25f &&
               rows[5].kind == ShopRowKind.DustBooster && rows[6].kind == ShopRowKind.HazardClear && rows[7].kind == ShopRowKind.HomingAtoms &&
               rows[7].IsBooster &&
               rows[0].kind == ShopRowKind.RemoveAds && rows[1].kind == ShopRowKind.Paragon &&
