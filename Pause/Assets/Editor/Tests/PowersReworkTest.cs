@@ -537,8 +537,8 @@ public static class PowersReworkTest
         FreshScene();
         var gold = Ship(7);
         var l = gold.Loadout;
-        Check("Gold Warden flies 3 sentries for 6 s at 1.5 shots a second (cooldown doubled)",
-              l.attack == ShipAttack.WardenSentries && l.shots == 3 && Mathf.Approximately(l.duration, 6f) && Mathf.Approximately(l.speed, 1.5f));
+        Check("Gold Warden flies 3 sentries for 12 s (2x the original 6 s) at 1.5 shots a second (cooldown doubled)",
+              l.attack == ShipAttack.WardenSentries && l.shots == 3 && Mathf.Approximately(l.duration, ShipLoadoutTable.WardenSentryBaseLifetime * 2f) && Mathf.Approximately(l.duration, 12f) && Mathf.Approximately(l.speed, 1.5f));
         var fake = Hazard(0f, 3f).GetComponent<ClearTarget>().gameObject.AddComponent<FakeBoss>();
         gold.Runner.Fire();
         Steps(gold.Runner, .1f);

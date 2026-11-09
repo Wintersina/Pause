@@ -112,6 +112,10 @@ public struct ShipLoadout
 
 public static class ShipLoadoutTable
 {
+    // Gold Warden sentries: the original on-screen life was 6 s; they now stand twice as long (they can be shot down early).
+    public const float WardenSentryBaseLifetime = 6f;
+    public const float WardenSentryLifetime = WardenSentryBaseLifetime * 2f;
+
     // How many of the priciest hulls get a cinematic attack.
     public const int TopTierCount = 3;
 
@@ -172,10 +176,10 @@ public static class ShipLoadoutTable
             PowerTrigger.ImminentHit, 1, 0f,
             duration: 1.0f, width: 0f),
         // 7 Gold Warden (12000, top tier)
-        Row(7, ShipAttack.WardenSentries, "WARDEN SENTRIES", "Three sentry pods deploy across the screen and shoot the nearest targets for 6 s.",
+        Row(7, ShipAttack.WardenSentries, "WARDEN SENTRIES", "Three sentry pods deploy across the screen and shoot the nearest targets for 12 s.",
             SecretPower.GoldMagnet, "GOLD MAGNET", "Pulls in star dust for 5 s, worth double meanwhile.",
             PowerTrigger.PickupsOnScreen, 4, 0f,
-            shots: 3, duration: 6f, range: 6f, speed: 1.5f, hits: 2),   // speed = shots a second per pod (was 3; halved); hits = enemy hits that shoot a sentry down
+            shots: 3, duration: WardenSentryLifetime, range: 6f, speed: 1.5f, hits: 2),   // speed = shots a second per pod (was 3; halved); hits = enemy hits that shoot a sentry down
         // 8 Lightning (1650)
         Row(8, ShipAttack.SkyJavelins, "SKY JAVELINS", "Rockets climb, then javelins strike down three lanes; colours add lanes up to five.",
             SecretPower.Thunderclap, "THUNDERCLAP", "Lightning strikes everything within 2.6 dead, bosses take half a hit.",

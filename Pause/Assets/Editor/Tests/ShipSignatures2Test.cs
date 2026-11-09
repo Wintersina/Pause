@@ -424,6 +424,7 @@ public static class ShipSignatures2Test
             int downBefore = gold.Runner.SentriesShotDown;
             Steps(gold.Runner, ShipAttackRunner.SentryHitGuard * hits + .1f);
             Check("shot down: " + hits + " hits destroy it", gold.Runner.SentryDowned(1) || !(gold.Runner.SentryTurretOf(1).Visible));
+            Check("shot down: exactly one death explosion for it (" + gold.Runner.SentryBursts + ")", gold.Runner.SentryBursts == 1);
             Check("shot down: counted once (" + (gold.Runner.SentriesShotDown - downBefore) + ")", gold.Runner.SentriesShotDown - downBefore == 1);
             Check("shot down: the body that touched it is not hurt", Alive(body) && body.GetComponent<ClearTarget>().isActiveAndEnabled);
             Steps(gold.Runner, ShipAttackRunner.DeploySeconds);
@@ -453,6 +454,8 @@ public static class ShipSignatures2Test
         Check("timer: untouched sentries stand through their life (" + calm.Runner.SentriesNow + " of " + n + ")", n > 0 && calm.Runner.SentriesNow == n);
         float life = ShipWeaponUpgrades.LoadoutFor(7).duration;
         Steps(calm.Runner, life + 2f * ShipAttackRunner.DeploySeconds);
+        Check("timer: lifetime is 2x the original 6 s (" + life + ")", Mathf.Approximately(life, 12f) && Mathf.Approximately(life, ShipLoadoutTable.WardenSentryBaseLifetime * 2f));
+        Check("timer: expiring plays no death explosion (" + calm.Runner.SentryBursts + ")", calm.Runner.SentryBursts == 0);
         Check("timer: they fold away on their timer (" + calm.Runner.SentriesNow + " left), none shot down",
               calm.Runner.SentriesNow == 0 && calm.Runner.SentriesShotDown == 0);
         Teardown(calm, 7);
