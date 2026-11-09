@@ -264,7 +264,7 @@ public static class AdsTest
         r.provider.lastEvents.opened();
         r.provider.lastEvents.earned();
         r.provider.lastEvents.earned();
-        Check("SHOP AD: +100 star dust on the reward callback, once", r.store.grants == 1 && Mathf.Approximately(r.store.granted, 100f) && Mathf.Approximately(paid, 100f) && AdController.ShopAdDust == 100f);
+        Check("SHOP AD: +55 star dust on the reward callback, once", r.store.grants == 1 && Mathf.Approximately(r.store.granted, 55f) && Mathf.Approximately(paid, 55f) && AdController.ShopAdDust == 55f);
         r.provider.lastEvents.closed();
         Check("SHOP AD: it does not touch the death token or the death-ad flag", r.store.pays == 0 && !c.WatchedRewardedAtDeath);
         Check("SHOP AD: counts as an ad for the minimum gap (a forced ad cannot follow)",
@@ -345,7 +345,7 @@ public static class AdsTest
         Check("ORDER double dust: close without reward -> nothing paid", r.store.pays == 0);
     }
 
-    // The "quick ad" (rewarded interstitial): +40, its own load / ready state, and the same exactly-once, late-reward and
+    // The "quick ad" (rewarded interstitial): +25, its own load / ready state, and the same exactly-once, late-reward and
     // abandoned-show guarantees as the full rewarded ad.
     static void QuickAdFlow()
     {
@@ -357,12 +357,12 @@ public static class AdsTest
         Check("QUICK: starts on the quick unit only", c.TryShowQuickReward(x => paid = x, () => done = true) && r.provider.quickShows == 1 && r.provider.rewardedShows == 0);
         Check("QUICK: nothing credited before the reward callback", r.store.grants == 0);
         r.provider.lastEvents.opened(); r.provider.lastEvents.earned(); r.provider.lastEvents.closed(); r.provider.lastEvents.earned();
-        Check("QUICK: reward then close -> exactly +40, once", r.store.grants == 1 && Mathf.Approximately(r.store.granted, 40f) && Mathf.Approximately(paid, 40f) && done && AdController.QuickAdDust == 40f);
+        Check("QUICK: reward then close -> exactly +25, once", r.store.grants == 1 && Mathf.Approximately(r.store.granted, 25f) && Mathf.Approximately(paid, 25f) && done && AdController.QuickAdDust == 25f);
 
         r = Fresh(); c = r.controller; paid = 0f;
         c.TryShowQuickReward(x => paid = x, null);
         r.provider.lastEvents.opened(); r.provider.lastEvents.closed(); r.provider.lastEvents.earned(); r.provider.lastEvents.earned();
-        Check("QUICK: close then reward -> exactly +40, once", r.store.grants == 1 && Mathf.Approximately(r.store.granted, 40f) && Mathf.Approximately(paid, 40f));
+        Check("QUICK: close then reward -> exactly +25, once", r.store.grants == 1 && Mathf.Approximately(r.store.granted, 25f) && Mathf.Approximately(paid, 25f));
 
         r = Fresh(); c = r.controller;
         c.TryShowQuickReward(null, null);

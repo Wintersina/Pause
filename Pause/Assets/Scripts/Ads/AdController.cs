@@ -57,8 +57,8 @@ public sealed class AdController
     long sessionToken; float sessionEarned; Action<float> sessionOnPaid;
 
     // Shop rewarded ad: always available, no death token.
-    public const float ShopAdDust = 100f;    // the full rewarded ad
-    public const float QuickAdDust = 40f;    // the rewarded interstitial ("quick ad")
+    public const float ShopAdDust = 55f;    // the full rewarded ad
+    public const float QuickAdDust = 25f;    // the rewarded interstitial ("quick ad")
     bool sessionShop, sessionQuick;
     float sessionShopAmount;
     int eligibleRunEnds;     // run ends (any length) counted since the last forced interstitial; RunsPerInterstitial or more = one is owed

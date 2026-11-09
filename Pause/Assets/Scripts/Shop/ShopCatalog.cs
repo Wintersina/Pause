@@ -135,17 +135,17 @@ public static class ShopCatalog
         return row;
     }
 
-    public const string WatchAdTitle = "WATCH AD  +100";
-    public const string QuickAdTitle = "QUICK AD  +40";
-    public const string WatchAdText = "Watch an ad for +100 star dust. As often as you like, even with Remove Ads.";
-    public const string QuickAdText = "A quick ad for +40 star dust. As often as you like, even with Remove Ads.";
+    public const string WatchAdTitle = "WATCH AD  +55";
+    public const string QuickAdTitle = "QUICK AD  +25";
+    public const string WatchAdText = "Watch an ad for +55 star dust. As often as you like, even with Remove Ads.";
+    public const string QuickAdText = "A quick ad for +25 star dust. As often as you like, even with Remove Ads.";
     public const string WatchAdLoadingLabel = "LOADING";
-    public const string WatchAdButton = "+100 DUST";
-    public const string QuickAdButton = "+40 DUST";
+    public const string WatchAdButton = "+55 DUST";
+    public const string QuickAdButton = "+25 DUST";
     public const float WatchAdDust = AdController.ShopAdDust;
     public const float QuickAdDust = AdController.QuickAdDust;
 
-    // "Watch ad: +100 Star Dust" and "Quick ad: +40 Star Dust" (a rewarded interstitial): ALWAYS on offer (Remove Ads owners too), repeatable. Buyable only while a
+    // "Watch ad: +55 Star Dust" and "Quick ad: +25 Star Dust" (a rewarded interstitial): ALWAYS on offer (Remove Ads owners too), repeatable. Buyable only while a
     // rewarded ad is loaded; otherwise a disabled LOADING state (UNAVAILABLE where ads are off altogether). The dust is
     // credited only by the SDK's reward callback (AdController.TryShowShopReward -> StarDustLedger.Grant).
     // Raised (main thread) once the ad's star dust is granted and saved; the open Shop plays its burst and count-up.
