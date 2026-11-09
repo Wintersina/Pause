@@ -155,7 +155,7 @@ public class CodexPanel : MonoBehaviour
         // Wide screens (WideAspect): the tab band is a rail on the left and the body a pane on the right.
         public bool wide;
         public float tabRowHeight;
-        public float tabRowGap = TabRowGap;   // wide rail: squeezed on a canvas too short for five rows at the full gap
+        public float tabRowGap;   // wide rail: squeezed on a canvas too short for five rows at the full gap
     }
 
     // Near-square screens (the Z Flip7 cover screen, a foldable's inner screen): safe-area width / height from
@@ -191,6 +191,7 @@ public class CodexPanel : MonoBehaviour
         l.tabs = new Rect(left, l.divider.yMin - DividerTabsGap - TabsHeight, iw, TabsHeight);
         l.back = CodexUi.Centered(0f, bottom + BackHeight * .5f, BackWidth, BackHeight);
         l.tabRowHeight = TabRowHeight;
+        l.tabRowGap = TabRowGap;
         if (l.wide) return WideLayout(l, iw, left, bottom);
         l.body = Rect.MinMaxRect(left, l.back.yMax + BodyGap, left + iw, l.tabs.yMin - BodyGap);
         l.collectBar = new Rect(left, l.body.yMax - CollectBarHeight, iw, CollectBarHeight);
@@ -1224,6 +1225,8 @@ public class CodexPanel : MonoBehaviour
             Rect t = TabRect(layout, i);   // panel-local -> the tab band's own centre-origin space
             t.center -= layout.tabs.center;
             CodexUi.Place(tabFrames[i].rectTransform, t);
+            // the hit area spans half the gap actually left between the rows (a short wide rail squeezes it)
+            tabFrames[i].raycastPadding = new Vector4(-TabGap * .5f, -layout.tabRowGap * .5f, -TabGap * .5f, -layout.tabRowGap * .5f);
         }
 
         gridRect = sectioned ? layout.list : layout.catBody;
