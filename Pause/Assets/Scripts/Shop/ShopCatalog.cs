@@ -7,7 +7,7 @@ using UnityEngine;
 // A row is never buyable unless its product is Available (Play returned a price and the billing flow is
 // connected), so on iOS, in the editor, or with no price nothing looks buyable: the row reads UNAVAILABLE.
 // The Shop entry is on the home screen on every platform (nothing here is platform-specific).
-public enum ShopRowKind { RemoveAds, Paragon, Pack, DustBooster, HazardClear, HomingAtoms, WatchAd }
+public enum ShopRowKind { RemoveAds, Paragon, Pack, DustBooster, HazardClear, HomingAtoms, WatchAd, QuickAd }
 
 public enum ShopRowState
 {
@@ -87,7 +87,7 @@ public static class ShopCatalog
             packs,
             new ShopSection("BOOSTERS", BoosterRow(Boosters.Kind.DustMultiplier), BoosterRow(Boosters.Kind.HazardClear),
                             BoosterRow(Boosters.Kind.HomingAtoms)),
-            new ShopSection("FREE STAR DUST", WatchAdRow()),
+            new ShopSection("FREE STAR DUST", WatchAdRow(), QuickAdRow()),
         };
     }
 
@@ -135,13 +135,17 @@ public static class ShopCatalog
         return row;
     }
 
-    public const string WatchAdTitle = "WATCH AN AD";
-    public const string WatchAdText = "Watch a 30 second ad for +50 star dust. As often as you like, even with Remove Ads.";
+    public const string WatchAdTitle = "WATCH AD  +100";
+    public const string QuickAdTitle = "QUICK AD  +40";
+    public const string WatchAdText = "Watch an ad for +100 star dust. As often as you like, even with Remove Ads.";
+    public const string QuickAdText = "A quick ad for +40 star dust. As often as you like, even with Remove Ads.";
     public const string WatchAdLoadingLabel = "LOADING";
-    public const string WatchAdButton = "+50 DUST";
+    public const string WatchAdButton = "+100 DUST";
+    public const string QuickAdButton = "+40 DUST";
     public const float WatchAdDust = AdController.ShopAdDust;
+    public const float QuickAdDust = AdController.QuickAdDust;
 
-    // "Watch an ad: +50 Star Dust": ALWAYS on offer (Remove Ads owners too), repeatable. Buyable only while a
+    // "Watch ad: +100 Star Dust" and "Quick ad: +40 Star Dust" (a rewarded interstitial): ALWAYS on offer (Remove Ads owners too), repeatable. Buyable only while a
     // rewarded ad is loaded; otherwise a disabled LOADING state (UNAVAILABLE where ads are off altogether). The dust is
     // credited only by the SDK's reward callback (AdController.TryShowShopReward -> StarDustLedger.Grant).
     // Raised (main thread) once the ad's star dust is granted and saved; the open Shop plays its burst and count-up.
@@ -151,11 +155,24 @@ public static class ShopCatalog
     public static ShopRow WatchAdRow()
     {
         var row = new ShopRow { kind = ShopRowKind.WatchAd, title = WatchAdTitle, subtitle = WatchAdText };
+        Fill(row, AdManager.ShopAdReady, WatchAdButton);
+        return row;
+    }
+
+    public static ShopRow QuickAdRow()
+    {
+        var row = new ShopRow { kind = ShopRowKind.QuickAd, title = QuickAdTitle, subtitle = QuickAdText };
+        Fill(row, AdManager.ShopQuickReady, QuickAdButton);
+        return row;
+    }
+
+    // Each ad row shows its own loading state: an ad that is not loaded greys only its row.
+    static void Fill(ShopRow row, bool ready, string button)
+    {
         if (!AdManager.ShopAdEnabled) Set(row, ShopRowState.Unavailable, UnavailableLabel);
         else if (AdManager.ShowInProgress) Set(row, ShopRowState.Buying, BuyingLabel);
-        else if (AdManager.ShopAdReady) Set(row, ShopRowState.Buyable, WatchAdButton);
+        else if (ready) Set(row, ShopRowState.Buyable, button);
         else Set(row, ShopRowState.Unavailable, WatchAdLoadingLabel);
-        return row;
     }
 
     // A booster row: bought with star dust (Boosters API), no store involved, so it does not depend on billing being
@@ -232,6 +249,7 @@ public static class ShopCatalog
         if (row.IsBooster) return Boosters.Buy(row.booster) == Boosters.BuyResult.Bought;
         // The ad row has no purchase flow either: it never waits on, or blocks, a store sheet.
         if (row.kind == ShopRowKind.WatchAd) return AdManager.TryShowShopReward(RaiseAdRewarded, null);
+        if (row.kind == ShopRowKind.QuickAd) return AdManager.TryShowQuickReward(RaiseAdRewarded, null);
         if (AnyBuying) return false;
         switch (row.kind)
         {

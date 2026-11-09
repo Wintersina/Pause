@@ -82,6 +82,7 @@ public static class AdsTest
             RunEndAndShopFlow();
             ReplaySpam();
             RewardEventOrder();
+            QuickAdFlow();
             BannerLayout();
             DoubleDustButton();
             Controller();
@@ -263,7 +264,7 @@ public static class AdsTest
         r.provider.lastEvents.opened();
         r.provider.lastEvents.earned();
         r.provider.lastEvents.earned();
-        Check("SHOP AD: +50 star dust on the reward callback, once", r.store.grants == 1 && Mathf.Approximately(r.store.granted, 50f) && Mathf.Approximately(paid, 50f) && AdController.ShopAdDust == 50f);
+        Check("SHOP AD: +100 star dust on the reward callback, once", r.store.grants == 1 && Mathf.Approximately(r.store.granted, 100f) && Mathf.Approximately(paid, 100f) && AdController.ShopAdDust == 100f);
         r.provider.lastEvents.closed();
         Check("SHOP AD: it does not touch the death token or the death-ad flag", r.store.pays == 0 && !c.WatchedRewardedAtDeath);
         Check("SHOP AD: counts as an ad for the minimum gap (a forced ad cannot follow)",
@@ -295,12 +296,12 @@ public static class AdsTest
         var r = Fresh(); var c = r.controller; float paid = 0f; bool done = false;
         c.TryShowShopReward(x => paid = x, () => done = true);
         r.provider.lastEvents.opened(); r.provider.lastEvents.earned(); r.provider.lastEvents.closed();
-        Check("ORDER shop: reward then close -> one grant", r.store.grants == 1 && done && Mathf.Approximately(paid, 50f));
+        Check("ORDER shop: reward then close -> one grant", r.store.grants == 1 && done && Mathf.Approximately(paid, 100f));
 
         r = Fresh(); c = r.controller; paid = 0f; done = false;
         c.TryShowShopReward(x => paid = x, () => done = true);
         r.provider.lastEvents.opened(); r.provider.lastEvents.closed(); r.provider.lastEvents.earned(); r.provider.lastEvents.earned();
-        Check("ORDER shop: close then reward -> still exactly one grant and callback", r.store.grants == 1 && Mathf.Approximately(r.store.granted, 50f) && Mathf.Approximately(paid, 50f) && done);
+        Check("ORDER shop: close then reward -> still exactly one grant and callback", r.store.grants == 1 && Mathf.Approximately(r.store.granted, 100f) && Mathf.Approximately(paid, 100f) && done);
 
         r = Fresh(); c = r.controller;
         c.TryShowShopReward(null, null);
@@ -342,6 +343,55 @@ public static class AdsTest
         c.TryShowRewarded(7003L, 4f, null, null);
         r.provider.lastEvents.opened(); r.provider.lastEvents.closed();
         Check("ORDER double dust: close without reward -> nothing paid", r.store.pays == 0);
+    }
+
+    // The "quick ad" (rewarded interstitial): +40, its own load / ready state, and the same exactly-once, late-reward and
+    // abandoned-show guarantees as the full rewarded ad.
+    static void QuickAdFlow()
+    {
+        Rig Fresh() { var rg = new Rig(); rg.BootReady(); return rg; }
+        var r = Fresh(); var c = r.controller; float paid = 0f; bool done = false;
+        Check("QUICK: loaded on boot, independent of the full rewarded ad", r.provider.quickLoads == 1 && c.ShopQuickReady && c.ShopAdReady);
+        r.provider.rewardedReady = false;
+        Check("QUICK: the full ad not loaded does not block the quick ad, and vice versa", c.ShopQuickReady && !c.ShopAdReady && !c.TryShowShopReward(null, null) && r.provider.rewardedShows == 0);
+        Check("QUICK: starts on the quick unit only", c.TryShowQuickReward(x => paid = x, () => done = true) && r.provider.quickShows == 1 && r.provider.rewardedShows == 0);
+        Check("QUICK: nothing credited before the reward callback", r.store.grants == 0);
+        r.provider.lastEvents.opened(); r.provider.lastEvents.earned(); r.provider.lastEvents.closed(); r.provider.lastEvents.earned();
+        Check("QUICK: reward then close -> exactly +40, once", r.store.grants == 1 && Mathf.Approximately(r.store.granted, 40f) && Mathf.Approximately(paid, 40f) && done && AdController.QuickAdDust == 40f);
+
+        r = Fresh(); c = r.controller; paid = 0f;
+        c.TryShowQuickReward(x => paid = x, null);
+        r.provider.lastEvents.opened(); r.provider.lastEvents.closed(); r.provider.lastEvents.earned(); r.provider.lastEvents.earned();
+        Check("QUICK: close then reward -> exactly +40, once", r.store.grants == 1 && Mathf.Approximately(r.store.granted, 40f) && Mathf.Approximately(paid, 40f));
+
+        r = Fresh(); c = r.controller;
+        c.TryShowQuickReward(null, null);
+        r.provider.lastEvents.opened(); r.provider.lastEvents.closed();
+        Check("QUICK: close without reward -> no grant", r.store.grants == 0 && !c.Busy);
+
+        r = Fresh(); c = r.controller;
+        c.TryShowQuickReward(x => throw new InvalidOperationException("Shop is gone"), null);
+        r.provider.lastEvents.opened(); r.provider.lastEvents.closed(); r.provider.lastEvents.earned();
+        Check("QUICK: reward with the Shop closed -> still granted once", r.store.grants == 1);
+
+        r = Fresh(); c = r.controller;
+        c.TryShowQuickReward(null, null);
+        r.now += AdController.OpenTimeoutSeconds + 1f; c.Tick();
+        r.provider.lastEvents.earned();
+        Check("QUICK: reward after an abandoned show -> granted once", r.store.grants == 1);
+
+        r = Fresh(); c = r.controller;
+        c.TryShowQuickReward(null, null);
+        Check("QUICK: one show at a time (neither ad starts while one is up)", !c.TryShowQuickReward(null, null) && !c.TryShowShopReward(null, null));
+        r.provider.lastEvents.opened(); r.provider.lastEvents.closed();
+
+        r = Fresh(); c = r.controller; r.provider.quickReady = false; r.provider.loadSucceeds = false;
+        Check("QUICK: not loaded -> not ready, cannot start", !c.ShopQuickReady && !c.TryShowQuickReward(null, null) && r.provider.quickShows == 0);
+
+        r = Fresh(); c = r.controller;
+        Check("QUICK: the path has no AdPolicy guard, so Remove Ads owners keep it", c.TryShowQuickReward(null, null));
+        r = new Rig { enabled = false };
+        Check("QUICK: ads disabled -> no quick ad", !r.controller.TryShowQuickReward(null, null));
     }
 
     // The banner never overlaps the panel or the double dust button under its frame, on tall phones, foldables (the Flip
