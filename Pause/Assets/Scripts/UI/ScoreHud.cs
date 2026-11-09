@@ -745,6 +745,8 @@ public class ScoreHud : MonoBehaviour
                 return new PopupStyle { colour = AkiraPalette.RedHi, size = 46, seconds = 1.6f, rise = 70f, suffix = "  BOSS" };
             case RunScore.Source.World:
                 return new PopupStyle { colour = AkiraPalette.Cyan, size = 44, seconds = 1.6f, rise = 70f, suffix = "  WORLD" };
+            case RunScore.Source.Danger:   // a PORTAL DANGER level survived
+                return new PopupStyle { colour = AkiraPalette.Cyan, size = 36, seconds = 1.2f, rise = 64f, suffix = "  SURVIVED" };
             case RunScore.Source.Elite:
                 return new PopupStyle { colour = AkiraPalette.Magenta, size = EliteWordSize, seconds = EliteWordSeconds, rise = EliteWordRise, suffix = "  ELITE DOWN" };
             case RunScore.Source.Escape:   // an elite got away: the points it cost (negative), in the warning amber

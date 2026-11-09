@@ -234,6 +234,7 @@ public static class AllTests
         ("NextFeatures0907Test", NextFeatures0907Test.Execute),
         ("HudButtonsTest", HudButtonsTest.Execute),
         ("OpenPortalTest", OpenPortalTest.Execute),
+        ("EscapeWaveTest", EscapeWaveTest.Execute),
         ("PlanetfallTest", PlanetfallTest.Execute),
         ("EntryAnimTest", EntryAnimTest.Execute),
         ("PauseGlowTest", PauseGlowTest.Execute),

@@ -168,6 +168,13 @@ public static class ScoreRules
     // ---- worlds ----
     public static int WorldClearedPerWorld = 50;
 
+    // ---- portal danger (the escape) ----
+    // Every PORTAL DANGER level survived while the portal waits (PortalPressure.DangerSurvived) pays
+    // DangerSurvivedBase x the level: 25, 50, 75 ... 250 at level 10, 375 at level 15. Linear on purpose: it
+    // climbs with the danger but never outruns the flight it replaces (earnings are closed during the pressure),
+    // and the first ten levels together (1,375) stay near a fifth of a whole first pass (~6,600).
+    public static int DangerSurvivedBase = 25;
+
     // ---- kill chain ----
     // Kills inside ComboWindowSeconds of each other build a chain; the chain
     // length picks the multiplier on kill points (x1 -> x4). The window runs
@@ -304,6 +311,14 @@ public static class ScoreRules
     public static int WorldClearedPoints(int worldIndex, int loop = 0)
     {
         return Mathf.RoundToInt(WorldClearedPerWorld * (worldIndex + 1) * LoopRules.BonusScale(loop));
+    }
+
+    // `level` is the PORTAL DANGER number just survived (1 = the first); `loop` the run's RunLoop.Index
+    // (LoopRules.BonusScale, like the world bonus). 0 for no level.
+    public static int DangerSurvivedPoints(int level, int loop = 0)
+    {
+        if (level <= 0) return 0;
+        return Mathf.RoundToInt(DangerSurvivedBase * level * LoopRules.BonusScale(loop));
     }
 
     public static int BossPoints(bool destroyed, float secondsLeft, bool hitPointsRule, int loop = 0)
