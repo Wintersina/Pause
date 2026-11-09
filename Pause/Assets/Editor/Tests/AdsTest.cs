@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
 
@@ -53,8 +54,8 @@ public static class AdsTest
     {
         return new AdPolicy.Inputs
         {
-            removeAdsOwned = false, paragonOwned = false, playSeconds = AdPolicy.AdFreePlaySeconds + 1f,
-            boosterActive = false, secondsSinceLastAd = float.MaxValue, runSeconds = AdPolicy.MinRunSecondsForAd + 1f,
+            removeAdsOwned = false, playSeconds = AdPolicy.AdFreePlaySeconds + 1f,
+            boosterActive = false, secondsSinceLastAd = float.MaxValue,
             watchedRewardedAtDeath = false, tutorialOrPractice = false,
         };
     }
@@ -136,15 +137,13 @@ public static class AdsTest
 
     static void Policy()
     {
-        Check("policy numbers", AdPolicy.AdFreePlaySeconds == 900f && AdPolicy.MinSecondsBetweenAds == 180f && AdPolicy.MinRunSecondsForAd == 45f);
-        Check("policy defaults: Paragon removes ads, Remove Ads owners keep the double dust offer",
-            AdPolicy.ParagonRemovesAds && AdPolicy.RemoveAdsOwnersSeeDoubleDust);
+        Check("policy numbers", AdPolicy.AdFreePlaySeconds == 900f && AdPolicy.MinSecondsBetweenAds == 180f);
+        Check("policy defaults: Remove Ads owners keep the double dust offer", AdPolicy.RemoveAdsOwnersSeeDoubleDust);
         Check("all clear -> allowed", AdPolicy.ForcedAd(Good()) == AdPolicy.Reason.Allowed && AdPolicy.MayShowForcedAd(Good()));
 
         var i = Good(); i.removeAdsOwned = true;
         Check("Remove Ads owner: none", AdPolicy.ForcedAd(i) == AdPolicy.Reason.RemoveAdsOwned);
-        i = Good(); i.paragonOwned = true;
-        Check("Paragon owner: none", AdPolicy.ForcedAd(i) == AdPolicy.Reason.ParagonOwned);
+        Check("Paragon owner: ads as normal (only Remove Ads removes them)", AdPolicy.ForcedAd(Good()) == AdPolicy.Reason.Allowed);
         i = Good(); i.playSeconds = AdPolicy.AdFreePlaySeconds - 0.5f;
         Check("under 15 minutes: none", AdPolicy.ForcedAd(i) == AdPolicy.Reason.UnderPlayTime);
         i.playSeconds = AdPolicy.AdFreePlaySeconds;
@@ -155,15 +154,11 @@ public static class AdsTest
         Check("under 3 min since the last ad: none", AdPolicy.ForcedAd(i) == AdPolicy.Reason.TooSoonAfterAd);
         i.secondsSinceLastAd = AdPolicy.MinSecondsBetweenAds;
         Check("exactly 3 min since the last ad: allowed", AdPolicy.ForcedAd(i) == AdPolicy.Reason.Allowed);
-        i = Good(); i.runSeconds = AdPolicy.MinRunSecondsForAd - 1f;
-        Check("run shorter than 45 s: none", AdPolicy.ForcedAd(i) == AdPolicy.Reason.RunTooShort);
-        i.runSeconds = AdPolicy.MinRunSecondsForAd;
-        Check("run of exactly 45 s: allowed", AdPolicy.ForcedAd(i) == AdPolicy.Reason.Allowed);
         i = Good(); i.watchedRewardedAtDeath = true;
         Check("watched the rewarded ad at this death: none", AdPolicy.ForcedAd(i) == AdPolicy.Reason.WatchedRewardedAtDeath);
         i = Good(); i.tutorialOrPractice = true;
         Check("tutorial or practice: none", AdPolicy.ForcedAd(i) == AdPolicy.Reason.TutorialOrPractice);
-        i = new AdPolicy.Inputs { removeAdsOwned = true, paragonOwned = true, boosterActive = true, tutorialOrPractice = true, watchedRewardedAtDeath = true };
+        i = new AdPolicy.Inputs { removeAdsOwned = true, boosterActive = true, tutorialOrPractice = true, watchedRewardedAtDeath = true };
         Check("a fresh default (zeroed) input set never allows", !AdPolicy.MayShowForcedAd(new AdPolicy.Inputs()));
         Check("several reasons: the first in order wins", AdPolicy.ForcedAd(i) == AdPolicy.Reason.RemoveAdsOwned);
 
@@ -188,22 +183,21 @@ public static class AdsTest
     {
         Check("CADENCE: the full ad fires every 3rd eligible run end (one constant)", AdPolicy.RunsPerInterstitial == 3);
         Check("CADENCE: runs 1 and 2 are not due, 3 is, 4 and 5 are not, 6 is",
-            !AdPolicy.CadenceDue(1) && !AdPolicy.CadenceDue(2) && AdPolicy.CadenceDue(3) && !AdPolicy.CadenceDue(4) && !AdPolicy.CadenceDue(5) && AdPolicy.CadenceDue(6));
+            !AdPolicy.CadenceDue(1) && !AdPolicy.CadenceDue(2) && AdPolicy.CadenceDue(3));
+        Check("CADENCE: 4 or more (owed) is still due", AdPolicy.CadenceDue(4) && AdPolicy.CadenceDue(9));
         Check("CADENCE: run 0 or below is never due", !AdPolicy.CadenceDue(0) && !AdPolicy.CadenceDue(-3));
 
         // banner vs interstitial selection
-        Check("CHOICE: eligible run 1 -> banner, 2 -> banner, 3 -> interstitial, 4 -> banner",
+        Check("CHOICE: run 1 -> banner, 2 -> banner, 3 -> interstitial, 4 (owed) -> interstitial",
             AdPolicy.ChooseRunEndAd(Good(), 1, true, true) == AdPolicy.RunEndAd.Banner
             && AdPolicy.ChooseRunEndAd(Good(), 2, true, true) == AdPolicy.RunEndAd.Banner
             && AdPolicy.ChooseRunEndAd(Good(), 3, true, true) == AdPolicy.RunEndAd.Interstitial
-            && AdPolicy.ChooseRunEndAd(Good(), 4, true, true) == AdPolicy.RunEndAd.Banner);
+            && AdPolicy.ChooseRunEndAd(Good(), 4, true, true) == AdPolicy.RunEndAd.Interstitial);
         Check("CHOICE: due but no interstitial loaded -> banner", AdPolicy.ChooseRunEndAd(Good(), 3, false, true) == AdPolicy.RunEndAd.Banner);
         Check("CHOICE: no banner unit (placeholder) -> nothing on a non-due run", AdPolicy.ChooseRunEndAd(Good(), 1, true, false) == AdPolicy.RunEndAd.None);
         var i = Good(); i.removeAdsOwned = true;
         Check("CHOICE: Remove Ads -> no banner and no forced ad, even on a due run",
             AdPolicy.ChooseRunEndAd(i, 3, true, true) == AdPolicy.RunEndAd.None && !AdPolicy.BannerAllowed(i));
-        i = Good(); i.paragonOwned = true;
-        Check("CHOICE: Paragon -> nothing", AdPolicy.ChooseRunEndAd(i, 3, true, true) == AdPolicy.RunEndAd.None);
         i = Good(); i.playSeconds = AdPolicy.AdFreePlaySeconds - 1f;
         Check("CHOICE: first 15 minutes -> nothing", AdPolicy.ChooseRunEndAd(i, 3, true, true) == AdPolicy.RunEndAd.None);
         i = Good(); i.tutorialOrPractice = true;
@@ -247,8 +241,8 @@ public static class AdsTest
         r.provider.lastEvents.opened(); r.provider.lastEvents.closed();
         Check("FLOW: the results build once, when the interstitial closes", built == 1 && !c.Busy);
         c.OnRunStart(); c.OnRunEnd(true); c.Tick();
-        Check("FLOW: right after an ad the next run end gets a banner and does not count as eligible",
-            c.TryRunEndAd(Good(), () => built++) == AdPolicy.RunEndAd.Banner && c.EligibleRunEnds == 3);
+        Check("FLOW: right after an ad the next run end gets a banner and the count restarted at 1",
+            c.TryRunEndAd(Good(), () => built++) == AdPolicy.RunEndAd.Banner && c.EligibleRunEnds == 1);
 
         // Remove Ads: no banner, no forced ad; the shop ad stays
         r = new Rig(); r.BootReady(); r.controller.OnRunEnd(true); r.controller.Tick();
@@ -279,9 +273,8 @@ public static class AdsTest
         r = new Rig(); r.BootReady(); c = r.controller;
         r.provider.rewardedReady = false; r.provider.loadSucceeds = false;
         Check("SHOP AD: no ad loaded -> not ready, cannot start", !c.ShopAdReady && !c.TryShowShopReward(null, null) && r.provider.rewardedShows == 0);
-        var par = Good(); par.paragonOwned = true;
         c.OnRunEnd(true);
-        Check("PARAGON: no banner either", c.TryRunEndAd(par, null) == AdPolicy.RunEndAd.None && r.provider.bannerShows == 0);
+        Check("PARAGON: owning it changes nothing, the run end still gets its banner", c.TryRunEndAd(Good(), null) == AdPolicy.RunEndAd.Banner && r.provider.bannerShows == 1);
         r.provider.loadSucceeds = true; r.provider.rewardedReady = true;
         Check("PARAGON: the shop ad is still on", c.ShopAdReady && c.TryShowShopReward(null, null));
 
@@ -353,12 +346,12 @@ public static class AdsTest
 
     // The banner never overlaps the panel or the double dust button under its frame, on tall phones, foldables (the Flip
     // cover screen too) and tablets; the button never overlaps REPLAY / MENU / SPACE DOCK and its label fits one line.
-    // Replay presses (results Replay, pause-menu / quick-action Replay) count toward a forced ad; run length is irrelevant.
+    // Replay presses (results Replay, pause-menu / quick-action restart: all via buttonClicks.replay) count toward a forced ad; run length is irrelevant.
     static void ReplaySpam()
     {
         PlayerPrefs.DeleteKey(ReplayAdCounter.Key);
         Check("REPLAY: the constant is 3", AdPolicy.ReplaysPerForcedAd == 3);
-        var quick = Good(); quick.runSeconds = 5f;   // far under MinRunSecondsForAd
+        var quick = Good();   // run length no longer matters anywhere
         var r = new Rig(); r.BootReady();
         var c = r.controller;
         int started = 0, tookOver = 0;
@@ -378,6 +371,18 @@ public static class AdsTest
         r.now += 1000f; r.provider.interstitialReady = true;
         for (int n = 1; n <= 2; n++) c.TryReplayAd(quick, () => started++);
         Check("REPLAY: after the reset it takes 3 more (exactly one ad per 3)", r.provider.interstitialShows == 1 && ReplayAdCounter.Count == 2);
+
+        // mid-run restarts (pause menu) and results Replays share the one counter: 2 pause restarts + 1 results Replay = the 3rd
+        PlayerPrefs.DeleteKey(ReplayAdCounter.Key);
+        r = new Rig(); r.BootReady(); c = r.controller;
+        int mixed = 0;
+        c.OnRunStart(); bool a1 = c.TryReplayAd(quick, () => mixed++);            // pause-menu restart, run still alive
+        c.OnRunStart(); c.OnRunEnd(false); bool a2 = c.TryReplayAd(quick, () => mixed++);   // results Replay
+        Check("REPLAY: mid-run restart + results Replay count together (2, no ad)", !a1 && !a2 && ReplayAdCounter.Count == 2 && r.provider.interstitialShows == 0);
+        c.OnRunStart(); bool a3 = c.TryReplayAd(quick, () => mixed++);            // pause-menu restart is the 3rd
+        Check("REPLAY: the 3rd press (a pause-menu restart) shows the ad first, the restart waits for it", a3 && r.provider.interstitialShows == 1 && mixed == 0 && c.Busy);
+        r.provider.lastEvents.closed();
+        Check("REPLAY: the restart proceeds exactly once after the ad, counter reset", mixed == 1 && !c.Busy && ReplayAdCounter.Count == 0);
 
         // persistence: the count lives in PlayerPrefs, a new controller (app restart) continues from it
         var r2 = new Rig(); r2.BootReady();
@@ -408,27 +413,61 @@ public static class AdsTest
         var fresh = quick; fresh.playSeconds = AdPolicy.AdFreePlaySeconds - 1f;
         for (int n = 0; n < 12; n++) c.TryReplayAd(fresh, null);
         Check("REPLAY: inside the first 15 minutes never", r.provider.interstitialShows == 0 && ReplayAdCounter.Count == 0);
-        var par = quick; par.paragonOwned = true;
-        for (int n = 0; n < 12; n++) c.TryReplayAd(par, null);
-        Check("REPLAY: Paragon owners never (while it removes ads)", r.provider.interstitialShows == 0);
         r.enabled = false;
         for (int n = 0; n < 12; n++) c.TryReplayAd(quick, null);
         Check("REPLAY: ads disabled -> nothing", r.provider.interstitialShows == 0 && ReplayAdCounter.Count == 0);
 
-        // the original loophole: runs under MinRunSecondsForAd never became eligible, so replay spam skipped the every-3rd ad
+        // short runs count: three 10-second run ends -> one interstitial on the 3rd
         PlayerPrefs.DeleteKey(ReplayAdCounter.Key);
         r = new Rig(); r.BootReady(); c = r.controller;
-        int bannersOrNone = 0;
-        for (int n = 0; n < 6; n++)
-        {
-            c.OnRunStart(); c.OnRunEnd(true); c.Tick();
-            if (c.TryRunEndAd(quick, null) != AdPolicy.RunEndAd.Interstitial) bannersOrNone++;
-        }
-        Check("LOOPHOLE: run ends under 45 s never reach the every-3rd interstitial on their own", bannersOrNone == 6 && r.provider.interstitialShows == 0 && c.EligibleRunEnds == 0);
-        int ok = 0;
-        for (int n = 0; n < 3; n++) { c.OnRunStart(); if (c.TryReplayAd(quick, () => ok++)) break; }
-        Check("LOOPHOLE: ... but 3 results replays of those quick runs do show one", r.provider.interstitialShows == 1);
+        int built = 0;
+        var kinds = new List<AdPolicy.RunEndAd>();
+        for (int n = 0; n < 3; n++) { c.OnRunStart(); c.OnRunEnd(true); c.Tick(); kinds.Add(c.TryRunEndAd(quick, () => built++)); }
+        Check("RUNS: three short runs -> banner, banner, interstitial on the 3rd",
+            kinds[0] == AdPolicy.RunEndAd.Banner && kinds[1] == AdPolicy.RunEndAd.Banner && kinds[2] == AdPolicy.RunEndAd.Interstitial && r.provider.interstitialShows == 1);
         r.provider.lastEvents.closed();
+        Check("RUNS: the count restarted", c.EligibleRunEnds == 0);
+
+        // owed across the 180 s gap: the 3rd run end is inside the spacing -> banner, stays owed, the next one past the gap gets it
+        r = new Rig(); r.BootReady(); c = r.controller;
+        c.OnRunEnd(true); c.Tick();
+        r.provider.rewardedReady = true;
+        c.TryShowShopReward(null, null); r.provider.lastEvents.opened(); r.provider.lastEvents.closed();   // an ad just ran: spacing starts
+        for (int n = 0; n < 3; n++) c.TryRunEndAd(quick, null);
+        Check("OWED: the 3rd run end inside the 180 s gap shows no interstitial and stays owed", r.provider.interstitialShows == 0 && c.EligibleRunEnds == 3);
+        Check("OWED: a 4th run end still inside the gap shows none", c.TryRunEndAd(quick, null) != AdPolicy.RunEndAd.Interstitial && c.EligibleRunEnds == 4);
+        r.now += AdPolicy.MinSecondsBetweenAds + 1f;
+        Check("OWED: the first run end past the gap shows it, count reset",
+            c.TryRunEndAd(quick, null) == AdPolicy.RunEndAd.Interstitial && r.provider.interstitialShows == 1 && c.EligibleRunEnds == 0);
+        r.provider.lastEvents.closed();
+
+        // no double ad on death + replay
+        PlayerPrefs.DeleteKey(ReplayAdCounter.Key);
+        r = new Rig(); r.BootReady(); c = r.controller;
+        for (int n = 0; n < 2; n++) { c.OnRunStart(); c.OnRunEnd(true); c.Tick(); c.TryRunEndAd(quick, null); c.TryReplayAd(quick, null); }
+        c.OnRunStart(); c.OnRunEnd(true); c.Tick();
+        Check("BOTH: 3rd death after 2 replays (replay count 2) -> the run-end ad", c.TryRunEndAd(quick, null) == AdPolicy.RunEndAd.Interstitial && ReplayAdCounter.Count == 0);
+        r.provider.lastEvents.closed();
+        Check("BOTH: ... and the Replay right after shows no second ad", !c.TryReplayAd(quick, null) && r.provider.interstitialShows == 1 && ReplayAdCounter.Count == 1);
+        // the other way: a replay ad satisfies the run-end counter
+        PlayerPrefs.DeleteKey(ReplayAdCounter.Key);
+        r = new Rig(); r.BootReady(); c = r.controller;
+        c.OnRunEnd(true); c.Tick(); c.TryRunEndAd(quick, null); c.OnRunEnd(true); c.TryRunEndAd(quick, null);   // 2 run ends
+        for (int n = 0; n < 3; n++) c.TryReplayAd(quick, null);
+        Check("BOTH: the replay ad resets the run-end count", r.provider.interstitialShows == 1 && c.EligibleRunEnds == 0);
+        r.provider.lastEvents.closed();
+
+        // exemptions for run ends
+        r = new Rig(); r.BootReady(); c = r.controller;
+        c.OnRunEnd(true); c.Tick();
+        var own = quick; own.removeAdsOwned = true;
+        for (int n = 0; n < 6; n++) c.TryRunEndAd(own, null);
+        var young = quick; young.playSeconds = AdPolicy.AdFreePlaySeconds - 1f;
+        for (int n = 0; n < 6; n++) c.TryRunEndAd(young, null);
+        Check("RUNS: Remove Ads owners and the first 15 minutes never count or see an ad", r.provider.interstitialShows == 0 && r.provider.bannerShows == 0 && c.EligibleRunEnds == 0);
+        var prac = quick; prac.tutorialOrPractice = true;
+        for (int n = 0; n < 6; n++) c.TryRunEndAd(prac, null);
+        Check("RUNS: tutorial / practice never counts", r.provider.interstitialShows == 0 && c.EligibleRunEnds == 0);
 
         // a run-end interstitial that was shown also resets the replay count
         PlayerPrefs.SetInt(ReplayAdCounter.Key, 2);
