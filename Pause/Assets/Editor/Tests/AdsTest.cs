@@ -82,6 +82,7 @@ public static class AdsTest
             ReplaySpam();
             RewardEventOrder();
             BannerLayout();
+            DoubleDustButton();
             Controller();
             Environment();
             BuildSync();
@@ -614,6 +615,43 @@ public static class AdsTest
         Check("TICKUP: an unused ticker is idle and harmless", !idle.Active && idle.Value(1f) == 0 && idle.Finish() == 0);
         t3.Begin(700, 700, 0f);
         Check("TICKUP: no change, no animation", !t3.Active);
+    }
+
+    // The results "2x STAR DUST" button: gone once the ad was shown, however the reward and the close fall out.
+    static void DoubleDustButton()
+    {
+        long tok = 8100L;
+        DoubleDustOffer.ButtonState Make(Rig r, float[] paid)
+        {
+            var c = r.controller; long t = ++tok;
+            return new DoubleDustOffer.ButtonState((p, d) => c.TryShowRewarded(t, 4f, p, d), () => c.WatchedRewardedAtDeath, x => paid[0] += x);
+        }
+        Rig Fresh() { var rg = new Rig(); rg.BootReady(); return rg; }
+
+        var r1 = Fresh(); var paid1 = new float[1]; var b = Make(r1, paid1);
+        Check("DDBTN: starts visible", b.Visible);
+        b.Click(); r1.provider.lastEvents.opened(); r1.provider.lastEvents.earned(); r1.provider.lastEvents.closed();
+        Check("DDBTN: reward then close -> gone, paid once", !b.Visible && b.Used && paid1[0] > 0f && r1.store.pays == 1);
+
+        var r2 = Fresh(); var paid2 = new float[1]; b = Make(r2, paid2);
+        b.Click(); r2.provider.lastEvents.opened(); r2.provider.lastEvents.closed();
+        Check("DDBTN: close before reward -> gone already", !b.Visible);
+        r2.provider.lastEvents.earned();
+        Check("DDBTN: late reward -> stays gone", !b.Visible && b.Used);
+
+        var r3 = Fresh(); b = Make(r3, new float[1]);
+        b.Click(); r3.provider.lastEvents.opened(); r3.provider.lastEvents.closed();
+        Check("DDBTN: close without reward -> gone, no second offer", !b.Visible && r3.store.pays == 0);
+        for (int i = 0; i < 3; i++) { r3.provider.rewardedReady = true; Check("DDBTN: re-layout " + i + " keeps it gone and a tap shows nothing", !b.Visible && !b.Click()); }
+
+        var r4 = Fresh(); b = Make(r4, new float[1]);
+        b.Click(); Check("DDBTN: hidden while the ad starts", !b.Visible);
+        r4.provider.lastEvents.failed("no fill");
+        Check("DDBTN: open failure -> button back, retry allowed", b.Visible);
+
+        var r5 = Fresh(); b = Make(r5, new float[1]);
+        bool first = b.Click(); bool second = b.Click();
+        Check("DDBTN: double tap -> one show", first && !second && r5.provider.rewardedShows == 1);
     }
 
     static void Controller()

@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -34,7 +35,7 @@ public class DoubleDustOffer : MonoBehaviour
     Button button;
     long token;
     float earned;
-    bool used, working;
+    ButtonState state;
 
     public static DoubleDustOffer Attach(DeathPanelView view)
     {
@@ -50,6 +51,10 @@ public class DoubleDustOffer : MonoBehaviour
         offer.view = view;
         offer.earned = earned;
         offer.token = PrefsRewardStore.NewDeathToken();
+        offer.state = new ButtonState(
+            (paid, done) => AdManager.TryShowRewardedDouble(offer.token, offer.earned, paid, done),
+            () => AdManager.Controller != null && AdManager.Controller.WatchedRewardedAtDeath,
+            extra => { if (offer.view != null) offer.view.AddDustWon(extra); });
         offer.Build(go);
         return offer;
     }
@@ -119,20 +124,38 @@ public class DoubleDustOffer : MonoBehaviour
 
     void Update()
     {
-        if (used) { SetVisible(false); return; }
-        // Appears once the intro has settled; dimmed and untappable until an ad is loaded (and while one plays).
+        if (state == null) return;
+        // Gone for good once the ad was shown; hidden while one is starting or playing; back only if it failed to open.
+        if (state.Used || state.Working) { SetVisible(false); return; }
         bool shown = view != null && view.IntroFinished;
-        SetLit(!working && AdManager.RewardedReady);
+        SetLit(AdManager.RewardedReady);
         SetVisible(shown);
     }
 
-    void OnClick()
+    void OnClick() { if (state != null) state.Click(); }
+
+    // The button's one-offer-per-death state, free of Unity so tests can drive it. Used = the ad actually opened (or
+    // paid), whichever of the reward and the close came first, or neither reward; Working = a show is in flight.
+    public class ButtonState
     {
-        if (used || working) return;
-        working = true;
-        bool started = AdManager.TryShowRewardedDouble(token, earned,
-            extra => { used = true; if (view != null) view.AddDustWon(extra); },
-            () => { working = false; });
-        if (!started) working = false;
+        readonly Func<Action<float>, Action, bool> show;
+        readonly Func<bool> adOpened;
+        readonly Action<float> onPaid;
+        public bool Used { get; private set; }
+        public bool Working { get; private set; }
+        public bool Visible { get { return !Used && !Working; } }
+
+        public ButtonState(Func<Action<float>, Action, bool> show, Func<bool> adOpened, Action<float> onPaid)
+        { this.show = show; this.adOpened = adOpened; this.onPaid = onPaid; }
+
+        public bool Click()
+        {
+            if (Used || Working) return false;
+            Working = true;
+            bool started = show(extra => { Used = true; if (onPaid != null) onPaid(extra); },
+                                () => { Working = false; if (adOpened()) Used = true; });
+            if (!started) Working = false;
+            return started;
+        }
     }
 }
