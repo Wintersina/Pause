@@ -69,11 +69,30 @@ public static class AdManager
         return Controller.TryReplayAd(LiveInputs(), proceed);
     }
 
+    // A banner on a menu screen (Credits), under the same rules as the run-end banner (Remove Ads, Paragon, the first ad-free
+    // minutes; developer mode skips the window). True when it is up. The screen hides it again (HideBanner) when it closes.
+    public static bool TryShowMenuBanner() { return TryShowMenuBanner(LiveInputs()); }
+
+    public static bool TryShowMenuBanner(AdPolicy.Inputs inputs)
+    {
+        if (!EnsureBooted() || Controller.Busy || !AdPolicy.MenuBannerAllowed(inputs)) return false;
+        Controller.ShowBanner();
+        return Controller.BannerShowing;
+    }
+
     public static void HideBanner() { if (Controller != null) Controller.HideBanner(); }
     public static bool BannerShowing { get { return Controller != null && Controller.BannerShowing; } }
 
     // Screen pixels the banner covers at the bottom of the screen (0 when none is up): the modal lays out above it.
     public static float BannerHeightPx { get { return BannerShowing ? AdsConfig.BannerHeightPx(ScreenInfo.Dpi) : 0f; } }
+
+    // Canvas units a screen must keep clear at its bottom for the banner (0 when none is up); `sf` is the canvas scale factor.
+    public static float BannerReserveUnits(float sf)
+    {
+        float px = BannerHeightPx;
+        if (!(px > 0f)) return 0f;
+        return DeathPanelView.ReserveBottomForBanner(new Rect(0f, 0f, 10000f, 10000f), px / Mathf.Max(sf, .0001f)).yMin;
+    }
 
     // The Shop's "watch an ad: +50 star dust" row: always on (not an AdPolicy matter), needs only a loaded rewarded ad.
     public static bool ShopAdEnabled { get { return AdsConfig.Enabled; } }

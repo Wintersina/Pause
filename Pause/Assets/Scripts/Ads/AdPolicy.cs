@@ -133,6 +133,13 @@ public static class AdPolicy
         return true;
     }
 
+    // The same banner rules for a menu screen (Credits): no tutorial / practice notion there, everything else as BannerAllowed.
+    public static bool MenuBannerAllowed(Inputs i)
+    {
+        i.tutorialOrPractice = false;
+        return BannerAllowed(i);
+    }
+
     // What this run end gets. `eligibleRunNumber` counts this run when ForcedAd is Allowed (the caller owns the counter).
     // When the interstitial is due but not loaded the run end falls back to a banner.
     public static RunEndAd ChooseRunEndAd(Inputs i, int eligibleRunNumber, bool interstitialReady, bool bannerAvailable)

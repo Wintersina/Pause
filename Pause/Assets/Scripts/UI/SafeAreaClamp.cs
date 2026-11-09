@@ -105,7 +105,7 @@ public class SafeAreaClamp : MonoBehaviour
         float sf = Mathf.Max(canvas.rootCanvas.scaleFactor, .0001f);
         if (parent == null || parent != canvas.rootCanvas.transform) { rect.anchoredPosition = authored; return; }
         Rect area = parent.rect;   // canvas units, centre origin
-        float safeBottom = area.yMin + ScreenInfo.SafeBottomInset / sf + Margin;
+        float safeBottom = area.yMin + ScreenInfo.SafeBottomInset / sf + Margin + AdManager.BannerReserveUnits(sf);
         float safeTop = area.yMax - ScreenInfo.SafeTopInset / sf - Margin;
         float anchorY = Mathf.Lerp(area.yMin, area.yMax, rect.anchorMin.y);
         float h = rect.rect.height;
