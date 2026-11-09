@@ -976,8 +976,7 @@ public class LeaderboardPanel : MonoBehaviour
     void PowerIcons(RectTransform used, int powerUps, bool mine)
     {
         var names = LeaderboardRunTag.PowerUpIcons(powerUps);
-        float x = 0f;
-        for (int i = names.Length - 1; i >= 0; i--)
+        for (int i = 0; i < names.Length; i++)
         {
             var sprite = ShopIconArt.Get(names[i]);
             if (sprite == null)
@@ -993,12 +992,11 @@ public class LeaderboardPanel : MonoBehaviour
             icon.anchorMin = icon.anchorMax = new Vector2(1f, .5f);
             icon.pivot = new Vector2(1f, .5f);
             icon.sizeDelta = new Vector2(PowerIconSize, PowerIconSize);
-            icon.anchoredPosition = new Vector2(-x, 0f);
+            icon.anchoredPosition = new Vector2(-(names.Length - 1 - i) * (PowerIconSize + PowerIconGap), 0f);   // children stay in HUD order, laid out from the right
             var img = icon.gameObject.AddComponent<Image>();
             img.sprite = sprite;
             img.preserveAspect = true;
             img.raycastTarget = false;
-            x += PowerIconSize + PowerIconGap;
         }
     }
 

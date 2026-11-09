@@ -259,6 +259,12 @@ public static class NewBestTest
         Check("panel: worlds badge when flagged", all.Panel.Find("Card1/Row6/NewBest") != null);
         Object.DestroyImmediate(all.gameObject);
 
+        // Build moves the scene's texts and buttons into the panel, so destroying the first panel destroyed them: reopen the scene.
+        EditorSceneManager.OpenScene("Assets/Scenes/gameS1.unity", OpenSceneMode.Single);
+        canvas = SceneUtil.FindAny("PopUpCanvas");
+        best = SceneUtil.FindAny("playerDeadHighestSpeed").GetComponent<Text>();
+        run = SceneUtil.FindAny("deathSpeedReachedThisRoundText").GetComponent<Text>();
+        dust = SceneUtil.FindAny("playerDeadHighScore").GetComponent<Text>();
         var none = DeathPanelView.Build(canvas.transform, best, run, dust, SceneUtil.FindAny("Replay").GetComponent<Button>(),
             SceneUtil.FindAny("MainMenu").GetComponent<Button>(),
             new DeathPanelView.Results { score = parts.Total, bestScore = parts.Total + 5, ranked = true, parts = parts, dustAtStart = 10f, dustWon = 2f });
