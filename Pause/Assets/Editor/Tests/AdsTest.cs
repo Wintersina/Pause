@@ -296,12 +296,12 @@ public static class AdsTest
         var r = Fresh(); var c = r.controller; float paid = 0f; bool done = false;
         c.TryShowShopReward(x => paid = x, () => done = true);
         r.provider.lastEvents.opened(); r.provider.lastEvents.earned(); r.provider.lastEvents.closed();
-        Check("ORDER shop: reward then close -> one grant", r.store.grants == 1 && done && Mathf.Approximately(paid, 100f));
+        Check("ORDER shop: reward then close -> one grant", r.store.grants == 1 && done && Mathf.Approximately(paid, AdController.ShopAdDust));
 
         r = Fresh(); c = r.controller; paid = 0f; done = false;
         c.TryShowShopReward(x => paid = x, () => done = true);
         r.provider.lastEvents.opened(); r.provider.lastEvents.closed(); r.provider.lastEvents.earned(); r.provider.lastEvents.earned();
-        Check("ORDER shop: close then reward -> still exactly one grant and callback", r.store.grants == 1 && Mathf.Approximately(r.store.granted, 100f) && Mathf.Approximately(paid, 100f) && done);
+        Check("ORDER shop: close then reward -> still exactly one grant and callback", r.store.grants == 1 && Mathf.Approximately(r.store.granted, AdController.ShopAdDust) && Mathf.Approximately(paid, AdController.ShopAdDust) && done);
 
         r = Fresh(); c = r.controller;
         c.TryShowShopReward(null, null);
