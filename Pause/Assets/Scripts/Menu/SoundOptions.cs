@@ -97,7 +97,7 @@ public class SoundOptions : MonoBehaviour
     Row Build(GameObject template, bool isMusic, float y)
     {
         var row = new Row { music = isMusic };
-        var parent = template.transform.parent;
+        var parent = OptionsScroll.RowParent(template);
         row.toggle = DeveloperOptions.Clone(template, parent, isMusic ? MusicRowName : RowName,
                         new Vector2(isMusic ? MusToggleX : EffToggleX, y), new Vector2(ToggleW, RowH), () => Toggle(row));
         row.label = row.toggle.GetComponentInChildren<Text>(true);

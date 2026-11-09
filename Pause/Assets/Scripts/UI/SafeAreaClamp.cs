@@ -34,8 +34,7 @@ public class SafeAreaClamp : MonoBehaviour
     // above: the whole column rises with it instead. Other clamped elements move alone.
     public static readonly string[] ColumnScenes = { "leaderboardS3" };
     public bool carryColumn;
-    readonly System.Collections.Generic.List<RectTransform> column = new System.Collections.Generic.List<RectTransform>();
-    readonly System.Collections.Generic.List<Vector2> columnAuthored = new System.Collections.Generic.List<Vector2>();
+    public Vector2 Authored { get { return authored; } }
 
     [RuntimeInitializeOnLoadMethod]
     static void Init()
@@ -114,25 +113,14 @@ public class SafeAreaClamp : MonoBehaviour
         if (bottom < safeBottom) y += safeBottom - bottom;
         if (y + anchorY + (1f - rect.pivot.y) * h > safeTop) y = Mathf.Min(authored.y, safeTop - anchorY - (1f - rect.pivot.y) * h);
         rect.anchoredPosition = new Vector2(authored.x, y);
-        if (carryColumn) CarryColumn(parent, Mathf.Max(0f, y - authored.y));
+        if (carryColumn) CarryColumn(parent, safeTop, Mathf.Max(0f, y - authored.y));
     }
 
-    // Every centre-anchored row with a button above this one, at its own
-    // authored height plus `lift` (rows added later -- DeveloperOptions'
-    // -- are picked up when the canvas's child count changes).
-    void CarryColumn(RectTransform parent, float lift)
+    // The rows above BACK ride with it, or scroll when the canvas is too short for them (OptionsScroll). Rows added
+    // later (DeveloperOptions', PrivacyOptionsRow) are picked up when the canvas's child count changes.
+    void CarryColumn(RectTransform parent, float safeTop, float lift)
     {
+        OptionsScroll.For(parent).Layout(rect, authored.y, safeTop, lift);
         lastSiblings = parent.childCount;
-        for (int i = 0; i < parent.childCount; i++)
-        {
-            var rt = parent.GetChild(i) as RectTransform;
-            if (rt == null || rt == rect || column.Contains(rt)) continue;
-            if (rt.anchorMin != rt.anchorMax || rt.anchorMin != new Vector2(.5f, .5f)) continue;
-            if (rt.GetComponentInChildren<UnityEngine.UI.Button>(true) == null || rt.anchoredPosition.y <= authored.y) continue;
-            column.Add(rt);
-            columnAuthored.Add(rt.anchoredPosition);
-        }
-        for (int i = 0; i < column.Count; i++)
-            if (column[i] != null) column[i].anchoredPosition = columnAuthored[i] + new Vector2(0f, lift);
     }
 }

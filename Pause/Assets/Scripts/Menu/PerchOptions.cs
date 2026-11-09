@@ -47,7 +47,7 @@ public class PerchOptions : MonoBehaviour
     {
         var template = SceneUtil.FindAny("Tutorial");
         if (template == null) return;
-        var parent = template.transform.parent;
+        var parent = OptionsScroll.RowParent(template);
         var row = DeveloperOptions.Clone(template, parent, RowName,
                         new Vector2(ButtonX, RowY), new Vector2(ButtonW, RowH), Cycle);
         label = row.GetComponentInChildren<Text>(true);

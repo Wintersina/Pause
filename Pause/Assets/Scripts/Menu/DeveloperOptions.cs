@@ -25,7 +25,7 @@ public class DeveloperOptions : MonoBehaviour
     {
         var template = SceneUtil.FindAny("Tutorial");
         if (template == null) return;
-        var parent = template.transform.parent;
+        var parent = OptionsScroll.RowParent(template);
 
         // Rows sit RowPitch apart; their hit areas are RowH tall so they no
         // longer overlap (they were 99 tall, 9 units into each other).

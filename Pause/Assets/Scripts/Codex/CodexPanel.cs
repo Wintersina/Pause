@@ -155,19 +155,20 @@ public class CodexPanel : MonoBehaviour
         // Wide screens (WideAspect): the tab band is a rail on the left and the body a pane on the right.
         public bool wide;
         public float tabRowHeight;
+        public float tabRowGap;   // wide rail: squeezed on a canvas too short for five rows at the full gap
     }
 
     // Near-square screens (the Z Flip7 cover screen, a foldable's inner screen): safe-area width / height from
     // here up, and at least WideMinWidth units across, lay the panel out as a RAIL of tabs beside the body
     // instead of stacking them (tall phones keep the stack: three tab rows would leave the list a sliver).
-    public const float WideAspect = .8f, WideMinWidth = 700f;
+    public const float WideAspect = ScreenLayout.WideAspect, WideMinWidth = 700f;
     public const float WideMaxWidth = 1100f;
     public const float RailWidth = 300f, RailGap = 16f;
     public const float WideTabRowHeight = 96f;
     public const float WideMinCard = 156f;     // 3 columns in a 548-unit pane, 4 in a 660-unit one
     public static bool IsWide(Rect safe)
     {
-        return safe.height > 0f && safe.width >= WideMinWidth && safe.width / safe.height >= WideAspect;
+        return safe.width >= WideMinWidth && ScreenLayout.IsWide(safe);
     }
 
     // Pure: where everything goes for a given safe area (canvas units,
@@ -190,6 +191,7 @@ public class CodexPanel : MonoBehaviour
         l.tabs = new Rect(left, l.divider.yMin - DividerTabsGap - TabsHeight, iw, TabsHeight);
         l.back = CodexUi.Centered(0f, bottom + BackHeight * .5f, BackWidth, BackHeight);
         l.tabRowHeight = TabRowHeight;
+        l.tabRowGap = TabRowGap;
         if (l.wide) return WideLayout(l, iw, left, bottom);
         l.body = Rect.MinMaxRect(left, l.back.yMax + BodyGap, left + iw, l.tabs.yMin - BodyGap);
         l.collectBar = new Rect(left, l.body.yMax - CollectBarHeight, iw, CollectBarHeight);
@@ -212,8 +214,11 @@ public class CodexPanel : MonoBehaviour
     static Layout WideLayout(Layout l, float iw, float left, float bottom)
     {
         l.tabRowHeight = WideTabRowHeight;
-        float railH = WideRows * WideTabRowHeight + (WideRows - 1) * TabRowGap;
         float top = l.divider.yMin - DividerTabsGap, floor = l.back.yMax + BodyGap;
+        // a short canvas (a Z Flip cover screen at a high density) gives the rail less than five rows and four gaps:
+        // the gaps give way first (the rows stay finger-sized)
+        l.tabRowGap = Mathf.Clamp((top - floor - WideRows * WideTabRowHeight) / (WideRows - 1), 2f, TabRowGap);
+        float railH = WideRows * WideTabRowHeight + (WideRows - 1) * l.tabRowGap;
         l.tabs = new Rect(left, top - railH, RailWidth, railH);
         float paneLeft = left + RailWidth + RailGap;
         l.body = Rect.MinMaxRect(paneLeft, floor, left + iw, top);
@@ -242,7 +247,7 @@ public class CodexPanel : MonoBehaviour
             int wrow = (i + 1) / 2, wcol = (i + 1) % 2;
             float rw = i == 0 ? l.tabs.width : l.tabWidth;
             float wx = i == 0 || wcol == 0 ? l.tabs.xMin : l.tabs.xMin + l.tabWidth + TabGap;
-            return new Rect(wx, l.tabs.yMax - (wrow + 1) * l.tabRowHeight - wrow * TabRowGap, rw, l.tabRowHeight);
+            return new Rect(wx, l.tabs.yMax - (wrow + 1) * l.tabRowHeight - wrow * l.tabRowGap, rw, l.tabRowHeight);
         }
         int row = i / TabsPerRow, col = i % TabsPerRow;
         int inRow = Mathf.Min(TabsPerRow, TabCount - row * TabsPerRow);
@@ -1220,6 +1225,8 @@ public class CodexPanel : MonoBehaviour
             Rect t = TabRect(layout, i);   // panel-local -> the tab band's own centre-origin space
             t.center -= layout.tabs.center;
             CodexUi.Place(tabFrames[i].rectTransform, t);
+            // the hit area spans half the gap actually left between the rows (a short wide rail squeezes it)
+            tabFrames[i].raycastPadding = new Vector4(-TabGap * .5f, -layout.tabRowGap * .5f, -TabGap * .5f, -layout.tabRowGap * .5f);
         }
 
         gridRect = sectioned ? layout.list : layout.catBody;
