@@ -24,10 +24,8 @@ public static class AdManager
         // Developer mode unlocks every ship, so ownership means nothing there: ignore it and skip the ad-free window,
         // so testers see ads. (Release builds can never be in developer mode.)
         bool dev = DeveloperUnlocks.Enabled;
-        i.paragonOwned = !dev && ShipId.IsOwned(PremiumShips.Paragon);
         i.playSeconds = dev ? AdPolicy.AdFreePlaySeconds : PlayTime.Seconds;
         i.boosterActive = AdPolicy.BoosterActive;
-        i.runSeconds = RunSeconds();
         i.tutorialOrPractice = !score.paysRealDust || !RunScore.Scoring;
         return i;
     }
@@ -69,7 +67,7 @@ public static class AdManager
         return Controller.TryReplayAd(LiveInputs(), proceed);
     }
 
-    // A banner on a menu screen (Credits), under the same rules as the run-end banner (Remove Ads, Paragon, the first ad-free
+    // A banner on a menu screen (Credits), under the same rules as the run-end banner (Remove Ads, the first ad-free
     // minutes; developer mode skips the window). True when it is up. The screen hides it again (HideBanner) when it closes.
     public static bool TryShowMenuBanner() { return TryShowMenuBanner(LiveInputs()); }
 
@@ -100,6 +98,12 @@ public static class AdManager
     public static bool TryShowShopReward(Action<float> onPaid, Action onDone)
     {
         return EnsureBooted() && Controller.TryShowShopReward(onPaid, onDone);
+    }
+
+    public static bool ShopQuickReady { get { return EnsureBooted() && Controller.ShopQuickReady; } }
+    public static bool TryShowQuickReward(Action<float> onPaid, Action onDone)
+    {
+        return EnsureBooted() && Controller.TryShowQuickReward(onPaid, onDone);
     }
 
     public static bool RewardedReady { get { return EnsureBooted() && Controller.RewardedReady && !Controller.Busy; } }

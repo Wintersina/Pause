@@ -29,7 +29,9 @@ public class DeathPanelView : MonoBehaviour, IPointerDownHandler
     {
         public long score;          // this run's points (RunScore.Total)
         public long bestScore;      // the best after this run
-        public bool newBest;        // this run set a new best score
+        public bool newBest;        // this run set a new best score (vs the shared row when sharing is on)
+        public bool newDust;        // ... a new best star dust (shared board only)
+        public bool newWorlds;      // ... a new best worlds count (shared board only)
         public bool ranked;         // a run that may set a best (not developer mode / practice)
         public bool unranked;       // flown on the premium cheat ship: never ranked (RunScore.Unranked)
         public bool practice;       // the run scored nothing (practice run)
@@ -229,6 +231,7 @@ public class DeathPanelView : MonoBehaviour, IPointerDownHandler
     public const float BreakdownFirstRowY = 64f, BreakdownRowStep = 21f, BreakdownRowHeight = 21f;
     public const string LoopsRowName = "Loops";
     const float CountRight = 84f;
+    const int WorldsRow = 6;   // index of WORLDS in BreakdownLabels
     public static Rect PanelRect { get { return Centered(0f, 0f, Width, Height); } }
 
     // ---- Timeline (seconds of unscaled time since the panel appeared) ----
@@ -461,7 +464,7 @@ public class DeathPanelView : MonoBehaviour, IPointerDownHandler
         cards[0] = BuildCard(0, "SCORE", results.newBest ? null : ScoreSubLabel(results), Cyan, bestText, out scoreValue);
         Place(scoreValue.rectTransform, Centered(ValueRight - 170f, 0f, 340f, 80f));
         cards[1] = BuildBreakdown(runText);
-        cards[2] = BuildCard(2, "STAR DUST", "EARNED THIS RUN", Gold, dustText, out dustValue);
+        cards[2] = BuildCard(2, "STAR DUST", results.newDust ? null : "EARNED THIS RUN", Gold, dustText, out dustValue);
         cards[3] = BuildKilledBy();
 
         // Star dust: the earned amount and the new total on separate lines,
@@ -474,6 +477,15 @@ public class DeathPanelView : MonoBehaviour, IPointerDownHandler
         // Burst origins: roughly the middle of the right-aligned digits.
         dustValueCentre = Shifted(CardRects[2].center + new Vector2(ValueRight - 95f, 13f));
         bestValueCentre = Shifted(CardRects[0].center + new Vector2(ValueRight - 90f, 0f));
+
+        if (results.newDust)
+        {
+            var dp = NewImage("NewBestDust", cards[2], Load("dp_pill"), Gold);
+            dp.type = Image.Type.Sliced;
+            Place(dp.rectTransform, Centered(LabelLeft + 62f, -20f, 124f, 32f));
+            var dl = NewText("Label", dp.rectTransform, "NEW BEST", 17, AkiraPalette.Ink, TextAnchor.MiddleCenter);
+            Stretch(dl.rectTransform);
+        }
 
         if (results.newBest)
         {
@@ -542,6 +554,11 @@ public class DeathPanelView : MonoBehaviour, IPointerDownHandler
             var value = NewText("Points", rt, "0", 19, rowPoints[i] > 0 ? Bone : Muted, TextAnchor.MiddleRight);
             Place(value.rectTransform, new Rect(ValueRight - 160f, -BreakdownRowHeight * .5f, 160f, BreakdownRowHeight));
             AddOutline(value.gameObject, Ink, 1.5f);
+            if (i == WorldsRow && results.newWorlds)
+            {
+                var tag = NewText("NewBest", rt, "NEW BEST", 13, Gold, TextAnchor.MiddleLeft);
+                Place(tag.rectTransform, new Rect(LabelLeft + 92f, -BreakdownRowHeight * .5f, 100f, BreakdownRowHeight));
+            }
             rowValues[i] = value;
             shownRows[i] = -1;
         }

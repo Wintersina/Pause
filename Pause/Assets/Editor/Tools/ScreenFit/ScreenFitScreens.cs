@@ -623,10 +623,26 @@ public static class ScreenFitScreens
     static void BoostedChecks(ScreenFitRig rig, LeaderboardPanel panel)
     {
         int stats = 0, used = 0;
+        // The power-ups line is a row of small icons (no text): each icon must sit inside its PowerUps box, side to side.
+        foreach (var box in panel.GetComponentsInChildren<RectTransform>())
+        {
+            if (box.name != "PowerUps") continue;
+            var boxRect = rig.PixelRect(box);
+            int icons = 0;
+            foreach (var img in box.GetComponentsInChildren<UnityEngine.UI.Image>())
+            {
+                if (img.sprite == null) continue;
+                icons++;
+                Rect r = rig.PixelRect(img.rectTransform);
+                if (r.xMax > boxRect.xMax + 1f || r.xMin < boxRect.xMin - 1f)
+                    rig.Fail("LEADERBOARD", "PowerUps " + box.parent.name + " icon " + img.name, "runs out of its column (icon x " + r.xMin.ToString("F1") + ".." + r.xMax.ToString("F1") + ", box x " + boxRect.xMin.ToString("F1") + ".." + boxRect.xMax.ToString("F1") + ")", r);
+            }
+            if (icons > 0 || box.GetComponentInChildren<Text>() != null) used++;
+        }
         foreach (var t in panel.GetComponentsInChildren<Text>())
         {
             if (t.name != "Stats" && t.name != "PowerUps") continue;
-            if (t.name == "Stats") stats++; else used++;
+            if (t.name == "Stats") stats++;
             Rect glyphs; float fontPx; bool truncated;
             if (!rig.MeasureText(t, out glyphs, out fontPx, out truncated)) continue;
             Rect box = rig.PixelRect(t.rectTransform);
@@ -637,7 +653,7 @@ public static class ScreenFitScreens
             if (glyphs.xMax > box.xMax + 1f + overhang || glyphs.xMin < box.xMin - 1f)
                 rig.Fail("LEADERBOARD", t.name + " " + t.transform.parent.name + " \"" + t.text + "\"", "runs out of its column (glyphs x " + glyphs.xMin.ToString("F1") + ".." + glyphs.xMax.ToString("F1") + ", box x " + box.xMin.ToString("F1") + ".." + box.xMax.ToString("F1") + ", size " + t.fontSize + ")", glyphs);
         }
-        if (stats < 5 || used < 5) rig.Fail("STAGE", "boosted board", "only " + stats + " stats / " + used + " power-up cells");
+        if (stats < 5 || used < 5) rig.Fail("STAGE", "boosted board", "only " + stats + " stats / " + used + " power-up icon rows");
     }
 
     // Row 3 is the player's own; the rest: a 30+ character name, wide glyphs

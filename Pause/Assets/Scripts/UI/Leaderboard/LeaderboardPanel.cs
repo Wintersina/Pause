@@ -964,11 +964,39 @@ public class LeaderboardPanel : MonoBehaviour
                 used.pivot = new Vector2(1f, .5f);
                 used.sizeDelta = new Vector2(valueWidth - 8f, 0f);
                 used.anchoredPosition = new Vector2(-ValueInset - 8f, 0f);   // clear of the italic overhang and the ink stroke
-                var usedText = Label(used, LeaderboardRunTag.PowerUpShort(e.powerUps), StatsSize, mine ? AkiraPalette.Bone : AkiraPalette.Amber,
-                                     TextAnchor.MiddleRight, 2f, ValueMinSize);
-                FitText(usedText, StatsSize, ValueMinSize, valueWidth - 8f - FitMargin);
-                usedText.horizontalOverflow = HorizontalWrapMode.Wrap;   // fitted above, so it never wraps; right-aligned Overflow text is laid out from the wrong edge
+                PowerIcons(used, e.powerUps, mine);
             }
+        }
+    }
+
+    const float PowerIconSize = 20f, PowerIconGap = 3f;
+
+    // One small point-filtered icon per booster used (HUD order), right-aligned; no text. If an icon is missing from
+    // Resources the short text stands in, so a row never shows empty.
+    void PowerIcons(RectTransform used, int powerUps, bool mine)
+    {
+        var names = LeaderboardRunTag.PowerUpIcons(powerUps);
+        for (int i = 0; i < names.Length; i++)
+        {
+            var sprite = ShopIconArt.Get(names[i]);
+            if (sprite == null)
+            {
+                for (int k = used.childCount - 1; k >= 0; k--) Object.Destroy(used.GetChild(k).gameObject);
+                var usedText = Label(used, LeaderboardRunTag.PowerUpShort(powerUps), StatsSize, mine ? AkiraPalette.Bone : AkiraPalette.Amber,
+                                     TextAnchor.MiddleRight, 2f, ValueMinSize);
+                FitText(usedText, StatsSize, ValueMinSize, used.sizeDelta.x - FitMargin);
+                usedText.horizontalOverflow = HorizontalWrapMode.Wrap;
+                return;
+            }
+            var icon = Child(used, "Icon" + i);
+            icon.anchorMin = icon.anchorMax = new Vector2(1f, .5f);
+            icon.pivot = new Vector2(1f, .5f);
+            icon.sizeDelta = new Vector2(PowerIconSize, PowerIconSize);
+            icon.anchoredPosition = new Vector2(-(names.Length - 1 - i) * (PowerIconSize + PowerIconGap), 0f);   // children stay in HUD order, laid out from the right
+            var img = icon.gameObject.AddComponent<Image>();
+            img.sprite = sprite;
+            img.preserveAspect = true;
+            img.raycastTarget = false;
         }
     }
 

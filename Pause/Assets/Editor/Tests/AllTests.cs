@@ -271,6 +271,7 @@ public static class AllTests
         ("ScoreBonusTest", ScoreBonusTest.Execute),
         ("ScoreMultiplierTest", ScoreMultiplierTest.Execute),
         ("NewRecordTest", NewRecordTest.Execute),
+        ("NewBestTest", NewBestTest.Execute),
         ("DustEconomyTest", DustEconomyTest.Execute),
         ("BoostersTest", BoostersTest.Execute),
         ("ShipPriceTest", ShipPriceTest.Execute),

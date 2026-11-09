@@ -578,6 +578,17 @@ public static class PowerUpsLeaderboardTest
     static readonly Vector2 Phone = new Vector2(1080f, 2340f);
     static readonly Rect PhoneSafe = new Rect(0f, 63f, 1080f, 2202f);
 
+    static string IconNames(Transform used)
+    {
+        var names = new List<string>();
+        foreach (Transform c in used)
+        {
+            var img = c.GetComponent<Image>();
+            if (img != null && img.sprite != null) names.Add(img.sprite.name);
+        }
+        return string.Join(",", names);
+    }
+
     static void Panel()
     {
         Context();
@@ -597,9 +608,15 @@ public static class PowerUpsLeaderboardTest
         Check("panel: populated", panel.CurrentState == LeaderboardPanel.State.Populated && panel.RowCount == 5);
         var rows = panel.PanelRoot.Find("List/Rows");
         Check("panel: row 0 star dust and worlds", rows.Find("Row0/Stats").GetComponent<Text>().text == "DUST 1.2K\nWORLDS 12");
-        Check("panel: row 0 shows both power-ups", rows.Find("Row0/PowerUps").GetComponent<Text>().text == "BOTH");
-        Check("panel: row 1 shows Dust x2", rows.Find("Row1/PowerUps").GetComponent<Text>().text == "DUST x2");
-        Check("panel: row 2 shows Clear", rows.Find("Row2/PowerUps").GetComponent<Text>().text == "CLEAR");
+        Check("panel: row 0 shows its two power-up icons", IconNames(rows.Find("Row0/PowerUps")) == "booster_dust_x2,booster_hazard_clear");
+        Check("panel: row 1 shows the Dust x2 icon", IconNames(rows.Find("Row1/PowerUps")) == "booster_dust_x2");
+        Check("panel: row 2 shows the Clear icon", IconNames(rows.Find("Row2/PowerUps")) == "booster_hazard_clear");
+        Check("panel: icons carry no text", rows.Find("Row0/PowerUps").GetComponentsInChildren<Text>(true).Length == 0);
+        Check("panel: icon sets 0/1/2/3 in HUD order",
+              LeaderboardRunTag.PowerUpIcons(0).Length == 0 && LeaderboardRunTag.PowerUpIcons(1).Length == 1
+              && LeaderboardRunTag.PowerUpIcons(5).Length == 2
+              && string.Join(",", LeaderboardRunTag.PowerUpIcons(7)) == "booster_dust_x2,booster_homing_atoms,booster_hazard_clear"
+              && LeaderboardRunTag.PowerUpIcons(8).Length == 0);
         Check("panel: score is the value", rows.Find("Row0/Value").GetComponent<Text>().text == "9,000");
         Check("panel: ship shown, hearts and pauses on the run line under the name", rows.Find("Row0/Ship") != null && rows.Find("Row0/Hearts") != null && rows.Find("Row0/Pauses") != null);
         Check("panel: an untagged score shows its score and blank columns", rows.Find("Row3/Value") != null && rows.Find("Row3/Stats") == null
@@ -646,7 +663,7 @@ public static class PowerUpsLeaderboardTest
         panel.SelectBoard(LeaderboardBoards.BoostedRuns);
         rows = panel.PanelRoot.Find("List/Rows");
         Check("panel: own entry filled from the device record (iOS path)", rows.Find("Row0/Stats").GetComponent<Text>().text == "DUST 42\nWORLDS 5"
-              && rows.Find("Row0/PowerUps").GetComponent<Text>().text == "CLEAR");
+              && IconNames(rows.Find("Row0/PowerUps")) == "booster_hazard_clear");
         LeaderboardPanel.Close();
 
         // end to end through the Fake: tag stored with the score, read back into columns
