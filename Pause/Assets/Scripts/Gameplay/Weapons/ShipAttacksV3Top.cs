@@ -706,10 +706,14 @@ public partial class ShipAttackRunner
         s.t = 0f;
         s.aim = null;
         Vector3 at = s.turret != null ? s.turret.Pivot : s.to;
-        AttackPool.Sprite().Play(AttackSprite.Source.AttackBurst, ship, at, Vector3.one * .55f, 0f,
+        SentryBursts++;
+        AttackPool.Sprite().Play(AttackSprite.Source.AttackBurst, ship, at, Vector3.one * SentryDeathBurstSize, 0f,
             ShipFxArt.BurstTicks, false, 0f, null, Vector3.zero, 71).Strip("attack_shot", 8, false)
-            .Alpha(ShipFxArt.AttackBurstAlpha * SentryBurstAlphaK);
+            .Alpha(ShipFxArt.AttackBurstAlpha);   // full strength (the bolt impacts are half): a kill must read
     }
+
+    public const float SentryDeathBurstSize = .95f;   // the gold bolt-impact burst, about twice a bolt's .45 (a small drone)
+    public int SentryBursts { get; private set; }     // death explosions played (tests); a timed-out sentry plays none
 
     public const float SentryBurstAlphaK = .5f;   // a sentry bolt's impact burst is half as opaque (they fire all the time)
 

@@ -82,7 +82,7 @@ public static class ShipWeaponUpgrades
         /*  4 Crimson Halo */ new[] { Cd(.15f), Up("WIDER RAIL", width: .14f), Cd(.20f, ShipSignatures.HaloPierceNote), Up("+2 SIDE RAILS", shots: 2) },
         /*  5 Ion Lancer   */ new[] { Up("LONGER SWEEP", duration: .3f), Cd(.15f), Up("+1 PASS", shots: 1), Cd(.20f, ShipSignatures.IonCrossNote) },
         /*  6 Jade Phantom */ new[] { Up("SHATTER SPLASH", width: .8f), ShipSignatures2.Tag(Cd(.15f), "CHILL"), Up("BIGGER SPLASH", width: .4f), ShipSignatures2.Tag(Cd(.20f), "DEEP CHILL") },
-        /*  7 Gold Warden  */ new[] { Up("+1 SENTRY", shots: 1), ShipSignatures2.Tag(Cd(.15f), "PIERCE"), Up("LONGER SENTRIES", duration: .9f), ShipSignatures2.Tag(Cd(.20f), "DRIFT") },
+        /*  7 Gold Warden  */ new[] { Up("+1 SENTRY", shots: 1), ShipSignatures2.Tag(Cd(.15f), "PIERCE"), Up("LONGER SENTRIES", duration: .9f * 2f), ShipSignatures2.Tag(Cd(.20f), "DRIFT") },
         /*  8 Lightning    */ new[] { Up("+1 JAVELIN", shots: 1), Cd(.15f), Up("+1 JAVELIN", shots: 1), Cd(.20f) },   // 3 -> 4 -> 5 lanes (SkyJavelinLanes)
         /*  9 Ligher       */ new[] { Up("LONGER BURN", duration: BlowtorchStepSeconds), Cd(.15f), Up("BIGGER, LONGER FLAME", duration: BlowtorchStepSeconds, range: .6f, width: 6f), Cd(.20f) },
         /* 10 Paranoid     */ new[] { Up("+1 MARK", shots: 1), ShipSignatures2.Tag(Cd(.15f), "BIG BLAST"), Up("+1 MARK", shots: 1), ShipSignatures2.Tag(Cd(.20f), "HUGE BLAST") },
