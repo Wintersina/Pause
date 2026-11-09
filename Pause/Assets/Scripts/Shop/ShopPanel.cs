@@ -615,12 +615,42 @@ public class ShopPanel : MonoBehaviour
     // object still on the static events: drop it instead of painting its dead texts.
     void OnChanged() { if (this == null) { Unsubscribe(); return; } if (open) Refresh(); }
     // A Star Dust pack was granted (paid + saved): the same burst and count-up as the ad, from that pack's row.
-    void OnRewarded(int amount) { if (this == null) { Unsubscribe(); return; } if (!open) return; Refresh(); PlayReward(amount, true); }
+    void OnRewarded(int amount) { if (this == null) { Unsubscribe(); return; } if (!open) return; Refresh(); RequestReward(amount, true); }
 
     // ---- the watch-ad reward flourish ----
 
     public bool FxActive { get { return fx != null && fx.Active; } }
-    public int DustShown { get { return FxActive ? fx.Displayed : Mathf.FloorToInt(StarDustLedger.Saved); } }
+    public int DustShown { get { return pending ? pendingFrom : FxActive ? fx.Displayed : Mathf.FloorToInt(StarDustLedger.Saved); } }
+
+    // The reward is saved the moment the SDK calls back, but on a phone that is BEFORE the fullscreen ad closes (and the
+    // app is paused / unfocused while it is up), so playing then runs the whole flourish behind the ad. A reward is
+    // queued instead and starts once no ad is on screen AND the app has focus, after a short settle; the total keeps
+    // showing the pre-reward balance meanwhile.
+    public static System.Func<bool> RewardGate = () => !AdManager.ShowInProgress && Application.isFocused;
+    public const float MaxStep = .05f;       // a long frame (resume after an ad) cannot skip the flourish
+    public const float SettleSeconds = .25f;
+    bool pending, pendingPack;
+    int pendingFrom;
+    float pendingAmount, settle;
+    public bool RewardPending { get { return pending; } }
+
+    void RequestReward(float amount, bool pack)
+    {
+        if (!pending && RewardGate())
+        {
+            PlayReward(amount, pack);
+            return;
+        }
+        if (!pending)
+        {
+            int to = Mathf.FloorToInt(StarDustLedger.Saved);
+            pendingFrom = FxActive ? fx.Displayed : to - Mathf.RoundToInt(amount);
+            if (FxActive) fx.Finish();
+            pending = true;
+        }
+        pendingAmount = amount; pendingPack = pack; settle = 0f;
+        PaintDust();
+    }
     public ShopDustFx Fx { get { return fx; } }
 
     // The ad's 50 dust is already saved. Plays the burst at the ad row and walks the shown total up to the saved balance.
@@ -628,7 +658,7 @@ public class ShopPanel : MonoBehaviour
     {
         if (this == null) { Unsubscribe(); return; }
         if (!open) return;
-        PlayReward(amount);
+        RequestReward(amount, false);
     }
 
     // Public so a test (or a rig) can play it without an ad.
@@ -636,7 +666,8 @@ public class ShopPanel : MonoBehaviour
     {
         if (!open) return;
         int to = Mathf.FloorToInt(StarDustLedger.Saved);
-        int from = FxActive ? fx.Displayed : to - Mathf.RoundToInt(amount);
+        int from = pending ? pendingFrom : FxActive ? fx.Displayed : to - Mathf.RoundToInt(amount);
+        pending = false;
         if (fx == null)
         {
             var layer = CodexUi.NewRect("DustFx", canvas.transform);
@@ -668,6 +699,14 @@ public class ShopPanel : MonoBehaviour
 
     void TickFx(float dt)
     {
+        dt = Mathf.Min(dt, MaxStep);
+        if (pending)
+        {
+            if (!RewardGate()) { settle = 0f; return; }
+            settle += dt;
+            if (settle >= SettleSeconds) PlayReward(pendingAmount, pendingPack);
+            return;
+        }
         if (fx == null || !fx.Active) return;
         fx.Step(dt);
         PaintDust();
@@ -676,7 +715,8 @@ public class ShopPanel : MonoBehaviour
     // Leaves the Shop (or is destroyed) mid-flight: the balance is already saved, so just snap the display.
     void EndFx()
     {
-        if (fx == null) return;
+        pending = false;
+        if (fx == null) { if (dust != null) PaintDust(); return; }
         fx.Finish();
         if (dust != null) PaintDust();
     }

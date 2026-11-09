@@ -304,6 +304,8 @@ public static class ShopScreenTest
         foreach (var p in SupportPurchase.Packs) p.SetPrice("$4.00");
         PlayerPrefs.SetFloat(StarDustLedger.CurrencyKey, 1234f);
         var panel = ShopPanel.Open();
+        var defaultGate = ShopPanel.RewardGate;
+        ShopPanel.RewardGate = () => true;   // the pre-existing cases: no ad up, app focused
         Check("the panel opens and owns Back", panel != null && ShopPanel.IsOpen && BackNavigator.Top == (object)panel);
         Check("it has the ten rows and scrolls vertically only",
               panel.RowCount == 10 && panel.Scroll.vertical && !panel.Scroll.horizontal);
@@ -395,6 +397,59 @@ public static class ShopScreenTest
         Check("the two ad rows load independently (not loaded -> LOADING each, tap does nothing)",
               ShopCatalog.WatchAdRow().kind == ShopRowKind.WatchAd && ShopCatalog.QuickAdRow().kind == ShopRowKind.QuickAd &&
               ShopCatalog.WatchAdRow().state != ShopRowState.Buyable && ShopCatalog.QuickAdRow().state != ShopRowState.Buyable);
+
+        // the device order: the reward callback fires while the ad is up and the app is unfocused; the close and the focus
+        // come later; the flourish must play AFTER that, from the pre-reward balance, and survive a huge resume frame
+        bool adUp = true, focused = false;
+        ShopPanel.RewardGate = () => !adUp && focused;
+        int before = Mathf.FloorToInt(StarDustLedger.Saved);
+        PlayerPrefs.SetFloat(StarDustLedger.CurrencyKey, before + 100f);
+        ShopCatalog.RaiseAdRewarded(100f);   // reward while the ad is on screen
+        Check("device order: reward behind the ad is queued, total still shows the old balance", panel.RewardPending && !panel.FxActive && panel.DustShown == before);
+        for (int n = 0; n < 120; n++) panel.StepFx(1f / 60f);
+        Check("device order: nothing plays while the ad is up", panel.RewardPending && !panel.FxActive && panel.DustText.text == before.ToString("N0"));
+        adUp = false;   // closed, but the app has not regained focus
+        for (int n = 0; n < 120; n++) panel.StepFx(1f / 60f);
+        Check("device order: closed but unfocused still waits", panel.RewardPending && !panel.FxActive);
+        focused = true;
+        panel.StepFx(30f);   // the first frame after resume is huge
+        Check("device order: the first huge resume frame does not start or skip it", !panel.FxActive || panel.Fx.Displayed == before);
+        for (int n = 0; n < 40 && !panel.FxActive; n++) panel.StepFx(1f / 60f);
+        Check("device order: after focus the animation plays from the pre-reward value", panel.FxActive && !panel.RewardPending && panel.DustShown == before && panel.Fx.Count == 50);
+        panel.StepFx(30f);
+        Check("a huge delta frame does not skip the animation", panel.FxActive);
+        RunFx(panel);
+        Check("device order: ends at the true balance", !panel.FxActive && panel.DustText.text == (before + 100).ToString("N0"));
+
+        // reward after the close (ad already gone, app focused): plays at once
+        before = Mathf.FloorToInt(StarDustLedger.Saved);
+        PlayerPrefs.SetFloat(StarDustLedger.CurrencyKey, before + 40f);
+        ShopCatalog.RaiseAdRewarded(40f);
+        Check("reward after close: plays immediately from the old balance (+40, 40 particles)", panel.FxActive && !panel.RewardPending && panel.DustShown == before && panel.Fx.Count == 40);
+        RunFx(panel);
+        Check("reward after close: ends at the true balance", panel.DustText.text == (before + 40).ToString("N0"));
+
+        // a pack granted while the sheet is still up behaves the same; two rewards queued are one walk
+        adUp = true;
+        before = Mathf.FloorToInt(StarDustLedger.Saved);
+        PlayerPrefs.SetFloat(StarDustLedger.CurrencyKey, before + 100f);
+        ShopCatalog.RaiseAdRewarded(100f);
+        PlayerPrefs.SetFloat(StarDustLedger.CurrencyKey, before + 140f);
+        ShopCatalog.RaiseAdRewarded(40f);
+        panel.Refresh();
+        Check("two queued rewards: total still the pre-reward balance after a refresh", panel.RewardPending && panel.DustText.text == before.ToString("N0"));
+        adUp = false;
+        for (int n = 0; n < 60 && panel.RewardPending; n++) panel.StepFx(1f / 60f);
+        Check("two queued rewards: one walk from the old balance", panel.FxActive && panel.DustShown == before);
+        RunFx(panel);
+        Check("two queued rewards: ends at the true balance", panel.DustText.text == (before + 140).ToString("N0"));
+        adUp = true;
+        PlayerPrefs.SetFloat(StarDustLedger.CurrencyKey, before + 240f);
+        ShopCatalog.RaiseAdRewarded(100f);
+        panel.Close(); panel.StepFx(1f);
+        Check("closing the Shop with a queued reward snaps to the true balance", !panel.RewardPending && panel.DustText.text == (before + 240).ToString("N0"));
+        ShopPanel.RewardGate = defaultGate;
+        ShopPanel.Open();
 
         // the timeline itself: 50, and a 6,000 pack, take about the same time and land exactly
         foreach (int amount in new[] { 40, 50, 100, 850, 2500, 6000 })
