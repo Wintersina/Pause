@@ -6,7 +6,8 @@ public class StubAdProvider : IAdProvider
 {
     public bool canRequestAds = true;
     public bool privacyOptionsRequired;
-    public bool interstitialReady, rewardedReady;
+    public bool interstitialReady, rewardedReady, quickReady;
+    public int quickLoads, quickShows;
     public bool loadSucceeds = true;
     public bool autoCompleteCallbacks = true;   // consent / tracking / init / load callbacks fire synchronously
     public int consentCalls, trackingCalls, initCalls, interstitialLoads, rewardedLoads, interstitialShows, rewardedShows;
@@ -49,6 +50,22 @@ public class StubAdProvider : IAdProvider
         rewardedLoads++;
         if (loadSucceeds) rewardedReady = true;
         if (done != null) done(loadSucceeds);
+    }
+
+    public bool QuickReady { get { return quickReady; } }
+
+    public void LoadQuick(Action<bool> done)
+    {
+        quickLoads++;
+        if (loadSucceeds) quickReady = true;
+        if (done != null) done(loadSucceeds);
+    }
+
+    public virtual void ShowQuick(AdShowEvents events)
+    {
+        quickShows++;
+        quickReady = false;
+        lastEvents = events;
     }
 
     public virtual void ShowInterstitial(AdShowEvents events)

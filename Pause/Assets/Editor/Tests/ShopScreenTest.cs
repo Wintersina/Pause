@@ -83,7 +83,7 @@ public static class ShopScreenTest
         int count = 0;
         foreach (var r in ShopCatalog.Rows())
         {
-            if (r.kind == ShopRowKind.Paragon) continue;
+            if (r.kind == ShopRowKind.Paragon || r.kind == ShopRowKind.QuickAd) continue;   // the quick ad shares the +100 row's icon for now
             count++;
             var sprite = ShopIconArt.For(r);
             if (sprite == null) { allFound = false; continue; }
@@ -98,6 +98,7 @@ public static class ShopScreenTest
         var huge = ShopIconArt.NameFor(new ShopRow { kind = ShopRowKind.Pack, pack = SupportPurchase.Huge });
         Check("Remove Ads maps to its icon", ShopIconArt.NameFor(ShopCatalog.RemoveAdsRow()) == "remove_ads");
         Check("the watch-ad row has its own icon", ShopIconArt.NameFor(ShopCatalog.WatchAdRow()) == "ad_dust");
+        Check("the quick-ad row shares it for now", ShopIconArt.NameFor(ShopCatalog.QuickAdRow()) == "ad_dust");
         Check("packs map by size", small == "pack_850" && huge == "pack_6000");
     }
 
@@ -105,10 +106,11 @@ public static class ShopScreenTest
     {
         var sections = ShopCatalog.Sections();
         Check("five sections: ads, ship, star dust, boosters, free star dust (one list the panel lays out from)",
-              sections.Count == 5 && sections[4].label == "FREE STAR DUST" && sections[4].rows.Count == 1 && sections[4].rows[0].kind == ShopRowKind.WatchAd && sections[0].label == "ADS" && sections[1].label == "SHIP" && sections[2].label == "STAR DUST" &&
+              sections.Count == 5 && sections[4].label == "FREE STAR DUST" && sections[4].rows.Count == 2 && sections[4].rows[0].kind == ShopRowKind.WatchAd && sections[4].rows[1].kind == ShopRowKind.QuickAd && sections[0].label == "ADS" && sections[1].label == "SHIP" && sections[2].label == "STAR DUST" &&
               sections[3].label == "BOOSTERS" && sections[3].rows.Count == 3);
         var rows = ShopCatalog.Rows();
-        Check("rows: Remove Ads, Paragon, 850 / 2,500 / 6,000, then Dust x2, Hazard Clear and Homing Atoms", rows.Count == 9 &&
+        Check("rows: Remove Ads, Paragon, 850 / 2,500 / 6,000, then Dust x2, Hazard Clear and Homing Atoms, then the two ad rows", rows.Count == 10 &&
+              rows[8].title == ShopCatalog.WatchAdTitle && rows[9].title == ShopCatalog.QuickAdTitle && ShopCatalog.WatchAdDust == 100f && ShopCatalog.QuickAdDust == 40f &&
               rows[5].kind == ShopRowKind.DustBooster && rows[6].kind == ShopRowKind.HazardClear && rows[7].kind == ShopRowKind.HomingAtoms &&
               rows[7].IsBooster &&
               rows[0].kind == ShopRowKind.RemoveAds && rows[1].kind == ShopRowKind.Paragon &&
@@ -303,8 +305,8 @@ public static class ShopScreenTest
         PlayerPrefs.SetFloat(StarDustLedger.CurrencyKey, 1234f);
         var panel = ShopPanel.Open();
         Check("the panel opens and owns Back", panel != null && ShopPanel.IsOpen && BackNavigator.Top == (object)panel);
-        Check("it has the nine rows and scrolls vertically only",
-              panel.RowCount == 9 && panel.Scroll.vertical && !panel.Scroll.horizontal);
+        Check("it has the ten rows and scrolls vertically only",
+              panel.RowCount == 10 && panel.Scroll.vertical && !panel.Scroll.horizontal);
         Check("the star dust balance is shown", panel.DustText.text == "1,234");
         Check("booster rows read their dust price and are live with 1,234 dust",
               panel.RowButtonText(5).text == "600 DUST" && panel.RowButton(5).interactable &&
@@ -360,30 +362,42 @@ public static class ShopScreenTest
         Check("the same purchase delivered again: no second animation", !panel.FxActive && Mathf.FloorToInt(StarDustLedger.Saved) == 2084);
 
         // the watch-ad reward: +50 one at a time, ends at the saved balance; an early leave and a second reward are safe
-        PlayerPrefs.SetFloat(StarDustLedger.CurrencyKey, 2134f);   // the ad's grant (already saved)
-        ShopCatalog.RaiseAdRewarded(50f);
-        Check("ad reward: burst on, total starts at 2,084", panel.FxActive && panel.DustText.text == "2,084" && panel.Fx.Count == 50);
+        PlayerPrefs.SetFloat(StarDustLedger.CurrencyKey, 2184f);   // the ad's grant (already saved)
+        ShopCatalog.RaiseAdRewarded(100f);
+        Check("ad reward +100: burst on, total starts at 2,084, 50 particles stepping 2", panel.FxActive && panel.DustText.text == "2,084" && panel.Fx.Count == 50);
         var seen = new List<int>();
         for (int n = 0; n < 400 && panel.FxActive; n++) { panel.StepFx(1f / 60f); seen.Add(panel.DustShown); }
-        bool steps = true; for (int i = 1; i < seen.Count; i++) if (seen[i] - seen[i - 1] > 2 || seen[i] < seen[i - 1]) steps = false;
-        Check("ad reward: +1 (at most +2 per frame) and ends at 2,134", steps && !panel.FxActive && panel.DustText.text == "2,134" && seen.Count >= 72 && seen.Count <= 108);
-        PlayerPrefs.SetFloat(StarDustLedger.CurrencyKey, 2184f);
-        ShopCatalog.RaiseAdRewarded(50f);
-        for (int n = 0; n < 40; n++) panel.StepFx(1f / 60f);
-        PlayerPrefs.SetFloat(StarDustLedger.CurrencyKey, 2234f);
-        ShopCatalog.RaiseAdRewarded(50f);   // another reward lands mid-flight
-        RunFx(panel);
-        Check("a second reward mid-animation does not double count: ends at 2,234", panel.DustText.text == "2,234");
+        bool steps = true; for (int i = 1; i < seen.Count; i++) if (seen[i] - seen[i - 1] > 4 || seen[i] < seen[i - 1]) steps = false;
+        Check("ad reward: small steps and ends at 2,184", steps && !panel.FxActive && panel.DustText.text == "2,184" && seen.Count >= 72 && seen.Count <= 108);
         PlayerPrefs.SetFloat(StarDustLedger.CurrencyKey, 2284f);
-        ShopCatalog.RaiseAdRewarded(50f);
+        ShopCatalog.RaiseAdRewarded(100f);
+        for (int n = 0; n < 40; n++) panel.StepFx(1f / 60f);
+        PlayerPrefs.SetFloat(StarDustLedger.CurrencyKey, 2384f);
+        ShopCatalog.RaiseAdRewarded(100f);   // another reward lands mid-flight
+        RunFx(panel);
+        Check("a second reward mid-animation does not double count: ends at 2,384", panel.DustText.text == "2,384");
+        PlayerPrefs.SetFloat(StarDustLedger.CurrencyKey, 2484f);
+        ShopCatalog.RaiseAdRewarded(100f);
         for (int n = 0; n < 20; n++) panel.StepFx(1f / 60f);
         bool threw = false;
         try { panel.Close(); panel.StepFx(.5f); } catch (System.Exception) { threw = true; }
-        Check("leaving the Shop mid-animation does not throw and snaps to the true balance", !threw && !panel.FxActive && panel.DustText.text == "2,284");
+        Check("leaving the Shop mid-animation does not throw and snaps to the true balance", !threw && !panel.FxActive && panel.DustText.text == "2,484");
         ShopPanel.Open();
 
+        // the quick ad (+40): 40 particles, +1 each, from its own row, ends at the true balance
+        PlayerPrefs.SetFloat(StarDustLedger.CurrencyKey, 2524f);
+        ShopCatalog.RaiseAdRewarded(40f);
+        Check("quick ad +40: burst on, total starts at 2,484, 40 particles", panel.FxActive && panel.DustText.text == "2,484" && panel.Fx.Count == 40);
+        var seenQ = new List<int>();
+        for (int n = 0; n < 400 && panel.FxActive; n++) { panel.StepFx(1f / 60f); seenQ.Add(panel.DustShown); }
+        bool stepsQ = true; for (int i = 1; i < seenQ.Count; i++) if (seenQ[i] - seenQ[i - 1] > 2 || seenQ[i] < seenQ[i - 1]) stepsQ = false;
+        Check("quick ad: +1 at a time and ends at 2,524 in about 1.5 s", stepsQ && !panel.FxActive && panel.DustText.text == "2,524" && seenQ.Count >= 70 && seenQ.Count <= 108);
+        Check("the two ad rows load independently (not loaded -> LOADING each, tap does nothing)",
+              ShopCatalog.WatchAdRow().kind == ShopRowKind.WatchAd && ShopCatalog.QuickAdRow().kind == ShopRowKind.QuickAd &&
+              ShopCatalog.WatchAdRow().state != ShopRowState.Buyable && ShopCatalog.QuickAdRow().state != ShopRowState.Buyable);
+
         // the timeline itself: 50, and a 6,000 pack, take about the same time and land exactly
-        foreach (int amount in new[] { 50, 850, 2500, 6000 })
+        foreach (int amount in new[] { 40, 50, 100, 850, 2500, 6000 })
         {
             var m = new ShopDustFx(null);
             m.Begin(Vector2.zero, new Vector2(100f, 100f), 1000, 1000 + amount, null);
