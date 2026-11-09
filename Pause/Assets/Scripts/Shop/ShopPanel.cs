@@ -77,6 +77,9 @@ public class ShopPanel : MonoBehaviour
     readonly List<RectTransform> sectionHeads = new List<RectTransform>();
     readonly List<Text> sectionLabels = new List<Text>();
     bool open, dirty;
+    // the watch-ad reward flourish (burst, flying dust, count-up); null until the first reward
+    ShopDustFx fx;
+    float pulseShift;
     float nextPoll;
     string signature = "";
     Vector2 lastSize;
@@ -285,7 +288,7 @@ public class ShopPanel : MonoBehaviour
             rows[i].row = fresh[i];
             Paint(rows[i]);
         }
-        dust.text = Mathf.FloorToInt(StarDustLedger.Saved).ToString("N0");
+        PaintDust();
         storeNote.text = ShopCatalog.StoreDownText;
         storeNote.gameObject.SetActive(ShopCatalog.StoreDown);
         signature = Signature(fresh);
@@ -392,6 +395,7 @@ public class ShopPanel : MonoBehaviour
         // the star sits just left of the number, which is right-aligned to the header's edge
         float numW = Mathf.Min(dustW - 52f, dust.preferredWidth);
         SetRect(dustIcon.rectTransform, width - numW - 52f, 20f, 44f, 44f, headerRoot);
+        pulseShift = 0f;
         // footer
         float footerBottom = safe.yMin + 12f;
         float backW = Mathf.Min(300f, width);
@@ -557,6 +561,7 @@ public class ShopPanel : MonoBehaviour
         ParagonPurchase.Changed += OnChanged;
         SupportPurchase.Changed += OnChanged;
         SupportPurchase.Rewarded += OnRewarded;
+        ShopCatalog.AdRewarded += OnAdRewarded;
         DeveloperUnlocks.Changed += OnChanged;
         Boosters.Changed += OnChanged;
         Refresh();
@@ -567,11 +572,13 @@ public class ShopPanel : MonoBehaviour
     {
         if (!open) return;
         open = false;
+        EndFx();
         BackNavigator.Unregister(this);
         RemoveAdsPurchase.Changed -= OnChanged;
         ParagonPurchase.Changed -= OnChanged;
         SupportPurchase.Changed -= OnChanged;
         SupportPurchase.Rewarded -= OnRewarded;
+        ShopCatalog.AdRewarded -= OnAdRewarded;
         DeveloperUnlocks.Changed -= OnChanged;
         Boosters.Changed -= OnChanged;
         gameObject.SetActive(false);
@@ -607,7 +614,88 @@ public class ShopPanel : MonoBehaviour
     // A panel whose scene was unloaded outside play (edit-mode suites never run OnDestroy) is a destroyed
     // object still on the static events: drop it instead of painting its dead texts.
     void OnChanged() { if (this == null) { Unsubscribe(); return; } if (open) Refresh(); }
-    void OnRewarded(int amount) { if (this == null) { Unsubscribe(); return; } if (open) Refresh(); }
+    // A Star Dust pack was granted (paid + saved): the same burst and count-up as the ad, from that pack's row.
+    void OnRewarded(int amount) { if (this == null) { Unsubscribe(); return; } if (!open) return; Refresh(); PlayReward(amount, true); }
+
+    // ---- the watch-ad reward flourish ----
+
+    public bool FxActive { get { return fx != null && fx.Active; } }
+    public int DustShown { get { return FxActive ? fx.Displayed : Mathf.FloorToInt(StarDustLedger.Saved); } }
+    public ShopDustFx Fx { get { return fx; } }
+
+    // The ad's 50 dust is already saved. Plays the burst at the ad row and walks the shown total up to the saved balance.
+    void OnAdRewarded(float amount)
+    {
+        if (this == null) { Unsubscribe(); return; }
+        if (!open) return;
+        PlayReward(amount);
+    }
+
+    // Public so a test (or a rig) can play it without an ad.
+    public void PlayReward(float amount, bool pack = false)
+    {
+        if (!open) return;
+        int to = Mathf.FloorToInt(StarDustLedger.Saved);
+        int from = FxActive ? fx.Displayed : to - Mathf.RoundToInt(amount);
+        if (fx == null)
+        {
+            var layer = CodexUi.NewRect("DustFx", canvas.transform);
+            CodexUi.Stretch(layer);
+            fx = new ShopDustFx(layer);
+        }
+        fx.LayerRect.SetAsLastSibling();
+        // the burst sits on the row that paid: the ad row, or the pack that was bought
+        RectTransform from_ = null;
+        for (int i = 0; i < rows.Count && from_ == null; i++)
+        {
+            var r = rows[i].row;
+            if (pack ? (r.pack != null && r.pack.dust == Mathf.RoundToInt(amount)) : r.kind == ShopRowKind.WatchAd) from_ = rows[i].button.rectTransform;
+        }
+        if (from_ == null) from_ = panel;
+        fx.Begin(LocalOf(from_), LocalOf(dust.rectTransform), from, to, dustIcon.sprite);
+        PaintDust();
+    }
+
+    Vector2 LocalOf(RectTransform rt)
+    {
+        var layer = fx.LayerRect;
+        Vector3 w = rt.TransformPoint(rt.rect.center);
+        return layer.InverseTransformPoint(w);
+    }
+
+    // Advances the flourish (the panel's Update does this each frame; tests drive it by hand).
+    public void StepFx(float dt) { TickFx(dt); }
+
+    void TickFx(float dt)
+    {
+        if (fx == null || !fx.Active) return;
+        fx.Step(dt);
+        PaintDust();
+    }
+
+    // Leaves the Shop (or is destroyed) mid-flight: the balance is already saved, so just snap the display.
+    void EndFx()
+    {
+        if (fx == null) return;
+        fx.Finish();
+        if (dust != null) PaintDust();
+    }
+
+    // The total: the true saved balance, or the count-up's current step while the flourish runs; pulses on each landing.
+    void PaintDust()
+    {
+        if (dust == null) return;
+        dust.text = DustShown.ToString("N0");
+        float s = FxActive ? fx.Pulse : 1f;
+        var rt = dust.rectTransform;
+        rt.localScale = new Vector3(s, s, 1f);
+        float shift = (s - 1f) * rt.rect.width * .5f;   // keep the right edge (the number's end) where it is
+        var pos = rt.anchoredPosition;
+        pos.x += pulseShift - shift;
+        rt.anchoredPosition = pos;
+        pulseShift = shift;
+        if (dustIcon != null) dustIcon.rectTransform.localScale = new Vector3(s, s, 1f);
+    }
 
     void Unsubscribe()
     {
@@ -615,12 +703,14 @@ public class ShopPanel : MonoBehaviour
         ParagonPurchase.Changed -= OnChanged;
         SupportPurchase.Changed -= OnChanged;
         SupportPurchase.Rewarded -= OnRewarded;
+        ShopCatalog.AdRewarded -= OnAdRewarded;
         DeveloperUnlocks.Changed -= OnChanged;
         Boosters.Changed -= OnChanged;
     }
 
     void OnDestroy()
     {
+        EndFx();
         HideMenu(false);
         BackNavigator.Unregister(this);
         Unsubscribe();
@@ -645,6 +735,7 @@ public class ShopPanel : MonoBehaviour
     void Update()
     {
         if (!open) return;
+        TickFx(Time.unscaledDeltaTime);
         // The store answers without an event for some changes (a cancelled sheet clears Buying): poll cheaply.
         if (Time.unscaledTime >= nextPoll)
         {

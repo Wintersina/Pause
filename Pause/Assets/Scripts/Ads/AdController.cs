@@ -386,7 +386,9 @@ public sealed class AdController
             },
             earned = () =>
             {
-                if (mark != session || sessionFinished || !sessionRewarded) return;
+                // The SDK may report the reward AFTER the close (or after an abandoned show): pay anyway while this is
+                // still the latest show. PayShop / Pay are once-per-show (sessionPaid, and the death token).
+                if (mark != session || !sessionRewarded) return;
                 if (sessionShop) PayShop(); else Pay();
             },
             closed = () =>
@@ -434,7 +436,7 @@ public sealed class AdController
         if (wasShown || sessionOpened || abandoned) lastAdAt = clock();
         var done = sessionDone;
         sessionDone = null;
-        sessionOnPaid = null;
+        // sessionOnPaid stays: a reward that arrives after the close still reports (BeginShow clears it).
         if (!loadingInterstitial) LoadInterstitialNow();   // the one load that may overlap a run start: its calm opening
         if (!loadingRewarded) LoadRewardedNow();
         if (done != null) { try { done(); } catch (Exception e) { Debug.LogException(e); } }

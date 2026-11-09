@@ -80,6 +80,7 @@ public static class AdsTest
             Cadence();
             RunEndAndShopFlow();
             ReplaySpam();
+            RewardEventOrder();
             BannerLayout();
             Controller();
             Environment();
@@ -290,6 +291,63 @@ public static class AdsTest
         r = new Rig { enabled = false };
         Check("DISABLED: no banner, no interstitial, no shop ad",
             r.controller.TryRunEndAd(Good(), null) == AdPolicy.RunEndAd.None && !r.controller.TryShowShopReward(null, null) && r.provider.bannerShows == 0);
+    }
+
+    // The SDK may fire the reward before or after the close, with the Shop gone: one grant per earned reward, none without.
+    static void RewardEventOrder()
+    {
+        Rig Fresh() { var rg = new Rig(); rg.BootReady(); return rg; }
+
+        var r = Fresh(); var c = r.controller; float paid = 0f; bool done = false;
+        c.TryShowShopReward(x => paid = x, () => done = true);
+        r.provider.lastEvents.opened(); r.provider.lastEvents.earned(); r.provider.lastEvents.closed();
+        Check("ORDER shop: reward then close -> one grant", r.store.grants == 1 && done && Mathf.Approximately(paid, 50f));
+
+        r = Fresh(); c = r.controller; paid = 0f; done = false;
+        c.TryShowShopReward(x => paid = x, () => done = true);
+        r.provider.lastEvents.opened(); r.provider.lastEvents.closed(); r.provider.lastEvents.earned(); r.provider.lastEvents.earned();
+        Check("ORDER shop: close then reward -> still exactly one grant and callback", r.store.grants == 1 && Mathf.Approximately(r.store.granted, 50f) && Mathf.Approximately(paid, 50f) && done);
+
+        r = Fresh(); c = r.controller;
+        c.TryShowShopReward(null, null);
+        r.provider.lastEvents.opened(); r.provider.lastEvents.closed();
+        Check("ORDER shop: close without reward -> no grant", r.store.grants == 0);
+
+        r = Fresh(); c = r.controller;
+        c.TryShowShopReward(x => throw new InvalidOperationException("Shop is gone"), null);   // a dead panel's callback
+        r.provider.lastEvents.opened(); r.provider.lastEvents.closed(); r.provider.lastEvents.earned();
+        Check("ORDER shop: reward with the Shop closed (callback throws) -> still granted once", r.store.grants == 1);
+
+        r = Fresh(); c = r.controller;
+        c.TryShowShopReward(null, null);
+        r.now += AdController.OpenTimeoutSeconds + 1f; c.Tick();   // never opened in time: abandoned
+        r.provider.lastEvents.earned();
+        Check("ORDER shop: reward after an abandoned show -> granted once", r.store.grants == 1);
+
+        r = Fresh(); c = r.controller;
+        c.TryShowShopReward(null, null);
+        r.provider.lastEvents.opened(); r.provider.lastEvents.closed();
+        var oldEvents = r.provider.lastEvents;
+        r.provider.rewardedReady = true;
+        c.TryShowShopReward(null, null);
+        oldEvents.earned();
+        Check("ORDER shop: a reward from an older show does not pay a newer one", r.store.grants == 0);
+
+        // double dust shares the path
+        r = Fresh(); c = r.controller; paid = 0f;
+        c.TryShowRewarded(7001L, 4f, x => paid = x, null);
+        r.provider.lastEvents.opened(); r.provider.lastEvents.closed(); r.provider.lastEvents.earned(); r.provider.lastEvents.earned();
+        Check("ORDER double dust: close then reward -> paid once", r.store.pays == 1 && r.store.paid == 7001L && paid > 0f);
+
+        r = Fresh(); c = r.controller;
+        c.TryShowRewarded(7002L, 4f, null, null);
+        r.provider.lastEvents.opened(); r.provider.lastEvents.earned(); r.provider.lastEvents.closed(); r.provider.lastEvents.earned();
+        Check("ORDER double dust: reward then close -> paid once", r.store.pays == 1);
+
+        r = Fresh(); c = r.controller;
+        c.TryShowRewarded(7003L, 4f, null, null);
+        r.provider.lastEvents.opened(); r.provider.lastEvents.closed();
+        Check("ORDER double dust: close without reward -> nothing paid", r.store.pays == 0);
     }
 
     // The banner never overlaps the panel or the double dust button under its frame, on tall phones, foldables (the Flip

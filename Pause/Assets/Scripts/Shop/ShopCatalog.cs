@@ -144,6 +144,10 @@ public static class ShopCatalog
     // "Watch an ad: +50 Star Dust": ALWAYS on offer (Remove Ads and Paragon owners too), repeatable. Buyable only while a
     // rewarded ad is loaded; otherwise a disabled LOADING state (UNAVAILABLE where ads are off altogether). The dust is
     // credited only by the SDK's reward callback (AdController.TryShowShopReward -> StarDustLedger.Grant).
+    // Raised (main thread) once the ad's star dust is granted and saved; the open Shop plays its burst and count-up.
+    public static event System.Action<float> AdRewarded;
+    public static void RaiseAdRewarded(float amount) { var h = AdRewarded; if (h != null) h(amount); }
+
     public static ShopRow WatchAdRow()
     {
         var row = new ShopRow { kind = ShopRowKind.WatchAd, title = WatchAdTitle, subtitle = WatchAdText };
@@ -227,7 +231,7 @@ public static class ShopCatalog
         // Booster rows spend star dust on the spot: no sheet, so they neither wait for nor block a purchase flow.
         if (row.IsBooster) return Boosters.Buy(row.booster) == Boosters.BuyResult.Bought;
         // The ad row has no purchase flow either: it never waits on, or blocks, a store sheet.
-        if (row.kind == ShopRowKind.WatchAd) return AdManager.TryShowShopReward(null, null);
+        if (row.kind == ShopRowKind.WatchAd) return AdManager.TryShowShopReward(RaiseAdRewarded, null);
         if (AnyBuying) return false;
         switch (row.kind)
         {
