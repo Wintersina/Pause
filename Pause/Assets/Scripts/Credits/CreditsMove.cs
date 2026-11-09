@@ -131,14 +131,16 @@ public class CreditsMove : MonoBehaviour {
         Vector2 center = area.center;
         float left = area.xMin - center.x, right = area.xMax - center.x;
         float bottom = area.yMin - center.y, top = area.yMax - center.y;
-        if (Screen.width > 0 && Screen.height > 0)
+        if (ScreenInfo.Width > 0 && ScreenInfo.Height > 0)
         {
-            Rect safe = Screen.safeArea;
-            float ux = area.width / Screen.width, uy = area.height / Screen.height;
+            Rect safe = ScreenInfo.SafeArea;
+            float ux = area.width / ScreenInfo.Width, uy = area.height / ScreenInfo.Height;
             left += safe.xMin * ux;
-            right -= (Screen.width - safe.xMax) * ux;
+            right -= (ScreenInfo.Width - safe.xMax) * ux;
             bottom += safe.yMin * uy;
-            top -= (Screen.height - safe.yMax) * uy;
+            top -= (ScreenInfo.Height - safe.yMax) * uy;
+            // The banner ad sits at the bottom of the screen: the roll never bounces down into it.
+            bottom += AdManager.BannerReserveUnits(uy > 0f ? 1f / uy : 1f);
         }
         float logo = 0f;
         var lockup = transform.Find(LockupName) as RectTransform;
