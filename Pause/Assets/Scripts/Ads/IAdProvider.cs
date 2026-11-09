@@ -37,6 +37,11 @@ public interface IAdProvider
     void ShowInterstitial(AdShowEvents events);
     void ShowRewarded(AdShowEvents events);
 
+    // The Shop's "quick ad": a rewarded INTERSTITIAL unit. Same event contract as ShowRewarded.
+    bool QuickReady { get; }
+    void LoadQuick(Action<bool> done);
+    void ShowQuick(AdShowEvents events);
+
     // The small banner on the results modal, bottom centre of the screen. Never requested when no real unit ID exists
     // (BannerAvailable false). Show is fire-and-forget; Hide removes it at once.
     bool BannerAvailable { get; }

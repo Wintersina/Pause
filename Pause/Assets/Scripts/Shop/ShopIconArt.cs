@@ -25,7 +25,9 @@ public static class ShopIconArt
             case ShopRowKind.Pack:
                 if (r.pack == null) return null;
                 return r.pack.dust >= 5000 ? "pack_6000" : r.pack.dust >= 2000 ? "pack_2500" : "pack_850";
-            case ShopRowKind.WatchAd: return "ad_dust";
+            // the TV icon; the quick ad reuses it until it gets its own art. (ad_dust is on master; the fallback is harmless.)
+            case ShopRowKind.WatchAd:
+            case ShopRowKind.QuickAd: return Get("ad_dust") != null ? "ad_dust" : "pack_850";
             case ShopRowKind.DustBooster: return "booster_dust_x2";
             case ShopRowKind.HazardClear: return "booster_hazard_clear";
             case ShopRowKind.HomingAtoms: return "booster_homing_atoms";

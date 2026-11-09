@@ -44,9 +44,9 @@ public sealed class AdController
     float phaseStarted;
 
     bool runActive;
-    bool loadingInterstitial, loadingRewarded;
-    float nextInterstitialTry, nextRewardedTry;
-    float interstitialBackoff = FirstRetrySeconds, rewardedBackoff = FirstRetrySeconds;
+    bool loadingInterstitial, loadingRewarded, loadingQuick;
+    float nextInterstitialTry, nextRewardedTry, nextQuickTry;
+    float interstitialBackoff = FirstRetrySeconds, rewardedBackoff = FirstRetrySeconds, quickBackoff = FirstRetrySeconds;
 
     // One show at a time; `session` invalidates stale callbacks of an abandoned show.
     int session;
@@ -57,8 +57,10 @@ public sealed class AdController
     long sessionToken; float sessionEarned; Action<float> sessionOnPaid;
 
     // Shop rewarded ad: always available, no death token.
-    public const float ShopAdDust = 50f;
-    bool sessionShop;
+    public const float ShopAdDust = 100f;    // the full rewarded ad
+    public const float QuickAdDust = 40f;    // the rewarded interstitial ("quick ad")
+    bool sessionShop, sessionQuick;
+    float sessionShopAmount;
     int eligibleRunEnds;     // run ends (any length) counted since the last forced interstitial; RunsPerInterstitial or more = one is owed
     bool bannerUp;
 
@@ -82,6 +84,7 @@ public sealed class AdController
 
     public bool InterstitialReady { get { return phase == Phase.Ready && enabled() && provider.InterstitialReady; } }
     public bool RewardedReady { get { return phase == Phase.Ready && enabled() && provider.RewardedReady; } }
+    public bool QuickReady { get { return phase == Phase.Ready && enabled() && provider.QuickReady; } }
 
     // ---- run lifecycle (called by the game) ----
 
@@ -109,7 +112,7 @@ public sealed class AdController
     public void OnRunEnd(bool died)
     {
         runActive = false;
-        if (died) { nextInterstitialTry = 0f; nextRewardedTry = 0f; }
+        if (died) { nextInterstitialTry = 0f; nextRewardedTry = 0f; nextQuickTry = 0f; }
     }
 
     public void OnDeathPanel() { watchedRewardedAtDeath = false; }
@@ -161,7 +164,7 @@ public sealed class AdController
             {
                 if (phase != Phase.Initialising || mark != session) return;
                 phase = Phase.Ready;
-                nextInterstitialTry = nextRewardedTry = 0f;
+                nextInterstitialTry = nextRewardedTry = nextQuickTry = 0f;
             });
         }
         catch (Exception e) { Debug.Log("[ADS] init failed: " + e.Message); phase = Phase.Blocked; }
@@ -209,6 +212,7 @@ public sealed class AdController
         if (runActive) return;   // no load requests mid-run
         if (!loadingInterstitial && !provider.InterstitialReady && now >= nextInterstitialTry) LoadInterstitialNow();
         if (!loadingRewarded && !provider.RewardedReady && now >= nextRewardedTry) LoadRewardedNow();
+        if (!loadingQuick && !provider.QuickReady && now >= nextQuickTry) LoadQuickNow();
     }
 
     void LoadInterstitialNow()
@@ -239,6 +243,21 @@ public sealed class AdController
             });
         }
         catch (Exception) { loadingRewarded = false; nextRewardedTry = clock() + rewardedBackoff; }
+    }
+
+    void LoadQuickNow()
+    {
+        loadingQuick = true;
+        try
+        {
+            provider.LoadQuick(ok =>
+            {
+                loadingQuick = false;
+                if (ok) quickBackoff = FirstRetrySeconds;
+                else { nextQuickTry = clock() + quickBackoff; quickBackoff = Mathf.Min(quickBackoff * 2f, MaxRetrySeconds); }
+            });
+        }
+        catch (Exception) { loadingQuick = false; nextQuickTry = clock() + quickBackoff; }
     }
 
     // ---- the forced interstitial ----
@@ -324,19 +343,27 @@ public sealed class AdController
     // ---- the Shop's rewarded ad (+ShopAdDust star dust, every time, for everyone) ----
 
     public bool ShopAdReady { get { return RewardedReady && !busy; } }
+    public bool ShopQuickReady { get { return QuickReady && !busy; } }
 
     // Shows the rewarded ad for the Shop. The dust is credited ONLY from the SDK's reward callback (once per show), through
     // the reward store; no AdPolicy guard applies (Remove Ads owners keep it). `onDone` runs when the flow ends.
-    public bool TryShowShopReward(Action<float> onPaid, Action onDone)
+    public bool TryShowShopReward(Action<float> onPaid, Action onDone) { return TryShowShop(false, onPaid, onDone); }
+
+    // The same flow on the rewarded interstitial unit: +QuickAdDust, identical exactly-once / late-reward guarantees.
+    public bool TryShowQuickReward(Action<float> onPaid, Action onDone) { return TryShowShop(true, onPaid, onDone); }
+
+    bool TryShowShop(bool quick, Action<float> onPaid, Action onDone)
     {
-        if (!enabled() || phase != Phase.Ready || busy || !provider.RewardedReady) return false;
+        if (!enabled() || phase != Phase.Ready || busy || !(quick ? provider.QuickReady : provider.RewardedReady)) return false;
         BeginShow(true);
         sessionShop = true;
+        sessionQuick = quick;
+        sessionShopAmount = quick ? QuickAdDust : ShopAdDust;
         sessionDone = onDone;
         sessionOnPaid = onPaid;
         int mark = session;
         var events = Events(mark);
-        try { provider.ShowRewarded(events); }
+        try { if (quick) provider.ShowQuick(events); else provider.ShowRewarded(events); }
         catch (Exception e) { Debug.Log("[ADS] shop rewarded show threw: " + e.Message); FinishShow(false); }
         return true;
     }
@@ -368,7 +395,7 @@ public sealed class AdController
         sessionStarted = clock();
         sessionOpened = sessionFinished = sessionPaid = lateOpen = false;
         sessionRewarded = rewarded;
-        sessionShop = false;
+        sessionShop = sessionQuick = false;
         sessionOnPaid = null;
     }
 
@@ -409,11 +436,11 @@ public sealed class AdController
     {
         if (sessionPaid) return;
         sessionPaid = true;
-        try { store.Grant(ShopAdDust); }
+        try { store.Grant(sessionShopAmount); }
         catch (Exception e) { Debug.Log("[ADS] shop reward store threw: " + e.Message); return; }
-        Debug.Log("[ADS] shop ad rewarded +" + ShopAdDust);
+        Debug.Log("[ADS] shop ad rewarded +" + sessionShopAmount);
         var cb = sessionOnPaid;
-        if (cb != null) { try { cb(ShopAdDust); } catch (Exception) { } }
+        if (cb != null) { try { cb(sessionShopAmount); } catch (Exception) { } }
     }
 
     void Pay()
@@ -444,6 +471,7 @@ public sealed class AdController
         // sessionOnPaid stays: a reward that arrives after the close still reports (BeginShow clears it).
         if (!loadingInterstitial) LoadInterstitialNow();   // the one load that may overlap a run start: its calm opening
         if (!loadingRewarded) LoadRewardedNow();
+        if (!loadingQuick) LoadQuickNow();
         if (done != null) { try { done(); } catch (Exception e) { Debug.LogException(e); } }
     }
 }
