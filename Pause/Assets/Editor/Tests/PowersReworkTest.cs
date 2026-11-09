@@ -545,8 +545,8 @@ public static class PowersReworkTest
         Check("they launch from the ship, and the slow motion waits for them", gold.Runner.SentriesNow == 3 && gold.Runner.CinematicHold);
         Steps(gold.Runner, 1f);
         Check("once deployed the slow motion no longer needs the attack", !gold.Runner.CinematicHold && gold.Runner.ActiveRuns == 1);
-        Steps(gold.Runner, 7f);
-        Check("they shoot, then fold away", gold.Runner.SentriesNow == 0 && gold.Runner.ActiveRuns == 0 && gold.Runner.SentryBolts > 15 && gold.Runner.SentryBolts < 30);
+        Steps(gold.Runner, 13f);
+        Check("they shoot, then fold away", gold.Runner.SentriesNow == 0 && gold.Runner.ActiveRuns == 0 && gold.Runner.SentryBolts > 30 && gold.Runner.SentryBolts < 60);
         Check("a sentry is worth about one boss hit (" + fake.weight + " over " + fake.hits + " bolts)", fake.weight > 2.4f && fake.weight <= 3.01f);
         Object.DestroyImmediate(fake.gameObject);
 
