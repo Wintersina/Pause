@@ -198,6 +198,9 @@ public static class CodexNewDotsTest
             Check("sequence: closing the codex mid-way credits the rest too", !panel.CollectSequenceActive && Codex.PendingIn(catA) == 0);
             PlayerPrefs.SetFloat(StarDustLedger.CurrencyKey, 115f);
             SequenceChecks();
+            // the combo found above must not leak into the sections below (their pending counts are exact)
+            PlayerPrefs.DeleteKey(FusionDiscoveryStore.PrefsKey);
+            FusionDiscoveryStore.Reload();
 
             // ---- developer mode shows and pays nothing ----
             PlayerPrefs.SetString(Codex.PrefsKey, inA[0].id + "," + inB.id);
