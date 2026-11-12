@@ -12,7 +12,7 @@ using UnityEngine;
 // pop at crack hot spots and pooled smoke puffs trail behind it, capped per
 // rock and overall. All of it is behind gameplay, keeps clear of the
 // stations at its depth, freezes while paused and allocates nothing per
-// frame. The rocks are also breakable (invisible hit body, 1 / 2 / 3 hits),
+// frame. The rocks are pure scenery (nothing can hit or target them),
 // and now and then a fated rock collides with another rock or flies into a
 // planet (decorative bursts, a crater mark, no score).
 //
@@ -48,7 +48,7 @@ public static class AsteroidDriftTest
             Art();
             SpaceOnly();
             LongRun();
-            Breakable();
+            Decorative();
             Events();
             Determinism();
         }
@@ -58,7 +58,7 @@ public static class AsteroidDriftTest
             Time.timeScale = 1f;
             SpaceDirector.AsteroidSeedOverride = savedSeed;
             SpaceDirector.AsteroidPixelHeightOverride = savedPx;
-            SpaceDirector.RocksBreakableOverride = false;
+            SpaceDirector.RunOnOverride = false;
             SpaceDirector.EventsDisabled = false;
             SpaceAsteroidField.ClearAll();
         }
@@ -170,103 +170,50 @@ public static class AsteroidDriftTest
         finally { Object.DestroyImmediate(go); }
     }
 
-    // ---- breakable rocks -------------------------------------------------------------
+    // ---- decorative only -------------------------------------------------------------
 
-    static SpaceAsteroidDrift.Rock Armed(SpaceAsteroidDrift drift, bool biggest)
-    {
-        SpaceAsteroidDrift.Rock best = null;
-        foreach (var r in drift.Rocks)
-        {
-            if (!r.active || r.target == null || !r.target.gameObject.activeSelf) continue;
-            if (best == null || (biggest && r.maxHealth > best.maxHealth)) best = r;
-        }
-        return best;
-    }
-
-    static void Breakable()
+    static void Decorative()
     {
         Time.timeScale = 1f;
         moveBackGround.speed = 0.2f;
         SpaceDirector.AsteroidSeedOverride = -1;
-        SpaceDirector.RocksBreakableOverride = true;
-        SpaceDirector.EventsDisabled = true;        // (a fated rock vanishing mid-test would muddy the hit counts)
-        var go = new GameObject("~AsteroidBreakTest");
+        SpaceDirector.RunOnOverride = true;         // a run is on: this used to be what armed the rocks
+        SpaceDirector.EventsDisabled = true;
+        SpaceAsteroidField.ClearAll();
+        var go = new GameObject("~AsteroidDecorTest");
         var wb = go.AddComponent<WorldBackdrop>();
         try
         {
+            int liveBefore = ClearTarget.Live.Count;
             wb.Show("Space", false);
             var drift = (wb.Current.Director as SpaceDirector)?.AsteroidDrift;
-            if (drift == null || !drift.Ready) { Check("breakable: the drift field is ready", false); return; }
-            for (int i = 0; i < 4 * 30; i++) wb.Step(Dt);
+            if (drift == null || !drift.Ready) { Check("decorative: the drift field is ready", false); return; }
+            for (int i = 0; i < 6 * 30; i++) wb.Step(Dt);
 
-            var rock = Armed(drift, true);
-            Check("a rock in view carries a hit body", rock != null);
-            if (rock == null) return;
-            var body = rock.target.gameObject;
-            var clear = body.GetComponent<ClearTarget>();
-            Check("the hit body is an invisible, collider-less Astr hazard that the weapons find but nothing else treats as a body",
-                  body.CompareTag("Astr") && body.GetComponent<Collider2D>() == null && body.GetComponent<Renderer>() == null &&
-                  clear != null && clear.Scenery && ClearTarget.Live.Contains(clear) && ShipTargets.IsHazard(clear) &&
-                  !ShipTargets.IsThreat(clear) && FriendlyFire.Immune(body) && !FriendlyFire.CanHit(clear));
-            Check("it sits on the rock and is as big as its art (x" + SpaceDirector.RockHitShare + ")",
-                  ((Vector2)(body.transform.position - rock.piece.root.position)).magnitude < 0.01f &&
-                  Mathf.Abs(clear.Radius - Mathf.Max(0.05f, SpaceAsteroidDrift.Reach(rock) * SpaceDirector.RockHitShare)) < 0.01f);
-            Check("hit points follow the size: 1 small, 2 medium, 3 big",
-                  SpaceDirector.RockHitsFor(0f) == 1 && SpaceDirector.RockHitsFor(0.5f) == 2 && SpaceDirector.RockHitsFor(1f) == 3 &&
-                  rock.maxHealth == SpaceDirector.RockHitsFor(rock.sizeT) && Mathf.Approximately(rock.health, rock.maxHealth));
-            Check("the weapons' lock-on and the ultimate see it",
-                  ShipTargets.Collect(new List<ClearTarget>()) > 0 && ShipTargets.CountOnScreen(false) == CountThreats());   // (it is no threat)
-            Check("the ultimate's 'screen cleared' check ignores it", ClearTarget.CountOnScreen(null) == CountThreats());
-
-            // hit it once, with the firing's boss allowance already spent: scenery takes every hit in full
-            int puffsBefore = drift.PuffsEmitted;
-            float spent = 0f;
-            bool broke = ShipAttackHits.Hit(body, 0, 1f, ref spent);
-            if (rock.maxHealth > 1)
+            Check("rocks are in flight", drift.ActiveCount > 0);
+            bool clean = true;
+            foreach (var r in drift.Rocks)
             {
-                Check("a hit hurts it without breaking it, even with the allowance spent",
-                      rock.active && Mathf.Approximately(rock.health, rock.maxHealth - 1f) && rock.flash > 0f && !broke);
-                for (int i = 0; i < 2 * 30; i++) wb.Step(Dt);
-                Check("a hurt rock keeps smoking (its smoke is still emitted)", drift.PuffsEmitted > puffsBefore);
+                var root = r.piece.root;
+                clean &= root.GetComponentsInChildren<Collider2D>(true).Length == 0 &&
+                         root.GetComponentsInChildren<Collider>(true).Length == 0 &&
+                         root.GetComponentsInChildren<ClearTarget>(true).Length == 0 &&
+                         root.GetComponentsInChildren<IShipAttackTarget>(true).Length == 0;
             }
-            else Check("a small rock breaks on its one hit", !rock.active && drift.Breaks == 1);
+            Check("a drift rock has no collider, no ClearTarget and no attack-target component", clean);
+            bool noBody = true;
+            foreach (var t in go.GetComponentsInChildren<Transform>(true))
+                noBody &= t.name != "asteroid targets" && t.name != "space_drift_asteroid" && !t.CompareTag("Astr");
+            Check("the backdrop holds no hit bodies and no Astr-tagged object", noBody);
+            Check("nothing was registered with the weapons' target list (no lock-on, auto-aim, homing or power can find a rock)",
+                  ClearTarget.Live.Count == liveBefore && ShipTargets.Collect(new List<ClearTarget>()) == 0);
+            Check("the weapons and the ultimate see no threat and no hazard", CountThreats() == 0);
 
-            int livePuffs = drift.LivePuffs;
-            int guard = 0;
-            while (rock.active && guard++ < 8) ShipAttackHits.Hit(body, 0, 1f, ref spent);
-            Check("it breaks after exactly its hit points (" + rock.maxHealth + ")", !rock.active && drift.Breaks == 1);
-            Check("the hit body is released and hidden", !body.activeSelf && !clear.enabled && !ClearTarget.Live.Contains(clear));
-            Check("its smoke stays in the air after it breaks", drift.LivePuffs >= livePuffs);
-
-            // a second hit on the broken rock does nothing; the slot is reused cleanly
-            ShipAttackHits.Hit(body, 0, 1f, ref spent);
-            Check("a broken rock cannot break twice", drift.Breaks == 1);
-            bool counts = true;
-            for (int i = 0; i < 60 * 30; i++)
-            {
-                moveBackGround.speed = Mathf.Repeat(i * 0.0004f, 0.6f);
-                wb.Step(Dt);
-                if (i % 30 != 0) continue;
-                foreach (var r in drift.Rocks)
-                {
-                    int owned = 0;
-                    for (int k = 0; k < drift.PuffOwner.Length; k++) if (drift.PuffOwner[k] == drift.Rocks.IndexOf(r)) owned++;
-                    counts &= r.livePuffs == owned && r.livePuffs >= 0;
-                    // a body is live only for a rock that is in play
-                    if (r.target != null && r.target.gameObject.activeSelf)
-                        counts &= r.active && Mathf.Abs(r.piece.x) < wb.Current.HalfWidth + SpaceAsteroidDrift.Reach(r);
-                }
-            }
-            Check("through 60 s of respawns each rock's puff count matches its puffs in the air, bodies only on rocks in view", counts);
-
-            // outside a run (the menu: no world manager) nothing is targetable
-            SpaceDirector.RocksBreakableOverride = false;
-            wb.Step(Dt);
-            bool any = false;
-            foreach (var r in drift.Rocks) any |= r.target != null && r.target.gameObject.activeSelf;
-            Check("outside a run the rocks have no hit bodies", !any);
+            // the collision / impact events still work and stay decorative (see Events)
+            for (int i = 0; i < 20 * 30; i++) wb.Step(Dt);
+            Check("after 20 s more still nothing targetable", ClearTarget.Live.Count == liveBefore);
         }
-        finally { Object.DestroyImmediate(go); SpaceDirector.RocksBreakableOverride = false; }
+        finally { Object.DestroyImmediate(go); SpaceDirector.RunOnOverride = false; }
 
         // the dodge-field rocks take every hit in full like the backdrop rocks (uncapped: a spent elite allowance
         // does not shield them), and still need 1 / 2 / 3 hits
@@ -715,7 +662,7 @@ public static class AsteroidDriftTest
         moveBackGround.speed = 0.2f;
         SpaceDirector.AsteroidSeedOverride = -1;
         SpaceDirector.EventsDisabled = false;
-        SpaceDirector.RocksBreakableOverride = true;       // (the events, like the hit bodies, need a run on)
+        SpaceDirector.RunOnOverride = true;       // (the events need a run on)
         var go = new GameObject("~AsteroidEventTest");
         var wb = go.AddComponent<WorldBackdrop>();
         try
@@ -737,7 +684,6 @@ public static class AsteroidDriftTest
             Check("a collision of unalike rocks: the small one bursts, frees its slot, leaves smoke debris; the big one is shaken",
                   drift.RockCollisions == hits + 1 && !a.active && b.active && b.health < 3f && b.flash > 0f &&
                   drift.ActiveCount == active - 1 && drift.PuffsEmitted > puffs);
-            Check("... and the burst rock's hit body is gone", a.target == null || !a.target.gameObject.activeSelf);
 
             // alike: both burst
             SpaceAsteroidDrift.Rock c, d;
@@ -822,7 +768,7 @@ public static class AsteroidDriftTest
         }
         finally
         {
-            SpaceDirector.RocksBreakableOverride = false;
+            SpaceDirector.RunOnOverride = false;
             Time.timeScale = 1f;
             Object.DestroyImmediate(go);
         }

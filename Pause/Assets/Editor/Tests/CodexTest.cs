@@ -486,7 +486,6 @@ public static class CodexTest
               Array.TrueForAll(Codex.Entries, e =>
                   (e.category != CodexCategory.Enemies && e.category != CodexCategory.Hazards) ||
                   EnemyRoster.FindByCodexId(e.id) != null ||
-                  e.id == CodexCatalogue.DriftAsteroidId ||     // Space's breakable backdrop rock
                   EliteCatalog.FindByCodexId(e.id) != null ||   // the elite ships
                   BossCatalog.Find(e.id) != null));   // the secret end-of-level bosses
         foreach (string gone in new[] { "hazard_meteor_tiny", "hazard_meteor_small", "hazard_meteor_med",
@@ -649,16 +648,12 @@ public static class CodexTest
                   frames != null && frames.Length >= EnemyRoster.TellFrame + 2 && Array.TrueForAll(frames, f => f != null));
             accounted.Add(d.codexId);
         }
-        // ---- Space's breakable backdrop asteroid ----
-        {
-            var e = Codex.Find(CodexCatalogue.DriftAsteroidId);
-            Check("inventory: the drift asteroid is a Space hazard entry with the rock art", e != null && e.category == CodexCategory.Hazards &&
-                  !e.secret && e.Sprite != null && e.name == "Drift Asteroid" && EnemyRoster.FindByCodexId(e.id) == null);
-            Check("the drift asteroid's lore quotes its hits and its score",
-                  e != null && e.lore.Contains("small ones in 1 hit, medium in 2, big in 3") && e.lore.Contains("+" + ScoreRules.Rock + " POINTS"));
-            Check("the hit body's name resolves to its entry", Codex.IdForName(SpaceDirector.RockObjectName + "(Clone)") == CodexCatalogue.DriftAsteroidId);
-            accounted.Add(CodexCatalogue.DriftAsteroidId);
-        }
+        // ---- the drifting backdrop rocks are scenery: no codex entry ----
+        Check("the drift asteroid has no codex entry", Codex.Find("hazard_space_drift_asteroid") == null &&
+              Array.TrueForAll(Codex.Entries, e => !e.id.Contains("drift_asteroid") && !e.name.Contains("Drift Asteroid")));
+        Check("a stale save that still lists the drift asteroid is ignored (not new, not discovered, no pay)",
+              !Codex.IsNew("hazard_space_drift_asteroid") && !Codex.IsDiscovered("hazard_space_drift_asteroid") &&
+              CodexPayout.ForExtra("hazard_space_drift_asteroid") == 0);
 
         // ---- elites ----
         Check("elites pay 100 points and 15 star dust by default", ScoreRules.EliteDown == 100 && Mathf.Approximately(ScoreRules.EliteDownDust, 15f));
@@ -884,9 +879,6 @@ public static class CodexTest
                 temp.Add(go);
                 Hook(id, "picking up " + go.name, () => Codex.Discover(go), toasts);
             }
-            var rock = new GameObject(SpaceDirector.RockObjectName + "(Clone)");
-            temp.Add(rock);
-            Hook(CodexCatalogue.DriftAsteroidId, "breaking a drift asteroid (AwardDestroyedTarget)", () => Codex.Discover(rock), toasts);
             var heal = new GameObject(HealAtom.ObjectName);
             temp.Add(heal);
             Hook("atom_green", "picking up the heal atom", () => Codex.Discover(heal), toasts);
@@ -1675,7 +1667,6 @@ public static class CodexTest
             foreach (var d in EnemyRoster.All) if (d.world == w && d.IsHazard) want.Add(d.codexId);
             var got = new HashSet<string>();
             for (int i = 0; i < panel.SectionAt(w).entries.Count; i++) got.Add(panel.CardEntry(panel.SectionStart(w) + i).id);
-            if (w == 0) want.Add(CodexCatalogue.DriftAsteroidId);   // (Space's breakable backdrop rock sits with its rocks)
             grouped &= want.SetEquals(got) && got.Count == panel.SectionAt(w).entries.Count;
             var es = panel.SectionAt(w).entries;
             mineLast &= EnemyRoster.FindByCodexId(es[es.Count - 1].id).role == EnemyRole.Mine;

@@ -19,7 +19,6 @@ using System.Collections.Generic;
 //   Worlds: the other worlds          10
 //   Worlds: the wormhole portal       8
 //   Ships                             10
-//   Drift asteroid (Space rock)       5
 //   Log: Pilot's Log, Wormhole Gift,
 //        Last Stand (first replay kept) 5
 //   Combos (atomic fusions): pairs    8
