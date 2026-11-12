@@ -31,7 +31,7 @@ public class ClearTarget : MonoBehaviour, IPoolReset
 
     float radius = -1f;
 
-    // Scenery that still takes a hit (Space's drifting backdrop rocks, BackdropRockTarget): the ship's weapons
+    // Scenery that still takes a hit (a hit-taking backdrop body): the ship's weapons
     // and ultimate see it like any hazard, but nothing else treats it as a body -- not the elites' sensor,
     // friendly fire, the weather, the secret powers' threat counts nor the ultimate's "screen cleared" check.
     [System.NonSerialized] public bool Scenery;
