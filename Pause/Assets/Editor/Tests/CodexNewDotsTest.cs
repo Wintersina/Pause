@@ -129,6 +129,8 @@ public static class CodexNewDotsTest
             // ---- collect the rest of tab A with COLLECT ALL ----
             Check("tab chip now reads COLLECT ALL +5", panel.CollectTabLabel.text == "COLLECT ALL +5");
             panel.CollectTabButton.onClick.Invoke();
+            Check("collect all starts a sequence, the first find is already focused or paid", panel.CollectSequenceActive || Dust() >= 110f);
+            panel.FinishSequence();
             Check("collect all (tab A): +5, tab A's dot and chip clear, tab B's stays, home 1",
                   Dust() == 110f && !panel.TabNewDot(tabA).gameObject.activeSelf && !panel.CollectTabButton.interactable && panel.CollectTabLabel.text == "COLLECT ALL" &&
                   panel.TabNewDot(tabB).gameObject.activeSelf && home.BadgeShown == "1" && Codex.PendingIn(catB) == 1);
@@ -138,7 +140,64 @@ public static class CodexNewDotsTest
             panel.ShowCategory(catB);
             Check("view tab B: the bubble stays until collected", home.BadgeVisible && panel.TabNewDot(tabB).gameObject.activeSelf);
             panel.CollectTabButton.onClick.Invoke();
+            panel.FinishSequence();
             Check("collect tab B: dot gone, bubble hidden, total paid 15", Dust() == 115f && !panel.TabNewDot(tabB).gameObject.activeSelf && !home.BadgeVisible);
+
+            // ---- music and combos: dots, COLLECT ALL, and the badge clearing ----
+            var songs = CodexMusic.All.Where(t => t.id != CodexMusic.ThemeId && CodexPayout.ForExtra(t.id) > 0).Take(2).ToArray();
+            string song1 = songs[0].id, song2 = songs[1].id;
+            var bloom = AtomFusionTable.All[(int)FusionId.Bloom];
+            int songDust = CodexPayout.ForExtra(song1) + CodexPayout.ForExtra(song2), comboDust = CodexPayout.ForExtra(CodexPayout.FusionPayId(bloom));
+            Check("music candidates are real, paying tracks", CodexMusic.Find(song1) != null && CodexMusic.Find(song2) != null && songDust > 0 && comboDust > 0);
+            Codex.HearTrack(song1);
+            Codex.HearTrack(song2);
+            PlayerPrefs.DeleteKey(FusionDiscoveryStore.PrefsKey);
+            FusionDiscoveryStore.Reload();
+            FusionDiscoveryStore.RecordFiring(FusionId.Bloom, 1, 20261026);
+            Codex.NoteFusion(bloom);
+            panel.Refresh();
+            float dustBefore = Dust();
+            Check("music + combo unlocks light both tab dots and the home bubble (3 pending)",
+                  panel.TabNewDot(CodexPanel.MusicTab).gameObject.activeSelf && panel.TabNewDot(CodexPanel.CombosTab).gameObject.activeSelf && home.BadgeShown == "3");
+            panel.ShowTab(CodexPanel.MusicTab);
+            Check("music tab: COLLECT ALL shows with the right amount and 2 TO COLLECT",
+                  panel.CollectTabFrame.gameObject.activeSelf && panel.CollectTabButton.interactable && panel.CollectTabLabel.text == "COLLECT ALL +" + songDust);
+            panel.CollectTabButton.onClick.Invoke();
+            panel.FinishSequence();
+            Check("music tab: collecting pays the songs once, clears its dot and the chip, combos stay",
+                  Dust() == dustBefore + songDust && !panel.TabNewDot(CodexPanel.MusicTab).gameObject.activeSelf && !panel.CollectTabButton.interactable &&
+                  panel.TabNewDot(CodexPanel.CombosTab).gameObject.activeSelf && home.BadgeShown == "1");
+            panel.ShowTab(CodexPanel.CombosTab);
+            Check("combos tab: COLLECT ALL shows with the combo's amount", panel.CollectTabFrame.gameObject.activeSelf && panel.CollectTabButton.interactable &&
+                  panel.CollectTabLabel.text == "COLLECT ALL +" + comboDust);
+            panel.CollectTabButton.onClick.Invoke();
+            panel.FinishSequence();
+            Check("combos tab: collecting pays once, clears the tab dot (opening marked it seen) and the home bubble",
+                  Dust() == dustBefore + songDust + comboDust && !panel.TabNewDot(CodexPanel.CombosTab).gameObject.activeSelf && !home.BadgeVisible && Codex.PendingTotal == 0);
+            Check("music/combos views sit below the collect bar, never under it", panel.MusicBodyTop <= panel.CollectBarBottom + .01f && panel.CombosBodyTop <= panel.CollectBarBottom + .01f);
+            panel.ShowCategory(catA);
+
+            // ---- the COLLECT ALL sequence: one by one, skip credits the rest, the total is the instant total ----
+            PlayerPrefs.SetString(Codex.PrefsKey, inA[0].id + "," + inA[1].id + "," + inB.id);
+            PlayerPrefs.DeleteKey(Codex.PaidKey);
+            Codex.Reload();
+            panel.Refresh();
+            panel.ShowCategory(catA);
+            float seqBefore = Dust();
+            panel.CollectTabButton.onClick.Invoke();
+            Check("sequence: starts active, nothing paid before its first step, badges still lit", panel.CollectSequenceActive && Dust() == seqBefore && panel.TabNewDot(tabA).gameObject.activeSelf);
+            panel.CollectTabButton.onClick.Invoke();
+            Check("sequence: a second tap skips, credits the rest instantly and clears the badge",
+                  !panel.CollectSequenceActive && Dust() == seqBefore + 10f && !panel.TabNewDot(tabA).gameObject.activeSelf && Codex.PendingIn(catA) == 0 && Codex.PendingIn(catB) == 1);
+            PlayerPrefs.DeleteKey(Codex.PaidKey);
+            Codex.Reload();
+            panel.Refresh();
+            panel.ShowCategory(catA);
+            panel.CollectTabButton.onClick.Invoke();
+            panel.Close();
+            Check("sequence: closing the codex mid-way credits the rest too", !panel.CollectSequenceActive && Codex.PendingIn(catA) == 0);
+            PlayerPrefs.SetFloat(StarDustLedger.CurrencyKey, 115f);
+            SequenceChecks();
 
             // ---- developer mode shows and pays nothing ----
             PlayerPrefs.SetString(Codex.PrefsKey, inA[0].id + "," + inB.id);
@@ -252,6 +311,48 @@ public static class CodexNewDotsTest
         }
         UnityEngine.Debug.Log("[CND] failures: " + fails);
         return fails;
+    }
+
+
+    // The sequencing itself: plain C#, driven by Tick(dt).
+    static void SequenceChecks()
+    {
+        string[] ids = { "a", "b", "c" };
+        var amounts = new System.Collections.Generic.Dictionary<string, int> { { "a", 5 }, { "b", 8 }, { "c", 15 } };
+        var paid = new System.Collections.Generic.List<string>();
+        var focus = new System.Collections.Generic.List<string>();
+        System.Func<string, int> pay = id => { paid.Add(id); return amounts[id]; };
+        var seq = new CodexCollectSequence(ids, pay);
+        seq.Focused = id => focus.Add(id);
+        seq.Begin();
+        Check("seq: begins on the first id, nothing paid", seq.Active && focus.Count == 1 && focus[0] == "a" && paid.Count == 0);
+        seq.Tick(seq.StepSeconds * .5f);
+        Check("seq: half a step pays nothing", paid.Count == 0);
+        seq.Tick(seq.StepSeconds * .6f);
+        Check("seq: step one pays a, then focuses b (in order)", paid.Count == 1 && paid[0] == "a" && focus.Count == 2 && focus[1] == "b" && seq.TotalPaid == 5);
+        seq.Tick(seq.StepSeconds * 5f);
+        Check("seq: a long frame plays the rest in order, each its own amount, then is done", seq.Done && !seq.Active && string.Join("", paid) == "abc" && seq.TotalPaid == 28);
+        Check("seq: Finish afterwards pays nothing more", seq.Finish() == 0 && paid.Count == 3);
+
+        paid.Clear();
+        var skip = new CodexCollectSequence(ids, pay);
+        skip.Begin();
+        skip.Tick(skip.StepSeconds * 1.1f);
+        int rest = skip.Finish();
+        Check("seq: skip after one credits the others instantly, total equals the instant total", rest == 23 && skip.TotalPaid == 28 && string.Join("", paid) == "abc" && skip.Done);
+        skip.Tick(5f);
+        Check("seq: a finished sequence ignores Tick", paid.Count == 3);
+
+        paid.Clear();
+        var cancel = new CodexCollectSequence(ids, pay);
+        Check("seq: cancel before Begin still credits everything exactly once", cancel.Finish() == 28 && paid.Count == 3 && cancel.Done && cancel.Finish() == 0);
+        var empty = new CodexCollectSequence(new string[0], pay);
+        empty.Begin();
+        Check("seq: an empty sequence is done at once", empty.Done && empty.TotalPaid == 0);
+
+        Check("seq: ~0.3-0.5 s per item for a few, faster for many, never below .1 s",
+              CodexCollectSequence.StepSecondsFor(1) >= .3f && CodexCollectSequence.StepSecondsFor(1) <= .5f &&
+              CodexCollectSequence.StepSecondsFor(40) < CodexCollectSequence.StepSecondsFor(6) && CodexCollectSequence.StepSecondsFor(500) >= .1f);
     }
 
     static bool SameColor(Color a, Color b) { return Mathf.Abs(a.r - b.r) < .01f && Mathf.Abs(a.g - b.g) < .01f && Mathf.Abs(a.b - b.b) < .01f; }
