@@ -37,6 +37,7 @@ public sealed class CodexMusicView
     readonly CodexPanel panel;
     readonly Font font;
     RectTransform root;
+    public float TopEdge { get { return root.anchoredPosition.y + root.sizeDelta.y * .5f; } }
     CanvasGroup rootGroup;
     RectTransform strip;
     Text stripCount, stripLine;

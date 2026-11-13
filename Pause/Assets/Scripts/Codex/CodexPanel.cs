@@ -418,6 +418,10 @@ public class CodexPanel : MonoBehaviour
     bool tallyShown;
     float feedbackUntil;
     string feedbackText;
+    CodexCollectSequence sequence;      // COLLECT ALL's glide-and-pay sequence while it plays
+    Text popText;                       // the "+N" that flies from the list to the counter for each find
+    float popAt;
+    int sequenceShown;                  // dust paid so far by the running sequence (the counter ticks up)
     RectTransform grid, viewport, content;
     CanvasGroup gridGroup;
     ScrollRect scroll;
@@ -661,6 +665,12 @@ public class CodexPanel : MonoBehaviour
         collectBarText.resizeTextMinSize = 12;
         collectBarText.resizeTextMaxSize = 22;
         collectBarText.gameObject.SetActive(false);
+        popText = CodexUi.NewText("CollectPop", panel, font, "", 44, CodexUi.Title, TextAnchor.MiddleCenter);
+        CodexUi.AddOutline(popText.gameObject, CodexUi.Ink, 2f);
+        popText.raycastTarget = false;
+        CodexUi.Place(popText.rectTransform, CodexUi.Centered(0f, 0f, 220f, 70f));
+        popText.transform.SetAsLastSibling();
+        popText.gameObject.SetActive(false);
     }
 
     void BuildTabs()
@@ -950,39 +960,96 @@ public class CodexPanel : MonoBehaviour
     void OnCollectTab()
     {
         if (achievementsOpen || inDetail) return;
-        // The MUSIC and COMBOS views collect their own finds, then glide to the first one that was pending.
-        if (musicOpen || combosOpen)
+        // A second tap while the sequence plays skips the rest: everything left is credited at once.
+        if (sequence != null && sequence.Active) { FinishSequence(); return; }
+        var ids = musicOpen ? PendingTrackIds() : combosOpen ? PendingComboIds() : Codex.PendingIdsIn(category);
+        if (ids.Count == 0) return;
+        sequenceShown = 0;
+        sequence = new CodexCollectSequence(ids, Codex.CollectOne);
+        sequence.Focused = OnSequenceFocus;
+        sequence.Paid = OnSequencePaid;
+        sequence.Begin();
+        PaintNewDots();
+    }
+
+    public float MusicBodyTop { get { return music.TopEdge; } }
+    public float CombosBodyTop { get { return combos.TopEdge; } }
+    public float CollectBarBottom { get { return layout.collectBar.yMin; } }
+
+    public bool CollectSequenceActive { get { return sequence != null && sequence.Active; } }
+
+    // Credits everything the sequence has not paid yet, then clears the badges. Called on skip, Back, close, tab change, pause.
+    public void FinishSequence()
+    {
+        var seq = sequence;
+        if (seq == null) return;
+        seq.Finish();
+        EndSequence(seq);
+    }
+
+    void EndSequence(CodexCollectSequence seq)
+    {
+        if (sequence != seq) return;
+        sequence = null;
+        if (popText != null) popText.gameObject.SetActive(false);
+        AfterCollect(seq.TotalPaid);
+    }
+
+    void OnSequenceFocus(string id)
+    {
+        ScrollToFind(id);
+        PaintNewDots();
+    }
+
+    void OnSequencePaid(string id, int dust)
+    {
+        sequenceShown += dust;
+        popAt = Time.unscaledTime;
+        if (popText != null && dust > 0)
         {
-            string firstFind = musicOpen ? FirstPendingTrack() : FirstPendingCombo();
-            int paid = musicOpen ? Codex.CollectMusic() : Codex.CollectCombos();
-            AfterCollect(paid);
-            if (paid > 0 && firstFind != null) ScrollToFind(firstFind);
-            return;
+            popText.text = "+" + dust;
+            popText.gameObject.SetActive(true);
         }
-        // Remember where the first pending find sits before it is paid, then glide the list to it.
-        int first = FirstPendingCard();
-        int dust = Codex.CollectRewards(category);
-        AfterCollect(dust);
-        if (dust > 0 && first >= 0) ScrollToCard(first);
+        RefreshCounter();
+        PaintNewDots();
     }
 
-    // First pending song / combo in the order the view lists them (null: none).
-    static string FirstPendingTrack()
+    void TickSequence(float dt)
     {
-        var pending = Codex.PendingIds();
-        foreach (var t in CodexMusic.All) if (pending.Contains(t.id)) return t.id;
-        return null;
+        var seq = sequence;
+        if (seq == null) return;
+        seq.Tick(dt);
+        if (seq.Done) { EndSequence(seq); return; }
+        // the "+N" rises from the middle of the list to the counter and fades, once per find
+        if (popText != null && popText.gameObject.activeSelf)
+        {
+            float k = Mathf.Clamp01((Time.unscaledTime - popAt) / Mathf.Max(.1f, seq.StepSeconds));
+            var from = layout.body.center;
+            var to = counter.rectTransform.rect.center + (Vector2)counter.rectTransform.anchoredPosition;
+            popText.rectTransform.anchoredPosition = Vector2.Lerp(from, to, CodexUi.EaseOutCubic(k));
+            var c = popText.color; c.a = 1f - k * k; popText.color = c;
+            if (k >= 1f) popText.gameObject.SetActive(false);
+        }
     }
 
-    static string FirstPendingCombo()
+    static List<string> PendingTrackIds()
     {
         var pending = Codex.PendingIds();
+        var list = new List<string>();
+        foreach (var t in CodexMusic.All) if (pending.Contains(t.id)) list.Add(t.id);
+        return list;
+    }
+
+    static List<string> PendingComboIds()
+    {
+        var pending = Codex.PendingIds();
+        var list = new List<string>();
         foreach (var f in AtomFusionTable.All)
         {
             string id = CodexPayout.FusionPayId(f);
-            if (pending.Contains(id)) return id;
+            if (pending.Contains(id)) list.Add(id);
         }
-        return null;
+        return list;
     }
 
     // Opens the tab holding a find and glides its list to it. The id is a CodexEntry id, "fusion_<key>" (a
@@ -1239,8 +1306,8 @@ public class CodexPanel : MonoBehaviour
         LayoutCards();
         LayoutDetail();
         ach.ApplyLayout(layout.body, layout);
-        music.ApplyLayout(layout.body, layout);
-        combos.ApplyLayout(layout.body);
+        music.ApplyLayout(layout.catBody, layout);   // below the COLLECT ALL bar, never under it
+        combos.ApplyLayout(layout.catBody);
         LayoutSubTabs();
     }
 
@@ -1557,6 +1624,7 @@ public class CodexPanel : MonoBehaviour
 
     public void Close()
     {
+        FinishSequence();
         if (phase == Phase.Hidden || phase == Phase.Closing) return;
         if (CodexBackdropViewer.IsOpen) CodexBackdropViewer.Current.Close();
         if (CodexReplayViewer.IsOpen) CodexReplayViewer.Current.Close();
@@ -1578,6 +1646,7 @@ public class CodexPanel : MonoBehaviour
     // Back button / Escape: detail -> grid -> closed.
     public void Back()
     {
+        if (sequence != null) { FinishSequence(); return; }
         if (phase != Phase.Open && phase != Phase.Opening) return;
         if (achievementsOpen && ach.InDetail) ach.CloseDetail();
         else if (inDetail && detailTab == DetailTabBackdrops) SelectDetailTab(DetailTabInfo);   // gallery -> world detail
@@ -1612,6 +1681,7 @@ public class CodexPanel : MonoBehaviour
     // A tab button: AchievementsTab, 1-5 the entry categories, MusicTab, LogTab.
     public void ShowTab(int i)
     {
+        if (sequence != null) FinishSequence();
         feedbackUntil = 0f;
         if (i == AchievementsTab) ShowAchievements();
         else if (i == MusicTab) ShowMusic();
@@ -1646,7 +1716,7 @@ public class CodexPanel : MonoBehaviour
         musicOpen = true;
         grid.gameObject.SetActive(false);
         chipsRoot.gameObject.SetActive(false);
-        music.ApplyLayout(layout.body, layout);
+        music.ApplyLayout(layout.catBody, layout);
         music.Show();
         PaintTabs();
         RefreshCounter();
@@ -1664,7 +1734,7 @@ public class CodexPanel : MonoBehaviour
         combosOpen = true;
         grid.gameObject.SetActive(false);
         chipsRoot.gameObject.SetActive(false);
-        combos.ApplyLayout(layout.body);
+        combos.ApplyLayout(layout.catBody);
         combos.Show();   // clears its NEW dot
         PaintTabs();
         RefreshCounter();
@@ -2278,6 +2348,7 @@ public class CodexPanel : MonoBehaviour
 
     void RefreshCounter()
     {
+        if (sequence != null && sequence.Active) { counter.text = "+" + sequenceShown + " STAR DUST"; return; }
         if (Time.unscaledTime < feedbackUntil && !musicOpen && !achievementsOpen && !combosOpen) { counter.text = feedbackText; return; }
         counter.text = musicOpen
             ? CodexMusic.UnlockedCount + " / " + CodexMusic.ListedCount + "  HEARD"
@@ -2292,9 +2363,14 @@ public class CodexPanel : MonoBehaviour
     // Animation
     // ---------------------------------------------------------------------
 
+    // Leaving the app or the scene mid-sequence: everything still waiting is credited and saved first.
+    void OnApplicationPause(bool paused) { if (paused) FinishSequence(); }
+    void OnDisable() { FinishSequence(); }
+
     void Update()
     {
         if (ScreenInfo.Width != lastW || ScreenInfo.Height != lastH || ScreenInfo.SafeArea != lastSafe) Fit();
+        TickSequence(Time.unscaledDeltaTime);
         if (feedbackUntil > 0f && Time.unscaledTime >= feedbackUntil) { feedbackUntil = 0f; RefreshCounter(); }
         UpdateJump(Time.unscaledTime);
         ApplyFrame(Time.unscaledTime);

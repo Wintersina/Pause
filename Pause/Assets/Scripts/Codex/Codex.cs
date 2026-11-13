@@ -636,6 +636,40 @@ public static class Codex
         return list;
     }
 
+    // Ids waiting in one tab, in the order its list shows them (catalogue order).
+    public static List<string> PendingIdsIn(CodexCategory category)
+    {
+        var list = new List<string>();
+        if (!RewardsActive || category == CodexCategory.Log) return list;
+        EnsureLoaded();
+        var done = Paid();
+        foreach (var e in Entries)
+            if (e.category == category && seen.Contains(e.id) && !done.Contains(e.id)) list.Add(e.id);
+        return list;
+    }
+
+    // The dust one pending id pays (0: not pending / unknown). Entry, combo or song.
+    public static int PendingDustOf(string id)
+    {
+        if (string.IsNullOrEmpty(id)) return 0;
+        var entry = Find(id);
+        if (entry != null) return PendingDust(entry);
+        if (!PendingExtras(IsSongId(id) ? "music_" : CodexPayout.FusionPrefix).Contains(id)) return 0;
+        return CodexPayout.ForExtra(id);
+    }
+
+    // Collects ONE pending id (entry, combo or song), saved at once. Returns the dust paid (0: nothing pending).
+    public static int CollectOne(string id)
+    {
+        if (string.IsNullOrEmpty(id)) return 0;
+        var entry = Find(id);
+        if (entry != null) return CollectReward(id);
+        bool song = IsSongId(id);
+        if (!song && !id.StartsWith(CodexPayout.FusionPrefix, StringComparison.Ordinal)) return 0;
+        if (!PendingExtras(song ? "music_" : CodexPayout.FusionPrefix).Contains(id)) return 0;
+        return CollectExtras(new List<string> { id });
+    }
+
     public static int CollectCombos() { return CollectExtras(PendingExtras(CodexPayout.FusionPrefix)); }
     public static int CollectMusic() { return CollectExtras(PendingExtras("music_")); }
 
