@@ -2,7 +2,8 @@ using System.Collections.Generic;
 using UnityEngine;
 
 // Space's drifting asteroid field: Codex's three cratered rocks with the
-// glowing magenta cracks (asteroid_00..02) cross the backdrop like comets,
+// glowing magenta cracks (asteroid_00..02), plus four more rock types (ice, molten, iron, geode: SpaceRockTypes, each
+// with its own 4-frame glow loop instead of cracks), cross the backdrop like comets,
 // tumbling, their cracks blinking and smoke trailing off them. They are the
 // BACKGROUND rocks: they must never be mistaken for the hazard rocks of
 // SpaceAsteroidField (same art, but those fall from the top, full colour, and
@@ -242,8 +243,17 @@ public class SpaceAsteroidDrift
         new[] { new Vector2(0.036f, 0.050f), new Vector2(-0.103f, 0.282f), new Vector2(-0.122f, -0.126f) },
     };
 
+    // The art pool: the three cracked rocks (0..2, atlas + crack blink) and the four SpaceRockTypes (3..6: ice, molten,
+    // iron, geode, a 4-frame blink strip each, no crack mask). Equal weights.
+    public const int CrackedArts = 3;
+    public static int ArtKinds { get { return CrackedArts + SpaceRockTypes.Count; } }
+    public static bool IsStripArt(int art) { return art >= CrackedArts; }
+
     public class Rock
     {
+        public Sprite[] strip;                  // a strip rock's shared blink frames (null for the cracked rocks)
+        public int frame;                       // the strip frame shown now
+        public float stripPhase;                // seconds into the loop at birth (random: rocks don't pulse in sync)
         public BackdropPiece piece;
         public SpriteRenderer crack;
         public SpriteRenderer[] sparks = new SpriteRenderer[2];
@@ -518,14 +528,27 @@ public class SpaceAsteroidDrift
         p.Show(true);
         p.age = 0f;
         r.active = true;
-        r.art = rng.Next(3);
+        r.art = rng.Next(ArtKinds);
+        r.strip = IsStripArt(r.art) ? SpaceRockTypes.All[r.art - CrackedArts].Frames : null;
+        if (r.strip == null) r.art %= CrackedArts;      // (strip art missing: a cracked rock instead)
         r.sizeMul = m;
         r.sizeT = sizeT;
         r.ppu = PixelsPerUnit();
         r.level = LevelFor(size * r.ppu);
-        if (r.level < 0 && (originals == null || originals[r.art] == null)) r.level = 0;
-        Sprite rockSprite = r.level < 0 ? originals[r.art] : rockLevels[r.art][r.level];
-        Sprite crackSprite = crackLevels[r.art][Mathf.Max(0, r.level)];
+        if (r.level < 0 && r.strip == null && (originals == null || originals[r.art] == null)) r.level = 0;
+        Sprite rockSprite, crackSprite = null;
+        if (r.strip != null)
+        {
+            r.stripPhase = Rand(0f, SpaceRockTypes.BlinkFrames / SpaceRockTypes.BlinkFps);
+            p.age = 0f;
+            r.frame = StripFrame(r);
+            rockSprite = r.strip[r.frame];
+        }
+        else
+        {
+            rockSprite = r.level < 0 ? originals[r.art] : rockLevels[r.art][r.level];
+            crackSprite = crackLevels[r.art][Mathf.Max(0, r.level)];
+        }
         p.sr.sharedMaterial = pool.items[0].sr.sharedMaterial;
         p.sr.sprite = rockSprite;
         float w = rockSprite.bounds.size.x;
@@ -561,11 +584,16 @@ public class SpaceAsteroidDrift
         int baseOrder = director.DriftSpec.Order(layer);
         r.order = baseOrder + SpaceDirector.RockOrder;
         p.sr.sortingOrder = r.order;
-        r.crack.sprite = crackSprite;
-        float ck = w / Mathf.Max(1e-4f, crackSprite.bounds.size.x);
-        r.crack.transform.localScale = new Vector3(ck, ck, 1f);
         r.crack.sortingOrder = baseOrder + SpaceDirector.CrackOrder;
-        r.crack.enabled = true;
+        if (crackSprite != null)
+        {
+            r.crack.sprite = crackSprite;
+            float ck = w / Mathf.Max(1e-4f, crackSprite.bounds.size.x);
+            r.crack.transform.localScale = new Vector3(ck, ck, 1f);
+            r.crack.enabled = true;
+        }
+        else r.crack.enabled = false;           // (a strip rock's glow is in its own frames)
+        r.crackLevel = 0f;
         foreach (var s in r.sparks) { s.enabled = false; s.sortingOrder = baseOrder + SpaceDirector.SparkOrder; }
 
         r.pattern = rng.Next(3);
@@ -919,11 +947,24 @@ public class SpaceAsteroidDrift
         c.a *= alpha;
         if (r.flash > 0f) c = Color.Lerp(c, new Color(1f, 1f, 1f, c.a), 0.55f * r.flash / SpaceDirector.RockHitFlash);   // a hit lights it
         p.sr.color = c;
+        if (r.strip != null)
+        {
+            // a strip rock's own glow loop: the frame follows its age (no allocation: shared sprites)
+            int f = StripFrame(r);
+            if (f != r.frame) { r.frame = f; p.sr.sprite = r.strip[f]; }
+            return;
+        }
         // cracks: one of three brightness steps, additive, on the crack pixels only
         r.crackLevel = SpaceDirector.CrackLevel(r.pattern, p.age / r.blinkPeriod + r.blinkPhase, r.blinkSeed);
         Color k = SpaceDirector.CrackTint;
         k.a = r.crackLevel * SpaceDirector.CrackGain * r.light * alpha;
         r.crack.color = k;
+    }
+
+    // The strip frame at the rock's age: dim, mid, bright, mid at BlinkFps from its own random phase.
+    static int StripFrame(Rock r)
+    {
+        return (int)((r.piece.age + r.stripPhase) * SpaceRockTypes.BlinkFps) % r.strip.Length;
     }
 
     void Retire(Rock r, int index)
@@ -942,7 +983,7 @@ public class SpaceAsteroidDrift
     void SpotAt(Rock r, int spot, out float wx, out float wy)
     {
         var p = r.piece;
-        Vector2 f = HotSpots[r.art][spot];
+        Vector2 f = HotSpots[r.art % CrackedArts][spot];
         float a = r.rot * Mathf.Deg2Rad, ca = Mathf.Cos(a), sa = Mathf.Sin(a);
         wx = p.x + (f.x * ca - f.y * sa) * p.size;
         wy = p.y + (f.x * sa + f.y * ca) * p.size;
@@ -990,7 +1031,7 @@ public class SpaceAsteroidDrift
         puffVy[slot] = pvy;
         puffW[slot] = Mathf.Max(SpaceDirector.PuffSizeMin, p.size * SpaceDirector.PuffPerSize);
         puffRate[slot] = rate;
-        puffArt[slot] = r.art;
+        puffArt[slot] = r.art % CrackedArts;
         // the smoke copy nearest 1:1 at birth (it grows to PuffGrow x that)
         float birthPx = puffW[slot] * r.ppu;
         int lv = PuffPx.Length - 1;
@@ -1070,7 +1111,7 @@ public class SpaceAsteroidDrift
         // body space: the hot spot as a fraction of the sprite width
         var p = r.piece;
         float sw = p.sr.sprite.bounds.size.x;
-        Vector2 f = HotSpots[r.art][r.sparkSpot];
+        Vector2 f = HotSpots[r.art % CrackedArts][r.sparkSpot];
         float world = Mathf.Clamp(p.size * SpaceDirector.AsteroidSparkPerSize, SpaceDirector.AsteroidSparkSizeMin,
                                   SpaceDirector.AsteroidSparkSizeMax);
         float rootK = Mathf.Max(1e-4f, p.root.localScale.x);
