@@ -113,10 +113,10 @@ public class SpaceAsteroidFieldDirector : MonoBehaviour
         var at = new Vector2(x, y);
         if (!Clear(at)) return null;
         float spin = Next(SpaceAsteroidField.Spin.x, SpaceAsteroidField.Spin.y) * (rng.NextDouble() < .5 ? -1f : 1f);
-        if (!zig) return SpaceAsteroidField.Spawn(tier, rng.Next(3), at, 0f, 0f, spin);
+        if (!zig) return SpaceAsteroidField.Spawn(tier, rng.Next(SpaceHazardRockTypes.Count), at, 0f, 0f, spin);
         float period = Next(SpaceAsteroidField.ZigPeriod.x, SpaceAsteroidField.ZigPeriod.y);
         float phase = Next(0f, 6.2831853f);
-        return SpaceAsteroidField.Spawn(tier, rng.Next(3), at, 0f, 0f, spin, amp, period, phase);
+        return SpaceAsteroidField.Spawn(tier, rng.Next(SpaceHazardRockTypes.Count), at, 0f, 0f, spin, amp, period, phase);
     }
 
     // No other hazard near the spawn point.

@@ -486,6 +486,7 @@ public static class CodexTest
               Array.TrueForAll(Codex.Entries, e =>
                   (e.category != CodexCategory.Enemies && e.category != CodexCategory.Hazards) ||
                   EnemyRoster.FindByCodexId(e.id) != null ||
+                  SpaceHazardRockTypes.FindByCodexId(e.id) != null ||   // Space's four falling hazard rocks
                   EliteCatalog.FindByCodexId(e.id) != null ||   // the elite ships
                   BossCatalog.Find(e.id) != null));   // the secret end-of-level bosses
         foreach (string gone in new[] { "hazard_meteor_tiny", "hazard_meteor_small", "hazard_meteor_med",
@@ -635,6 +636,7 @@ public static class CodexTest
     {
         var accounted = new HashSet<string>();
         foreach (string log in new[] { "log_pilot", "log_wormhole", KillCamArchive.CodexId }) accounted.Add(log);
+        foreach (var rock in SpaceHazardRockTypes.All) accounted.Add(rock.CodexId);   // Space's falling hazard rocks (SpaceHazardRocksTest covers them)
 
         // ---- roster enemies and hazards ----
         foreach (var d in EnemyRoster.All)
@@ -858,6 +860,12 @@ public static class CodexTest
                 go.name += "(Clone)";
                 temp.Add(go);
                 Hook(d.codexId, "first contact with a spawned " + d.key, () => Codex.Discover(go), toasts);
+            }
+            foreach (var rock in SpaceHazardRockTypes.All)
+            {
+                var go = new GameObject(rock.ObjectName + "(Clone)");
+                temp.Add(go);
+                Hook(rock.CodexId, "breaking a " + rock.key + " hazard rock", () => Codex.Discover(go), toasts);
             }
             foreach (var d in EliteCatalog.All)
             {
@@ -1665,6 +1673,7 @@ public static class CodexTest
         {
             var want = new HashSet<string>();
             foreach (var d in EnemyRoster.All) if (d.world == w && d.IsHazard) want.Add(d.codexId);
+            if (w == 0) foreach (var rock in SpaceHazardRockTypes.All) want.Add(rock.CodexId);   // Space's four falling rock types
             var got = new HashSet<string>();
             for (int i = 0; i < panel.SectionAt(w).entries.Count; i++) got.Add(panel.CardEntry(panel.SectionStart(w) + i).id);
             grouped &= want.SetEquals(got) && got.Count == panel.SectionAt(w).entries.Count;
