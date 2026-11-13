@@ -67,6 +67,8 @@ public static class CodexAnimations
     // Fresh from the loaders (no cache). Null when there is nothing to play.
     public static CodexAnimation Resolve(CodexEntry e)
     {
+        var rock = e == null ? null : SpaceRockTypes.ByCodexId(e.id);
+        if (rock != null) return SpaceRock(rock);
         switch (KindOf(e))
         {
             case CodexAnimKind.Enemy:
@@ -81,6 +83,17 @@ public static class CodexAnimations
             case CodexAnimKind.Portal: return Portal();
             default: return Log(e);
         }
+    }
+
+    // ---- Space hazard rocks: the blink strip's idle loop (a still when the strip is missing) ----
+
+    public static CodexAnimation SpaceRock(SpaceRockType rock)
+    {
+        var frames = rock.Whole;
+        if (frames == null || frames.Length == 0) return null;
+        var holds = new float[frames.Length];
+        for (int i = 0; i < holds.Length; i++) holds[i] = 1f / SpaceRockTypes.BlinkFps;
+        return CodexAnimation.Loop(CodexAnimKind.Static, frames, holds);
     }
 
     // ---- Enemies and rail mines: EnemyArt + EnemyFlipbook's timing ----

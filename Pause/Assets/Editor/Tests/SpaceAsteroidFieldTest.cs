@@ -36,6 +36,7 @@ public static class SpaceAsteroidFieldTest
         try
         {
             Hazard();
+            SpaceRocks();
             Hits();
             WeaponsAndPowers();
             Motion();
@@ -94,7 +95,7 @@ public static class SpaceAsteroidFieldTest
     static void Hazard()
     {
         Fresh();
-        Check("the Space rock art loads (three rocks)", SpaceAsteroidField.Art.Length == 3);
+        Check("the Space rock art loads (four types)", SpaceAsteroidField.TypeCount == 4);
         for (int tier = 0; tier < 3; tier++)
         {
             var a = SpaceAsteroidField.Spawn(tier, tier, new Vector2(0f, 2f), 0f, 0f, 20f);
@@ -108,13 +109,103 @@ public static class SpaceAsteroidFieldTest
             Check("tier " + tier + ": drawn at its width (" + w.ToString("F2") + ")", Mathf.Abs(w - SpaceAsteroidField.Width[tier]) < .02f);
             Physics2D.SyncTransforms();
             Check("tier " + tier + ": collider inside the drawing", col.bounds.extents.x < w * .5f);
-            Check("tier " + tier + ": no pink tint (white sprite colour)", go.GetComponent<SpriteRenderer>().color == Color.white);
+            var tint = go.GetComponent<SpriteRenderer>().color;
+            Check("tier " + tier + ": no pink tint (a neutral grey / white sprite colour)", Mathf.Abs(tint.r - tint.g) < 1e-4f && Mathf.Abs(tint.g - tint.b) < 1e-4f);
         }
         float last = 0f; bool grows = true;
         foreach (float w in SpaceAsteroidField.Width) { grows &= w > last; last = w; }
         Check("sizes grow with the tier", grows);
         Check("the smallest tier is at least the shared minimum width (" + HazardSize.MinDrawnWidth + " u)",
               SpaceAsteroidField.Width[0] >= HazardSize.MinDrawnWidth - 1e-4f);
+        SpaceAsteroidField.ClearAll();
+    }
+
+    // ---- the four rock types: art, blink, chunks, codex ----
+
+    static void SpaceRocks()
+    {
+        Fresh();
+        Check("four types: ice, molten, iron, geode",
+              SpaceRockTypes.Count == 4 && SpaceRockTypes.All[0].key == "ice" && SpaceRockTypes.All[1].key == "molten" &&
+              SpaceRockTypes.All[2].key == "iron" && SpaceRockTypes.All[3].key == "geode");
+        for (int t = 0; t < SpaceRockTypes.Count; t++)
+        {
+            var type = SpaceRockTypes.All[t];
+            var whole = SpaceAsteroidField.Art(t, false);
+            var chunk = SpaceAsteroidField.Art(t, true);
+            Check(type.key + ": the rock blink strip gives " + SpaceRockTypes.BlinkFrames + " frames",
+                  whole != null && whole.Length == SpaceRockTypes.BlinkFrames && System.Array.TrueForAll(whole, f => f != null));
+            Check(type.key + ": the chunk blink strip gives " + SpaceRockTypes.BlinkFrames + " frames",
+                  chunk != null && chunk.Length == SpaceRockTypes.BlinkFrames && System.Array.TrueForAll(chunk, f => f != null));
+            Check(type.key + ": the Codex still loads", type.Still != null);
+            Check(type.key + ": the Sprite[] is shared (no per-rock copies)", SpaceAsteroidField.Art(t, false) == whole);
+            // the collider still fits the silhouette (alpha footprint share is in the table)
+            Check(type.key + ": collider share sits inside the footprint (" + SpaceAsteroidField.ColliderShare + " < " + SpaceAsteroidField.WholeFill / 2f + ")",
+                  SpaceAsteroidField.ColliderShare < SpaceAsteroidField.WholeFill / 2f && SpaceAsteroidField.ColliderShare > .25f);
+
+            var a = SpaceAsteroidField.Spawn(2, t, new Vector2(0f, 2f), 0f, 0f, 0f);
+            Check(type.key + ": a spawned rock is of its type and named for it", a.Type == t && !a.IsChunk && a.gameObject.name == type.objectName);
+            Check(type.key + ": it draws the whole-rock strip", System.Array.IndexOf(whole, a.GetComponent<SpriteRenderer>().sprite) >= 0);
+            // blink: the frame loops 0..3 at the blink rate
+            var seen = new System.Collections.Generic.HashSet<int>();
+            for (int i = 0; i < 60; i++) { a.Step(Dt, 0f, -100f); seen.Add(a.Frame); }
+            Check(type.key + ": the blink advances through all " + SpaceRockTypes.BlinkFrames + " frames", seen.Count == SpaceRockTypes.BlinkFrames);
+            Check(type.key + ": the shown sprite follows the frame", a.GetComponent<SpriteRenderer>().sprite == whole[a.Frame]);
+
+            // a split: chunks keep the type and use the chunk strip
+            a.Break(0);
+            Check(type.key + ": breaking a large rock leaves two chunks", SpaceAsteroidField.Live.Count == 2);
+            foreach (var c in SpaceAsteroidField.Live)
+            {
+                c.Step(Dt, 0f, -100f);
+                Check(type.key + ": a chunk inherits the type, uses chunk art and its name",
+                      c.Type == t && c.IsChunk && c.gameObject.name == type.objectName && System.Array.IndexOf(chunk, c.GetComponent<SpriteRenderer>().sprite) >= 0);
+                float w = c.GetComponent<SpriteRenderer>().sprite.bounds.size.x * c.transform.localScale.x * type.Fill(true) / SpaceAsteroidField.WholeFill;
+                Check(type.key + ": a chunk's visible footprint matches its tier width", Mathf.Abs(w - SpaceAsteroidField.Width[c.Tier]) < .02f);
+            }
+            SpaceAsteroidField.ClearAll();
+        }
+
+        // phases differ: the rocks do not pulse in sync
+        var frames = new System.Collections.Generic.HashSet<int>();
+        for (int i = 0; i < 24; i++)
+        {
+            var r = SpaceAsteroidField.Spawn(0, 0, new Vector2(0f, 2f), 0f, 0f, 0f);
+            r.Step(Dt, 0f, -100f);
+            frames.Add(r.Frame);
+            SpaceAsteroidField.ClearAll();
+        }
+        Check("rocks start at random blink phases", frames.Count > 1);
+
+        // the director draws all four types
+        var go = new GameObject("~dirTypes");
+        var dir = go.AddComponent<SpaceAsteroidFieldDirector>();
+        dir.Begin();
+        var types = new System.Collections.Generic.HashSet<int>();
+        for (int i = 0; i < 200 && types.Count < 4; i++)
+        {
+            var r = dir.SpawnOne();
+            if (r != null) { types.Add(r.Type); r.Vanish(); }
+        }
+        Check("the director's spawns use all four types", types.Count == 4);
+        Object.DestroyImmediate(go);
+
+        // Codex: four hazard entries, paid, found by a rock's name, Space's own
+        foreach (var type in SpaceRockTypes.All)
+        {
+            var e = Codex.Find(type.codexId);
+            Check(type.key + ": a Hazards codex entry exists with art", e != null && e.category == CodexCategory.Hazards && e.Sprite != null && !string.IsNullOrEmpty(e.name) && !string.IsNullOrEmpty(e.lore));
+            Check(type.key + ": it pays the ordinary rock payout (" + CodexPayout.Rock + ")", e != null && CodexPayout.For(e) == CodexPayout.Rock);
+            Check(type.key + ": a rock's object name resolves to it", Codex.IdForName(type.objectName + "(Clone)") == type.codexId);
+            var anim = CodexAnimations.For(e);
+            Check(type.key + ": the codex plays its blink loop", anim != null && anim.Animates);
+        }
+        Check("the codex entries are told apart by name", Codex.Find("hazard_space_rock_ice").name != Codex.Find("hazard_space_rock_molten").name);
+
+        // Space only: the director refuses every other world, and nothing else uses these types
+        for (int w = 1; w < 7; w++) Check("no rock types in world " + w, SpaceAsteroidFieldDirector.Blocked(w, 120f) == "not space");
+        Check("every rock type is a Space hazard (not in the roster of another world)",
+              System.Array.TrueForAll(SpaceRockTypes.All, ty => EnemyRoster.FindByCodexId(ty.codexId) == null));
         SpaceAsteroidField.ClearAll();
     }
 

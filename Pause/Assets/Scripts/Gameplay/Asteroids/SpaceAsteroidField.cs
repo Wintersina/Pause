@@ -41,11 +41,12 @@ public static class SpaceAsteroidField
     public static readonly Vector2 ZigPeriod = new Vector2(3f, 5f);         // s per full sway
     public const float ZigEdgeMargin = .35f;                // a weaving rock stays this far (x its width) inside the rail face
     public static readonly Vector2 Spin = new Vector2(15f, 55f);            // deg/s, either way
-    public const float ColliderShare = .38f;                // collider radius as a share of the drawn width (the art fills ~.86)
+    public const float WholeFill = .86f;                    // the footprint share of a drawn width (the old backdrop rocks' fill)
+    public const float ColliderShare = .38f;                // collider radius as a share of the drawn width (the footprint is WholeFill of it; measured per type)
     public const float SplitKick = .55f;                    // u/s the two chunks part by
     public const float HitFlashSeconds = .09f;
     public const int SortingOrder = 2;                      // with the hazard rocks (EnemyFactory)
-    public const string ObjectName = "space_asteroid";
+    public const string ObjectName = "space_asteroid";           // (a rock is named by its type: SpaceRockType.objectName)
 
     // test / tool switches
     public static bool Disabled;
@@ -62,26 +63,15 @@ public static class SpaceAsteroidField
         get { int n = 0; for (int i = 0; i < live.Count; i++) if (live[i] != null && !live[i].Broken) n++; return n; }
     }
 
-    // ---- art (the backdrop's own Space rocks: asteroid_00..02) ----
-    static Sprite[] art;
-    public static Sprite[] Art
+    // ---- art: the four hazard rock types (SpaceRockTypes: ice, molten, iron, geode), a 4-frame blink strip each ----
+    public static int TypeCount { get { return SpaceRockTypes.Count; } }
+    public static Sprite[] Art(int type, bool chunk)
     {
-        get
-        {
-            if (art != null && art.Length > 0 && art[0] != null) return art;
-            string folder = BackdropCatalog.Folder("Space");
-            var list = new List<Sprite>();
-            for (int i = 0; i < 3; i++)
-            {
-                var s = Resources.Load<Sprite>(folder + "asteroid_" + i.ToString("00"));
-                if (s != null) list.Add(s);
-            }
-            art = list.ToArray();
-            return art;
-        }
+        var t = SpaceRockTypes.Of(type);
+        return chunk ? t.Chunk : t.Whole;
     }
 
-    public static void Forget() { art = null; live.Clear(); }
+    public static void Forget() { SpaceRockTypes.Forget(); live.Clear(); }
 
     // The rails' drawn inner face: a rock is kept within it.
     public static float Edge => BossRails.DrawnInnerEdge;
@@ -98,33 +88,37 @@ public static class SpaceAsteroidField
     }
 
     // Builds one rock. `vx` / `vy` are its own velocity on top of the board's scroll.
-    public static FieldAsteroid Spawn(int tier, int artIndex, Vector2 at, float vx, float vy, float spinDegrees)
+    // `artIndex` picks the rock type (mod the four types); `chunk` draws that type's chunk art (what a split leaves).
+    public static FieldAsteroid Spawn(int tier, int artIndex, Vector2 at, float vx, float vy, float spinDegrees, bool chunk = false)
     {
-        return Spawn(tier, artIndex, at, vx, vy, spinDegrees, 0f, 0f, 0f);
+        return Spawn(tier, artIndex, at, vx, vy, spinDegrees, 0f, 0f, 0f, chunk);
     }
 
     // The same, weaving: a sine sway of `zigAmp` u half-width, `zigPeriod` s per sway, starting at `zigPhase` radians.
     public static FieldAsteroid Spawn(int tier, int artIndex, Vector2 at, float vx, float vy, float spinDegrees,
-                                      float zigAmp, float zigPeriod, float zigPhase)
+                                      float zigAmp, float zigPeriod, float zigPhase, bool chunk = false)
     {
-        var sprites = Art;
-        if (sprites.Length == 0) return null;
+        int type = ((artIndex % TypeCount) + TypeCount) % TypeCount;
+        var rock = SpaceRockTypes.Of(type);
+        var sprites = Art(type, chunk);
+        if (sprites == null || sprites.Length == 0) return null;
         tier = Mathf.Clamp(tier, 0, Width.Length - 1);
-        var go = new GameObject(ObjectName);
+        var go = new GameObject(rock.objectName);
         go.tag = "Astr";
         go.transform.position = new Vector3(at.x, at.y, 0f);
         var sr = go.AddComponent<SpriteRenderer>();
-        sr.sprite = sprites[Mathf.Abs(artIndex) % sprites.Length];
+        sr.sprite = sprites[0];
         sr.sortingOrder = SortingOrder;
         float w = Width[tier];
-        float scale = w / Mathf.Max(.01f, sr.sprite.bounds.size.x);
+        // the drawn width is the rock's visible footprint (alpha), so a small chunk frame is scaled up to match
+        float scale = w * WholeFill / (Mathf.Max(.01f, sr.sprite.bounds.size.x) * rock.Fill(chunk));
         go.transform.localScale = new Vector3(scale, scale, 1f);
         go.transform.rotation = Quaternion.Euler(0f, 0f, (artIndex * 97) % 360);
         var col = go.AddComponent<CircleCollider2D>();
         col.isTrigger = true;
         col.radius = ColliderShare * w / scale;     // (collider units are local)
         var a = go.AddComponent<FieldAsteroid>();
-        a.Init(tier, vx, vy, spinDegrees);
+        a.Init(tier, vx, vy, spinDegrees, type, chunk, sprites);
         if (zigAmp > 0f && zigPeriod > .1f) a.SetZigZag(zigAmp, zigPeriod, zigPhase);
         ClearTarget.Ensure(go);
         Spawned++;
@@ -147,6 +141,11 @@ public static class SpaceAsteroidField
 public class FieldAsteroid : MonoBehaviour, IShipAttackTargetUncapped
 {
     public int Tier { get; private set; }
+    public int Type { get; private set; }           // SpaceRockTypes index: 0 ice, 1 molten, 2 iron, 3 geode
+    public bool IsChunk { get; private set; }       // the chunk art of a split
+    public int Frame { get; private set; }          // the blink strip's frame now
+    Sprite[] frames;
+    float blinkClock;
     public bool Broken { get; private set; }
     public float Health { get; private set; }
     public float Vx { get; private set; }
@@ -159,9 +158,12 @@ public class FieldAsteroid : MonoBehaviour, IShipAttackTargetUncapped
     float spin, flash;
     SpriteRenderer sr;
 
-    public void Init(int tier, float vx, float vy, float spinDegrees)
+    public void Init(int tier, float vx, float vy, float spinDegrees, int type = 0, bool chunk = false, Sprite[] blink = null)
     {
         Tier = tier;
+        Type = type; IsChunk = chunk; frames = blink;
+        // a random phase per rock, so they don't pulse in sync
+        blinkClock = Random.value * SpaceRockTypes.BlinkFrames / SpaceRockTypes.BlinkFps;
         Vx = vx; Vy = vy;
         spin = spinDegrees;
         Health = SpaceAsteroidField.SizeHits[tier];
@@ -206,10 +208,11 @@ public class FieldAsteroid : MonoBehaviour, IShipAttackTargetUncapped
         p.y += (Vy - boardSpeed * SpaceAsteroidField.ScrollK * SpaceAsteroidField.ScrollShare) * dt;
         tr.position = p;
         tr.Rotate(0f, 0f, spin * dt, Space.World);
+        Blink(dt);
         if (flash > 0f)
         {
             flash -= dt;
-            if (sr != null) sr.color = flash > 0f ? HitBlink : Color.white;
+            if (sr != null) sr.color = flash > 0f ? HitBlink : Pulse();
         }
         float reach = SpaceAsteroidField.Width[Tier];
         if (p.y < viewBottom - reach - 1f || Mathf.Abs(p.x) > SpaceAsteroidField.Edge + reach + 1f)
@@ -219,6 +222,25 @@ public class FieldAsteroid : MonoBehaviour, IShipAttackTargetUncapped
             return false;
         }
         return true;
+    }
+
+    // The glow's loop: dim, mid, bright, mid at BlinkFps. No allocation: the Sprite[] is shared per type.
+    void Blink(float dt)
+    {
+        if (frames == null || frames.Length == 0 || sr == null) return;
+        blinkClock += dt;
+        int f = (int)(blinkClock * SpaceRockTypes.BlinkFps) % frames.Length;
+        if (f == Frame && sr.sprite == frames[f]) return;
+        Frame = f;
+        sr.sprite = frames[f];
+        if (flash <= 0f) sr.color = Pulse();
+    }
+
+    // The code-side glow pulse (a gentle tint over the strip's own glow).
+    Color Pulse()
+    {
+        float l = SpaceRockTypes.PulseLevel[Frame % SpaceRockTypes.PulseLevel.Length];
+        return new Color(l, l, l, 1f);
     }
 
     // A ship attack lands (IShipAttackTarget): `weight` is its share of one full hit.
@@ -263,13 +285,12 @@ public class FieldAsteroid : MonoBehaviour, IShipAttackTargetUncapped
         if (Tier <= 0) return;
         if (SpaceAsteroidField.Live.Count + 1 > SpaceAsteroidField.MaxTotal) return;   // (this rock leaves, two come)
         SpaceAsteroidField.Splits++;
-        int art = (int)(Mathf.Abs(from.x * 131f + from.y * 71f)) % 3;
-        float kick = SpaceAsteroidField.SplitKick;
+                float kick = SpaceAsteroidField.SplitKick;
         for (int i = 0; i < 2; i++)
         {
             float side = i == 0 ? -1f : 1f;
             var at = new Vector2(from.x + side * SpaceAsteroidField.Width[Tier - 1] * .35f, from.y);
-            SpaceAsteroidField.Spawn(Tier - 1, art + i + 1, at, Vx * .5f + side * kick, Vy, spin * -side * 1.3f);
+            SpaceAsteroidField.Spawn(Tier - 1, Type, at, Vx * .5f + side * kick, Vy, spin * -side * 1.3f, true);   // (the chunks keep the type)
         }
     }
 }

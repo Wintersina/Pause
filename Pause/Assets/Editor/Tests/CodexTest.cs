@@ -487,6 +487,7 @@ public static class CodexTest
                   (e.category != CodexCategory.Enemies && e.category != CodexCategory.Hazards) ||
                   EnemyRoster.FindByCodexId(e.id) != null ||
                   EliteCatalog.FindByCodexId(e.id) != null ||   // the elite ships
+                  SpaceRockTypes.ByCodexId(e.id) != null ||     // the Space field's rock types
                   BossCatalog.Find(e.id) != null));   // the secret end-of-level bosses
         foreach (string gone in new[] { "hazard_meteor_tiny", "hazard_meteor_small", "hazard_meteor_med",
                                         "enemy_black", "enemy_blue", "enemy_green", "enemy_red" })

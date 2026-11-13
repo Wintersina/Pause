@@ -516,6 +516,13 @@ public static class CodexCatalogue
             enemies.Add(new CodexEntry(e.codexId, e.displayName, CodexCategory.Enemies,
                                        () => EliteArt.Frame(e, e.cells.Flight0), EliteLore(e), new[] { Codex.Normalise(e.key) }));
         }
+        // The Space asteroid field's four rock types (SpaceRockTypes): hazards with no roster def, met by breaking (or hitting) one.
+        foreach (var rock in SpaceRockTypes.All)
+        {
+            var r = rock;
+            hazards.Add(new CodexEntry(r.codexId, r.name, CodexCategory.Hazards, () => r.Still, r.lore,
+                                       new[] { Codex.Normalise(r.objectName) }));
+        }
         enemies.AddRange(hazards);
         return enemies;
     }

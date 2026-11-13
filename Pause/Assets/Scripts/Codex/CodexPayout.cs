@@ -10,7 +10,7 @@ using System.Collections.Generic;
 //   Atoms: blue, red                  8
 //   Atoms: green, violet              10
 //   Atoms: magnetic                   12
-//   Hazards: rocks                    5
+//   Hazards: rocks                    5   (the Space field's four rock types too)
 //   Hazards: mines                    5 + world / 2   (Space 5 ... Desert 8)
 //   Enemies (roster)                  5 + world index (Space 5 ... Desert 11)
 //   Elites                            12

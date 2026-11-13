@@ -109,6 +109,19 @@ shots are pooled; there are no neighbour scans at all.
 Tell = how cells 4-5 are used. "cosmetic" = the tell is flavour only (no attack follows).
 Shot speeds are relative to the board, in world units per second.
 
+### Space asteroid field rock types (`SpaceAsteroidField`)
+
+The dodge-field rocks (not roster enemies; a foreground lane layer of their own) come in four types, each with a 4-frame blink strip (only the glowing accent pulses: dim, mid, bright, mid, 7 fps, random phase per rock) and its own chunk art for what a split leaves. Art: `Art/Backgrounds/Resources/Worlds/Space/Hazards/space_hazard_rock_<type>_blink.png` / `_chunk_blink.png` (2048x512 strips) and `space_hazard_rock_<type>.png` (frame 0, the Codex icon). Sizes, hits, splits, scoring and spawn rules are unchanged. Space only; the decorative drift backdrop (`SpaceAsteroidDrift`) keeps `asteroid_00..02`.
+
+| Type | Codex id | Name | Look |
+|---|---|---|---|
+| ice | `hazard_space_rock_ice` | Rime Rock | frosted comet core, cold blue glow |
+| molten | `hazard_space_rock_molten` | Ember Rock | dark rock with throbbing orange seams |
+| iron | `hazard_space_rock_iron` | Iron Rock | rust-dark ore lump, a vein of light |
+| geode | `hazard_space_rock_geode` | Geode Rock | plain shell, glittering crystal heart |
+
+Each pays the ordinary hazard-rock Codex payout (5 star dust) and is discovered on the first break or collision (`Codex.Discover`, by the rock's `space_rock_<type>` object name). Per-type footprint shares are in `SpaceRockTypes`; the drawn width is the visible footprint, so the collider (`ColliderShare` of it) fits every silhouette.
+
 ### Space (shots: magenta-pink, the elite shot colour)
 
 | Key | Name | What it is (art) | Movement | Shoots | Tell | Counter |
