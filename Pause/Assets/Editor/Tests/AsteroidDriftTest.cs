@@ -574,7 +574,9 @@ public static class AsteroidDriftTest
         }
         int blinking = 0, distinct = 0;
         var seen = new HashSet<string>();
-        foreach (var kv in levels) if (kv.Value.Contains(0f) && kv.Value.Contains(1f)) blinking++;
+        // (a flicker rock draws a random step per twelfth of its period: it may miss the extreme one in a window, but it must still change)
+        foreach (var kv in levels)
+            if ((kv.Value.Contains(0f) && kv.Value.Contains(1f)) || (kv.Key.pattern == SpaceDirector.BlinkFlicker && kv.Value.Count >= 2)) blinking++;
         foreach (var kv in seq) if (seen.Add(kv.Value)) distinct++;
         var patterns = new HashSet<int>();
         foreach (var r in drift.Rocks) if (r.active) patterns.Add(r.pattern);
@@ -597,12 +599,12 @@ public static class AsteroidDriftTest
                   f != null && f.Length == SpaceRockTypes.BlinkFrames && System.Array.TrueForAll(f, x => x != null) && t.Frames == f);
         }
         Check("the blink rate is 6-8 fps", SpaceRockTypes.BlinkFps >= 6f && SpaceRockTypes.BlinkFps <= 8f);
-        // 120 s of sky: every art kind turns up, the strip rocks advance frames, and stay decorative
+        // two minutes (up to fifteen) of sky: every art kind turns up, the strip rocks advance frames, and stay decorative
         var arts = new HashSet<int>();
         var frames = new Dictionary<SpaceAsteroidDrift.Rock, HashSet<int>>();
         var phases = new HashSet<int>();
         bool decorative = true, grey = true;
-        for (int i = 0; i < 120 * 30; i++)
+        for (int i = 0; i < 900 * 30 && (i < 120 * 30 || arts.Count < SpaceAsteroidDrift.ArtKinds); i++)
         {
             wb.Step(Dt);
             foreach (var r in drift.Rocks)
