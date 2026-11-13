@@ -236,12 +236,8 @@ public class FieldAsteroid : MonoBehaviour, IShipAttackTargetUncapped
         if (flash <= 0f) sr.color = Pulse();
     }
 
-    // The code-side glow pulse (a gentle tint over the strip's own glow).
-    Color Pulse()
-    {
-        float l = SpaceRockTypes.PulseLevel[Frame % SpaceRockTypes.PulseLevel.Length];
-        return new Color(l, l, l, 1f);
-    }
+    // The strips carry the glow pulse themselves: no code tint (a hit flash aside).
+    static Color Pulse() { return Color.white; }
 
     // A ship attack lands (IShipAttackTarget): `weight` is its share of one full hit.
     public void TakeShipAttack(int ship, float weight, Vector3 at)

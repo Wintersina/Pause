@@ -56,23 +56,21 @@ public static class SpaceRockTypes
     public const string CodexPrefix = "hazard_space_rock_";
     public const int BlinkFrames = 4;
     public const float BlinkFps = 7f;                       // the loop's rate (6-8 fps)
-    // dim, mid, bright, mid: a tint pulse in code (the strip's own glow does the rest once the real strips are in)
-    public static readonly float[] PulseLevel = { .84f, .92f, 1f, .92f };
 
     public static readonly SpaceRockType[] All =
     {
         new SpaceRockType("ice", "Rime Rock",
             "A drifting comet core, frosted white and full of cold blue light. Warm it with a shot and it cracks into icy shards.",
-            .86f, .45f),
+            .86f, .55f),
         new SpaceRockType("molten", "Ember Rock",
             "Still-hot rock streaked with glowing orange seams that throb like a pulse. It breaks into smouldering lumps.",
-            .86f, .48f),
+            .86f, .55f),
         new SpaceRockType("iron", "Iron Rock",
             "A dense, rust-dark lump of ore with a vein of light running through it. It breaks into heavy scrap.",
-            .86f, .49f),
+            .86f, .55f),
         new SpaceRockType("geode", "Geode Rock",
             "A plain shell with a glittering crystal heart that blinks from inside. Crack it and the crystals scatter.",
-            .86f, .45f),
+            .86f, .55f),
     };
 
     public static int Count { get { return All.Length; } }
