@@ -49,6 +49,7 @@ public static class AsteroidDriftTest
             SpaceOnly();
             LongRun();
             Decorative();
+            RockTypesRun();
             Events();
             Determinism();
         }
@@ -225,6 +226,25 @@ public static class AsteroidDriftTest
               Mathf.Approximately(a.Health, SpaceAsteroidField.SizeHits[2] - 1f) && none == 0f && SpaceAsteroidField.SizeHits[0] == 1f &&
               SpaceAsteroidField.SizeHits[1] == 2f && SpaceAsteroidField.SizeHits[2] == 3f);
         SpaceAsteroidField.ClearAll();
+    }
+
+    static void RockTypesRun()
+    {
+        Time.timeScale = 1f;
+        moveBackGround.speed = 0.2f;
+        SpaceDirector.AsteroidSeedOverride = -1;
+        SpaceDirector.RunOnOverride = true;
+        SpaceDirector.EventsDisabled = true;
+        var go = new GameObject("~AsteroidTypesTest");
+        var wb = go.AddComponent<WorldBackdrop>();
+        try
+        {
+            wb.Show("Space", false);
+            var drift = (wb.Current.Director as SpaceDirector)?.AsteroidDrift;
+            if (drift == null || !drift.Ready) { Check("rock types: the drift field is ready", false); return; }
+            RockTypes(wb, drift);
+        }
+        finally { Object.DestroyImmediate(go); SpaceDirector.RunOnOverride = false; SpaceDirector.EventsDisabled = false; }
     }
 
     static int CountThreats()
@@ -534,11 +554,11 @@ public static class AsteroidDriftTest
         var levels = new Dictionary<SpaceAsteroidDrift.Rock, HashSet<float>>();
         var colour = new Dictionary<SpaceAsteroidDrift.Rock, Color>();
         bool rockSteady = true;
-        for (int window = 0; window < 8 && (window == 0 || seq.Count < 3); window++)
+        for (int window = 0; window < 8 && (window == 0 || seq.Count < 2); window++)
         {
             seq.Clear(); levels.Clear(); colour.Clear();
             foreach (var r in drift.Rocks)
-                if (r.active) { seq[r] = ""; levels[r] = new HashSet<float>(); colour[r] = r.piece.sr.color; }
+                if (r.active && !SpaceAsteroidDrift.IsStripArt(r.art)) { seq[r] = ""; levels[r] = new HashSet<float>(); colour[r] = r.piece.sr.color; }
             for (int i = 0; i < 120; i++)
             {
                 wb.Step(Dt);
@@ -554,15 +574,61 @@ public static class AsteroidDriftTest
         }
         int blinking = 0, distinct = 0;
         var seen = new HashSet<string>();
-        foreach (var kv in levels) if (kv.Value.Contains(0f) && kv.Value.Contains(1f)) blinking++;
+        // (a flicker rock draws a random step per twelfth of its period: it may miss the extreme one in a window, but it must still change)
+        foreach (var kv in levels)
+            if ((kv.Value.Contains(0f) && kv.Value.Contains(1f)) || (kv.Key.pattern == SpaceDirector.BlinkFlicker && kv.Value.Count >= 2)) blinking++;
         foreach (var kv in seq) if (seen.Add(kv.Value)) distinct++;
         var patterns = new HashSet<int>();
         foreach (var r in drift.Rocks) if (r.active) patterns.Add(r.pattern);
         Check("the cracks of every rock in view blink fully on and off within 4 s (" + blinking + "/" + levels.Count + ")",
-              levels.Count >= 3 && blinking == levels.Count);
+              levels.Count >= 2 && blinking == levels.Count);
         Check("rocks blink out of step (" + distinct + " distinct sequences for " + seq.Count + " rocks, " +
-              patterns.Count + " patterns in use)", distinct == seq.Count && seq.Count >= 3);
+              patterns.Count + " patterns in use)", distinct == seq.Count && seq.Count >= 2);
         Check("only the cracks change: the rock's own colour holds while they blink", rockSteady);
+    }
+
+    // ---- the four extra rock types: ice, molten, iron, geode (SpaceRockTypes) ----
+
+    static void RockTypes(WorldBackdrop wb, SpaceAsteroidDrift drift)
+    {
+        Check("the drift pool has seven art kinds (3 cracked + 4 types)", SpaceAsteroidDrift.ArtKinds == 7 && SpaceRockTypes.Count == 4);
+        foreach (var t in SpaceRockTypes.All)
+        {
+            var f = t.Frames;
+            Check(t.key + ": its blink strip loads " + SpaceRockTypes.BlinkFrames + " frames, shared",
+                  f != null && f.Length == SpaceRockTypes.BlinkFrames && System.Array.TrueForAll(f, x => x != null) && t.Frames == f);
+        }
+        Check("the blink rate is 6-8 fps", SpaceRockTypes.BlinkFps >= 6f && SpaceRockTypes.BlinkFps <= 8f);
+        // two minutes (up to fifteen) of sky: every art kind turns up, the strip rocks advance frames, and stay decorative
+        var arts = new HashSet<int>();
+        var frames = new Dictionary<SpaceAsteroidDrift.Rock, HashSet<int>>();
+        var phases = new HashSet<int>();
+        bool decorative = true, grey = true;
+        for (int i = 0; i < 900 * 30 && (i < 120 * 30 || arts.Count < SpaceAsteroidDrift.ArtKinds); i++)
+        {
+            wb.Step(Dt);
+            foreach (var r in drift.Rocks)
+            {
+                if (!r.active) continue;
+                arts.Add(r.art);
+                if (!SpaceAsteroidDrift.IsStripArt(r.art)) continue;
+                HashSet<int> set;
+                if (!frames.TryGetValue(r, out set)) { set = new HashSet<int>(); frames[r] = set; }
+                set.Add(r.frame);
+                if (r.piece.age < Dt * 2f) phases.Add(r.frame);
+                var root = r.piece.root;
+                decorative &= root.GetComponentsInChildren<Collider2D>(true).Length == 0 && root.GetComponentsInChildren<ClearTarget>(true).Length == 0 &&
+                              !root.CompareTag("Astr") && !r.piece.sr.gameObject.CompareTag("Astr") && !r.crack.enabled;
+                grey &= r.piece.sr.color.r <= 0.8f && r.piece.sr.sprite == r.strip[r.frame];
+            }
+        }
+        Check("all seven art kinds drift through the sky (" + arts.Count + ")", arts.Count == SpaceAsteroidDrift.ArtKinds);
+        bool advances = frames.Count > 0;
+        foreach (var kv in frames) advances &= kv.Value.Count >= 2;
+        Check("a strip rock's blink advances through its frames (" + frames.Count + " rocks followed)", advances);
+        Check("strip rocks start at different blink phases", phases.Count > 1);
+        Check("strip rocks are decorative (no collider, no ClearTarget, no Astr tag)", decorative);
+        Check("strip rocks go through the same grey drift tint and show their current frame", grey);
     }
 
     static void Pause(WorldBackdrop wb, SpaceAsteroidDrift drift)

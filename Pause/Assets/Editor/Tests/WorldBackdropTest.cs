@@ -2086,7 +2086,9 @@ public static class WorldBackdropTest
                     // their stages (AsteroidDriftTest covers the rest).
                     var drift = sd.AsteroidDrift;
                     var rock = drift.Rocks[0].piece;
-                    if (watchedRock == null || !rock.active || rock.age < rockAge) { watchedRock = rock; rockImage = rock.sr.sprite; }
+                    // (a strip rock - ice, molten, iron, geode - loops its own blink frames: only the cracked rocks keep one sprite)
+                    if (SpaceAsteroidDrift.IsStripArt(drift.Rocks[0].art)) { watchedRock = null; rockAge = 0f; }
+                    else if (watchedRock == null || !rock.active || rock.age < rockAge) { watchedRock = rock; rockImage = rock.sr.sprite; }
                     else rockStill &= rock.sr.sprite == rockImage;
                     rockAge = rock.age;
                     if (drift.PuffOwner[0] < 0) effectImage = null;
