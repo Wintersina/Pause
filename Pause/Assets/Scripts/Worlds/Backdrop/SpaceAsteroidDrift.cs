@@ -1,12 +1,17 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+// DEPTH SOFTNESS: the backdrop rocks read as a further layer than the crisp hazard rocks of SpaceAsteroidField: they are
+// tinted grey and dim (DriftRockTint), slightly see-through (DriftHaze: lower contrast against the sky), and the four
+// strip types are sampled one mip level softer (mipBias +1 in their importers: a tiny blur at no runtime cost). No
+// post effect, no extra pass, no extra material. The hazard rocks have their own art and are never softened.
+//
 // Space's drifting asteroid field: Codex's three cratered rocks with the
 // glowing magenta cracks (asteroid_00..02), plus four more rock types (ice, molten, iron, geode: SpaceRockTypes, each
 // with its own 4-frame glow loop instead of cracks), cross the backdrop like comets,
 // tumbling, their cracks blinking and smoke trailing off them. They are the
 // BACKGROUND rocks: they must never be mistaken for the hazard rocks of
-// SpaceAsteroidField (same art, but those fall from the top, full colour, and
+// SpaceAsteroidField (they have their own, different art: those fall from the top, full colour, and
 // cost a heart), so these differ in three ways:
 //
 //   look       noticeably bigger than any hazard rock (the smallest is wider
@@ -92,6 +97,7 @@ public partial class SpaceDirector
     public const float AsteroidDodgeSpeed = 0.9f;       // u/s a rock slides up / down to clear something at its depth
     // Greyed out and a bit dimmer than the hazard rocks (which are drawn in full colour).
     public static readonly Color DriftRockTint = new Color(0.60f, 0.62f, 0.67f);
+    public const float DriftHaze = 0.86f;               // rock opacity x depth light: the black sky shows through (lower contrast, a further layer)
     public const float AsteroidEnterMargin = 0.1f;      // spawn this far outside the view
     public const float AsteroidLeaveMargin = 0.6f;      // ... recycled once this far outside
     // ---- blink ----
@@ -944,7 +950,7 @@ public class SpaceAsteroidDrift
         var p = r.piece;
         float alpha = director.DriftAlpha;
         Color c = p.color;
-        c.a *= alpha;
+        c.a *= alpha * SpaceDirector.DriftHaze;
         if (r.flash > 0f) c = Color.Lerp(c, new Color(1f, 1f, 1f, c.a), 0.55f * r.flash / SpaceDirector.RockHitFlash);   // a hit lights it
         p.sr.color = c;
         if (r.strip != null)

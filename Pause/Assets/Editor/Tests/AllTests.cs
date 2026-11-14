@@ -87,6 +87,7 @@ public static class AllTests
         ("AsteroidColliderTest", AsteroidColliderTest.Execute),
         ("AsteroidDriftTest", AsteroidDriftTest.Execute),
         ("SpaceAsteroidFieldTest", SpaceAsteroidFieldTest.Execute),
+        ("SpaceHazardRocksTest", SpaceHazardRocksTest.Execute),
         ("AtomClarityTest", AtomClarityTest.Execute),
         ("AttackBudgetCoreTest", AttackBudgetCoreTest.Execute),
         ("AttackBudgetFrostTest", AttackBudgetFrostTest.Execute),

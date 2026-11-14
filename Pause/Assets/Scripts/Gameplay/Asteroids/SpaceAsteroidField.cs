@@ -10,9 +10,12 @@ using UnityEngine;
 //     (IShipAttackTarget) and then bursts in the rock explosion, paying the ordinary rock score
 //   * a large rock breaks into two medium ones, a medium into two small ones (Split), a small one just bursts
 //
-// It comes at the player from the TOP at a share of the board's scroll, tumbling, in full colour (the greyed,
-// bigger backdrop rocks of SpaceAsteroidDrift cross the sky sideways and are harmless, so the two never get
-// confused). Each rock picks one of two patterns when it is made: Straight (straight down the lane) or ZigZag
+// It comes at the player from the TOP at a share of the board's scroll, tumbling, in full colour. It has its own
+// art, apart from the backdrop's: each rock is one of four types (SpaceHazardRockTypes: shard, ember, ore, crystal)
+// that loops a 4-frame accent blink from a random phase, and its split chunks keep the type (with the type's chunk
+// strip). The greyed, softened, bigger backdrop rocks of SpaceAsteroidDrift cross the sky sideways and are harmless,
+// and share no art with these, so the two never get confused. A non-lethal hit flashes the rock white, jolts it a
+// hair and throws a few accent-coloured chips (RockHitFx, pooled). Each rock picks one of two patterns when it is made: Straight (straight down the lane) or ZigZag
 // (a sine weave across the lane while it descends, ZigAmp wide, ZigPeriod seconds per sway, kept inside the rails).
 // A chunk of a split just flies straight with its parting kick. It leaves once it is past the view. FieldDirector decides when one turns up; the rules (Blocked) keep it away from bosses, elites,
 // transitions and the calm start, and at a modest rate (Gap) so the lane stays fair and dodgeable.
@@ -41,11 +44,12 @@ public static class SpaceAsteroidField
     public static readonly Vector2 ZigPeriod = new Vector2(3f, 5f);         // s per full sway
     public const float ZigEdgeMargin = .35f;                // a weaving rock stays this far (x its width) inside the rail face
     public static readonly Vector2 Spin = new Vector2(15f, 55f);            // deg/s, either way
-    public const float ColliderShare = .38f;                // collider radius as a share of the drawn width (the art fills ~.86)
+    // (the collider is a circle of SpaceHazardRockTypes.ColliderFit x the type's measured art radius: per type, rock and chunk)
     public const float SplitKick = .55f;                    // u/s the two chunks part by
-    public const float HitFlashSeconds = .09f;
+    public const float HitFlashSeconds = .13f;              // the white flash of a hit (fades out over it)
+    public const float JoltSeconds = .12f, JoltDistance = .05f;   // a hit nudges the rock this far (u, x tier size) back and forth
+    public const int HitChips = 4;                           // chips of a hit (one more on a large rock)
     public const int SortingOrder = 2;                      // with the hazard rocks (EnemyFactory)
-    public const string ObjectName = "space_asteroid";
 
     // test / tool switches
     public static bool Disabled;
@@ -62,26 +66,10 @@ public static class SpaceAsteroidField
         get { int n = 0; for (int i = 0; i < live.Count; i++) if (live[i] != null && !live[i].Broken) n++; return n; }
     }
 
-    // ---- art (the backdrop's own Space rocks: asteroid_00..02) ----
-    static Sprite[] art;
-    public static Sprite[] Art
-    {
-        get
-        {
-            if (art != null && art.Length > 0 && art[0] != null) return art;
-            string folder = BackdropCatalog.Folder("Space");
-            var list = new List<Sprite>();
-            for (int i = 0; i < 3; i++)
-            {
-                var s = Resources.Load<Sprite>(folder + "asteroid_" + i.ToString("00"));
-                if (s != null) list.Add(s);
-            }
-            art = list.ToArray();
-            return art;
-        }
-    }
+    // ---- art: the hazard field's own four types (never the backdrop's asteroid_00..02) ----
+    public static bool ArtReady { get { return SpaceHazardRockTypes.Ready; } }
 
-    public static void Forget() { art = null; live.Clear(); }
+    public static void Forget() { SpaceHazardRockTypes.Forget(); RockHitFx.Reset(); live.Clear(); }
 
     // The rails' drawn inner face: a rock is kept within it.
     public static float Edge => BossRails.DrawnInnerEdge;
@@ -97,7 +85,7 @@ public static class SpaceAsteroidField
         return TierWeight.Length - 1;
     }
 
-    // Builds one rock. `vx` / `vy` are its own velocity on top of the board's scroll.
+    // Builds one rock. `artIndex` picks its type (modulo the four types). `vx` / `vy` are its own velocity on top of the board's scroll.
     public static FieldAsteroid Spawn(int tier, int artIndex, Vector2 at, float vx, float vy, float spinDegrees)
     {
         return Spawn(tier, artIndex, at, vx, vy, spinDegrees, 0f, 0f, 0f);
@@ -107,24 +95,41 @@ public static class SpaceAsteroidField
     public static FieldAsteroid Spawn(int tier, int artIndex, Vector2 at, float vx, float vy, float spinDegrees,
                                       float zigAmp, float zigPeriod, float zigPhase)
     {
-        var sprites = Art;
-        if (sprites.Length == 0) return null;
+        return Build(tier, Mathf.Abs(artIndex) % SpaceHazardRockTypes.Count, false, (artIndex * 97) % 360,
+                     at, vx, vy, spinDegrees, zigAmp, zigPeriod, zigPhase);
+    }
+
+    // A chunk of a split: the same type as its parent, drawn from the type's chunk strip.
+    public static FieldAsteroid SpawnChunk(int tier, int type, float rotation, Vector2 at, float vx, float vy, float spinDegrees)
+    {
+        return Build(tier, type, true, rotation, at, vx, vy, spinDegrees, 0f, 0f, 0f);
+    }
+
+    static FieldAsteroid Build(int tier, int type, bool chunk, float rotation, Vector2 at, float vx, float vy, float spinDegrees,
+                               float zigAmp, float zigPeriod, float zigPhase)
+    {
+        var kind = SpaceHazardRockTypes.Type(type);
+        var sprites = chunk ? kind.ChunkFrames : kind.Frames;
+        if (sprites == null || sprites.Length == 0) return null;
         tier = Mathf.Clamp(tier, 0, Width.Length - 1);
-        var go = new GameObject(ObjectName);
+        var go = new GameObject(kind.ObjectName);
         go.tag = "Astr";
         go.transform.position = new Vector3(at.x, at.y, 0f);
         var sr = go.AddComponent<SpriteRenderer>();
-        sr.sprite = sprites[Mathf.Abs(artIndex) % sprites.Length];
+        int phase = Mathf.Min(SpaceHazardRockTypes.BlinkFrames - 1, (int)(Random.value * SpaceHazardRockTypes.BlinkFrames));
+        sr.sprite = sprites[phase];
         sr.sortingOrder = SortingOrder;
-        float w = Width[tier];
+        // a chunk's strip is padded more than a rock's: scale it up so its art is as wide as a whole rock's
+        float w = Width[tier] * (chunk ? kind.ChunkBoost : 1f);
         float scale = w / Mathf.Max(.01f, sr.sprite.bounds.size.x);
         go.transform.localScale = new Vector3(scale, scale, 1f);
-        go.transform.rotation = Quaternion.Euler(0f, 0f, (artIndex * 97) % 360);
+        go.transform.rotation = Quaternion.Euler(0f, 0f, rotation);
         var col = go.AddComponent<CircleCollider2D>();
         col.isTrigger = true;
-        col.radius = ColliderShare * w / scale;     // (collider units are local)
+        float share = SpaceHazardRockTypes.ColliderFit * (chunk ? kind.chunkRadius : kind.radius);
+        col.radius = share * w / scale;     // (collider units are local)
         var a = go.AddComponent<FieldAsteroid>();
-        a.Init(tier, vx, vy, spinDegrees);
+        a.Init(tier, vx, vy, spinDegrees, type, chunk, phase, share * w);
         if (zigAmp > 0f && zigPeriod > .1f) a.SetZigZag(zigAmp, zigPeriod, zigPhase);
         ClearTarget.Ensure(go);
         Spawned++;
@@ -155,19 +160,49 @@ public class FieldAsteroid : MonoBehaviour, IShipAttackTargetUncapped
     public float ZigAmp { get; private set; }
     float zigRate, zigPhase, zigAge;
 
-    static readonly Color HitBlink = new Color(.55f, .55f, .65f, 1f);   // a hit dims it for a blink
-    float spin, flash;
-    SpriteRenderer sr;
+    public int TypeIndex { get; private set; }      // SpaceHazardRockTypes.All index: shard, ember, ore, crystal
+    public bool IsChunk { get; private set; }       // a piece of a split (the type's chunk strip)
+    public int Frame { get; private set; }          // the blink frame showing (0..3)
+    public SpaceHazardRockType Kind { get { return SpaceHazardRockTypes.Type(TypeIndex); } }
 
-    public void Init(int tier, float vx, float vy, float spinDegrees)
+    static readonly Color HitBlink = new Color(.55f, .55f, .65f, 1f);   // (no flash shader: a hit dims it for a blink instead)
+    const float ChipGap = .06f;                     // s between two chip bursts (a rapid beam does not spam them)
+    int shown = -1, startFrame;
+    float spin, flash, blinkAge, joltLeft, chipWait, worldRadius, reach;
+    Vector2 joltDir;
+    Vector3 joltOffset;
+    Sprite[] frames;
+    SpriteRenderer sr, overlay;
+
+    public void Init(int tier, float vx, float vy, float spinDegrees, int type, bool chunk, int startFrame, float radius)
     {
         Tier = tier;
         Vx = vx; Vy = vy;
         spin = spinDegrees;
+        TypeIndex = type; IsChunk = chunk; Frame = startFrame; this.startFrame = startFrame; shown = startFrame;
+        worldRadius = radius;
         Health = SpaceAsteroidField.SizeHits[tier];
         sr = GetComponent<SpriteRenderer>();
+        var kind = Kind;
+        frames = chunk ? kind.ChunkFrames : kind.Frames;
+        reach = SpaceAsteroidField.Width[tier] * (chunk ? kind.ChunkBoost : 1f);
+        // the hit flash: a white overlay of the same frame, shown only while it fades (made once, here, not per hit)
+        var mat = RockHitFx.Flash;
+        if (mat != null)
+        {
+            var o = new GameObject("flash");
+            o.transform.SetParent(transform, false);
+            overlay = o.AddComponent<SpriteRenderer>();
+            overlay.sharedMaterial = mat;
+            overlay.sprite = sr.sprite;
+            overlay.sortingOrder = SpaceAsteroidField.SortingOrder + 1;
+            overlay.enabled = false;
+        }
         SpaceAsteroidField.Register(this);
     }
+
+    public bool FlashShowing { get { return flash > 0f; } }
+    public bool JoltActive { get { return joltLeft > 0f; } }
 
     // Makes it weave: x follows base + amp * sin(rate * t + phase) (integrated as a velocity, so it starts where it is).
     public void SetZigZag(float amp, float period, float phase)
@@ -195,7 +230,7 @@ public class FieldAsteroid : MonoBehaviour, IShipAttackTargetUncapped
     {
         if (dt <= 0f || Broken) return !Broken;
         var tr = transform;
-        Vector3 p = tr.position;
+        Vector3 p = tr.position - joltOffset;          // (the hit's nudge is laid over the real position each frame)
         p.x += SideSpeed * dt;
         if (Pattern == SpaceAsteroidField.ZigZag)
         {
@@ -204,14 +239,37 @@ public class FieldAsteroid : MonoBehaviour, IShipAttackTargetUncapped
             p.x = Mathf.Clamp(p.x, -lim, lim);
         }
         p.y += (Vy - boardSpeed * SpaceAsteroidField.ScrollK * SpaceAsteroidField.ScrollShare) * dt;
-        tr.position = p;
         tr.Rotate(0f, 0f, spin * dt, Space.World);
+
+        // the 4-frame accent blink
+        blinkAge += dt;
+        if (frames != null && frames.Length > 0 && sr != null)
+        {
+            int f = (startFrame + (int)(blinkAge * SpaceHazardRockTypes.BlinkFps)) % frames.Length;
+            if (f != shown) { shown = f; Frame = f; sr.sprite = frames[f]; if (overlay != null) overlay.sprite = frames[f]; }
+        }
+
+        // hit feedback: the white flash fades, the jolt settles
+        if (chipWait > 0f) chipWait -= dt;
         if (flash > 0f)
         {
             flash -= dt;
-            if (sr != null) sr.color = flash > 0f ? HitBlink : Color.white;
+            if (overlay != null)
+            {
+                overlay.enabled = flash > 0f;
+                if (flash > 0f) overlay.color = new Color(1f, 1f, 1f, .9f * flash / SpaceAsteroidField.HitFlashSeconds);
+            }
+            else if (sr != null) sr.color = flash > 0f ? HitBlink : Color.white;
         }
-        float reach = SpaceAsteroidField.Width[Tier];
+        joltOffset = Vector3.zero;
+        if (joltLeft > 0f)
+        {
+            joltLeft = Mathf.Max(0f, joltLeft - dt);
+            float amp = SpaceAsteroidField.JoltDistance * (.6f + .2f * Tier) * Mathf.Sin(joltLeft / SpaceAsteroidField.JoltSeconds * Mathf.PI);
+            joltOffset = new Vector3(joltDir.x * amp, joltDir.y * amp, 0f);
+        }
+        p += joltOffset;
+        tr.position = p;
         if (p.y < viewBottom - reach - 1f || Mathf.Abs(p.x) > SpaceAsteroidField.Edge + reach + 1f)
         {
             SpaceAsteroidField.Unregister(this);
@@ -226,9 +284,34 @@ public class FieldAsteroid : MonoBehaviour, IShipAttackTargetUncapped
     {
         if (Broken) return;
         Health -= weight;
+        if (Health <= .0001f) { Break(ship); return; }
+        HitFeedback(at);
+    }
+
+    // A non-lethal hit: the white flash, a tiny jolt away from the blow, and a few chips in the type's accent colour.
+    // Everything is pooled or pre-made (RockHitFx), so a hit allocates nothing.
+    public void HitFeedback(Vector3 at)
+    {
         flash = SpaceAsteroidField.HitFlashSeconds;
-        if (sr != null) sr.color = HitBlink;
-        if (Health <= .0001f) Break(ship);
+        if (overlay != null)
+        {
+            overlay.sprite = sr.sprite;
+            overlay.color = new Color(1f, 1f, 1f, .9f);
+            overlay.enabled = true;
+        }
+        else if (sr != null) sr.color = HitBlink;
+        Vector3 pos = transform.position - joltOffset;
+        Vector2 away = new Vector2(pos.x - at.x, pos.y - at.y);
+        if (away.sqrMagnitude < 1e-4f) away = Vector2.up;
+        away.Normalize();
+        joltDir = away;
+        joltLeft = SpaceAsteroidField.JoltSeconds;
+        if (chipWait <= 0f)
+        {
+            chipWait = ChipGap;
+            Vector3 rim = pos - new Vector3(away.x, away.y, 0f) * worldRadius;   // (the side the blow came from)
+            RockHitFx.Chips(rim, -away, Kind.accent, SpaceAsteroidField.HitChips + (Tier >= 2 ? 1 : 0));
+        }
     }
 
     // Bursts like any destroyed rock (explosion, sound, score, codex, meter), then splits.
@@ -264,12 +347,13 @@ public class FieldAsteroid : MonoBehaviour, IShipAttackTargetUncapped
         if (SpaceAsteroidField.Live.Count + 1 > SpaceAsteroidField.MaxTotal) return;   // (this rock leaves, two come)
         SpaceAsteroidField.Splits++;
         int art = (int)(Mathf.Abs(from.x * 131f + from.y * 71f)) % 3;
+        int type = TypeIndex;                      // the chunks keep their parent's type
         float kick = SpaceAsteroidField.SplitKick;
         for (int i = 0; i < 2; i++)
         {
             float side = i == 0 ? -1f : 1f;
             var at = new Vector2(from.x + side * SpaceAsteroidField.Width[Tier - 1] * .35f, from.y);
-            SpaceAsteroidField.Spawn(Tier - 1, art + i + 1, at, Vx * .5f + side * kick, Vy, spin * -side * 1.3f);
+            SpaceAsteroidField.SpawnChunk(Tier - 1, type, ((art + i + 1) * 97) % 360, at, Vx * .5f + side * kick, Vy, spin * -side * 1.3f);
         }
     }
 }

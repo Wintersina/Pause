@@ -94,7 +94,7 @@ public static class SpaceAsteroidFieldTest
     static void Hazard()
     {
         Fresh();
-        Check("the Space rock art loads (three rocks)", SpaceAsteroidField.Art.Length == 3);
+        Check("the hazard rock art loads (four types, rock and chunk strips)", SpaceAsteroidField.ArtReady && SpaceHazardRockTypes.Count == 4);
         for (int tier = 0; tier < 3; tier++)
         {
             var a = SpaceAsteroidField.Spawn(tier, tier, new Vector2(0f, 2f), 0f, 0f, 20f);

@@ -509,6 +509,14 @@ public static class CodexCatalogue
                                        () => StillArtFor(d.codexId) ?? EnemyArt.Frame(d, 0), d.lore, matches.ToArray());
             (d.IsHazard ? hazards : enemies).Add(entry);
         }
+        // Space's falling hazard rocks (SpaceAsteroidField): four types, found on the first break of one. They are not roster
+        // enemies (no EnemyDef), so they are matched by the spawned object's name; the panel files them with Space's rocks.
+        foreach (var rock in SpaceHazardRockTypes.All)
+        {
+            var kind = rock;
+            hazards.Add(new CodexEntry(kind.CodexId, kind.name, CodexCategory.Hazards, () => kind.Still, kind.lore,
+                                       new[] { Codex.Normalise(kind.ObjectName) }));
+        }
         // The elite ships (EliteCatalog), after the roster's enemies.
         foreach (var elite in EliteCatalog.All)
         {

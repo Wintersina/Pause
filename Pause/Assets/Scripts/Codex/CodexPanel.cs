@@ -342,7 +342,7 @@ public class CodexPanel : MonoBehaviour
             // elite ships close their own world's section
             int w = def != null ? Mathf.Clamp(def.world, 0, worlds - 1) :
                     elite != null ? Mathf.Clamp(elite.WorldIndex, 0, worlds - 1) : 0;
-            // (an entry with no roster def: an elite closes its section; the Space drift asteroid sits after the rocks, before the mine)
+            // (an entry with no roster def: an elite closes its section; Space's four hazard-rock types (no roster def) sit after the roster rocks, before the mine)
             int key = def != null ? RoleRank(def.role) * 100 + def.tier :
                       elite == null && c == CodexCategory.Hazards ? RoleRank(EnemyRole.Rock) * 100 + 50 : 999;
             // Ties keep catalogue order.
