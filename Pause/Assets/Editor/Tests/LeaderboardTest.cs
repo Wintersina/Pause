@@ -613,6 +613,20 @@ public static class LeaderboardTest
         var ownRow = panel.PanelRoot.Find("PlayerRow/Row");
         Check("own rank row also shows the ship", ownRow != null && ownRow.Find("Ship") != null && ownRow.Find("Hearts") != null);
 
+        Check("highlighted own row: heart glyph is dark; other rows keep the default heart colour",
+              rows.Find("Row3/Hearts/Glyph").GetComponent<Image>().color == LeaderboardPanel.HeartOnRed
+              && rows.Find("Row0/Hearts/Glyph").GetComponent<Image>().color == Color.white
+              && ownRow.Find("Hearts/Glyph").GetComponent<Image>().color == LeaderboardPanel.HeartOnRed);
+        // Re-render with the highlight moved: the row that was highlighted gets its normal heart back.
+        fake.SetBoard(TopScoreId,
+            FakeLeaderboards.Entry(1, "KANEDA", 700, false, 7, 4, 2),
+            FakeLeaderboards.Entry(2, "TETSUO", 600, true, 7, 3, 2));
+        panel = OpenPanel(fake);
+        rows = panel.PanelRoot.Find("List/Rows");
+        Check("highlight moved: old row's heart back to default, new highlighted row's heart dark",
+              rows.Find("Row0/Hearts/Glyph").GetComponent<Image>().color == Color.white
+              && rows.Find("Row1/Hearts/Glyph").GetComponent<Image>().color == LeaderboardPanel.HeartOnRed);
+
         // A score the store has that this device didn't make (different value) is not given this device's ship.
         fake.SetBoard(TopScoreId, FakeLeaderboards.Entry(1, "KANEDA", 750, true));
         panel = OpenPanel(fake);
