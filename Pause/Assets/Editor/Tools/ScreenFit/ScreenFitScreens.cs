@@ -912,7 +912,7 @@ public static class ScreenFitScreens
             }
         }
     }
-    public const float PopupRackShare = .55f;
+    public const float PopupRackShare = .8f;
 
     // ---- gameplay scenes: the world -------------------------------------------------------
 

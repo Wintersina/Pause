@@ -162,11 +162,10 @@ public class DockPopup : MonoBehaviour
     {
         if (FitPane && Docked && safeView.width > 0f && safeView.height > 0f)
         {
-            // Unit = min(paneW / 300, paneH / OwnedHeight): the owned card (the tallest) fills the pane, so a
-            // locked ship's shorter card keeps the same type size. worldPerPoint is the desktop UI unit
-            // (UiScale.UnitPx); the card is never drawn bigger than its pane, and on any real window the fit is far
-            // above the touch floor (HitUnits drawn >= 48 of those units: see DockPopupScaleTest).
-            Unit = Mathf.Min(safeView.width / PanelWidth, safeView.height / (OwnedHeight + (noticeOn ? NoticeHeight : 0f)));
+            // Unit = min(paneW / 300, paneH / this card's height): the card (owned or not) fills its pane, the
+            // taller owned card with a slightly smaller unit. worldPerPoint is the desktop UI unit (UiScale.UnitPx);
+            // on any real window the fit is far above the touch floor (HitUnits drawn >= 48 of those units).
+            RefitUnit();
             if (gameObject.activeInHierarchy) Follow();
             return;
         }
@@ -825,6 +824,14 @@ public class DockPopup : MonoBehaviour
     void Resize()
     {
         ((RectTransform)transform).sizeDelta = new Vector2(PanelWidth, CurrentHeightUnits);
+        RefitUnit();
+    }
+
+    // Wide / Ultra: the unit that fills the pane with the card as it is now (its height changes with owned / locked).
+    void RefitUnit()
+    {
+        if (!FitPane || !Docked || safeView.width <= 0f || safeView.height <= 0f) return;
+        Unit = Mathf.Min(safeView.width / PanelWidth, safeView.height / CurrentHeightUnits);
     }
 
     const float LivesIconSize = 15f;

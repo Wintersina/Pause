@@ -131,15 +131,18 @@ public static class DockPopupScaleTest
             popup.ShowSkins(2, 0, 0f);
             float fit = Mathf.Min(pane.width / DockPopup.PanelWidth, pane.height / DockPopup.OwnedHeight);
             string tag = "wide pane " + pane.width.ToString("F1") + "x" + pane.height.ToString("F1") + ": ";
-            Check(tag + "unit = min(paneW / 300, paneH / OwnedHeight), no .85 shrink", Mathf.Approximately(popup.Unit, fit) && popup.Unit > unitWorld * DockPopup.PopupScale);
+            Check(tag + "owned: unit = min(paneW / 300, paneH / OwnedHeight), no .85 shrink", Mathf.Approximately(popup.Unit, fit) && popup.Unit > unitWorld * DockPopup.PopupScale);
             Check(tag + "owned card fits the pane and fills one of its axes",
                   popup.WorldRect.width <= pane.width + .001f && popup.WorldRect.height <= pane.height + .001f &&
                   (Mathf.Approximately(popup.WorldRect.width, pane.width) || Mathf.Approximately(popup.WorldRect.height, pane.height)));
             Check(tag + "docked at its pane's centre (no Follow float over the ship)",
                   Vector2.Distance(popup.WorldRect.center, pane.center) < .001f && !popup.Flipped);
             popup.Show(5, anchor, .3f, false, false, 3200f, 0f);
-            Check(tag + "a locked ship's card keeps the owned card's unit (same type size) and is >= 55% of its height",
-                  Mathf.Approximately(popup.Unit, fit) && popup.CurrentHeightUnits >= .55f * DockPopup.OwnedHeight);
+            float lockedFit = Mathf.Min(pane.width / DockPopup.PanelWidth, pane.height / DockPopup.BaseHeight);
+            Check(tag + "locked: the card re-fits the pane (unit = min(paneW / 300, paneH / BaseHeight)) and fills it",
+                  Mathf.Approximately(popup.Unit, lockedFit) &&
+                  (Mathf.Approximately(popup.WorldRect.width, pane.width) || Mathf.Approximately(popup.WorldRect.height, pane.height)));
+            Check(tag + "locked card is at least 80% of the pane's height unless the pane's width limits it", popup.WorldRect.height >= .8f * pane.height || Mathf.Approximately(popup.WorldRect.width, pane.width));
             float unitPt = popup.Unit / unitWorld;
             Check(tag + "touch floor kept: HitUnits drawn >= 48 desktop units", DockPopup.HitUnits * unitPt >= 47.9f);
         }
