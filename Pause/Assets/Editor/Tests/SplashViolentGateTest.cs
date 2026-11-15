@@ -41,6 +41,7 @@ public static class SplashViolentGateTest
             SlotsAndFallbacks();
             ScreenFit();
             Allocations();
+            ThemedBurst();
             Source();
         }
         finally
@@ -367,13 +368,11 @@ public static class SplashViolentGateTest
 
     static void SlotsAndFallbacks()
     {
-        Check("effect slot names: " + GateArt.DebrisSlot + ", " + GateArt.SteamSlot,
-              GateArt.DebrisSlot == "HapticGate/gate_debris" && GateArt.SteamSlot == "HapticGate/gate_steam");
-        var deb = Resources.Load<Texture2D>(GateArt.DebrisSlot);
+        Check("effect slot name: " + GateArt.SteamSlot, GateArt.SteamSlot == "HapticGate/gate_steam");
         var st = Resources.Load<Texture2D>(GateArt.SteamSlot);
-        Check("gate_debris is 1024x512 (8x4 of 128)", deb != null && deb.width == 1024 && deb.height == 512);
+        Check("the gear debris sheet is gone from Resources", Resources.Load<Texture2D>("HapticGate/gate_debris") == null);
         Check("gate_steam is 1024x1024 (4x4 of 256)", st != null && st.width == 1024 && st.height == 1024);
-        Check("importers: debris/steam point, no mips, uncompressed", ImporterOk(GateArt.DebrisSlot) && ImporterOk(GateArt.SteamSlot));
+        Check("importers: steam point, no mips, uncompressed", ImporterOk(GateArt.SteamSlot));
         string artSrc = File.ReadAllText(Path.Combine(Application.dataPath, "Scripts/UI/GateArt.cs"));
         Check("the old procedural door / crack / steam fallbacks are gone from the code",
               !artSrc.Contains("HapticGate/steam\"") && !artSrc.Contains("industrial_gate") && !artSrc.Contains("gate_cracks_\""));
@@ -381,7 +380,8 @@ public static class SplashViolentGateTest
         var art = GateArt.Load();
         Check("art loads", art != null);
         if (art == null) return;
-        Check("32 debris cells (8x4) of 128 px", art.debris.Length == 32 && Mathf.Approximately(art.debris[0].rect.width, 128f));
+        Check("star dust glyph and every themed hull loaded", art.dust != null && art.ships.Length == GateArt.ShipKeys.Length
+              && System.Array.TrueForAll(art.ships, h => h != null && Mathf.Approximately(h.rect.width, GateArt.ShipCell)));
         Check("16 steam cells (4x4) of 256 px", art.steam.Length == 16 && Mathf.Approximately(art.steam[0].rect.width, 256f));
         art.Release();
 
@@ -531,6 +531,78 @@ public static class SplashViolentGateTest
                 if (b != 0) Debug.Log("[GATE] diag step " + i + " t=" + card.Sim.time + " crack=" + card.Sim.crackStage + " bytes=" + b);
             }
         }
+    }
+
+    // ---- themed tap burst (star dust + tiny ships instead of gears) -----------------
+
+    static void ThemedBurst()
+    {
+        var card = OpenCard(out _, out var cueList);
+        splashScene.SoundCue -= cueList.Add;
+        var view = card.View;
+        Check("themed view built", view != null && card.Art != null && card.Art.dust != null);
+        if (view == null) return;
+
+        // 1. no gear sprites anywhere in the effect pools
+        bool gears = false; int rend = 0;
+        foreach (var r in view.root.GetComponentsInChildren<SpriteRenderer>(true))
+        {
+            rend++;
+            if (r.sprite != null && r.sprite.texture != null && r.sprite.texture.name.Contains("debris")) gears = true;
+        }
+        Check("effect pools hold no gate_debris (gear) sprites (" + rend + " renderers)", !gears);
+
+        // 2. a tap spawns dust plus ships
+        card.Restart();
+        for (int i = 0; i < 30; i++) card.Step(Dt);      // past the stray-tap lockout, warm-up done
+        Check("before a tap: no dust, no ships", view.ActiveDust == 0 && view.ActiveShips == 0);
+        card.Tap();
+        for (int i = 0; i < 6; i++) card.Step(Dt);
+        Check("tap 1 spawned star dust (" + view.ActiveDust + ") and ships (" + view.ActiveShips + ")",
+              view.ActiveDust >= 5 && view.ActiveShips >= 1);
+        bool shipSprites = false, dustSprites = false;
+        foreach (var r in view.root.GetComponentsInChildren<SpriteRenderer>(false))
+        {
+            if (r.sprite == card.Art.dust) dustSprites = true;
+            for (int k = 0; k < card.Art.ships.Length; k++) if (r.sprite == card.Art.ships[k]) shipSprites = true;
+        }
+        Check("... drawn with the star dust glyph and player hull sprites", dustSprites && shipSprites);
+
+        // 3. the logo is never touched by the particles
+        var logoSprite = card.logo.sprite; var logoScale = card.logo.transform.localScale;
+        card.Restart();
+        for (int i = 0; i < 30; i++) card.Step(Dt);
+        card.Tap(); card.Tap(); card.Tap();
+        for (int i = 0; i < 40; i++) card.Step(Dt);
+        Check("logo sprite and scale untouched by the burst", card.logo.sprite == logoSprite && card.logo.transform.localScale == logoScale);
+
+        // 4. caps: hammer the burst directly
+        view.Clear();
+        for (int i = 0; i < 200; i++) view.ThemedBurst(Vector2.zero, i % 2 == 0 ? -1f : 1f, 20, 4);
+        Check("caps hold under 200 bursts: dust " + view.ActiveDust + "/" + GateView.MaxDust + ", ships " + view.ActiveShips + "/" + GateView.MaxShips,
+              view.ActiveDust == GateView.MaxDust && view.ActiveShips == GateView.MaxShips
+              && view.root.GetComponentsInChildren<SpriteRenderer>(true).Length == rend);
+
+        // 5. zero allocation after warm-up, through a rapid-tap storm
+        view.Clear();
+        for (int w = 0; w < 3; w++) { view.ThemedBurst(Vector2.zero, 1f, 20, 4); for (int i = 0; i < 90; i++) view.Sync(Dt); }
+        long bytes = TestHarness.AllocatedBytes(() =>
+        {
+            for (int t = 0; t < 40; t++)
+            {
+                view.ThemedBurst(new Vector2(0.2f, 0f), t % 2 == 0 ? -1f : 1f, 18, 3);
+                for (int i = 0; i < 4; i++) view.Sync(Dt);
+            }
+            for (int i = 0; i < 120; i++) view.Sync(Dt);
+        });
+        Check("rapid tap storm allocates 0 bytes after warm-up (" + bytes + ")", bytes <= 64);
+        Check("live counts stay capped after the storm", view.ActiveDust <= GateView.MaxDust && view.ActiveShips <= GateView.MaxShips);
+
+        // 6. the 60 fps target is applied by the scene and nothing else resets it
+        FrameRateBootstrap.Apply();
+        Check("targetFrameRate is 60 with vSync off", Application.targetFrameRate >= 60 && QualitySettings.vSyncCount == 0);
+        string src = File.ReadAllText(Path.Combine(Application.dataPath, "Scripts/UI/splashScene.cs"));
+        Check("splash asserts the frame rate in Awake", src.Contains("FrameRateBootstrap.Apply()"));
     }
 
     // ---- source guards --------------------------------------------------------------

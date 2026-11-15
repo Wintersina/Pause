@@ -317,7 +317,13 @@ public class splashScene : MonoBehaviour
 
     // Playing: build the film at once so frame 0 is up on the first rendered frame and the rest
     // starts streaming in before the first layout pass.
-    void Awake() { EnsureSim(); if (Application.isPlaying) EnsureGate(); }
+    void Awake()
+    {
+        EnsureSim();
+        // Belt and braces for the 60 fps target: the bootstrap already runs before the first scene loads, and nothing
+        // resets it, but the intro is the first thing the player sees, so it re-asserts it (cheap, idempotent).
+        if (Application.isPlaying) { FrameRateBootstrap.Apply(); EnsureGate(); }
+    }
 
     void EnsureSim()
     {
