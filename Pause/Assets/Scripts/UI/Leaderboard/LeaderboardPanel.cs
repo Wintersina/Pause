@@ -66,6 +66,8 @@ public class LeaderboardPanel : MonoBehaviour
     // 96.7 units, the two slots are 94). A third and fourth column beside the name would leave it about 5 units.
     public const float RunLineHeartsLeft = 0f, RunLineHeartsWidth = 46f, RunLinePausesLeft = 48f, RunLinePausesWidth = 46f;
     const float RunLineGlyph = 16f;
+    // The heart glyph's tint on the highlighted (red) row; every other row keeps the sprite's own colours (white tint).
+    public static readonly Color HeartOnRed = AkiraPalette.Ink;
     const int RunLineSize = 18;
     const float NameBand = .42f;   // the name takes the top .58 of a stats row, the run line the lower .42
     const float BadgeWidth = 66f;   // the old hearts / pauses badge width; the Power-Ups name column is still derived from it
@@ -1016,6 +1018,7 @@ public class LeaderboardPanel : MonoBehaviour
         heartImage.sprite = Resources.Load<Sprite>(ShipLivesIndicator.HeartSpritePath);
         heartImage.preserveAspect = true;
         heartImage.raycastTarget = false;
+        heartImage.color = mine ? HeartOnRed : Color.white;   // the red heart vanishes on the red own row; rows are rebuilt each render so it never sticks
         RunCount(h, hearts, RunLineHeartsWidth, numColor, mine);
 
         var p = RunSlot(rt, "Pauses", left + RunLinePausesLeft, RunLinePausesWidth);

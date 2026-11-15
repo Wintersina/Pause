@@ -58,6 +58,15 @@ public class HudStyler : MonoBehaviour
         return Mathf.Max(UiScale.Apply(plain, UiScaleFloor.SceneTapUnits, UiScaleFloor.SceneTextUnits), 0.0001f);
     }
 
+    // How far the world's board frame reaches past the read-out's layout rect, in screen px at full
+    // size (x = left, y = top). world < 0: the live world.
+    public static Vector2 BoardGrowthPx(Vector2 screen, int world)
+    {
+        var o = HudSkin.BoardOut(world < 0 ? HudSkin.CurrentWorld : world);
+        float k = FlooredHudScale(screen);
+        return new Vector2(o.x * k, o.w * k);
+    }
+
     public static float SideBySideFit(TopBand.Frame band, Vector2 screen)
     {
         float actionScale = PauseQuickActions.CanvasScaleFor(screen);

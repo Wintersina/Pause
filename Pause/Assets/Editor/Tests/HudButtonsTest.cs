@@ -30,6 +30,7 @@ public static class HudButtonsTest
         Baseline();
         Neon();
         Layout();
+        WorldFrames();
         Debug.Log("[HBT] failures: " + fails);
         return fails;
     }
@@ -181,6 +182,37 @@ public static class HudButtonsTest
     }
 
     static bool Overlap(Rect a, Rect b) { return a.xMin < b.xMax - .5f && b.xMin < a.xMax - .5f && a.yMin < b.yMax - .5f && b.yMin < a.yMax - .5f; }
+
+    // Every world's score-board frame (drawn past the layout rect by HudSkin.BoardOut) stays fully inside the
+    // screen and the safe area at every aspect: desktop 16:9 / 16:10, ultrawide, tall phones, a near-square cover screen and a tablet.
+    static void WorldFrames()
+    {
+        var screens = new[] { new Vector2(1920, 1080), new Vector2(1920, 1200), new Vector2(2560, 1080), new Vector2(3440, 1440),
+                              new Vector2(1080, 2520), new Vector2(1080, 1080), new Vector2(2048, 1536), new Vector2(1080, 2340), new Vector2(720, 1280) };
+        var hudSize = new Vector2(351f, 131f);
+        var reference = new Vector2(800f, 600f);
+        for (int w = 0; w < HudSkin.WorldCount; w++)
+        {
+            Vector4 o = HudSkin.BoardOut(w);
+            string name = WorldManager.Worlds[w].displayName;
+            Check(name + ": the frame only grows outward (so the text stays inside it)", o.x >= 0f && o.y >= 0f && o.z >= 0f && o.w >= 0f);
+            foreach (var size in screens)
+            foreach (float inset in new[] { 0f, 66f })   // no cutout, and a notch-sized top inset
+            foreach (float edge in new[] { 0f, BossRails.InnerEdge })
+            {
+                var safe = new Rect(0, 0, size.x, size.y - inset);
+                var band = TopBand.FrameFor(safe, size, edge, null, w);
+                float hs = HudStyler.ScaleWithScreenSize(size, reference, UnityEngine.UI.CanvasScaler.ScreenMatchMode.MatchWidthOrHeight, 0f);
+                Rect read = HudStyler.HudScreenRect(band, size, hs, hudSize);
+                float fit = read.width / (hudSize.x * hs);
+                Rect frame = Rect.MinMaxRect(read.xMin - o.x * hs * fit, read.yMin - o.y * hs * fit, read.xMax + o.z * hs * fit, read.yMax + o.w * hs * fit);
+                string tag = name + " " + size + " inset " + inset + " edge " + edge + ": ";
+                Check(tag + "score frame top is inside the screen and safe area (" + frame.yMax.ToString("0") + " <= " + safe.yMax.ToString("0") + ")", frame.yMax <= safe.yMax + .5f);
+                Check(tag + "score frame left is inside the safe area", frame.xMin >= safe.xMin - .5f);
+                Check(tag + "score text rect sits inside its frame", frame.Contains(new Vector2(read.xMin, read.yMin)) && frame.Contains(new Vector2(read.xMax, read.yMax)));
+            }
+        }
+    }
 
     static void Layout()
     {

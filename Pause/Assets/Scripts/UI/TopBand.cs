@@ -67,6 +67,15 @@ public static class TopBand
     // and CameraFit sets how much of the world the width shows.
     public static Frame FrameFor(Rect safe, Vector2 screen, float railInnerEdge, Rect[] cutouts)
     {
+        return FrameFor(safe, screen, railInnerEdge, cutouts, -1);
+    }
+
+    // `world` picks the score board's skin (-1: the live world). The board's frame grows past the
+    // layout rect by HudSkin.BoardOut, in HUD canvas units, which on a wide window (width-matched
+    // canvas) is far more than the top margin; the band is lowered by whatever the frame would
+    // otherwise reach past the safe area / cutout clearance, and kept in from the safe area's left.
+    public static Frame FrameFor(Rect safe, Vector2 screen, float railInnerEdge, Rect[] cutouts, int world)
+    {
         float s = PauseQuickActions.CanvasScaleFor(screen);
         var f = new Frame
         {
@@ -74,6 +83,8 @@ public static class TopBand
             right = safe.xMax - PauseQuickActions.EdgeMargin * s,
             top = safe.yMax - PauseQuickActions.TopMargin * s,
         };
+        float ceiling = safe.yMax;
+        f.left = Mathf.Max(f.left, safe.xMin + HudStyler.BoardGrowthPx(screen, world).x);
         if (railInnerEdge > 0f && screen.x > 0f && screen.y > 0f)
         {
             float lane = railInnerEdge / CameraFit.GameplayViewHalfWidth(screen) * screen.x * .5f;
@@ -90,8 +101,10 @@ public static class TopBand
                 if (c.yMax <= screen.y * .5f) continue;                                 // a bottom cutout
                 if (c.xMax + clear <= f.left || c.xMin - clear >= f.right) continue;    // beside the band
                 f.top = Mathf.Min(f.top, c.yMin - clear);
+                ceiling = Mathf.Min(ceiling, c.yMin - clear);
             }
         }
+        f.top = Mathf.Min(f.top, ceiling - HudStyler.BoardGrowthPx(screen, world).y);
         return f;
     }
 }

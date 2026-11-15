@@ -6,25 +6,31 @@ using UnityEngine;
 // Each slot is a PNG in Resources/HapticGate/ (see docs/hapticgate-splash.md).
 // If any slot is missing Load returns null and the card plays the film without effects.
 //
-//   gate_debris          1024x512   8x4 cells of 128 px debris sprites
 //   gate_steam           1024x1024  4x4 cells of 256 px steam puffs
 //
+// The themed burst (star dust + tiny player ships) reuses in-game art, no slots of its own:
+// the dock's star dust glyph (Dock/icon_dust) and the intact first cell of a few player hulls
+// (ShipArt/<Key>/<Key>, the same sheets the game flies).
 // (The old procedural door and its crack overlays are retired: the gate is now the
 // approved film's own.)
 public sealed class GateArt
 {
-    public const string DebrisSlot = "HapticGate/gate_debris";
     public const string SteamSlot = "HapticGate/gate_steam";
 
-    public const int DebrisCols = 8, DebrisRows = 4, DebrisCell = 128;
     public const int SteamCols = 4, SteamRows = 4;
 
-    public Sprite[] debris;
+    // Hulls that fly out of the burst (art keys under Resources/ShipArt).
+    public static readonly string[] ShipKeys = { "NeonComet", "SolarFang", "IonLancer" };
+    public const int ShipCell = 256;
+
     public Sprite[] steam;
+    public Sprite[] ships;      // one intact, undamaged hull per ShipKeys entry (null entries if a sheet is missing)
+    public Sprite dust;         // the star dust sparkle
     public Sprite white, glow;
+    readonly System.Collections.Generic.List<Texture2D> shipTex = new System.Collections.Generic.List<Texture2D>();
 
     // Codex's cells hold a drawing smaller than the cell; these scale the sprites to match.
-    public const float DebrisDrawScale = 1.8f, SteamDrawScale = 1.7f;
+    public const float SteamDrawScale = 1.7f;
 
     Texture2D whiteTex, glowTex;
     readonly System.Collections.Generic.List<Object> owned = new System.Collections.Generic.List<Object>();
@@ -32,15 +38,14 @@ public sealed class GateArt
     // Returns null if any slot's art is missing.
     public static GateArt Load()
     {
-        var deb = Resources.Load<Texture2D>(DebrisSlot);
         var st = Resources.Load<Texture2D>(SteamSlot);
-        if (deb == null || st == null) return null;
+        if (st == null) return null;
 
         var art = new GateArt();
-        deb.filterMode = st.filterMode = FilterMode.Point;
-        art.debris = Cells(deb, DebrisCols, DebrisRows, art);
+        st.filterMode = FilterMode.Point;
         art.steam = Cells(st, SteamCols, SteamRows, art);
         art.MakeUtility();
+        art.LoadThemed();
         return art;
     }
 
@@ -48,6 +53,9 @@ public sealed class GateArt
     {
         for (int i = 0; i < owned.Count; i++) Kill(owned[i]);
         owned.Clear();
+        for (int i = 0; i < shipTex.Count; i++)
+            if (shipTex[i] != null && Application.isPlaying) Resources.UnloadAsset(shipTex[i]);
+        shipTex.Clear();
         Kill(whiteTex); Kill(glowTex);
         whiteTex = glowTex = null;
     }
@@ -71,6 +79,26 @@ public sealed class GateArt
                 owner.owned.Add(s);
             }
         return list;
+    }
+
+    // The star dust glyph and the hull cells. Everything is loaded here, at scene start: a tap never loads.
+    void LoadThemed()
+    {
+        dust = DockArt.Get("icon_dust");
+        ships = new Sprite[ShipKeys.Length];
+        for (int i = 0; i < ShipKeys.Length; i++)
+        {
+            var t = Resources.Load<Texture2D>("ShipArt/" + ShipKeys[i] + "/" + ShipKeys[i]);
+            if (t == null) continue;
+            shipTex.Add(t);
+            t.wrapMode = TextureWrapMode.Clamp;
+            // row 0 (intact), column 0 (the key pose); texture rows count from the bottom
+            var s = Sprite.Create(t, new Rect(0, t.height - ShipCell, ShipCell, ShipCell), new Vector2(0.5f, 0.5f), ShipCell,
+                                  0, SpriteMeshType.FullRect);
+            s.name = "gate_ship_" + ShipKeys[i];
+            ships[i] = s;
+            owned.Add(s);
+        }
     }
 
     void MakeUtility()
