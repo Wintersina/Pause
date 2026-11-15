@@ -128,9 +128,11 @@ public static class CodexNewDotsTest
 
             // ---- collect the rest of tab A with COLLECT ALL ----
             Check("tab chip now reads COLLECT ALL +5", panel.CollectTabLabel.text == "COLLECT ALL +5");
+            int spawnedBefore = panel.DustFx.Spawned;
             panel.CollectTabButton.onClick.Invoke();
             Check("collect all starts a sequence, the first find is already focused or paid", panel.CollectSequenceActive || Dust() >= 110f);
             panel.FinishSequence();
+            Check("collect all: the shared dust FX spawned for the find, and a skip leaves no live particles", panel.DustFx.Spawned == spawnedBefore + 1 && !panel.DustFx.Active && panel.DustFx.LiveParticles == 0 && panel.DustFx.InFlightDust == 0);
             Check("collect all (tab A): +5, tab A's dot and chip clear, tab B's stays, home 1",
                   Dust() == 110f && !panel.TabNewDot(tabA).gameObject.activeSelf && !panel.CollectTabButton.interactable && panel.CollectTabLabel.text == "COLLECT ALL" &&
                   panel.TabNewDot(tabB).gameObject.activeSelf && home.BadgeShown == "1" && Codex.PendingIn(catB) == 1);
@@ -198,6 +200,7 @@ public static class CodexNewDotsTest
             Check("sequence: closing the codex mid-way credits the rest too", !panel.CollectSequenceActive && Codex.PendingIn(catA) == 0);
             PlayerPrefs.SetFloat(StarDustLedger.CurrencyKey, 115f);
             SequenceChecks();
+            DustFxChecks();
             // the combo found above must not leak into the sections below (their pending counts are exact)
             PlayerPrefs.DeleteKey(FusionDiscoveryStore.PrefsKey);
             FusionDiscoveryStore.Reload();
@@ -318,6 +321,51 @@ public static class CodexNewDotsTest
 
 
     // The sequencing itself: plain C#, driven by Tick(dt).
+    static void DustFxChecks()
+    {
+        var fx = new CodexDustFx(null, null);
+        var from = Vector2.zero; var to = new Vector2(300f, 400f);
+        Check("dust fx: idle at first, nothing live", !fx.Active && fx.LiveParticles == 0 && fx.Pulse == 1f);
+        Check("dust fx: no burst for zero dust", !fx.Spawn(from, to, .4f, 0) && fx.Spawned == 0);
+        // one find: ~.45 s, the held-back dust drains to zero as the pieces land, then nothing is left
+        Check("dust fx: a find spawns a burst", fx.Spawn(from, to, .4f, 30) && fx.Spawned == 1 && fx.LiveParticles == CodexDustFx.ParticlesPerBurst && fx.InFlightDust == 30);
+        float t = 0f; int last = 30; bool mono = true;
+        while (fx.Active && t < 3f) { fx.Step(1f / 60f); t += 1f / 60f; if (fx.InFlightDust > last) mono = false; last = fx.InFlightDust; }
+        Check("dust fx: lands within the step pace (under ~.7 s), counter dust drains monotonically to 0, nothing left", mono && !fx.Active && t <= .7f && fx.InFlightDust == 0 && fx.LiveParticles == 0);
+        // overlapping streams are capped
+        int ok = 0;
+        for (int i = 0; i < 7; i++) if (fx.Spawn(from, to, .4f, 20)) ok++;
+        Check("dust fx: overlapping bursts are capped at the pool size and the live particles never pass the cap", ok == CodexDustFx.Slots && fx.LiveParticles <= CodexDustFx.MaxLiveParticles);
+        fx.Step(.15f);
+        fx.Stop(); fx.Stop();
+        Check("dust fx: a skip mid-stream leaves no live particles and nothing in flight", !fx.Active && fx.LiveParticles == 0 && fx.InFlightDust == 0 && fx.Pulse == 1f);
+        // a long collect: 40 finds at the squeezed pace never exceed the cap and end clean
+        float step = CodexCollectSequence.StepSecondsFor(40); int peak = 0;
+        for (int i = 0; i < 40; i++)
+        {
+            fx.Spawn(from, to, step * .9f, 10);
+            for (float u = 0; u < step; u += 1f / 60f) { fx.Step(1f / 60f); peak = Mathf.Max(peak, fx.LiveParticles); }
+        }
+        for (int n = 0; n < 120 && fx.Active; n++) fx.Step(1f / 60f);
+        Check("dust fx: 40 finds stay under the particle cap and end clean", peak <= CodexDustFx.MaxLiveParticles && !fx.Active && fx.LiveParticles == 0);
+        // no allocations per item once warm
+        for (int i = 0; i < 20; i++) { fx.Spawn(from, to, .3f, 12); fx.Step(.5f); }
+        long before = System.GC.GetAllocatedBytesForCurrentThread();
+        for (int i = 0; i < 300; i++) { fx.Spawn(from, to, .3f, 12); fx.Step(1f / 60f); fx.Step(.5f); }
+        long grown = System.GC.GetAllocatedBytesForCurrentThread() - before;
+        Check("dust fx: no per-item allocations after warm-up (" + grown + " bytes over 300 finds)", grown < 512);
+        // the Shop's own timing is untouched by the speed knob
+        var shop = new ShopDustFx(null);
+        shop.Begin(from, to, 0, 50, null);
+        float st = 0f;
+        while (shop.Active && st < 5f) { shop.Step(1f / 60f); st += 1f / 60f; }
+        var fast = new ShopDustFx(null); fast.Speed = 2f;
+        fast.Begin(from, to, 0, 50, null);
+        float ft = 0f;
+        while (fast.Active && ft < 5f) { fast.Step(1f / 60f); ft += 1f / 60f; }
+        Check("dust fx: the Shop still runs 1.2-1.8 s at speed 1, and speed 2 takes half", shop.Speed == 1f && ShopDustFx.TotalSeconds >= 1.2f && ShopDustFx.TotalSeconds <= 1.8f && st >= 1.2f && st <= 1.8f && Mathf.Abs(ft - st * .5f) < .06f);
+    }
+
     static void SequenceChecks()
     {
         string[] ids = { "a", "b", "c" };

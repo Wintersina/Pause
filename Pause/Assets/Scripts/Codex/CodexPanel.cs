@@ -419,8 +419,9 @@ public class CodexPanel : MonoBehaviour
     float feedbackUntil;
     string feedbackText;
     CodexCollectSequence sequence;      // COLLECT ALL's glide-and-pay sequence while it plays
-    Text popText;                       // the "+N" that flies from the list to the counter for each find
-    float popAt;
+    CodexDustFx dustFx;                 // the Shop's star-dust burst, one per find, flying to the counter
+    RectTransform dustLayer;
+    public CodexDustFx DustFx { get { return dustFx; } }
     int sequenceShown;                  // dust paid so far by the running sequence (the counter ticks up)
     RectTransform grid, viewport, content;
     CanvasGroup gridGroup;
@@ -665,12 +666,10 @@ public class CodexPanel : MonoBehaviour
         collectBarText.resizeTextMinSize = 12;
         collectBarText.resizeTextMaxSize = 22;
         collectBarText.gameObject.SetActive(false);
-        popText = CodexUi.NewText("CollectPop", panel, font, "", 44, CodexUi.Title, TextAnchor.MiddleCenter);
-        CodexUi.AddOutline(popText.gameObject, CodexUi.Ink, 2f);
-        popText.raycastTarget = false;
-        CodexUi.Place(popText.rectTransform, CodexUi.Centered(0f, 0f, 220f, 70f));
-        popText.transform.SetAsLastSibling();
-        popText.gameObject.SetActive(false);
+        dustLayer = CodexUi.NewRect("DustFxLayer", panel);
+        CodexUi.Stretch(dustLayer);
+        dustFx = new CodexDustFx(dustLayer, DockArt.Get("icon_dust"));   // pre-warmed: the finds only re-arm a pooled burst
+        dustLayer.SetAsLastSibling();
     }
 
     void BuildTabs()
@@ -982,8 +981,10 @@ public class CodexPanel : MonoBehaviour
     public void FinishSequence()
     {
         var seq = sequence;
+        if (dustFx != null) dustFx.Stop();   // whatever is still flying just stops: nothing hangs
         if (seq == null) return;
         seq.Finish();
+        if (dustFx != null) dustFx.Stop();
         EndSequence(seq);
     }
 
@@ -991,7 +992,6 @@ public class CodexPanel : MonoBehaviour
     {
         if (sequence != seq) return;
         sequence = null;
-        if (popText != null) popText.gameObject.SetActive(false);
         AfterCollect(seq.TotalPaid);
     }
 
@@ -1004,12 +1004,7 @@ public class CodexPanel : MonoBehaviour
     void OnSequencePaid(string id, int dust)
     {
         sequenceShown += dust;
-        popAt = Time.unscaledTime;
-        if (popText != null && dust > 0)
-        {
-            popText.text = "+" + dust;
-            popText.gameObject.SetActive(true);
-        }
+        SpawnDust(id, dust);
         RefreshCounter();
         PaintNewDots();
     }
@@ -1020,16 +1015,41 @@ public class CodexPanel : MonoBehaviour
         if (seq == null) return;
         seq.Tick(dt);
         if (seq.Done) { EndSequence(seq); return; }
-        // the "+N" rises from the middle of the list to the counter and fades, once per find
-        if (popText != null && popText.gameObject.activeSelf)
+        if (seq.Active) RefreshCounter();
+    }
+
+    // A burst from the find's card (the middle of the list for a combo / track) to the counter, landing about when the next step starts.
+    void SpawnDust(string id, int dust)
+    {
+        if (dustFx == null || dust <= 0 || sequence == null || !sequence.Active) return;
+        dustLayer.SetAsLastSibling();
+        Vector2 from = layout.body.center;
+        var e = Codex.Find(id);
+        if (e != null)
+            for (int i = 0; i < shownCount; i++)
+                if (cards[i].entry == e) { from = LocalInDust(cards[i].rt); break; }
+        from.x = Mathf.Clamp(from.x, layout.body.xMin, layout.body.xMax);
+        from.y = Mathf.Clamp(from.y, layout.body.yMin, layout.body.yMax);
+        dustFx.Spawn(from, LocalInDust(counter.rectTransform), Mathf.Max(.1f, sequence.StepSeconds * .9f), dust);
+    }
+
+    // A rect's centre in the dust layer's space, read from the live layout so it holds at every aspect ratio.
+    Vector2 LocalInDust(RectTransform rt)
+    {
+        return dustLayer.InverseTransformPoint(rt.TransformPoint(rt.rect.center));
+    }
+
+    // Runs every frame: bursts outlive the sequence by a moment, and the counter pulses as the pieces land.
+    void TickDust(float dt)
+    {
+        if (dustFx == null) return;
+        if (dustFx.Active)
         {
-            float k = Mathf.Clamp01((Time.unscaledTime - popAt) / Mathf.Max(.1f, seq.StepSeconds));
-            var from = layout.body.center;
-            var to = counter.rectTransform.rect.center + (Vector2)counter.rectTransform.anchoredPosition;
-            popText.rectTransform.anchoredPosition = Vector2.Lerp(from, to, CodexUi.EaseOutCubic(k));
-            var c = popText.color; c.a = 1f - k * k; popText.color = c;
-            if (k >= 1f) popText.gameObject.SetActive(false);
+            dustFx.Step(Mathf.Min(dt, .1f));
+            if (sequence != null && sequence.Active) RefreshCounter();
         }
+        float s = dustFx.Active ? dustFx.Pulse : 1f;
+        if (!Mathf.Approximately(counter.rectTransform.localScale.x, s)) counter.rectTransform.localScale = new Vector3(s, s, 1f);
     }
 
     static List<string> PendingTrackIds()
@@ -2348,7 +2368,7 @@ public class CodexPanel : MonoBehaviour
 
     void RefreshCounter()
     {
-        if (sequence != null && sequence.Active) { counter.text = "+" + sequenceShown + " STAR DUST"; return; }
+        if (sequence != null && sequence.Active) { counter.text = "+" + Mathf.Max(0, sequenceShown - (dustFx != null ? dustFx.InFlightDust : 0)) + " STAR DUST"; return; }
         if (Time.unscaledTime < feedbackUntil && !musicOpen && !achievementsOpen && !combosOpen) { counter.text = feedbackText; return; }
         counter.text = musicOpen
             ? CodexMusic.UnlockedCount + " / " + CodexMusic.ListedCount + "  HEARD"
@@ -2371,6 +2391,7 @@ public class CodexPanel : MonoBehaviour
     {
         if (ScreenInfo.Width != lastW || ScreenInfo.Height != lastH || ScreenInfo.SafeArea != lastSafe) Fit();
         TickSequence(Time.unscaledDeltaTime);
+        TickDust(Time.unscaledDeltaTime);
         if (feedbackUntil > 0f && Time.unscaledTime >= feedbackUntil) { feedbackUntil = 0f; RefreshCounter(); }
         UpdateJump(Time.unscaledTime);
         ApplyFrame(Time.unscaledTime);
