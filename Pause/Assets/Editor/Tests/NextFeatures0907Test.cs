@@ -393,10 +393,10 @@ public static class NextFeatures0907Test
                       Mathf.Abs(hud.xMin - frame.left) < 1f && hud.xMin - s.safe.xMin >= margin - 1f);
                 Check(tag + "quick actions end at the band's right end, at least one margin in from the safe area",
                       Mathf.Abs(actions.xMax - frame.right) < 1f && s.safe.xMax - actions.xMax >= margin - 1f);
-                Check(tag + "HUD top edge sits one top margin below the safe area's top",
-                      Mathf.Abs(s.safe.yMax - hud.yMax - topMargin) < 1f);
-                Check(tag + "quick actions sit one top margin below the safe area's top, inside it",
-                      Mathf.Abs(s.safe.yMax - actions.yMax - topMargin) < 1f && actions.yMax < s.safe.yMax);
+                Check(tag + "HUD top edge sits at the band's top, at least one top margin below the safe area's top (lower where the board frame reaches past its rect)",
+                      Mathf.Abs(hud.yMax - frame.top) < 1f && s.safe.yMax - hud.yMax >= topMargin - 1f);
+                Check(tag + "quick actions sit at the band's top, at least one top margin below the safe area's top, inside it",
+                      Mathf.Abs(actions.yMax - frame.top) < 1f && s.safe.yMax - actions.yMax >= topMargin - 1f && actions.yMax < s.safe.yMax);
                 Check(tag + "HUD top aligned with the quick actions (" +
                       ((hud.yMax - actions.yMax) / actionScale).ToString("F2") + " units)",
                       Mathf.Abs(hud.yMax - actions.yMax) / actionScale < 3f);
