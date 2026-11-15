@@ -94,6 +94,13 @@ sprite (`HapticGate_title_red`) sits exactly where the film's wordmark lands, at
 width; it is hidden while the film plays and is the fallback if the film's art is
 missing (the edit-mode layout tests and the screen-fit rig measure it there).
 
+## Tap burst (themed)
+
+Taps and the smash throw star dust (the dock's `Dock/icon_dust` sparkle) and a few tiny player ships
+(row 0, column 0 of `ShipArt/<Key>/<Key>` for NeonComet, SolarFang, IonLancer) with a thin exhaust streak,
+away from the gate's centre. Pools are built and warmed at scene start (`GateView.MaxDust` 40, `MaxShips` 6,
+ring buffers), nothing is loaded or allocated on a tap. The old gear debris sheet is gone.
+
 ## Effect art slots
 
 PNGs in `Assets/Resources/HapticGate/`, loaded by exact slot name in `GateArt.cs`.
@@ -102,10 +109,9 @@ without tap effects.
 
 | Resources path | spec |
 |---|---|
-| `HapticGate/gate_debris` | 1024x512, 8x4 cells of 128 px (drawn at 1.8x: the shard fills about half a cell) |
 | `HapticGate/gate_steam` | 1024x1024, 4x4 cells of 256 px: columns are growth stages (stepped with the puff's age), rows are variants |
 
-Both: Sprite, Point, no mips, uncompressed. The old procedural door
+Sprite, Point, no mips, uncompressed. The old procedural door
 (`industrial_gate_v4` 6144x4096 and `gate_cracks_1..3`) is retired (deleted,
 `UnusedAssetGuardTest` keeps it out).
 

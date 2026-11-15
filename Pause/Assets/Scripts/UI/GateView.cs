@@ -1,8 +1,9 @@
 using UnityEngine;
 
 // The effects drawn over the gate film (GateFilm) for a GateSim: the player's
-// taps (sparks, chips, a glow and steam off a leaf), the smash (debris burst,
-// sparks, steam, full-view white flash) and the steam leaking after tap 2.
+// taps (sparks, a burst of star dust with a few tiny player ships streaking out, a glow
+// and steam off a leaf), the smash (a bigger dust and ship burst, sparks, steam,
+// full-view white flash) and the steam leaking after tap 2.
 // The film itself carries the gate, the smoke and steam of the opening and the
 // wordmark, so a natural run draws nothing here.
 //
@@ -11,7 +12,9 @@ using UnityEngine;
 // All pools are built once; Sync allocates nothing.
 public sealed class GateView
 {
-    const int MaxDebris = 56, MaxSparks = 96, MaxSteam = 32, MaxGlow = 6;
+    // Live caps of the themed burst: a ring buffer, so rapid taps recycle the oldest and never grow.
+    public const int MaxDust = 40, MaxShips = 6;
+    const int MaxSparks = 96, MaxSteam = 32, MaxGlow = 6;
 
     // Gate space in film widths: the shut gate's width (two leaves).
     public const float GateSpace = 2f * GateFilm.LeafWidth;
@@ -23,12 +26,20 @@ public sealed class GateView
     float flashAlpha;
     public float FlashAlpha { get { return flashAlpha; } }
 
-    // debris
-    readonly Transform[] dT = new Transform[MaxDebris];
-    readonly SpriteRenderer[] dR = new SpriteRenderer[MaxDebris];
-    readonly Vector2[] dPos = new Vector2[MaxDebris], dVel = new Vector2[MaxDebris];
-    readonly float[] dRot = new float[MaxDebris], dSpin = new float[MaxDebris], dSize = new float[MaxDebris], dLife = new float[MaxDebris];
+    // star dust (the dock's sparkle glyph)
+    readonly Transform[] dT = new Transform[MaxDust];
+    readonly SpriteRenderer[] dR = new SpriteRenderer[MaxDust];
+    readonly Vector2[] dPos = new Vector2[MaxDust], dVel = new Vector2[MaxDust];
+    readonly float[] dRot = new float[MaxDust], dSpin = new float[MaxDust], dSize = new float[MaxDust],
+                     dLife = new float[MaxDust], dMax = new float[MaxDust];
     int dNext;
+    // tiny player ships with a short exhaust streak (slot i always wears hull i % hulls: same-texture slots draw together)
+    readonly Transform[] pT = new Transform[MaxShips], pTrailT = new Transform[MaxShips];
+    readonly SpriteRenderer[] pR = new SpriteRenderer[MaxShips], pTrailR = new SpriteRenderer[MaxShips];
+    readonly Vector2[] pPos = new Vector2[MaxShips], pVel = new Vector2[MaxShips];
+    readonly float[] pLife = new float[MaxShips], pMax = new float[MaxShips], pSize = new float[MaxShips];
+    int pNext;
+    int warmFrames = 2;       // the first frames draw one of every sprite invisibly so no tap pays a first-draw upload
     // sparks
     readonly Transform[] sT = new Transform[MaxSparks];
     readonly SpriteRenderer[] sR = new SpriteRenderer[MaxSparks];
@@ -60,7 +71,14 @@ public sealed class GateView
         root.localPosition = new Vector3(0f, GateFilm.GateCentreY, -0.02f);
         root.localScale = Vector3.one * GateSpace;
 
-        for (int i = 0; i < MaxDebris; i++) Pool("Debris " + i, art.debris[0], 6, out dT[i], out dR[i]);
+        for (int i = 0; i < MaxDust; i++) Pool("Dust " + i, art.dust != null ? art.dust : art.white, 6, out dT[i], out dR[i]);
+        int hulls = HullCount;
+        for (int i = 0; i < MaxShips; i++)
+        {
+            Sprite hull = hulls > 0 ? art.ships[HullOf(i)] : null;
+            Pool("Ship " + i, hull, 10 + (hulls > 0 ? HullOf(i) : 0), out pT[i], out pR[i]);
+            Pool("Ship trail " + i, art.white, 7, out pTrailT[i], out pTrailR[i]);
+        }
         for (int i = 0; i < MaxSparks; i++) Pool("Spark " + i, art.white, 7, out sT[i], out sR[i]);
         for (int i = 0; i < MaxSteam; i++) Pool("Steam " + i, art.steam[0], 5, out tT[i], out tR[i]);
         for (int i = 0; i < MaxGlow; i++) Pool("Glow " + i, art.glow, 8, out gT[i], out gR[i]);
@@ -68,8 +86,39 @@ public sealed class GateView
         Pool("Flash", art.white, 9, out ft, out flash);
         flash.color = new Color(1, 1, 1, 0);
 
+        WarmUp(true);
         sim.Cracked += OnCracked;
         sim.Smashed += OnSmashed;
+    }
+
+    // hulls that actually loaded (the leading ones: a missing sheet just means fewer kinds)
+    int HullCount
+    {
+        get { int n = 0; if (art.ships != null) for (int i = 0; i < art.ships.Length; i++) if (art.ships[i] != null) n++; return n; }
+    }
+    int HullOf(int slot)
+    {
+        int n = art.ships.Length;
+        for (int k = 0; k < n; k++) { int h = (slot + k) % n; if (art.ships[h] != null) return h; }
+        return 0;
+    }
+
+    // Draws every pooled sprite once, invisibly (alpha ~0, tiny), then hides it. Done in the first frames of the card
+    // so textures are uploaded and batches are built before the player's first tap.
+    void WarmUp(bool on)
+    {
+        for (int i = 0; i < MaxDust; i++)
+        {
+            if (!on && dLife[i] > 0f) continue;      // never hide a live sparkle
+            dR[i].enabled = on && i == 0; dR[i].color = new Color(1, 1, 1, 0.003f); dT[i].localScale = Vector3.one * 0.001f;
+        }
+        for (int i = 0; i < MaxShips; i++)
+        {
+            if (!on && pLife[i] > 0f) continue;
+            bool e = on && pR[i].sprite != null;
+            pR[i].enabled = e; pR[i].color = new Color(1, 1, 1, 0.003f); pT[i].localScale = Vector3.one * 0.001f;
+            pTrailR[i].enabled = e && i == 0; pTrailR[i].color = new Color(1, 1, 1, 0.003f); pTrailT[i].localScale = Vector3.one * 0.001f;
+        }
     }
 
     void Pool(string name, Sprite sprite, int order, out Transform t, out SpriteRenderer sr)
@@ -96,7 +145,9 @@ public sealed class GateView
     // Everything off (previews / tests restarting the card).
     public void Clear()
     {
-        for (int i = 0; i < MaxDebris; i++) dR[i].enabled = false;
+        for (int i = 0; i < MaxDust; i++) { dR[i].enabled = false; dLife[i] = 0f; }
+        for (int i = 0; i < MaxShips; i++) { pR[i].enabled = false; pTrailR[i].enabled = false; pLife[i] = 0f; }
+        warmFrames = 0;
         for (int i = 0; i < MaxSparks; i++) sR[i].enabled = false;
         for (int i = 0; i < MaxSteam; i++) tR[i].enabled = false;
         for (int i = 0; i < MaxGlow; i++) gR[i].enabled = false;
@@ -104,12 +155,15 @@ public sealed class GateView
         flash.enabled = false;
     }
 
+    public int ActiveDust { get { int n = 0; for (int i = 0; i < MaxDust; i++) if (dLife[i] > 0f) n++; return n; } }
+    public int ActiveShips { get { int n = 0; for (int i = 0; i < MaxShips; i++) if (pLife[i] > 0f) n++; return n; } }
+
     public int ActiveParticles
     {
         get
         {
             int n = 0;
-            for (int i = 0; i < MaxDebris; i++) if (dR[i].enabled) n++;
+            n += ActiveDust + ActiveShips;
             for (int i = 0; i < MaxSparks; i++) if (sR[i].enabled) n++;
             for (int i = 0; i < MaxSteam; i++) if (tR[i].enabled) n++;
             return n;
@@ -126,7 +180,7 @@ public sealed class GateView
         var p = LeafPoint(side, 0.80f, 0.52f);
         int sp = stage == 1 ? 10 : 20;
         for (int i = 0; i < sp; i++) Spark(p, 0.5f + 0.8f * stage, side);
-        for (int i = 0; i < stage * 2; i++) Chunk(p, 0.04f + 0.04f * sim.Rand(), 0.6f, side);
+        ThemedBurst(p, side, stage == 1 ? 8 : 14, stage == 1 ? 2 : 3);
         Glow(p, 0.6f + 0.3f * stage);
         flashAlpha = Mathf.Max(flashAlpha, 0.18f * stage);
         if (stage >= 2)
@@ -138,10 +192,10 @@ public sealed class GateView
     void OnSmashed()
     {
         flashAlpha = 1f;
-        for (int i = 0; i < 40; i++)
+        for (int k = 0; k < 2; k++)
         {
-            float side = i % 2 == 0 ? -1f : 1f;
-            Chunk(LeafPoint(side, sim.Rand(), sim.Rand()), 0.07f + 0.13f * sim.Rand(), 1.6f, side);
+            float side = k == 0 ? -1f : 1f;
+            ThemedBurst(LeafPoint(side, 0.8f, 0.5f), side, 18, 3);
         }
         for (int i = 0; i < 64; i++) Spark(LeafPoint(i % 2 == 0 ? -1f : 1f, sim.Rand(), sim.Rand()), 2.2f, i % 2 == 0 ? -1 : 1);
         for (int i = 0; i < 8; i++)
@@ -175,22 +229,41 @@ public sealed class GateView
         sR[i].enabled = true;
     }
 
-    void Chunk(Vector2 p, float size, float power, float dirX)
+    // One tap's burst: `dust` star dust sparkles and `ships` tiny hulls streaking out from p, away from the gate's
+    // centre (dirX is the side the point is on), so it never sweeps across the mark in the middle. Public so tests
+    // can hammer it; the pools are ring buffers (MaxDust / MaxShips), nothing is allocated.
+    public void ThemedBurst(Vector2 p, float dirX, int dust, int ships)
     {
-        int i = dNext; dNext = (dNext + 1) % MaxDebris;
+        for (int i = 0; i < dust; i++) Dust(p, dirX);
+        for (int i = 0; i < ships; i++) Ship(p, dirX, i);
+    }
+
+    void Dust(Vector2 p, float dirX)
+    {
+        int i = dNext; dNext = (dNext + 1) % MaxDust;
         dPos[i] = p;
-        float a = (sim.Rand() - 0.35f) * 2.2f;
-        float sp = (0.4f + sim.Rand() * 0.9f) * power;
-        dVel[i] = new Vector2(Mathf.Cos(a) * dirX * sp, Mathf.Sin(a) * sp + 0.25f);
-        dRot[i] = sim.Rand() * 360f;
-        dSpin[i] = (sim.Rand() - 0.5f) * 900f;
-        size *= 1.4f * GateArt.DebrisDrawScale;
-        dSize[i] = size;
-        dLife[i] = 1.4f + sim.Rand() * 0.6f;
-        dR[i].sprite = art.debris[(int)(sim.Rand() * art.debris.Length) % art.debris.Length];
-        dT[i].localScale = Vector3.one * (size / 1.28f);
-        dR[i].color = Color.white;
+        float a = (sim.Rand() - 0.5f) * 2.6f;
+        float sp = 0.25f + sim.Rand() * 0.55f;
+        dVel[i] = new Vector2(Mathf.Cos(a) * dirX * sp, Mathf.Sin(a) * sp + 0.12f);
+        dRot[i] = sim.Rand() * 90f - 45f;
+        dSpin[i] = (sim.Rand() - 0.5f) * 240f;
+        dSize[i] = 0.03f + 0.035f * sim.Rand();
+        dMax[i] = dLife[i] = 0.7f + sim.Rand() * 0.5f;
         dR[i].enabled = true;
+    }
+
+    void Ship(Vector2 p, float dirX, int n)
+    {
+        if (HullCount == 0) return;
+        int i = pNext; pNext = (pNext + 1) % MaxShips;
+        pPos[i] = p;
+        // a fan between 15 and 70 degrees above the horizontal, away from the centre
+        float a = (15f + 55f * sim.Rand()) * Mathf.Deg2Rad;
+        float sp = 0.9f + sim.Rand() * 0.5f;
+        pVel[i] = new Vector2(Mathf.Cos(a) * dirX * sp, Mathf.Sin(a) * sp);
+        pMax[i] = pLife[i] = 0.55f + sim.Rand() * 0.2f;
+        pSize[i] = 0.07f + 0.02f * sim.Rand();
+        pR[i].enabled = true; pTrailR[i].enabled = true;
     }
 
     void Steam(Vector2 p, Vector2 v, float size, float alpha)
@@ -230,6 +303,7 @@ public sealed class GateView
             }
         }
 
+        if (warmFrames > 0 && --warmFrames == 0) WarmUp(false);
         UpdateParticles(dt);
 
         // full-view flash
@@ -240,18 +314,44 @@ public sealed class GateView
 
     void UpdateParticles(float dt)
     {
-        for (int i = 0; i < MaxDebris; i++)
+        for (int i = 0; i < MaxDust; i++)
         {
-            if (!dR[i].enabled) continue;
+            if (dLife[i] <= 0f) continue;
             dLife[i] -= dt;
-            if (dLife[i] <= 0f || dPos[i].y < -2.5f) { dR[i].enabled = false; continue; }
-            dVel[i].y -= 3.2f * dt;
+            if (dLife[i] <= 0f) { dLife[i] = 0f; dR[i].enabled = false; continue; }
+            dVel[i] *= 1f - 1.6f * dt;               // drifts out and slows
             dPos[i] += dVel[i] * dt;
             dRot[i] += dSpin[i] * dt;
+            float k = dLife[i] / dMax[i];
             dT[i].localPosition = new Vector3(dPos[i].x, dPos[i].y, -0.02f);
             dT[i].localRotation = Quaternion.Euler(0f, 0f, dRot[i]);
-            float a = Mathf.Clamp01(dLife[i] / 0.35f);
-            dR[i].color = new Color(1f, 1f, 1f, a);
+            // the glyph is 72 px at 300 px/unit (0.24 wide): twinkle in, shrink out
+            dT[i].localScale = Vector3.one * (dSize[i] / 0.24f * (0.55f + 0.45f * Mathf.Sin(Mathf.Clamp01(k) * Mathf.PI * 0.5f)));
+            dR[i].color = new Color(1f, 0.95f, 0.8f, Mathf.Clamp01(k * 2.5f) * 0.8f);
+        }
+        for (int i = 0; i < MaxShips; i++)
+        {
+            if (pLife[i] <= 0f) continue;
+            pLife[i] -= dt;
+            if (pLife[i] <= 0f) { pLife[i] = 0f; pR[i].enabled = false; pTrailR[i].enabled = false; continue; }
+            pVel[i].y += 0.35f * dt;
+            pPos[i] += pVel[i] * dt;
+            float k = pLife[i] / pMax[i];
+            float ang = Mathf.Atan2(pVel[i].y, pVel[i].x) * Mathf.Rad2Deg;
+            float speed = pVel[i].magnitude;
+            float al = Mathf.Clamp01(k * 3f) * 0.9f;
+            pT[i].localPosition = new Vector3(pPos[i].x, pPos[i].y, -0.022f);
+            pT[i].localRotation = Quaternion.Euler(0f, 0f, ang - 90f);     // the hull's nose is up
+            pT[i].localScale = Vector3.one * pSize[i];
+            pR[i].color = new Color(1f, 1f, 1f, al);
+            // thin exhaust streak behind the tail, longer when quick; cyan fading to amber with age
+            float len = 0.05f + 0.05f * speed;
+            Vector2 dir = pVel[i] / Mathf.Max(speed, 0.0001f);
+            Vector2 tail = pPos[i] - dir * (pSize[i] * 0.4f + len * 0.5f);
+            pTrailT[i].localPosition = new Vector3(tail.x, tail.y, -0.021f);
+            pTrailT[i].localRotation = Quaternion.Euler(0f, 0f, ang);
+            pTrailT[i].localScale = new Vector3(len, 0.006f, 1f);
+            pTrailR[i].color = new Color(0.45f + 0.55f * (1f - k), 0.95f - 0.15f * (1f - k), 1f - 0.65f * (1f - k), al * 0.6f);
         }
         for (int i = 0; i < MaxSparks; i++)
         {
