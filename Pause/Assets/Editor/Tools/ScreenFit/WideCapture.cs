@@ -8,7 +8,7 @@ using UnityEngine;
 //   (env WIDE_CAPTURE_DIR, else /private/tmp/wide-capture; WIDE_CAPTURE_SCREENS / WIDE_CAPTURE_DEVICES = comma lists)
 public static class WideCapture
 {
-    static readonly string[] Devices = { "flip7-cover-948x1048", "flip7-1080x2520" };
+    static readonly string[] Devices = { "flip7-cover-948x1048", "flip7-1080x2520", "desk-1920x1080", "desk-2560x1080" };
     static readonly string[] Screens = { "dock", "dock-popup-owned", "dock-popup-buy", "codex-grid", "codex-detail", "codex-music", "codex-world-detail", "codex-backdrops", "home", "options", "leaderboard", "credits" };
 
     public static void Run()

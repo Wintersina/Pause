@@ -74,6 +74,12 @@ public class DockPopup : MonoBehaviour
     public Rect safeView = new Rect(-2.8f, -4f, 5.6f, 8f);
     // Wide view: the card sits centred in its own pane (safeView) instead of floating over its ship.
     public bool Docked;
+    // Wide / Ultra view (ScreenFrame, width / height >= 1.25): the docked card is FIT to its pane instead of drawn at
+    // phone size. safeView is then the pane (the rack's vertical extent, the card share of the width); SetDensity
+    // takes the unit that fills it, with no PopupScale shrink.
+    public bool FitPane;
+    // The pane share of the view width a fit card takes (the rack gets the rest).
+    public const float PaneShare = .38f;
 
     public System.Action<int> onLaunch;
     public System.Action<int> onBuy;
@@ -154,6 +160,15 @@ public class DockPopup : MonoBehaviour
     // card keeps that size unless it would not fit the safe view.
     public void SetDensity(float worldPerPoint)
     {
+        if (FitPane && Docked && safeView.width > 0f && safeView.height > 0f)
+        {
+            // Unit = min(paneW / 300, paneH / this card's height): the card (owned or not) fills its pane, the
+            // taller owned card with a slightly smaller unit. worldPerPoint is the desktop UI unit (UiScale.UnitPx);
+            // on any real window the fit is far above the touch floor (HitUnits drawn >= 48 of those units).
+            RefitUnit();
+            if (gameObject.activeInHierarchy) Follow();
+            return;
+        }
         float u = (worldPerPoint > 0f ? worldPerPoint : DefaultUnit) * PopupScale;
         if (safeView.width > 0f) u = Mathf.Min(u, safeView.width / PanelWidth);
         if (safeView.height > 0f) u = Mathf.Min(u, safeView.height / (OwnedHeight + (noticeOn ? NoticeHeight : 0f) + TailUnits));
@@ -809,6 +824,14 @@ public class DockPopup : MonoBehaviour
     void Resize()
     {
         ((RectTransform)transform).sizeDelta = new Vector2(PanelWidth, CurrentHeightUnits);
+        RefitUnit();
+    }
+
+    // Wide / Ultra: the unit that fills the pane with the card as it is now (its height changes with owned / locked).
+    void RefitUnit()
+    {
+        if (!FitPane || !Docked || safeView.width <= 0f || safeView.height <= 0f) return;
+        Unit = Mathf.Min(safeView.width / PanelWidth, safeView.height / CurrentHeightUnits);
     }
 
     const float LivesIconSize = 15f;

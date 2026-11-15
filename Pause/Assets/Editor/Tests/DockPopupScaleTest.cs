@@ -117,6 +117,43 @@ public static class DockPopupScaleTest
         popup.SetDensity(.0132f);
     }
 
+    // Wide / Ultra (a desktop window): the card is docked to its pane and fit to it, no PopupScale shrink.
+    static void WideChecks(DockPopup popup, Transform anchor)
+    {
+        popup.Docked = true;
+        popup.FitPane = true;
+        float unitWorld = .0055f;   // the desktop UI unit in world units: its touch floor is far below the fit
+        foreach (var pane in new[] { new Rect(1f, -3.2f, 3.4f, 6.4f), new Rect(1.5f, -3.2f, 5.0f, 6.4f), new Rect(0f, -2f, 2.5f, 4f) })
+        {
+            popup.safeView = pane;
+            popup.SetDensity(unitWorld);
+            popup.Show(2, anchor, .3f, true, false, 0f, 0f);
+            popup.ShowSkins(2, 0, 0f);
+            float fit = Mathf.Min(pane.width / DockPopup.PanelWidth, pane.height / DockPopup.OwnedHeight);
+            string tag = "wide pane " + pane.width.ToString("F1") + "x" + pane.height.ToString("F1") + ": ";
+            Check(tag + "owned: unit = min(paneW / 300, paneH / OwnedHeight), no .85 shrink", Mathf.Approximately(popup.Unit, fit) && popup.Unit > unitWorld * DockPopup.PopupScale);
+            Check(tag + "owned card fits the pane and fills one of its axes",
+                  popup.WorldRect.width <= pane.width + .001f && popup.WorldRect.height <= pane.height + .001f &&
+                  (Mathf.Approximately(popup.WorldRect.width, pane.width) || Mathf.Approximately(popup.WorldRect.height, pane.height)));
+            Check(tag + "docked at its pane's centre (no Follow float over the ship)",
+                  Vector2.Distance(popup.WorldRect.center, pane.center) < .001f && !popup.Flipped);
+            popup.Show(5, anchor, .3f, false, false, 3200f, 0f);
+            float lockedFit = Mathf.Min(pane.width / DockPopup.PanelWidth, pane.height / DockPopup.BaseHeight);
+            Check(tag + "locked: the card re-fits the pane (unit = min(paneW / 300, paneH / BaseHeight)) and fills it",
+                  Mathf.Approximately(popup.Unit, lockedFit) &&
+                  (Mathf.Approximately(popup.WorldRect.width, pane.width) || Mathf.Approximately(popup.WorldRect.height, pane.height)));
+            Check(tag + "locked card is at least 80% of the pane's height unless the pane's width limits it", popup.WorldRect.height >= .8f * pane.height || Mathf.Approximately(popup.WorldRect.width, pane.width));
+            float unitPt = popup.Unit / unitWorld;
+            Check(tag + "touch floor kept: HitUnits drawn >= 48 desktop units", DockPopup.HitUnits * unitPt >= 47.9f);
+        }
+        popup.Docked = false;
+        popup.FitPane = false;
+        popup.safeView = new Rect(-50f, -50f, 100f, 100f);
+        popup.SetDensity(.0132f);
+        popup.Show(5, anchor, .3f, false, false, 3200f, 0f);
+        Check("phone path after wide: back to 0.85 x wpp", Mathf.Approximately(popup.Unit, .0132f * DockPopup.PopupScale));
+    }
+
     public static int Execute()
     {
         fails = 0;
@@ -161,6 +198,7 @@ public static class DockPopupScaleTest
             }
             Check("wpp " + wpp + ": every swatch slot >= 48 x 48 pt", sw);
         }
+        WideChecks(popup, anchor);
         Object.DestroyImmediate(popup.gameObject);
         Object.DestroyImmediate(anchor.gameObject);
         Debug.Log("[DPS] failures: " + fails);

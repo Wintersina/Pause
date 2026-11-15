@@ -31,6 +31,20 @@ public static class ResponsiveLayoutTest
         Dev("r-1080x1350", 1080, 1350, 2.625f, 60),            // very short
     };
 
+    // Desktop windows (no reported dpi): one Wide (16:9) and one Ultra (21:9). Only the screens this PR fixed are
+    // enforced on them; the rest are the "known, later PR" queue (WideKnown) and are skipped until their PR lands.
+    public static FitDevice[] WideDevices
+    {
+        get { return new[] { FitDevice.Find("desk-1920x1080"), FitDevice.Find("desk-2560x1080") }; }
+    }
+    public static readonly string[] WideEnforced = { "dock", "dock-popup-owned", "dock-popup-buy" };
+    // Follow-up queue: Shop, death / leaderboard / options, home, pause / toasts / dialogs, then the Codex.
+    public static readonly string[] WideKnown =
+    {
+        "home", "codex-grid", "codex-detail", "shop", "options", "options-start-world", "leaderboard", "leaderboard-settings",
+        "credits", "game-paused", "game-death", "tutorial-complete",
+    };
+
     static FitDevice Dev(string id, int w, int h, float pxPerPt, int top)
     {
         return new FitDevice { id = id, name = id, w = w, h = h, pxPerPt = pxPerPt, top = top, cornerRadius = 60 };
@@ -56,7 +70,7 @@ public static class ResponsiveLayoutTest
         return f.kind == "OVERLAP" && f.element.Contains("~DockPopup") && f.element.Contains("Canvas/PlayButton");
     }
 
-    static readonly HashSet<string> LayoutKinds = new HashSet<string> { "OFFSCREEN", "SAFE", "CUTOUT", "CORNER", "HOMEBAR", "OVERLAP", "TAPSIZE" };
+    static readonly HashSet<string> LayoutKinds = new HashSet<string> { "OFFSCREEN", "SAFE", "CUTOUT", "CORNER", "HOMEBAR", "OVERLAP", "TAPSIZE", "PROPORTION" };
 
     public static int Execute()
     {
@@ -84,8 +98,31 @@ public static class ResponsiveLayoutTest
                 if (!Known(device, "home")) HomeLogo(device);
             }
         }
+        foreach (var device in WideDevices)
+        {
+            Check(device.id + ": is " + ScreenFrame.Classify(device.w, device.h) + " (no dpi)", device.noDpi && ScreenFrame.Classify(device.w, device.h) >= ScreenFrame.Aspect.Wide);
+            using (new TestHarness.Sandbox())
+                foreach (var id in WideEnforced) CheckScreen(device, id);
+        }
+        Debug.Log("[RESPLAY] known, later PR (not enforced on the wide devices): " + string.Join(", ", WideKnown));
         Debug.Log("[RESPLAY] failures: " + fails);
         return fails;
+    }
+
+    static void CheckScreen(FitDevice device, string id)
+    {
+        var screen = ScreenFitScreens.Find(id);
+        if (screen == null) { Check(id + ": screen exists", false); return; }
+        var shot = ScreenFitRunner.Run(screen, device, null, 0);
+        if (shot.error != null) { Check(id + " @ " + device.id + ": staged (" + shot.error + ")", false); return; }
+        int bad = 0;
+        foreach (var f in shot.findings)
+        {
+            if (f.waived || !LayoutKinds.Contains(f.kind) || Modal(f)) continue;
+            bad++;
+            Check(id + " @ " + device.id + ": " + f.kind + " " + f.element + " " + f.detail, false);
+        }
+        if (bad == 0) Check(id + " @ " + device.id + ": taps inside the safe area, none overlapping, card in proportion", true);
     }
 
     // The PAUSE logo's drawn bottom must clear the PLAY button's top, and stay on screen below the top safe strip.

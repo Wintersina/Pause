@@ -39,6 +39,31 @@ public static class UiScale
         return Mathf.Clamp(shortSide / widthDp, 1f, 4f);
     }
 
+    // ---- desktop: the unit tracks the view's height ----------------------------------------------------
+    //
+    // A Mac / PC window reports no (or a nonsense) dpi, so PxPerPointFor guesses a phone (shortSide / 320 pixels per
+    // point), which on a 1080p window makes a "point" 3.4 px: right for a phone, wrong for a mouse-driven window
+    // whose content should scale with the window. On a Wide / Ultra view (ScreenFrame) with no usable dpi, a desktop
+    // UI unit is instead max(1 px, height / DesktopViewUnits): one pixel at 1080p and below (a unit is a pixel
+    // there, the point unit), growing with the window above it. A mouse needs no finger-sized floor, so the 48-unit
+    // tap floor is 48 of these. Phones (a plausible dpi, a tall / square view, or any mobile platform) get exactly
+    // PxPerPointFor, unchanged.
+    public const float DesktopViewUnits = 1100f;
+
+    public static bool TracksViewHeight(float dpi, int w, int h)
+    {
+        return !Plausible(dpi) && h > 0 && ScreenFrame.Classify(w, h) >= ScreenFrame.Aspect.Wide && !Application.isMobilePlatform;
+    }
+
+    public static float UnitPxFor(float dpi, bool ios, int w, int h)
+    {
+        if (!TracksViewHeight(dpi, w, h)) return PxPerPointFor(dpi, ios, w, h);
+        return Mathf.Max(1f, h / DesktopViewUnits);
+    }
+
+    // Pixels per UI unit for screens that scale with the window on desktop (the dock; later the other menus).
+    public static float UnitPx { get { return UnitPxFor(ScreenInfo.Dpi, ScreenInfo.IsIos, ScreenInfo.Width, ScreenInfo.Height); } }
+
     public static float MinTapPointsFor(bool ios) { return ios ? MinTapPt : MinTapDp; }
 
     // ---- the minimum UI scale ----------------------------------------------
