@@ -22,6 +22,8 @@ public sealed class ShopDustFx
     static readonly Color Cyan = new Color(.45f, .95f, 1f, 1f), Gold = new Color(1f, .82f, .35f, 1f);
 
     readonly RectTransform layer;
+    readonly int cap;                           // particle capacity (MaxParticles for the Shop, fewer for a Codex burst)
+    float speed = 1f;                           // 1 = the Shop's timing; 2 plays the whole timeline twice as fast
     Image glow, ring;
     Image[] dustImg, sparkImg;
     Vector2[] scatter, ctrl;
@@ -31,7 +33,17 @@ public sealed class ShopDustFx
     float t;
     bool active;
 
-    public ShopDustFx(RectTransform layer) { this.layer = layer; if (layer != null) layer.gameObject.SetActive(false); }
+    public ShopDustFx(RectTransform layer, int maxParticles = MaxParticles) { this.layer = layer; cap = Mathf.Clamp(maxParticles, 1, MaxParticles); if (layer != null) layer.gameObject.SetActive(false); }
+
+    // Timeline speed multiplier (set before Begin). The Shop keeps 1; the Codex's per-find bursts run faster.
+    public float Speed { get { return speed; } set { speed = Mathf.Max(.05f, value); } }
+    public int Capacity { get { return cap; } }
+
+    // Seconds from Begin to the last piece landing for `n` pieces at timeline speed 1.
+    public static float LastLandSeconds(int n) { return FirstLaunch + LaunchGap * (Mathf.Max(1, n) - 1) + Flight; }
+
+    // Builds the pooled images now (no per-burst allocation afterwards). Needs the layer; a no-op without one.
+    public void Warm(Sprite dust) { Build(dust); }
 
     public RectTransform LayerRect { get { return layer; } }
     public bool Active { get { return active; } }
@@ -44,7 +56,7 @@ public sealed class ShopDustFx
         if (active) fromDust = Displayed;
         origin = originLocal; target = targetLocal;
         from = fromDust; to = Mathf.Max(fromDust, toDust);
-        count = Mathf.Min(MaxParticles, to - from);
+        count = Mathf.Min(cap, to - from);
         t = 0f;
         active = count > 0;
         if (!active) { Hide(); return; }
@@ -82,14 +94,14 @@ public sealed class ShopDustFx
         get
         {
             int landed = Landed;
-            if (!active || landed == 0 || landed >= count && t >= LandTime(count - 1) + PulseSeconds) return 1f;
+            if (!active || landed == 0 || landed >= count && t >= LandTime(count - 1) + PulseSeconds / speed) return 1f;
             float since = t - LandTime(landed - 1);
-            return 1f + PulseScale * Mathf.Clamp01(1f - since / PulseSeconds);
+            return 1f + PulseScale * Mathf.Clamp01(1f - since / (PulseSeconds / speed));
         }
     }
 
-    static float LaunchTime(int i) { return FirstLaunch + LaunchGap * i; }
-    static float LandTime(int i) { return LaunchTime(i) + Flight; }
+    float LaunchTime(int i) { return (FirstLaunch + LaunchGap * i) / speed; }
+    float LandTime(int i) { return (FirstLaunch + LaunchGap * i + Flight) / speed; }
 
     int Landed
     {
@@ -106,7 +118,7 @@ public sealed class ShopDustFx
     {
         if (!active) return false;
         t += Mathf.Max(0f, dt);
-        if (t >= LandTime(count - 1) + PulseSeconds) { Finish(); return false; }
+        if (t >= LandTime(count - 1) + PulseSeconds / speed) { Finish(); return false; }
         Apply();
         return true;
     }
@@ -131,7 +143,7 @@ public sealed class ShopDustFx
         glow = CodexUi.NewImage("Glow", layer, EliteFxArt.Glow, Color.white);
         ring = CodexUi.NewImage("Ring", layer, EliteFxArt.Ring, Color.white);
         for (int k = 0; k < Sparks; k++) sparkImg[k] = CodexUi.NewImage("Spark", layer, EliteFxArt.Spark, k % 2 == 0 ? Cyan : Gold);
-        for (int i = 0; i < MaxParticles; i++)
+        for (int i = 0; i < cap; i++)
         {
             dustImg[i] = CodexUi.NewImage("Dust", layer, dust, Color.white);
             dustImg[i].preserveAspect = true;
@@ -141,17 +153,17 @@ public sealed class ShopDustFx
 
     void Alloc()
     {
-        if (scatter != null && scatter.Length == MaxParticles && (layer == null || dustImg[0] != null)) return;
-        scatter = new Vector2[MaxParticles]; ctrl = new Vector2[MaxParticles];
+        if (scatter != null && scatter.Length == cap && (layer == null || dustImg[0] != null)) return;
+        scatter = new Vector2[cap]; ctrl = new Vector2[cap];
         sparkDir = new Vector2[Sparks];
-        dustImg = new Image[MaxParticles]; sparkImg = new Image[Sparks];
+        dustImg = new Image[cap]; sparkImg = new Image[Sparks];
     }
 
     void Apply()
     {
         if (layer == null || dustImg == null || dustImg[0] == null) return;
         // the burst: a ring and a glow flash, a few diamonds flung out and fading
-        float bk = Mathf.Clamp01(t / .32f);
+        float bk = Mathf.Clamp01(t * speed / .32f);
         SetImg(ring, bk < 1f, origin, Mathf.Lerp(30f, 150f, bk), new Color(Cyan.r, Cyan.g, Cyan.b, (1f - bk) * .75f));
         SetImg(glow, bk < 1f, origin, Mathf.Lerp(110f, 40f, bk), new Color(Gold.r, Gold.g, Gold.b, 1f - bk));
         for (int k = 0; k < Sparks; k++)
@@ -160,7 +172,7 @@ public sealed class ShopDustFx
             float e = 1f - (1f - bk) * (1f - bk);
             SetImg(sparkImg[k], bk < 1f, origin + sparkDir[k] * e, 14f, new Color(c.r, c.g, c.b, 1f - bk));
         }
-        for (int i = 0; i < MaxParticles; i++)
+        for (int i = 0; i < cap; i++)
         {
             var img = dustImg[i];
             if (img == null) continue;
@@ -170,13 +182,13 @@ public sealed class ShopDustFx
             Vector2 p;
             if (t < LaunchTime(i))
             {
-                float pk = Mathf.Clamp01(t / PopSeconds);
+                float pk = Mathf.Clamp01(t * speed / PopSeconds);
                 p = Vector2.Lerp(origin, scatter[i], 1f - (1f - pk) * (1f - pk));
                 img.rectTransform.localScale = Vector3.one * Mathf.Lerp(.3f, 1f, pk);
             }
             else
             {
-                float u = Mathf.Clamp01((t - LaunchTime(i)) / Flight);
+                float u = Mathf.Clamp01((t - LaunchTime(i)) / (Flight / speed));
                 u *= u * (3f - 2f * u) * .5f + u * .5f;   // gentle ease in, a clean landing
                 float m = 1f - u;
                 p = m * m * scatter[i] + 2f * m * u * ctrl[i] + u * u * target;
