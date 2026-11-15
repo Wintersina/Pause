@@ -67,7 +67,7 @@ public class LeaderboardPanel : MonoBehaviour
     public const float RunLineHeartsLeft = 0f, RunLineHeartsWidth = 46f, RunLinePausesLeft = 48f, RunLinePausesWidth = 46f;
     const float RunLineGlyph = 16f;
     // The heart glyph's tint on the highlighted (red) row; every other row keeps the sprite's own colours (white tint).
-    internal static readonly Color HeartOnRed = AkiraPalette.Ink;
+    public static readonly Color HeartOnRed = AkiraPalette.Ink;
     const int RunLineSize = 18;
     const float NameBand = .42f;   // the name takes the top .58 of a stats row, the run line the lower .42
     const float BadgeWidth = 66f;   // the old hearts / pauses badge width; the Power-Ups name column is still derived from it
