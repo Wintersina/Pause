@@ -342,12 +342,15 @@ public class SpaceDock : MonoBehaviour
 
         // A near-square view: the rack on the left, the selected ship's card docked on the right.
         wide = DockLayout.IsWide(halfW, halfH);
+        // Wide / Ultra (a desktop window): the card is fit to a pane of PaneShare of the width, not phone-sized.
+        bool fit = wide && ScreenFrame.Classify(halfW, halfH) >= ScreenFrame.Aspect.Wide;
         Rect view = new Rect(left, bottom, right - left, top - bottom), rackPane = view, cardPane = view;
         if (wide)
         {
             // the same gutter at both screen edges, a gap between the panes
             view = new Rect(left + DockLayout.Gutter, bottom, right - left - 2f * DockLayout.Gutter, top - bottom);
-            DockLayout.Panes(view, worldPerPoint * DockPopup.PopupScale * DockPopup.PanelWidth, out rackPane, out cardPane);
+            float cardWidth = fit ? view.width * DockPopup.PaneShare - DockLayout.PaneGap : worldPerPoint * DockPopup.PopupScale * DockPopup.PanelWidth;
+            DockLayout.Panes(view, cardWidth, out rackPane, out cardPane);
         }
         layout = wide ? DockLayout.ForWide(count, rackPane) : DockLayout.For(count, halfW);
         camX = camPos.x;
@@ -407,11 +410,24 @@ public class SpaceDock : MonoBehaviour
         if (wide)
         {
             cardPane.xMin += DockLayout.PaneGap;
+            if (fit)
+            {
+                // the card's pane spans the rack's own vertical extent (the rack beside it, at its selected size)
+                float rackH = Mathf.Min(layout.Height * selectScale, top - bottom);
+                float centerY = layout.Height * selectScale <= top - bottom ? (top + bottom) * .5f : top - rackH * .5f;
+                float paneTop = centerY + rackH * .5f, paneBottom = centerY - rackH * .5f;
+                // ...but clear of the header buttons' tap areas, which reach past their art (the footer's PLAY reach
+                // stays under the card: a modal card sits over it by design)
+                foreach (var rt in header) if (rt != null && rt.gameObject.activeInHierarchy) paneTop = Mathf.Min(paneTop, HitEdgeY(rt, false) - 16f * worldPerPixel);
+                cardPane.yMin = paneBottom;
+                cardPane.height = Mathf.Max(.5f, paneTop - paneBottom);
+            }
             popup.safeView = cardPane;
         }
         else popup.safeView = new Rect(left, bottom, right - left, top - bottom);
         popup.Docked = wide;
-        popup.SetDensity(worldPerPoint);
+        popup.FitPane = fit;
+        popup.SetDensity(fit ? UiScale.UnitPx * worldPerPixel : worldPerPoint);
     }
 
     // The card fits neither above nor below the selected ship (a short
@@ -484,6 +500,26 @@ public class SpaceDock : MonoBehaviour
         rackSlide = Mathf.MoveTowards(rackSlide, target, dt / SlideTime);
         ApplyRackScale();
         PlaceRack();
+    }
+
+    // World y of the nearest tap-area edge of the buttons under `root`: the highest top edge (top = true) or the
+    // lowest bottom edge (top = false), with each button's raycast padding applied (negative padding grows it).
+    float HitEdgeY(RectTransform root, bool top)
+    {
+        float edge = top ? float.MinValue : float.MaxValue;
+        foreach (var sel in root.GetComponentsInChildren<UnityEngine.UI.Selectable>(false))
+        {
+            var g = sel.targetGraphic != null ? sel.targetGraphic : sel.GetComponent<UnityEngine.UI.Graphic>();
+            if (g == null || !g.raycastTarget) continue;
+            var grt = g.rectTransform;
+            float y0 = ScreenToWorldY(grt, 0), y1 = ScreenToWorldY(grt, 1);
+            float perUnit = grt.rect.height > .01f ? (y1 - y0) / grt.rect.height : 0f;
+            Vector4 pad = g.raycastPadding;   // left, bottom, right, top
+            if (top) edge = Mathf.Max(edge, y1 - pad.w * perUnit);
+            else edge = Mathf.Min(edge, y0 + pad.y * perUnit);
+        }
+        if (edge == float.MinValue || edge == float.MaxValue) edge = top ? ScreenToWorldY(root, 1) : ScreenToWorldY(root, 0);
+        return edge;
     }
 
     // World y of a screen-space-overlay element's bottom (corner 0) or top

@@ -892,7 +892,27 @@ public static class ScreenFitScreens
         else if (shipX < card.xMin || shipX > card.xMax)
             rig.Fail("POPUP", "~DockPopup/card", "is not over its ship's column", card);
         rig.AddImportant("ship card", card);
+
+        // Wide / Ultra: the card is fit to its pane, so it must be in proportion with the rack beside it, and its
+        // type no smaller than the legibility floor in the device's own units.
+        if (popup.FitPane)
+        {
+            Rect rack = rig.PixelRect(dock.RackWorldRect);
+            if (card.height < rack.height * PopupRackShare)
+                rig.Fail("PROPORTION", "~DockPopup/card", "card " + card.height.ToString("F0") + "px tall is under " + (PopupRackShare * 100f).ToString("F0") +
+                         "% of the rack's " + rack.height.ToString("F0") + "px", card);
+            foreach (var t in popup.GetComponentsInChildren<Text>())
+            {
+                if (!t.enabled || string.IsNullOrWhiteSpace(t.text)) continue;
+                Rect glyphs; float fontPx; bool truncated;
+                if (!rig.MeasureText(t, out glyphs, out fontPx, out truncated)) continue;
+                if (fontPx / rig.device.pxPerPt < UiScale.MinTextPt - .05f)
+                    rig.Fail("PROPORTION", "~DockPopup/" + t.transform.parent.name + "/" + t.name + " \"" + t.text + "\"",
+                             "type " + (fontPx / rig.device.pxPerPt).ToString("F1") + " is under UiScale.MinTextPt", glyphs);
+            }
+        }
     }
+    public const float PopupRackShare = .55f;
 
     // ---- gameplay scenes: the world -------------------------------------------------------
 

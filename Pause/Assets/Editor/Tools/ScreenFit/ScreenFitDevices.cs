@@ -21,6 +21,7 @@ public class FitDevice
     public int cornerRadius;              // px
     public bool homeBar;                  // draws a home indicator / gesture pill
     public string cutoutKind = "none";
+    public bool noDpi;                    // a desktop window: the OS reports no density (UiScale's fallback path)
 
     public Rect Safe { get { return new Rect(left, bottom, w - left - right, h - top - bottom); } }
     public Rect Full { get { return new Rect(0, 0, w, h); } }
@@ -50,6 +51,7 @@ public class FitDevice
     {
         get
         {
+            if (noDpi) return 0f;
             if (!ios) return pxPerPt * 160f;
             if (pxPerPt >= 3f) return 460f;
             return Mathf.Min(w, h) >= 1500 ? 264f : 326f;
@@ -131,9 +133,29 @@ public class FitDevice
                         top = 48, bottom = 40, cornerRadius = 36, homeBar = true, cutoutKind = "home indicator" },
     };
 
+    // Desktop windows (a Mac build): no reported dpi, no insets. pxPerPt is UiScale's desktop unit for the window
+    // (a pixel, growing with height above 1100), so the rig's tap / type floors are in desktop units. Kept out of All so the suites that
+    // sweep every device on every screen keep their meaning; ResponsiveLayoutTest and WideCapture opt in.
+    static FitDevice Desktop(string id, int w, int h)
+    {
+        return new FitDevice { id = id, name = "Desktop window " + w + "x" + h, w = w, h = h, noDpi = true,
+                               pxPerPt = UiScale.UnitPxFor(0f, false, w, h), cutoutKind = "desktop window" };
+    }
+
+    public static readonly FitDevice[] Desktops =
+    {
+        Desktop("desk-1280x720", 1280, 720),
+        Desktop("desk-1440x900", 1440, 900),
+        Desktop("desk-1920x1080", 1920, 1080),
+        Desktop("desk-2560x1080", 2560, 1080),
+        // a 4:3 tablet in landscape-ish shape: Square class, reported density
+        new FitDevice { id = "tab-1024x768", name = "Tablet 1024x768", w = 1024, h = 768, pxPerPt = 2f },
+    };
+
     public static FitDevice Find(string id)
     {
         foreach (var d in All) if (d.id == id) return d;
+        foreach (var d in Desktops) if (d.id == id) return d;
         return null;
     }
 }
