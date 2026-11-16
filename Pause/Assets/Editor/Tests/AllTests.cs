@@ -241,6 +241,7 @@ public static class AllTests
         ("EntryAnimTest", EntryAnimTest.Execute),
         ("PauseGlowTest", PauseGlowTest.Execute),
         ("PausedLabelTest", PausedLabelTest.Execute),
+        ("PauseSlamTest", PauseSlamTest.Execute),
         ("PickupHitchTest", PickupHitchTest.Execute),
         ("PickupPoolTest", PickupPoolTest.Execute),
         ("AdaptiveDifficultyTest", AdaptiveDifficultyTest.Execute),

@@ -424,7 +424,7 @@ public class HudStyler : MonoBehaviour
 
         if (pauseText != null)
         {
-            int left = Mathf.Max(0, score.pauseCounter);
+            int left = PauseSlam.ShownPauses(Mathf.Max(0, score.pauseCounter));   // a charged lift reads one less, live
             bool low = left <= 1;
             float now = Time.unscaledTime;
             if (lastPauses != int.MinValue && left != lastPauses) pausePunchAt = now;
