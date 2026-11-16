@@ -44,7 +44,7 @@ public class HudStyler : MonoBehaviour
     // The score board's height in px on `screen`, at full size (no lane shrink).
     public static float ReadoutHeightFor(Vector2 screen)
     {
-        return authoredHeight * ScaleWithScreenSize(screen, authoredReference, authoredMode, authoredMatch);
+        return authoredHeight * ScaleWithScreenSize(screen, authoredReference, authoredMode, authoredMatch) * WideShrink(screen);
     }
 
     // How far the read-out would shrink to share the lane with the pair side by side
@@ -55,7 +55,29 @@ public class HudStyler : MonoBehaviour
     static float FlooredHudScale(Vector2 screen)
     {
         float plain = ScaleWithScreenSize(screen, authoredReference, authoredMode, authoredMatch);
-        return Mathf.Max(UiScale.Apply(plain, UiScaleFloor.SceneTapUnits, UiScaleFloor.SceneTextUnits), 0.0001f);
+        return Mathf.Max(UiScale.Apply(plain, UiScaleFloor.SceneTapUnits, UiScaleFloor.SceneTextUnits), 0.0001f) * WideShrink(screen);
+    }
+
+    // The HUD canvas is authored 800x600 and width-matched, which sizes the board by the WINDOW'S WIDTH: right on
+    // a portrait phone, but a 1920x1080 desktop window scales it 2.4x (a ~314 px tall board, 29% of the height).
+    // On a Wide / Ultra view the board is instead sized as if the window were only WideBoardWidthShare of its height
+    // wide (the play column's scale, a phone-like share of the height), centred on nothing: it keeps its place at the
+    // band's left end. 1 on Tall / Square views (every portrait phone), so those are unchanged.
+    public const float WideBoardWidthShare = .8f;
+
+    public static float WideShrink(Vector2 screen)
+    {
+        if (screen.x <= 0f || screen.y <= 0f || ScreenFrame.Classify(screen.x, screen.y) < ScreenFrame.Aspect.Wide) return 1f;
+        float plain = ScaleWithScreenSize(screen, authoredReference, authoredMode, authoredMatch);
+        float column = ScaleWithScreenSize(new Vector2(Mathf.Min(screen.x, screen.y * WideBoardWidthShare), screen.y),
+                                           authoredReference, authoredMode, authoredMatch);
+        plain = Mathf.Max(UiScale.Apply(plain, UiScaleFloor.SceneTapUnits, UiScaleFloor.SceneTextUnits), 0.0001f);
+        // the column's own floor is the DESKTOP unit's (a mouse needs no phone-sized tap floor: UiScale.UnitPxFor), which is
+        // the phone's on a real device; the canvas itself keeps the phone floor (UiScale.PxPerPoint guesses a phone on a window)
+        if (UiScale.Active)
+            column = Mathf.Max(column, UiScale.FloorFor(UiScaleFloor.SceneTapUnits, UiScaleFloor.SceneTextUnits,
+                UiScale.UnitPxFor(ScreenInfo.Dpi, ScreenInfo.IsIos, Mathf.RoundToInt(screen.x), Mathf.RoundToInt(screen.y)), ScreenInfo.IsIos));
+        return Mathf.Clamp01(column / plain);
     }
 
     // How far the world's board frame reaches past the read-out's layout rect, in screen px at full
@@ -275,8 +297,9 @@ public class HudStyler : MonoBehaviour
         float actionScale = PauseQuickActions.CanvasScaleFor(screen);
         Rect actions = PauseQuickActions.ScreenRectFor(band, screen);
         float available = actions.xMin - MinGapToActions * actionScale - band.left;
-        float width = hudSize.x * hudScale;
-        fitScale = width > 0f && available < width ? Mathf.Max(0.1f, available / width) : 1f;
+        float shrink = WideShrink(screen);
+        float width = hudSize.x * hudScale * shrink;
+        fitScale = shrink * (width > 0f && available < width ? Mathf.Max(0.1f, available / width) : 1f);
         narrow = PauseQuickActions.Vertical(band, screen);
         anchoredPosition = new Vector2(band.left / hudScale, (band.top - screen.y) / hudScale);
     }
