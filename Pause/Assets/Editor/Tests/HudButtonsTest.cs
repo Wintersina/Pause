@@ -210,8 +210,27 @@ public static class HudButtonsTest
                 Check(tag + "score frame top is inside the screen and safe area (" + frame.yMax.ToString("0") + " <= " + safe.yMax.ToString("0") + ")", frame.yMax <= safe.yMax + .5f);
                 Check(tag + "score frame left is inside the safe area", frame.xMin >= safe.xMin - .5f);
                 Check(tag + "score text rect sits inside its frame", frame.Contains(new Vector2(read.xMin, read.yMin)) && frame.Contains(new Vector2(read.xMax, read.yMax)));
+                // sized for the height, not stretched to a wide window's width: no taller than 2.2x the portrait phone's share of its height
+                float portraitShare = PortraitFrameShare(w, reference, hudSize);
+                if (ScreenFrame.Classify(size.x, size.y) >= ScreenFrame.Aspect.Wide)
+                {
+                    Check(tag + "score frame height is phone-like (" + (frame.height / size.y).ToString("0.000") + " of the height, portrait " + portraitShare.ToString("0.000") + ")", frame.height / size.y <= portraitShare * 2.2f);
+                    Check(tag + "score frame width stays within half the height (" + (frame.width / size.y).ToString("0.00") + ")", frame.width <= size.y * .5f);
+                    Check(tag + "score text is legible (>= 0.5 of authored)", read.height >= hudSize.y * .5f);
+                }
             }
         }
+    }
+
+    static float PortraitFrameShare(int world, Vector2 reference, Vector2 hudSize)
+    {
+        var size = new Vector2(1080, 2520);
+        var o = HudSkin.BoardOut(world);
+        var band = TopBand.FrameFor(new Rect(0, 0, size.x, size.y), size, 0f, null, world);
+        float hs = HudStyler.ScaleWithScreenSize(size, reference, UnityEngine.UI.CanvasScaler.ScreenMatchMode.MatchWidthOrHeight, 0f);
+        Rect read = HudStyler.HudScreenRect(band, size, hs, hudSize);
+        float fit = read.width / (hudSize.x * hs);
+        return (read.height + (o.y + o.w) * hs * fit) / size.y;
     }
 
     static void Layout()
