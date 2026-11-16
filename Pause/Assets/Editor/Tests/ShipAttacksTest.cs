@@ -36,6 +36,7 @@ public static class ShipAttacksTest
         RailHitsOnlyItsForwardLine();
         SpreadCountsAreRespected();
         SkyJavelinsGrowToFive();
+        SkyJavelinsStrikeAFullColumn();
         ChainCountsAreRespected();
         ThrownDiscLastsItsDuration();
         ThrownDiscRicochetsOffEnemiesAndWalls();
@@ -219,6 +220,31 @@ public static class ShipAttacksTest
         Check("and nothing between the lanes", Alive(between));
         Teardown(light);
         Object.DestroyImmediate(between);
+    }
+
+    // A javelin is a full vertical column: every body stacked on the lane is struck (enemies and
+    // the boss), bodies outside the column are not, and each is hit once per javelin.
+    static void SkyJavelinsStrikeAFullColumn()
+    {
+        FreshScene();
+        var light = Ship(8);
+        var stack = new[] { Hazard(0f, 1.2f), Hazard(.05f, 0f), Hazard(-.05f, -1f), Hazard(0f, 2.2f) };
+        var boss = Boss(0f, 3.4f);
+        var outside = Hazard(.7f, 0.5f);
+        light.Runner.Fire();
+        Steps(light.Runner, 4f);
+        bool all = true;
+        for (int i = 0; i < stack.Length; i++) all &= !Alive(stack[i]);
+        Check("a sky javelin strikes every enemy stacked on its column", all);
+        Check("and the boss on that column", boss.hits >= 1);
+        Check("the boss is hit once by the one javelin on its column (" + boss.hits + ")", boss.hits == 1);
+        Check("a body outside the column is missed", Alive(outside));
+        Teardown(light);
+        Object.DestroyImmediate(outside);
+        Object.DestroyImmediate(boss.gameObject);
+        Check("the column test is a strip, not a point",
+              SkyJavelinLanes.ColumnHits(0f, SkyJavelinLanes.HitHalfWidth, 5f, -5f, new Vector3(.4f, 0f, 0f), .3f) &&
+              !SkyJavelinLanes.ColumnHits(0f, SkyJavelinLanes.HitHalfWidth, 5f, -5f, new Vector3(.5f, 0f, 0f), .3f));
     }
 
     // Lightning's Sky Javelins: 3 at the base, +1 on the first and third colour,
