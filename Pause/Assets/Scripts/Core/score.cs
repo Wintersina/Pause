@@ -28,6 +28,8 @@ public class score : MonoBehaviour {
     // The launch touch starts a run. It is not a pause-resume action and must
     // never consume one of the player's earned teleports.
     private bool hasStartedRun;
+    // True once the run's first touch has landed (PauseSlam: no slam before it).
+    public static bool RunHasStarted;
     private const int PAUSECOUNTER = 5;
     // The tutorial starts with a few pauses (Hints tops them up per step) so
     // letting go always freezes it, as in a run.
@@ -77,6 +79,7 @@ public class score : MonoBehaviour {
 
         pauseCounterBool = false;
         hasStartedRun = false;
+        RunHasStarted = false;
         if (paysRealDust) AdManager.OnRunStart();   // ads: no load requests mid-run; run length for AdPolicy
 
 
@@ -130,6 +133,7 @@ public class score : MonoBehaviour {
             if (!hasStartedRun)
             {
                 hasStartedRun = true;
+                RunHasStarted = true;
                 pauseCounterBool = true;
             }
             else if (ShouldSpendPause(hasStartedRun, pauseCounterBool))

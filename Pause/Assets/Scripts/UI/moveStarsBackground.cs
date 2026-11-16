@@ -39,6 +39,7 @@ public class moveStarsBackground : MonoBehaviour {
         // Tiny logo-style "PAUSED" caption above it; a child, so it shows,
         // hides and pops with the icon.
         if (pauseRenderer != null) PausedLabel.AttachTo(pauseText);
+        PauseSlam.Prewarm();   // the lift's "PAUSED!!" slam, built before it is first needed
 
         if (replyB != null) replyB.gameObject.SetActive(false);
         if (mainMenuB != null) mainMenuB.gameObject.SetActive(false);
@@ -112,10 +113,13 @@ public class moveStarsBackground : MonoBehaviour {
 
         // Roll a new glow only on the hidden -> shown transition, not every
         // frame the finger stays lifted.
-        if (show && !wasShowingPause) PickRandomPauseGlow();
+        // The lift: "PAUSED!!" slams in at the ship first and holds the subtle
+        // icon back until it has settled into it (PauseSlam). A touch cuts it.
+        if (show && !wasShowingPause) { PickRandomPauseGlow(); PauseSlam.OnPaused(pauseText); }
+        else if (!show && wasShowingPause) PauseSlam.OnResumed();
         wasShowingPause = show;
 
-        pauseText.gameObject.SetActive(show);
+        pauseText.gameObject.SetActive(show && !PauseSlam.HoldsIcon);
     }
 
 }
