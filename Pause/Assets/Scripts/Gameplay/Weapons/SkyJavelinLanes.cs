@@ -26,6 +26,19 @@ public static class SkyJavelinLanes
     // hits only where a body spans several lanes.
     public const float WeightPerJavelin = 1f / BaseCount;
 
+    // The strike is a full column: it hits every body whose hitbox overlaps a strip this
+    // wide each side of the lane (the thin streak drawn is ~this wide), so a boss, an elite
+    // or a stack of enemies on the line is all struck, not just what the tip touches.
+    public const float HitHalfWidth = .15f;
+
+    // Does a body at `p` (hit radius `r`) overlap the column at `laneX` between heights
+    // yTop and yBottom (the stretch the javelin swept this step)?
+    public static bool ColumnHits(float laneX, float halfWidth, float yTop, float yBottom, Vector3 p, float r)
+    {
+        if (Mathf.Abs(p.x - laneX) > halfWidth + r) return false;
+        return !(p.y - r > yTop || p.y + r < yBottom);
+    }
+
     // The lane limits right now: inside the rails and the view, whichever is narrower.
     public static void Limits(Rect view, out float minX, out float maxX)
     {

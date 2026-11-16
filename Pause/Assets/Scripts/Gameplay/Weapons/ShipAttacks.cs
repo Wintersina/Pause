@@ -974,6 +974,7 @@ public class AttackProjectile : MonoBehaviour
     GameObject lastSpecial;
     int hops;
     int pierceLeft;        // Straight: enemies it can still pass through (ShipSignatures.CometPierce)
+    readonly System.Collections.Generic.List<GameObject> struck = new System.Collections.Generic.List<GameObject>(16);   // Javelin: already hit by this strike
     Vector3 rocketTo;      // Rocket: where the javelin manifests
     float rocketStopY;     // ...and where it will strike down to
 
@@ -1045,6 +1046,7 @@ public class AttackProjectile : MonoBehaviour
         hops = 0;
         pierceLeft = 0;
         StopAtY = float.MinValue;
+        struck.Clear();
         transform.position = at;
         if (!Active) Flying.Add(this);
         Active = true;
@@ -1144,11 +1146,9 @@ public class AttackProjectile : MonoBehaviour
         for (int i = 0; i < list.Count; i++)
         {
             var t = list[i];
-            if (t == null || !t.isActiveAndEnabled || t.gameObject == lastSpecial) continue;
-            Vector3 p = t.transform.position;
-            float r = t.Radius;
-            if (Mathf.Abs(p.x - to.x) > radius + r * .5f) continue;
-            if (p.y - r > from.y || p.y + r < to.y) continue;
+            if (t == null || !t.isActiveAndEnabled || struck.Contains(t.gameObject)) continue;
+            if (!SkyJavelinLanes.ColumnHits(to.x, radius, from.y, to.y, t.transform.position, t.Radius)) continue;
+            struck.Add(t.gameObject);   // once per javelin, however long it overlaps (a boss, an elite)
             Strike(t.gameObject);
         }
     }
@@ -1160,13 +1160,13 @@ public class AttackProjectile : MonoBehaviour
         var by = owner;
         var r = run;
         int sh = ship;
-        float rad = radius, w = weight, spd = speed;
+        float w = weight;
         Finish(false);
         if (by == null || r == null) return;
         // a small spark where the rocket opens into its javelin
         AttackPool.Sprite().Play(AttackSprite.Source.AttackBurst, sh, at, Vector3.one * .4f, 0f,
             ShipFxArt.BurstTicks, false, 0f, null, Vector3.zero, 71).Strip("attack_shot", ShipFxArt.LoopFrames);
-        by.LaunchJavelin(r, at, JavelinSpeedFor(r), rad, w, stop);
+        by.LaunchJavelin(r, at, JavelinSpeedFor(r), SkyJavelinLanes.HitHalfWidth, w, stop);
     }
 
     static float JavelinSpeedFor(AttackRun r) { return r.loadout.speed; }
