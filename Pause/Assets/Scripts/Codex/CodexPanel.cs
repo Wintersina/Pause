@@ -1030,7 +1030,29 @@ public class CodexPanel : MonoBehaviour
                 if (cards[i].entry == e) { from = LocalInDust(cards[i].rt); break; }
         from.x = Mathf.Clamp(from.x, layout.body.xMin, layout.body.xMax);
         from.y = Mathf.Clamp(from.y, layout.body.yMin, layout.body.yMax);
-        dustFx.Spawn(from, LocalInDust(counter.rectTransform), Mathf.Max(.1f, sequence.StepSeconds * .9f), dust);
+        Vector2 to = CounterTextCentre();
+        LastDustFrom = from; LastDustTo = to;
+        dustFx.Spawn(from, to, Mathf.Max(.1f, sequence.StepSeconds * .9f), dust);
+    }
+
+    // The last burst's origin and target in the dust layer's space (tests compare them with the card and the counter).
+    public Vector2 LastDustFrom { get; private set; }
+    public Vector2 LastDustTo { get; private set; }
+    public RectTransform DustLayer { get { return dustLayer; } }
+    public string CollectSequenceCurrent { get { return sequence != null ? sequence.Current : null; } }
+
+    // Test hook: the same per-frame work Update does for the collect sequence and its bursts.
+    public void TickCollect(float dt) { TickSequence(dt); TickDust(dt); }
+
+    // Where the counter's number really is. The text is right-aligned inside a header rect that spans the whole gap to the
+    // title (a few hundred units on a phone, most of the window on a wide screen), so the rect's centre is nowhere near the
+    // digits there: the burst lands on the middle of the text's own width, flush with the rect's right edge.
+    public Vector2 CounterTextCentre()
+    {
+        var rt = counter.rectTransform;
+        Rect r = rt.rect;
+        float w = Mathf.Min(r.width, Mathf.Ceil(counter.preferredWidth));
+        return dustLayer.InverseTransformPoint(rt.TransformPoint(new Vector2(r.xMax - w * .5f, r.center.y)));
     }
 
     // A rect's centre in the dust layer's space, read from the live layout so it holds at every aspect ratio.

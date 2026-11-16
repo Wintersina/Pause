@@ -29,6 +29,8 @@ public sealed class CodexDustFx
         }
     }
 
+    public ShopDustFx Slot(int i) { return slots[i]; }
+
     public bool Active { get { for (int i = 0; i < Slots; i++) if (slots[i].Active) return true; return false; } }
 
     // Particles that can still be on screen right now.
