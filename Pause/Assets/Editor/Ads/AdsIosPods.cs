@@ -1,4 +1,3 @@
-#if UNITY_IOS
 using System.IO;
 using UnityEditor;
 using UnityEditor.Callbacks;
@@ -17,18 +16,26 @@ public static class AdsIosPods
     public const string FirebaseVersion = "12.19.3";   // keep equal to the iosPod versions in Assets/Firebase/Editor/*Dependencies.xml
     public const string MinIos = "15.0";               // Firebase 12 needs iOS 15; also the Player minimum
 
+    // Not `#if UNITY_IOS` / `#if PAUSE_FIREBASE`: on a cold Library the editor assemblies are first compiled for the
+    // previous active target (those defines are off), the build then switches to iOS mid-run, and a guarded hook is
+    // missing from the first export (no Podfile). Everything here works under any active target.
+    static bool FirebaseInProject()
+    {
+        return File.Exists(Path.Combine(UnityEngine.Application.dataPath, "Firebase/Config/GoogleService-Info.plist"));
+    }
+
     public static string Podfile()
     {
         return "source 'https://github.com/CocoaPods/Specs'\n"
             + "platform :ios, '" + MinIos + "'\n"
             + "use_frameworks! :linkage => :static\n"
             + "target 'UnityFramework' do\n"
-#if PAUSE_FIREBASE
-            + "  pod 'Firebase/Core', '" + FirebaseVersion + "'\n"
-            + "  pod 'Firebase/Auth', '" + FirebaseVersion + "'\n"
-            + "  pod 'Firebase/Firestore', '" + FirebaseVersion + "'\n"
-            + "  pod 'Firebase/AppCheck', '" + FirebaseVersion + "'\n"
-#endif
+            + (FirebaseInProject()
+                ? "  pod 'Firebase/Core', '" + FirebaseVersion + "'\n"
+                + "  pod 'Firebase/Auth', '" + FirebaseVersion + "'\n"
+                + "  pod 'Firebase/Firestore', '" + FirebaseVersion + "'\n"
+                + "  pod 'Firebase/AppCheck', '" + FirebaseVersion + "'\n"
+                : "")
             + "  pod '" + AdsPod + "', '" + AdsPodVersion + "'\n"
             + "  pod '" + UmpPod + "', '" + UmpPodVersion + "'\n"
             + "end\n"
@@ -51,4 +58,3 @@ public static class AdsIosPods
         UnityEngine.Debug.Log("[ADS] iOS: no Podfile from the dependency manager; wrote one at " + podfile + " (run `pod install` there; `make build-ios-sim` does).");
     }
 }
-#endif

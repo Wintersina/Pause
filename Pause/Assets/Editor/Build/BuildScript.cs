@@ -181,6 +181,39 @@ public static class BuildScript
         Run(BuildTarget.iOS, Path.Combine(OutputRoot, "iOS"));
     }
 
+    // App Store / TestFlight export (make ios-release): non-dev, no PAUSE_DEV,
+    // no development flag, into Builds/iOS-release (its own folder so it never
+    // mixes with the debug exports). Archive + export happen in
+    // scripts/ios-release.sh. CFBundleVersion (iPhone buildNumber) must go up on
+    // every upload; it defaults to AndroidBundleVersionCode so one bump covers
+    // both stores, and PAUSE_IOS_BUILD_NUMBER overrides it (e.g. for an iOS-only
+    // re-upload). Set at build time only, the committed buildNumber is untouched.
+    public const string IosBuildNumberEnv = "PAUSE_IOS_BUILD_NUMBER";
+
+    public static string IosReleaseBuildNumber()
+    {
+        string env = Environment.GetEnvironmentVariable(IosBuildNumberEnv);
+        return string.IsNullOrWhiteSpace(env) ? PlayerSettings.Android.bundleVersionCode.ToString() : env.Trim();
+    }
+
+    public static void BuildIOSRelease()
+    {
+#if !UNITY_IOS
+        // The iOS post-processors are compiled only with iOS active; run with -buildTarget iOS (make ios-release does).
+        Debug.LogError("[BUILD] ERROR BuildIOSRelease needs -buildTarget iOS: the iOS post-process hooks are not compiled otherwise.");
+        EditorApplication.Exit(1);
+        return;
+#else
+        AdsManifestGuard.DevBuild = false;
+        var buildNumberWas = PlayerSettings.iOS.buildNumber;
+        PlayerSettings.iOS.buildNumber = IosReleaseBuildNumber();
+        Debug.Log("[BUILD] iOS release: CFBundleShortVersionString=" + PlayerSettings.bundleVersion
+            + " CFBundleVersion=" + PlayerSettings.iOS.buildNumber);
+        try { Run(BuildTarget.iOS, Path.Combine(OutputRoot, "iOS-release")); }
+        finally { PlayerSettings.iOS.buildNumber = buildNumberWas; }
+#endif
+    }
+
     public static void BuildIOSDev()
     {
         AdsManifestGuard.DevBuild = true;   // dev builds carry the test AdMob App ID
