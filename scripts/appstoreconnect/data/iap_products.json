@@ -1,0 +1,21 @@
+{
+  "_comment": "TODO: sync ids, types and texts with the final table in docs/store-products-and-rewards.md section 5 once PR feat/ios-storekit lands. Transcribed from sections 0 and 1 of that doc (Play ids kept as-is). Apple limits: display name 30 chars, description 45 chars. Prereg reward has no Apple equivalent and is skipped. Prices are manual (see docs/release/app-store-connect-setup.md).",
+  "locale": "en-US",
+  "products": [
+    {"productId": "me.hapticgate.pause.ship_paragon", "referenceName": "Paragon Ship", "type": "NON_CONSUMABLE", "familySharable": false,
+     "displayName": "Paragon Ship", "description": "Unlock the Paragon premium ship.", "usdPrice": "4.99",
+     "reviewNote": "Unlocks the Paragon ship (Ship dock). Restore Purchases re-grants it."},
+    {"productId": "me.hapticgate.pause.remove_ads", "referenceName": "Remove Ads", "type": "NON_CONSUMABLE", "familySharable": false,
+     "displayName": "Remove Ads", "description": "Remove all forced ads, permanently.", "usdPrice": "3.99",
+     "reviewNote": "Permanently removes forced ads."},
+    {"productId": "support_developer_850", "referenceName": "850 Star Dust", "type": "CONSUMABLE", "familySharable": false,
+     "displayName": "850 Star Dust", "description": "850 star dust to spend in the game.", "usdPrice": "3.99",
+     "reviewNote": "Grants 850 star dust."},
+    {"productId": "support_developer_2500", "referenceName": "2,500 Star Dust", "type": "CONSUMABLE", "familySharable": false,
+     "displayName": "2,500 Star Dust", "description": "2,500 star dust to spend in the game.", "usdPrice": "9.99",
+     "reviewNote": "Grants 2500 star dust."},
+    {"productId": "stardust_6000", "referenceName": "6,000 Star Dust", "type": "CONSUMABLE", "familySharable": false,
+     "displayName": "6,000 Star Dust", "description": "6,000 star dust to spend in the game.", "usdPrice": "19.99",
+     "reviewNote": "Grants 6000 star dust."}
+  ]
+}
