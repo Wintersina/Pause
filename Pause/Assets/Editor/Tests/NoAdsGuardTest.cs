@@ -46,7 +46,7 @@ public static class NoAdsGuardTest
         {
             "Scripts/Ads/", "Editor/Ads/", "GoogleMobileAds/", "Plugins/Android/GoogleMobileAdsPlugin.androidlib/",
             "Plugins/Android/mainTemplate.gradle", "Plugins/Android/settingsTemplate.gradle", "Plugins/iOS/",
-            "Editor/Tests/AdsTest.cs", "Editor/Tests/UnusedAssetGuardTest.cs", "Editor/Build/BuildScript.cs", "Editor/Build/IOSCapabilitiesPostProcess.cs",
+            "Editor/Tests/AdsTest.cs", "Editor/Tests/UnusedAssetGuardTest.cs", "Editor/Build/BuildScript.cs", "Editor/Build/IOSCapabilitiesPostProcess.cs", "Editor/IOS/IOSReleasePostProcess.cs",
         };
 
         int scanned = 0;
