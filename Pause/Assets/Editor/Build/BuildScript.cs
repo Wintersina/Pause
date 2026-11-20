@@ -198,6 +198,12 @@ public static class BuildScript
 
     public static void BuildIOSRelease()
     {
+#if !UNITY_IOS
+        // The iOS post-processors are compiled only with iOS active; run with -buildTarget iOS (make ios-release does).
+        Debug.LogError("[BUILD] ERROR BuildIOSRelease needs -buildTarget iOS: the iOS post-process hooks are not compiled otherwise.");
+        EditorApplication.Exit(1);
+        return;
+#else
         AdsManifestGuard.DevBuild = false;
         var buildNumberWas = PlayerSettings.iOS.buildNumber;
         PlayerSettings.iOS.buildNumber = IosReleaseBuildNumber();
@@ -205,6 +211,7 @@ public static class BuildScript
             + " CFBundleVersion=" + PlayerSettings.iOS.buildNumber);
         try { Run(BuildTarget.iOS, Path.Combine(OutputRoot, "iOS-release")); }
         finally { PlayerSettings.iOS.buildNumber = buildNumberWas; }
+#endif
     }
 
     public static void BuildIOSDev()

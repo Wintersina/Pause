@@ -44,7 +44,8 @@ auth_args() {
 
 pods() {
   [ -d "$DIR" ] || die "no Unity export at $DIR (run: make ios-release-build)."
-  if [ -f "$DIR/Podfile" ] && [ ! -d "$WORKSPACE" ]; then
+  [ -f "$DIR/Podfile" ] || die "no Podfile in $DIR: the Unity export's post-process (AdsIosPods) did not run. Do NOT retry blindly; check the Unity log for '[ADS] iOS' and '[BUILD] iOS' lines and that the export ran with -buildTarget iOS."
+  if [ ! -d "$WORKSPACE" ]; then
     (cd "$DIR" && LANG=en_US.UTF-8 pod install)
   fi
   [ -d "$WORKSPACE" ] || die "no $WORKSPACE (no Podfile in the export? install CocoaPods: brew install cocoapods)."
