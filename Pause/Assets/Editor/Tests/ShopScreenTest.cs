@@ -511,6 +511,39 @@ public static class ShopScreenTest
             }
         }
 
+        // Restore Purchases: iOS only; hidden elsewhere, and on every screen shape it sits under the last row inside the content
+        Check("restore: hidden when there is no App Store", !ShopCatalog.RestoreVisible && !panel.RestoreButton.transform.parent.gameObject.activeSelf);
+        ShopCatalog.ForceRestoreVisible = true;
+        AppleStoreRouter.ResetSession();
+        int restores = 0;
+        AppleStoreRouter.NativeRestore = () => restores++;
+        foreach (var size in new[] { new Vector2Int(1080, 2520), new Vector2Int(1080, 1920), new Vector2Int(1536, 2048), new Vector2Int(2400, 1080), new Vector2Int(720, 1560) })
+        {
+            using (ScreenInfo.Override(size.x, size.y, new Rect(0f, 0f, size.x, size.y), null, 420f))
+            {
+                panel.Layout();
+                var root = (RectTransform)panel.RestoreButton.transform.parent;
+                var lastRow = (RectTransform)panel.RowButton(panel.RowCount - 1).transform.parent;
+                float rowBottom = lastRow.anchoredPosition.y - lastRow.sizeDelta.y;
+                float top = root.anchoredPosition.y;
+                string tag = size.x + "x" + size.y + ": restore ";
+                Check(tag + "is shown under the last row, a finger tall and inside the content",
+                      root.gameObject.activeSelf && top <= rowBottom + .5f && root.sizeDelta.y >= ShopPanel.ButtonHeight - .5f &&
+                      root.anchoredPosition.x >= -.5f && root.anchoredPosition.x + root.sizeDelta.x <= panel.Content.rect.width + .5f &&
+                      top - root.sizeDelta.y >= -panel.Content.rect.height - .5f);
+            }
+        }
+        panel.RestoreButton.onClick.Invoke();
+        Check("restore: the button asks the App Store once and reads RESTORING while busy",
+              restores == 1 && AppleStoreRouter.Restoring && panel.RestoreButton.GetComponentInChildren<UnityEngine.UI.Text>().text == ShopCatalog.RestoringLabel);
+        panel.RestoreButton.onClick.Invoke();
+        Check("restore: a second tap while busy does nothing", restores == 1);
+        AppleStoreRouter.Toast = t => { };
+        AppleStoreRouter.OnMessage("restored", "ok");
+        AppleStoreRouter.ResetSession();
+        ShopCatalog.ForceRestoreVisible = false;
+        panel.Refresh();
+
         // Back closes the Shop (one level), not the app
         BackNavigator.Back();
         Check("Back closes the Shop and hands Back on", !ShopPanel.IsOpen && BackNavigator.Top != (object)panel);
