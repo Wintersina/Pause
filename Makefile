@@ -137,7 +137,7 @@ android-log:
 	$(ADB_DEVICE) logcat -s Unity ActivityManager
 
 ios-build:
-	$(if $(IOS_NO_GAMECENTER),PAUSE_IOS_NO_GAMECENTER=1) $(if $(IOS_TEAM_ID),PAUSE_IOS_TEAM_ID=$(IOS_TEAM_ID)) $(UNITY_CMD) -executeMethod BuildScript.BuildIOS
+	$(if $(IOS_NO_GAMECENTER),PAUSE_IOS_NO_GAMECENTER=1) $(if $(IOS_TEAM_ID),PAUSE_IOS_TEAM_ID=$(IOS_TEAM_ID)) $(UNITY_CMD) -buildTarget iOS -executeMethod BuildScript.BuildIOS
 
 ios-deploy: ios-build
 	@test -n "$(IOS_DEVICE_ID)" || (echo "Set IOS_DEVICE_ID to a connected device ID; run 'make ios-devices'." >&2; exit 2)
@@ -150,7 +150,7 @@ ios-run:
 	xcrun devicectl device process launch --device "$(IOS_DEVICE_ID)" "$(IOS_BUNDLE_ID)"
 
 ios-dev-build:
-	$(UNITY_CMD) -executeMethod BuildScript.BuildIOSDev
+	$(UNITY_CMD) -buildTarget iOS -executeMethod BuildScript.BuildIOSDev
 
 ios-dev-deploy: ios-dev-build
 	@test -n "$(IOS_DEVICE_ID)" || (echo "Set IOS_DEVICE_ID to a connected device ID; run 'make ios-devices'." >&2; exit 2)
@@ -234,7 +234,7 @@ run-android:
 #  3. xcodebuild builds the generated .xcworkspace (NOT the .xcodeproj, which has no pods).
 IOS_SIM_DIR := $(PROJECT)/Builds/iOS-sim
 build-ios-sim:
-	$(UNITY_CMD) -executeMethod BuildScript.BuildIOSSim
+	$(UNITY_CMD) -buildTarget iOS -executeMethod BuildScript.BuildIOSSim
 	python3 -I scripts/ios-sim-firebase-libs.py "$(IOS_SIM_DIR)"/Libraries/Plugins/iOS/Firebase/*.a
 	cd "$(IOS_SIM_DIR)" && LANG=en_US.UTF-8 pod install
 	xcodebuild -workspace "$(IOS_SIM_DIR)/Unity-iPhone.xcworkspace" -scheme Unity-iPhone -configuration Debug -sdk iphonesimulator -destination "generic/platform=iOS Simulator" -derivedDataPath "$(IOS_SIM_DERIVED_DATA)" ARCHS=arm64 ONLY_ACTIVE_ARCH=YES CODE_SIGNING_ALLOWED=NO build
