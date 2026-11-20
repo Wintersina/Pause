@@ -281,6 +281,9 @@ public class MarketingRunner : MonoBehaviour
 
     IEnumerator Shot(string name)
     {
+        // hide the developer-only FLOW readout (AdaptiveFlowOverlay, shown while developer unlocks are on)
+        var flow = GameObject.Find("~AdaptiveFlowOverlay");
+        if (flow != null) flow.SetActive(false);
         yield return new WaitForEndOfFrame();
         var tex = ScreenCapture.CaptureScreenshotAsTexture();
         // opaque RGB PNG at the Game view's exact size
@@ -290,6 +293,7 @@ public class MarketingRunner : MonoBehaviour
         string stem = job.w == 1080 ? "pause" : "pause";
         string path = Path.Combine(root, job.shotDir, name + ".png");
         File.WriteAllBytes(path, rgb.EncodeToPNG());
+        if (flow != null) flow.SetActive(true);
         Debug.Log("[MarketingCapture] shot " + path + " " + tex.width + "x" + tex.height);
         Destroy(tex);
         Destroy(rgb);

@@ -47,6 +47,7 @@ public static class MarketingCapture
         {
             new MarketingJob { w = 1080, h = 1920, video = Environment.GetEnvironmentVariable("MC_NO_VIDEO") != "1", shotDir = "screenshots/play_1080x1920" },
             new MarketingJob { w = 1320, h = 2868, video = false, shotDir = "screenshots/ios_1320x2868" },
+            new MarketingJob { w = 2064, h = 2752, video = false, shotDir = "screenshots/ipad_2064x2752" },   // App Store iPad 13"
         };
     }
 
