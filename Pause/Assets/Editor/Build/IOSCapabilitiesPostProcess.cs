@@ -25,6 +25,7 @@ public static class IOSCapabilitiesPostProcess
 
     public const string NoGameCenterEnv = "PAUSE_IOS_NO_GAMECENTER";
     public const string TeamIdEnv = "PAUSE_IOS_TEAM_ID";
+    public const string AppAttestKey = "com.apple.developer.devicecheck.appattest-environment";
 
     [PostProcessBuild(100)]
     public static void OnPostProcessBuild(BuildTarget target, string buildPath)
@@ -72,6 +73,15 @@ public static class IOSCapabilitiesPostProcess
         capabilities.AddGameCenter();
         capabilities.AddiCloud(false, true, false, true, null);
         capabilities.WriteToFile();
+
+        // Firebase App Check on iOS uses App Attest (AppAttestProviderFactory in FirebaseSharedBoard). The
+        // entitlement is "production" for TestFlight / App Store builds; the App ID needs the App Attest
+        // capability, which automatic signing enables. (The App Attest key is created on the device.)
+        string entPath = Path.Combine(buildPath, EntitlementsFile);
+        var ent = new PlistDocument();
+        ent.ReadFromFile(entPath);
+        ent.root.SetString(AppAttestKey, "production");
+        ent.WriteToFile(entPath);
 
         UnityEngine.Debug.Log("[BUILD] iOS: added Game Center + iCloud Documents capabilities ("
             + Path.Combine(buildPath, EntitlementsFile) + ")");
