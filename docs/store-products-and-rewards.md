@@ -5,7 +5,7 @@ Recorded from the Play Console on 2026-10-26 (app `me.hapticgate.pause`, develop
 on master (28ccb3775, PR #261). Related docs: `achievements-store-setup.md` (Play Games / Game Center ids and the Apple side of achievements),
 `leaderboards.md` (App Store Connect Game Center steps), `paragon/` (Paragon dock screenshots), `economy.md` (star dust).
 
-Status of the Apple side: **nothing exists yet**. The game's billing is Google Play only (see section 5), so the Apple section is a plan, not a record.
+Status of the Apple side: StoreKit 2 code exists (section 5); the App Store Connect products still have to be created by hand from the table in 5.2.
 
 ## 0. Free-with-ads update (2026-11-02)
 
@@ -80,7 +80,7 @@ Rules:
 - **Paragon (non-consumable):** `Purchased` -> `PremiumShips.Grant` (same `boughtship<id>` key the roster always used, so cloud save picks it up) and acknowledge the purchase (Play refunds unacknowledged purchases after 3 days; failures are retried on the next owned-purchases query, which is also the restore). `Pending` waits. Already-owned (response code 7) triggers a restore query.
 - **Support packs (repeatable):** pay `StarDustLedger.Grant(DustAmount)`, then consume so it can be bought again. Idempotence: the purchase token is written to PlayerPrefs (`supportGrantedTokens`, newline separated) in the same save as the dust and removed only after a confirmed consume; a failed consume retries next launch without paying twice; a new purchase has a new token. `Pending` pays nothing.
 - **Pre-reg reward:** identical token scheme with key `preregGrantedTokens`; it arrives without developerPayload and maybe without orderId, so neither is read. Sets `ToastDue`; the home screen shows "Pre-registration reward: +100 star dust" (`PlayBilling.cs:50-53`).
-- **Store gating:** price comes from the store layer; `Available` is `Price != null && LaunchFlow != null`, so on iOS (no purchase code yet) and in the editor every Shop row reads UNAVAILABLE and nothing looks buyable. The Shop itself has no platform-specific UI: a later StoreKit layer only sets `Price` and `LaunchFlow`.
+- **Store gating:** price comes from the store layer; `Available` is `Price != null && LaunchFlow != null`, so in the editor (and on iOS until the App Store answers, section 5) every Shop row reads UNAVAILABLE and nothing looks buyable. The Shop itself has no platform-specific UI: a later StoreKit layer only sets `Price` and `LaunchFlow`.
 - **Toasts:** `ParagonPurchase.GrantedMessage` "Paragon unlocked"; each `SupportPurchase.Pack.grantedMessage` is now just "+2,500 star dust" / "+850 star dust" / "+6,000 star dust" (it used to read "Thank you for supporting the developer! ..."); pending and error messages exist for both.
 - **UI on master:** a "SUPPORT THE DEVELOPER" header button (`Shop/SupportButton.cs`, sprite `Resources/Vfx/support_developer_2500_ui`) and support tiles in the dock rack (`Shop/DockSupportTile.cs`; the bottom news ticker was removed). `SpaceDock.cs` subscribes to `SupportPurchase.Changed/Rewarded`.
 - **UI after PR #262:** the header button is removed; the two support packs become dock tiles in the two spare berths (slots 17 and 18 of 18) of the 16-ship rack (`Shop/DockSupportTile.cs`), shown only when Play returns a price; one ticker line per pack.
@@ -88,42 +88,46 @@ Rules:
 - **Editor/dev:** `SupportPurchase.Simulate()` and `PreRegistrationReward.Simulate()` (developer mode only) via `Editor/Tools/PreRegistrationRewardMenu.cs`.
 - **Tests (run on CI only):** `PreRegistrationRewardTest`, `SupportPurchaseTest`, `ParagonPurchaseTest`, `PremiumShipTest` (all in `Pause/Assets/Editor/Tests/`).
 
-## 5. Apple App Store plan
+## 5. Apple App Store (StoreKit 2): record and setup
 
-Enrollment: per the project notes the Apple Developer enrollment is an organization account (HapticGate LLC) and the D-U-N-S number was the critical path; whether the account is active is **not recorded in the repo: TO VERIFY**. In-app purchases and Paid Applications Agreement (banking, tax) must be complete in App Store Connect before products can be sold: TO VERIFY current requirements at entry time.
+Status: **code written, not yet exercised on a device** (PR `feat/ios-storekit`). The Apple Developer account is HapticGate LLC (approved 2026-11-20). Before any product can be sold, App Store Connect needs the **Paid Applications Agreement** (banking and tax) completed and the app record created for bundle id `me.hapticgate.pause`: TO VERIFY current requirements at entry time. In-App Purchase needs no entitlement in the app; just make sure the capability is on for the App ID (it is on by default).
 
-### 5.1 Code work still needed
-The game has **no iOS purchase path**: `PlayBilling` compiles to a stub off Android, and `ParagonPurchase`/`SupportPurchase`/`PreRegistrationReward` all say iOS never gets a price (confirmed in code comments and the `#if` at `PlayBilling.cs:463`). iOS has Game Center (achievements/leaderboards) only. To sell on iOS:
-1. Add a StoreKit layer (StoreKit 2 via a small native plugin, or Unity IAP) that fills `ParagonPurchase.SetPrice/LaunchFlow` and `SupportPurchase.SetPrice/LaunchFlow` and feeds transactions into the existing `Handle` methods. `PlayPurchase` is the shared shape (product id, token, state, acknowledged): map the StoreKit transaction id to `token`.
-2. Keep the idempotence rule: record the transaction id with the dust grant, then call `finish()` on the transaction (the equivalent of consume). Handle `Pending` ("Ask to Buy") as Pending.
-3. Paragon restore: expose a "Restore purchases" action (Apple review expects one for non-consumables; TO VERIFY) that re-reads current entitlements and calls `ParagonPurchase.Handle`.
-4. Product ids: `ParagonProductId` already carries the iOS-friendly `me.hapticgate.pause.` prefix; the support ids and prereg id are Play-style short names. Apple product ids are per app and can also be reused as-is; decide whether to keep identical ids across stores (simplest, fewer code branches) or prefix them. Apple ids cannot be reused after deletion: TO VERIFY.
-5. The Shop rows already key off `Available`, so they become buyable once a price is set.
+### 5.1 How the code works
+- `Plugins/iOS/PauseStoreKit.swift`: StoreKit 2 bridge (iOS 15+): `Product.products`, `purchase()`, `Transaction.updates` (listener runs for the app's whole life), `Transaction.unfinished`, `Transaction.currentEntitlements`, `AppStore.sync()`. It talks to C# through `@_cdecl` functions and one callback (kind + tab-separated payload).
+- `Billing/AppStoreBilling.cs`: the iOS MonoBehaviour (`#if UNITY_IOS && !UNITY_EDITOR`; a no-op elsewhere). It starts the bridge, loads the products, and queues native messages onto Unity's main thread.
+- `Billing/AppleStore.cs` (plain C#, every platform, covered by `AppleStoreTest` on CI): the **id table** (`AppleProducts`), message parsing, the persisted finished-transaction ledger (`AppleStoreLedger`, key `appleFinishedTx`, last 64) and `AppleStoreRouter`, which sets `Price`/`LaunchFlow` on the existing purchase classes (so the Shop rows turn buyable by themselves) and feeds every transaction into the existing `ParagonPurchase.Handle`, `RemoveAdsPurchase.Handle` and `SupportPurchase.Handle` (StoreKit transaction id -> `PlayPurchase.token`).
+- Consumables (star dust packs): granted once per transaction id (`SupportPurchase`'s token record plus the ledger), and `finish()` is called only after the dust was saved. A crash between grant and finish retries the finish at the next launch without paying twice; a refunded (revoked) consumable pays nothing and is just finished.
+- Non-consumables (Paragon, Remove Ads): re-derived from `Transaction.currentEntitlements` at every launch, on every return to the app and on Restore, and granted idempotently. Like on Play, a refund never takes ownership away from the game or the cloud save.
+- Ask to Buy / SCA: `purchase()` returns `.pending`; nothing is granted, the pending toast shows, and the approved transaction arrives later through `Transaction.updates`. A cancelled sheet just frees the button.
+- Pre-registration reward: **skipped on iOS** (option 1 below). `prereg_stardust_100` is not in the table.
+- **Restore Purchases** is a button at the bottom of the Shop screen (scroll content, under the last row, above the note), shown on iOS only (`ShopCatalog.RestoreVisible`). It calls `AppStore.sync()` (may prompt for the Apple ID), re-reads the entitlements, grants what is missing and toasts "Purchases restored." or "Your purchases are up to date.". It reads RESTORING... while busy.
+- Build: `IOSCapabilitiesPostProcess` links `StoreKit.framework`, sets `SWIFT_VERSION=5.0` on UnityFramework and `ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES=YES` on the app target (Swift in a Unity plugin).
 
-### 5.2 Mapping and per-product checklist (App Store Connect > app > Monetization > In-App Purchases)
+### 5.2 Product ids: identical to Google Play
+Apple product ids are free-form per app, so the Play ids are reused unchanged: one id per product on both stores, no per-platform branches. They live in one table (`AppleProducts.All()` in `Billing/AppleStore.cs`, built from the same constants Play uses). An Apple product id can never be reused after deletion (TO VERIFY), so type them exactly.
 
-| Play product | Apple type | Notes |
-|---|---|---|
-| Paragon Ship | Non-Consumable | permanent; restorable |
-| Support the Developer (2,500) | Consumable | repeatable |
-| Support the Developer: Small Pack (850) | Consumable | repeatable |
-| Pre-registration reward (100) | no direct equivalent | see 5.3 |
+| Reference name | Product ID | Type | Suggested price point (USD) | Display name | Description |
+|---|---|---|---|---|---|
+| Paragon Ship | `me.hapticgate.pause.ship_paragon` | Non-Consumable | 4.99 | Paragon Ship | Unlock the premium Paragon ship. |
+| Remove Ads | `me.hapticgate.pause.remove_ads` | Non-Consumable | 3.99 | Remove Ads | Remove all forced ads, forever. |
+| Star Dust 850 | `support_developer_850` | Consumable | 3.99 | 850 Star Dust | 850 star dust to spend in the game. |
+| Star Dust 2500 | `support_developer_2500` | Consumable | 9.99 | 2,500 Star Dust | 2,500 star dust to spend in the game. |
+| Star Dust 6000 | `stardust_6000` | Consumable | 19.99 | 6,000 Star Dust | 6,000 star dust to spend in the game. |
 
-Fields to prepare per product (verify exact field names/limits in App Store Connect when you get there):
-- Reference name (internal, e.g. "Paragon Ship") and Product ID (see 5.1.4).
-- Price: Apple uses its own price points, not Play's 3.99/4.99/10.00. Closest to expect: Paragon 4.99, small pack 3.99, big pack 9.99 or 10.00 if that point exists: TO VERIFY in the price picker (Apple's US points are fixed values; pick the nearest and keep value-per-dust consistent: 850 for 3.99 vs 2,500 for 10.00).
-- Display name and description per localization (start with English U.S.); reuse the Play texts above, checking Apple's length limits (TO VERIFY).
-- Review screenshot (required per IAP; TO VERIFY size) and review notes. Capture the dock tile / Paragon buy sheet from an iOS build.
-- Promotional image (1024x1024, optional): reuse [paragon_ship_icon_1024.png](store-products/art/paragon_ship_icon_1024.png) and the support art (upscale the 512 icon, or regenerate at 1024). TO VERIFY whether it is optional and its alpha rules.
-- Tax category and availability: choose the equivalent of "Digital app sales" (app-store software/games IAP default) and all territories as on Play.
-- Family Sharing for the non-consumable: decide (TO VERIFY; off is typical for a game cosmetic).
+Notes:
+- Apple prices come from its own price points; the nearest US points are used above (Play's 10.00 and 20.00 become 9.99 and 19.99). Keep value per dust consistent across the three packs. Pick the same or comparable points for other territories, or accept Apple's auto-conversion.
+- Texts are the Play ones shortened: Apple limits are about 30 characters for the display name and 45 for the description (TO VERIFY in App Store Connect). The long Play descriptions in section 1 do not fit.
+- Per product (App Store Connect > the app > Monetization > In-App Purchases): reference name, product id, type, availability (all territories, as on Play), price, English (U.S.) localization above, tax category (the default for app software/games), Family Sharing off for the non-consumables (typical for a game; TO VERIFY), a **review screenshot** (required per product; capture the Shop screen from an iOS build) and optional review notes. A product shows as "Ready to Submit"; submit the first ones **together with the app version** for review (TO VERIFY).
+- Optional promotional images: [paragon_ship_icon_1024.png](store-products/art/paragon_ship_icon_1024.png) for Paragon; the dust packs use art that is not 1024 yet.
+- The first in-app purchase review needs the Restore Purchases button (it is in the Shop) and working products in a build.
 
-### 5.3 The pre-registration reward on Apple (all TO VERIFY)
-Apple has app **pre-orders** (free or paid), not pre-registration with an item reward. Realistic options:
-1. **Skip it** on iOS; simplest and no store risk.
-2. **Promo / offer codes for the 100 dust**: Apple offers offer codes for in-app purchases (TO VERIFY availability for consumables and redemption limits); you would create a consumable (e.g. `prereg_stardust_100`, price tier 0.99 or free via code) and hand out codes. Needs the StoreKit work in 5.1 and a code distribution plan.
-3. **One-time grant keyed to a pre-order**: no verified mechanism to detect a pre-order in the app; do not rely on this. Alternative: an app-side one-time launch grant for early adopters, which is not tied to Apple.
-Reuse of the reward terms page `https://hapticgategames.com/pause/100dust-terms/` is fine for any option that mentions the 100 dust (it explains minimum-payment countries, which would not apply to Apple).
+### 5.3 The pre-registration reward on Apple
+Decision: **skip it on iOS.** Apple has pre-orders, not pre-registration with an item reward, and there is no verified way to detect a pre-order in the app. If an early-adopter gift is wanted later, do it app-side (not tied to Apple) or as an offer-code consumable (TO VERIFY availability); both are out of this change.
+
+### 5.4 Testing
+1. **Xcode StoreKit configuration file (local, no App Store Connect needed):** [store-products/Pause.storekit](store-products/Pause.storekit) holds the five products above with the same ids, types and prices. Build iOS from Unity, open the generated Xcode project, Product > Scheme > Edit Scheme > Run > Options > StoreKit Configuration > pick that file (copy it next to the project if Xcode wants it inside). Run on a device or simulator: the Shop prices appear, purchases succeed without payment, and Xcode's Debug > StoreKit > Manage Transactions can approve/decline Ask to Buy, refund (revoke) a transaction, delete a non-consumable (to try Restore) and make a purchase fail. The file's `identifier` is arbitrary; regenerate in Xcode if it complains about the format version.
+2. **Sandbox tester (real App Store Connect products):** App Store Connect > Users and Access > Sandbox > Testers: create a tester with a fresh email. On the device: Settings > Developer (appears after a run from Xcode) > Sandbox Apple Account, or sign in when the purchase sheet asks. Products must exist in App Store Connect first (Ready to Submit is enough) and the Paid Applications Agreement must be active, then run a TestFlight or Xcode build with a distribution/development profile. Sandbox purchases are free; test: buy each pack twice (dust adds up), buy Paragon and Remove Ads, delete and reinstall the app then tap RESTORE PURCHASES, and turn on "Ask to Buy" for the tester family member to see the pending path.
+3. CI covers only the platform-independent half (`AppleStoreTest`, the Shop restore layout in `ShopScreenTest`). The Swift file and `AppStoreBilling` only compile in an iOS build, so the first local iOS build is the compile check.
 
 ## 6. Open questions / decisions for the user
 1. Keep identical product ids on Apple, or Apple-style prefixed ids?

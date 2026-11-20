@@ -62,6 +62,7 @@ public static class AllTests
         ("ParagonPurchaseTest", ParagonPurchaseTest.Execute),
         ("SupportPurchaseTest", SupportPurchaseTest.Execute),
         ("RemoveAdsPurchaseTest", RemoveAdsPurchaseTest.Execute),
+        ("AppleStoreTest", AppleStoreTest.Execute),
         ("PlayTimeTest", PlayTimeTest.Execute),
         ("ShopScreenTest", ShopScreenTest.Execute),
         ("AdsTest", AdsTest.Execute),

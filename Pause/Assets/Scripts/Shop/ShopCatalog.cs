@@ -68,6 +68,14 @@ public static class ShopCatalog
         get { return RemoveAdsPurchase.Buying || ParagonPurchase.Buying || SupportPurchase.Buying != null; }
     }
     public const string RestoreNote = "Bought before? Purchases come back by themselves when the game starts.";
+    public const string RestoreNoteIOS = "Bought before, or on a new device? Tap RESTORE PURCHASES.";
+    public const string RestoreLabel = "RESTORE PURCHASES";
+    public const string RestoringLabel = "RESTORING...";
+
+    // Apple review needs a visible Restore Purchases action; Play restores by itself. iOS only (tests may force it).
+    public static bool ForceRestoreVisible;
+    public static bool RestoreVisible { get { return ForceRestoreVisible || AppStoreBilling.Supported; } }
+    public static string RestoreNoteText { get { return RestoreVisible ? RestoreNoteIOS : RestoreNote; } }
 
     // The Shop is offered on every platform; there is no platform-specific UI. Where a store has no products
     // (iOS until a StoreKit layer sets prices and launch flows, the editor) every row reads UNAVAILABLE through

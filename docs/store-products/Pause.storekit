@@ -1,0 +1,87 @@
+{
+  "identifier": "0D03E835",
+  "nonRenewingSubscriptions": [],
+  "products": [
+    {
+      "displayPrice": "4.99",
+      "familyShareable": false,
+      "internalID": "8D49E0C2-DDDE-4B0E-A3CE-04A4BFF4C27D",
+      "localizations": [
+        {
+          "description": "Unlock the premium Paragon ship.",
+          "displayName": "Paragon Ship",
+          "locale": "en_US"
+        }
+      ],
+      "productID": "me.hapticgate.pause.ship_paragon",
+      "referenceName": "Paragon Ship",
+      "type": "NonConsumable"
+    },
+    {
+      "displayPrice": "3.99",
+      "familyShareable": false,
+      "internalID": "5EFD2E66-45FA-465C-ACD1-86C23D89093D",
+      "localizations": [
+        {
+          "description": "Remove all forced ads, forever.",
+          "displayName": "Remove Ads",
+          "locale": "en_US"
+        }
+      ],
+      "productID": "me.hapticgate.pause.remove_ads",
+      "referenceName": "Remove Ads",
+      "type": "NonConsumable"
+    },
+    {
+      "displayPrice": "3.99",
+      "familyShareable": false,
+      "internalID": "DF1F6DEE-675F-45DD-8E5E-CBB262213CF8",
+      "localizations": [
+        {
+          "description": "850 star dust to spend in the game.",
+          "displayName": "850 Star Dust",
+          "locale": "en_US"
+        }
+      ],
+      "productID": "support_developer_850",
+      "referenceName": "850 Star Dust",
+      "type": "Consumable"
+    },
+    {
+      "displayPrice": "9.99",
+      "familyShareable": false,
+      "internalID": "EEBDF0D0-6BA7-4E68-96F7-CBAC2FFF032A",
+      "localizations": [
+        {
+          "description": "2,500 star dust to spend in the game.",
+          "displayName": "2,500 Star Dust",
+          "locale": "en_US"
+        }
+      ],
+      "productID": "support_developer_2500",
+      "referenceName": "2,500 Star Dust",
+      "type": "Consumable"
+    },
+    {
+      "displayPrice": "19.99",
+      "familyShareable": false,
+      "internalID": "023C8992-7A3C-4495-B2EC-A3D905973AD3",
+      "localizations": [
+        {
+          "description": "6,000 star dust to spend in the game.",
+          "displayName": "6,000 Star Dust",
+          "locale": "en_US"
+        }
+      ],
+      "productID": "stardust_6000",
+      "referenceName": "6,000 Star Dust",
+      "type": "Consumable"
+    }
+  ],
+  "settings": {},
+  "subscriptionGroups": [],
+  "version": {
+    "major": 3,
+    "minor": 0
+  }
+}

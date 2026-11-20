@@ -69,7 +69,9 @@ public class ShopPanel : MonoBehaviour
     Font font;
     RectTransform panel, viewport, content, headerRoot, footerRoot;
     Image scrim;
-    Text title, dust, storeNote, restoreNote;
+    Text title, dust, storeNote, restoreNote, restoreLabel;
+    RectTransform restoreRoot;
+    Button restoreButton;
     Image dustIcon;
     ScrollRect scroll;
     readonly List<RowView> rows = new List<RowView>();
@@ -92,6 +94,8 @@ public class ShopPanel : MonoBehaviour
     public Button BackButton { get; private set; }
     public Text DustText { get { return dust; } }
     public Text StoreNote { get { return storeNote; } }
+    public Button RestoreButton { get { return restoreButton; } }
+    public Text RestoreNoteLabel { get { return restoreNote; } }
     public int RowCount { get { return rows.Count; } }
     public ShopRow RowAt(int i) { return rows[i].row; }
     public Button RowButton(int i) { return rows[i].click; }
@@ -167,6 +171,22 @@ public class ShopPanel : MonoBehaviour
         FitText(storeNote, 15, 20);
         restoreNote = CodexUi.NewText("RestoreNote", content, font, ShopCatalog.RestoreNote, 18, CodexUi.Muted, TextAnchor.UpperLeft, true);
         FitText(restoreNote, 15, 18);
+
+        // RESTORE PURCHASES (iOS only; Apple review needs it): a finger-sized button above the note, inside the scroll.
+        restoreRoot = CodexUi.NewRect("RestoreButton", content);
+        var rFrame = CodexUi.NewImage("Frame", restoreRoot, CodexUi.CodexSprite("cx_button"), Color.white, true);
+        rFrame.raycastTarget = true;
+        CodexUi.Stretch(rFrame.rectTransform);
+        var rEdge = CodexUi.NewImage("Edge", rFrame.rectTransform, CodexUi.CodexSprite("cx_button_edge"), CodexUi.Accent, true);
+        CodexUi.Stretch(rEdge.rectTransform);
+        restoreButton = rFrame.gameObject.AddComponent<Button>();
+        restoreButton.targetGraphic = rFrame;
+        var rColors = restoreButton.colors; rColors.pressedColor = CodexUi.Select; rColors.fadeDuration = .08f; restoreButton.colors = rColors;
+        restoreButton.onClick.AddListener(RestoreTapped);
+        restoreLabel = CodexUi.NewText("Label", rFrame.rectTransform, font, ShopCatalog.RestoreLabel, 28, CodexUi.Body, TextAnchor.MiddleCenter);
+        CodexUi.AddOutline(restoreLabel.gameObject, CodexUi.Ink, 2f);
+        CodexUi.Stretch(restoreLabel.rectTransform);
+        FitText(restoreLabel, 16, 28);
 
         // Sections come from the catalog, so a new one (Boosters) needs no change here beyond its row kind's art.
         foreach (var section in ShopCatalog.Sections())
@@ -289,6 +309,7 @@ public class ShopPanel : MonoBehaviour
             Paint(rows[i]);
         }
         PaintDust();
+        restoreLabel.text = AppleStoreRouter.Restoring ? ShopCatalog.RestoringLabel : ShopCatalog.RestoreLabel;
         storeNote.text = ShopCatalog.StoreDownText;
         storeNote.gameObject.SetActive(ShopCatalog.StoreDown);
         signature = Signature(fresh);
@@ -432,6 +453,15 @@ public class ShopPanel : MonoBehaviour
             }
             y += SectionGap - 14f;
         }
+        bool showRestore = ShopCatalog.RestoreVisible;
+        restoreRoot.gameObject.SetActive(showRestore);
+        if (showRestore)
+        {
+            float rw = Mathf.Min(width, 520f);
+            SetTop(restoreRoot, (width - rw) * .5f, y, rw, ButtonHeight);
+            y += ButtonHeight + 16f;
+        }
+        restoreNote.text = ShopCatalog.RestoreNoteText;
         float rn = NoteHeight(restoreNote, width, 18f);
         SetTop(restoreNote.rectTransform, 0f, y, width, rn);
         y += rn + 24f;
@@ -542,6 +572,12 @@ public class ShopPanel : MonoBehaviour
         }
         ShopCatalog.Tap(v.row);
         Refresh();   // Buying flips on at once
+    }
+
+    void RestoreTapped()
+    {
+        AppStoreBilling.RestoreAction();
+        Refresh();
     }
 
     void SwitchTapped(RowView v)
@@ -766,7 +802,7 @@ public class ShopPanel : MonoBehaviour
         var sb = new System.Text.StringBuilder();
         foreach (var r in fresh)
             sb.Append((int)r.state).Append(r.button).Append(r.title).Append(r.status).Append(r.switchedOn ? '1' : '0').Append('|');
-        sb.Append(Mathf.FloorToInt(StarDustLedger.Saved));
+        sb.Append(AppleStoreRouter.Restoring ? 'R' : 'r').Append(Mathf.FloorToInt(StarDustLedger.Saved));
         return sb.ToString();
     }
 

@@ -8,6 +8,7 @@ using UnityEditor.iOS.Xcode;
 // project, so they don't have to be ticked by hand after every build:
 //
 //   Game Center  - sign-in, achievements, leaderboard
+//   StoreKit     - StoreKit.framework + Swift settings for in-app purchases (no entitlement)
 //   iCloud       - iCloud Documents with the default container, which Game
 //                  Center saved games (GKSavedGame, the cloud save) live in
 //
@@ -40,6 +41,13 @@ public static class IOSCapabilitiesPostProcess
         project.AddFrameworkToProject(frameworkTarget, "GameKit.framework", false);
         // The App Tracking Transparency prompt (PauseATT.mm) for the ads flow; weak, it needs iOS 14.
         project.AddFrameworkToProject(frameworkTarget, "AppTrackingTransparency.framework", true);
+
+        // StoreKit 2 purchases (Plugins/iOS/PauseStoreKit.swift, compiled into UnityFramework). In-App Purchase needs
+        // no entitlement key, only the capability on the App ID in the developer portal. The Swift file needs a Swift
+        // version, and the app target has to embed the Swift runtime for the framework that uses it.
+        project.AddFrameworkToProject(frameworkTarget, "StoreKit.framework", false);
+        project.SetBuildProperty(frameworkTarget, "SWIFT_VERSION", "5.0");
+        project.SetBuildProperty(mainTarget, "ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES", "YES");
 
         bool noGameCenter = System.Environment.GetEnvironmentVariable(NoGameCenterEnv) == "1";
         string teamId = System.Environment.GetEnvironmentVariable(TeamIdEnv);
