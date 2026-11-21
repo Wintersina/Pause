@@ -48,6 +48,7 @@ public static class AchievementReportingTest
         var play = new PlayGamesAchievementStore();
         var gc = new GameCenterAchievementStore();
         Check("Play Games: a real id can be reported, a placeholder cannot", play.CanReport(legacy) && !play.CanReport(fresh));
+        AchievementIds.IosIdsConfirmed = false;
         Check("Game Center: nothing reportable until the iOS ids are confirmed", !gc.CanReport(legacy) && !gc.CanReport(fresh));
         AchievementIds.IosIdsConfirmed = true;
         Check("Game Center: reportable once confirmed", gc.CanReport(fresh));

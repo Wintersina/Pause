@@ -805,8 +805,8 @@ public static class AccountCloudSaveTest
         Check("ids: placeholders are recognised, real ids are not",
               AchievementIds.IsPlaceholder(AchievementIds.Placeholder("loop_1")) && AchievementIds.IsPlaceholder("") &&
               !AchievementIds.IsPlaceholder("CgkI3eXNjrQcEAIQBw"));
-        Check("ids: iOS reporting stays off until the Game Center ids exist",
-              !AchievementIds.IsReportable(defs[0], true));
+        Check("ids: iOS reporting is on (Game Center ids created 2026-11-20)",
+              AchievementIds.IsReportable(defs[0], true));
         Check("ids: points fit Game Center's 1000 cap", defs.Sum(d => d.points) <= 1000 && defs.All(d => d.points <= 100));
     }
 

@@ -213,5 +213,9 @@ public static class AchievementCatalogTest
         Check("export: docs/achievements-export holds the generated files (run Pause > Achievements > Export store CSV)",
               File.Exists(Path.Combine(dir, "play-console.csv")) && File.Exists(Path.Combine(dir, "game-center.csv")) &&
               File.ReadAllText(Path.Combine(dir, "play-console.csv")) == play);
+        var csvIds = File.ReadAllLines(Path.Combine(dir, "game-center.csv")).Skip(1).Where(l => l.Length > 0).Select(l => l.Split(',')[1]).ToList();
+        var catIds = AchievementCatalog.All.Select(AchievementIds.IosId).ToList();
+        Check("export: committed game-center.csv ids == catalog iOS ids (68, none extra or missing)",
+              csvIds.Count == 68 && catIds.Count == 68 && csvIds.Distinct().Count() == 68 && !csvIds.Except(catIds).Any() && !catIds.Except(csvIds).Any());
     }
 }

@@ -12,8 +12,8 @@ using UnityEngine;
 //            (internal_id,CgkI...), which overrides this table at runtime; no
 //            code edit needed.
 //   iOS      me.hapticgate.pause.ach_<id> (the scheme the exported Game Center
-//            CSV uses). None exists in App Store Connect yet, so reporting on
-//            iOS stays off until IosIdsConfirmed is switched on.
+//            CSV uses). All 68 were created in App Store Connect on
+//            2026-11-20, so IosIdsConfirmed is on and iOS reports.
 //
 // A placeholder (or an unconfirmed iOS id) is never sent anywhere
 // (IsPlaceholder / AchievementStores).
@@ -24,8 +24,8 @@ public static class AchievementIds
     public const string PlaceholderPrefix = "TODO_";
     public const string OverrideResource = "AchievementStoreIds";
 
-    // Flip once the Game Center achievements exist in App Store Connect with the ids above.
-    public static bool IosIdsConfirmed = false;
+    // The Game Center achievements exist in App Store Connect (created 2026-11-20) with the ids above.
+    public static bool IosIdsConfirmed = true;
 
     static Dictionary<string, string> android;
 
