@@ -45,7 +45,7 @@ class Leaderboard(unittest.TestCase):
         self.assertEqual(b["attrs"]["vendorIdentifier"], "me.hapticgate.pause.top_score")
         self.assertEqual(b["attrs"]["scoreSortType"], "DESC")
         self.assertEqual(b["attrs"]["submissionType"], "BEST_SCORE")
-        self.assertEqual(b["attrs"]["defaultFormatter"], "INTEGER_COMMA_SEPARATOR")
+        self.assertEqual(b["attrs"]["defaultFormatter"], "INTEGER")
 
 
 class Iap(unittest.TestCase):

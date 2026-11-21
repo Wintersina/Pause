@@ -81,11 +81,11 @@ def top_score_board():
         "attrs": {
             "referenceName": "Top Score",
             "vendorIdentifier": BUNDLE_ID + ".top_score",
-            "defaultFormatter": "INTEGER_COMMA_SEPARATOR",
+            "defaultFormatter": "INTEGER",
             "submissionType": "BEST_SCORE",
             "scoreSortType": "DESC",
         },
-        "loc": {"locale": LOCALE, "name": "Top Score", "formatterOverride": "INTEGER_COMMA_SEPARATOR"},
+        "loc": {"locale": LOCALE, "name": "Top Score"},
     }
 
 
