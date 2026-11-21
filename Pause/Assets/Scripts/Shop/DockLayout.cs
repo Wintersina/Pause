@@ -32,6 +32,7 @@ public struct DockLayout
     public const float PaneGap = .3f;          // between the panes
     public const float Gutter = .3f;           // clear of the view's left and right edges (both panes)
     public const float LabelFloor = 1.2f;      // berth labels grow when the rack is drawn below this scale
+    public const float TabletAspect = .6f;     // portrait views at least this wide / tall (iPad, Mac window, Android tablet) fit the rack to the height
     public const float MinWideScale = .75f;    // the rack scrolls rather than shrink below this
 
     public int count;
@@ -79,6 +80,17 @@ public struct DockLayout
         var layout = For(count, rackPane.width * .5f + SideMargin);
         float byHeight = rackPane.height / layout.Height;
         layout.scale = Mathf.Min(layout.scale, Mathf.Max(MinWideScale, byHeight));
+        return layout;
+    }
+
+    // The rack for a one-pane (portrait) view: three columns scaled to fit the width, and also the height between the
+    // header and the footer (down to MinWideScale, below which it scrolls) so the footer buttons never ride over a
+    // berth on a tablet-shaped portrait window (iPad, a Mac window running the iPad app).
+    public static DockLayout ForTall(int count, float viewHalfWidth, float viewHalfHeight, float space)
+    {
+        var layout = For(count, viewHalfWidth);
+        // phones (narrower than TabletAspect) are untouched: they keep the width-only scale and scroll
+        if (space > 0f && viewHalfWidth / Mathf.Max(.0001f, viewHalfHeight) >= TabletAspect) layout.scale = Mathf.Min(layout.scale, Mathf.Max(MinWideScale, space / layout.Height));
         return layout;
     }
 
