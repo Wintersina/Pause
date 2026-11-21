@@ -61,6 +61,14 @@ public static class IOSReleasePostProcess
         root.SetBoolean("ITSAppUsesNonExemptEncryption", false);
         root.SetBoolean("UIRequiresFullScreen", true);
 
+        // Release exports (BuildScript.BuildIOSRelease): version numbers go into the exported plist only.
+        if (System.Environment.GetEnvironmentVariable(BuildScript.IosReleaseMarkerEnv) == "1")
+        {
+            root.SetString("CFBundleVersion", BuildScript.IosReleaseBuildNumber());
+            string ver = System.Environment.GetEnvironmentVariable(BuildScript.IosVersionEnv);
+            if (!string.IsNullOrWhiteSpace(ver)) root.SetString("CFBundleShortVersionString", ver.Trim());
+        }
+
         var removed = new List<string>();
         foreach (string key in UnusedUsageKeys)
             if (root.values.ContainsKey(key)) { root.values.Remove(key); removed.Add(key); }
