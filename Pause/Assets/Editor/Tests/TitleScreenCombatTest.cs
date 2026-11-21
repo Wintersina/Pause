@@ -59,6 +59,7 @@ public static class TitleScreenCombatTest
 
         LongRunRatesAndCaps();
         UltimatesUseTheShipsOwnLook();
+        HomeUltimateArtIsTheCurrentRoster();
         ShotsOnlyHitTheirOwnLayerAndCrashIntoWalls();
         LogoCrashLeavesTheLogoAlone();
         ButtonCrashLeavesButtonsTappable();
@@ -202,7 +203,7 @@ public static class TitleScreenCombatTest
             f.ultAt = t.Now;
             int before = t.UltsFired;
             bool sawOwn = false, sawOther = false;
-            for (int i = 0; i < 30; i++)
+            for (int i = 0; i < 60; i++)
             {
                 t.Step(Dt);
                 foreach (var sr in t.GetComponentsInChildren<SpriteRenderer>())
@@ -224,11 +225,61 @@ public static class TitleScreenCombatTest
     static bool IsOwnArt(Sprite s, int id)
     {
         for (int i = 0; i < WeaponArt.ShotFrames; i++) if (WeaponArt.Shot(id, i) == s) return true;
-        for (int i = 0; i < ShipFxArt.BurstFrames; i++)
-            if (ShipFxArt.AttackLoop(id, i) == s || ShipFxArt.AttackBurst(id, i) == s) return true;
-        for (int i = 0; i < ShipFxArt.StripCells; i++)
-            if (ShipFxArt.Extra(id, "attack_shot", i) == s) return true;
+        foreach (ShipFxArt.UltimatePart part in System.Enum.GetValues(typeof(ShipFxArt.UltimatePart)))
+            for (int i = 0; i < ShipFxArt.StripCells; i++)
+                if (ShipFxArt.UltimateCell(id, part, false, i) == s || ShipFxArt.UltimateCell(id, part, true, i) == s) return true;
         return false;
+    }
+
+    // The home showcase draws from the one table gameplay's strips come from (ShipFxArt.UltimateCell): every
+    // ship's main art resolves, each extra strip a ship's ultimate uses is a real strip that the dock's own
+    // power preview (PowerPreview.AttackPlan, built from the in-game attack) plays too, and no part resolves
+    // to a drawing of another ship.
+    static void HomeUltimateArtIsTheCurrentRoster()
+    {
+        bool main = true, extras = true, plan = true, foreign = true;
+        string bad = null;
+        foreach (int id in ShipId.All)
+        {
+            var attack = ShipLoadoutTable.For(id).attack;
+            for (int i = 0; i < ShipFxArt.LoopFrames; i++)
+            {
+                var loop = ShipFxArt.UltimateCell(id, ShipFxArt.UltimatePart.Main, false, i);
+                var burst = ShipFxArt.UltimateCell(id, ShipFxArt.UltimatePart.Main, true, i);
+                if (loop == null || burst == null || loop != ShipFxArt.AttackLoop(id, i) || burst != ShipFxArt.AttackBurst(id, i))
+                { main = false; bad = ShipId.KeyOf(id) + " main " + i; }
+            }
+            var dock = PowerPreview.AttackPlan(id);
+            foreach (ShipFxArt.UltimatePart part in System.Enum.GetValues(typeof(ShipFxArt.UltimatePart)))
+            {
+                if (part == ShipFxArt.UltimatePart.Main) continue;
+                string strip = ShipFxArt.UltimateStrip(attack, part);
+                if (strip == null) continue;
+                bool whole = part == ShipFxArt.UltimatePart.Shockwave || part == ShipFxArt.UltimatePart.Mushroom;
+                string full = strip;
+                int cells = whole ? ShipFxArt.StripCells : ShipFxArt.LoopFrames;
+                for (int i = 0; i < cells; i++)
+                {
+                    var c = ShipFxArt.UltimateCell(id, part, false, i);
+                    if (c == null) { extras = false; bad = ShipId.KeyOf(id) + " " + full + " cell " + i; continue; }
+                    foreach (int other in ShipId.All)
+                        if (other != id && (ShipFxArt.AttackLoop(other, i) == c || ShipFxArt.UltimateCell(other, part, false, i) == c)) foreign = false;
+                }
+                bool inPlan = false;
+                foreach (var p in dock.parts) inPlan |= p.suffix == full;
+                if (!inPlan) { plan = false; bad = ShipId.KeyOf(id) + " " + full + " is not in the dock plan"; }
+            }
+        }
+        Check("every ship's home ultimate main art is its in-game attack strip, non-null" + (bad != null && !main ? " (" + bad + ")" : ""), main);
+        Check("every extra strip a home ultimate draws exists" + (bad != null && !extras ? " (" + bad + ")" : ""), extras);
+        Check("each extra strip is one the dock's attack preview plays too" + (bad != null && !plan ? " (" + bad + ")" : ""), plan);
+        Check("no home ultimate drawing belongs to another ship", foreign);
+        Check("the Arcane Eye marks, the Warden / chain bolts and the nuke's shockwave and mushroom are wired",
+              ShipFxArt.UltimateStrip(ShipAttack.ArcaneEye, ShipFxArt.UltimatePart.Mark) == "attack_mark" &&
+              ShipFxArt.UltimateStrip(ShipAttack.WardenSentries, ShipFxArt.UltimatePart.Shot) == "attack_shot" &&
+              ShipFxArt.UltimateStrip(ShipAttack.ChainLightning, ShipFxArt.UltimatePart.Shot) == "attack_shot" &&
+              ShipFxArt.UltimateStrip(ShipAttack.Nuke, ShipFxArt.UltimatePart.Shockwave) == "attack_shockwave" &&
+              ShipFxArt.UltimateStrip(ShipAttack.Nuke, ShipFxArt.UltimatePart.Mushroom) == "attack_mushroom");
     }
 
     static void ShotsOnlyHitTheirOwnLayerAndCrashIntoWalls()
@@ -751,7 +802,9 @@ public static class TitleScreenCombatTest
         // warm-up: the wardrobe decoded, every pool grown, each weapon and
         // effect drawn once (sprites are cut on first use)
         // (a shard that runs few suites reaches here with every ship's attack strips still uncut)
-        foreach (int ship in ShipId.All) { ShipFxArt.AttackLoop(ship, 0); ShipFxArt.AttackBurst(ship, 0); }
+        foreach (int ship in ShipId.All)
+            foreach (ShipFxArt.UltimatePart part in System.Enum.GetValues(typeof(ShipFxArt.UltimatePart)))
+            { ShipFxArt.UltimateCell(ship, part, false, 0); ShipFxArt.UltimateCell(ship, part, true, 0); }
         Run(t, 240f);
         // a finger on the sky too
         Vector2 screen = new Vector2(Screen.width * .3f, Screen.height * .35f);
