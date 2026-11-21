@@ -262,7 +262,7 @@ public sealed class GateView
         float sp = 0.9f + sim.Rand() * 0.5f;
         pVel[i] = new Vector2(Mathf.Cos(a) * dirX * sp, Mathf.Sin(a) * sp);
         pMax[i] = pLife[i] = 0.55f + sim.Rand() * 0.2f;
-        pSize[i] = 0.07f + 0.02f * sim.Rand();
+        pSize[i] = 0.10f + 0.028f * sim.Rand();   // ~1.4x the old 0.07..0.09
         pR[i].enabled = true; pTrailR[i].enabled = true;
     }
 
