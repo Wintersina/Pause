@@ -59,12 +59,12 @@ Legend 80,000 = 35. Three are hidden (MEGA DOMINO, Frequent Flyer, Perfect Pause
 
 1. **Agreements, Tax, Banking**: Business > Agreements: accept the Paid Applications Agreement, add banking and tax forms (needed for any IAP; the app is free but sells IAP).
 2. **App record**: Apps > **+** New App: iOS, name, primary language, bundle id `me.hapticgate.pause`, SKU. (The API cannot create app records.) `check` finds it by bundle id.
-3. **Game Center**: the scripts create the Game Center detail if missing; confirm it is enabled for the app. Then add the achievements and Top Score to the app version (Game Center section; put Top Score first/default) and submit them with the build. Archiving/Releases of Game Center content may need the console.
+3. **Game Center**: the scripts create the Game Center detail if missing; confirm it is enabled for the app. `asc.py leaderboards --apply` creates both boards (Top Score `me.hapticgate.pause.top_score`, Boosted `me.hapticgate.pause.boosted_runs`, both BEST_SCORE, high to low, integer). There is no per-version attach step: the Game Center items in "Prepare for Submission" ship with the version submission.
 4. **IAP**: set price (price points are not scripted: Paragon 4.99, Remove Ads 3.99, 850 pack 3.99, 2,500 pack 9.99, 6,000 pack 19.99 or nearest), upload each review screenshot, check availability and tax category, attach products to the version for review. Confirm the Family Sharing choice (off).
 5. **App Privacy**: answer the nutrition-label questions from `docs/release/app-privacy-ios.md`. Privacy policy URL.
 6. **Age rating** questionnaire, category (Games > Arcade/Action), copyright, support URL, contact (business phone / dev@ forwarders).
 7. **Screenshots** (iPhone 6.9" and 6.5", iPad if universal), description, keywords, promo text, app icon in the build.
 8. **Firebase console** (project for the shared leaderboard): iOS app > add the **App Store ID** and **Team ID** so Game Center auth works.
 9. **AdMob**: once the app is live, Apps > the iOS app > **Add store** link (the iOS app ids are in the notes).
-10. In code after the ids exist: `AchievementIds.IosIdsConfirmed = true`; the leaderboard id is already in code.
+10. Nothing in code: `AchievementIds.IosIdsConfirmed` is already `true` and both leaderboard ids (Top Score, Boosted) are in `LeaderboardBoards`.
 11. TestFlight / sandbox: test one unlock and one score submission before review.

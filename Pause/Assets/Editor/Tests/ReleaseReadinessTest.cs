@@ -107,10 +107,12 @@ public static class ReleaseReadinessTest
 
         Check("Top Score board has an Android id",
               LeaderboardBoards.Get(LeaderboardBoards.TopScore) != null && LeaderboardBoards.Get(LeaderboardBoards.TopScore).EnabledOn(false));
-        // Every board needs a real Android id. The Power-Ups board has no iOS id on purpose (Game Center cannot carry its columns).
+        // Every board needs a real Android id. Every board also has a Game Center id.
         foreach (var b in LeaderboardBoards.All)
             Check("board " + b.id + " Android id is real (" + b.androidId + ")",
                   b.androidId.StartsWith("CgkI") && !AchievementIds.IsPlaceholder(b.androidId));
+        foreach (var b in LeaderboardBoards.All)
+            Check("board " + b.id + " has a Game Center id", b.iosId.StartsWith(AchievementIds.IosPrefix));
         Check("Play Games app id is set", File.ReadAllText("Assets/GooglePlayGames/Resources/PlayGamesSettings.asset").Contains("mAppId: 528367766818"));
     }
 

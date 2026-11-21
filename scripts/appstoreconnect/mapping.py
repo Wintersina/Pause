@@ -76,7 +76,7 @@ def achievement_loc_attrs(row):
 
 
 def top_score_board():
-    """The only Game Center board (docs/leaderboards.md)."""
+    """The primary Game Center board (docs/leaderboards.md)."""
     return {
         "attrs": {
             "referenceName": "Top Score",
@@ -87,6 +87,25 @@ def top_score_board():
         },
         "loc": {"locale": LOCALE, "name": "Top Score"},
     }
+
+
+def boosted_board():
+    """The Power-Ups board (docs/leaderboards.md, "Power-Ups board")."""
+    return {
+        "attrs": {
+            "referenceName": "Boosted",
+            "vendorIdentifier": BUNDLE_ID + ".boosted_runs",
+            "defaultFormatter": "INTEGER",
+            "submissionType": "BEST_SCORE",
+            "scoreSortType": "DESC",
+        },
+        "loc": {"locale": LOCALE, "name": "Boosted"},
+    }
+
+
+def boards():
+    """Every Game Center board, in tab order."""
+    return [("top_score", top_score_board()), ("boosted_runs", boosted_board())]
 
 
 def load_iap(path=None):

@@ -25,7 +25,7 @@ public static class UnifiedLeaderboardTest
     static readonly Vector2 Phone = new Vector2(1080f, 2340f);
     static readonly Rect PhoneSafe = new Rect(0f, 63f, 1080f, 2202f);
 
-    // All four boards live on Android; on iOS only Top Score (the shipped situation).
+    // All four boards live on Android; on iOS Top Score and Power-Ups (the shipped situation).
     static LeaderboardBoard[] FullTable()
     {
         return new[]
@@ -36,7 +36,7 @@ public static class UnifiedLeaderboardTest
                 LeaderboardSort.HigherIsBetter, LeaderboardBoards.FormatHundredths, r => (long)System.Math.Round(r.starDust * 100.0), 1),
             new LeaderboardBoard(LeaderboardBoards.FurthestWorld, WorldsAndroid, "", "Worlds", "w",
                 LeaderboardSort.HigherIsBetter, LeaderboardBoards.FormatWorlds, r => System.Math.Max(0, r.worldsCleared), 1),
-            new LeaderboardBoard(LeaderboardBoards.BoostedRuns, BoostedAndroid, "", "Power-Ups", "b",
+            new LeaderboardBoard(LeaderboardBoards.BoostedRuns, BoostedAndroid, AchievementIds.IosPrefix + "boosted_runs", "Power-Ups", "b",
                 LeaderboardSort.HigherIsBetter, LeaderboardBoards.FormatScore, r => r.score, 1, true),
         };
     }
@@ -291,8 +291,8 @@ public static class UnifiedLeaderboardTest
         string iosScore = LeaderboardBoards.Get(LeaderboardBoards.TopScore).PlatformId(true);
         ios.SetBoard(iosScore, FakeLeaderboards.Entry(1, "TETSUO", 5000), FakeLeaderboards.Entry(2, "KANEDA", 4000, true));
         panel = LeaderboardPanel.Open(Service(ios, true), null, Phone, PhoneSafe);
-        Check("iOS: SCORE is the one live header; DUST and WORLDS are there but disabled; no Power-Ups tab",
-              panel.Headers.Count == 3 && panel.HeaderBoards[0] == LeaderboardBoards.TopScore && panel.Tabs.Count == 1
+        Check("iOS: SCORE is the one live header; DUST and WORLDS are there but disabled; POWER-UPS tab is there",
+              panel.Headers.Count == 3 && panel.HeaderBoards[0] == LeaderboardBoards.TopScore && panel.Tabs.Count == 2
               && panel.Headers[0].interactable && !panel.Headers[1].interactable && !panel.Headers[2].interactable);
         Check("iOS: other players' rows show the score and nothing else; one column", panel.CurrentState == LeaderboardPanel.State.Populated
               && Cell(panel.PanelRoot.Find("List/Rows"), "Row0", LeaderboardBoards.TopScore) == "5,000"

@@ -144,7 +144,7 @@ public static class LeaderboardBoards
     public const string RunStarDust = "run_star_dust";
     public const string FurthestWorld = "furthest_world";
     // Runs that used a booster (Dust x2 / Hazard Clear), ranked by run score. Its star dust, worlds and power-ups
-    // columns ride in the score tag. No store ids yet: off until Play Console creates it.
+    // columns ride in the score tag. Store ids: Play Console CgkIopqxqbAPEAIQQg, Game Center me.hapticgate.pause.boosted_runs.
     public const string BoostedRuns = "boosted_runs";
 
     // The board the game used to have for speed. Speed is capped now
@@ -187,11 +187,11 @@ public static class LeaderboardBoards
             run => run.score,
             1),   // a 0-score run is never offered
 
-        // Powered-up runs only (docs/leaderboards.md, "Power-Ups board"). Live on Android; the iOS id stays empty on purpose
-        // (Game Center cannot carry the columns), so the board has no tab and nothing is submitted or queued for it on iOS.
+        // Powered-up runs only (docs/leaderboards.md, "Power-Ups board"). Live on Android and iOS. Game Center carries no score
+        // tag, so on iOS other players' rows show the score only (the own row is filled from the device record).
         new LeaderboardBoard(BoostedRuns,
             "CgkIopqxqbAPEAIQQg",   // Play Console id
-            "",   // iOS: Game Center cannot carry the columns (no score tag), see docs
+            AchievementIds.IosPrefix + "boosted_runs",   // App Store Connect "Boosted" (BEST_SCORE, high to low)
             "Power-Ups",
             "Best score in a run that used Dust x2 or Hazard Clear.",
             LeaderboardSort.HigherIsBetter,

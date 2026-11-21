@@ -151,8 +151,10 @@ public static class LeaderboardTest
         Check("native table: exactly Top Score and Power-Ups",
               LeaderboardBoards.All.Length == 2 && LeaderboardBoards.All[0].id == LeaderboardBoards.TopScore && LeaderboardBoards.All[1].id == LeaderboardBoards.BoostedRuns);
         Check("Android ids: Top Score and Power-Ups", score.androidId == "CgkIopqxqbAPEAIQRA" && LeaderboardBoards.Get(LeaderboardBoards.BoostedRuns).androidId == "CgkIopqxqbAPEAIQQg");
-        Check("iOS: only Top Score has a Game Center id; Power-Ups stays off",
-              score.EnabledOn(true) && !LeaderboardBoards.Get(LeaderboardBoards.BoostedRuns).EnabledOn(true));
+        var boosted = LeaderboardBoards.Get(LeaderboardBoards.BoostedRuns);
+        Check("iOS: Top Score and Power-Ups both have a Game Center id; Power-Ups id is me.hapticgate.pause.boosted_runs and is usable on iOS",
+              score.EnabledOn(true) && boosted.EnabledOn(true) && boosted.iosId == "me.hapticgate.pause.boosted_runs"
+              && boosted.PlatformId(true) == "me.hapticgate.pause.boosted_runs");
         Check("Star Dust / Worlds are column descriptors only: no store ids, never enabled, not in All",
               dust != null && world != null && !dust.EnabledOn(false) && !dust.EnabledOn(true) && !world.EnabledOn(false) && !world.EnabledOn(true)
               && !LeaderboardBoards.All.Contains(dust) && !LeaderboardBoards.All.Contains(world) && dust.androidId == "" && world.androidId == "");

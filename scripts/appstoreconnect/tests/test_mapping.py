@@ -47,6 +47,19 @@ class Leaderboard(unittest.TestCase):
         self.assertEqual(b["attrs"]["submissionType"], "BEST_SCORE")
         self.assertEqual(b["attrs"]["defaultFormatter"], "INTEGER")
 
+    def test_boosted(self):
+        b = M.boosted_board()
+        self.assertEqual(b["attrs"]["vendorIdentifier"], "me.hapticgate.pause.boosted_runs")
+        self.assertEqual(b["attrs"]["referenceName"], "Boosted")
+        self.assertEqual(b["attrs"]["scoreSortType"], "DESC")
+        self.assertEqual(b["attrs"]["submissionType"], "BEST_SCORE")
+        self.assertEqual(b["attrs"]["defaultFormatter"], "INTEGER")
+        self.assertEqual(b["loc"], {"locale": "en-US", "name": "Boosted"})
+
+    def test_boards_both_unique(self):
+        ids = [b["attrs"]["vendorIdentifier"] for _, b in M.boards()]
+        self.assertEqual(ids, ["me.hapticgate.pause.top_score", "me.hapticgate.pause.boosted_runs"])
+
 
 class Iap(unittest.TestCase):
     def test_products_valid(self):
