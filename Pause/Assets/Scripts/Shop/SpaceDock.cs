@@ -329,7 +329,10 @@ public class SpaceDock : MonoBehaviour
         foreach (var rt in header)
             if (rt != null && rt.gameObject.activeInHierarchy) headerBottom = Mathf.Min(headerBottom, ScreenToWorldY(rt, 0));
         foreach (var rt in footer)
-            if (rt != null && rt.gameObject.activeInHierarchy) footerTop = Mathf.Max(footerTop, ScreenToWorldY(rt, 1));
+            if (rt != null && rt.gameObject.activeInHierarchy)
+                // tablet-shaped portrait views keep the rack and the card clear of the buttons' tap areas (which reach
+                // FooterTapPad above their art); phones keep the art edge exactly as before
+                footerTop = Mathf.Max(footerTop, halfW / halfH >= DockLayout.TabletAspect && halfW / halfH < DockLayout.WideAspect ? HitEdgeY(rt, true) : ScreenToWorldY(rt, 1));
         float top = headerBottom - .06f, bottom = footerTop + .06f;
         if (top - bottom < 2f) { top = viewTop - .1f; bottom = viewBottom + .1f; }
 
@@ -352,7 +355,7 @@ public class SpaceDock : MonoBehaviour
             float cardWidth = fit ? view.width * DockPopup.PaneShare - DockLayout.PaneGap : worldPerPoint * DockPopup.PopupScale * DockPopup.PanelWidth;
             DockLayout.Panes(view, cardWidth, out rackPane, out cardPane);
         }
-        layout = wide ? DockLayout.ForWide(count, rackPane) : DockLayout.For(count, halfW);
+        layout = wide ? DockLayout.ForWide(count, rackPane) : DockLayout.ForTall(count, halfW, halfH, top - bottom);
         camX = camPos.x;
         rackSlideX = wide ? rackPane.center.x - camPos.x : 0f;
         // Browsing, the rack takes the whole view (fitting its height down to MinWideScale, scrolling below);

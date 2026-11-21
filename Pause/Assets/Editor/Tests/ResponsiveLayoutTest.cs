@@ -29,6 +29,11 @@ public static class ResponsiveLayoutTest
         Dev("r-cover-948x1048-dense", 948, 1048, 2.625f, 40),  // ... and at a denser setting: a canvas only ~800 units tall
         Dev("r-720x1280", 720, 1280, 2f, 40),
         Dev("r-1080x1350", 1080, 1350, 2.625f, 60),            // very short
+        Dev("r-1640x2360", 1640, 2360, 2f, 48),                // iPad Air / 10.9" (.695)
+        Dev("r-1668x2388", 1668, 2388, 2f, 48),                // iPad Pro 11" (.70)
+        Dev("r-1280x2000", 1280, 2000, 2f, 40),                // ~.64 portrait: the iPad app in a Mac window
+        new FitDevice { id = "r-mac-900x1400", name = "Mac window 900x1400 (no dpi)", w = 900, h = 1400, noDpi = true,
+                        pxPerPt = UiScale.PxPerPointFor(0f, false, 900, 1400), cutoutKind = "desktop window" },
     };
 
     // Desktop windows (no reported dpi): one Wide (16:9) and one Ultra (21:9). Only the screens this PR fixed are
@@ -98,6 +103,7 @@ public static class ResponsiveLayoutTest
                 if (!Known(device, "home")) HomeLogo(device);
             }
         }
+        DockRackFits();
         foreach (var device in WideDevices)
         {
             Check(device.id + ": is " + ScreenFrame.Classify(device.w, device.h) + " (no dpi)", device.noDpi && ScreenFrame.Classify(device.w, device.h) >= ScreenFrame.Aspect.Wide);
@@ -107,6 +113,23 @@ public static class ResponsiveLayoutTest
         Debug.Log("[RESPLAY] known, later PR (not enforced on the wide devices): " + string.Join(", ", WideKnown));
         Debug.Log("[RESPLAY] failures: " + fails);
         return fails;
+    }
+
+    // Phones (aspect under DockLayout.TabletAspect) keep exactly the width-only scale. A tablet-shaped portrait view's one-pane dock rack is scaled to the space between the header and the footer (never scrolling over the
+    // footer buttons) wherever that stays above DockLayout.MinWideScale, on phone and tablet portrait aspects.
+    static void DockRackFits()
+    {
+        foreach (float aspect in new[] { .46f, .5f, .5625f, .64f, .695f, .70f, .75f })
+        {
+            float halfH = CameraFit.ComputeSize(5f, 2.85f, (int)(aspect * 1000f), 1000);
+            float halfW = halfH * aspect;
+            float space = halfH * 2f * .78f;   // the header and footer bands leave about 78% of the view
+            var l = DockLayout.ForTall(15, halfW, halfH, space);
+            bool fits = l.Height * l.scale <= space + .001f || Mathf.Approximately(l.scale, DockLayout.MinWideScale);
+            bool phone = aspect < DockLayout.TabletAspect;
+            Check("dock rack @ aspect " + aspect + ": scale " + l.scale.ToString("0.00") + ", height " + (l.Height * l.scale).ToString("0.0") + " of " + space.ToString("0.0"),
+                  (phone ? l.scale == DockLayout.For(15, halfW).scale : fits) && l.scale <= 1f && l.Width * l.scale <= halfW * 2f + .001f);
+        }
     }
 
     static void CheckScreen(FitDevice device, string id)
