@@ -61,14 +61,14 @@ Ads-related declarations must be correct at the time of the release that contain
 ## 3. Code (agent)
 
 - [x] The real AdMob ids are in `AdsConfig.cs` on PR #432 (merge pending). Confirm no Google demo ids remain in the release build.
-- [x] Set `AdsConfig.MasterSwitch = true` (PR `feat/ads-master-switch-on`, 2026-11-08; the old item said `Enabled`, which is the derived getter). `EnabledOnIos` stays false until StoreKit ships (section 4). Merging that PR means the next .aab shows ads. Still unticked below: the merged-manifest check, which needs the built AAB.
+- [x] Set `AdsConfig.MasterSwitch = true` (PR `feat/ads-master-switch-on`, 2026-11-08; the old item said `Enabled`, which is the derived getter). `EnabledOnIos` was flipped to true on 2026-11-21 (section 4). Merging that PR means the next .aab shows ads. Still unticked below: the merged-manifest check, which needs the built AAB.
 - [ ] Confirm the built AAB's merged manifest has the AdMob app id and the `AD_ID` permission, and that no debug/test ad unit ids remain.
 - [ ] Bump `AndroidBundleVersionCode` and cut the release with the `release-android` skill.
 - [ ] After release: a fresh-install test (no ads for the first 15 minutes, then ads, Remove Ads works, restore works).
 
 ## 4. iOS (todos only; blocked until the Apple Developer account is accepted)
 
-iOS has never been sold, so there is no price change; it launches free with ads and Remove Ads. **Rule: iOS ads stay off (`AdsConfig.EnabledOnIos = false`) until Remove Ads can be purchased on iOS**, so no iOS player sees ads with no way to remove them.
+iOS has never been sold, so there is no price change; it launches free with ads and Remove Ads. **Decision 2026-11-21: iOS ads are ON in the first App Store release (`AdsConfig.EnabledOnIos = true`)**, same behaviour as Android; Remove Ads and Restore Purchases shipped via StoreKit (PR #526).
 
 Owner decision 2026-11-02: **todos only, no iOS work for now.** Work starts when the Apple Developer account is accepted. The AdMob iOS app and both iOS ad units already exist and their ids are in `AdsConfig.cs` (PR #432); nothing to create there. The step-by-step list is phase 7 of the [tracker](ads-free-tracker.md).
 
@@ -80,7 +80,7 @@ Owner decision 2026-11-02: **todos only, no iOS work for now.** Work starts when
 - [ ] **[user]** Get access to a real iPhone for a check before App Store release, and confirm what the simulator cannot cover (re-check at the time).
 - [ ] **[user]** App Store Connect > App Privacy labels for the ad SDK (re-check Google's iOS data disclosure and Apple's rules at the time) and the age rating with ads.
 - [ ] **[user]** After the App Store listing is live: AdMob > iOS app > Add store, then get it through AdMob review.
-- [ ] **[agent]** Set `AdsConfig.EnabledOnIos = true` only in the release where Remove Ads can be bought on iOS.
+- [x] **[agent]** Set `AdsConfig.EnabledOnIos = true` (done 2026-11-21).
 - [ ] **[user]** The privacy policy already names Apple Game Center; the new ads wording covers iOS (ATT) too.
 
 ## 5. Privacy: every place that must be updated

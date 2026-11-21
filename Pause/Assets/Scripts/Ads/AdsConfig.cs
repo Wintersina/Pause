@@ -11,9 +11,10 @@ using UnityEngine;
 // in editor / development / PAUSE_DEV builds) forces ads on so they can be tested with
 // Google's test IDs.
 //
-// iOS. EnabledOnIos must stay false until StoreKit ships (tracker phase 7): iOS has no
-// purchase code, so an iOS player could not buy Remove Ads. While false, an iOS release
-// build never shows ads even with MasterSwitch true.
+// iOS. EnabledOnIos is TRUE (owner decision 2026-11-21): the first App Store release shows ads
+// with the same behaviour as Android. StoreKit purchases (Remove Ads + Restore) shipped in
+// PR #526, so an iOS player can remove ads. Set it false to turn iOS ads off again; with it
+// false an iOS release build never shows ads even with MasterSwitch true.
 //
 // IDs. The real AdMob IDs (publisher pub-4397064133944218) are the constants without "Test". Google's
 // published TEST IDs sit beside them. A real ad unit must never be requested by our own devices (AdMob treats a
@@ -24,7 +25,7 @@ using UnityEngine;
 public static class AdsConfig
 {
     public const bool MasterSwitch = true;
-    public const bool EnabledOnIos = false;
+    public const bool EnabledOnIos = true;
 
     // ---- real IDs (AdMob account, created 2026-11-02) ----
     public const string AndroidAppId = "ca-app-pub-4397064133944218~1721630335";
@@ -65,7 +66,7 @@ public static class AdsConfig
 
     public static bool IsIos { get { return Application.platform == RuntimePlatform.IPhonePlayer; } }
 
-    // The live answer. True in Android release builds; iOS release builds stay false until EnabledOnIos.
+    // The live answer. True in Android release builds; iOS release builds follow EnabledOnIos.
     public static bool Enabled
     {
         get { return Resolve(MasterSwitch, EnabledOnIos, IsIos, DeveloperUnlocks.Enabled); }

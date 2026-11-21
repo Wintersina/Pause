@@ -1,4 +1,24 @@
-# Apple App Privacy (nutrition label) answers: shared leaderboard
+# Apple App Privacy (nutrition label) answers: shared leaderboard + AdMob ads
+
+**Update 2026-11-21: ads are ON in iOS v1.0 (`AdsConfig.EnabledOnIos = true`).** The label must therefore include the AdMob rows in the next section, merged with the leaderboard rows further down. The leaderboard section's "Data Used to Track You: nothing" no longer holds for the app as a whole: the app tracks (IDFA, with ATT consent) for third-party advertising. The privacy manifest already sets `NSPrivacyTracking = true` (IOSReleasePostProcess); tracking domains come from the Google Mobile Ads SDK's own manifest.
+
+## AdMob ads rows (add to the label)
+
+Based on Google's published "Data disclosure" for the Google Mobile Ads SDK on iOS (https://developers.google.com/admob/ios/privacy/strategies and the Apple data-disclosure page linked there). Re-fetch at submission time; rows marked **CONFIRM** are uncertain.
+
+| Apple data type | Collected | Linked to user | Used for tracking | Purposes | Notes |
+|---|---|---|---|---|---|
+| Identifiers > Device ID (IDFA) | Yes | Yes | **Yes** | Third-Party Advertising, Analytics (Google lists ad measurement) | Collected when the player allows tracking in the ATT prompt. Google lists Device ID as collected, linked and used for tracking. |
+| Usage Data > Product Interaction | Yes | Yes | **Yes** | Third-Party Advertising, Analytics | Ad impressions / taps. **CONFIRM** the linked / tracking flags against Google's current table. |
+| Usage Data > Advertising Data | Yes | Yes | **Yes** | Third-Party Advertising | Ad data about what the player saw. **CONFIRM** against Google's current table. |
+| Diagnostics > Performance Data | Yes | No | No | App Functionality, Analytics | Google lists SDK performance (e.g. launch time, hang rate). **CONFIRM** linked flag. |
+| Diagnostics > Crash Data | **CONFIRM** | **CONFIRM** | No | App Functionality | Google's table has listed crash data for the SDK; confirm at submission. |
+| Location > Coarse Location | Yes | Yes | **CONFIRM** | Third-Party Advertising | Derived from the IP address by Google; Google lists it. **CONFIRM** tracking flag. |
+| Purchases | No | n/a | n/a | n/a | Remove Ads purchases are handled by Apple; the ad SDK does not read them. |
+
+Tracking answer: **Yes, the app tracks** (the IDFA is used for third-party advertising). Keep the ATT prompt text (`AdsConfig.TrackingUsageDescription`) consistent with this. Players who deny ATT still get (non-personalised) ads, so the declaration stays "used for tracking" for those who allow it.
+
+The sections below are the leaderboard-only answers from 2026-11-07; the final label is the union of both tables.
 
 Drafted 2026-11-07 for App Store Connect > App Privacy. **Draft only, not entered anywhere.** Scope: only the data added by the shared cross-platform leaderboard (Firebase Auth + Cloud Firestore + App Check). The label must cover the whole app: merge these rows with the AdMob/IDFA rows and anything else (see `docs/release/no-ads.md` and the site privacy policy for ads). Anything marked **CONFIRM** is an uncertain mapping, not a decision.
 
