@@ -180,27 +180,28 @@ def cmd_achievements(ctx, args):
 
 
 def cmd_leaderboards(ctx, args):
-    b = M.top_score_board()
     app = need_app(ctx)
     detail = game_center_detail(ctx, app)
-    ex = None
+    existing = []
     if ctx.api and detail:
-        for x in ctx.api.get_all("/v1/gameCenterDetails/%s/gameCenterLeaderboards" % detail["id"]):
+        existing = ctx.api.get_all("/v1/gameCenterDetails/%s/gameCenterLeaderboards" % detail["id"])
+    for name, b in M.boards():
+        ex = None
+        for x in existing:
             if x["attributes"]["vendorIdentifier"] == b["attrs"]["vendorIdentifier"]:
                 ex = x
-    lid = upsert(ctx, "leaderboard top_score", ex, "gameCenterLeaderboards", "/v1/gameCenterLeaderboards",
-                 b["attrs"], {"gameCenterDetail": rel("gameCenterDetails", detail["id"])} if detail else None,
-                 patch_keys=("referenceName", "defaultFormatter", "scoreSortType", "submissionType"))
-    loc_ex = None
-    if ex and ctx.api:
-        for l in ctx.api.get_all("/v1/gameCenterLeaderboards/%s/localizations" % lid):
-            if l["attributes"]["locale"] == b["loc"]["locale"]:
-                loc_ex = l
-    upsert(ctx, "top_score [en-US]", loc_ex, "gameCenterLeaderboardLocalizations",
-           "/v1/gameCenterLeaderboardLocalizations", b["loc"],
-           {"gameCenterLeaderboard": rel("gameCenterLeaderboards", lid)} if lid else None,
-           patch_keys=("name",))
-    print("\nManual: add the board to the app version's Game Center section (and set it default); see the doc.")
+        lid = upsert(ctx, "leaderboard " + name, ex, "gameCenterLeaderboards", "/v1/gameCenterLeaderboards",
+                     b["attrs"], {"gameCenterDetail": rel("gameCenterDetails", detail["id"])} if detail else None,
+                     patch_keys=("referenceName", "defaultFormatter", "scoreSortType", "submissionType"))
+        loc_ex = None
+        if ex and ctx.api:
+            for l in ctx.api.get_all("/v1/gameCenterLeaderboards/%s/localizations" % lid):
+                if l["attributes"]["locale"] == b["loc"]["locale"]:
+                    loc_ex = l
+        upsert(ctx, "%s [en-US]" % name, loc_ex, "gameCenterLeaderboardLocalizations",
+               "/v1/gameCenterLeaderboardLocalizations", b["loc"],
+               {"gameCenterLeaderboard": rel("gameCenterLeaderboards", lid)} if lid else None,
+               patch_keys=("name",))
     return 0
 
 

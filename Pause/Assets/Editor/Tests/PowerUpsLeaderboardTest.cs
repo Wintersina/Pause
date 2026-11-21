@@ -30,7 +30,7 @@ public static class PowerUpsLeaderboardTest
     static LeaderboardBoard[] Table()
     {
         var list = new List<LeaderboardBoard>(LeaderboardTest.LiveTable());
-        list.Add(new LeaderboardBoard(LeaderboardBoards.BoostedRuns, BoostedAndroid, "", "Boosted", "d", LeaderboardSort.HigherIsBetter,
+        list.Add(new LeaderboardBoard(LeaderboardBoards.BoostedRuns, BoostedAndroid, AchievementIds.IosPrefix + "boosted_runs", "Boosted", "d", LeaderboardSort.HigherIsBetter,
                                       LeaderboardBoards.FormatScore, r => r.score, 1, true));
         return list.ToArray();
     }
@@ -136,13 +136,13 @@ public static class PowerUpsLeaderboardTest
         var real = LeaderboardBoards.Get(LeaderboardBoards.BoostedRuns);
         Check("real table: the Power-Ups board exists, last, powered-up only", real != null && real.poweredUpOnly
               && LeaderboardBoards.All[LeaderboardBoards.All.Length - 1] == real);
-        Check("real table: its Android id is the Play Console id and its iOS id is empty, so it is on for Android only",
-              real.androidId == "CgkIopqxqbAPEAIQQg" && real.iosId == "" && real.EnabledOn(false) && !real.EnabledOn(true));
+        Check("real table: its Android id is the Play Console id and its iOS id is the Game Center id, so it is on for both stores",
+              real.androidId == "CgkIopqxqbAPEAIQQg" && real.iosId == "me.hapticgate.pause.boosted_runs" && real.EnabledOn(false) && real.EnabledOn(true));
         Check("real table: no other board is powered-up only", CountPoweredOnly() == 1);
         Check("real table: just two native boards, Top Score then Power-Ups", LeaderboardBoards.All.Length == 2 && LeaderboardBoards.All[0].id == LeaderboardBoards.TopScore);
         bool iosTab = false;
         foreach (var b in LeaderboardBoards.All) iosTab |= b.poweredUpOnly && b.EnabledOn(true);
-        Check("real table: no iOS tab for it", !iosTab);
+        Check("real table: it has an iOS tab", iosTab);
     }
 
     static int CountPoweredOnly()
@@ -378,7 +378,7 @@ public static class PowerUpsLeaderboardTest
         Check("a premium-tagged queued Power-Ups entry is dropped, not sent", fake.Submissions.Count == 0 && !service.HasPending(LeaderboardBoards.BoostedRuns, out v));
     }
 
-    // A build whose Power-Ups board has no store id (the iOS state).
+    // A build whose Power-Ups board has no store id (a store where the board is not created yet).
     static void MissingStoreId()
     {
         var shipped = new List<LeaderboardBoard>(LeaderboardTest.LiveTable());

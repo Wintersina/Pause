@@ -377,7 +377,7 @@ public static class ScreenFitScreens
         if (shot == 2)
         {
             // Stage the two native boards (Top Score, Power-Ups) with stand-in ids on both stores so both tabs are on
-            // screen (the shipped table has no iOS id for Power-Ups). The DUST and WORLDS headers are the disabled ones
+            // screen. The DUST and WORLDS headers are the disabled ones
             // the native panel always draws, with the "sort on the shared board" note under the tabs.
             var real = LeaderboardBoards.Get(LeaderboardBoards.TopScore);
             LeaderboardBoards.OverrideForTests(new[]

@@ -18,7 +18,7 @@ Steps for the owner (see also `docs/achievements-store-setup.md`):
    (upload the 512 px icons; the 13 legacy ids already in the code are kept only if you keep those rows). If it was published, legacy
    rows cannot be deleted: add the new ones and check the 1000-point cap.
 2. Copy each new row's `CgkI...` id into `Pause/Assets/Resources/AchievementStoreIds.csv` as `internal_id,CgkI...` (it overrides the code).
-3. App Store Connect: create the 60 achievements with exactly the ids in `game-center.csv` and upload the 1024 px images, then set
-   `AchievementIds.IosIdsConfirmed = true` in code.
+3. App Store Connect: create the 60 achievements with exactly the ids in `game-center.csv` and upload the 1024 px images (`asc.py achievements --apply`). `AchievementIds.IosIdsConfirmed` is already `true` in code. The two leaderboards
+   (Top Score, Boosted) are created by `asc.py leaderboards --apply`.
 4. Publish the Play Games configuration, add testers, and test one unlock on a device (sign in, earn `meta_first_flight`).
 5. Score achievements are recalibrated (5,000 / 20,000 / 80,000, after the 2x streak): the exported descriptions already say so (store text has no commas: Play's CSV import forbids them).
