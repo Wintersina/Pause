@@ -45,6 +45,10 @@ public static class AdsConfig
     public const string IosRewardedUnit = "ca-app-pub-4397064133944218/8095466996";           // "Pause Double Dust"
     public const string IosQuickUnit = "ca-app-pub-4397064133944218/2869760700";               // "Pause Quick Dust" (rewarded interstitial)
 
+    // The owner's devices (hashed Google Mobile Ads ids). They get test ads even from the real units, so our own
+    // TestFlight / device runs never touch live ads. Hashed ids only affect those exact devices; safe to ship.
+    public static readonly string[] TestDeviceIds = { "2836cb6a9797dff13c03f14b10cbaff9" };
+
     // ---- Google's published test IDs (safe to ship and to click) ----
     public const string TestAndroidAppId = "ca-app-pub-3940256099942544~3347511713";
     public const string TestAndroidInterstitialUnit = "ca-app-pub-3940256099942544/1033173712";
