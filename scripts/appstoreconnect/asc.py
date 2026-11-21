@@ -117,25 +117,30 @@ def cmd_check(ctx, args):
 
 
 def upload_image(ctx, loc_id, path, label):
-    """Reserve, PUT the parts, commit with the md5. Skips if the localization already has an image."""
+    """Reserve, PUT the parts, commit with uploaded=true. Resumes an image stuck in AWAITING_UPLOAD."""
+    img = None
     if loc_id and ctx.api:
+        # the relationship endpoint omits uploadOperations, so fetch the image by id when we must resume
         have = ctx.api.get_or_none("/v1/gameCenterAchievementLocalizations/%s/gameCenterAchievementImage" % loc_id)
         if have:
-            ctx.log("same", "%s image (%s)" % (label, have["attributes"].get("assetDeliveryState", {}).get("state", "?")))
-            return
-    ctx.log("create", "%s image %s" % (label, os.path.basename(path)))
+            state = (have["attributes"].get("assetDeliveryState") or {}).get("state", "?")
+            if state != "AWAITING_UPLOAD":
+                ctx.log("same", "%s image (%s)" % (label, state))
+                return
+            img = ctx.api.request("GET", "/v1/gameCenterAchievementImages/" + have["id"])["data"]
+    ctx.log("create", "%s image %s%s" % (label, os.path.basename(path), " (resume)" if img else ""))
     if not ctx.apply:
         return
     with open(path, "rb") as f:
         blob = f.read()
-    r = ctx.api.request("POST", "/v1/gameCenterAchievementImages", {"data": {
-        "type": "gameCenterAchievementImages",
-        "attributes": {"fileName": os.path.basename(path), "fileSize": len(blob)},
-        "relationships": {"gameCenterAchievementLocalization": rel("gameCenterAchievementLocalizations", loc_id)}}})["data"]
-    ctx.api.upload_parts(r["attributes"]["uploadOperations"], blob)
-    ctx.api.request("PATCH", "/v1/gameCenterAchievementImages/" + r["id"], {"data": {
-        "type": "gameCenterAchievementImages", "id": r["id"],
-        "attributes": {"uploaded": True, "sourceFileChecksum": md5(blob)}}})
+    if img is None:
+        img = ctx.api.request("POST", "/v1/gameCenterAchievementImages", {"data": {
+            "type": "gameCenterAchievementImages",
+            "attributes": {"fileName": os.path.basename(path), "fileSize": len(blob)},
+            "relationships": {"gameCenterAchievementLocalization": rel("gameCenterAchievementLocalizations", loc_id)}}})["data"]
+    ctx.api.upload_parts(img["attributes"]["uploadOperations"], blob)
+    ctx.api.request("PATCH", "/v1/gameCenterAchievementImages/" + img["id"], {"data": {
+        "type": "gameCenterAchievementImages", "id": img["id"], "attributes": {"uploaded": True}}})
 
 
 def cmd_achievements(ctx, args):
@@ -194,7 +199,7 @@ def cmd_leaderboards(ctx, args):
     upsert(ctx, "top_score [en-US]", loc_ex, "gameCenterLeaderboardLocalizations",
            "/v1/gameCenterLeaderboardLocalizations", b["loc"],
            {"gameCenterLeaderboard": rel("gameCenterLeaderboards", lid)} if lid else None,
-           patch_keys=("name", "formatterOverride"))
+           patch_keys=("name",))
     print("\nManual: add the board to the app version's Game Center section (and set it default); see the doc.")
     return 0
 
