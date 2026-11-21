@@ -119,6 +119,8 @@ public sealed class AdMobProvider : IAdProvider
 #if UNITY_IOS
             MobileAds.SetiOSAppPauseOnBackground(true);
 #endif
+            var config = new RequestConfiguration { TestDeviceIds = new System.Collections.Generic.List<string>(AdsConfig.TestDeviceIds) };
+            MobileAds.SetRequestConfiguration(config);
             MobileAds.Initialize(status => done());
         }
         catch (Exception e)
