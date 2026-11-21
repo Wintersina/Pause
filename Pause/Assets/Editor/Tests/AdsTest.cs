@@ -106,8 +106,9 @@ public static class AdsTest
     {
         Check("MASTER SWITCH: AdsConfig.MasterSwitch is on (the free-with-ads release)", AdsConfig.MasterSwitch == true);
         Check("MASTER SWITCH: a release Android build shows ads", AdsConfig.Resolve(AdsConfig.MasterSwitch, AdsConfig.EnabledOnIos, false, false));
-        Check("MASTER SWITCH: a release iOS build never shows ads (no StoreKit)", !AdsConfig.Resolve(AdsConfig.MasterSwitch, AdsConfig.EnabledOnIos, true, false));
-        Check("EnabledOnIos defaults to false (no StoreKit yet)", AdsConfig.EnabledOnIos == false);
+        Check("MASTER SWITCH: a release iOS build shows ads (StoreKit Remove Ads shipped)", AdsConfig.Resolve(AdsConfig.MasterSwitch, AdsConfig.EnabledOnIos, true, false));
+        Check("EnabledOnIos is true (iOS ads on in v1.0)", AdsConfig.EnabledOnIos == true);
+        Check("iOS stays ad-free when EnabledOnIos is false", !AdsConfig.Resolve(true, false, true, false));
         Check("resolve: off stays off", !AdsConfig.Resolve(false, false, false, false) && !AdsConfig.Resolve(false, true, true, false));
         Check("resolve: master on, Android", AdsConfig.Resolve(true, false, false, false));
         Check("resolve: master on, iOS gate closed -> no ads", !AdsConfig.Resolve(true, false, true, false));
