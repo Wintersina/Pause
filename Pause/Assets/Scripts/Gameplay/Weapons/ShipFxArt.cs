@@ -184,6 +184,50 @@ public static class ShipFxArt
         return strip == null ? null : strip[Mathf.Clamp(cell, 0, StripCells - 1)];
     }
 
+    // ---- the ultimate's parts ------------------------------------------------
+    // Which strip of a ship's art each piece of its ultimate draws. Gameplay (ShipAttacks*, the dock's
+    // PowerPreview plans) draws these strips; the home screen's flying ships (TitleScreenTraffic) read this
+    // table, so the title screen cannot show an older or plainer drawing than the flight does.
+    public enum UltimatePart
+    {
+        Main,        // the ship's own attack strip: loop cells 0-7, burst cells 8-15
+        Mark,        // the Arcane Eye's rune marks and their detonation (attack_mark)
+        Shot,        // the bolt of the chain spark and the Warden's sentries (attack_shot)
+        Shockwave,   // the nuke's expanding ring (attack_shockwave, 16 cells)
+        Mushroom,    // the nuke's mushroom cloud (attack_mushroom, 16 cells)
+    }
+
+    // All 16 cells of a strip, one tick each (the nuke's shockwave and mushroom play as one animation).
+    public static readonly int[] WholeStripTicks = { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 };
+
+    // The strip suffix a part draws from for `attack` (null: the ship's main attack strip), the full
+    // "attack_<name>" key (constants, so asking for a cell each frame allocates nothing).
+    public static string UltimateStrip(ShipAttack attack, UltimatePart part)
+    {
+        switch (part)
+        {
+            case UltimatePart.Mark:      return attack == ShipAttack.ArcaneEye ? "attack_mark" : null;
+            case UltimatePart.Shot:
+                return attack == ShipAttack.ChainLightning || attack == ShipAttack.SkyJavelins || attack == ShipAttack.WardenSentries ? "attack_shot" : null;
+            case UltimatePart.Shockwave: return attack == ShipAttack.Nuke ? "attack_shockwave" : null;
+            case UltimatePart.Mushroom:  return attack == ShipAttack.Nuke ? "attack_mushroom" : null;
+        }
+        return null;
+    }
+
+    // Cell `i` of a part: loop (0-7) or burst (0-7 of cells 8-15) for Main, Mark and Shot; cell 0-15 of the
+    // strip for Shockwave and Mushroom. Null when the ship has no such part or its strip is missing.
+    public static Sprite UltimateCell(int ship, UltimatePart part, bool burst, int i)
+    {
+        string strip = UltimateStrip(ShipLoadoutTable.For(ship).attack, part);
+        if (part == UltimatePart.Main) return burst ? AttackBurst(ship, i) : AttackLoop(ship, i);
+        if (strip == null) return null;
+        if (part == UltimatePart.Shockwave || part == UltimatePart.Mushroom) return Extra(ship, strip, i);
+        var cells = Strip(ship, strip);   // the main strip when this one is missing, as Extra does
+        if (cells == null) return burst ? AttackBurst(ship, i) : AttackLoop(ship, i);
+        return cells[(burst ? LoopFrames : 0) + (burst ? Mathf.Clamp(i, 0, BurstFrames - 1) : Wrap(i, LoopFrames))];
+    }
+
     public static Sprite AttackLoop(int ship, int i)  => Fx(ship, false, i);
     public static Sprite AttackBurst(int ship, int i) => Fx(ship, true, i);
 

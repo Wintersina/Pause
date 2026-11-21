@@ -14,7 +14,8 @@ using UnityEngine.UI;
 // the frost nova's ring, two warden sentries, the nuke -- no slow motion,
 // Time.timeScale is never touched). Every drawing is the ship's own (WeaponArt shots,
 // ShipFxArt attack loops and bursts, WeaponStyleTable colours), scaled to
-// the layer. None of gameplay's attack runner, attack pools, target lists
+// the layer; ShipFxArt.UltimateCell is the one table of which strip each part draws (the Arcane Eye's marks,
+// the sentries' and chain spark's shots, the nuke's shockwave and mushroom), shared with gameplay's art. None of gameplay's attack runner, attack pools, target lists
 // or hit routing is used: nothing here scores, unlocks, pays out, buzzes or
 // needs a gameplay object. At most MaxUlts play at once.
 //
@@ -116,6 +117,7 @@ public partial class TitleScreenTraffic
         public SpriteRenderer sr;
         public bool on, loop;
         public FxSource src;
+        public ShipFxArt.UltimatePart part;   // which strip of the ship's ultimate art it draws (ShipFxArt.UltimateCell)
         public int ship, frame;
         public int[] ticks;
         public float clock, life, along, angleOff;
@@ -424,7 +426,8 @@ public partial class TitleScreenTraffic
                     for (int i = 0; i < n; i++)
                     {
                         u.hit[i] = picks[i];
-                        Play(FxSource.Loop, f.id, picks[i].pos, Vector3.one * .4f * s, 0f, ShipFxArt.LoopTicks, true, .9f, null, 0f, f.layer, 3);
+                        Play(FxSource.Loop, f.id, picks[i].pos, Vector3.one * .4f * s, 0f, ShipFxArt.LoopTicks, true, .9f, null, 0f, f.layer, 3,
+                             ShipFxArt.UltimatePart.Mark);
                     }
                     u.hitCount = n;
                 }
@@ -556,6 +559,10 @@ public partial class TitleScreenTraffic
                         Done(u);
                         break;
                     }
+                    // the spark leaves the nose (its own attack_shot strip), then the chain arcs
+                    if (u.hops == 0)
+                        Play(FxSource.Loop, f.id, u.point, Vector3.one * .6f * s, f.heading * Mathf.Rad2Deg - 90f, ShipFxArt.LoopTicks, true, .18f, null, 0f,
+                             f.layer, 3, ShipFxArt.UltimatePart.Shot);
                     Arc(f, u.point, t.pos);
                     Play(FxSource.Burst, f.id, t.pos, Vector3.one * .8f * s, 0f, ShipFxArt.BurstTicks, false, 0f, null, 0f, f.layer, 3);
                     if (u.hitCount < u.hit.Length) u.hit[u.hitCount++] = t;
@@ -580,7 +587,8 @@ public partial class TitleScreenTraffic
                     for (int k = 0; k < u.hitCount; k++)
                         if (Shootable(u.hit[k], f))
                         {
-                            Play(FxSource.Burst, f.id, u.hit[k].pos, Vector3.one * .9f * s, 0f, ShipFxArt.BurstTicks, false, 0f, null, 0f, f.layer, 3);
+                            Play(FxSource.Burst, f.id, u.hit[k].pos, Vector3.one * .9f * s, 0f, ShipFxArt.BurstTicks, false, 0f, null, 0f, f.layer, 3,
+                                 ShipFxArt.UltimatePart.Mark);
                             ShootDown(u.hit[k], (u.hit[k].pos - f.pos).normalized, f.id, f.layer);
                         }
                     Done(u);
@@ -755,6 +763,11 @@ public partial class TitleScreenTraffic
                     if (u.t < NukeFlightSeconds + .3f) break;   // the fuse
                     if (u.held != null && u.held.on) StopFx(u.held);
                     Play(FxSource.Burst, f.id, u.point, Vector3.one * 1.6f * s, 0f, ShipFxArt.BurstTicks, false, 0f, null, 0f, f.layer, 3);
+                    // then the red shockwave and the mushroom cloud, as in play (ShipAttackRunner's Detonate)
+                    Play(FxSource.Loop, f.id, u.point, Vector3.one * (3.2f * s / NukeShockArtRadius), 0f, ShipFxArt.WholeStripTicks, false, 0f, null, 0f,
+                         f.layer, 2, ShipFxArt.UltimatePart.Shockwave);
+                    Play(FxSource.Loop, f.id, u.point + Vector2.up * (NukeMushroomSize * s * .5f), Vector3.one * (NukeMushroomSize * s), 0f,
+                         ShipFxArt.WholeStripTicks, false, 0f, null, 0f, f.layer, 0, ShipFxArt.UltimatePart.Mushroom);
                     KillInRadius(f, u.point, 3.2f * s);
                     Done(u);
                 }
@@ -766,6 +779,7 @@ public partial class TitleScreenTraffic
         }
     }
 
+    const float NukeShockArtRadius = .39f, NukeMushroomSize = 3.6f;   // ShipAttackRunner's ShockArtRadius / MushroomSize
     const float IonSweepSeconds = 1f, NovaSweepSeconds = .9f, SentrySeconds = 2.4f, NukeFlightSeconds = .45f;
 
     // A sentry bolt: the nearest ship in reach, shot down.
@@ -775,16 +789,16 @@ public partial class TitleScreenTraffic
         Vector2 at = sentry.sr.transform.position;
         var t = Nearest(f, at, 4.5f * f.scale, false);
         if (t == null) return;
-        Arc(f, at, t.pos);
+        Arc(f, at, t.pos, ShipFxArt.UltimatePart.Shot);   // the sentry's bolt is its attack_shot strip
         ShootDown(t, (t.pos - at).normalized, f.id, f.layer);
     }
 
-    void Arc(Flyer f, Vector2 a, Vector2 b)
+    void Arc(Flyer f, Vector2 a, Vector2 b, ShipFxArt.UltimatePart part = ShipFxArt.UltimatePart.Main)
     {
         Vector2 d = b - a;
         float len = Mathf.Max(.2f, d.magnitude);
         Play(FxSource.Loop, f.id, (a + b) * .5f, new Vector3(len, .55f * f.scale, 1f), Mathf.Atan2(d.y, d.x) * Mathf.Rad2Deg,
-             ShipFxArt.LoopTicks, true, .22f, null, 0f, f.layer, 1);
+             ShipFxArt.LoopTicks, true, .22f, null, 0f, f.layer, 1, part);
     }
 
     // ---------------------------------------------------------- targeting
@@ -1042,7 +1056,7 @@ public partial class TitleScreenTraffic
     // ----------------------------------------------------- attack drawings
 
     Fx Play(FxSource src, int ship, Vector2 at, Vector3 scale, float angle, int[] ticks, bool loop, float life,
-            Flyer follow, float along, Depth layer, int sortOffset)
+            Flyer follow, float along, Depth layer, int sortOffset, ShipFxArt.UltimatePart part = ShipFxArt.UltimatePart.Main)
     {
         Fx e = null;
         for (int i = 0; i < FxPool; i++) if (!fxs[i].on) { e = fxs[i]; break; }
@@ -1050,6 +1064,7 @@ public partial class TitleScreenTraffic
         var spec = Depths[(int)layer];
         e.on = true;
         e.src = src;
+        e.part = part;
         e.ship = ship;
         e.ticks = ticks;
         e.loop = loop;
@@ -1076,12 +1091,8 @@ public partial class TitleScreenTraffic
 
     void ApplyFx(Fx e)
     {
-        Sprite s;
-        switch (e.src)
-        {
-            case FxSource.Loop: s = ShipFxArt.AttackLoop(e.ship, e.frame); break;
-            default: s = ShipFxArt.AttackBurst(e.ship, e.frame); break;
-        }
+        // the same strips gameplay draws (ShipFxArt.UltimateCell is the one table)
+        Sprite s = ShipFxArt.UltimateCell(e.ship, e.part, e.src == FxSource.Burst, e.frame);
         if (s != null && e.sr.sprite != s) e.sr.sprite = s;
     }
 
