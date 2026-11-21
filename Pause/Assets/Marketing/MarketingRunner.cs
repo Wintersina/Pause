@@ -56,6 +56,16 @@ public class MarketingRunner : MonoBehaviour
         SoundSettings.SetMusicVolume(1f);
         SoundSettings.SetMuted(false);
 
+        if (Environment.GetEnvironmentVariable("MC_IAP") == "1")
+        {
+            yield return IapShots();
+            DeveloperUnlocks.SetEnabled(false);
+            PlayerPrefs.Save();
+            Debug.Log("[MarketingCapture] job finished");
+            EditorApplication.isPlaying = false;
+            yield break;
+        }
+
         yield return MenuShots();
         foreach (int w in MarketingEnv.ParseList("MC_WORLDS", new[] { 0, 1, 2, 3 }))
             if (w >= 0) yield return WorldRun(w);
@@ -128,6 +138,57 @@ public class MarketingRunner : MonoBehaviour
             yield return Frames(90);
             yield return Shot("shop_ship");
         }
+    }
+
+    // ---- App Store review screenshots of the Shop's in-app purchases (editor only, MC_IAP=1) ----
+    // The editor has no store, so the USD prices and a no-op buy flow are filled in here (never in runtime code);
+    // the iOS variant (RESTORE PURCHASES) is forced on.
+    IEnumerator IapShots()
+    {
+        pilot.Enabled = false;
+        DeveloperUnlocks.SetEnabled(false);
+        ShopCatalog.ForceRestoreVisible = true;
+        Action noop = () => { };
+        ParagonPurchase.SetPrice("$4.99"); ParagonPurchase.LaunchFlow = noop;
+        RemoveAdsPurchase.SetPrice("$3.99"); RemoveAdsPurchase.LaunchFlow = noop;
+        string[] packPrices = { "$3.99", "$9.99", "$19.99" };
+        for (int i = 0; i < SupportPurchase.Packs.Length; i++)
+        {
+            SupportPurchase.Packs[i].SetPrice(packPrices[i]);
+            SupportPurchase.Packs[i].LaunchFlow = noop;
+        }
+        PlayerPrefs.SetFloat(StarDustLedger.CurrencyKey, 1250f);
+        yield return Load("startS4");
+        yield return Frames(120);
+        var shop = ShopPanel.Open();
+        yield return Frames(90);
+        shop.Layout();
+        yield return Frames(10);
+        string[] names = { "me.hapticgate.pause.remove_ads", "me.hapticgate.pause.ship_paragon", "support_developer_850", "support_developer_2500", "stardust_6000" };
+        int[] rowIdx = { 0, 1, 2, 3, 4 };
+        for (int k = 0; k < names.Length; k++)
+        {
+            ScrollRowToTop(shop, rowIdx[k], k >= 2 ? 2 : 0);
+            yield return Frames(20);
+            yield return Shot(names[k]);
+        }
+        // extra evidence: the bottom of the iOS Shop with RESTORE PURCHASES
+        shop.Scroll.verticalNormalizedPosition = 0f;
+        yield return Frames(20);
+        yield return Shot("restore_purchases");
+    }
+
+    // Scrolls so row `index` sits near the top of the viewport (`above` rows of context kept above it).
+    static void ScrollRowToTop(ShopPanel shop, int index, int above)
+    {
+        var rt = shop.RowButton(index).transform as RectTransform;
+        while (rt != null && rt.parent != shop.Content) rt = rt.parent as RectTransform;
+        if (rt == null) return;
+        float rowTop = -rt.anchoredPosition.y;
+        float vh = ((RectTransform)shop.Scroll.viewport).rect.height;
+        float range = shop.Content.rect.height - vh;
+        if (range <= 1f) return;
+        shop.Scroll.verticalNormalizedPosition = Mathf.Clamp01(1f - Mathf.Max(0f, rowTop - 24f - above * 150f) / range);
     }
 
     // ---- one world -------------------------------------------------------------
