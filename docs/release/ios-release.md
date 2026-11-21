@@ -24,6 +24,7 @@ Steps can be rerun alone: `make ios-archive`, `make ios-export`, `make ios-uploa
 | `ASC_KEY_PATH` | same | The `AuthKey_<KEYID>.p8`; default `~/.appstoreconnect/private_keys/AuthKey_$ASC_KEY_ID.p8`. Keep it outside the repo, never commit it. |
 | `IOS_UPLOAD=1` | export | Upload during export. |
 | `PAUSE_IOS_BUILD_NUMBER` | Unity step | Override CFBundleVersion (see below). |
+| `PAUSE_IOS_VERSION` | Unity step | Override CFBundleShortVersionString (e.g. `1.0` for the first App Store version). |
 | `PAUSE_IOS_NO_GAMECENTER` | Unity step | Sideload only (free team). Never for release. |
 
 ## Build number

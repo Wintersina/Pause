@@ -196,6 +196,13 @@ public static class BuildScript
         return string.IsNullOrWhiteSpace(env) ? PlayerSettings.Android.bundleVersionCode.ToString() : env.Trim();
     }
 
+    // Optional CFBundleShortVersionString override (e.g. 1.0 for the first App Store version
+    // while Android is on 1.1.x). Applied to the exported Info.plist by IOSReleasePostProcess,
+    // never written into PlayerSettings, so a release run cannot leave ProjectSettings modified.
+    public const string IosVersionEnv = "PAUSE_IOS_VERSION";
+    // Set in-process by BuildIOSRelease so the post-processor knows this export is a release one.
+    public const string IosReleaseMarkerEnv = "PAUSE_IOS_RELEASE_EXPORT";
+
     public static void BuildIOSRelease()
     {
 #if !UNITY_IOS
@@ -205,12 +212,10 @@ public static class BuildScript
         return;
 #else
         AdsManifestGuard.DevBuild = false;
-        var buildNumberWas = PlayerSettings.iOS.buildNumber;
-        PlayerSettings.iOS.buildNumber = IosReleaseBuildNumber();
-        Debug.Log("[BUILD] iOS release: CFBundleShortVersionString=" + PlayerSettings.bundleVersion
-            + " CFBundleVersion=" + PlayerSettings.iOS.buildNumber);
-        try { Run(BuildTarget.iOS, Path.Combine(OutputRoot, "iOS-release")); }
-        finally { PlayerSettings.iOS.buildNumber = buildNumberWas; }
+        Environment.SetEnvironmentVariable(IosReleaseMarkerEnv, "1");
+        Debug.Log("[BUILD] iOS release: CFBundleVersion=" + IosReleaseBuildNumber()
+            + " CFBundleShortVersionString=" + (Environment.GetEnvironmentVariable(IosVersionEnv) ?? PlayerSettings.bundleVersion));
+        Run(BuildTarget.iOS, Path.Combine(OutputRoot, "iOS-release"));
 #endif
     }
 
