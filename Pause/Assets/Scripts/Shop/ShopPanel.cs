@@ -37,6 +37,8 @@ public class ShopPanel : MonoBehaviour
     public const float PollSeconds = .25f;
     public const float BoosterRowHeight = 216f;  // pad + buy button + switch tap strip (ButtonHeight) + pad
     public const float StatusHeight = 30f;
+    public const string ScrollHintLabel = "MORE BELOW";
+    public const string PeekedKey = "shop_scroll_peeked";   // the one-time first-open nudge has played
     public const float SwitchTrackW = 84f, SwitchTrackH = 40f, SwitchInset = 4f, SwitchKnob = 24f;
 
     static ShopPanel instance;
@@ -74,6 +76,7 @@ public class ShopPanel : MonoBehaviour
     Button restoreButton;
     Image dustIcon;
     ScrollRect scroll;
+    ScrollHint hint;
     readonly List<RowView> rows = new List<RowView>();
     readonly List<int> sectionSizes = new List<int>();
     readonly List<RectTransform> sectionHeads = new List<RectTransform>();
@@ -91,6 +94,7 @@ public class ShopPanel : MonoBehaviour
     public RectTransform Panel { get { return panel; } }
     public RectTransform Content { get { return content; } }
     public ScrollRect Scroll { get { return scroll; } }
+    public ScrollHint Hint { get { return hint; } }
     public Button BackButton { get; private set; }
     public Text DustText { get { return dust; } }
     public Text StoreNote { get { return storeNote; } }
@@ -165,7 +169,8 @@ public class ShopPanel : MonoBehaviour
         scroll.vertical = true;
         scroll.movementType = ScrollRect.MovementType.Elastic;
         scroll.inertia = true;
-        scroll.scrollSensitivity = 30f;
+        scroll.scrollSensitivity = 60f;   // wheel / trackpad (iPhone apps on a Mac); a finger drag ignores it
+        hint = ScrollHint.Attach(scroll, font, ScrollHintLabel, CodexUi.Accent, AkiraPalette.Night0);
 
         storeNote = CodexUi.NewText("StoreNote", content, font, ShopCatalog.StoreDownNote, 20, AkiraPalette.RedHi, TextAnchor.MiddleLeft, true);
         FitText(storeNote, 15, 20);
@@ -467,6 +472,12 @@ public class ShopPanel : MonoBehaviour
         y += rn + 24f;
         content.sizeDelta = new Vector2(width, y);
         scroll.verticalNormalizedPosition = Mathf.Clamp01(scroll.verticalNormalizedPosition);
+        // the hint sits left of the buy plates (right-hand column) so its finger strip never covers one
+        float btnW = Mathf.Min(ButtonMaxWidth, width * .36f);
+        float leftRegion = width - RowPad - btnW;
+        float tapW = Mathf.Clamp(leftRegion - 8f, CodexUi.TapUnits, 180f);
+        float buttonLeft = -width * .5f + leftRegion;
+        hint.Place(Mathf.Min(0f, buttonLeft - 4f - tapW * .5f), tapW);
     }
 
     float NoteHeight(Text t, float width, float size)
@@ -602,6 +613,13 @@ public class ShopPanel : MonoBehaviour
         Boosters.Changed += OnChanged;
         Refresh();
         scroll.verticalNormalizedPosition = 1f;
+        hint.Cancel();
+        hint.Snap();
+        if (PlayerPrefs.GetInt(PeekedKey, 0) == 0)
+        {
+            PlayerPrefs.SetInt(PeekedKey, 1);
+            hint.Peek();   // once ever: a small bounce down and back shows the list scrolls
+        }
     }
 
     public void Close()
@@ -812,6 +830,7 @@ public class ShopPanel : MonoBehaviour
     {
         if (!open) return;
         TickFx(Time.unscaledDeltaTime);
+        hint.Tick(Time.unscaledDeltaTime);
         // The store answers without an event for some changes (a cancelled sheet clears Buying): poll cheaply.
         if (Time.unscaledTime >= nextPoll)
         {

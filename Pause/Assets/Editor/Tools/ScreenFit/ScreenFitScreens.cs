@@ -277,6 +277,9 @@ public static class ScreenFitScreens
         Canvas.ForceUpdateCanvases();
         // the home menu is behind the panel's scrim: covered, not part of this screen
         rig.Ignore("MainMenuCanvas");
+        // the "more below" chevron's finger strip is a tap target too (it must clear every buy plate)
+        panel.Hint.Snap();
+        if (panel.Hint.Shown) rig.AddTap("shop scroll hint", rig.PixelRect(panel.Hint.TapStrip));
     }
 
     // The MUSIC tab with every track unlocked (the longest list); the rig checks its text for truncation.

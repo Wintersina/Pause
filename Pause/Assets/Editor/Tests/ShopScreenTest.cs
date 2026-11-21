@@ -33,6 +33,7 @@ public static class ShopScreenTest
         SupportPurchase.ResetSession();
         foreach (string k in BoosterKeys) PlayerPrefs.DeleteKey(k);
         PlayerPrefs.SetFloat(StarDustLedger.CurrencyKey, 0f);
+        PlayerPrefs.DeleteKey(ShopPanel.PeekedKey);
         Boosters.Reload();
     }
 
@@ -63,6 +64,7 @@ public static class ShopScreenTest
             Taps();
             BoosterRows();
             Panel();
+            ScrollHints();
             Dock();
             Home();
         }
@@ -548,6 +550,92 @@ public static class ShopScreenTest
         BackNavigator.Back();
         Check("Back closes the Shop and hands Back on", !ShopPanel.IsOpen && BackNavigator.Top != (object)panel);
         Object.DestroyImmediate(panel.gameObject);
+    }
+
+    // The "more below" hint: the pure show / hide rule, then the open Shop (content below -> visible, bottom -> hidden,
+    // back up -> visible again), its tap strip, the tap-to-scroll and the one-time first-open peek.
+    static void ScrollHints()
+    {
+        // the rule: fits -> never; overflow -> shown while far from the end, hidden near it, hysteresis between
+        Check("hint rule: a list that fits shows nothing", !ScrollHint.ShouldShow(0f, 0f, false) && !ScrollHint.ShouldShow(ScrollHint.FitSlack, 500f, true));
+        Check("hint rule: content far below shows it", ScrollHint.ShouldShow(900f, 900f, false));
+        Check("hint rule: at the bottom hides it", !ScrollHint.ShouldShow(900f, 0f, true) && !ScrollHint.ShouldShow(900f, ScrollHint.HideBelow, true));
+        Check("hint rule: between the thresholds keeps its state",
+              ScrollHint.ShouldShow(900f, 36f, true) && !ScrollHint.ShouldShow(900f, 36f, false));
+
+        BackNavigator.ResetHooks();
+        PlayerPrefs.DeleteKey(ShopPanel.PeekedKey);
+        var panel = ShopPanel.Current;
+        if (panel != null) { panel.Close(); }
+        panel = ShopPanel.Open();
+        var hint = panel.Hint;
+        Check("first open: the one-time peek started and the flag is saved", hint.Animating && PlayerPrefs.GetInt(ShopPanel.PeekedKey, 0) == 1);
+        float overflow, below;
+        hint.Measure(out overflow, out below);
+        Check("the Shop list overflows its viewport (the free dust row is below the fold)", overflow > ScrollHint.FitSlack);
+        hint.Tick(10f);
+        Check("content below: the hint is visible", hint.Shown && hint.Alpha > .99f && hint.Label.text == ShopPanel.ScrollHintLabel);
+        Check("the hint's tap strip is finger-sized", hint.TapStrip.rect.height >= CodexUi.TapUnits - .5f && hint.TapStrip.rect.width >= CodexUi.TapUnits - .5f);
+        Check("the fade and the label never take taps", !hint.GetComponentInChildren<Text>().raycastTarget);
+        foreach (var img in hint.GetComponentsInChildren<Image>())
+            Check("hint image " + img.name + " raycast: only the tap strip", img.raycastTarget == (img.rectTransform == hint.TapStrip));
+        // the strip clears every live buy plate (the rows' buttons live in the right-hand column)
+        var strip = WorldRect(hint.TapStrip);
+        bool clear = true;
+        for (int i = 0; i < panel.RowCount; i++)
+            if (strip.Overlaps(WorldRect((RectTransform)panel.RowButton(i).transform))) clear = false;
+        Check("the hint's tap strip overlaps no buy plate", clear);
+
+        // scroll to the bottom: hidden; back up: visible again
+        panel.Scroll.verticalNormalizedPosition = 0f;
+        hint.Tick(10f);
+        Check("at the bottom the hint is hidden and takes no taps", !hint.Shown && hint.Alpha < .01f);
+        panel.Scroll.verticalNormalizedPosition = 1f;
+        hint.Tick(10f);
+        Check("scrolled back to the top the hint returns", hint.Shown && hint.Alpha > .99f);
+        panel.Scroll.verticalNormalizedPosition = .5f;
+        hint.Tick(10f);
+        Check("midway it is visible", hint.Shown);
+
+        // tap: eases down by about a page (never past the end)
+        panel.Scroll.verticalNormalizedPosition = 1f;
+        hint.OnPointerClick(null);
+        Check("tapping the chevron starts a smooth scroll", hint.Animating);
+        panel.Close();
+        Check("a list that fits shows no hint", FitsCase());
+
+        // the peek plays once ever: with the flag set a fresh open does not start it
+        PlayerPrefs.SetInt(ShopPanel.PeekedKey, 1);
+        panel = ShopPanel.Open();
+        Check("already peeked: no nudge on open", !panel.Hint.Animating);
+        Check("scrollSensitivity responds to a wheel / trackpad", panel.Scroll.scrollSensitivity >= 40f);
+        panel.Close();
+    }
+
+    // a real ScrollRect whose content is shorter than its viewport: the hint stays hidden
+    static bool FitsCase()
+    {
+        var go = new GameObject("FitsHint", typeof(RectTransform), typeof(ScrollRect));
+        try
+        {
+            var rt = (RectTransform)go.transform; rt.sizeDelta = new Vector2(400f, 600f);
+            var vp = new GameObject("vp", typeof(RectTransform)).GetComponent<RectTransform>(); vp.SetParent(rt, false);
+            CodexUi.Stretch(vp);
+            var content = new GameObject("c", typeof(RectTransform)).GetComponent<RectTransform>(); content.SetParent(vp, false);
+            content.anchorMin = content.anchorMax = content.pivot = new Vector2(.5f, 1f); content.sizeDelta = new Vector2(400f, 300f);
+            var sr = go.GetComponent<ScrollRect>(); sr.viewport = vp; sr.content = content;
+            var h = ScrollHint.Attach(sr, null, "MORE", Color.white, Color.black);
+            h.Tick(10f);
+            return !h.Shown && h.Alpha < .01f;
+        }
+        finally { Object.DestroyImmediate(go); }
+    }
+
+    static Rect WorldRect(RectTransform rt)
+    {
+        var c = new Vector3[4];
+        rt.GetWorldCorners(c);
+        return Rect.MinMaxRect(c[0].x, c[0].y, c[2].x, c[2].y);
     }
 
     static void Dock()
