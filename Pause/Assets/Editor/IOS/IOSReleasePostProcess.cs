@@ -28,6 +28,7 @@ using UnityEditor.iOS.Xcode;
 //     own code reads/writes PlayerPrefs (UserDefaults) and save files, which are
 //     required-reason APIs; they are declared here, merged into the manifest
 //     Unity wrote if there is one, otherwise added as a new resource.
+//     NSPrivacyTracking / empty NSPrivacyTrackingDomains are removed (ITMS-91064).
 public static class IOSReleasePostProcess
 {
     // Keys that would have to be justified to review; the game uses none of the APIs behind them.
@@ -108,10 +109,16 @@ public static class IOSReleasePostProcess
         else doc.Create();
         var root = doc.root;
 
-        // The app shows ads with ATT consent, so it is a tracking app; the tracking domains come from the
-        // Google Mobile Ads SDK's own manifest. (Not set false over a manifest that already says true.)
-        if (!root.values.ContainsKey("NSPrivacyTracking")) root.SetBoolean("NSPrivacyTracking", true);
-        if (!root.values.ContainsKey("NSPrivacyTrackingDomains")) root.CreateArray("NSPrivacyTrackingDomains");
+        // Do NOT declare tracking in the app manifest: Apple (ITMS-91064) requires NSPrivacyTracking=true to come
+        // with at least one tracking domain, and listing Google's ad domains would block ads when ATT is denied.
+        // The App Store Connect privacy label still says tracking via IDFA after ATT. An empty domains array or a
+        // lone NSPrivacyTracking flag is removed; a manifest that really lists domains is left alone.
+        var domains = root.values.ContainsKey("NSPrivacyTrackingDomains") ? root["NSPrivacyTrackingDomains"] as PlistElementArray : null;
+        if (domains == null || domains.values.Count == 0)
+        {
+            root.values.Remove("NSPrivacyTracking");
+            root.values.Remove("NSPrivacyTrackingDomains");
+        }
         if (!root.values.ContainsKey("NSPrivacyCollectedDataTypes")) root.CreateArray("NSPrivacyCollectedDataTypes");
 
         PlistElementArray apis = root.values.ContainsKey("NSPrivacyAccessedAPITypes")

@@ -1,6 +1,6 @@
 # Apple App Privacy (nutrition label) answers: shared leaderboard + AdMob ads
 
-**Update 2026-11-21: ads are ON in iOS v1.0 (`AdsConfig.EnabledOnIos = true`).** The label must therefore include the AdMob rows in the next section, merged with the leaderboard rows further down. The leaderboard section's "Data Used to Track You: nothing" no longer holds for the app as a whole: the app tracks (IDFA, with ATT consent) for third-party advertising. The privacy manifest already sets `NSPrivacyTracking = true` (IOSReleasePostProcess); tracking domains come from the Google Mobile Ads SDK's own manifest.
+**Update 2026-11-21: ads are ON in iOS v1.0 (`AdsConfig.EnabledOnIos = true`).** The label must therefore include the AdMob rows in the next section, merged with the leaderboard rows further down. The leaderboard section's "Data Used to Track You: nothing" no longer holds for the app as a whole: the app tracks (IDFA, with ATT consent) for third-party advertising. The app's own privacy manifest does NOT set `NSPrivacyTracking` and has no `NSPrivacyTrackingDomains` (IOSReleasePostProcess removes them): Apple rejects tracking=true with an empty domain list (ITMS-91064), and listing Google's ad domains would block ads when ATT is denied. The App Store Connect label still declares tracking via IDFA after ATT.
 
 ## AdMob ads rows (add to the label)
 

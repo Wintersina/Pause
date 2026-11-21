@@ -15,6 +15,8 @@ Status: written 2026-11-20, **not yet run end to end** (the pipeline needs the H
 
 Steps can be rerun alone: `make ios-archive`, `make ios-export`, `make ios-upload` (they reuse the Unity export).
 
+No devices on the team: `make ios-archive` cannot create the development profile it wants. Use `PAUSE_IOS_TEAM_ID=... scripts/ios-release.sh manual` (unsigned archive, hand signing with the Apple Distribution identity + the cloud-managed App Store profile, writes `ipa/Pause.ipa`), then `scripts/ios-release.sh upload`.
+
 ## Environment variables
 
 | Variable | Used by | Meaning |
@@ -52,7 +54,7 @@ Steps can be rerun alone: `make ios-archive`, `make ios-export`, `make ios-uploa
 | Unused usage keys | `IOSReleasePostProcess` | camera/mic/location/photos/contacts/etc. are removed if something added them |
 | Full screen | `IOSReleasePostProcess` | `UIRequiresFullScreen = true` (portrait only; without it iPad validation wants all four orientations) |
 | `UIRequiredDeviceCapabilities` | `IOSReleasePostProcess` | `arm64` ensured (Unity adds the rest, e.g. metal) |
-| Privacy manifest | `IOSReleasePostProcess` | Unity, Firebase and GMA ship their own `PrivacyInfo.xcprivacy`; the app's own required-reason APIs (UserDefaults `CA92.1` for PlayerPrefs, file timestamps `C617.1` for save files) are merged into Unity's manifest or added as a new one. `NSPrivacyTracking` true (ads with ATT). |
+| Privacy manifest | `IOSReleasePostProcess` | Unity, Firebase and GMA ship their own `PrivacyInfo.xcprivacy`; the app's own required-reason APIs (UserDefaults `CA92.1` for PlayerPrefs, file timestamps `C617.1` for save files) are merged into Unity's manifest or added as a new one. `NSPrivacyTracking` and empty `NSPrivacyTrackingDomains` are removed (ITMS-91064; the ASC label declares tracking). |
 | App Attest | `IOSCapabilitiesPostProcess` | entitlement `com.apple.developer.devicecheck.appattest-environment = production` |
 | App icon | ProjectSettings iPhone icon slots | `OrbitalRail_ios_1024.png`, verified no alpha (`sips`: hasAlpha no, 1024x1024) |
 
@@ -82,5 +84,5 @@ Upload failure triage: "build number already used" -> raise `PAUSE_IOS_BUILD_NUM
 ## Open questions
 
 - iPad: `targetDevice` is iPhone + iPad, which means iPad screenshots and layout checks. Portrait-only plus `UIRequiresFullScreen` is valid; switch to iPhone only if iPad support is not wanted.
-- `NSPrivacyTracking` is set true because ads run with ATT; confirm against the final App Privacy answers.
+- `NSPrivacyTracking` is deliberately absent from the app manifest (ITMS-91064); the App Privacy answers in ASC declare IDFA tracking.
 - Optional App Check hardening: none needed for TestFlight; enforce only after the metrics check.
