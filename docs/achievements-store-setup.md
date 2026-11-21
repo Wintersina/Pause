@@ -11,7 +11,7 @@
 For the project owner. Package / bundle id: `me.hapticgate.pause` (new Play Console account, Google Cloud project number
 `528367766818`). Status: **Android is done** (Play Games Services project `528367766818`: the 60 achievements are imported as drafts and their ids are in
 `Assets/Resources/AchievementStoreIds.csv` and `docs/achievements-export/android-ids.csv`; they still need **Review and publish** in Play Console).
-**Game Center (iOS) is still pending**: create the 60 from section 3. The 60 new achievements are defined in `docs/achievements-redesign.md`; the CSVs below are
+**Game Center (iOS) is live**: all 68 achievements and the Top Score leaderboard were created in App Store Connect on 2026-11-20 from section 3, and `AchievementIds.IosIdsConfirmed` is on, so iOS reports them. (Originally: create the 60 from section 3.) The 60 new achievements are defined in `docs/achievements-redesign.md`; the CSVs below are
 generated from that table (the planned menu tool `Pause/Achievements/Export store CSV` regenerates them from code, see
 `achievements-implementation-plan.md`).
 
@@ -196,7 +196,7 @@ Tests: id uniqueness, 1000-point total, <= 100 points each, title and descriptio
 
 1. DONE (Android): the 60 achievements from section 2 are imported as drafts. Remaining: Review and publish in Play Console, and add testers.
 2. DONE (Android): icons uploaded with the rows. iOS: upload the 60 icons (section 6) while creating each Game Center row.
-3. DONE (Android): ids pasted into `AchievementStoreIds.csv`. iOS: create the 60 ids exactly as in section 3, then set `AchievementIds.IosIdsConfirmed`.
+3. DONE (Android): ids pasted into `AchievementStoreIds.csv`. iOS: DONE 2026-11-20, ids created as in section 3 and `AchievementIds.IosIdsConfirmed = true`.
 4. Publish the Play Games configuration and add testers so achievements work for non-testers.
 5. Test on a device: sign in, earn one (for example `meta_first_flight`), check Play Games / Game Center.
 

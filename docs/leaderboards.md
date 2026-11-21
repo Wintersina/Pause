@@ -1,7 +1,7 @@
 # Leaderboards
 
 Status: **live on Android once the Play Games project is published** (the boards exist as drafts in the `me.hapticgate.pause` project,
-Cloud project 528367766818; Review and publish is still to do). **iOS: only Top Score has an id**; the Game Center boards are still to create.
+Cloud project 528367766818; Review and publish is still to do). **iOS: only Top Score has an id**, and it exists in App Store Connect (created 2026-11-20); Game Center achievements are live too (`AchievementIds.IosIdsConfirmed = true`).
 
 **2026-10: the Top Speed board is retired.** Speed is now capped at HUD 35 (`SpeedRamp.Cap`,
 `docs/speed-and-loops.md`), so a best speed ranks nothing. The board is gone from the table, nothing
