@@ -12,7 +12,7 @@ using System.Collections.Generic;
 //   Atoms: magnetic                   12
 //   Hazards: rocks                    5   (incl. Space's four falling hazard-rock types: no roster def, the same Rock payout)
 //   Hazards: mines                    5 + world / 2   (Space 5 ... Desert 8)
-//   Enemies (roster)                  5 + world index (Space 5 ... Desert 11)
+//   Enemies (roster)                  5 + world index (Space 5 ... Desert 11); enemies, elites and bosses wait for COLLECT
 //   Elites                            12
 //   Bosses                            15
 //   Worlds: Deep Space                5

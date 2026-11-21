@@ -23,6 +23,16 @@ public sealed class CodexGlide
         running = true;
     }
 
+    // Jumps a running glide to its end (the row it was heading for is where it will rest).
+    public void Finish(RectTransform content)
+    {
+        if (!running) return;
+        running = false;
+        var p = content.anchoredPosition;
+        p.y = to;
+        content.anchoredPosition = p;
+    }
+
     public void Tick(RectTransform content)
     {
         if (!running) return;

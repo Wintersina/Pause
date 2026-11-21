@@ -76,6 +76,7 @@ public static class AllTests
         ("CodexAchievementsTabTest", CodexAchievementsTabTest.Execute),
         ("CodexNewDotsTest", CodexNewDotsTest.Execute),
         ("CodexDustWideTest", CodexDustWideTest.Execute),
+        ("CodexCollectRowsTest", CodexCollectRowsTest.Execute),
         ("CodexPayoutTest", CodexPayoutTest.Execute),
         ("DamageLogTest", DamageLogTest.Execute),
         ("KillCamTest", KillCamTest.Execute),

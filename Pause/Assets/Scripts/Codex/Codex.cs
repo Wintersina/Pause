@@ -579,8 +579,9 @@ public static class Codex
         return dust;
     }
 
-    // Atoms, combos and songs are collected by the player; every other kind pays on discovery.
-    static bool PaysOnCollect(CodexEntry e) { return e != null && e.category == CodexCategory.Atoms; }
+    // Atoms, enemies (roster enemies, elites, bosses), combos and songs are collected by the player in the Codex
+    // (COLLECT / COLLECT ALL); every other kind pays on discovery.
+    static bool PaysOnCollect(CodexEntry e) { return e != null && (e.category == CodexCategory.Atoms || e.category == CodexCategory.Enemies); }
 
     static bool IsSongId(string id) { return id != null && id.StartsWith("music_", StringComparison.Ordinal); }
 

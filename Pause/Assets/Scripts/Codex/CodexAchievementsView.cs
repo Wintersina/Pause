@@ -857,12 +857,14 @@ public sealed class CodexAchievementsView
     void OnCardClicked(int index)
     {
         if (index < 0 || index >= shownCount || detailDef != null) return;
+        panel.FinishSequence();
         ShowDetail(cards[index].def);
     }
 
     void OnCollectCard(int index)
     {
         if (index < 0 || index >= shownCount || detailDef != null) return;
+        panel.FinishSequence();
         Collect(cards[index].def);
     }
 
@@ -871,12 +873,74 @@ public sealed class CodexAchievementsView
         if (detailDef != null) Collect(detailDef);
     }
 
+    // COLLECT ALL plays as a sequence (CodexPanel.StartAchievementCollect): the list glides to each unlocked badge in
+    // turn and that badge's own reward bursts from its card to the counter as it is paid. A second tap while it plays
+    // skips: everything left is credited at once. Same single-save claim per badge, so nothing is lost or paid twice.
     void OnCollectAll()
     {
         if (detailDef != null) return;
-        float before = StarDustLedger.Saved;
-        int paid = AchievementStore.ClaimAll();
-        if (paid > 0) AfterClaim(before);
+        if (panel.CollectSequenceActive) { panel.FinishSequence(); return; }
+        var ids = ClaimableIds();
+        if (ids.Count == 0) return;
+        panel.StartAchievementCollect(ids);
+    }
+
+    // The claimable badges in the order the list shows them.
+    public List<string> ClaimableIds()
+    {
+        var ids = new List<string>();
+        for (int i = 0; i < shownCount; i++)
+            if (AchievementStore.IsClaimable(cards[i].def)) ids.Add(cards[i].def.id);
+        // claimable badges the list does not show (should not happen) are still collected
+        foreach (var d in AchievementCatalog.All)
+            if (AchievementStore.IsClaimable(d) && !ids.Contains(d.id)) ids.Add(d.id);
+        return ids;
+    }
+
+    // One badge was just paid by the sequence: repaint it as collected and count the balance up.
+    public void OnSequencePaid(int dust)
+    {
+        AfterClaim(StarDustLedger.Saved - dust);
+    }
+
+    // Scrolls (smoothly) so the badge's card is fully in view below the pinned section header; no move when it already is.
+    public void GlideToCard(string id)
+    {
+        int i = CardIndexOf(id);
+        if (i < 0 || detailDef != null) return;
+        float y = CardScrollTarget(i);
+        if (Mathf.Abs(y - content.anchoredPosition.y) < .5f) return;
+        scroll.StopMovement();
+        jumpFrom = content.anchoredPosition.y;
+        jumpTo = y;
+        jumpAt = Time.unscaledTime;
+        lastSetY = jumpFrom;
+        jumping = true;
+        jumpTarget = -1;
+    }
+
+    // The content y that shows card i whole (the current y when it is already whole in the visible window).
+    public float CardScrollTarget(int i)
+    {
+        float pinned = CodexPanel.SectionHeaderHeight + CodexPanel.GridInset;
+        float top = -cards[i].rt.anchoredPosition.y - cardH * .5f, bottom = top + cardH;
+        float y = content.anchoredPosition.y;
+        if (top >= y + pinned && bottom <= y + viewport.rect.height) return y;
+        return Mathf.Clamp(top - pinned, 0f, MaxScroll);
+    }
+
+    // Whether the card is whole inside the visible window (below the pinned header) at the current scroll.
+    public bool CardWhollyVisible(int i)
+    {
+        return Mathf.Abs(CardScrollTarget(i) - content.anchoredPosition.y) < .5f;
+    }
+
+    // Lands a running glide now, so a card read straight after is where it will rest.
+    public void FinishGlide()
+    {
+        if (!jumping) return;
+        SetScrollY(jumpTo);
+        jumping = false;
     }
 
     void Collect(AchievementDef d)

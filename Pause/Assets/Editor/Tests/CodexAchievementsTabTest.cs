@@ -390,7 +390,8 @@ public static class CodexAchievementsTabTest
         Check("2 left to collect", AchievementStore.ClaimableCount == 2 && v.CollectAll.label.text == "COLLECT ALL +10");
         var h4 = Tap(panel, ScreenCentre(v.CollectAll.rt));
         Check("a real tap on COLLECT ALL hits it", h4 == v.CollectAll.frame.gameObject);
-        Check("... pays the sum of the rewards (2 x 5 = 10) once", Dust() == 120f && AchievementStore.ClaimableCount == 0);
+        for (int i = 0; i < 40 && panel.CollectSequenceActive; i++) panel.TickCollect(.1f);   // COLLECT ALL plays as a sequence
+        Check("... pays the sum of the rewards (2 x 5 = 10) once", Dust() == 120f && AchievementStore.ClaimableCount == 0 && !panel.CollectSequenceActive);
         Check("... and disables itself", !v.CollectAll.button.interactable && v.CollectAll.label.text == "COLLECT ALL");
         Tap(panel, ScreenCentre(v.CollectAll.rt));
         Check("a second COLLECT ALL pays nothing", Dust() == 120f);
