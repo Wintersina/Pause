@@ -386,7 +386,7 @@ public static class ShipWeaponUpgradesTest
 
         dock.Select(8);
         popup.SendMessage("LateUpdate");
-        string next = ShipWeaponUpgrades.Step(8, 2).label;
+        string next = ShipWeaponUpgrades.DockStepText(8, 2);
         Check("an owned ship's popup shows its weapon level (1 of 4 pips lit)",
               popup.WeaponLevelShown == 1 && popup.WeaponPip(0).color == AkiraPalette.Cyan &&
               popup.WeaponPip(1).color == AkiraPalette.Hairline);
@@ -405,7 +405,7 @@ public static class ShipWeaponUpgradesTest
         Check("buying it raises the level at once (popup and game)",
               ShipWeaponUpgrades.Level(8) == 2 && popup.WeaponLevelShown == 2 &&
               popup.WeaponPip(1).color == AkiraPalette.Cyan &&
-              popup.WeaponLine == "NEXT " + ShipWeaponUpgrades.Step(8, 3).label);
+              popup.WeaponLine == "NEXT " + ShipWeaponUpgrades.DockStepText(8, 3));
 
         SetLevel(8, ShipWeaponUpgrades.MaxLevel);
         dock.Select(1);

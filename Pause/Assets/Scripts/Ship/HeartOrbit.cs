@@ -236,6 +236,10 @@ public abstract class HeartOrbit : MonoBehaviour
     // The companion gun the orbit hurries past (the player only).
     protected virtual UltimateGun FindGun() { return null; }
     protected virtual Bounds GunRestBounds(UltimateGun g) { return default(Bounds); }
+    // The extra floaties' resting spots (FloatieBattery), world space: the hearts hurry past them like the gun's own.
+    protected virtual int ExtraGunRestBounds(Bounds[] into) { return 0; }
+    readonly Bounds[] extraGunBoxes = new Bounds[2];
+    int extraGunCount;
     protected virtual int MaxHearts { get { return 8; } }
     // The hull drawing the hearts sort round (front over it, back under it).
     protected virtual SpriteRenderer HullRenderer() { return GetComponent<SpriteRenderer>(); }
@@ -984,6 +988,7 @@ public abstract class HeartOrbit : MonoBehaviour
         // The gun's resting spot (where it hovers most of the time).
         bool hasGun = gun != null && gun.isActiveAndEnabled;
         Bounds gunBox = hasGun ? GunRestBounds(gun) : default(Bounds);
+        extraGunCount = hasGun ? ExtraGunRestBounds(extraGunBoxes) : 0;
 
         // Slots among the hearts shown, and ease apart any too close.
         int n = 0;
@@ -1012,7 +1017,7 @@ public abstract class HeartOrbit : MonoBehaviour
         float ringNear = 0f;
         if (hasGun && orbit.spread == 0f)
             for (int i = 0; i < hearts.Length; i++)
-                if (hearts[i] != null && hearts[i].gameObject.activeSelf) ringNear = Mathf.Max(ringNear, Near(pos[i], gunBox));
+                if (hearts[i] != null && hearts[i].gameObject.activeSelf) ringNear = Mathf.Max(ringNear, NearAny(pos[i], gunBox));
 
         float rollEase = 1f - Mathf.Exp(-1.6f * dt);
         for (int i = 0; i < hearts.Length; i++)
@@ -1031,7 +1036,7 @@ public abstract class HeartOrbit : MonoBehaviour
             // quick past the gun's resting spot (the warp already hurries
             // it through the bottom, past the thumb)
             float yOff = at.y - p.y;
-            float near = hasGun ? Near(at, gunBox) : 0f;
+            float near = hasGun ? NearAny(at, gunBox) : 0f;
             // (a one-orbit style's hearts fly as one: the whole ring hurries)
             float m = 1f + GunWarp * (orbit.spread != 0f ? near : ringNear);
             float way = Mathf.Abs(dir[i]) > .05f ? Mathf.Sign(dir[i]) : Mathf.Sign(dirTarget[i]);
@@ -1047,11 +1052,11 @@ public abstract class HeartOrbit : MonoBehaviour
             if (dt > 0f && orbit.flourishEvery > 0f && loopT[i] < 0f)
             {
                 flourishIn[i] -= dt;
-                if (flourishIn[i] <= 0f && yOff > -.05f && (!hasGun || GunGap(at, gunBox) > heartSize) && Mathf.Abs(dir[i] - dirTarget[i]) < .01f)
+                if (flourishIn[i] <= 0f && yOff > -.05f && (!hasGun || GunGapAny(at, gunBox) > heartSize) && Mathf.Abs(dir[i] - dirTarget[i]) < .01f)
                 {
                     int key = i * 101 + Mathf.FloorToInt((clock + seed) * 7f);
                     // a turn-back stalls a moment: only where it can't drift onto the gun
-                    bool away = !hasGun || GunGap(at, gunBox) > heartSize * 1.2f;
+                    bool away = !hasGun || GunGapAny(at, gunBox) > heartSize * 1.2f;
                     if (Hash01(key) < orbit.turnBackChance && away) { dirTarget[i] = -dirTarget[i]; TurnBacks++; }
                     else { loopT[i] = 0f; Loops++; }
                     flourishIn[i] = orbit.flourishEvery * (.6f + .8f * Hash01(key + 3));
@@ -1120,6 +1125,21 @@ public abstract class HeartOrbit : MonoBehaviour
                 }
             }
         }
+    }
+
+    // The same, over the gun's spot and the extra floaties'.
+    float NearAny(Vector2 at, Bounds gunBox)
+    {
+        float n = Near(at, gunBox);
+        for (int i = 0; i < extraGunCount; i++) n = Mathf.Max(n, Near(at, extraGunBoxes[i]));
+        return n;
+    }
+
+    float GunGapAny(Vector2 at, Bounds gunBox)
+    {
+        float g = GunGap(at, gunBox);
+        for (int i = 0; i < extraGunCount; i++) g = Mathf.Min(g, GunGap(at, extraGunBoxes[i]));
+        return g;
     }
 
     // 1 on the gun's resting spot .. 0 clear of it by most of a heart.
