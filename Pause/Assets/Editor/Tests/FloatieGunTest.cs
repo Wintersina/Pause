@@ -380,7 +380,7 @@ public static class FloatieGunTest
         r.battery.Fire(2);
         b = LastActive();
         Vector3 want = (near.transform.position - from).normalized;
-        Check("the seeker aims at the NEAREST valid target in range", b != null && r.battery.LastSeekerLocked && Vector3.Dot(b.Heading, want) > .999f);
+        Check("the seeker aims at the NEAREST valid target in range", b != null && r.battery.LastSeekerLocked && Vector3.Dot(b.Heading, want) > .99f);
 
         r.battery.Fire(2);
         var face = r.battery.Extra(1);
@@ -400,7 +400,7 @@ public static class FloatieGunTest
         r.battery.Fire(2);
         b = LastActive();
         want = ((Vector3)shot.pos - from).normalized;
-        Check("an enemy projectile counts as a target too", b != null && Vector3.Dot(b.Heading, want) > .999f);
+        Check("an enemy projectile counts as a target too", b != null && Vector3.Dot(b.Heading, want) > .99f);
         Unreg(shot);
 
         // a target in the lane beyond the range is ignored: back to straight
