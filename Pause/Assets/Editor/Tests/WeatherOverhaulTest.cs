@@ -65,6 +65,8 @@ public static class WeatherOverhaulTest
         {
             SpaceIsSolarFlares();
             SweepModel();
+            HoleModel();
+            HoleThroughManager();
             FlareCrossing();
             WindData();
             WindModel();
@@ -135,6 +137,130 @@ public static class WeatherOverhaulTest
         Check("rigid part: positive with the side, zero for a swirl", HazardForce.RigidX(f, HazardTarget.Hostile) > 0f && HazardForce.RigidX(Live(Def("tornado"), 1f, 0f), HazardTarget.Hostile) == 0f);
     }
 
+    // ---- the slip-through hole ----
+    static HazardField HoleField(string id, float holeY, float holeY2 = 0f)
+    {
+        var f = Live(Def(id), 1f, 0f);
+        f.holes = Def(id).bands; f.holeY[0] = holeY; f.holeY[1] = holeY2;
+        return f;
+    }
+
+    static void HoleModel()
+    {
+        foreach (string id in new[] { "solar_flare", "flare_storm" })
+            Check(id + ": has an opening of 2.5-4 u (about 2.5 ship heights)", Def(id).holeSize >= 2.5f && Def(id).holeSize <= 4f, Def(id).holeSize.ToString("F1"));
+        bool others = false;
+        foreach (var e in WorldWeatherTable.Entries) foreach (var h in e.hazards) if (!h.id.Contains("flare") && h.holeSize != 0f) others = true;
+        Check("no other world's hazard has an opening", !others);
+        Check("the table validates with the openings", WorldWeatherTable.Validate().Length == 0, WorldWeatherTable.Validate());
+
+        var f = HoleField("solar_flare", 1f);
+        var d = f.def;
+        bool inHole = !HazardForce.Sample(f, new Vector2(0f, 1f), HazardTarget.Player, out Vector2 pin);
+        Check("a player in the opening gets zero push", inHole && pin == Vector2.zero);
+        Check("... and so does a body, an elite, a shot, a mine", !HazardForce.Sample(f, new Vector2(.3f, 1.5f), HazardTarget.Body, out _) && !HazardForce.Sample(f, new Vector2(0f, .5f), HazardTarget.Elite, out _) && !HazardForce.Sample(f, new Vector2(0f, 1f), HazardTarget.Hostile, out _) && !HazardForce.Sample(f, new Vector2(0f, 1f), HazardTarget.Mine, out _));
+        Check("a player outside it (above and below) is pushed", HazardForce.Sample(f, new Vector2(0f, 1f + d.holeSize * .5f + .1f), HazardTarget.Player, out Vector2 up) && up.x > 0f && HazardForce.Sample(f, new Vector2(0f, 1f - d.holeSize * .5f - .1f), HazardTarget.Player, out Vector2 dn) && dn.x > 0f);
+        Check("the opening is only that tall: just inside is clear, just outside is pushed", !HazardForce.Sample(f, new Vector2(0f, 1f + d.holeSize * .5f - .05f), HazardTarget.Player, out _) && HazardForce.Sample(f, new Vector2(0f, 1f + d.holeSize * .5f + .05f), HazardTarget.Player, out _));
+        Check("touch: a disc wholly inside is not touched, one straddling the lip is", !HazardForce.Touches(f, new Vector2(0f, 1f), .3f) && HazardForce.Touches(f, new Vector2(0f, 1f + d.holeSize * .5f - .1f), .3f) && HazardForce.Touches(f, new Vector2(0f, 4f), .3f));
+        Check("a hand-built field with no rolled holes behaves as before", HazardForce.Sample(Live(d, 1f, 0f), new Vector2(0f, 1f), HazardTarget.Player, out _));
+
+        // a train: each band has its own opening
+        var st = HoleField("flare_storm", 3f, -2f);
+        var sd = st.def;
+        float x2 = -sd.bandGap;   // the second band's centre
+        Check("train: band 1's opening is at its own height, band 2's at its own", !HazardForce.Sample(st, new Vector2(0f, 3f), HazardTarget.Player, out _) && HazardForce.Sample(st, new Vector2(0f, -2f), HazardTarget.Player, out _)
+            && !HazardForce.Sample(st, new Vector2(x2, -2f), HazardTarget.Player, out _) && HazardForce.Sample(st, new Vector2(x2, 3f), HazardTarget.Player, out _));
+
+        // rolling: inside the lane, consecutive openings differ, for every view and many rolls
+        var rng = new System.Random(11);
+        int inside = 0, apart = 0, total = 0;
+        foreach (float half in new[] { 4.5f, 6f, 9.9f })
+            for (int i = 0; i < 300; i++)
+            {
+                var r = new HazardField { def = sd, viewBottom = -half, viewTop = half, laneHalf = 4f };
+                HazardForce.RollHoles(r, () => (float)rng.NextDouble());
+                HazardForce.HoleRange(r, out float lo, out float hi);
+                total++;
+                bool ok = r.holes == sd.bands;
+                for (int b = 0; b < r.holes; b++) ok &= r.holeY[b] >= lo - 1e-4f && r.holeY[b] <= hi + 1e-4f && r.holeY[b] - sd.holeSize * .5f >= -half + (half >= 6f ? HazardForce.HoleEdgeBottom : .1f) - 1e-4f && r.holeY[b] + sd.holeSize * .5f <= half - (half >= 6f ? HazardForce.HoleEdgeTop : .1f) + 1e-4f;   // (only a very short view gives up some of the margin)
+                if (ok) inside++;
+                if (Mathf.Abs(r.holeY[1] - r.holeY[0]) >= sd.holeSize * HazardForce.HoleMinApart - 1e-3f) apart++;
+            }
+        Check("the opening stays inside the playable lane (" + inside + "/" + total + ")", inside == total);
+        Check("flare_storm: the two bands' openings differ by at least " + (sd.holeSize * HazardForce.HoleMinApart).ToString("F1") + " u (" + apart + "/" + total + ")", apart == total);
+        var one = new HazardField { def = Def("solar_flare"), viewBottom = -6f, viewTop = 6f };
+        HazardForce.RollHoles(one, () => .5f);
+        Check("solar_flare rolls exactly one", one.holes == 1);
+        var tor = new HazardField { def = Def("tornado") }; HazardForce.RollHoles(tor, () => .5f);
+        Check("a non-sweep hazard rolls none", tor.holes == 0);
+    }
+
+    // The opening through the real manager: the ship in it is not pushed, outside it is; a body, shot in it are neither stunned nor wiped.
+    static void HoleThroughManager()
+    {
+        var m = NewManager(); WorldHazards.ClearAll();
+        WorldHazards.BossRunningOverride = false; WeatherWind.Reset(null);
+        var player = new GameObject("player"); made.Add(player);
+        EliteSystem.PlayerOverride = player.transform;
+        var f = WorldHazards.Fields[0];
+        f.def = Def("solar_flare"); f.phase = HazardField.Phase.Live; f.side = 1f; f.sweepX = 0f; f.t = 5f; f.viewBottom = -6f; f.viewTop = 6f; f.laneHalf = 4f; f.liveFor = 60f;
+        f.holes = 1; f.holeY[0] = 1f;
+        player.transform.position = new Vector3(0f, 1f);
+        WorldHazards.PlayerOffset = Vector2.zero;
+        for (int i = 0; i < 60; i++) WorldHazards.Apply(Dt);
+        Check("a ship in the opening is not moved at all", WorldHazards.PlayerOffset == Vector2.zero);
+        player.transform.position = new Vector3(0f, 4.2f);
+        for (int i = 0; i < 60; i++) WorldHazards.Apply(Dt);
+        Check("the same ship outside it is pushed", WorldHazards.PlayerOffset.x > .1f);
+        WorldHazards.PlayerOffset = Vector2.zero;
+
+        var inB = Body(new Vector2(0f, 1f)); var outB = Body(new Vector2(0f, 4.2f));
+        var inS = new GameObject("sIn").AddComponent<WorldHazardsTest.StubShot>(); made.Add(inS.gameObject); inS.pos = new Vector2(0f, 1f); HostileShots.Register(inS);
+        var outS = new GameObject("sOut").AddComponent<WorldHazardsTest.StubShot>(); made.Add(outS.gameObject); outS.pos = new Vector2(0f, 4.2f); HostileShots.Register(outS);
+        HostileShots.ResetCounters();
+        Vector2 inB0 = inB.transform.position;
+        bool stunnedIn = false, stunnedOut = false;
+        for (int i = 0; i < 20; i++)
+        {
+            WorldHazards.Apply(Dt);
+            stunnedIn |= inB.TryGetComponent(out FrozenState fi) && fi.IsFrozen; stunnedOut |= outB.TryGetComponent(out FrozenState fo) && fo.IsFrozen;
+        }
+        Check("an enemy in the opening is not stunned or pushed, one outside it is stunned", !stunnedIn && (Vector2)inB.transform.position == inB0 && stunnedOut);
+        Check("a shot in the opening is not wiped, one outside it is", !inS.popped && inS.shoved == Vector2.zero && outS.popped);
+        HostileShots.Unregister(inS); HostileShots.Unregister(outS);
+        WorldHazards.ClearAll();
+        EliteSystem.PlayerOverride = null;
+        WorldHazards.BossRunningOverride = null;
+    }
+
+    // The telegraph shows where the opening will be, and the live band opens in the same place.
+    static void HoleDrawing(WorldHazards m)
+    {
+        WorldHazards.ClearAll();
+        m.Begin(Def("flare_storm"));
+        var f = WorldHazards.Fields[0];
+        float h0 = f.holeY[0], h1 = f.holeY[1];
+        Check("a begun train has rolled both openings, apart", f.holes == 2 && Mathf.Abs(h0 - h1) >= f.def.holeSize * HazardForce.HoleMinApart - 1e-3f);
+        for (int i = 0; i < 60; i++) m.StepFields(Dt);
+        m.Visuals.Draw(WorldHazards.Fields);
+        Check("the warning marks the opening where it will be", f.phase == HazardField.Phase.Warning && m.Visuals.HoleDrawnWarn && Mathf.Abs(m.Visuals.HoleDrawnY[0] - h0) < 1e-4f && Mathf.Abs(m.Visuals.HoleDrawnY[1] - h1) < 1e-4f);
+        // the warning's glow leaves the notch empty: no Edge piece covers the opening's centre at the origin edge
+        bool notchEmpty = true; float x0 = -f.side * f.laneHalf;
+        foreach (var r in m.Visuals.Renderers)
+        {
+            if (!r.enabled || r.sprite == null || r.sprite != WeatherSprites.Get(AmbientShape.Edge) || Mathf.Abs(r.transform.rotation.eulerAngles.z) > .1f) continue;
+            float y = r.transform.position.y, hh = r.transform.localScale.y;
+            if (Mathf.Abs(y - h0) < (hh * .5f) - 1e-3f) notchEmpty = false;
+        }
+        Check("... as a dark notch in the glow (no full-height piece crosses it)", notchEmpty);
+        for (int i = 0; i < 60 * 4 && f.phase == HazardField.Phase.Warning; i++) m.StepFields(Dt);
+        for (int i = 0; i < 60 && f.Active; i++) m.StepFields(Dt);
+        m.Visuals.Draw(WorldHazards.Fields);
+        Check("the live band opens at the same height the warning showed", f.phase == HazardField.Phase.Live && !m.Visuals.HoleDrawnWarn && Mathf.Abs(m.Visuals.HoleDrawnY[0] - h0) < 1e-4f && Mathf.Abs(f.holeY[0] - h0) < 1e-6f);
+        if (HazardArt.Loaded) Check("the painted tiles are masked at the opening", m.Visuals.HoleMasksUsed >= 1 && Mathf.Abs(m.Visuals.HoleMasks[0].transform.position.y - h0) < 1e-4f);
+        WorldHazards.ClearAll();
+    }
+
     // A whole flare, through the real manager: telegraph (nothing moves), the crossing (bodies and bullets are hurled, the ship moves only a little),
     // and the end (it leaves; the ship's offset springs back).
     static void FlareCrossing()
@@ -150,6 +276,7 @@ public static class WeatherOverhaulTest
             var d = Def(id);
             m.Begin(d);
             var f = WorldHazards.Fields[0];
+            f.holes = 0;   // this test is about the band itself (its opening has its own tests, HoleModel)
             f.side = 1f; f.sweepX = -(f.laneHalf + d.size * .5f);
             var shot = new GameObject("shot").AddComponent<WorldHazardsTest.StubShot>(); made.Add(shot.gameObject);
             shot.pos = new Vector2(-2.2f, 1f);
@@ -589,6 +716,7 @@ public static class WeatherOverhaulTest
         }
         Check("the flare train draws at most " + maxDrawn + " of " + HazardVisuals.Pool + " pooled sprites", maxDrawn > 30 && maxDrawn <= HazardVisuals.Pool);
         Check("all of it stays close to the view", inside);
+        HoleDrawing(m);
         Check("the painted flare needs at most " + m.Visuals.ArtRenderers.Length + " tiles (3 bands x tiles up the view)", Mathf.CeilToInt(11.5f / (Def("flare_storm").size * HazardVisuals.FlareTile * .92f)) * 3 <= m.Visuals.ArtRenderers.Length);
         WorldHazards.ClearAll();
         // the wind streaks: they appear in a breeze, brighten in a gust, flow with the field, and a warned gust glows its upwind edge

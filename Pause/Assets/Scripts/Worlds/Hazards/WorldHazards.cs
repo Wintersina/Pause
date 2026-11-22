@@ -223,6 +223,7 @@ public sealed class WorldHazards : MonoBehaviour
         f.def = def; f.phase = HazardField.Phase.Warning; f.t = 0f; f.fadeT = 0f; f.fadeLen = WorldWeatherTable.RampOut;
         f.side = rng.Next(2) == 0 ? -1f : 1f;
         if (def.fromSun) { float? sun = SpaceSunPick.FlareTravel; if (sun.HasValue) f.side = sun.Value; }   // born at the sun, whichever side of the backdrop it is on
+        f.holes = 0;
         f.variant = rng.Next(4);
         if (def.artRow >= 0 && !f.hazArtHeld) { HazardArt.Acquire(def.world); f.hazArtHeld = true; }
         float top = CameraFit.ViewTop, bottom = CameraFit.ViewBottom;
@@ -249,6 +250,7 @@ public sealed class WorldHazards : MonoBehaviour
                 f.sweepX = -f.side * edge;
                 float travel = 2f * edge + Mathf.Max(0, def.bands - 1) * def.bandGap;
                 f.liveFor = travel / Mathf.Max(.1f, def.speed);
+                HazardForce.RollHoles(f, () => (float)rng.NextDouble());   // each band's opening, rolled now so the warning shows exactly where it will be
                 break;
             }
             default:
