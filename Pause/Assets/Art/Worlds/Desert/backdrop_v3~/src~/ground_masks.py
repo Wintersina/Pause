@@ -92,7 +92,7 @@ VARIANTS = {
     1: (props_dunes, 'W', .10),
     2: (props_salt, 'O', .10),
     3: (props_oasis, 'W', .25),
-    4: (props_craters, 'W', .14),
+    4: (props_craters, 'W', .16),
 }
 
 

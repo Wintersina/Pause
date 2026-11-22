@@ -230,7 +230,14 @@ public static class DesertTuning
     public static float CeilingThicken = 4f;
     // the haze deck of the planetfall (desert_cloud_deck): the banks are painted pale grey; tint them toward its bone-gold dust
     public static float CeilingLift = 1f, CeilingSaturation = 1f;
-    public static Color CeilingTint = new Color(.55f, .52f, .45f, 1f);
+    public static Color CeilingTint = new Color(.55f, .52f, .45f, 1f);            // v1: warm khaki dust haze over the khaki dune sea
+    // Round 5: the haze takes each ground's own dust so it never muddies a different palette (no pink / violet: Space's cue colours):
+    // v2 a grey-lilac salt dust, v3 a warm ochre dust over the rose rock, v4 a dark smoky grey over the night craters (index = variant, 0 = v1's).
+    public static readonly Color[] CeilingTints =
+    {
+        new Color(.55f, .52f, .45f, 1f), new Color(.55f, .52f, .45f, 1f), new Color(.60f, .59f, .60f, 1f),
+        new Color(.62f, .52f, .40f, 1f), new Color(.34f, .31f, .30f, 1f),
+    };
     public static float WispMin = 1.9f, WispMax = 2.8f, WispAlphaMin = .3f, WispAlphaMax = .45f;
     public static float WispEveryMin = 6f, WispEveryMax = 10f, WispDrift = .18f;
     public static float MistAlphaMin = .3f, MistAlphaMax = .42f;
@@ -504,7 +511,7 @@ public class DesertDirector : PlanetDirector
             if (!Drift(b, dt, v)) continue;
             float y01 = Mathf.Clamp01((b.y / HalfH + 1f) * .5f);
             float low = Mathf.Lerp(DesertTuning.CeilingLowShare, 1f, y01 * y01 * (3f - 2f * y01));
-            Color c = DesertTuning.CeilingTint;
+            Color c = DesertTuning.CeilingTints[Mathf.Clamp(set.Variant, 0, DesertTuning.CeilingTints.Length - 1)];
             c.a = b.phase * density * low * set.Alpha;
             b.sr.color = c;
         }
@@ -1009,7 +1016,7 @@ public class DesertDirector : PlanetDirector
         float rx = cell * .3f, ry = cell * .13f;
         float k = size == 2 ? 1.2f : 1f;
         float ridge1 = eruptNow ? .6f : Rand(DesertTuning.RidgeSecondsMin, DesertTuning.RidgeSecondsMax) * k;
-        for (int t = 0; t < 30; t++)
+        for (int t = 0; t < 48; t++)
         {
             float x = float.IsNaN(atX) ? Rand(XMin(cell * .5f), XMax(cell * .5f)) : atX;
             double gy = planner.Travel + Rand(-.05f, .5f) * HalfH;
@@ -1113,18 +1120,19 @@ public class DesertDirector : PlanetDirector
         return true;
     }
 
-    // The whole planned life of a worm (ridge, eruption, the ridge after it) on ground with no painted prop under any of it.
+    // A worm's planned life (ridge, eruption, the ridge after it) on ground with no painted prop under it: the spot it starts on, the points
+    // of its trail every ~1.5 s (a narrow 40% core: the trail is a line of ridge), and its SURFACING SPOT (the eruption) with the whole
+    // eruption footprint clear.
     bool PathOnGround(float x, double gy, float vx, float vy, float ridgeSeconds, float rx, float ry, float cell)
     {
         float ey = cell * .2f;
         float total = ridgeSeconds + 1.2f + 4.3f;
-        for (float t = 0f; t <= total; t += .25f)
+        for (float t = 0f; t <= total + .01f; t += 1.5f)
         {
             float tt = t <= ridgeSeconds ? t : ridgeSeconds + Mathf.Min(1.2f, t - ridgeSeconds) * .25f + Mathf.Max(0f, t - ridgeSeconds - 1.2f);
-            bool erupt = Mathf.Abs(t - ridgeSeconds) < .6f;
-            if (planner.Match(x + vx * tt, gy + vy * tt, rx, erupt ? ey : ry, WormGround) < 1f) return false;
+            if (planner.Match(x + vx * tt, gy + vy * tt, rx * .4f, ry * .6f, WormGround) < 1f) return false;
         }
-        return true;
+        return planner.Match(x + vx * ridgeSeconds, gy + vy * ridgeSeconds, rx, ey, WormGround) >= 1f;
     }
 
     // A worm's ridge touches a pinned item: destroy it (a site makes the worm dive instead).

@@ -6,7 +6,7 @@ using UnityEngine;
 // layer's light instead of popping out of it. Entries are "<World>/<variant>/<closed sprite>"; "<World>/*/<sprite>" is the mean over the
 // ground sets (a set not measured). Docks only ever get darker (never above 1).
 // DESERT rows (round 5 art, 2026-11): computed offline, not by the capture -- ONE grey factor per dock = 1.1 x the mean luminance of the set's unpainted
-// (non-C mask) ground / the dock sprite's mean luminance, clamped to .35..1. Grey on purpose: a per-channel tint would push the docks toward the rose
+// (non-C mask) ground / the dock sprite's mean luminance, clamped to .55..1. Grey on purpose: a per-channel tint would push the docks toward the rose
 // (v3) and purple (v4) grounds (pink is Space's colour). The bright day grounds leave most docks at 1; the night craters darken them most.
 public static partial class DockGrade
 {
@@ -291,22 +291,22 @@ public static partial class DockGrade
         0.958f, 0.958f, 0.958f,
         1.000f, 1.000f, 1.000f,
         1.000f, 1.000f, 1.000f,
-        0.908f, 0.908f, 0.908f,
-        0.350f, 0.350f, 0.350f,
-        0.466f, 0.466f, 0.466f,
-        0.941f, 0.941f, 0.941f,
-        0.489f, 0.489f, 0.489f,
-        0.815f, 0.815f, 0.815f,
-        0.371f, 0.371f, 0.371f,
+        0.909f, 0.909f, 0.909f,
+        0.550f, 0.550f, 0.550f,
+        0.550f, 0.550f, 0.550f,
+        0.942f, 0.942f, 0.942f,
+        0.550f, 0.550f, 0.550f,
+        0.816f, 0.816f, 0.816f,
+        0.550f, 0.550f, 0.550f,
         1.000f, 1.000f, 1.000f,
-        0.712f, 0.712f, 0.712f,
+        0.713f, 0.713f, 0.713f,
         0.977f, 0.977f, 0.977f,
-        0.813f, 0.813f, 0.813f,
-        0.867f, 0.867f, 0.867f,
+        0.863f, 0.863f, 0.863f,
+        0.887f, 0.887f, 0.887f,
         0.985f, 0.985f, 0.985f,
-        0.872f, 0.872f, 0.872f,
+        0.887f, 0.887f, 0.887f,
         0.954f, 0.954f, 0.954f,
-        0.832f, 0.832f, 0.832f,
+        0.877f, 0.877f, 0.877f,
         1.000f, 1.000f, 1.000f,
         0.928f, 0.928f, 0.928f,
         0.636f, 0.551f, 0.873f,
