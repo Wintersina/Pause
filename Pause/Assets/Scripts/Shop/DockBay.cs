@@ -158,8 +158,8 @@ public class DockBay : MonoBehaviour
         chip.drawMode = SpriteDrawMode.Sliced;
         chipDust = MakeSprite("Dust", DockArt.Get("icon_dust"), Vector3.zero, OrderLabel + 1);
         chipDust.transform.SetParent(chip.transform, false);
-        chipDust.transform.localScale = Vector3.one * .48f;
-        chipText = MakeText("Price", font, Vector3.zero, .07f, TextAnchor.MiddleRight);
+        chipDust.transform.localScale = Vector3.one * .8f;
+        chipText = MakeText("Price", font, Vector3.zero, .125f, TextAnchor.MiddleRight);
         chipText.transform.SetParent(chip.transform, false);
         chipText.color = DockArt.Gold;
 
@@ -250,12 +250,12 @@ public class DockBay : MonoBehaviour
             string label = store ? DockPopup.ShopButtonText : Mathf.RoundToInt(price).ToString("N0");
             chipDust.gameObject.SetActive(!store);
             chipText.text = label;
-            float width = .25f + label.Length * .058f;
-            chip.size = new Vector2(width, .15f);
+            float width = (store ? .2f : .42f) + label.Length * .075f;
+            chip.size = new Vector2(width, ChipH);
             chipWidth = width;
             PlaceChip();
-            chipDust.transform.localPosition = new Vector3(-width * .5f + .08f, 0f, 0f);
-            chipText.transform.localPosition = new Vector3(width * .5f - .045f, -.002f, 0f);
+            chipDust.transform.localPosition = new Vector3(-width * .5f + .13f, 0f, 0f);
+            chipText.transform.localPosition = new Vector3(width * .5f - .09f, -.004f, 0f);
         }
     }
 
@@ -267,12 +267,19 @@ public class DockBay : MonoBehaviour
     // wall's outer edge, so it grows into the bay, never toward the neighbouring bay).
     void PlaceChip()
     {
-        chip.transform.localScale = new Vector3(E, E, 1f);
-        float w = chipWidth * E;
+        chip.transform.localScale = Vector3.one;
+        float w = chipWidth;
         float px = DockLayout.Px;
-        if (Side) chip.transform.localPosition = new Vector3(WallSign * (62f * px - w * .5f), 18f * px, 0f);
+        // bottom corner on the wall side: LabelPad clear of the bay's outer edge and of its bottom edge (the number
+        // sits in the top corner, so the two never meet)
+        if (Side) chip.transform.localPosition = new Vector3(WallSign * (64f * px - LabelPad - w * .5f), -ChipY, 0f);
         else chip.transform.localPosition = new Vector3(43f * px - w * .5f, WallY, 0f);
     }
+
+    public const float LabelPad = 8f * DockLayout.Px;     // clear space between a label and the bay's frame
+    public const float ChipH = .24f;                       // price pill height, world units (about 20 kit px)
+    public const float DigitK = .6f;                       // the bay number's size next to the 12 x 16 px stencil
+    static readonly float ChipY = 48f * DockLayout.Px - LabelPad - ChipH * .5f;
 
     bool Side { get { return nose.x != 0f; } }
     float WallSign { get { return -nose.x; } }                              // lane bays: which side the wall is on
@@ -300,8 +307,9 @@ public class DockBay : MonoBehaviour
         Vector3 numberAt, iconAt;
         if (Side)
         {
-            numberAt = new Vector3(WallSign * 52f * px, 35f * px, 0f);
-            iconAt = new Vector3(WallSign * 52f * px, 18f * px, 0f);
+            // centred on the 24 px service wall, top corner: a few px of wall to either side, 8 px clear above
+            numberAt = new Vector3(WallSign * 50f * px, 33f * px, 0f);
+            iconAt = new Vector3(WallSign * 50f * px, -ChipY, 0f);
         }
         else
         {
@@ -309,8 +317,8 @@ public class DockBay : MonoBehaviour
             iconAt = new Vector3(40f * px, WallY, 0f);
         }
         // digit cells are 12 px wide; the pair is centred on numberAt
-        digits[0].transform.localPosition = numberAt + new Vector3(-6f * px, 0f, 0f);
-        digits[1].transform.localPosition = numberAt + new Vector3(6f * px, 0f, 0f);
+        digits[0].transform.localPosition = numberAt + new Vector3(-6f * px * DigitK, 0f, 0f);
+        digits[1].transform.localPosition = numberAt + new Vector3(6f * px * DigitK, 0f, 0f);
         statusIcon.transform.localPosition = iconAt;
         PlaceChip();
     }
@@ -331,7 +339,19 @@ public class DockBay : MonoBehaviour
         get
         {
             Vector3 a = digits[0].transform.localPosition, b = digits[1].transform.localPosition;
-            return new Rect(a.x - 6f * DockLayout.Px, a.y - 8f * DockLayout.Px, (b.x - a.x) + 12f * DockLayout.Px, 16f * DockLayout.Px);
+            float k = DigitK * DockLayout.Px;
+            return new Rect(a.x - 6f * k, a.y - 8f * k, (b.x - a.x) + 12f * k, 16f * k);
+        }
+    }
+
+    // The price pill, bay-root space (empty when the bay shows no price).
+    public Rect ChipRect
+    {
+        get
+        {
+            if (!chip.gameObject.activeSelf) return new Rect(0f, 0f, 0f, 0f);
+            Vector3 c = chip.transform.localPosition;
+            return new Rect(c.x - chipWidth * .5f, c.y - ChipH * .5f, chipWidth, ChipH);
         }
     }
 
@@ -342,7 +362,7 @@ public class DockBay : MonoBehaviour
         labelK = k;
         nameText.transform.localScale = new Vector3(E, E, 1f);
         statusIcon.transform.localScale = Vector3.one * .62f * E;
-        for (int d = 0; d < 2; d++) digits[d].transform.localScale = new Vector3(k, k, 1f);
+        for (int d = 0; d < 2; d++) digits[d].transform.localScale = new Vector3(k * DigitK, k * DigitK, 1f);
         PlaceChip();
     }
 

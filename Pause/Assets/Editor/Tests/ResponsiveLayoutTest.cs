@@ -118,20 +118,23 @@ public static class ResponsiveLayoutTest
     }
 
     // The parking lot's shape per view (pure arithmetic; the staged "dock" screens above check the real scene on every
-    // device): phones (9:16..9:21) get horizontal lanes, tablets / Mac windows / wide windows vertical lanes, every
-    // bay present, never shrunk, and the lot is no wider than the screen.
+    // device): narrow views get one vertical runway, wide ones two, every
+    // bay present, never grown past MaxScale, and the lot is no wider than the screen.
     static void DockRackFits()
     {
         foreach (float aspect in new[] { .4286f, .46f, .5f, .5625f, .64f, .695f, .70f, .75f, 1.6f })
         {
             float halfH = CameraFit.ComputeSize(5f, 2.85f, (int)(aspect * 1000f), 1000);
             float halfW = halfH * aspect;
-            var l = DockLayout.For(16, halfW * 2f, DockLayout.PrefersLanes(halfW, halfH));
-            bool phone = aspect < DockLayout.LaneAspect;
-            Check("dock lot @ aspect " + aspect + ": " + l.mode + ", " + l.columns + " columns x " + l.rows + " rows, " + l.lanes + " lanes",
-                  l.mode == (phone ? LotMode.Rows : LotMode.Lanes) && l.columns * l.rows >= 16 && l.scale == 1f &&
-                  l.Width <= halfW * 2f + .001f && AsteroidBackwardsAndShopColumnsTest.NoBayOverlap(l) &&
-                  (phone ? l.columns >= 3 : l.lanes >= 1 && l.lanes <= DockLayout.MaxLanes));
+            var l = DockLayout.For(16, halfW * 2f, halfH * 2f - 2.6f);
+            int want = halfW * 2f - 2f * DockLayout.SideMargin >= DockLayout.WidthFor(2) * DockLayout.TwoLaneMinScale ? 2 : 1;
+            Check("dock lot @ aspect " + aspect + ": " + l.lanes + " runway(s), " + l.columns + " columns x " + l.rows + " rows, scale " + l.scale.ToString("F2"),
+                  l.lanes == want && l.columns * l.rows >= 16 && l.scale <= DockLayout.MaxScale + .001f && l.scale >= DockLayout.FitHeightMinScale - .001f &&
+                  l.Width * l.scale <= halfW * 2f + .001f && AsteroidBackwardsAndShopColumnsTest.NoBayOverlap(l));
+            // numbering runs runway by runway: slot 0..7 in runway 1, 8..15 in runway 2, 01/02 across the top
+            if (l.lanes == 2)
+                Check("dock lot @ aspect " + aspect + ": runway 1 holds bays 1-8, runway 2 bays 9-16",
+                      l.LaneOf(7) == 0 && l.LaneOf(8) == 1 && l.BayCenter(8).x > l.BayCenter(7).x && l.BayCenter(0).y == l.BayCenter(8).y);
         }
     }
 

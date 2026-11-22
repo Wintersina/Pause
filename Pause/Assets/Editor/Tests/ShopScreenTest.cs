@@ -658,9 +658,9 @@ public static class ShopScreenTest
         Check("the lot has no overlapping bays", AsteroidBackwardsAndShopColumnsTest.NoBayOverlap(dock.layout));
         // (the saved grid the hearts / start-speed rules read stays three columns wide whatever the lot draws)
         Check("the stat grid stays 3 columns", DockLayout.MaxColumns == 3 && SpaceDock.ColumnOf(SpaceDock.ShipAt(2)) == 3 && SpaceDock.RowOf(SpaceDock.ShipAt(3)) == 2);
-        var lone = new DockLayout { count = 16, columns = 3, rows = 6, lanes = 5, scale = 1f, mode = LotMode.Rows };
-        Check("a short last row's lone bay (Paragon) is centred, not left with a gap", Mathf.Abs(lone.BayCenter(15).x) < .001f);
-        Check("a full row stays left-aligned to columns", lone.BayCenter(0).x < -.1f && lone.BayCenter(2).x > .1f);
+        var lone = new DockLayout { count = 16, columns = 4, rows = 4, lanes = 2, scale = 1f };
+        Check("two runways: bay 16 (Paragon) is the last row's right bay of runway 2", lone.LaneOf(15) == 1 && lone.BayCenter(15).x > lone.BayCenter(14).x && lone.BayCenter(15).y == lone.BayCenter(13).y - DockLayout.BayW);
+        Check("runway 1 is left of runway 2, left bay left of right bay", lone.BayCenter(0).x < lone.BayCenter(1).x && lone.BayCenter(1).x < lone.BayCenter(8).x);
         Object.DestroyImmediate(dock.gameObject);
     }
 
