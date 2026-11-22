@@ -437,9 +437,10 @@ public class SpaceDock : MonoBehaviour
             cardPane.xMin += DockLayout.PaneGap;
             if (fit)
             {
-                // the card's pane spans the lot's own vertical extent
-                float rackH = Mathf.Min(layout.Height * layout.scale, top - bottom);
-                float centerY = layout.Height * layout.scale <= top - bottom ? (top + bottom) * .5f : top - rackH * .5f;
+                // the card's pane spans the whole lot space (the lot itself is capped at the in-play ship's size, so
+                // it can be much shorter than the card wants)
+                float rackH = top - bottom;
+                float centerY = (top + bottom) * .5f;
                 float paneTop = centerY + rackH * .5f, paneBottom = centerY - rackH * .5f;
                 // ...but clear of the header buttons' tap areas, which reach past their art (the footer's PLAY reach
                 // stays under the card: a modal card sits over it by design)
