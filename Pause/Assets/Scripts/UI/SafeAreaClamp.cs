@@ -20,6 +20,9 @@ public class SafeAreaClamp : MonoBehaviour
     public static readonly string[] Names = { "BackButton", "placeFingerHereText" };
     public static readonly string[] Scenes = { "creditsS7", "leaderboardS3", "gameS1", "tutorialS5" };
     public const float Margin = 16f;
+    // The Options column's top rows (LEADERBOARD SETTINGS, the headings...) keep this much clear below the safe
+    // area / camera cutout, so a thumb tap on the first row never lands on the camera hole.
+    public const float ColumnTopMargin = 48f;
 
     RectTransform rect;
     Vector2 authored;
@@ -113,7 +116,13 @@ public class SafeAreaClamp : MonoBehaviour
         if (bottom < safeBottom) y += safeBottom - bottom;
         if (y + anchorY + (1f - rect.pivot.y) * h > safeTop) y = Mathf.Min(authored.y, safeTop - anchorY - (1f - rect.pivot.y) * h);
         rect.anchoredPosition = new Vector2(authored.x, y);
-        if (carryColumn) CarryColumn(parent, safeTop, Mathf.Max(0f, y - authored.y));
+        if (carryColumn) CarryColumn(parent, ColumnSafeTop(area, sf), Mathf.Max(0f, y - authored.y));
+    }
+
+    // The highest y (canvas units) the Options column may reach: under the safe area and any camera cutout, plus a margin.
+    public static float ColumnSafeTop(Rect area, float scaleFactor)
+    {
+        return area.yMax - ScreenInfo.TopObstructionInset / scaleFactor - ColumnTopMargin;
     }
 
     // The rows above BACK ride with it, or scroll when the canvas is too short for them (OptionsScroll). Rows added

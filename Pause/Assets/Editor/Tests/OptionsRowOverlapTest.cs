@@ -19,6 +19,8 @@ public static class OptionsRowOverlapTest
     {
         "flip7-1080x2520", "flip7-cover-948x1048", "and-1080x1920", "and-480x854", "and-1080x2640",
         "tab-1600x2560", "fold-1812x2176", "ipad-9", "iphone-se",
+        // top cutouts: wide notch, waterfall + centre hole, corner punch-hole, centre hole + gesture bar, Dynamic Island
+        "and-1080x2340-notch", "and-1080x2340-waterfall", "and-1080x2400-corner", "and-1080x2400-gesture", "iphone-15",
     };
 
     public static int Execute()
@@ -121,6 +123,7 @@ public static class OptionsRowOverlapTest
                     Check(tag + rowName + " knob left when OFF, right when ON", sw.KnobX < 0f && onX > 0f && !sw.On);
                 }
             }
+            TopChecks(rig, tag, scroller);
             if (!dev) GroupChecks(rig, tag);
             Check(tag + "Credits button exists", present.Contains("CreditsButton"));
             int overlaps = 0;
@@ -147,6 +150,40 @@ public static class OptionsRowOverlapTest
     }
 
     static bool Apart(Rect a, Rect b) { return a.xMax <= b.xMin + .5f || b.xMax <= a.xMin + .5f || a.yMax <= b.yMin + .5f || b.yMax <= a.yMin + .5f; }
+
+    // Everything in the Options column -- the first row, the headings, every button and slider -- starts below the
+    // safe area and any camera cutout, with a margin (what is scrolled out of the viewport is not visible, so the
+    // viewport's own top counts too).
+    static void TopChecks(ScreenFitRig rig, string tag, OptionsScroll scroller)
+    {
+        float safeTopPx = rig.H - ScreenInfo.TopObstructionInset;
+        float marginPx = 24f;
+        Check(tag + "top obstruction covers the safe-area inset", ScreenInfo.TopObstructionInset >= ScreenInfo.SafeTopInset);
+        float top = float.MinValue;
+        string topName = "";
+        var canvas = Object.FindFirstObjectByType<OptionsScroll>();
+        if (canvas == null) { Check(tag + "options column exists", false); return; }
+        var found = new List<RectTransform>();
+        foreach (var b in canvas.GetComponentsInChildren<Selectable>(false)) found.Add((RectTransform)b.transform);
+        foreach (var h in canvas.GetComponentsInChildren<OptionsHeading>(false)) found.Add((RectTransform)h.transform);
+        foreach (var rt in found)
+        {
+            if (!rt.gameObject.activeInHierarchy || rt.name == "BackButton") continue;
+            var r = rig.PixelRect(rt);
+            if (r.width < 1f || r.height < 1f) continue;
+            if (scroller != null && scroller.IsScrolling && rt.IsChildOf(scroller.Viewport))
+            {
+                var vp = rig.PixelRect(scroller.Viewport);
+                r = Rect.MinMaxRect(Mathf.Max(r.xMin, vp.xMin), Mathf.Max(r.yMin, vp.yMin), Mathf.Min(r.xMax, vp.xMax), Mathf.Min(r.yMax, vp.yMax));
+                if (r.width < 1f || r.height < 1f) continue;
+            }
+            if (r.yMax > top) { top = r.yMax; topName = rt.name; }
+        }
+        Check(tag + "top-most Options element (" + topName + ", " + top + " px) sits below the safe-area top (" + safeTopPx + ") by >= " + marginPx + " px",
+              top > float.MinValue && top <= safeTopPx - marginPx);
+        var lb = Px(rig, LeaderboardSettingsOptions.RowName);
+        Check(tag + "LEADERBOARD SETTINGS row below the safe-area top with a margin", lb.width < 1f || lb.yMax <= safeTopPx - marginPx);
+    }
 
     // Switches (on/off buttons) and sliders each form one group, switches on top, each under its heading; and the
     // SHIP PERCH slider's tick numbers 1 2 3 clear of the track, the handle (ring included) and each other.
@@ -180,57 +217,72 @@ public static class OptionsRowOverlapTest
         Check(tag + "SWITCHES heading sits above the switches", h1.width > 1f && h1.yMin >= sw[0].yMax - 1f);
         Check(tag + "SLIDERS heading sits between the groups", h2.width > 1f && h2.yMax <= swBottom + 1f && h2.yMin >= slTop - 1f);
 
-        // the SHIP PERCH slider and its ticks
+        // the SHIP PERCH direction selector: three buttons 1 2 3 = left, top, right, clear of each other, the title and the row edge
+        var rowRect = Px(rig, PerchOptions.RowName);
+        var perch = Object.FindFirstObjectByType<PerchOptions>();
+        var dirs = new Rect[PerchSettings.TiltCount];
+        var dirButtons = new UnityEngine.UI.Button[PerchSettings.TiltCount];
+        var perchRow = GameObject.Find(PerchOptions.RowName).transform;
+        var titleT = perchRow.Find(PerchOptions.TitleName);
+        var title = titleT == null ? default(Rect) : rig.PixelRect((RectTransform)titleT);
+        Check(tag + "perch selector has a SHIP PERCH title", title.width > 1f);
+        for (int i = 0; i < dirs.Length; i++)
+        {
+            var goT = perchRow.Find(PerchOptions.DirName + (i + 1));
+            var go = goT == null ? null : goT.gameObject;
+            Check(tag + "perch button " + (i + 1) + " exists", go != null);
+            if (go == null) return;
+            dirButtons[i] = go.GetComponent<UnityEngine.UI.Button>();
+            dirs[i] = rig.PixelRect((RectTransform)go.transform);
+            var label = go.GetComponentInChildren<UnityEngine.UI.Text>(true);
+            Check(tag + "perch button " + (i + 1) + " reads \"" + PerchOptions.SlotLabel(i) + "\"", label != null && label.text == PerchOptions.SlotLabel(i));
+            Check(tag + "perch button " + (i + 1) + " inside its row and clear of the title",
+                  dirs[i].xMin >= rowRect.xMin - 1f && dirs[i].xMax <= rowRect.xMax + 1f && dirs[i].yMin >= rowRect.yMin - 1f && Apart(dirs[i], title));
+        }
+        Check(tag + "perch buttons run left to right 1 2 3 without touching", dirs[0].xMax <= dirs[1].xMin && dirs[1].xMax <= dirs[2].xMin);
+        // tapping maps 1/2/3 to left/top/right and lights only the chosen one
+        int[] expect = { PerchSettings.AboveLeft, PerchSettings.Above, PerchSettings.AboveRight };
+        for (int i = 0; i < dirs.Length; i++)
+        {
+            dirButtons[i].onClick.Invoke();
+            bool lit = true;
+            for (int j = 0; j < dirs.Length; j++)
+            {
+                var t = dirButtons[j].GetComponentInChildren<UnityEngine.UI.Text>(true);
+                lit &= t.color == PerchOptions.LabelColor(j == i) && ((UnityEngine.UI.Image)dirButtons[j].targetGraphic).color == PerchOptions.ArtColor(j == i);
+            }
+            Check(tag + "perch button " + (i + 1) + " stores " + PerchSettings.TiltName(expect[i]) + " and lights alone",
+                  PerchSettings.Tilt == expect[i] && PerchSettings.SlotOfTilt(PerchSettings.Tilt) == i && lit);
+        }
+        // saved values map back: old ABOVE LEFT = 1 -> button 1, ABOVE = 0 -> button 2, ABOVE RIGHT = 2 -> button 3
+        Check(tag + "saved tilts map to buttons (left=1, top=2, right=3)",
+              PerchSettings.SlotOfTilt(PerchSettings.AboveLeft) == 0 && PerchSettings.SlotOfTilt(PerchSettings.Above) == 1 && PerchSettings.SlotOfTilt(PerchSettings.AboveRight) == 2);
+
+        // the distance slider is continuous: any value is kept, no ticks, no snapping
         var root = GameObject.Find(PerchOptions.SliderName);
         var slider = root.GetComponent<UnityEngine.UI.Slider>();
-        var perch = Object.FindFirstObjectByType<PerchOptions>();
-        var texts = new UnityEngine.UI.Text[PerchSettings.StopCount];
-        for (int i = 0; i < texts.Length; i++)
-        {
-            var tr = root.transform.Find(PerchOptions.TicksName + "/Tick" + (i + 1));
-            texts[i] = tr == null ? null : tr.GetComponent<UnityEngine.UI.Text>();
-        }
-        bool labelled = true;
-        for (int i = 0; i < texts.Length; i++) labelled &= texts[i] != null && texts[i].text == (i + 1).ToString();
-        Check(tag + "perch ticks read 1 2 3", labelled);
-        if (!labelled) return;
-        var track = Px(rig, PerchOptions.SliderName + "/Track");
-        var rootRect = Px(rig, PerchOptions.SliderName);
-        var trackRect = rig.PixelRect((RectTransform)root.transform.Find("Track"));
+        Check(tag + "perch slider has no tick numbers", root.transform.Find("Ticks") == null);
+        Check(tag + "perch slider is continuous 0..1", !slider.wholeNumbers && slider.minValue == 0f && slider.maxValue == 1f);
+        slider.value = .37f;
+        Check(tag + "slider .37 is stored as is, not snapped", Mathf.Abs(PerchSettings.ToSlider(PerchSettings.Scale) - .37f) < .001f);
+        PlayerPrefs.SetFloat(PerchSettings.ScaleKey, 1.23f);
+        PerchSettings.ReloadForTests();
+        perch.Refresh();
+        Check(tag + "an old saved distance is shown unsnapped", Mathf.Abs(slider.value - PerchSettings.ToSlider(1.23f)) < .001f && Mathf.Approximately(PerchSettings.Scale, 1.23f));
         var ring = slider.handleRect.Find(OptionsSliderHandle.RingName);
         Check(tag + "perch handle wears a ring", ring != null && ring.GetComponent<UnityEngine.UI.Image>() != null);
-        var tickRects = new Rect[texts.Length];
-        for (int i = 0; i < texts.Length; i++) tickRects[i] = rig.PixelRect(texts[i].rectTransform);
-        for (int i = 0; i < texts.Length; i++)
-        {
-            Check(tag + "tick " + (i + 1) + " inside the slider's touch area",
-                  tickRects[i].xMin >= rootRect.xMin - 1f && tickRects[i].xMax <= rootRect.xMax + 1f && tickRects[i].yMin >= rootRect.yMin - 1f && tickRects[i].yMax <= rootRect.yMax + 1f);
-            Check(tag + "tick " + (i + 1) + " clear of the track", Apart(tickRects[i], trackRect));
-            for (int j = i + 1; j < texts.Length; j++) Check(tag + "ticks " + (i + 1) + " and " + (j + 1) + " do not overlap", Apart(tickRects[i], tickRects[j]));
-        }
+        var rootRect = Px(rig, PerchOptions.SliderName);
+        var trackRect = rig.PixelRect((RectTransform)root.transform.Find("Track"));
         var caption = rig.PixelRect((RectTransform)root.transform.Find(PerchOptions.CaptionName));
-        Check(tag + "caption clear of the track and the ticks", Apart(caption, trackRect) && Apart(caption, tickRects[0]) && Apart(caption, tickRects[1]) && Apart(caption, tickRects[2]));
-        for (int stop = 0; stop < PerchSettings.StopCount; stop++)
+        foreach (float v in new[] { 0f, .5f, 1f })
         {
-            PerchSettings.SetStop(stop);
-            perch.Refresh();
+            slider.value = v;
             Canvas.ForceUpdateCanvases();
-            var handle = rig.PixelRect(slider.handleRect);
             var ringRect = rig.PixelRect((RectTransform)ring);
-            bool clear = true;
-            for (int i = 0; i < texts.Length; i++) clear &= Apart(ringRect, tickRects[i]) && Apart(handle, tickRects[i]);
-            Check(tag + "stop " + (stop + 1) + ": handle and its ring clear of every tick and the caption [handle " + handle + " ring " + ringRect +
-                  " caption " + caption + " ticks " + tickRects[0] + " " + tickRects[1] + " " + tickRects[2] + "]", clear && Apart(ringRect, caption));
-            Check(tag + "stop " + (stop + 1) + ": handle centred over its number", Mathf.Abs(handle.center.x - tickRects[stop].center.x) < 2f);
-            bool colours = true;
-            for (int i = 0; i < texts.Length; i++) colours &= texts[i].color == PerchOptions.TickColor(i == stop);
-            Check(tag + "stop " + (stop + 1) + ": only its number is lit", colours && Mathf.RoundToInt(slider.value) == stop);
+            Check(tag + "slider at " + v + ": handle ring inside the touch area and clear of the caption",
+                  ringRect.xMin >= rootRect.xMin - 1f && ringRect.xMax <= rootRect.xMax + 1f && ringRect.yMin >= rootRect.yMin - 1f && Apart(ringRect, caption));
         }
-        // dragging / tapping lands on a stop, and the press shows
-        slider.value = 2f;
-        Check(tag + "slider value 2 stores the far stop", PerchSettings.Stop == 2 && Mathf.Approximately(PerchSettings.Scale, PerchSettings.MaxScale));
-        slider.value = 1f;
-        Check(tag + "slider value 1 is the stock perch", PerchSettings.Stop == 1 && Mathf.Approximately(PerchSettings.Scale, PerchSettings.DefaultScale));
+        Check(tag + "caption clear of the track", Apart(caption, trackRect));
         foreach (var n in new[] { PerchOptions.SliderName, SoundOptions.EffectsSliderName, SoundOptions.MusicSliderName })
         {
             var style = GameObject.Find(n).GetComponent<OptionsSliderHandle>();

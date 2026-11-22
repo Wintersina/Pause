@@ -37,6 +37,21 @@ public static class ScreenInfo
 
     // The insets of the safe area from each screen edge, in pixels (never negative).
     public static float SafeTopInset { get { return Mathf.Max(0f, Height - SafeArea.yMax); } }
+    // How far down from the top edge anything the player must be able to see and tap has to start: the safe area's
+    // top inset, or further when a display cutout (camera hole, notch, Dynamic Island) reaches lower than it -- some
+    // devices report no top inset in immersive mode while the camera is still there.
+    public static float TopObstructionInset
+    {
+        get
+        {
+            float inset = SafeTopInset;
+            var cuts = Cutouts;
+            if (cuts != null)
+                foreach (var c in cuts)
+                    if (c.yMax > Height * .5f) inset = Mathf.Max(inset, Height - c.yMin);
+            return inset;
+        }
+    }
     public static float SafeBottomInset { get { return Mathf.Max(0f, SafeArea.yMin); } }
     public static float SafeLeftInset { get { return Mathf.Max(0f, SafeArea.xMin); } }
     public static float SafeRightInset { get { return Mathf.Max(0f, Width - SafeArea.xMax); } }

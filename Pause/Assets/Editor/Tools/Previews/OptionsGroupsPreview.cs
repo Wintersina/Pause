@@ -3,7 +3,7 @@ using System.IO;
 using UnityEngine;
 
 // The player's Options screen (developer mode off, every runtime row) through the screen-fit rig on the phone, the
-// Z Flip cover, a tablet and a wide foldable, plus the SHIP PERCH slider at each of its 3 stops.
+// Z Flip cover, a tablet and a wide foldable, plus the SHIP PERCH direction at each of its 3 buttons.
 //
 //   scripts/unity-batch.sh -executeMethod OptionsGroupsPreview.Run
 //   (output: $OPTIONS_GROUPS_DIR, else Builds/OptionsGroups)
@@ -21,7 +21,7 @@ public static class OptionsGroupsPreview
             foreach (var devId in Devices)
             {
                 var device = FitDevice.Find(devId);
-                for (int stop = 0; stop < PerchSettings.StopCount; stop++)
+                for (int stop = 0; stop < PerchSettings.TiltCount; stop++)
                 {
                     int s = stop;
                     var screen = new FitScreen
@@ -32,7 +32,7 @@ public static class OptionsGroupsPreview
                             PlayerPrefs.SetString("HasDoneTut", "true");
                             DeveloperUnlocks.TestAvailableOverride = false;
                             PerchSettings.ReloadForTests();
-                            PerchSettings.SetStop(s);
+                            PerchSettings.SetTilt(PerchSettings.TiltOfSlot(s));
                             ScreenFitScreens.StagePlayerOptions(rig);
                             var r = rig.PixelRect((RectTransform)GameObject.Find(PerchOptions.SliderName).transform);
                             File.WriteAllText(Path.Combine(dir, devId + "_perch.txt"), r.x + "," + r.y + "," + r.width + "," + r.height);

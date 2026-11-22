@@ -69,19 +69,9 @@ public static class PerchSettings
 
     public static void Reset() { SetScale(DefaultScale); SetTilt(Above); }
 
-    // The Options slider has three stops (ticks 1, 2, 3): close, the stock gap, far.
-    public const int StopCount = 3, DefaultStop = 1;
-    static readonly float[] StopScales = { MinScale, DefaultScale, MaxScale };
-    public static float StopScale(int stop) { return StopScales[Mathf.Clamp(stop, 0, StopCount - 1)]; }
-    public static int StopOf(float s)
-    {
-        int best = 0;
-        for (int i = 1; i < StopCount; i++)
-            if (Mathf.Abs(StopScales[i] - s) < Mathf.Abs(StopScales[best] - s)) best = i;
-        return best;
-    }
-    public static int Stop { get { return StopOf(Scale); } }
-    public static void SetStop(int stop) { SetScale(StopScale(stop)); }
+    // The Options direction selector shows 1 2 3 = left, top, right.
+    public static int TiltOfSlot(int slot) { return slot == 0 ? AboveLeft : (slot == 2 ? AboveRight : Above); }
+    public static int SlotOfTilt(int tilt) { return tilt == AboveLeft ? 0 : (tilt == AboveRight ? 2 : 1); }
 
     // Slider 0..1 <-> scale.
     public static float ToSlider(float s) { return Mathf.InverseLerp(MinScale, MaxScale, s); }
