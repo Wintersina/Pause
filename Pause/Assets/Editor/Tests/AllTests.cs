@@ -303,6 +303,7 @@ public static class AllTests
         ("ShipAttackSparkTest", ShipAttackSparkTest.Execute),
         ("ShipSignaturesG3Test", ShipSignaturesG3Test.Execute),
         ("HomingTargetTest", HomingTargetTest.Execute),
+        ("FloatieGunTest", FloatieGunTest.Execute),
         ("ShipDamageTest", ShipDamageTest.Execute),
         ("ShipLivesIndicatorTest", ShipLivesIndicatorTest.Execute),
         ("ShipLivesTest", ShipLivesTest.Execute),

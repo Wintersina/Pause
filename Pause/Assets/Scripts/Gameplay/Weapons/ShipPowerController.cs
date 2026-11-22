@@ -142,6 +142,7 @@ public class ShipPowerController : MonoBehaviour
             timer = cooldown;
         }
         gun = UltimateGun.Attach(gameObject);
+        FloatieBattery.Attach(gameObject, shipIndex, gun);   // the floaties' small guns (FloatieGuns.cs)
         indicator = ChargeIndicator.Attach(this);
         runner = ShipAttackRunner.Attach(gameObject, shipIndex);
         secret = SecretPowerController.Attach(gameObject, shipIndex);

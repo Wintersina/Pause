@@ -307,7 +307,7 @@ public static class CodexCatalogue
         }
         var steps = new List<string>();
         for (int level = 1; level <= ShipWeaponUpgrades.MaxLevel; level++)
-            steps.Add(ShipWeaponUpgrades.Step(ship, level).label);
+            steps.Add(ShipWeaponUpgrades.StepText(ship, level));
         return "COLOURS  " + string.Join(" / ", names) + "\n" +
                "UPGRADES  each colour bought adds " + string.Join(", ", steps) + "\n" +
                "START SPEED  " + string.Join(" / ", speeds) + " by colour";

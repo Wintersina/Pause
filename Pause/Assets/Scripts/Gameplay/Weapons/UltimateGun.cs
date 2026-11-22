@@ -387,6 +387,11 @@ public class UltimateGun : MonoBehaviour
         return g;
     }
 
+    // For the extra floaties (FloatieCompanion): the same companion art and the same hover.
+    public static Sprite CompanionSprite(int shipIndex) { return GunSpriteFor(shipIndex); }
+    public static Vector3 HoverAt(int index, float time) { return HoverOffset(index, time); }
+    public int ShipIndex => shipIndex;
+
     // Four readable companion behaviors distributed across the roster:
     // orbit, side-to-side float, vertical bob and a loose figure-eight.
     public static int HoverModeFor(int index) => Mathf.Abs(index) % 4;

@@ -158,10 +158,18 @@ public static class ShipWeaponUpgrades
 
     // ---------------------------------------------------------- dock text
 
+    // A step's dock / shop / Codex text: its own label, then what the floaties (FloatieGuns.cs) gain at that level.
+    public static string StepText(int shipId, int level)
+    {
+        string label = Step(shipId, level).label;
+        string floatie = FloatieTuning.StepNote(level);
+        return floatie == null ? label : label + ", " + floatie;
+    }
+
     // What buying one more colour adds; null at MaxLevel.
     public static string NextLabel(int shipId)
     {
         int level = Level(shipId);
-        return level >= MaxLevel ? null : Step(shipId, level + 1).label;
+        return level >= MaxLevel ? null : StepText(shipId, level + 1);
     }
 }

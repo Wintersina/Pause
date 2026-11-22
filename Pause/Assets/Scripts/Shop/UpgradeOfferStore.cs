@@ -76,7 +76,7 @@ public static class UpgradeOfferStore
             int level = ShipWeaponUpgrades.Level(id);
             string detail = ShipSkins.Get(id, skin).DisplayName + " COLOUR";
             if (ShipWeaponUpgrades.Has(id) && level < ShipWeaponUpgrades.MaxLevel)
-                detail += "   " + ShipWeaponUpgrades.Step(id, level + 1).label;
+                detail += "   " + ShipWeaponUpgrades.StepText(id, level + 1);
             return new UpgradeOfferRules.Candidate
             {
                 shipId = id, skin = skin, price = price,

@@ -112,6 +112,12 @@ public class ShipLivesIndicator : HeartOrbit
     protected override bool AvoidThumb { get { return true; } }
     protected override UltimateGun FindGun() { return GetComponentInChildren<UltimateGun>(true); }
     protected override Bounds GunRestBounds(UltimateGun g) { return ShipUiSlots.GunToWorld(transform, shipId, g.LocalRestEnvelope()); }
+    FloatieBattery floaties;
+    protected override int ExtraGunRestBounds(Bounds[] into)
+    {
+        if (floaties == null) floaties = GetComponent<FloatieBattery>();
+        return floaties != null ? floaties.ExtraRestBounds(into) : 0;
+    }
 
     protected override void LateUpdate()
     {

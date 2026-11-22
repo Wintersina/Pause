@@ -203,6 +203,36 @@ public static class HostileShots
         return n;
     }
 
+    // The first light or heavy hostile shot a player bullet's step from `from` to `to` (hit radius r) passes through, with how far
+    // along the step it is (0..1); null when none (a landed pool stays). The floaties' bullets stop on it (ShootDown).
+    public static IHostileShot FirstAlong(Vector2 from, Vector2 to, float r, out float along)
+    {
+        IHostileShot best = null;
+        along = 2f;
+        Vector2 ab = to - from;
+        float len = ab.sqrMagnitude;
+        for (int i = 0; i < shots.Count; i++)
+        {
+            var s = shots[i];
+            if (Dead(s) || !s.ShotCollidable || s.ShotMass == Fixed) continue;
+            Vector2 p = s.ShotPosition;
+            float reach = r + s.ShotRadius;
+            if (SegmentDistanceSq(from, to, p) > reach * reach) continue;
+            float t = len > 1e-8f ? Mathf.Clamp01(Vector2.Dot(p - from, ab) / len) : 0f;
+            if (t < along) { along = t; best = s; }
+        }
+        return best;
+    }
+
+    // A player bullet that stops on `s`: it pops with the usual spark and pays nothing.
+    public static bool ShootDown(IHostileShot s)
+    {
+        if (Dead(s) || !s.ShotCollidable || s.ShotMass == Fixed) return false;
+        ShotDown++;
+        Pop(s, s.ShotPosition);
+        return true;
+    }
+
     public static int ClearIn(Rect view)
     {
         int n = 0;
