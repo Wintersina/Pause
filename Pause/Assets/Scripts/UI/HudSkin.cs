@@ -45,18 +45,20 @@ public static class HudSkin
     // The frames' growth past the layout rect, canvas units: { left, bottom,
     // right, top }, order = world index (Space, Frost, Verdant, Ember, Tide,
     // Storm, Desert). TUNED FROM RENDERS (HudVetCapture + the gap measurement): with the worst-case text (1,234,567 / SPEED 999 / PAUSES 99)
-    // the nearest icicle, crystal or rail is at least ~5 px (at 1080 wide)
-    // from the text on the left / top / bottom, top and bottom equal so the
-    // three rows sit centred in the frame's dark inside. Re-render after changing frame art.
+    // the frame's inner edge is at least ~7 px (at 1080 wide) from the text on the left / top / bottom,
+    // top and bottom equal, so the three rows sit centred in the frame's dark inside. The five opt3
+    // frames (Frost, Verdant, Ember, Storm, Desert) share one geometry (inner edge 49 px = 24.5 units in
+    // from the sprite edge on every side), so they share one row; the bottom is larger because the text
+    // sits low in the layout rect. Re-render after changing frame art.
     static readonly float[][] BoardOuts =
     {
         new[]{0f, 16.5f, 10f, 10f},       // Space
-        new[]{17f, 37f, 14f, 18.5f},    // Frost
-        new[]{9f, 31f, 14f, 24f},       // Verdant
-        new[]{9.5f, 26.5f, 13.5f, 23f},   // Ember
+        new[]{4.5f, 24f, 8f, 12.5f},    // Frost
+        new[]{4.5f, 24f, 8f, 12.5f},       // Verdant
+        new[]{4.5f, 24f, 8f, 12.5f},   // Ember
         new[]{2f, 17f, 7f, 8f},           // Tide
-        new[]{7.5f, 35.5f, 14f, 25f},     // Storm
-        new[]{17f, 26f, 14f, 36f},       // Desert
+        new[]{4.5f, 24f, 8f, 12.5f},     // Storm
+        new[]{4.5f, 24f, 8f, 12.5f},       // Desert
     };
     // x = left, y = bottom, z = right, w = top.
     public static Vector4 BoardOut(int world) { return OutFor(BoardOuts, world); }
@@ -69,7 +71,7 @@ public static class HudSkin
 
     // Extra room the text needs on the left where the art's decoration (Desert's
     // sandworm head) sits inside the frame's left edge, canvas units.
-    static readonly float[] TextExtraLeft = { 3f, 12f, 6f, 4f, 8f, 4f, 24f };   // tuned from renders, like the outs
+    static readonly float[] TextExtraLeft = { 3f, 4f, 4f, 4f, 8f, 4f, 4f };   // tuned from renders, like the outs
     public static float BoardTextExtraLeft(int world) { return TextExtraLeft[Mathf.Clamp(world, 0, TextExtraLeft.Length - 1)]; }
 
     public static string FramePath(int world) { return Dir(world) + "hud_board"; }
