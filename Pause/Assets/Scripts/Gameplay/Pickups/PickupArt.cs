@@ -31,20 +31,23 @@ public static class PickupArt
 
     // The atoms (blue, red, violet, green, magnet) are drawn this much bigger than
     // their 0.28 u art in play, so they read at a glance on a phone (an atom
-    // was ~40 px across on a 1080 px screen, a hostile shot ~32). Only the
-    // drawing grows: EnlargeVisual shrinks the colliders back, so the hitbox
-    // and the pickup reach are what they were.
-    public const float AtomVisualScale = 1.3f;
+    // was ~40 px across on a 1080 px screen, a hostile shot ~32). 1.3 x 1.1:
+    // the atoms were made a further 10% bigger. EnlargeVisual shrinks the
+    // colliders back by the same factor, then AtomHitScale grows them, so the
+    // hitbox and the pickup reach are 10% bigger than the original 0.28 u box.
+    public const float AtomHitScale = 1.1f;
+    public const float AtomVisualScale = 1.3f * AtomHitScale;
 
     // Scales `go` by k (x and y) and its 2D colliders by 1/k: bigger art,
-    // the same world-space hitbox.
-    public static void EnlargeVisual(GameObject go, float k)
+    // the same world-space hitbox (times hitGrow, when given).
+    public static void EnlargeVisual(GameObject go, float k, float hitGrow = 1f)
     {
         if (go == null || k <= 0f || Mathf.Approximately(k, 1f)) return;
         var s = go.transform.localScale;
         go.transform.localScale = new Vector3(s.x * k, s.y * k, s.z);
-        foreach (var box in go.GetComponents<BoxCollider2D>()) { box.size /= k; box.offset /= k; }
-        foreach (var circle in go.GetComponents<CircleCollider2D>()) { circle.radius /= k; circle.offset /= k; }
+        float c = hitGrow / k;
+        foreach (var box in go.GetComponents<BoxCollider2D>()) { box.size *= c; box.offset *= c; }
+        foreach (var circle in go.GetComponents<CircleCollider2D>()) { circle.radius *= c; circle.offset *= c; }
     }
 
     public static bool IsStarDust(GameObject go)
