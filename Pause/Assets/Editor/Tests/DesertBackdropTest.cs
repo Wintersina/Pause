@@ -184,6 +184,30 @@ public static class DesertBackdropTest
             Check("v" + v + " has its affinity mask (" + (mask != null ? mask.Cols + "x" + mask.Rows + ", sand " +
                   mask.Share(GroundClass.Water).ToString("F2") + ", flats " + mask.Share(GroundClass.Open).ToString("F2") + ", cliff " + mask.Share(GroundClass.Canopy).ToString("F2") : "-") + ")",
                   mask != null && mask.Cols == 32 && mask.Rows == 64 && mask.Share(GroundClass.Water) + mask.Share(GroundClass.Open) > .4f);
+            // the painted props (class C) are blocked yet leave room: a dock-sized footprint (~5.4 x 4 cells) fits wholly on clear ground
+            // somewhere (>= 3% of positions), or no launch site / landmark could ever be placed on that tile
+            if (mask != null)
+            {
+                int fit = 0, tot = 0;
+                for (int row = 0; row < 64; row++)
+                    for (int col = 3; col < 29; col++)
+                    {
+                        tot++;
+                        bool clear = true;
+                        for (int j = -2; j <= 2 && clear; j++)
+                            for (int i = -2; i <= 2 && clear; i++)
+                            {
+                                float fx = i * .5f, fy = j * .5f;
+                                if (fx * fx + fy * fy > 1.05f) continue;
+                                int cx = Mathf.Clamp(col + Mathf.RoundToInt(fx * 2.7f), 0, 31), cy = (row + Mathf.RoundToInt(fy * 2f) + 64) % 64;
+                                if (mask.At((cx + .5f) / 32f, 1f - (cy + .5f) / 64f) == GroundClass.Canopy) clear = false;
+                            }
+                        if (clear) fit++;
+                    }
+                float blocked = mask.Share(GroundClass.Canopy);
+                Check("v" + v + " blocks its painted props (C " + blocked.ToString("F2") + " in .10..45) and still has room for a dock (" + (fit / (float)tot).ToString("F2") + " >= .03)",
+                      blocked >= .10f && blocked <= .45f && fit / (float)tot >= .03f);
+            }
         }
         Check("the sites' kinds are Desert's own and parse from launchFrom strings",
               LandingSite.KindOf("wormburrow") == LandingKind.DesertWormBurrow && LandingSite.KindOf("caravanbay") == LandingKind.DesertCrawlerBay &&
@@ -301,7 +325,7 @@ public static class DesertBackdropTest
     {
         for (int v = 1; v <= TestHarness.SweepVariants(4); v++)
         {
-            int pieces = 0, wrong = 0, overlaps = 0, relaxed = 0, clusters = 0, runs = 0, pipes = 0;
+            int pieces = 0, wrong = 0, overlaps = 0, relaxed = 0, clusters = 0, runs = 0, pipes = 0, onArt = 0, docks = 0, storyPieces = 0, outOfZone = 0;
             var byClass = new Dictionary<string, int>();
             string bad = "";
             for (int run = 0; run < SeededRuns; run++)
@@ -321,9 +345,22 @@ public static class DesertBackdropTest
                             seenPieces.Add(p);
                             pieces++;
                             string name = p.sr.sprite != null ? p.sr.sprite.name : "";
-                            var rule = DesertTuning.Rule(name);
+                            var rule = DesertTuning.Rule(name, v);
                             bool site = pool == d.Sites;
                             if (pool == d.Pipes) pipes++;
+                            // OWNER RULE (2026-11, round 5 art): nothing the game places may sit on the painted props (mask class C: outposts,
+                            // rigs, rails, bones, rocks, oasis water, palms, crater rims) -- not even a run's pipe, a launch site or a dust devil
+                            float fx = GroundPlanner.HalfX(rule, p.size), fy = GroundPlanner.HalfY(rule, p.size);
+                            if (pool == d.Pipes && p.kind == DesertDirector.RunPipe) { fx = p.size * .4f; fy = p.size * .05f; }     // (the run's flange line, as PipeRun checks it)
+                            if (d.Planner.Match(p.x, p.gy, fx, fy, GroundClass.Canopy) > 0f) { onArt++; if (bad.Length < 300) bad += name + "@art "; }
+                            if (site) docks++;
+                            // AUTHORED PLACEMENT (round 5): a scene piece (wreck, machinery, landmark, well, feature) only spawns in its variant's story
+                            // zone: v1 dune troughs / beside outposts and bones, v2 beside the rails, rigs and brine, v3 round the rocks and oasis, v4 round the fires and ruins
+                            if (rule.zone != GroundClass.None && !site)
+                            {
+                                storyPieces++;
+                                if (d.Planner.Match(p.x, p.gy, GroundPlanner.HalfX(rule, p.size), GroundPlanner.HalfY(rule, p.size), rule.zone) < DesertTuning.StoryNeed) { outOfZone++; if (bad.Length < 300) bad += name + "@out-of-zone "; }
+                            }
                             if (pool == d.Pipes && p.kind == DesertDirector.RunPipe) continue;   // a run's pipe crosses whatever lies between its structures
                             if (!d.Planner.Accepts(rule, p.x, p.gy, p.size))
                             {
@@ -351,6 +388,9 @@ public static class DesertBackdropTest
                   " clusters): none on ground its rule forbids (" + wrong + " " + bad + "; sites on relaxed land " + relaxed + ")",
                   runs == SeededRuns && pieces > runs * 4 && wrong == 0);
             Check("v" + v + ": no two piece footprints overlap (" + overlaps + ")", overlaps == 0);
+            Check("v" + v + ": scene pieces only spawn in their story zone (" + storyPieces + " checked, " + outOfZone + " outside it; zone " + DesertTuning.StoryZone(v) + ")",
+                  outOfZone == 0 && storyPieces > 0);
+            Check("v" + v + ": no landmark, pipe, feature or launch site (" + docks + " seen) stands on a painted prop (" + onArt + " " + bad + ")", onArt == 0);
         }
     }
 
@@ -766,9 +806,12 @@ public static class DesertBackdropTest
         for (int i = 0; i < dpx.Length; i += 7) dsum += Mathf.Max(dpx[i].r, Mathf.Max(dpx[i].g, dpx[i].b)) / 255f;
         float deck = (float)(dsum / ((dpx.Length + 6) / 7));
         Object.DestroyImmediate(deckTex);
-        Check("the cloud ceiling at the start reads as the planetfall's cloud deck (upper view mean value " + top.mean.ToString("F2") +
-              " within " + (CeilingDeckTolerance * 100f).ToString("F0") + "% of the deck's " + deck.ToString("F2") + ")",
-              top.mean >= deck * (1f - CeilingDeckTolerance) && top.mean <= deck + .08f);
+        // Round 5: the haze is a pale veil in each ground's own dust (CeilingTints, 70% strength) over bright grounds, no longer the dark smoke that
+        // continued the planetfall's dark deck (mean value .27), so the old "within 30% of the deck" match retires: the veil must still be there
+        // (not darker-than-nothing: at least the deck's tone) and must not blank the map (upper view mean value <= .85).
+        Check("the cloud ceiling at the start is a light veil over the map (upper view mean value " + top.mean.ToString("F2") + " in " +
+              (deck * .7f).ToString("F2") + " .. .85; planetfall deck " + deck.ToString("F2") + ")",
+              top.mean >= deck * .7f && top.mean <= .85f);
 
         var theme = EnemyPalette.ThemeFor(6);
         float hullV = Mathf.Max(theme.hull.r, Mathf.Max(theme.hull.g, theme.hull.b));
@@ -784,9 +827,13 @@ public static class DesertBackdropTest
             float body = Contrast(RelLum(theme.hull), shot.laneLum);
             float bright = Mathf.Max(RelLum(theme.light), Mathf.Max(RelLum(theme.hullHighlight), RelLum(theme.bone)));
             float kick = Contrast(bright, shot.laneLum);
+            // Round 5 (bright painted grounds): the pale bone-gold hull reads by its indigo shadow and its sun-white light, so the best tone must
+            // reach 2.5:1 (body) and the brightest-or-darkest accent 3:1 against the rendered lane (was 7:1 for the old dark lanes); see WorldBackdropTest.CheckReadability.
+            float shade = Contrast(RelLum(theme.hullShadow), shot.laneLum);
+            body = Mathf.Max(body, shade); kick = Mathf.Max(kick, shade);
             Check("v" + v + " rendered lane with enemies on top: body " + body.ToString("F2") + ":1 >= 2.5, brightest " + kick.ToString("F2") +
-                  ":1 >= 7 (lane median value " + shot.median.ToString("F2") + ", p90 " + shot.p90.ToString("F2") + ", hull " + hullV.ToString("F2") + ")",
-                  body >= 2.5f && kick >= 7f);
+                  ":1 >= 3 (lane median value " + shot.median.ToString("F2") + ", p90 " + shot.p90.ToString("F2") + ", hull " + hullV.ToString("F2") + ")",
+                  body >= 2.5f && kick >= 3f);
         }
         Check("the night side renders darker than the day (median " + nightMedian.ToString("F3") + " < " + dayMedian.ToString("F3") + ")",
               nightMedian < dayMedian * .92f);

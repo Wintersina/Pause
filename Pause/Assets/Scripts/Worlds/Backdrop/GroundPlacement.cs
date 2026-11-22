@@ -49,6 +49,8 @@ public enum GroundClass : byte
     Built = 2,      // ruins, roads, industry already painted in the tile
     Open = 4,       // clearings, flats, banks: smooth ground that is not water
     Canopy = 8,     // dense forest / ice sheet / crust: the textured ground
+    Trough = 16,    // ZONE flag on top of Water / Open (mask letter T): a Desert dune trough
+    Near = 32,      // ZONE flag on top of Water / Open (mask letters N, M): free ground right beside painted props
     Land = Built | Open | Canopy,
     Any = Water | Land,
 }
@@ -61,7 +63,7 @@ public class GroundMask
 
     public GroundMask(int cols, int rows, GroundClass[] cells) { Cols = cols; Rows = rows; this.cells = cells; }
 
-    // mask.txt: one line per row, one character per cell (W B O C).
+    // mask.txt: one line per row, one character per cell (W B O C, and the Desert's zone letters T N M: W / W / O with a Trough / Near flag).
     public static GroundMask Parse(string text)
     {
         if (string.IsNullOrEmpty(text)) return null;
@@ -77,7 +79,9 @@ public class GroundMask
             for (int x = 0; x < cols; x++)
             {
                 char ch = x < l.Length ? l[x] : 'C';
-                c[r * cols + x] = ch == 'W' ? GroundClass.Water : ch == 'B' ? GroundClass.Built : ch == 'O' ? GroundClass.Open : GroundClass.Canopy;
+                c[r * cols + x] = ch == 'W' ? GroundClass.Water : ch == 'B' ? GroundClass.Built : ch == 'O' ? GroundClass.Open :
+                                  ch == 'T' ? GroundClass.Water | GroundClass.Trough : ch == 'N' ? GroundClass.Water | GroundClass.Near :
+                                  ch == 'M' ? GroundClass.Open | GroundClass.Near : GroundClass.Canopy;
             }
             r++;
         }
@@ -123,11 +127,21 @@ public struct PieceRule
     public GroundClass endsOn;
     public Vector2 endA, endB;
     public float endRadius;
+    // ZONE (authored placement, Desert round 5): at least `zoneNeed` of the footprint samples must be one of `zone` (None: no rule), so a
+    // piece stands where its map's painted story puts it (a trough, beside a rail or an outpost) and not anywhere clear.
+    public GroundClass zone;
+    public float zoneNeed;
 
     public PieceRule(GroundClass on, float need, float core = .32f, GroundClass near = GroundClass.None)
     {
         this.on = on; this.need = need; this.core = core; this.near = near;
         endsOn = GroundClass.None; endA = endB = Vector2.zero; endRadius = 0f;
+        zone = GroundClass.None; zoneNeed = 0f;
+    }
+
+    public PieceRule WithZone(GroundClass zone, float need)
+    {
+        var r = this; r.zone = zone; r.zoneNeed = need; return r;
     }
 
     public PieceRule WithEnds(Vector2 a, Vector2 b, GroundClass on, float radius = .1f)
@@ -221,7 +235,12 @@ public class GroundPlanner
     public bool Accepts(PieceRule r, float x, double gy, float size)
     {
         float rx = HalfX(r, size), ry = HalfY(r, size);
-        return Match(x, gy, rx, ry, r.on) >= r.need && Near(x, gy, rx, ry, r.near) && Ends(r, x, gy, size);
+        return Match(x, gy, rx, ry, r.on) >= r.need && InZone(r, x, gy, rx, ry) && Near(x, gy, rx, ry, r.near) && Ends(r, x, gy, size);
+    }
+
+    public bool InZone(PieceRule r, float x, double gy, float rx, float ry)
+    {
+        return r.zone == GroundClass.None || Mask == null || Match(x, gy, rx, ry, r.zone) >= r.zoneNeed;
     }
 
     // A span's two ends both come down on the ground it connects (PieceRule.endsOn).
@@ -286,6 +305,7 @@ public class GroundPlanner
             if (!Free(cx, cy, rx, ry)) continue;
             float m = Match(cx, cy, rx, ry, rule.on);
             if (m < rule.need || m <= best) continue;
+            if (!InZone(rule, cx, cy, rx, ry)) continue;
             if (!Near(cx, cy, rx, ry, rule.near)) continue;
             if (!Ends(rule, cx, cy, size)) continue;
             best = m; x = cx; gy = cy;
