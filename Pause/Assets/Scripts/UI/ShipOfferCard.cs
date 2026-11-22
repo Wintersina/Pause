@@ -98,6 +98,7 @@ public class ShipOfferCard : MonoBehaviour
         card.font = font;
         card.group = root.GetComponent<CanvasGroup>();
         card.Build(rootRt, balance);
+        card.Refit();
         card.shownAt = Time.unscaledTime;
         card.Apply(0f);
         ShipOfferStore.MarkShown(offer.shipId);
@@ -320,7 +321,23 @@ public class ShipOfferCard : MonoBehaviour
         }
     }
 
-    void Update() { Tick(Time.unscaledTime); }
+    // Fits the card to the screen (PopupFit: inside the safe area, never wider than a tall phone draws it).
+    int fitW = -1, fitH = -1;
+    float fit = 1f;
+    internal void Refit()
+    {
+        fitW = ScreenInfo.Width; fitH = ScreenInfo.Height;
+        if (panel == null) return;
+        fit = PopupFit.Place((RectTransform)transform, panel, Width + 2f * GlowMargin, Height + 2f * GlowMargin);
+        PopupFit.PadTouch(new[] { BuyButton, DeclineButton }, fit, ButtonH, GlowMargin + 4f);
+        if (panel != null && group != null && group.alpha >= 1f) panel.localScale = new Vector3(fit, fit, 1f);
+    }
+
+    void Update()
+    {
+        if (ScreenInfo.Width != fitW || ScreenInfo.Height != fitH) Refit();
+        Tick(Time.unscaledTime);
+    }
 
     // One frame at unscaled time `now` (tests drive it directly).
     public void Tick(float now)
@@ -337,7 +354,7 @@ public class ShipOfferCard : MonoBehaviour
         if (panel != null)
         {
             float s = Mathf.Lerp(.92f, 1f, 1f - (1f - t) * (1f - t));
-            panel.localScale = new Vector3(s, s, 1f);
+            panel.localScale = new Vector3(s * fit, s * fit, 1f);
         }
         PaintHull(1f, 0f, t);
     }

@@ -69,6 +69,7 @@ public class UpgradeOfferCard : MonoBehaviour
         card.font = font;
         card.group = root.GetComponent<CanvasGroup>();
         card.Build(rootRt, balance);
+        card.Refit();
         card.shownAt = Time.unscaledTime;
         card.Apply(0f);
         // Android Back = NO THANKS (as on the ship offer card). Without a
@@ -190,9 +191,21 @@ public class UpgradeOfferCard : MonoBehaviour
         BackNavigator.Unregister(this);
     }
 
+    // Fits the card to the screen (PopupFit: inside the safe area, never wider than a tall phone draws it).
+    int fitW = -1, fitH = -1;
+    float fit = 1f;
+    internal void Refit()
+    {
+        fitW = ScreenInfo.Width; fitH = ScreenInfo.Height;
+        if (panel == null) return;
+        fit = PopupFit.Place((RectTransform)transform, panel, Width + 2f * GlowMargin, Height + 2f * GlowMargin);
+        PopupFit.PadTouch(new[] { BuyButton, DeclineButton }, fit, ButtonH, GlowMargin + 10f);
+    }
+
     void Update()
     {
         if (finished) return;
+        if (ScreenInfo.Width != fitW || ScreenInfo.Height != fitH) Refit();
         Apply(Mathf.Clamp01((Time.unscaledTime - shownAt) / PopIn));
     }
 
@@ -202,7 +215,7 @@ public class UpgradeOfferCard : MonoBehaviour
         if (panel != null)
         {
             float s = Mathf.Lerp(.92f, 1f, 1f - (1f - t) * (1f - t));
-            panel.localScale = new Vector3(s, s, 1f);
+            panel.localScale = new Vector3(s * fit, s * fit, 1f);
         }
     }
 

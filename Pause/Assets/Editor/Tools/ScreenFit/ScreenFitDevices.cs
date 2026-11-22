@@ -148,6 +148,7 @@ public class FitDevice
         Desktop("desk-1440x900", 1440, 900),
         Desktop("desk-1920x1080", 1920, 1080),
         Desktop("desk-2560x1080", 2560, 1080),
+        Desktop("desk-2560x1600", 2560, 1600),
         // a 4:3 tablet in landscape-ish shape: Square class, reported density
         new FitDevice { id = "tab-1024x768", name = "Tablet 1024x768", w = 1024, h = 768, pxPerPt = 2f },
     };

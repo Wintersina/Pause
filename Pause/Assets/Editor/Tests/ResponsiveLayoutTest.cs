@@ -104,6 +104,7 @@ public static class ResponsiveLayoutTest
             }
         }
         DockRackFits();
+        PopupCaps();
         foreach (var device in WideDevices)
         {
             Check(device.id + ": is " + ScreenFrame.Classify(device.w, device.h) + " (no dpi)", device.noDpi && ScreenFrame.Classify(device.w, device.h) >= ScreenFrame.Aspect.Wide);
@@ -130,6 +131,65 @@ public static class ResponsiveLayoutTest
             Check("dock rack @ aspect " + aspect + ": scale " + l.scale.ToString("0.00") + ", height " + (l.Height * l.scale).ToString("0.0") + " of " + space.ToString("0.0"),
                   (phone ? l.scale == DockLayout.For(15, halfW).scale : fits) && l.scale <= 1f && l.Width * l.scale <= halfW * 2f + .001f);
         }
+    }
+
+    // ---- the modal cards (FLIGHT COMPLETE, the ship offer, the upgrade offer) ----------------------------------
+    //
+    // On every device in the matrix and on wide desktop windows: staged, no tap off the safe area or overlapping or
+    // under the finger floor (the generic checks), and the card's frame is never wider than PopupFit.MaxWidthPx on
+    // tablets / wide windows (what a tall phone draws, in physical terms) and the cap does not bind on phone aspects
+    // (the card is exactly what the width / height fit gave it before).
+    public static readonly string[] PopupScreens = { "game-death", "game-ship-offer", "game-upgrade-offer" };
+    const float PhoneAspectMax = .6f;
+
+    static IEnumerable<FitDevice> PopupDevices()
+    {
+        foreach (var d in Devices) yield return d;
+        yield return FitDevice.Find("desk-1920x1080");
+        yield return FitDevice.Find("desk-2560x1080");
+        yield return FitDevice.Find("desk-2560x1600");
+    }
+
+    static void PopupCaps()
+    {
+        var measured = new Dictionary<string, Rect>();
+        System.Action<string, Rect> hook = (name, r) => measured[name] = r;
+        ScreenFitScreens.PopupMeasured += hook;
+        try
+        {
+            foreach (var device in PopupDevices())
+            {
+                using (new TestHarness.Sandbox())
+                {
+                    foreach (var id in PopupScreens)
+                    {
+                        measured.Clear();
+                        CheckScreen(device, id);
+                        string name = id.Substring("game-".Length);
+                        Rect frame;
+                        if (!measured.TryGetValue(name, out frame)) { Check(id + " @ " + device.id + ": frame measured", false); continue; }
+                        float ppt = UiScale.PxPerPointFor(device.ReportedDpi, device.ios, device.w, device.h);
+                        float cap = PopupFit.MaxWidthPx(device.Safe, ppt);
+                        bool phone = device.Aspect < PhoneAspectMax && !device.noDpi;
+                        bool ok = frame.width <= cap + 1.5f && (!phone || frame.width < cap - .5f);
+                        Check(id + " @ " + device.id + ": frame " + frame.width.ToString("0") + "x" + frame.height.ToString("0") + " px, cap " + cap.ToString("0") +
+                              (phone ? " (phone: the cap does not bind)" : " (tablet / wide: within the cap)"), ok);
+                        Check(id + " @ " + device.id + ": frame centred in the safe area",
+                              Mathf.Abs(frame.center.x - device.Safe.center.x) <= 2f + device.w * .01f && frame.yMin >= device.Safe.yMin - 1f && frame.yMax <= device.Safe.yMax + 1f);
+                    }
+                }
+            }
+        }
+        finally { ScreenFitScreens.PopupMeasured -= hook; }
+
+        // the rule itself, any screen: phone shapes are never capped by the width terms, tablets and windows are
+        foreach (float aspect in new[] { .46f, .5f, .5625f })
+        {
+            var safe = new Rect(0, 0, 1080f, 1080f / aspect);
+            Check("cap @ phone aspect " + aspect + ": above the 0.9 x width a phone card fills (" + PopupFit.MaxWidthPx(safe, 2.625f).ToString("0") + ")", PopupFit.MaxWidthPx(safe, 2.625f) >= 1080f * .9f);
+        }
+        Check("cap @ iPad 1640x2360: 420 pt = 840 px", Mathf.Approximately(PopupFit.MaxWidthPx(new Rect(0, 0, 1640, 2360), 2f), 840f));
+        Check("cap @ Mac window 900x1400 (no dpi): 0.6 x height = 840 px", Mathf.Approximately(PopupFit.MaxWidthPx(new Rect(0, 0, 900, 1400), UiScale.PxPerPointFor(0f, false, 900, 1400)), 840f));
     }
 
     static void CheckScreen(FitDevice device, string id)

@@ -1087,7 +1087,9 @@ public class DeathPanelView : MonoBehaviour, IPointerDownHandler
                                (maxX - minX) / sf, (maxY - minY) / sf);
 
         Vector2 centre;
-        ComputeFit(safeUnits, blocker, out centre, out fitScale, hasTab ? DoubleDustOffer.BelowFrame : 0f);
+        // never wider than a tall phone draws it, in physical terms (PopupFit): a no-op on phones
+        float maxScale = PopupFit.CapScale(Width + 2f * GlowMargin, sf, ScreenInfo.SafeArea, UiScale.PxPerPoint);
+        ComputeFit(safeUnits, blocker, out centre, out fitScale, hasTab ? DoubleDustOffer.BelowFrame : 0f, maxScale);
         panel.anchoredPosition = centre;
         if (finalApplied) panel.localScale = Vector3.one * fitScale;
         PadButtonTouch(buttonSlots, fitScale, ButtonHeight);
@@ -1149,14 +1151,14 @@ public class DeathPanelView : MonoBehaviour, IPointerDownHandler
     // drops it below `blocker` (the top band: the top-right quick actions and
     // the top-left score read-out) if they would otherwise overlap.
     // `below`: panel units that hang under the frame (the double dust button); they are fitted too.
-    public static void ComputeFit(Rect safe, Rect? blocker, out Vector2 centre, out float scale, float below = 0f)
+    public static void ComputeFit(Rect safe, Rect? blocker, out Vector2 centre, out float scale, float below = 0f, float maxScale = 1f)
     {
         const float margin = 12f;
         Rect area = safe;
         for (int pass = 0; pass < 2; pass++)
         {
             float w = Width + 2f * GlowMargin, h = Height + 2f * GlowMargin;
-            scale = Mathf.Min(1f, (area.width - 2f * margin) / w, (area.height - 2f * margin) / (h + below));
+            scale = Mathf.Min(Mathf.Min(1f, maxScale), (area.width - 2f * margin) / w, (area.height - 2f * margin) / (h + below));
             scale = Mathf.Max(scale, .1f);
             centre = area.center;
             centre.y += below * scale * .5f;   // the panel rides up so frame plus button are centred
