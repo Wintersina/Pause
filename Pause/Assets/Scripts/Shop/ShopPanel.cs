@@ -171,6 +171,7 @@ public class ShopPanel : MonoBehaviour
         scroll.inertia = true;
         scroll.scrollSensitivity = 60f;   // wheel / trackpad (iPhone apps on a Mac); a finger drag ignores it
         hint = ScrollHint.Attach(scroll, font, ScrollHintLabel, CodexUi.Accent, AkiraPalette.Night0);
+        hint.UseBand(AkiraPalette.Night0);   // solid band: no row renders behind the hint
 
         storeNote = CodexUi.NewText("StoreNote", content, font, ShopCatalog.StoreDownNote, 20, AkiraPalette.RedHi, TextAnchor.MiddleLeft, true);
         FitText(storeNote, 15, 20);

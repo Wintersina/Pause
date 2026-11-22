@@ -579,17 +579,20 @@ public static class ShopScreenTest
         Check("the fade and the label never take taps", !hint.GetComponentInChildren<Text>().raycastTarget);
         foreach (var img in hint.GetComponentsInChildren<Image>())
             Check("hint image " + img.name + " raycast: only the tap strip", img.raycastTarget == (img.rectTransform == hint.TapStrip));
-        // the strip clears every live buy plate (the rows' buttons live in the right-hand column)
-        var strip = WorldRect(hint.TapStrip);
-        bool clear = true;
-        for (int i = 0; i < panel.RowCount; i++)
-            if (strip.Overlaps(WorldRect((RectTransform)panel.RowButton(i).transform))) clear = false;
-        Check("the hint's tap strip overlaps no buy plate", clear);
+        // solid band: opaque, full width, the viewport is shrunk by exactly its height, so nothing renders behind it
+        Check("the Shop hint uses the solid band", hint.BandMode && hint.Band != null);
+        Check("the band is opaque", hint.Band.GetComponent<Image>().color.a > .99f && hint.Band.GetComponent<Image>().color.a <= 1f);
+        Check("the band is finger-sized", hint.BandHeight >= CodexUi.TapUnits - .5f);
+        Check("the viewport is shrunk by the band height", Mathf.Abs(hint.BandInset - hint.BandHeight) < .5f
+              && Mathf.Abs(panel.Scroll.viewport.offsetMin.y - hint.BandHeight) < .5f);
+        Check("the band takes the whole bottom width as its tap target", hint.TapStrip.anchorMin.x < .01f && hint.TapStrip.anchorMax.x > .99f);
+        Check("the chevron pair and label sit inside the band", hint.Label.rectTransform.sizeDelta.y <= hint.BandHeight + .5f);
 
         // scroll to the bottom: hidden; back up: visible again
         panel.Scroll.verticalNormalizedPosition = 0f;
         hint.Tick(10f);
         Check("at the bottom the hint is hidden and takes no taps", !hint.Shown && hint.Alpha < .01f);
+        Check("at the bottom the band collapses and the viewport is full height again", hint.BandInset < .01f && panel.Scroll.viewport.offsetMin.y < .5f);
         panel.Scroll.verticalNormalizedPosition = 1f;
         hint.Tick(10f);
         Check("scrolled back to the top the hint returns", hint.Shown && hint.Alpha > .99f);
@@ -600,7 +603,7 @@ public static class ShopScreenTest
         // tap: eases down by about a page (never past the end)
         panel.Scroll.verticalNormalizedPosition = 1f;
         hint.OnPointerClick(null);
-        Check("tapping the chevron starts a smooth scroll", hint.Animating);
+        Check("tapping the band starts a smooth scroll", hint.Animating);
         panel.Close();
         Check("a list that fits shows no hint", FitsCase());
 
@@ -626,7 +629,9 @@ public static class ShopScreenTest
             var sr = go.GetComponent<ScrollRect>(); sr.viewport = vp; sr.content = content;
             var h = ScrollHint.Attach(sr, null, "MORE", Color.white, Color.black);
             h.Tick(10f);
-            return !h.Shown && h.Alpha < .01f;
+            h.UseBand(Color.black);
+            h.Tick(10f);
+            return !h.Shown && h.Alpha < .01f && h.BandInset < .01f && vp.offsetMin.y < .5f;
         }
         finally { Object.DestroyImmediate(go); }
     }
