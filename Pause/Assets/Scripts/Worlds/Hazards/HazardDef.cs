@@ -43,6 +43,7 @@ public sealed class HazardDef
     public int bands = 1;             // Sweep: bands in the train
     public float bandGap = 0f;        // Sweep: distance between trailing bands (u)
     public float shock = .35f;        // Sweep: how much stronger the leading half of a band is than the trailing half (0..1)
+    public float holeSize;            // Sweep: height (u) of the opening each band has at a random height that nothing in it is pushed, stunned or wiped by (0 = no hole)
     public bool stuns;                // while it is live, every enemy and elite its band touches is stunned (WorldHazards.StunSeconds, refreshed while inside; the Space flares). Bosses never
     public bool wipesShots;           // while it is live, every hostile shot (boss, elite) its band touches is destroyed with a pop; the player's shots are not touched (the Space flares)
     public bool fromSun;              // Sweep: it travels AWAY from the sun's side of the backdrop (SpaceSunPick), so the sun is where it is born; no sun to see: a random side
@@ -78,6 +79,9 @@ public sealed class HazardField
     public bool hazArtHeld;           // this event holds the world's hazard sheet loaded (HazardArt.Acquire)
     public float frontY;              // Front: current centre y
     public float sweepX;              // Sweep: current centre x of the LEADING band (it travels in direction `side`)
+    public float[] holeY = new float[MaxBands];   // Sweep: per band, the centre height of its hole (see HazardForce.RollHoles); read only while holes > 0
+    public int holes;                 // Sweep: how many entries of holeY are rolled for this event (0: no hole, as in every test field built by hand)
+    public const int MaxBands = 4;
     public float viewBottom, viewTop; // the view when it began
     public float laneHalf = 3.7f;     // half the width the bounds cover
 

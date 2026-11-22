@@ -10,6 +10,15 @@ public sealed class HazardVisuals
     readonly SpriteRenderer[] sr = new SpriteRenderer[Pool];
     readonly Transform root;
     readonly SpriteRenderer[] artSr = new SpriteRenderer[14];   // 14: a three-band flare train of three stacked tiles each needs nine   // the world's approved hazard sheet: a swirl's body or a front's tiles
+    readonly SpriteMask[] holeMasks = new SpriteMask[HazardField.MaxBands];   // the painted flare's openings: one mask per band, cutting that band's tiles
+    int masksUsed;
+    static Sprite whiteSquare;
+    public SpriteMask[] HoleMasks => holeMasks;
+    public int HoleMasksUsed => masksUsedLast;
+    int masksUsedLast;
+    // Where the flare's openings were drawn this frame (centre height per band, NaN: none), and whether that was the warning: the tests read them.
+    public readonly float[] HoleDrawnY = new float[HazardField.MaxBands];
+    public bool HoleDrawnWarn { get; private set; }
     public int Drawn { get; private set; }
     int artDrawn;
     int artLast;
@@ -29,7 +38,31 @@ public sealed class HazardVisuals
             r.enabled = false;
             sr[i] = r;
         }
-        for (int i = 0; i < artSr.Length; i++) artSr[i] = Hero("art" + i, SortingOrder);
+        for (int i = 0; i < artSr.Length; i++)
+        {
+            artSr[i] = Hero("art" + i, SortingOrder);
+            artSr[i].maskInteraction = SpriteMaskInteraction.VisibleOutsideMask;   // a flare band's opening is a mask; with none active this changes nothing
+        }
+        for (int i = 0; i < holeMasks.Length; i++)
+        {
+            var go = new GameObject("holeMask" + i, typeof(SpriteMask));
+            go.transform.SetParent(root, false);
+            var m = go.GetComponent<SpriteMask>();
+            m.sprite = WhiteSquare();
+            m.enabled = false;
+            holeMasks[i] = m;
+        }
+    }
+
+    static Sprite WhiteSquare()
+    {
+        if (whiteSquare != null) return whiteSquare;
+        var tex = new Texture2D(4, 4, TextureFormat.RGBA32, false) { filterMode = FilterMode.Point, name = "flare_hole_mask" };
+        var px = new Color32[16];
+        for (int i = 0; i < 16; i++) px[i] = new Color32(255, 255, 255, 255);
+        tex.SetPixels32(px); tex.Apply(false, true);
+        whiteSquare = Sprite.Create(tex, new Rect(0, 0, 4, 4), new Vector2(.5f, .5f), 4f);   // exactly 1 unit square
+        return whiteSquare;
     }
 
     SpriteRenderer Hero(string name, int order)
@@ -52,10 +85,14 @@ public sealed class HazardVisuals
     public void Draw(HazardField[] fields)
     {
         int n = 0;
+        for (int i = 0; i < HoleDrawnY.Length; i++) HoleDrawnY[i] = float.NaN;
+        masksUsed = 0;
         for (int f = 0; f < fields.Length; f++)
             if (fields[f].Active) n = DrawField(fields[f], n);
         for (int i = n; i < Pool; i++) if (sr[i].enabled) sr[i].enabled = false;
         for (int i = artDrawn; i < artSr.Length; i++) artSr[i].enabled = false;
+        for (int i = masksUsed; i < holeMasks.Length; i++) if (holeMasks[i].enabled) holeMasks[i].enabled = false;
+        masksUsedLast = masksUsed;
         artLast = artDrawn; artDrawn = 0;
         Drawn = n;
     }
@@ -208,6 +245,50 @@ public sealed class HazardVisuals
         Put(ref n, AmbientShape.Edge, new Vector2(from, y), 0f, dir > 0f ? len : -len, h, c);
     }
 
+    // An Edge piece that leaves a gap where band `band`'s opening is: two segments (below and above it) instead of one full-height bar.
+    void EdgeCut(ref int n, HazardField f, int band, float from, float dir, float len, float midY, float H, Color c)
+    {
+        if (!HazardForce.HasHole(f, band)) { EdgeX(ref n, from, dir, len, midY, H, c); return; }
+        float bot = midY - H * .5f, top = midY + H * .5f;
+        float lo = f.holeY[band] - f.def.holeSize * .5f, hi = f.holeY[band] + f.def.holeSize * .5f;
+        if (lo > bot) EdgeX(ref n, from, dir, len, (bot + lo) * .5f, lo - bot, c);
+        if (hi < top) EdgeX(ref n, from, dir, len, (hi + top) * .5f, top - hi, c);
+    }
+
+    // Is a decoration at height y (half-height `ext`) over band `band`'s opening? Those are skipped: the opening is empty.
+    static bool OverHole(HazardField f, int band, float y, float ext = 0f)
+    {
+        return HazardForce.HasHole(f, band) && Mathf.Abs(y - f.holeY[band]) < f.def.holeSize * .5f + ext + .05f;
+    }
+
+    // The two lips of band `band`'s opening, centred on x `cx`, `span` wide: a hot line on each lip, a short soft glow leaning into the
+    // opening, and plasma frays that curl away from it (they lick back into the band). Strongest at `k` = 1.
+    void HoleLips(ref int n, HazardField f, int band, float cx, float span, float k, bool warn)
+    {
+        if (!HazardForce.HasHole(f, band)) return;
+        float tm = f.t, half = f.def.holeSize * .5f, y0 = f.holeY[band];
+        HoleDrawnY[band] = y0; HoleDrawnWarn = warn;
+        for (int lip = 0; lip < 2; lip++)
+        {
+            float dir = lip == 0 ? -1f : 1f;                 // away from the opening: down at the lower lip, up at the upper
+            float ly = y0 + dir * half;
+            float pulse = .75f + .25f * Mathf.Sin(tm * 9f + lip * 2f);
+            Put(ref n, AmbientShape.Streak, new Vector2(cx, ly), 90f, .07f, span, WithA(FlareHot, .8f * k * pulse));       // the lip: a thin white-hot line
+            Put(ref n, AmbientShape.Streak, new Vector2(cx, ly + dir * .06f), 90f, .22f, span * .9f, WithA(FlareMagenta, .45f * k));
+            Put(ref n, AmbientShape.Edge, new Vector2(cx, ly), -dir * 90f, .3f, span, WithA(FlareOrange, .22f * k));      // a short glow into the opening
+            int frays = warn ? 3 : 6;
+            for (int i = 0; i < frays; i++)
+            {
+                float jx = Hash(i + lip * 11 + band * 23, 61), jt = Hash(i + lip * 11, 62);
+                float ph = Mathf.Repeat(tm * (1.4f + jt) + jt * 3f, 1f);                  // each fray licks out and back
+                float x = cx + (jx - .5f) * span * .9f;
+                float curl = dir * (28f + 30f * Mathf.Sin(tm * 6f + i * 1.7f)) * (jx > .5f ? 1f : -1f);   // the plasma curls sideways as it frays
+                float len = .35f + .5f * Mathf.Sin(Mathf.PI * ph) * (.6f + .4f * jt);
+                Put(ref n, AmbientShape.Streak, new Vector2(x, ly + dir * len * .5f), curl, .09f, len, WithA(i % 2 == 0 ? FlareGold : FlareMagenta, .7f * k * Mathf.Sin(Mathf.PI * ph)));
+            }
+        }
+    }
+
     // SOLAR FLARES (Space): bands of plasma crossing the screen sideways. Procedural layers (soft glow edges, a hot core, plasma arcs
     // streaming behind the leading edge, sparks thrown ahead of it); the painted sheet (DrawBodyArt) goes on top when installed.
     // The WARNING is the origin edge flickering and glowing, a few hot slivers and sparks drifting in. Pink is allowed here.
@@ -221,21 +302,27 @@ public sealed class HazardVisuals
         {
             float x0 = -f.side * lane;
             float w = .35f + 1.7f * p;
-            EdgeX(ref n, x0, f.side, w * 1.4f, midY, H, WithA(FlareMagenta, (.07f + .18f * p) * flick));
-            EdgeX(ref n, x0, f.side, w, midY, H, WithA(FlareOrange, (.10f + .21f * p) * flick));
+            EdgeCut(ref n, f, 0, x0, f.side, w * 1.4f, midY, H, WithA(FlareMagenta, (.07f + .18f * p) * flick));   // a dark notch where the first band's opening will be
+            EdgeCut(ref n, f, 0, x0, f.side, w, midY, H, WithA(FlareOrange, (.10f + .21f * p) * flick));
+            HoleLips(ref n, f, 0, x0 + f.side * (.1f + .45f * p), .5f + 1.1f * p, .55f + .45f * p, true);
+            // a train's later bands: the same notch, fainter and a step behind, so the whole train's openings are readable before it comes
+            for (int b = 1; b < d.bands; b++) HoleLips(ref n, f, b, x0 + f.side * (.1f + .45f * p), .5f + 1.1f * p, .3f + .3f * p, true);
             // hot slivers: short bright bars on the edge, jumping about (the front's tip trying to break through)
             for (int i = 0; i < 6; i++)
             {
                 int cyc = (int)(tm * 7f) + i * 13;
                 if (Hash(cyc, 9 + i) > .35f + .5f * p) continue;
                 float y = f.viewBottom + Hash(cyc, 3) * (f.viewTop - f.viewBottom);
+                if (OverHole(f, 0, y, 1f)) continue;
                 Put(ref n, AmbientShape.Streak, new Vector2(x0 + f.side * .08f, y), 0f, .55f, .6f + 1.8f * Hash(cyc, 4), WithA(FlareHot, (.25f + .35f * p) * flick));
             }
             for (int i = 0; i < 4 + (int)(14 * p); i++)       // sparks drifting in from the edge
             {
                 float jx = Hash(i, 21), jy = Hash(i, 22);
                 float k = Mathf.Repeat(jx + tm * (.35f + .4f * jy), 1f);
-                Put(ref n, AmbientShape.Dot, new Vector2(x0 + f.side * k * (1.5f + 3f * p), f.viewBottom + Hash(i, 23) * (f.viewTop - f.viewBottom)), 0f, .05f + .07f * jy, WithA(i % 3 == 0 ? FlareMagenta : FlareGold, (1f - k) * (.4f + .4f * p)));
+                float sy = f.viewBottom + Hash(i, 23) * (f.viewTop - f.viewBottom);
+                if (OverHole(f, 0, sy)) continue;
+                Put(ref n, AmbientShape.Dot, new Vector2(x0 + f.side * k * (1.5f + 3f * p), sy), 0f, .05f + .07f * jy, WithA(i % 3 == 0 ? FlareMagenta : FlareGold, (1f - k) * (.4f + .4f * p)));
             }
             return n;
         }
@@ -247,13 +334,14 @@ public sealed class HazardVisuals
             if (Mathf.Abs(cx) > lane + d.size * 1.6f) continue;            // wholly gone / not yet in view
             float fl = .85f + .15f * Hash((int)(tm * 20f) + b * 7, 6);
             // glow layers, widest and softest first
-            EdgeX(ref n, lead, -f.side, d.size * 2.1f, midY, H, WithA(FlareViolet, .18f * fade * fl));
-            EdgeX(ref n, lead, -f.side, d.size * 1.45f, midY, H, WithA(FlareMagenta, .24f * fade * fl));
-            EdgeX(ref n, lead, -f.side, d.size * .95f, midY, H, WithA(FlareOrange, .35f * fade * fl));
-            EdgeX(ref n, lead, f.side, d.size * .5f, midY, H, WithA(FlareGold, .29f * fade * fl));   // the shocked air ahead of it
-            EdgeX(ref n, lead, -f.side, d.size * .32f, midY, H, WithA(FlareGold, .56f * fade * fl));
-            EdgeX(ref n, lead, -f.side, .2f, midY, H, WithA(FlareHot, .71f * fade));                 // the white-hot core line
-            EdgeX(ref n, lead, f.side, .1f, midY, H, WithA(FlareHot, .6f * fade));
+            EdgeCut(ref n, f, b, lead, -f.side, d.size * 2.1f, midY, H, WithA(FlareViolet, .18f * fade * fl));
+            EdgeCut(ref n, f, b, lead, -f.side, d.size * 1.45f, midY, H, WithA(FlareMagenta, .24f * fade * fl));
+            EdgeCut(ref n, f, b, lead, -f.side, d.size * .95f, midY, H, WithA(FlareOrange, .35f * fade * fl));
+            EdgeCut(ref n, f, b, lead, f.side, d.size * .5f, midY, H, WithA(FlareGold, .29f * fade * fl));   // the shocked air ahead of it
+            EdgeCut(ref n, f, b, lead, -f.side, d.size * .32f, midY, H, WithA(FlareGold, .56f * fade * fl));
+            EdgeCut(ref n, f, b, lead, -f.side, .2f, midY, H, WithA(FlareHot, .71f * fade));                 // the white-hot core line
+            EdgeCut(ref n, f, b, lead, f.side, .1f, midY, H, WithA(FlareHot, .6f * fade));
+            HoleLips(ref n, f, b, cx, d.size * 1.05f, fade, false);
             // plasma arcs: long streaks trailing the leading edge, undulating, hot near the front and violet at the tail
             for (int i = 0; i < 12; i++)
             {
@@ -261,6 +349,7 @@ public sealed class HazardVisuals
                 float y = f.viewBottom + Mathf.Repeat(jy + tm * .03f * (i % 2 == 0 ? 1f : -1f), 1f) * (f.viewTop - f.viewBottom);
                 float u = .15f + .85f * ju;                                                           // how far behind the lead (0..1 of 1.7 widths)
                 float wob = Mathf.Sin(tm * (5f + 3f * jy) + i * 1.9f) * .18f;
+                if (OverHole(f, b, y + wob, .5f)) continue;
                 float len = 1.0f + 2.2f * Hash(i, 33) * (1f - .4f * u);
                 Color c = u < .35f ? Color.Lerp(FlareHot, FlareGold, u / .35f) : u < .7f ? Color.Lerp(FlareGold, FlareMagenta, (u - .35f) / .35f) : Color.Lerp(FlareMagenta, FlareViolet, (u - .7f) / .3f);
                 Put(ref n, AmbientShape.Streak, new Vector2(lead - f.side * u * d.size * 1.7f, y + wob), -f.side * 90f, .6f, len, WithA(c, (.8f - .45f * u) * .7f * fade));
@@ -270,7 +359,9 @@ public sealed class HazardVisuals
             {
                 float jx = Hash(i + b * 17, 41), jy = Hash(i + b * 17, 42);
                 float k = Mathf.Repeat(jx + tm * (.9f + .7f * jy), 1f);
-                Put(ref n, AmbientShape.Dot, new Vector2(lead + f.side * (.1f + k * 2.2f), f.viewBottom + jy * (f.viewTop - f.viewBottom)), 0f, .05f + .09f * jx, WithA(i % 3 == 0 ? FlareHot : FlareGold, (1f - k) * .9f * fade));
+                float spy = f.viewBottom + jy * (f.viewTop - f.viewBottom);
+                if (OverHole(f, b, spy)) continue;
+                Put(ref n, AmbientShape.Dot, new Vector2(lead + f.side * (.1f + k * 2.2f), spy), 0f, .05f + .09f * jx, WithA(i % 3 == 0 ? FlareHot : FlareGold, (1f - k) * .9f * fade));
             }
         }
         return n;
@@ -357,6 +448,13 @@ public sealed class HazardVisuals
                 float lead = f.sweepX - f.side * b * d.bandGap + f.side * d.size * .5f;
                 float cx = lead - f.side * (FlareLead - .5f) * W;
                 if (warn) { lead = -f.side * f.laneHalf; cx = lead - f.side * (FlareLead - .5f) * W; if (b > 0) break; }
+                if (HazardForce.HasHole(f, b) && masksUsed < holeMasks.Length)
+                {
+                    // the opening: a mask over this band's tiles (they are clipped, not redrawn), the same place the warning showed
+                    var mk = holeMasks[masksUsed++]; mk.enabled = true;
+                    mk.transform.position = new Vector3(cx, f.holeY[b], 0f);
+                    mk.transform.localScale = new Vector3(W * 1.1f, d.holeSize, 1f);
+                }
                 for (int i = 0; i < perBand && used < artSr.Length; i++)
                 {
                     var r = artSr[used++]; r.enabled = true;

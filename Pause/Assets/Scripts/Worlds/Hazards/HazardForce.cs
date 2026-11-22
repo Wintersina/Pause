@@ -47,6 +47,7 @@ public static class HazardForce
                     float cx = f.sweepX - f.side * b * d.bandGap;
                     float u = (p.x - cx) * f.side;            // + toward the leading rim
                     if (Mathf.Abs(u) >= half) continue;
+                    if (InHole(f, b, p.y, 0f)) continue;      // the opening: no push at all
                     float w = Mathf.Sin(Mathf.PI * (1f - Mathf.Abs(u) / half) * .5f);
                     w *= 1f - d.shock + d.shock * 2f * Mathf.Clamp01(.5f + u / d.size);
                     if (w > best) best = w;
@@ -84,9 +85,74 @@ public static class HazardForce
         for (int b = 0; b < d.bands; b++)
         {
             float cx = f.sweepX - f.side * b * d.bandGap;
-            if (Mathf.Abs(p.x - cx) < half) return true;
+            if (Mathf.Abs(p.x - cx) < half && !InHole(f, b, p.y, radius)) return true;   // a disc wholly inside the opening is not touched
         }
         return false;
+    }
+
+    // ---- the slip-through hole of a Sweep band ----
+    public const float HoleEdgeBottom = 1.4f, HoleEdgeTop = 2.2f;   // keep the opening this far inside the view's bottom / top (the playable lane)
+    public const float HoleMinApart = .85f;                           // consecutive holes of a train differ by at least this x the hole's height
+
+    public static bool HasHole(HazardField f, int band) { return f.def.holeSize > 0f && band < f.holes; }
+
+    // Is a disc of `radius` at height y wholly inside band `band`'s opening?
+    public static bool InHole(HazardField f, int band, float y, float radius)
+    {
+        if (!HasHole(f, band)) return false;
+        return Mathf.Abs(y - f.holeY[band]) <= f.def.holeSize * .5f - radius;
+    }
+
+    // [low, high] the centre of a hole may take for this view.
+    public static void HoleRange(HazardField f, out float lo, out float hi)
+    {
+        float half = f.def.holeSize * .5f;
+        lo = f.viewBottom + HoleEdgeBottom + half;
+        hi = f.viewTop - HoleEdgeTop - half;
+        // a short view: two openings 0.85 heights apart need this much room, so give up some of the edge margin (never beyond the view itself)
+        float need = f.def.holeSize * HoleMinApart * 2f + .02f;
+        if (f.def.bands > 1 && hi - lo < need)
+        {
+            float floor = f.viewBottom + half + .1f, ceil = f.viewTop - half - .1f;
+            lo = Mathf.Max(floor, lo - (need - (hi - lo)) * .5f);
+            hi = Mathf.Min(ceil, lo + need);                      // whatever the bottom could not give comes off the top
+            if (hi - lo < need) lo = Mathf.Max(floor, hi - need);
+        }
+        if (hi < lo) lo = hi = (f.viewBottom + f.viewTop) * .5f;
+    }
+
+    // How far apart consecutive openings are kept: HoleMinApart x the opening's height (less only on a view too short to fit it even with the margins given up).
+    public static float HoleApart(HazardField f)
+    {
+        HoleRange(f, out float lo, out float hi);
+        return Mathf.Min(f.def.holeSize * HoleMinApart, (hi - lo) * .5f);
+    }
+
+    // Roll one hole per band (rand returns 0..1): inside the lane, and each hole at least HoleMinApart x its height from the one before.
+    public static void RollHoles(HazardField f, System.Func<float> rand)
+    {
+        f.holes = 0;
+        if (f.def.shape != HazardShape.Sweep || f.def.holeSize <= 0f) return;
+        HoleRange(f, out float lo, out float hi);
+        float apart = HoleApart(f);
+        int n = Mathf.Min(f.def.bands, HazardField.MaxBands);
+        for (int b = 0; b < n; b++)
+        {
+            float y = Mathf.Lerp(lo, hi, rand());
+            if (b > 0 && Mathf.Abs(y - f.holeY[b - 1]) < apart)
+            {
+                // too close: step to the side of the previous hole that has more room (the other side if it does not fit)
+                float prev = f.holeY[b - 1];
+                float up = prev + apart, down = prev - apart;
+                bool upFits = up <= hi, downFits = down >= lo;
+                if (upFits && downFits) y = (y >= prev) ? up : down;
+                else if (upFits) y = up;
+                else if (downFits) y = down;
+                else y = (prev - lo > hi - prev) ? lo : hi;   // a view too short to fit both: as far as it goes
+            }
+            f.holeY[b] = y;
+            f.holes = b + 1;
+        }
     }
 
     // The Column's pulse / burst gate (1 when it has none): shared by the force and the drawn stream.
