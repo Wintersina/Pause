@@ -529,21 +529,26 @@ public static class ShipSignatures2Test
             Teardown(c, 12);
         }
 
+        // Mines within wire reach chain at every level (ShipLinkLines wires); level 4 lengthens the wires to MineChainReach,
+        // so it reaches at least as many as level 3 and goes through the whole fan.
+        var left = new int[5];
         foreach (int level in new[] { 3, 4 })
         {
             FreshScene();
             var c = Ship(12, level);
             Vector3 nose = c.Runner.Nose;
-            Vector3 spot = nose + Quaternion.Euler(0f, 0f, 35f) * Vector3.up * 2.2f;
+            Vector3 spot = nose + Quaternion.Euler(0f, 0f, 35f) * Vector3.up * 2.2f;   // the first mine lands here
             var trip = Hazard(spot.x, spot.y);
             c.Runner.Fire();
             int launched = c.Runner.LiveMines;
             Steps(c.Runner, 1.2f);
+            left[level] = c.Runner.LiveMines;
             bool chains = ShipSignatures2.MinesChainAt(level);
-            Check("level " + level + ": one mine trips and the others " + (chains ? "go with it (" + c.Runner.LiveMines + " of " + launched + " left)" : "stay"),
-                  !Alive(trip) && (chains ? c.Runner.LiveMines < launched - 1 : c.Runner.LiveMines == launched - 1));
+            Check("level " + level + ": one mine trips (" + c.Runner.LiveMines + " of " + launched + " left)", !Alive(trip) && c.Runner.LiveMines < launched);
+            if (chains) Check("level " + level + ": the chain takes the others with it", c.Runner.LiveMines < launched - 1);
             Teardown(c, 12);
         }
+        Check("the level 4 wires reach at least as far as the level 3 ones", left[4] <= left[3]);
     }
 
     sealed class FakeRock : MonoBehaviour, IShipAttackTargetUncapped, ISceneryTarget

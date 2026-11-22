@@ -319,6 +319,7 @@ public static class AllTests
         ("SignatureUpgradesG1Test", SignatureUpgradesG1Test.Execute),
         ("ShipSignatures2Test", ShipSignatures2Test.Execute),
         ("JadeChainReactionTest", JadeChainReactionTest.Execute),
+        ("ShipLinksTest", ShipLinksTest.Execute),
         ("SkinHeartsTest", SkinHeartsTest.Execute),
         ("UpgradeHeartsSizeTest", UpgradeHeartsSizeTest.Execute),
         ("ShopHealthCarryoverTest", ShopHealthCarryoverTest.Execute),

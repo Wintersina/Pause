@@ -45,6 +45,8 @@ public class AttackV3
     public readonly float[] rAge = new float[ReturnMax];
     public int rCount;
     public AttackSprite eye;
+    public float nextPop;        // Arcane Eye: the earliest the next mark may pop (marks pop one after another)
+    public bool fallbackDone;    // Arcane Eye: the no-enemy fallback has had its one look
     public int count, resolved;
     public float y0;
     // Boomerang Star: who each star already hit on each leg (index star * 2 + leg), so a boss can take a hit
@@ -71,6 +73,8 @@ public class AttackV3
         for (int i = 0; i < ReturnMax; i++) { rFx[i] = null; rAge[i] = 0f; }
         rCount = 0;
         eye = null;
+        nextPop = 0f;
+        fallbackDone = false;
         count = resolved = 0;
         y0 = 0f;
     }
@@ -108,6 +112,9 @@ public partial class ShipAttackRunner
     // A detonation also hits everything within EyeBlast (+ half the neighbour's radius, like MineBlast) of the
     // marked target at EyeSplash of the weapon hit. Still-waiting marks are skipped: they take their own full hit.
     public const float EyeBlast = 1.2f, EyeSplash = .5f;
+    // The tethers: a mark pops no sooner than EyePopGap after the one before it (they pop in the order they were marked,
+    // each tether snapping as its mark goes), and a tether snaps over EyeSnapSeconds.
+    public const float EyePopGap = .12f, EyeSnapSeconds = .18f;
     // HEAT WAVE (Solar Fang)
     public const int WaveSegments = 5;
     // BOOMERANG STAR (Ninja)
@@ -128,6 +135,11 @@ public partial class ShipAttackRunner
     // PROXIMITY MINES (Saboteur)
     public const int MineCap = 12;
     public const float MineTrigger = .9f, MineBlast = 1.1f, MineLife = 6f, MineFlight = .4f;
+    // Two armed mines within MineWireReach are joined by a faint wire (at most MineWireCap on screen); a blowing mine runs
+    // its blast along its wires and sets off the mines on them MineChainDelay later (ShipSignatures2). Level 4 (the
+    // chain upgrade) lengthens the wires to MineChainReach.
+    public const float MineWireReach = 1.6f;
+    public const int MineWireCap = 8;
     // ABDUCT & HURL (UFO)
     public const float HoldAhead = 1.5f, PullSeconds = .5f, HurlSpeed = 15f, HurlRadius = .3f, GroupRadius = 1.8f;
     // GALE WINGS (Dove)
@@ -288,14 +300,24 @@ public partial class ShipAttackRunner
                     Vector3.one * .75f, 0f, ShipFxArt.LoopTicks, true, 0f, t.transform, Vector3.zero, 71).Owned(run).Strip("mark");
             }
         }
+        if (!v.fallbackDone && run.t >= gaze) { v.fallbackDone = true; if (v.count == 0) MarkFallback(run, v, eyePos); }
         int kills = 0;
+        var lines = Links;
         for (int i = 0; i < v.count; i++)
         {
             if (v.phase[i] != 0) continue;
             var t = v.tgt[i];
             if (t == null || !t.isActiveAndEnabled) { Resolve(v, i); continue; }   // gone already
-            if (run.t < v.at[i] + MarkDelay) continue;
+            if (run.t < Mathf.Max(v.at[i] + MarkDelay, v.nextPop))
+            {
+                // the tether from the eye to what will blow
+                lines.Link(ShipLinkLines.Kind.Tether, eyePos, t.transform.position, 0f, t.Radius * .5f,
+                    ShipLinkLines.TetherWidth, ShipLinkLines.TetherColor, .06f, i * 7 + 1);
+                continue;
+            }
+            v.nextPop = run.t + EyePopGap;   // the marks pop one after another
             Vector3 at = t.transform.position;
+            lines.Snap(eyePos, at, EyeSnapSeconds);
             Burst(run, at, blast * 2f, "mark");   // the mark burst, sized to the blast so its reach reads
             ShipTargets.Collect(targets);
             for (int k = 0; k < targets.Count; k++)
@@ -321,6 +343,37 @@ public partial class ShipAttackRunner
             Burst(run, eyePos, 1f);
             v.Release();
             run.active = false;
+        }
+    }
+
+    // Nothing in the gaze's cone (no enemy ahead): the eye marks what hazards are in view instead (rocks, mines, anything
+    // the weapons can hit), nearest first, up to its mark count. Each takes the same full hit a normal mark does.
+    void MarkFallback(AttackRun run, AttackV3 v, Vector3 eyePos)
+    {
+        var l = run.loadout;
+        ShipTargets.Collect(targets);
+        int max = Mathf.Min(l.shots, AttackV3.Max);
+        while (v.count < max)
+        {
+            ClearTarget best = null;
+            float bestSq = float.MaxValue;
+            for (int i = 0; i < targets.Count; i++)
+            {
+                var t = targets[i];
+                if (t == null || !t.isActiveAndEnabled || !ShipTargets.IsThreat(t) || t.IsShotHitbox) continue;
+                if (t.transform.position.y <= eyePos.y) continue;   // never behind the eye
+                bool taken = false;
+                for (int k = 0; k < v.count; k++) taken |= v.tgt[k] == t;
+                if (taken) continue;
+                float sq = ((Vector2)(t.transform.position - eyePos)).sqrMagnitude;
+                if (sq < bestSq) { bestSq = sq; best = t; }
+            }
+            if (best == null) break;
+            int s = v.count++;
+            v.tgt[s] = best;
+            v.at[s] = run.t;
+            v.fx[s] = AttackPool.Sprite().Play(AttackSprite.Source.AttackLoop, ship, best.transform.position,
+                Vector3.one * .75f, 0f, ShipFxArt.LoopTicks, true, 0f, best.transform, Vector3.zero, 71).Owned(run).Strip("mark");
         }
     }
 
@@ -488,7 +541,9 @@ public partial class ShipAttackRunner
         Rect view = ShipTargets.View();
         float w = 1f / Mathf.Max(1, l.shots);
         float blastR = ShipSignatures2.MineBlastAt(l.weaponLevel);   // Saboteur's signature: bigger from level 2 ...
-        bool chains = ShipSignatures2.MinesChainAt(l.weaponLevel);   // ... and chaining from level 4
+        // the wires: armed mines this close are joined, and the blast runs along them (from level 4 they reach further)
+        float wireReach = ShipSignatures2.MinesChainAt(l.weaponLevel) ? ShipSignatures2.MineChainReach : MineWireReach;
+        var lines = Links;
         ShipTargets.Collect(targets);
         int live = 0, kills = 0;
         for (int i = 0; i < v.count; i++)
@@ -530,16 +585,17 @@ public partial class ShipAttackRunner
             Vector3 at = v.pos[i];
             Fizzle(v, i);
             Burst(run, at, 1.8f * blastR / MineBlast);   // the burst drawing follows the blast radius
-            if (chains)
             {
-                // the blast sets off the armed mines near it, a beat apart (each still blows for its own share)
+                // the blast runs along the wires and sets off the armed mines on them, a beat apart (each still blows
+                // for its own share); the wire burns as it goes
                 for (int j = 0; j < v.count; j++)
                 {
                     // armed, or landing this very frame (a mine laid on top of a target trips the moment it lands)
                     bool armed = v.phase[j] == 2 || (v.phase[j] == 1 && v.at[j] + dt >= MineFlight);
                     if (j == i || !armed || v.chain[j] > 0f) continue;
-                    if (((Vector2)(v.pos[j] - at)).sqrMagnitude > ShipSignatures2.MineChainReach * ShipSignatures2.MineChainReach) continue;
+                    if (((Vector2)(v.pos[j] - at)).sqrMagnitude > wireReach * wireReach) continue;
                     v.chain[j] = ShipSignatures2.MineChainDelay;
+                    lines.Burn(at, v.pos[j], ShipSignatures2.MineChainDelay);
                 }
             }
             for (int k = 0; k < targets.Count; k++)
@@ -554,7 +610,43 @@ public partial class ShipAttackRunner
             }
             CameraKick.Kick(.02f);
         }
+        DrawMineWires(v, wireReach, lines);
         if (live == 0) run.active = false;
+    }
+
+    // A faint wire between each armed mine and its nearest armed neighbour in reach (one wire per pair), capped.
+    void DrawMineWires(AttackV3 v, float reach, ShipLinkLines lines)
+    {
+        int drawn = 0;
+        for (int i = 0; i < v.count && drawn < MineWireCap; i++)
+        {
+            if (v.phase[i] != 2) continue;
+            int best = -1;
+            float bestSq = reach * reach;
+            for (int j = 0; j < v.count; j++)
+            {
+                if (j == i || v.phase[j] != 2) continue;
+                float sq = ((Vector2)(v.pos[j] - v.pos[i])).sqrMagnitude;
+                if (sq <= bestSq) { bestSq = sq; best = j; }
+            }
+            if (best < 0) continue;
+            if (best < i && NearestMine(v, best, reach) == i) continue;   // the pair is drawn from the lower index
+            if (lines.Link(ShipLinkLines.Kind.Wire, v.pos[i], v.pos[best], .12f, .12f,
+                    ShipLinkLines.WireWidth, ShipLinkLines.WireColor, .05f, i * 5 + best)) drawn++;
+        }
+    }
+
+    static int NearestMine(AttackV3 v, int i, float reach)
+    {
+        int best = -1;
+        float bestSq = reach * reach;
+        for (int j = 0; j < v.count; j++)
+        {
+            if (j == i || v.phase[j] != 2) continue;
+            float sq = ((Vector2)(v.pos[j] - v.pos[i])).sqrMagnitude;
+            if (sq <= bestSq) { bestSq = sq; best = j; }
+        }
+        return best;
     }
 
     static void Fizzle(AttackV3 v, int i)
