@@ -139,9 +139,18 @@ public static class WorldBackdropTest
     // the lane guard is drawn darker by DesertTuning.VariantBrightness). The gameplay guard
     // (enemy bodies 2.5:1, brightest tone 7:1 against the rendered lane: CheckReadability and
     // DesertBackdropTest) is every world's.
-    const float DesertTileMaxValueP90 = 0.50f;
-    const float DesertSkyMaxLuminance = 0.26f;
-    const float DesertTileMaxLuminance = 0.31f;
+    //
+    // ROUND 5 (2026-11): the owner approved four brighter, more colourful painted grounds (khaki dune sea, lilac salt mine with blue
+    // brine and brown rails, rose dusk rock oasis with palms and solar panels, purple night craters with work fires) and said their
+    // props keep natural colours, so Desert's tile caps are retuned to that art (measured: mean luminance .525 / .472 / .414 / .174,
+    // value p90 .733 / .604 / .773 / .490, chroma .194 / .073 / .268 / .201) and no longer to the old muted dark base:
+    //   value p90 .50 -> .80, tile luminance .31 -> .55 (chroma .30 unchanged). These are Desert-only; the sky layer (hidden under the
+    //   opaque mid) is the same painting as the mid (the Codex backdrop thumbnails and the menus read the variant's sky texture), so its
+    //   luminance cap rises .26 -> .55 with the tile's; the far layer (also hidden) is a .8 x copy. Enemy readability is NOT left to these caps:
+    //   see DesertReadable (CheckReadability here, DesertBackdropTest.Brightness): the bright ground must still hold the enemies.
+    const float DesertTileMaxValueP90 = 0.80f;
+    const float DesertSkyMaxLuminance = 0.55f;
+    const float DesertTileMaxLuminance = 0.55f;
     const float DesertTileMaxChroma = 0.30f;
     const float DesertCloudMaxLuminance = 0.80f;
 
@@ -1175,6 +1184,9 @@ public static class WorldBackdropTest
     public const int DesertMinClusters = 4;
     public const float DesertMinValueRange = 0.15f;
     public const float DesertMaxForbiddenShare = 0.003f;   // tile pixels in a forbidden hue band (player red 345..15, star-dust amber, violet 250..300)
+    // Round 5: the dusk set's rose-red rock shadows (v3, .0057 measured) and the night set's red-hot crater glow and work fires
+    // (v4, .078 measured) are owner-approved painting, so those two sets get their own (measured + margin) cap; v1 / v2 keep .003.
+    public static float DesertMaxForbiddenShareFor(int variant) { return variant == 3 ? 0.010f : variant == 4 ? 0.10f : DesertMaxForbiddenShare; }
     public const int DesertMaxForbiddenAtlasPixels = 400;  // ... in the piece atlases (a rusted rivet may stray)
 
     static bool IsForbiddenDesert(Color c)
@@ -1219,8 +1231,8 @@ public static class WorldBackdropTest
             float range = values[(int)(n * 0.95f)] - values[(int)(n * 0.05f)];
             Check("Desert v" + v + " has >= " + DesertMinClusters + " distinct hue/value clusters (" + clusters + ")", clusters >= DesertMinClusters);
             Check("Desert v" + v + " value range p5..p95 >= " + DesertMinValueRange + " (" + range.ToString("F3") + ")", range >= DesertMinValueRange);
-            Check("Desert v" + v + " keeps out of the player's red, star-dust amber and violet (" + (forbidden / (float)n).ToString("F4") + " <= " + DesertMaxForbiddenShare + ")",
-                  forbidden <= DesertMaxForbiddenShare * n);
+            Check("Desert v" + v + " keeps out of the player's red, star-dust amber and violet (" + (forbidden / (float)n).ToString("F4") + " <= " + DesertMaxForbiddenShareFor(v) + ")",
+                  forbidden <= DesertMaxForbiddenShareFor(v) * n);
         }
         foreach (string atlas in new[] { "landmarks", "pipes", "fires", "sites", "weather" })
         {
@@ -1268,11 +1280,19 @@ public static class WorldBackdropTest
             float bright = Mathf.Max(RelLum(theme.light), Mathf.Max(RelLum(theme.hullHighlight), RelLum(theme.bone)));
             float kick = Contrast(bright, laneLum);
             float bodyMin = wspec.world == "Ember" ? EmberBodyContrastMin : 2.5f;
+            // DESERT (round 5, bright painted grounds): the bone-gold enemy hull is itself pale, so on the khaki / lilac / rose lanes it reads by its
+            // two ends: the indigo hull shadow (dark against the lane) and the sun-white light / pale highlight. An enemy body must reach 2.5:1
+            // with its best tone against the lane median and its brightest-or-darkest accent 3:1 (was 7:1 for the old dark lanes, where the bright
+            // tone alone had to carry); the lane may be as bright as the hull (no "darker than the hull" rule: the old muted ground's).
+            bool desert = wspec.world == "Desert";
+            float shade = Contrast(RelLum(theme.hullShadow), laneLum);
+            if (desert) { body = Mathf.Max(body, shade); kick = Mathf.Max(kick, shade); }
+            float kickMin = desert ? 3f : 7f;
             Check(world + " lane with enemies on top: body " + body.ToString("F2") + ":1 >= " + bodyMin.ToString("F1") + ", brightest " +
-                  kick.ToString("F2") + ":1 >= 7", body >= bodyMin && kick >= 7f);
+                  kick.ToString("F2") + ":1 >= " + kickMin.ToString("F0"), body >= bodyMin && kick >= kickMin);
             Check(world + " lane stays darker than enemy bodies (lane value p90 " + laneV90.ToString("F2") +
-                  " <= " + ValueCap(wspec) + " and < hull " + Value(theme.hull).ToString("F2") + ")",
-                  laneV90 <= ValueCap(wspec) && laneV90 < Value(theme.hull));
+                  " <= " + ValueCap(wspec) + (desert ? "" : " and < hull " + Value(theme.hull).ToString("F2")) + ")",
+                  laneV90 <= ValueCap(wspec) && (desert || laneV90 < Value(theme.hull)));
             // Ember's enemies are deliberately grey char on a warm ground, so
             // there only the world's chroma ceiling applies; the green world
             // must also stay greyer than its (green) enemies.

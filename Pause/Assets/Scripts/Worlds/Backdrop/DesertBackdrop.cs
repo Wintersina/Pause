@@ -48,22 +48,14 @@ using UnityEngine;
 public static class DesertTuning
 {
     // ---- brightness ----------------------------------------------------------
-    // The Desert art is painted dark-base with bone-gold crest lights (tile value
-    // p90 .40-.49, night .32-.42). Every world's gameplay guard is that an enemy
-    // body reads 2.5:1 against the rendered lane and the lane stays darker than
-    // the hull (WorldBackdropTest.CheckReadability, DesertBackdropTest), so each
-    // set may be DRAWN darker by its entry in VariantBrightness (k < 1 is a
-    // darkening curve, BackdropGrade; a layer takes its Graded share of it). The
-    // world's own lift stays 1 (below BackdropCatalog.Spec.BrightLift: the dark
-    // worlds' thin shot outlines). Undarkened, the brightest enemy tone (the sun-white light) read
-    // 6.8:1 (v1) and 5.9:1 (v3) against the rendered lane, under the 7:1 guard; the entries below
-    // bring every set to >= 7:1 and the night side below the day.
-    // 2026-10-27 ("nice, clear and bright, no blackness tint"): the sets are drawn as bright as the unchanged
-    // bounds allow. Measured ceilings (full lane): v1 ~1.06 (mid value p90 <= .50), v2 ~1.13 (same), v3 1.0 (mid
-    // luminance <= .31), v4 held <= v1 (night never brighter than the day); the baked centre dip of the mid layers
-    // (and the v4 sky) was levelled in the art, shadows only, so the crests keep their painted values.
+    // ROUND 5 (2026-11): the four ground sets are the owner-approved painted scenes -- v1 khaki dune sea, v2 lilac salt mine, v3 rose
+    // dusk rock oasis, v4 purple night craters -- bright and colourful, props in their natural colours, so NO set is darkened or
+    // graded any more: every VariantBrightness entry is 1 (it was 1 / 1.05 / 1.12 / 1 for the old dark-base art, which was lifted to its
+    // tile caps). The day sets are the bright ones (mean luminance .53 / .47 / .41) and the night side is held far below them (.17):
+    // DesertBackdropTest keeps v4 <= v1 and "night < .92 x day". Tile caps live in WorldBackdropTest (Desert-only, retuned to this art)
+    // and enemy readability on the bright lanes in WorldBackdropTest.CheckReadability / DesertBackdropTest.Brightness.
     public static float Brightness = 1f;
-    public static readonly float[] VariantBrightness = { 1f, 1.05f, 1.12f, 1f, 1.05f };   // index = variant (0 none)
+    public static readonly float[] VariantBrightness = { 1f, 1f, 1f, 1f, 1f };   // index = variant (0 none)
     public static readonly bool[] Night = { false, false, false, false, true };
     public static float NightLightBoost = 1.3f;
     public static float PlumeShare = 1f;
@@ -81,22 +73,22 @@ public static class DesertTuning
     public static float Wind = 1f;                                        // +1: plumes lean right (as painted)
     public static float PlateFeather = 0f;                                // the pieces carry their own sand skirt
 
-    // what each drawing may stand on (GroundPlanner). Mask letters: W dune sand,
-    // B built, O hardpan, C cliff (ground_masks.py).
-    static readonly PieceRule Structure = new PieceRule(GroundClass.Water | GroundClass.Open | GroundClass.Built, .7f, .3f);    // ruins, rigs, masts, caravans: anywhere but the cliffs
-    static readonly PieceRule Feature = new PieceRule(GroundClass.Any, 0f, .3f);                                              // rock, ribs, drifts, wreckage: anywhere
-    static readonly PieceRule Hollow = new PieceRule(GroundClass.Open | GroundClass.Water, .75f, .3f);                         // wells, vents, glass: soft or flat ground
-    static readonly PieceRule Dune = new PieceRule(GroundClass.Water, .8f, .3f);                                               // a dune ridge: sand
-    public static readonly PieceRule DockRelaxed = new PieceRule(GroundClass.Water | GroundClass.Open | GroundClass.Built, .6f, .3f);   // (dunes / flats / built ground, never the cliffs)
-    static readonly PieceRule Anywhere = new PieceRule(GroundClass.Any, 0f, .2f);
-    // a pipe bridge laid ALONE (a bank piece; runs between structures lay
-    // their own): its pipes are sliced off at the cell edge, so both ends must
-    // come down on painted pipeline / ruin (Built) -- it carries a painted line
-    // over a gap -- never left standing on open sand. Never mirrored. Ends:
-    // share of the drawn width from the centre, y up, over its feet.
-    static readonly PieceRule PipeSpan0 = new PieceRule(GroundClass.Any, 0f, .2f)
+    // what each drawing may stand on (GroundPlanner). Mask letters: W soft sand / dust, O hardpan, B built (unused), C BLOCKED
+    // (ground_masks.py). Since round 5 the ground tiles carry their own painted props (outposts, rigs, rails, bones, rocks, oases,
+    // palms, crater rims): the mask marks every one of them C, and every rule below demands its WHOLE footprint (need 1) on
+    // unpainted ground, so nothing the game places -- landmarks, features, pipes, wells, docks, wanderers, worms -- lands on art.
+    public const GroundClass Clear = GroundClass.Water | GroundClass.Open | GroundClass.Built;                                          // (everything but a painted prop)
+    static readonly PieceRule Structure = new PieceRule(Clear, 1f, .3f);                                                     // ruins, rigs, masts, caravans
+    static readonly PieceRule Feature = new PieceRule(Clear, 1f, .3f);                                                       // rock, ribs, drifts, wreckage
+    static readonly PieceRule Hollow = new PieceRule(Clear, 1f, .3f);                                                        // wells, vents, glass
+    static readonly PieceRule Dune = new PieceRule(GroundClass.Water, 1f, .3f);                                              // a dune ridge: sand
+    public static readonly PieceRule DockRelaxed = new PieceRule(Clear, 1f, .3f);                                            // (any clear ground: dunes / flats)
+    static readonly PieceRule Anywhere = new PieceRule(Clear, 1f, .2f);                                                      // lone pipes
+    // a pipe bridge laid ALONE (a bank piece; runs between structures lay their own): its two ends must come down on painted
+    // pipeline (Built). The painted props are blocked now, never Built, so no bridge is placed any more.
+    static readonly PieceRule PipeSpan0 = new PieceRule(Clear, 1f, .2f)
         .WithEnds(new Vector2(-.42f, -.12f), new Vector2(.42f, -.12f), GroundClass.Built);
-    static readonly PieceRule PipeSpan1 = new PieceRule(GroundClass.Any, 0f, .2f)
+    static readonly PieceRule PipeSpan1 = new PieceRule(Clear, 1f, .2f)
         .WithEnds(new Vector2(-.30f, -.15f), new Vector2(.42f, -.15f), GroundClass.Built);
 
     public static PieceRule Rule(string piece)
@@ -574,13 +566,13 @@ public class DesertDirector : PlanetDirector
         if (frames == null || frames.Length == 0 || !planner.Ready) return;
         string loop = DesertAmbientCatalog.WandererNames[kind];
         // a dust devil wants the soft dune sand, a mirage glint the flats; a gust goes anywhere
-        GroundClass on = loop == "dustdevil" ? GroundClass.Water : loop == "mirage_glint" ? GroundClass.Open : GroundClass.Any;
+        GroundClass on = loop == "dustdevil" ? GroundClass.Water : loop == "mirage_glint" ? GroundClass.Open : DesertTuning.Clear;     // (never over a painted prop)
         float size = Rand(DesertTuning.WandererMin, DesertTuning.WandererMax);
         for (int t = 0; t < 12; t++)
         {
             float x = Rand(XMin(size), XMax(size));
             double gy = planner.Travel + HalfH + size * .5f + Rand(0f, 2f);
-            if (planner.Match(x, gy, size * .3f, size * .25f, on) < .8f) continue;
+            if (planner.Match(x, gy, size * .3f, size * .25f, on) < 1f) continue;
             var p = wanderers.Spawn();
             if (p == null) return;
             SetSprite(p, frames[0], size);
@@ -755,8 +747,11 @@ public class DesertDirector : PlanetDirector
         float len = x1 - x0;
         if (len < .3f) return false;
         // over soft dune sand the run is half buried, over a cliff or gap it is a trestle bridge
+        // a run never crosses a painted prop (class C anywhere along it: no run)
+        for (float sx = x0; sx <= x1 + .001f; sx += .15f)
+            if (planner.ClassAt(sx, gy) == GroundClass.Canopy) return false;
         var under = planner.ClassAt((x0 + x1) * .5f, gy);
-        bool buried = under == GroundClass.Water, trestle = under == GroundClass.Canopy;
+        bool buried = under == GroundClass.Water, trestle = false;
         string name = buried ? "half_buried_pipe" : trestle ? "pipe_bridge_00" : Pick(DesertTuning.HorizontalPipes);
         int pieces = 1;
         float span = SpanOf(name);
@@ -998,7 +993,8 @@ public class DesertDirector : PlanetDirector
         return 0;
     }
 
-    GroundClass WormGround { get { return set.Variant == 2 || set.Variant == 3 ? GroundClass.Water | GroundClass.Open : GroundClass.Water; } }
+    // (v2's salt flat has no dune sand: its worms swim the hardpan; never a painted prop)
+    GroundClass WormGround { get { return GroundClass.Water | GroundClass.Open; } }
 
     // A worm's ridge starts crawling in the upper half of the view, on sand where the
     // whole of its path fits. `size` -1 picks one (the weights, the giant's cool-down).
@@ -1021,13 +1017,11 @@ public class DesertDirector : PlanetDirector
             float a = float.IsNaN(heading) ? Rand(-.7f, .7f) : heading;
             float vx = speed * Mathf.Sin(a), vy = speed * Mathf.Cos(a);
             if (Mathf.Abs(x) > EdgeX * .4f) vx = -Mathf.Sign(x) * Mathf.Abs(vx);
-            double gy2 = gy + vy * ridge1 * .5; float x2 = x + vx * ridge1 * .5f;
-            double gy3 = gy + vy * ridge1; float x3 = x + vx * ridge1;
+            float x3 = x + vx * ridge1;
             if (!float.IsNaN(atX) && t == 0) { /* a forced spot: still checked below */ }
             if (Mathf.Abs(x3) > EdgeX - cell * .15f || !planner.Free(x, gy, rx, ry)) continue;
             if (!ignoreItems && !PathClear(x, gy, vx, vy, ridge1, rx, ry, cell)) continue;
-            if (planner.Match(x, gy, rx, ry, WormGround) < .65f || planner.Match(x2, gy2, rx, ry, WormGround) < .6f ||
-                planner.Match(x3, gy3, rx, ry, WormGround) < .55f) continue;
+            if (!PathOnGround(x, gy, vx, vy, ridge1, rx, ry, cell)) continue;
             var p = worms.Spawn();
             if (p == null) return false;
             p.kind = size;
@@ -1115,6 +1109,20 @@ public class DesertDirector : PlanetDirector
             float px = x + vx * tt; double pgy = gy + vy * tt;
             bool erupt = Mathf.Abs(t - ridgeSeconds) < .6f;
             if (!planner.Free(px, pgy, (erupt ? ex : rx) + m, (erupt ? ey : ry) + m)) return false;
+        }
+        return true;
+    }
+
+    // The whole planned life of a worm (ridge, eruption, the ridge after it) on ground with no painted prop under any of it.
+    bool PathOnGround(float x, double gy, float vx, float vy, float ridgeSeconds, float rx, float ry, float cell)
+    {
+        float ey = cell * .2f;
+        float total = ridgeSeconds + 1.2f + 4.3f;
+        for (float t = 0f; t <= total; t += .25f)
+        {
+            float tt = t <= ridgeSeconds ? t : ridgeSeconds + Mathf.Min(1.2f, t - ridgeSeconds) * .25f + Mathf.Max(0f, t - ridgeSeconds - 1.2f);
+            bool erupt = Mathf.Abs(t - ridgeSeconds) < .6f;
+            if (planner.Match(x + vx * tt, gy + vy * tt, rx, erupt ? ey : ry, WormGround) < 1f) return false;
         }
         return true;
     }
