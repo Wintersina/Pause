@@ -403,10 +403,8 @@ public class SpaceDock : MonoBehaviour
         // A bay is a finger-sized tap target: where the 75% bay would be under 48 dp / pt (a dense cover screen), the
         // whole lot is drawn larger (and fitted to the width that leaves).
         float tapWorld = 48f * (fit ? UiScale.UnitPx * worldPerPixel : worldPerPoint);
-        float grow = Mathf.Max(1f, tapWorld / DockLayout.BayW);
-        float lotWidth = (wide ? rackPane.width : right - left) / grow;
-        layout = DockLayout.For(count, lotWidth, (cardTop - bottom - HintBand) / grow);
-        layout.scale *= grow;
+        float lotWidth = wide ? rackPane.width : right - left;
+        layout = DockLayout.For(count, lotWidth, cardTop - bottom - HintBand, tapWorld / DockLayout.BayW);
         camX = camPos.x;
         browseOffset = (wide ? view.center.x : (left + right) * .5f) - camPos.x;
         this.rackPane = rackPane;
@@ -415,6 +413,7 @@ public class SpaceDock : MonoBehaviour
         spaceLeft = left;
         spaceRight = right;
 
+        hintFloor = hintBottom;
         // A lot taller than its space gets a solid band at its foot for the MORE BELOW hint, so no bay ever sits
         // behind the chevron: the scroll viewport ends above it.
         if (layout.Height * layout.scale > spaceTop - spaceBottom + .001f && spaceTop - spaceBottom - HintBand > 2f)
@@ -424,8 +423,8 @@ public class SpaceDock : MonoBehaviour
             float rowH = DockLayout.BayW * layout.scale;
             int whole = Mathf.FloorToInt((spaceTop - spaceBottom) / rowH + .001f);
             if (whole >= 2 && whole < layout.rows) spaceBottom = spaceTop - whole * rowH;
+            hintFloor = Mathf.Max(hintFloor, spaceBottom - HintBand);   // the hint hugs the viewport, not the footer
         }
-        hintFloor = hintBottom;
         BuildLot();
         ComputeSelectOffset();
 
