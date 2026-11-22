@@ -1710,7 +1710,7 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint, I
         if (ramBlock > 1e-4f || hitBlock > 1e-4f) { ShowShieldBlocked(); return; }
         ramBlock = BossRam.EliteRamBlockSeconds;
         Rams++;
-        BossRam.SpendShield(BossRam.RamShieldCost);
+        BossRam.SpendShield(BossRam.EliteRamShieldCost);   // (none: an elite has double hearts now, a ram costs it a heart but the shield no time)
         ramDamage += BossRam.RamWeight;
         if (ramDamage >= 1f - 1e-4f)
         {

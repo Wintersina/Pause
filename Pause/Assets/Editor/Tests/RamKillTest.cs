@@ -49,6 +49,7 @@ public static class RamKillTest
             EliteAndShotsUnchanged();
             FatalUnchanged();
             PostHitWindowRamsNothing();
+            ShieldRamKillsOutright();
             NoAllocations();
         }
         finally
@@ -117,6 +118,32 @@ public static class RamKillTest
     }
 
     // ---- 1. it explodes, unpaid ------------------------------------------------
+
+    // Combat rework: the shield (the blue atom's, Turtle's shell contact, a shielded ram) still kills outright. A 2-heart enemy dies to
+    // ONE shielded ram whatever its hearts, a fresh hazard is destroyed without a deflect, and the ship keeps every heart.
+    static void ShieldRamKillsOutright()
+    {
+        var r = Ship();
+        try
+        {
+            Fresh();
+            collisionDetection.atomCheck = true;
+            var foe = Hazard(EnemyRole.Fighter, r.ship.transform.position + Vector3.right * .3f);
+            var hearts = foe.GetComponent<EnemyHearts>();
+            Check("(the enemy is a normal 2-heart fighter)", hearts != null && hearts.Hearts == 2);
+            Ram(r, foe);
+            Check("a shield ram kills a 2-heart enemy outright, and the ship loses no heart", foe == null && collisionDetection.lifeCounter == 0);
+
+            Fresh();
+            collisionDetection.atomCheck = true;
+            var rock = Hazard(EnemyRole.Rock, r.ship.transform.position + Vector3.right * .3f);
+            var hazard = rock.GetComponent<HazardHits>();
+            Check("(the rock is fresh: not deflected)", hazard != null && !hazard.Deflected);
+            Ram(r, rock);
+            Check("a shield ram destroys a fresh hazard outright, with no deflect", rock == null && collisionDetection.lifeCounter == 0);
+        }
+        finally { Fresh(); r.Dispose(); }
+    }
 
     static void ExplodesUnpaid()
     {
