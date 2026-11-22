@@ -992,11 +992,27 @@ public class CodexPanel : MonoBehaviour
     {
         if (sequence != seq) return;
         sequence = null;
+        if (achievementsOpen) ach.PaintAll();
         AfterCollect(seq.TotalPaid);
+    }
+
+    // COLLECT ALL of the ACHIEVEMENTS list: the same glide-and-pay sequence, over the claimable badges (the view
+    // supplies the ids in list order). Each badge is claimed (and saved) as its step ends.
+    public void StartAchievementCollect(List<string> ids)
+    {
+        if (!achievementsOpen || inDetail || ids == null || ids.Count == 0) return;
+        if (sequence != null && sequence.Active) { FinishSequence(); return; }
+        sequenceShown = 0;
+        sequence = new CodexCollectSequence(ids, id => AchievementStore.Claim(AchievementCatalog.Find(id)));
+        sequence.Focused = OnSequenceFocus;
+        sequence.Paid = OnSequencePaid;
+        sequence.Begin();
+        RefreshCounter();
     }
 
     void OnSequenceFocus(string id)
     {
+        if (achievementsOpen) { ach.GlideToCard(id); return; }
         ScrollToFind(id);
         PaintNewDots();
     }
@@ -1004,6 +1020,7 @@ public class CodexPanel : MonoBehaviour
     void OnSequencePaid(string id, int dust)
     {
         sequenceShown += dust;
+        if (achievementsOpen) ach.OnSequencePaid(dust);
         SpawnDust(id, dust);
         RefreshCounter();
         PaintNewDots();
@@ -1024,15 +1041,43 @@ public class CodexPanel : MonoBehaviour
         if (dustFx == null || dust <= 0 || sequence == null || !sequence.Active) return;
         dustLayer.SetAsLastSibling();
         Vector2 from = layout.body.center;
-        var e = Codex.Find(id);
-        if (e != null)
-            for (int i = 0; i < shownCount; i++)
-                if (cards[i].entry == e) { from = LocalInDust(cards[i].rt); break; }
+        var row = RowOf(id);
+        if (row != null) from = LocalInDust(row);
         from.x = Mathf.Clamp(from.x, layout.body.xMin, layout.body.xMax);
         from.y = Mathf.Clamp(from.y, layout.body.yMin, layout.body.yMax);
         Vector2 to = CounterTextCentre();
         LastDustFrom = from; LastDustTo = to;
         dustFx.Spawn(from, to, Mathf.Max(.1f, sequence.StepSeconds * .9f), dust);
+    }
+
+    // The on-screen row (card, badge, combo or track row) of a pending id, with its glide landed first so it is read where
+    // it rests (a squeezed step can end before the glide does). Null when the row is not in the open view.
+    RectTransform RowOf(string id)
+    {
+        if (achievementsOpen)
+        {
+            ach.FinishGlide();
+            int a = ach.CardIndexOf(id);
+            return a >= 0 ? ach.CardRect(a) : null;
+        }
+        if (combosOpen)
+        {
+            combos.FinishGlide();
+            int c = combos.RowIndexOfPayId(id);
+            return c >= 0 ? combos.RowRect(c) : null;
+        }
+        if (musicOpen)
+        {
+            music.FinishGlide();
+            int m = music.RowIndexOf(id);
+            return m >= 0 ? music.RowRect(m) : null;
+        }
+        var e = Codex.Find(id);
+        if (e == null) return null;
+        if (jumping) { jumpAt = -100f; UpdateJump(Time.unscaledTime); }
+        for (int i = 0; i < shownCount; i++)
+            if (cards[i].entry == e) return cards[i].rt;
+        return null;
     }
 
     // The last burst's origin and target in the dust layer's space (tests compare them with the card and the counter).

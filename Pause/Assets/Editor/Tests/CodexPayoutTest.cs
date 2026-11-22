@@ -56,15 +56,20 @@ public static class CodexPayoutTest
         var first = Codex.Entries.First(e => e.category == CodexCategory.Enemies && !e.secret && BossCatalog.Find(e.id) == null && EliteCatalog.FindByCodexId(e.id) == null);
         var boss = Codex.Entries.First(e => BossCatalog.Find(e.id) != null);
 
-        // ---- first discovery pays once ----
+        // ---- enemies wait for COLLECT (like atoms): pending on discovery, paid once by the collect ----
         Reset("", 100f);
         Check("discover: true on the first contact", Codex.Discover(first.id));
-        Check("discover: paid the table value once", Dust() == 100f + CodexPayout.For(first) && Codex.IsRewardCollected(first.id) && !Codex.IsRewardPending(first));
-        Check("discover again: false, nothing more", !Codex.Discover(first.id) && Dust() == 100f + CodexPayout.For(first));
+        Check("enemy: first discovery pays 0 now, it is pending with the table value waiting",
+              Dust() == 100f && Codex.IsRewardPending(first) && Codex.PendingDust(first) == CodexPayout.For(first) && Codex.PendingIdsIn(CodexCategory.Enemies).Contains(first.id));
+        Check("discover again: false, still nothing paid", !Codex.Discover(first.id) && Dust() == 100f && Codex.PendingIn(CodexCategory.Enemies) == 1);
+        Check("enemy: the sweep and back-pay leave it pending", Codex.PayBackOnce() == 0 && Codex.IsRewardPending(first));
+        Check("enemy: COLLECT pays the table value once", Codex.CollectReward(first.id) == CodexPayout.For(first) && Dust() == 100f + CodexPayout.For(first)
+              && Codex.IsRewardCollected(first.id) && !Codex.IsRewardPending(first) && Codex.CollectReward(first.id) == 0);
         Codex.Reload();
-        Check("after a reload: still paid once", !Codex.Discover(first.id) && Dust() == 100f + CodexPayout.For(first));
+        Check("after a reload: still paid once", !Codex.Discover(first.id) && Dust() == 100f + CodexPayout.For(first) && Codex.PendingIn(CodexCategory.Enemies) == 0);
         Codex.Discover(boss.id);
-        Check("a boss pays its own (larger) value", Dust() == 100f + CodexPayout.For(first) + CodexPayout.For(boss));
+        Check("a boss waits, then pays its own (larger) value", Dust() == 100f + CodexPayout.For(first) && Codex.CollectRewards(CodexCategory.Enemies) == CodexPayout.For(boss)
+              && Dust() == 100f + CodexPayout.For(first) + CodexPayout.For(boss));
 
         // cloud restore handing back the discovered flags (and an older save without the paid list) never pays again
         float afterTwo = Dust();
@@ -103,7 +108,7 @@ public static class CodexPayoutTest
         DeveloperUnlocks.SetEnabled(false);
 
         // ---- back-pay ----
-        var older = Codex.Entries.Where(e => e.category != CodexCategory.Log && !e.secret && e.category != CodexCategory.Ships && e.category != CodexCategory.Worlds && e.category != CodexCategory.Atoms).Take(4).ToArray();
+        var older = Codex.Entries.Where(e => e.category != CodexCategory.Log && !e.secret && e.category != CodexCategory.Ships && e.category != CodexCategory.Worlds && e.category != CodexCategory.Atoms && e.category != CodexCategory.Enemies).Take(4).ToArray();
         Reset(string.Join(",", older.Select(e => e.id)) + ",music_world_ember,bd_frost_2", 100f);
         PlayerPrefs.SetString(Codex.PaidKey, older[0].id);   // one was already collected under the old claim system
         PlayerPrefs.SetString("boughtship2", "True");        // a ship owned counts as discovered too

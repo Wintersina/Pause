@@ -61,6 +61,13 @@ public sealed class CodexCombosView
     public RectTransform RowRect(int i) { return rows[i].rt; }
     readonly CodexGlide glide = new CodexGlide();
     public void Tick() { glide.Tick(content); }
+    public void FinishGlide() { glide.Finish(content); }
+    public int RowIndexOfPayId(string payId)
+    {
+        for (int i = 0; i < rows.Length; i++)
+            if (rows[i].def != null && CodexPayout.FusionPayId(rows[i].def) == payId) return i;
+        return -1;
+    }
     // Smooth-scrolls so the combo's row (by pay id, "fusion_<key>") is at the top of the list.
     public void GlideToCombo(string payId)
     {

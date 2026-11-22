@@ -257,6 +257,8 @@ public sealed class CodexMusicView
 
     public void SetFade(float alpha) { rootGroup.alpha = alpha; }
 
+    public void FinishGlide() { glide.Finish(content); }
+
     public void Tick()
     {
         glide.Tick(content);
