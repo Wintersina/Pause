@@ -4,9 +4,9 @@ using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 // The SHIP PERCH rows of the Options screen (leaderboardS3): where the ship floats relative to the finger
-// (PerchSettings). The direction is a 3-button selector labelled 1 2 3 = left, top, right (1 LEFT, 2 TOP, 3 RIGHT)
-// under a SHIP PERCH title, the chosen one lit amber, the others dim; it sits in the SWITCHES group. The distance is
-// a continuous slider in the SLIDERS group (OptionsLayout). Built at runtime from the screen's own "Tutorial" button
+// (PerchSettings). The direction is a 3-button selector labelled LEFT, TOP, RIGHT
+// under a SHIP PERCH title, the chosen one lit amber, the others dim. The distance is a continuous slider with a
+// DISTANCE caption directly under the buttons, so title, buttons and slider read as one block (OptionsLayout). Built at runtime from the screen's own "Tutorial" button
 // like the sound row, with the same neon slider art.
 //
 // Builds that offer developer mode fill that area (the sound row moves there), so the rows are
@@ -42,7 +42,7 @@ public class PerchOptions : MonoBehaviour
             new GameObject("~PerchOptions").AddComponent<PerchOptions>();
     }
 
-    public static string SlotLabel(int slot) { return (slot + 1) + " " + SlotWords[slot]; }
+    public static string SlotLabel(int slot) { return SlotWords[slot]; }
 
     // Selected button: amber text on the lit art; the others dim.
     public static Color LabelColor(bool selected) { return selected ? AkiraPalette.Amber : AkiraPalette.WithAlpha(AkiraPalette.Muted, .75f); }
@@ -132,7 +132,7 @@ public class PerchOptions : MonoBehaviour
         hit.color = new Color(0f, 0f, 0f, 0f);
         hit.raycastPadding = new Vector4(0f, -HitPad, 0f, -HitPad);
 
-        MakeText(root, CaptionName, like, "PERCH DISTANCE", CaptionY, CaptionH, SliderW, 14, 22, AkiraPalette.Muted);
+        MakeText(root, CaptionName, like, "DISTANCE", CaptionY, CaptionH, SliderW, 14, 22, AkiraPalette.Muted);
 
         var track = Art(root, "Track", "options_track", true).rectTransform;
         track.anchorMin = new Vector2(0f, .5f); track.anchorMax = new Vector2(1f, .5f);

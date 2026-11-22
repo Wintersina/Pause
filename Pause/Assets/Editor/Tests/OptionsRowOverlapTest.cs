@@ -207,18 +207,22 @@ public static class OptionsRowOverlapTest
             slTop = Mathf.Max(slTop, r.yMax);
         }
         Check(tag + "every switch sits above every slider", swBottom >= slTop - 1f);
-        // order inside the groups, top to bottom: VIBRATION, UPGRADE OFFERS, SHIP PERCH direction, EFFECTS / MUSIC switches
-        Check(tag + "switch order VIBRATION > UPGRADE OFFERS > SHIP PERCH > sound switches",
-              sw[0].yMin >= sw[1].yMax - 1f && sw[1].yMin >= sw[2].yMax - 1f && sw[2].yMin >= Mathf.Max(sw[3].yMax, sw[4].yMax) - 1f);
-        Check(tag + "EFFECTS and MUSIC switches side by side", Mathf.Abs(sw[3].y - sw[4].y) < 1f && sw[3].xMax <= sw[4].xMin + 1f);
-        Check(tag + "slider order EFFECTS + MUSIC volume > SHIP PERCH distance",
-              Mathf.Abs(sl[0].y - sl[1].y) < 1f && sl[0].xMax <= sl[1].xMin + 1f && sl[0].yMin >= sl[2].yMax - 1f);
+        Check(tag + "switch order VIBRATION > UPGRADE OFFERS > sound switches",
+              sw[0].yMin >= sw[1].yMax - 1f && sw[1].yMin >= Mathf.Max(sw[2].yMax, sw[3].yMax) - 1f);
+        Check(tag + "EFFECTS and MUSIC switches side by side", Mathf.Abs(sw[2].y - sw[3].y) < 1f && sw[2].xMax <= sw[3].xMin + 1f);
+        Check(tag + "EFFECTS and MUSIC sliders side by side", Mathf.Abs(sl[0].y - sl[1].y) < 1f && sl[0].xMax <= sl[1].xMin + 1f);
+        // the SHIP PERCH block sits between the groups: switches > selector > distance slider > SLIDERS heading > sliders
+        var perchSel = Px(rig, PerchOptions.RowName); var perchSl = Px(rig, PerchOptions.SliderName);
+        Check(tag + "SHIP PERCH selector sits below the switches", perchSel.width > 1f && perchSel.yMax <= swBottom + 1f);
+        Check(tag + "SHIP PERCH distance slider sits directly under the selector (gap under a third of the selector, centred with it)",
+              perchSl.width > 1f && perchSl.yMax <= perchSel.yMin + 1f && perchSel.yMin - perchSl.yMax < perchSel.height * .33f && Mathf.Abs(perchSl.x - perchSel.x) < 1f);
+        Check(tag + "SHIP PERCH block sits above the sound sliders", perchSl.yMin >= slTop - 1f);
         var h1 = Px(rig, "SwitchesHeading"); var h2 = Px(rig, "SlidersHeading");
         Check(tag + "SWITCHES heading sits above the switches", h1.width > 1f && h1.yMin >= sw[0].yMax - 1f);
-        Check(tag + "SLIDERS heading sits between the groups", h2.width > 1f && h2.yMax <= swBottom + 1f && h2.yMin >= slTop - 1f);
+        Check(tag + "SLIDERS heading sits under the SHIP PERCH block, over the sliders", h2.width > 1f && h2.yMax <= perchSl.yMin + 1f && h2.yMin >= slTop - 1f);
 
-        // the SHIP PERCH direction selector: three buttons 1 2 3 = left, top, right, clear of each other, the title and the row edge
-        var rowRect = Px(rig, PerchOptions.RowName);
+        // the SHIP PERCH direction selector: three buttons LEFT, TOP, RIGHT, clear of each other, the title and the row edge
+        var rowRect = perchSel;
         var perch = Object.FindFirstObjectByType<PerchOptions>();
         var dirs = new Rect[PerchSettings.TiltCount];
         var dirButtons = new UnityEngine.UI.Button[PerchSettings.TiltCount];
@@ -235,12 +239,12 @@ public static class OptionsRowOverlapTest
             dirButtons[i] = go.GetComponent<UnityEngine.UI.Button>();
             dirs[i] = rig.PixelRect((RectTransform)go.transform);
             var label = go.GetComponentInChildren<UnityEngine.UI.Text>(true);
-            Check(tag + "perch button " + (i + 1) + " reads \"" + PerchOptions.SlotLabel(i) + "\"", label != null && label.text == PerchOptions.SlotLabel(i));
+            Check(tag + "perch button " + (i + 1) + " reads \"" + PerchOptions.SlotLabel(i) + "\"", label != null && label.text == PerchOptions.SlotLabel(i) && label.text == new[] { "LEFT", "TOP", "RIGHT" }[i]);
             Check(tag + "perch button " + (i + 1) + " inside its row and clear of the title",
                   dirs[i].xMin >= rowRect.xMin - 1f && dirs[i].xMax <= rowRect.xMax + 1f && dirs[i].yMin >= rowRect.yMin - 1f && Apart(dirs[i], title));
         }
-        Check(tag + "perch buttons run left to right 1 2 3 without touching", dirs[0].xMax <= dirs[1].xMin && dirs[1].xMax <= dirs[2].xMin);
-        // tapping maps 1/2/3 to left/top/right and lights only the chosen one
+        Check(tag + "perch buttons run left to right LEFT, TOP, RIGHT without touching", dirs[0].xMax <= dirs[1].xMin && dirs[1].xMax <= dirs[2].xMin);
+        // tapping maps the buttons to left/top/right and lights only the chosen one
         int[] expect = { PerchSettings.AboveLeft, PerchSettings.Above, PerchSettings.AboveRight };
         for (int i = 0; i < dirs.Length; i++)
         {
@@ -283,6 +287,8 @@ public static class OptionsRowOverlapTest
                   ringRect.xMin >= rootRect.xMin - 1f && ringRect.xMax <= rootRect.xMax + 1f && ringRect.yMin >= rootRect.yMin - 1f && Apart(ringRect, caption));
         }
         Check(tag + "caption clear of the track", Apart(caption, trackRect));
+        var capText = root.transform.Find(PerchOptions.CaptionName).GetComponent<UnityEngine.UI.Text>();
+        Check(tag + "distance caption reads DISTANCE", capText != null && capText.text == "DISTANCE");
         foreach (var n in new[] { PerchOptions.SliderName, SoundOptions.EffectsSliderName, SoundOptions.MusicSliderName })
         {
             var style = GameObject.Find(n).GetComponent<OptionsSliderHandle>();

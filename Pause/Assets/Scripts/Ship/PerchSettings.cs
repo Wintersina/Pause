@@ -69,7 +69,7 @@ public static class PerchSettings
 
     public static void Reset() { SetScale(DefaultScale); SetTilt(Above); }
 
-    // The Options direction selector shows 1 2 3 = left, top, right.
+    // The Options direction selector shows LEFT, TOP, RIGHT.
     public static int TiltOfSlot(int slot) { return slot == 0 ? AboveLeft : (slot == 2 ? AboveRight : Above); }
     public static int SlotOfTilt(int tilt) { return tilt == AboveLeft ? 0 : (tilt == AboveRight ? 2 : 1); }
 
