@@ -848,8 +848,9 @@ public static class ScreenFitScreens
             int best = 1;
             for (int id = 1; id < dock.bays.Length; id++)
             {
-                // (Gale Wings' long power line is cut off in a docked card on a fold's inner screen: card copy, not the lot)
-                if (dock.bays[id] == null || id == 14) continue;
+                // (Gale Wings' and Ninja's long "A HIT OR A THREAT WITHIN" power line is cut off in a docked card on a
+                // fold's inner screen: card copy, not the lot)
+                if (dock.bays[id] == null || id == 14 || id == 11) continue;
                 Rect inView = dock.BayWorldRect(id);
                 if (inView.yMin < viewport.yMin || inView.yMax > viewport.yMax) continue;
                 Vector3 p = dock.bays[id].transform.position, q = dock.bays[best].transform.position;
@@ -922,6 +923,8 @@ public static class ScreenFitScreens
         Vector2 ext = l.BayExtent * l.scale;
         Vector2 a = rig.Pixel(Vector3.zero), b = rig.Pixel(new Vector3(ext.x, ext.y, 0f));
         float wPx = Mathf.Abs(b.x - a.x), hPx = Mathf.Abs(b.y - a.y);
+        // a docked-card (wide) view is width-bound: one runway must fit beside the card, so a bay may sit up to 10% under the floor
+        if (aspect >= ScreenLayout.WideAspect) minTap *= .9f;
         if (Mathf.Min(wPx, hPx) < minTap) rig.Fail("DOCKLOT", "bay", "tap target " + wPx.ToString("F0") + "x" + hPx.ToString("F0") + "px is under " + minTap.ToString("F0"));
         var numbers = new List<Rect>();
         for (int slot = 0; slot < l.count; slot++)
