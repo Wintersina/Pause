@@ -13,9 +13,8 @@ using UnityEngine.UI;
 // no waves / 1 / 2 / 3 waves (bars for music) as the volume grows, and a slashed, grey one when
 // the volume is 0 or the toggle is off. No outline boxes.
 //
-// The row sits in the slot above START WORLD (y -33), or, in builds that offer
-// developer mode (whose rows fill -133 / -43 / 47), on top of the developer
-// stack (147). It stays inside +-270 canvas units so a curved-edge safe area
+// In the player's build the toggles and the sliders are separate groups (OptionsLayout); in builds that offer
+// developer mode (whose rows fill -133 / -43 / 47) it is one row on top of the developer stack (147). It stays inside +-270 canvas units so a curved-edge safe area
 // never clips it.
 public class SoundOptions : MonoBehaviour
 {
@@ -24,6 +23,9 @@ public class SoundOptions : MonoBehaviour
     const float ToggleW = 110f, SliderW = 140f;
     // centres of the (effects, music) toggle and slider
     const float EffToggleX = -215f, EffSliderX = -80f, MusToggleX = 65f, MusSliderX = 200f;
+    // The player's grouped layout (OptionsLayout): the two on/off toggles sit in the SWITCHES group, the two volume
+    // sliders in the SLIDERS group, each pair side by side.
+    const float GroupToggleW = 250f, GroupSliderW = 250f, GroupX = 135f;
     public const string RowName = "EffectsToggle";
     public const string MusicRowName = "MusicToggle";
     public const string EffectsSliderName = "EffectsSlider";
@@ -55,11 +57,12 @@ public class SoundOptions : MonoBehaviour
         return iconSprites[(music ? 4 : 0) + Mathf.Clamp(level, 0, 3)];
     }
 
-    public static float EffectsY { get { return DeveloperUnlocks.Available ? 147f : -33f; } }
+    public static float EffectsY { get { return DeveloperUnlocks.Available ? 147f : OptionsLayout.SoundSliderY; } }
     public static float MusicY { get { return EffectsY; } }
 
     class Row
     {
+        public OptionsSliderHandle style;
         public bool music;
         public GameObject toggle;
         public Text label;
@@ -87,6 +90,8 @@ public class SoundOptions : MonoBehaviour
     {
         var template = SceneUtil.FindAny("Tutorial");
         if (template == null) return;
+        if (OptionsLayout.Grouped)
+            OptionsLayout.Heading(OptionsScroll.RowParent(template), template, "SlidersHeading", OptionsLayout.SlidersHeading, OptionsLayout.SlidersHeadingY);
         effects = Build(template, false, EffectsY);
         music = Build(template, true, MusicY);
         Refresh();
@@ -98,8 +103,11 @@ public class SoundOptions : MonoBehaviour
     {
         var row = new Row { music = isMusic };
         var parent = OptionsScroll.RowParent(template);
+        bool grouped = OptionsLayout.Grouped;
+        float side = isMusic ? 1f : -1f;
+        var togglePos = grouped ? new Vector2(side * GroupX, OptionsLayout.SoundSwitchY) : new Vector2(isMusic ? MusToggleX : EffToggleX, y);
         row.toggle = DeveloperOptions.Clone(template, parent, isMusic ? MusicRowName : RowName,
-                        new Vector2(isMusic ? MusToggleX : EffToggleX, y), new Vector2(ToggleW, RowH), () => Toggle(row));
+                        togglePos, new Vector2(grouped ? GroupToggleW : ToggleW, RowH), () => Toggle(row));
         row.label = row.toggle.GetComponentInChildren<Text>(true);
         var button = row.toggle.GetComponent<Button>();
         if (button != null && button.targetGraphic != null)
@@ -110,7 +118,9 @@ public class SoundOptions : MonoBehaviour
             row.label.resizeTextMinSize = 18;
             row.label.resizeTextMaxSize = 28;
         }
-        BuildSlider(parent, row, isMusic ? MusicSliderName : EffectsSliderName, new Vector2(isMusic ? MusSliderX : EffSliderX, y));
+        BuildSlider(parent, row, isMusic ? MusicSliderName : EffectsSliderName,
+                    grouped ? new Vector2(side * GroupX, y) : new Vector2(isMusic ? MusSliderX : EffSliderX, y),
+                    grouped ? GroupSliderW : SliderW);
         return row;
     }
 
@@ -129,12 +139,12 @@ public class SoundOptions : MonoBehaviour
         img.color = Color.white;
     }
 
-    void BuildSlider(Transform parent, Row row, string name, Vector2 pos)
+    void BuildSlider(Transform parent, Row row, string name, Vector2 pos, float width)
     {
         var root = Rect(name, parent);
         root.anchorMin = root.anchorMax = root.pivot = new Vector2(.5f, .5f);
         root.anchoredPosition = pos;
-        root.sizeDelta = new Vector2(SliderW, RowH);
+        root.sizeDelta = new Vector2(width, RowH);
         var hit = root.gameObject.AddComponent<Image>();   // invisible, takes the touch
         hit.color = new Color(0f, 0f, 0f, 0f);
         hit.raycastPadding = new Vector4(0f, -HitPad, 0f, -HitPad);
@@ -158,7 +168,8 @@ public class SoundOptions : MonoBehaviour
 
         var slide = Rect("Handle Slide Area", root);
         slide.anchorMin = new Vector2(0f, .5f); slide.anchorMax = new Vector2(1f, .5f);
-        slide.offsetMin = new Vector2(4f + HandleW * .5f, TrackY - HandleH * .5f); slide.offsetMax = new Vector2(-4f - HandleW * .5f, TrackY + HandleH * .5f);
+        // zero height: Slider stretches the handle over this area's height, so sizeDelta.y alone (HandleH) is its height
+        slide.offsetMin = new Vector2(4f + HandleW * .5f, TrackY); slide.offsetMax = new Vector2(-4f - HandleW * .5f, TrackY);
         var handle = Rect("Handle", slide);
         handle.sizeDelta = new Vector2(HandleW, HandleH);
         row.handle = handle.gameObject.AddComponent<Image>();
@@ -182,6 +193,7 @@ public class SoundOptions : MonoBehaviour
         slider.minValue = 0f; slider.maxValue = 1f; slider.wholeNumbers = false;
         slider.onValueChanged.AddListener(v => OnSlide(row, v));
         row.slider = slider;
+        row.style = OptionsSliderHandle.Attach(slider, row.handle);
 
         // Persist when the finger lifts (the drag itself only touches the cached pref).
         var trigger = root.gameObject.AddComponent<EventTrigger>();
@@ -267,6 +279,7 @@ public class SoundOptions : MonoBehaviour
         var tint = on ? Color.white : new Color(.55f, .58f, .72f, .85f);
         row.fill.color = tint;
         row.handle.color = tint;
+        if (row.style != null) { row.style.Dim = !on; row.style.Refresh(); }
         if (row.icon != null)
         {
             row.icon.sprite = IconSprite(row.music, IconLevel(on, volume));

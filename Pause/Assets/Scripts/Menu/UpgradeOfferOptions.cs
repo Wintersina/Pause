@@ -8,13 +8,13 @@ using UnityEngine.UI;
 // screen's own "Tutorial" button like the sound and start-world rows, so it
 // shares their font and look.
 //
-// It sits in the free slot above the EFFECTS / MUSIC row (y 57). Builds that
+// It is the second row of the SWITCHES group (OptionsLayout). Builds that
 // offer developer mode fill that area with the developer rows, so the row is
 // left out there (the setting still works; it is just not shown).
 public class UpgradeOfferOptions : MonoBehaviour
 {
     public const string RowName = "UpgradeOffersToggle";
-    public const float RowY = 57f, RowH = 88f, RowW = 520f, HitPad = 6f;
+    public const float RowY = OptionsLayout.UpgradeY, RowH = 88f, RowW = 520f, HitPad = 6f;
 
     Text label;
     OptionsSwitch toggle;

@@ -43,7 +43,7 @@ public class OptionsScroll : MonoBehaviour
         if (rt.anchorMin != new Vector2(.5f, .5f) || rt.anchorMax != new Vector2(.5f, .5f)) return false;
         if (rt.anchoredPosition.y <= backAuthoredY || rt.sizeDelta.x > 700f) return false;
         if (rt.name.StartsWith("Leaderboard") && rt.name != LeaderboardSettingsOptions.RowName) return false;
-        return rt.GetComponentInChildren<Selectable>(true) != null;
+        return rt.GetComponentInChildren<Selectable>(true) != null || rt.GetComponent<OptionsHeading>() != null;
     }
 
     void EnsureViewport(int siblingIndex)

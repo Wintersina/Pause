@@ -90,6 +90,7 @@ public static class ScreenFitScreens
         new FitScreen { id = "shop-owned-gated", fullBleed = true, scene = "startS4", title = "Shop: Remove Ads owned, Paragon gated (OWN 5 SHIPS)", stage = r => ShopScreen(r, 1) },
         new FitScreen { id = "shop-unavailable", fullBleed = true, scene = "startS4", title = "Shop: no store (iOS / editor / no price)", stage = r => ShopScreen(r, 2) },
         new FitScreen { id = "options", fullBleed = true, scene = "leaderboardS3", title = "Options: developer rows", stage = r => Options(r, 0) },
+        new FitScreen { id = "options-player", fullBleed = true, scene = "leaderboardS3", title = "Options: player build, switches and sliders grouped", stage = r => StagePlayerOptions(r) },
         new FitScreen { id = "options-start-world", fullBleed = true, scene = "leaderboardS3", title = "Options: START WORLD row (unlocked)", stage = r => Options(r, 3) },
         new FitScreen { id = "options-start-locked", fullBleed = true, scene = "leaderboardS3", title = "Options: START WORLD row (locked)", stage = r => Options(r, 4) },
         new FitScreen { id = "options-mute-on", fullBleed = true, scene = "leaderboardS3", title = "Options: SOUND: ON row", stage = r => Options(r, 5) },
@@ -358,6 +359,26 @@ public static class ScreenFitScreens
     }
 
     // ---- options / leaderboard -----------------------------------------------------
+
+    // The player's Options (developer mode off, every runtime row, grouped switches / sliders), the way it looks on a device.
+    public static void StagePlayerOptions(ScreenFitRig rig)
+    {
+        PlayerPrefs.SetString("HasDoneTut", "true");
+        DeveloperUnlocks.TestAvailableOverride = false;
+        DeveloperUnlocks.SetEnabled(false);
+        MenuStyler.StyleScene();
+        LeaderboardService.Instance = new LeaderboardService(new FakeLeaderboards(), () => 0f) { Ios = rig.device.ios };
+        rig.Sync();
+        Add<VibrationOptions>("~VibrationOptions");
+        Add<PerchOptions>("~PerchOptions");
+        Add<UpgradeOfferOptions>("~UpgradeOfferOptions");
+        Add<SoundOptions>("~SoundOptions");
+        Add<LeaderboardSettingsOptions>("~LeaderboardSettingsOptions");
+        SafeAreaClamp.AttachAll("leaderboardS3");
+        rig.Sync();
+        SafeAreaClamp.AttachAll("leaderboardS3");
+        rig.Sync();
+    }
 
     static void Options(ScreenFitRig rig, int shot)
     {
