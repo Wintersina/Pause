@@ -10,8 +10,12 @@ For each variant's mid.png the grid is 32 x 64 cells (32 px each, row 0 = the TO
 written to <out>/v<N>/mask.txt. The letters are the engine's GroundClass names; for the Desert they mean:
 
     W  soft ground  open dune sand / crater dust with nothing painted on it (GroundClass.Water): the worms swim here
-    O  hardpan      open, smooth salt flat with nothing painted on it (GroundClass.Open): structures and docks may stand here
-    B  built        (unused: painted structure is blocked, not offered as ground to build on)
+    O  hardpan      v2: open, smooth salt flat with nothing painted on it (GroundClass.Open)
+    N / M  story ground  free ground right beside painted props (within NEAR cells of a C cell): beside the rails, rigs and brine pools (v2, M = hardpan),
+                    the rock stacks, outpost and oasis (v3), the work fires and ruined blocks (v4), the outposts and bones (v1). N is soft ground (Water) with
+                    the Near flag, M hardpan (Open) with it: the zone DesertTuning.StoryZone lets wrecks, machinery, landmarks, wells and features stand in
+                    (AUTHORED PLACEMENT, round 5)
+    T  trough       v1 only: a DUNE TROUGH (the shaded foot of a dune), soft ground (Water) with the Trough flag: half-buried wrecks go here, never on a crest
     C  blocked      a painted prop and a one-cell margin round it, brine / oasis water, rock stacks, crater rims
                     (GroundClass.Canopy)
 
@@ -27,7 +31,7 @@ import sys, os
 import numpy as np
 from PIL import Image
 
-CLASSES = "WBOC"
+CLASSES = "WBOCTNM"
 GROW = 0                # cells of margin round every blocked cell: none -- the planner's footprints (~5 x 4 cells) already need a whole free patch
 
 
@@ -94,6 +98,39 @@ VARIANTS = {
     3: (props_oasis, 'W', .25),
     4: (props_craters, 'W', .24),
 }
+NEAR = {1: 2, 2: 3, 3: 2, 4: 1}          # radius (cells) of the story ring round the blocked cells, per variant
+
+
+def ring(blocked, d):
+    out = blocked.copy()
+    gw = blocked.shape[1]
+    for dy in range(-d, d + 1):
+        for dx in range(-d, d + 1):
+            if dx * dx + dy * dy > d * d: continue
+            sh = np.roll(blocked, dy, 0)
+            if dx > 0: sh = np.pad(sh, ((0, 0), (dx, 0)))[:, :gw]
+            elif dx < 0: sh = np.pad(sh, ((0, 0), (0, -dx)))[:, -dx:]
+            out |= sh
+    return out
+
+
+def story(v, im, chars, cell):
+    """Authored zones on the free ground: B beside props (all), and for v1 O = dune troughs (shaded, below the local mean)."""
+    blocked = chars == 'C'
+    near = ring(blocked, NEAR[v]) & ~blocked
+    out = chars.copy()
+    if v == 1:
+        lum = im @ np.array([.299, .587, .114])
+        tr = box(lum, 10) < box(lum, 64) - .025
+        gh, gw = chars.shape
+        trough = tr.reshape(gh, cell, gw, cell).mean((1, 3)) > .5
+        out[trough & ~blocked] = 'T'
+        out[near & ~trough] = 'N'
+    elif v == 2:
+        out[near] = 'M'
+    else:
+        out[near] = 'N'
+    return out
 
 
 def classify(path, detector, ground, cell_share):
@@ -125,6 +162,10 @@ def classify(path, detector, ground, cell_share):
     return im, flag, chars, cell
 
 
+def zoned(v, im, chars, cell):
+    return story(v, im, chars, cell)
+
+
 def main():
     base = sys.argv[1]
     dbg = sys.argv[sys.argv.index('--debug') + 1] if '--debug' in sys.argv else None
@@ -133,6 +174,7 @@ def main():
     for v, (det, ground, cs) in VARIANTS.items():
         if v not in only: continue
         im, flag, chars, cell = classify(os.path.join(base, 'v%d' % v, 'mid.png'), det, ground, cs)
+        chars = zoned(v, im, chars, cell)
         os.makedirs(os.path.join(out, 'v%d' % v), exist_ok=True)
         with open(os.path.join(out, 'v%d' % v, 'mask.txt'), 'w') as fh:
             fh.write('\n'.join(''.join(row) for row in chars) + '\n')

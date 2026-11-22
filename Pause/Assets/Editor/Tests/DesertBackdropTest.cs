@@ -325,7 +325,7 @@ public static class DesertBackdropTest
     {
         for (int v = 1; v <= TestHarness.SweepVariants(4); v++)
         {
-            int pieces = 0, wrong = 0, overlaps = 0, relaxed = 0, clusters = 0, runs = 0, pipes = 0, onArt = 0, docks = 0;
+            int pieces = 0, wrong = 0, overlaps = 0, relaxed = 0, clusters = 0, runs = 0, pipes = 0, onArt = 0, docks = 0, storyPieces = 0, outOfZone = 0;
             var byClass = new Dictionary<string, int>();
             string bad = "";
             for (int run = 0; run < SeededRuns; run++)
@@ -345,7 +345,7 @@ public static class DesertBackdropTest
                             seenPieces.Add(p);
                             pieces++;
                             string name = p.sr.sprite != null ? p.sr.sprite.name : "";
-                            var rule = DesertTuning.Rule(name);
+                            var rule = DesertTuning.Rule(name, v);
                             bool site = pool == d.Sites;
                             if (pool == d.Pipes) pipes++;
                             // OWNER RULE (2026-11, round 5 art): nothing the game places may sit on the painted props (mask class C: outposts,
@@ -354,6 +354,13 @@ public static class DesertBackdropTest
                             if (pool == d.Pipes && p.kind == DesertDirector.RunPipe) { fx = p.size * .4f; fy = p.size * .05f; }     // (the run's flange line, as PipeRun checks it)
                             if (d.Planner.Match(p.x, p.gy, fx, fy, GroundClass.Canopy) > 0f) { onArt++; if (bad.Length < 300) bad += name + "@art "; }
                             if (site) docks++;
+                            // AUTHORED PLACEMENT (round 5): a scene piece (wreck, machinery, landmark, well, feature) only spawns in its variant's story
+                            // zone: v1 dune troughs / beside outposts and bones, v2 beside the rails, rigs and brine, v3 round the rocks and oasis, v4 round the fires and ruins
+                            if (rule.zone != GroundClass.None && !site)
+                            {
+                                storyPieces++;
+                                if (d.Planner.Match(p.x, p.gy, GroundPlanner.HalfX(rule, p.size), GroundPlanner.HalfY(rule, p.size), rule.zone) < DesertTuning.StoryNeed) { outOfZone++; if (bad.Length < 300) bad += name + "@out-of-zone "; }
+                            }
                             if (pool == d.Pipes && p.kind == DesertDirector.RunPipe) continue;   // a run's pipe crosses whatever lies between its structures
                             if (!d.Planner.Accepts(rule, p.x, p.gy, p.size))
                             {
@@ -381,6 +388,8 @@ public static class DesertBackdropTest
                   " clusters): none on ground its rule forbids (" + wrong + " " + bad + "; sites on relaxed land " + relaxed + ")",
                   runs == SeededRuns && pieces > runs * 4 && wrong == 0);
             Check("v" + v + ": no two piece footprints overlap (" + overlaps + ")", overlaps == 0);
+            Check("v" + v + ": scene pieces only spawn in their story zone (" + storyPieces + " checked, " + outOfZone + " outside it; zone " + DesertTuning.StoryZone(v) + ")",
+                  outOfZone == 0 && storyPieces > 0);
             Check("v" + v + ": no landmark, pipe, feature or launch site (" + docks + " seen) stands on a painted prop (" + onArt + " " + bad + ")", onArt == 0);
         }
     }
@@ -797,9 +806,12 @@ public static class DesertBackdropTest
         for (int i = 0; i < dpx.Length; i += 7) dsum += Mathf.Max(dpx[i].r, Mathf.Max(dpx[i].g, dpx[i].b)) / 255f;
         float deck = (float)(dsum / ((dpx.Length + 6) / 7));
         Object.DestroyImmediate(deckTex);
-        Check("the cloud ceiling at the start reads as the planetfall's cloud deck (upper view mean value " + top.mean.ToString("F2") +
-              " within " + (CeilingDeckTolerance * 100f).ToString("F0") + "% of the deck's " + deck.ToString("F2") + ")",
-              top.mean >= deck * (1f - CeilingDeckTolerance) && top.mean <= deck + .08f);
+        // Round 5: the haze is a pale veil in each ground's own dust (CeilingTints, 70% strength) over bright grounds, no longer the dark smoke that
+        // continued the planetfall's dark deck (mean value .27), so the old "within 30% of the deck" match retires: the veil must still be there
+        // (not darker-than-nothing: at least the deck's tone) and must not blank the map (upper view mean value <= .85).
+        Check("the cloud ceiling at the start is a light veil over the map (upper view mean value " + top.mean.ToString("F2") + " in " +
+              (deck * .7f).ToString("F2") + " .. .85; planetfall deck " + deck.ToString("F2") + ")",
+              top.mean >= deck * .7f && top.mean <= .85f);
 
         var theme = EnemyPalette.ThemeFor(6);
         float hullV = Mathf.Max(theme.hull.r, Mathf.Max(theme.hull.g, theme.hull.b));

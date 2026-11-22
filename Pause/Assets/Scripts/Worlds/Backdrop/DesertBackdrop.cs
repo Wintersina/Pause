@@ -61,14 +61,22 @@ public static class DesertTuning
     public static float PlumeShare = 1f;
     public static float PlumeLift = 1f;
     public static float LoopBrightness = 1f;
+    // ROUND 5: the backdrop DECORATION (wrecks, machinery, landmarks, pipes, features) was painted dark and muted for the old dark grounds and read as
+    // pasted-on black blobs on the bright new ones. Each variant draws them lifted (BackdropGrade curve, k > 1 raises the shadows) and tinted to its light
+    // so they sit in the ground's value range and colour. Not applied to elite docks (DockGradeTable), worms, enemies or gameplay objects.
+    public static readonly float[] PieceLift = { 1f, 2.1f, 1.9f, 1.8f, 1.3f };                                               // index = variant
+    public static readonly Color[] PieceTint =
+    {
+        Color.white, new Color(1f, .96f, .88f, 1f), new Color(.96f, .97f, 1f, 1f), new Color(1f, .92f, .86f, 1f), new Color(.88f, .84f, 1f, 1f),
+    };
     public static float LightBoostNow = 1f;           // set by the director for its variant
 
     // ---- ground pieces -------------------------------------------------------
     public static float LandmarkMin = 1.5f, LandmarkMax = 1.75f;
     public static float FireMin = 1.2f, FireMax = 1.6f, SatelliteMin = 1.0f, SatelliteMax = 1.3f;
     public static float PipeMin = .5f, PipeMax = 1.45f;
-    public static float ClusterGapMin = 1.6f, ClusterGapMax = 3.2f;     // scrolled ground distance after a cluster
-    public static float LoneGapMin = .8f, LoneGapMax = 1.5f;             // ... after a lone piece
+    public static float ClusterGapMin = 3.2f, ClusterGapMax = 5.6f;     // scrolled ground distance after a cluster
+    public static float LoneGapMin = 2.2f, LoneGapMax = 3.6f;             // ... after a lone piece
     public static float NeighbourGapMin = .1f, NeighbourGapMax = .45f;  // between a ruin's plate and its neighbour's
     public static float Wind = 1f;                                        // +1: plumes lean right (as painted)
     public static float PlateFeather = 0f;                                // the pieces carry their own sand skirt
@@ -90,6 +98,30 @@ public static class DesertTuning
         .WithEnds(new Vector2(-.42f, -.12f), new Vector2(.42f, -.12f), GroundClass.Built);
     static readonly PieceRule PipeSpan1 = new PieceRule(Clear, 1f, .2f)
         .WithEnds(new Vector2(-.30f, -.15f), new Vector2(.42f, -.15f), GroundClass.Built);
+
+    // The STORY ZONE of a ground piece on ground set `variant` (mask letters, ground_masks.py): where the painted map says such a thing would be.
+    //   v1 dune sea   T = a dune trough (wrecks half-buried at the foot of a dune, never on a crest) or N = beside an outpost / bones
+    //   v2 salt mine  N / M = the working ground beside the rails, rigs and brine pools
+    //   v3 dusk oasis N = ground round the rock stacks, the outpost and the oasis
+    //   v4 craters    N = fallen round the work fires and the ruined blocks
+    public static GroundClass StoryZone(int variant) { return variant == 1 ? GroundClass.Trough | GroundClass.Near : GroundClass.Near; }
+    public const float StoryNeed = .4f;
+
+    static bool IsDock(string piece)
+    {
+        return piece.StartsWith("worm_burrow") || piece.StartsWith("crawler_bay") || piece.StartsWith("glass_pad") || piece.StartsWith("buried_silo") ||
+               piece.StartsWith("ruin_dock") || piece.StartsWith("buriedbunker") || piece.StartsWith("crawlerhangar") || piece.StartsWith("mirrorsilo") ||
+               piece.StartsWith("canyondock");
+    }
+
+    // Rule(piece) plus the variant's story zone for the scene pieces (wrecks, machinery, landmarks, wells, features); docks, pipes, dune ridges stay free.
+    public static PieceRule Rule(string piece, int variant)
+    {
+        var r = Rule(piece);
+        if (variant < 1 || piece == null || IsDock(piece) || piece == "dune_ridge" || piece.StartsWith("pipe_") || piece.StartsWith("straight") ||
+            piece.StartsWith("manifold") || piece.StartsWith("tangle") || piece.StartsWith("leak") || piece.StartsWith("half_buried")) return r;
+        return r.WithZone(StoryZone(variant), StoryNeed);
+    }
 
     public static PieceRule Rule(string piece)
     {
@@ -117,10 +149,10 @@ public static class DesertTuning
     public static readonly int[][] ClusterWeights =
     {
         new[] { 2, 2, 2, 2, 1 },   // (none)
-        new[] { 1, 3, 4, 2, 1 },   // v1 day dunes: ridges, drifts, caravans, a lone ruin
-        new[] { 1, 3, 1, 4, 1 },   // v2 canyon and ruins (an ancient stone ruin tile): few industrial hulls and pipe runs, mostly lone pieces (arches, rock fins, ribs, wells)
-        new[] { 2, 3, 1, 3, 1 },   // v3 salt flat: wells and glass, lone solar skeletons
-        new[] { 1, 3, 3, 3, 1 },   // v4 night: vents, dunes, lone lit towers
+        new[] { 3, 2, 2, 3, 1 },   // v1 dune sea: outposts and wrecks half-buried in the troughs, ridges, a lone crawler
+        new[] { 3, 2, 0, 2, 3 },   // v2 salt mine: machinery and pipe runs beside the rails and rigs, wells by the brine (no dunes on salt)
+        new[] { 2, 4, 1, 2, 1 },   // v3 dusk oasis: wells and vents round the oasis, outposts, wrecks in the rock
+        new[] { 1, 3, 1, 3, 1 },   // v4 night craters: debris round the work fires and ruins
     };
     public static readonly string[] Ruins = { "refinery_hull_00", "refinery_hull_01", "ribcage_gantry_00", "ribcage_gantry_01", "drill_head_tower", "bucket_wheel_excavator" };
     public static readonly string[] Neighbours = { "radio_mast", "solar_array_skeleton_00", "solar_array_skeleton_01", "collapsed_dome_cluster", "pump_house", "crawler_caravan_00" };
@@ -231,13 +263,14 @@ public static class DesertTuning
     // the haze deck of the planetfall (desert_cloud_deck): the banks are painted pale grey; tint them toward its bone-gold dust
     public static float CeilingLift = 1f, CeilingSaturation = 1f;
     public static Color CeilingTint = new Color(.55f, .52f, .45f, 1f);            // v1: warm khaki dust haze over the khaki dune sea
-    // Round 5: the haze takes each ground's own dust so it never muddies a different palette (no pink / violet: Space's cue colours):
-    // v2 a grey-lilac salt dust, v3 a warm ochre dust over the rose rock, v4 a dark smoky grey over the night craters (index = variant, 0 = v1's).
+    // Round 5: the haze takes each ground's own pale dust (no pink / violet: Space's cue colours), pale and at 70% strength:
+    // v1 khaki, v2 grey-lilac salt, v3 warm ochre over the rose rock, v4 a soft smoky grey over the craters (index = variant, 0 = v1's).
     public static readonly Color[] CeilingTints =
     {
-        new Color(.55f, .52f, .45f, 1f), new Color(.55f, .52f, .45f, 1f), new Color(.60f, .59f, .60f, 1f),
-        new Color(.62f, .52f, .40f, 1f), new Color(.34f, .31f, .30f, 1f),
+        new Color(.70f, .64f, .52f, 1f), new Color(.70f, .64f, .52f, 1f), new Color(.72f, .71f, .74f, 1f),
+        new Color(.74f, .62f, .50f, 1f), new Color(.40f, .36f, .38f, 1f),
     };
+    public static float CeilingAlpha = .7f;      // round 5: the dust haze is a lighter veil (was full strength), so the map under it reads from the first second
     public static float WispMin = 1.9f, WispMax = 2.8f, WispAlphaMin = .3f, WispAlphaMax = .45f;
     public static float WispEveryMin = 6f, WispEveryMax = 10f, WispDrift = .18f;
     public static float MistAlphaMin = .3f, MistAlphaMax = .42f;
@@ -393,10 +426,11 @@ public class DesertDirector : PlanetDirector
         gusts = Pool("gusts", DesertTuning.GustSheets + 1);
         grit = Pool("grit", DesertTuning.GritCount);
 
-        PlateMaterial = Grade(ground, "ground", 1f, DesertTuning.PlateFeather);
-        Grade(fires, "ground", 1f, DesertTuning.PlateFeather);
+        float pieceLift = DesertTuning.PieceLift[Mathf.Clamp(set.Variant, 0, DesertTuning.PieceLift.Length - 1)];
+        PlateMaterial = Grade(ground, "ground", 1f, DesertTuning.PlateFeather, pieceLift);
+        Grade(fires, "ground", 1f, DesertTuning.PlateFeather, pieceLift);
         Grade(sites, "ground", 1f, DesertTuning.PlateFeather);
-        Grade(pipes, "ground");
+        Grade(pipes, "ground", 1f, 0f, pieceLift);
         GradeWorms();
         Grade(palls, "palls");
         Grade(mist, "mist");
@@ -409,7 +443,7 @@ public class DesertDirector : PlanetDirector
         if (planner.Ready)
         {
             double t = planner.Travel;
-            for (float y = -HalfH * .85f; y < HalfH * .8f; y += Rand(2.6f, 3.6f))
+            for (float y = -HalfH * .85f; y < HalfH * .8f; y += Rand(4.4f, 6f))
                 SpawnCluster(t + y, t + y + 1.2f);
         }
         BuildCeiling();
@@ -512,7 +546,7 @@ public class DesertDirector : PlanetDirector
             float y01 = Mathf.Clamp01((b.y / HalfH + 1f) * .5f);
             float low = Mathf.Lerp(DesertTuning.CeilingLowShare, 1f, y01 * y01 * (3f - 2f * y01));
             Color c = DesertTuning.CeilingTints[Mathf.Clamp(set.Variant, 0, DesertTuning.CeilingTints.Length - 1)];
-            c.a = b.phase * density * low * set.Alpha;
+            c.a = b.phase * density * low * set.Alpha * DesertTuning.CeilingAlpha;
             b.sr.color = c;
         }
         foreach (var g in gusts.items)
@@ -680,7 +714,7 @@ public class DesertDirector : PlanetDirector
     {
         var sprite = atlas.Get(name);
         if (sprite == null) return null;
-        var rule = DesertTuning.Rule(name);
+        var rule = DesertTuning.Rule(name, set.Variant);
         float rx = GroundPlanner.HalfX(rule, size), ry = GroundPlanner.HalfY(rule, size);
         int foot = planner.Claim(x, gy, rx, ry);
         if (foot < 0) return null;
@@ -695,7 +729,7 @@ public class DesertDirector : PlanetDirector
         p.y = planner.Y(gy);
         p.rate = set.Spec.Rate("ground");
         p.color = Color.white;
-        p.dockTint = Color.white;
+        p.dockTint = DesertTuning.PieceTint[Mathf.Clamp(set.Variant, 0, DesertTuning.PieceTint.Length - 1)];     // (decoration: sits in the variant's light)
         p.kind = 0;
         Place(p);
         Tinted(p, 1f);
@@ -705,7 +739,7 @@ public class DesertDirector : PlanetDirector
 
     bool Spot(string name, float size, double lo, double hi, out float x, out double gy)
     {
-        return planner.Find(DesertTuning.Rule(name), size, XMin(size), XMax(size), lo, hi, rng, out x, out gy);
+        return planner.Find(DesertTuning.Rule(name, set.Variant), size, XMin(size), XMax(size), lo, hi, rng, out x, out gy);
     }
 
     // A structure (refinery / tower ...) with a neighbour joined by a pipe run.
@@ -733,7 +767,7 @@ public class DesertDirector : PlanetDirector
                 float xb = xa + side * (plateA + gap + plateB);
                 double gb = ga + Rand(-.12f, .12f);
                 if (xb < XMin(sb) - .2f || xb > XMax(sb) + .2f) continue;
-                var rule = DesertTuning.Rule(nb);
+                var rule = DesertTuning.Rule(nb, set.Variant);
                 if (!planner.Accepts(rule, xb, gb, sb) || !planner.Free(xb, gb, GroundPlanner.HalfX(rule, sb), GroundPlanner.HalfY(rule, sb))) continue;
                 var b = Put(pump ? pipes : ground, pump ? pipeArt : landmarkArt, nb, sb, xb, gb, !pump && Chance(.5));
                 if (b == null) break;
@@ -758,7 +792,7 @@ public class DesertDirector : PlanetDirector
         for (float sx = x0; sx <= x1 + .001f; sx += .15f)
             if (planner.Match(sx, gy, .1f, .2f, DesertTuning.Clear) < 1f) return false;
         var under = planner.ClassAt((x0 + x1) * .5f, gy);
-        bool buried = under == GroundClass.Water, trestle = false;
+        bool buried = (under & GroundClass.Water) != 0, trestle = false;
         string name = buried ? "half_buried_pipe" : trestle ? "pipe_bridge_00" : Pick(DesertTuning.HorizontalPipes);
         int pieces = 1;
         float span = SpanOf(name);
@@ -824,7 +858,7 @@ public class DesertDirector : PlanetDirector
             float xs = xf + dir * Rand(.75f, 1.15f) * (sf + ss) * .5f;
             double gs = gf + Rand(-.7f, .5f);
             if (xs < XMin(ss) || xs > XMax(ss)) continue;
-            var rule = DesertTuning.Rule(sat);
+            var rule = DesertTuning.Rule(sat, set.Variant);
             if (!planner.Accepts(rule, xs, gs, ss) || !planner.Free(xs, gs, GroundPlanner.HalfX(rule, ss), GroundPlanner.HalfY(rule, ss))) continue;
             if (Put(fires, fireArt, sat, ss, xs, gs, Chance(.5)) != null) n++;
         }
@@ -1001,7 +1035,7 @@ public class DesertDirector : PlanetDirector
     }
 
     // (v2's salt flat has no dune sand: its worms swim the hardpan; never a painted prop)
-    GroundClass WormGround { get { return GroundClass.Water | GroundClass.Open; } }
+    GroundClass WormGround { get { return GroundClass.Water | GroundClass.Open; } }   // (a zone-flagged cell is Water / Open too)
 
     // A worm's ridge starts crawling in the upper half of the view, on sand where the
     // whole of its path fits. `size` -1 picks one (the weights, the giant's cool-down).
