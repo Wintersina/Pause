@@ -60,6 +60,10 @@ public static class ScreenFitScreens
         // floor (7.0 dp) on the Flip7 cover. Open follow-up (dock + codex are the wide-screen pass).
         new FitWaiver { screen = "game-death", kind = "SMALLTEXT", element = "Panel/", devices = "flip7-cover-948x1048",
                         reason = "death panel on the near-square cover screen: type on the floor, wide layout still to do" },
+        // New coverage of the ship offer card (it had no screen-fit screen before): its trigger line is 6.8 dp on the
+        // smallest phone. Open follow-up.
+        new FitWaiver { screen = "game-ship-offer", kind = "SMALLTEXT", element = "ShipOffer/Panel/PowerTrigger", devices = "and-480x854",
+                        reason = "power trigger line on the 480x854 phone: 6.8 dp, just under the floor; wording / size follow-up" },
     };
 
     const float Dt = 1f / 60f;
@@ -106,6 +110,8 @@ public static class ScreenFitScreens
         new FitScreen { id = "game-boss-fight", scene = "gameS1", title = "Boss at rest (BossY)", gameplayView = true, fullBleed = true, stage = r => Game(r, GameShot.BossFight) },
         new FitScreen { id = "game-portal-pressure", scene = "gameS1", title = "Open portal: ENTER THE PORTAL, DANGER chip, lane glows", gameplayView = true, fullBleed = true, stage = r => Game(r, GameShot.PortalPressure) },
         new FitScreen { id = "game-death", scene = "gameS1", title = "Flight complete panel", gameplayView = true, fullBleed = true, stage = r => Game(r, GameShot.Death) },
+        new FitScreen { id = "game-ship-offer", scene = "gameS1", title = "Post-run ship offer card", gameplayView = true, fullBleed = true, stage = r => Game(r, GameShot.ShipOffer) },
+        new FitScreen { id = "game-upgrade-offer", scene = "gameS1", title = "Post-run upgrade offer card", gameplayView = true, fullBleed = true, stage = r => Game(r, GameShot.UpgradeOffer) },
     };
 
     public static FitScreen Find(string id)
@@ -1205,7 +1211,7 @@ public static class ScreenFitScreens
 
     // ---- the run ---------------------------------------------------------------------------------
 
-    enum GameShot { Launch, Paused, Popups, Banner, BossIntro, BossFight, PortalPressure, Death }
+    enum GameShot { Launch, Paused, Popups, Banner, BossIntro, BossFight, PortalPressure, Death, ShipOffer, UpgradeOffer }
 
     // HUD vetting: every world's score board + quick-action panel with the worst-case
     // text (7-digit score, 3-digit speed, 2-digit pauses). Not part of All.
@@ -1397,6 +1403,7 @@ public static class ScreenFitScreens
 
     // The flight-complete panel on one world's frame (not part of All).
     public static System.Func<int, DeathPanelView.Results> DeathSample;
+    public static System.Action<string, Rect> PopupMeasured;   // (popup, its frame's screen-pixel rect), for the popup-cap checks
     public static System.Action<int, float> DeathMeasured;   // (world, screen pixels per canvas unit)
     public static FitScreen DeathOn(int world)
     {
@@ -1596,6 +1603,38 @@ public static class ScreenFitScreens
                     break;
                 }
 
+            case GameShot.ShipOffer:
+            case GameShot.UpgradeOffer:
+                {
+                    var offerCanvas = SceneUtil.FindAny("PopUpCanvas");
+                    offerCanvas.SetActive(true);
+                    // the scene's old results dialog (its Replay / Menu buttons) is not on screen behind an offer
+                    var legacyDialog = SceneUtil.FindAny("Model Dialauge");
+                    if (legacyDialog != null) legacyDialog.SetActive(false);
+                    var offerFont = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+                    RectTransform offerFrame;
+                    if (shot == GameShot.ShipOffer)
+                    {
+                        float price = shopingShips.CostFor(2);
+                        var card = ShipOfferCard.Show(offerCanvas.transform, offerFont,
+                                       new ShipOfferRules.Offer { shipId = 2, flownId = 1, price = price }, price + 1234f, b => { });
+                        card.Tick(card.ShownAt + 1f);
+                        offerFrame = (RectTransform)card.transform.Find("Panel/Frame");
+                    }
+                    else
+                    {
+                        var card = UpgradeOfferCard.Show(offerCanvas.transform, offerFont,
+                                       new UpgradeOfferRules.Candidate { shipId = 1, skin = 1, price = 4200f, title = "JADE PHANTOM", detail = "CRIMSON COLOUR" },
+                                       9999f, b => { });
+                        Call(card, "Apply", 1f);
+                        offerFrame = (RectTransform)card.transform.Find("Panel/Frame");
+                    }
+                    rig.Sync();
+                    Canvas.ForceUpdateCanvases();
+                    if (PopupMeasured != null) PopupMeasured(shot == GameShot.ShipOffer ? "ship-offer" : "upgrade-offer", rig.PixelRect(offerFrame));
+                    break;
+                }
+
             case GameShot.Death:
                 {
                     buttonClicks.playerDied = true;
@@ -1640,6 +1679,7 @@ public static class ScreenFitScreens
                         line += " card0 " + rig.PixelRect(pr.Find("Card0") as RectTransform);
                         Debug.Log(line);
                         if (DeathMeasured != null) DeathMeasured(world, fr.width / (pr.Find("Frame") as RectTransform).rect.width);
+                        if (PopupMeasured != null) PopupMeasured("death", fr);
                     }
                     if (System.Environment.GetEnvironmentVariable("DEATH_FRAME_ONLY") == "1")
                     {
