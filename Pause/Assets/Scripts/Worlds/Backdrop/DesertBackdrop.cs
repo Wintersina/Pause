@@ -756,7 +756,7 @@ public class DesertDirector : PlanetDirector
         // over soft dune sand the run is half buried, over a cliff or gap it is a trestle bridge
         // a run never crosses a painted prop (class C anywhere along it: no run)
         for (float sx = x0; sx <= x1 + .001f; sx += .15f)
-            if (planner.ClassAt(sx, gy) == GroundClass.Canopy) return false;
+            if (planner.Match(sx, gy, .1f, .2f, DesertTuning.Clear) < 1f) return false;
         var under = planner.ClassAt((x0 + x1) * .5f, gy);
         bool buried = under == GroundClass.Water, trestle = false;
         string name = buried ? "half_buried_pipe" : trestle ? "pipe_bridge_00" : Pick(DesertTuning.HorizontalPipes);
@@ -1121,8 +1121,8 @@ public class DesertDirector : PlanetDirector
     }
 
     // A worm's planned life (ridge, eruption, the ridge after it) on ground with no painted prop under it: the spot it starts on, the points
-    // of its trail every ~1.5 s (a narrow 40% core: the trail is a line of ridge), and its SURFACING SPOT (the eruption) with the whole
-    // eruption footprint clear.
+    // of its trail every ~1.5 s (a narrow 40% core: the trail is a line of ridge), and its SURFACING SPOT (the eruption) with the eruption's
+    // body (half its footprint) clear.
     bool PathOnGround(float x, double gy, float vx, float vy, float ridgeSeconds, float rx, float ry, float cell)
     {
         float ey = cell * .2f;
@@ -1132,7 +1132,8 @@ public class DesertDirector : PlanetDirector
             float tt = t <= ridgeSeconds ? t : ridgeSeconds + Mathf.Min(1.2f, t - ridgeSeconds) * .25f + Mathf.Max(0f, t - ridgeSeconds - 1.2f);
             if (planner.Match(x + vx * tt, gy + vy * tt, rx * .4f, ry * .6f, WormGround) < 1f) return false;
         }
-        return planner.Match(x + vx * ridgeSeconds, gy + vy * ridgeSeconds, rx, ey, WormGround) >= 1f;
+        // (the eruption's body is ~half the footprint the worm's spray and razing use: a giant's whole 13-cell spray cannot be kept off a painted tile)
+        return planner.Match(x + vx * ridgeSeconds, gy + vy * ridgeSeconds, rx * .5f, ey * .6f, WormGround) >= 1f;
     }
 
     // A worm's ridge touches a pinned item: destroy it (a site makes the worm dive instead).

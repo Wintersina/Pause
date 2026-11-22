@@ -351,7 +351,7 @@ public static class DesertBackdropTest
                             // OWNER RULE (2026-11, round 5 art): nothing the game places may sit on the painted props (mask class C: outposts,
                             // rigs, rails, bones, rocks, oasis water, palms, crater rims) -- not even a run's pipe, a launch site or a dust devil
                             float fx = GroundPlanner.HalfX(rule, p.size), fy = GroundPlanner.HalfY(rule, p.size);
-                            if (pool == d.Pipes && p.kind == DesertDirector.RunPipe) { fx = p.size * .4f; fy = p.size * .05f; }
+                            if (pool == d.Pipes && p.kind == DesertDirector.RunPipe) { fx = p.size * .4f; fy = p.size * .05f; }     // (the run's flange line, as PipeRun checks it)
                             if (d.Planner.Match(p.x, p.gy, fx, fy, GroundClass.Canopy) > 0f) { onArt++; if (bad.Length < 300) bad += name + "@art "; }
                             if (site) docks++;
                             if (pool == d.Pipes && p.kind == DesertDirector.RunPipe) continue;   // a run's pipe crosses whatever lies between its structures
