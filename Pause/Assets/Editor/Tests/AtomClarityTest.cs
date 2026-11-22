@@ -110,10 +110,10 @@ public static class AtomClarityTest
                   g != null && g.Kind == kinds[i] && g.Halo != null && g.Ring != null &&
                   g.Halo.sprite == PickupGlow.HaloSprite && g.Ring.sprite == PickupGlow.RingSprite &&
                   g.Halo.sortingOrder < sr.sortingOrder && g.Ring.sortingOrder < sr.sortingOrder);
-            Check("... drawn " + PickupArt.AtomVisualScale + "x bigger (" + drawn.ToString("F3") + " u) with its hitbox unchanged (" +
+            Check("... drawn " + PickupArt.AtomVisualScale + "x bigger (" + drawn.ToString("F3") + " u) with its hitbox " + PickupArt.AtomHitScale + "x bigger (" +
                   hit.ToString("F3") + " u across, was " + HealAtom.TargetDiameter + ")",
                   Mathf.Abs(drawn - HealAtom.TargetDiameter * PickupArt.AtomVisualScale) < .03f &&
-                  Mathf.Abs(hit - HealAtom.TargetDiameter) < .005f);
+                  Mathf.Abs(hit - HealAtom.TargetDiameter * PickupArt.AtomHitScale) < .005f);
             // the breath is smooth and freezes with the world
             float s0 = g.Halo.transform.localScale.x;
             g.Advance(0f);

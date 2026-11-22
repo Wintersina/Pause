@@ -63,7 +63,7 @@ public class PickupGlow : MonoBehaviour, IPoolReset
 
     // Dresses a freshly spawned pickup in the friendly look: an atom is
     // drawn PickupArt.AtomVisualScale bigger (its colliders shrunk back, so
-    // what it takes to collect it is unchanged), then the halo and ring.
+    // its hitbox grown by PickupArt.AtomHitScale only), then the halo and ring.
     // Idempotent.
     public static PickupGlow Dress(GameObject go)
     {
@@ -71,7 +71,7 @@ public class PickupGlow : MonoBehaviour, IPoolReset
         var g = go.GetComponent<PickupGlow>();
         if (g != null) return g;
         PickupKind kind;
-        if (PickupArt.TryKindOf(go, out kind) && IsAtom(kind)) PickupArt.EnlargeVisual(go, PickupArt.AtomVisualScale);
+        if (PickupArt.TryKindOf(go, out kind) && IsAtom(kind)) PickupArt.EnlargeVisual(go, PickupArt.AtomVisualScale, PickupArt.AtomHitScale);
         return Ensure(go);
     }
 
