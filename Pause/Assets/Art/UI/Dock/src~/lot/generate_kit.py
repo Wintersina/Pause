@@ -143,6 +143,23 @@ def build_dividers() -> None:
     save(im_v, KIT / "bay_divider_v.png")
 
 
+def widen_lane(tile: Image.Image, width: int = 96) -> Image.Image:
+    """The vertical runway is 2x its first width: keep the one dashed centre line, stretch the plain floor around it."""
+    cols = [x for x in range(tile.width) if any(tile.getpixel((x, y))[0] > 100 for y in range(tile.height))]
+    lo, hi = min(cols), max(cols) + 1
+    left = (width - (hi - lo)) // 2
+    out = rgba((width, tile.height))
+    for x in range(width):
+        if x < left:
+            src = x % lo
+        elif x < left + (hi - lo):
+            src = lo + (x - left)
+        else:
+            src = hi + (x - left - (hi - lo)) % (tile.width - hi)
+        out.paste(tile.crop((src, 0, src + 1, tile.height)), (x, 0))
+    return out
+
+
 def build_lane_tile() -> Image.Image:
     """A horizontal 96x48 lane; its rotated copy is the vertical B lane."""
     im = rgba((96, 48), DECK)
@@ -157,7 +174,7 @@ def build_lane_tile() -> Image.Image:
         rect(d, (x, 22, x + 6, 25), AMBER_DARK)
         rect(d, (x, 22, x + 5, 23), AMBER)
     save(im, KIT / "lane_tile.png")
-    save(im.rotate(90, resample=Image.Resampling.NEAREST, expand=True), KIT / "lane_tile_v.png")
+    save(widen_lane(im.rotate(90, resample=Image.Resampling.NEAREST, expand=True)), KIT / "lane_tile_v.png")
     return im
 
 

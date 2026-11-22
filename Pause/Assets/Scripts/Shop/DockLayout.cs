@@ -23,8 +23,8 @@ public struct DockLayout
     public const float PixelsPerUnit = 1f / Px;
 
     // kit sizes, in px
-    public const int BayWpx = 96, BayLpx = 128, LanePx = 48, RailPx = 16, GroupGapPx = 16;
-    public const int GroupPx = BayLpx + LanePx + BayLpx;   // a lane group of the vertical layout: bay, lane, bay (304)
+    public const int BayWpx = 96, BayLpx = 128, LanePx = 96, RailPx = 16, GroupGapPx = 16;
+    public const int GroupPx = BayLpx + LanePx + BayLpx;   // a lane group of the vertical layout: bay, lane, bay (352)
 
     public const float BayW = BayWpx * Px, BayL = BayLpx * Px, Lane = LanePx * Px, Rail = RailPx * Px, GroupGap = GroupGapPx * Px;
 
@@ -46,7 +46,7 @@ public struct DockLayout
     // margins, not bigger bays.
     public const float MaxScale = ShipScale.Main * shopingShips.ReferenceHullSize / DockBay.HullSize;
     // Two runways are used once they fit at this scale or more; below it one bigger runway reads better.
-    public const float TwoLaneMinScale = .75f;
+    public const float TwoLaneMinScale = MaxScale;
     // Two runways shrink to fit the height down to this scale (so all 16 bays show); below it the lot scrolls.
     public const float FitHeightMinScale = .5f;
     public const float NumberW = 24f * Px, NumberH = 16f * Px;
