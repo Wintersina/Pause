@@ -259,18 +259,9 @@ public static class ShipLinksTest
         {
             var l = armed.Last[i];
             if (l.kind != ShipLinkLines.Kind.Wire) continue;
-            // both ends sit (nearly) on one of the four landing spots
-            bool a = false, b = false;
-            for (int m = 0; m < 4; m++)
-            {
-                float ang = (m - 1.5f) * (70f / 3f);
-                float dist = 2.2f + 2.8f * ((m * .618f) % 1f);
-                Vector3 land = nose + Quaternion.Euler(0f, 0f, -ang) * Vector3.up * dist;
-                var view = ShipTargets.View();
-                land.x = Mathf.Clamp(land.x, view.xMin + .4f, view.xMax - .4f);
-                land.y = Mathf.Min(land.y, view.yMax - .5f);
-                a |= DistXY(l.a, land) < .2f; b |= DistXY(l.b, land) < .2f;
-            }
+            // a wire joins two distinct mines no further apart than the wire reach (the trim keeps its ends off the mine bodies)
+            float len = DistXY(l.a, l.b);
+            bool a = len >= .3f && len <= ShipSignatures2.MineChainReach, b = l.a.y > nose.y && l.b.y > nose.y;
             endsOnMines &= a && b;
         }
         var trip = Hazard(spot.x, spot.y);   // something walks into the first mine
