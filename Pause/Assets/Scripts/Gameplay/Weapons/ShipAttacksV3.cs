@@ -30,6 +30,7 @@ public class AttackV3
     public readonly AttackSprite[] fx = new AttackSprite[Max];
     public readonly ClearTarget[] tgt = new ClearTarget[Max];
     public readonly Collider2D[] col = new Collider2D[Max];
+    public readonly AttackLink[] link = new AttackLink[Max];   // Abduct & Hurl: the thin tractor core to each held body
     public readonly Vector3[] pos = new Vector3[Max], from = new Vector3[Max], to = new Vector3[Max];
     public readonly float[] at = new float[Max];
     public readonly int[] phase = new int[Max];
@@ -64,6 +65,7 @@ public class AttackV3
             fx[i] = null; tgt[i] = null; col[i] = null; at[i] = 0f; phase[i] = 0; n[i] = 0;
         }
         hit2.Clear();
+        for (int i = 0; i < Max; i++) if (link[i] != null) link[i].Hide();
         for (int i = 0; i < starHit.Length; i++) starHit[i].Clear();
         System.Array.Clear(chain, 0, Max);
         for (int i = 0; i < ReturnMax; i++) { rFx[i] = null; rAge[i] = 0f; }
@@ -81,6 +83,7 @@ public class AttackV3
             if (fx[i] != null && fx[i].Active && fx[i].Run == owner) fx[i].Stop();
             if (col[i] != null) col[i].enabled = true;
             fx[i] = null; col[i] = null;
+            if (link[i] != null) link[i].Hide();
         }
         for (int i = 0; i < ReturnMax; i++)
         {
@@ -569,6 +572,19 @@ public partial class ShipAttackRunner
         return Nose + new Vector3(off, HoldAhead, 0f);
     }
 
+    // Which bodies the beam takes on a pass: 0 an enemy, 1 a rock hazard (anything else in the lane), 2 scenery
+    // (a backdrop rock or debris piece that takes a hit).
+    static bool GrabClass(ClearTarget t, int pass)
+    {
+        if (pass == 2) return t.IsScenery;
+        if (!ShipTargets.IsThreat(t)) return false;
+        bool enemy = t.CompareTag("Enimey");
+        return pass == 0 ? enemy : !enemy;
+    }
+
+    public const float TractorWide = .4f, TractorNarrow = .14f, ShakeAmount = .07f, ShakeRate = 70f;
+    static readonly Color TractorTint = new Color(.75f, 1f, .85f, 1f);
+
     void StartAbduct(AttackRun run, Vector3 nose)
     {
         var l = run.loadout;
@@ -577,19 +593,25 @@ public partial class ShipAttackRunner
         ShipTargets.Collect(targets);
         for (int g = 0; g < grabs; g++)
         {
+            // Enemies first; with none in reach, a hazard rock, then any backdrop rock or debris piece. The grab
+            // and the hurl are the same for all of them.
             ClearTarget best = null;
-            float bestSq = l.range * l.range;
-            for (int i = 0; i < targets.Count; i++)
+            for (int pass = 0; pass < 3 && best == null; pass++)
             {
-                var t = targets[i];
-                if (t == null || !t.isActiveAndEnabled || !ShipTargets.IsThreat(t) || t.IsShotHitbox) continue;
-                if (RunScore.IsHostileShot(t.gameObject) || Special(t.gameObject)) continue;
-                Vector3 p = t.transform.position;
-                if (p.y < nose.y - .5f) continue;
-                bool taken = false;
-                for (int k = 0; k < v.count; k++) taken |= v.tgt[k] == t;
-                float sq = ((Vector2)(p - nose)).sqrMagnitude;
-                if (!taken && sq < bestSq) { bestSq = sq; best = t; }
+                float bestSq = l.range * l.range;
+                for (int i = 0; i < targets.Count; i++)
+                {
+                    var t = targets[i];
+                    if (t == null || !t.isActiveAndEnabled || t.IsShotHitbox) continue;
+                    if (!GrabClass(t, pass)) continue;
+                    if (RunScore.IsHostileShot(t.gameObject) || Special(t.gameObject)) continue;
+                    Vector3 p = t.transform.position;
+                    if (p.y < nose.y - .5f) continue;
+                    bool taken = false;
+                    for (int k = 0; k < v.count; k++) taken |= v.tgt[k] == t;
+                    float sq = ((Vector2)(p - nose)).sqrMagnitude;
+                    if (!taken && sq < bestSq) { bestSq = sq; best = t; }
+                }
             }
             if (best == null) break;
             int s = v.count++;
@@ -602,6 +624,8 @@ public partial class ShipAttackRunner
             v.n[s] = Mathf.Max(1, l.maxHits);
             v.fx[s] = AttackPool.Sprite().Play(AttackSprite.Source.AttackLoop, ship, nose, new Vector3(.4f, 1f, 1f), 0f,
                 ShipFxArt.LoopTicks, true, 0f, null, Vector3.zero, 69).Owned(run);
+            if (v.link[s] == null || !v.link[s].Alive) v.link[s] = new AttackLink(TractorTint, 70);
+            v.link[s].Hide();
         }
         if (v.count > 0) return;
         // Nothing it can lift: a boss or an elite takes the beam as one hit instead.
@@ -646,9 +670,13 @@ public partial class ShipAttackRunner
                 float k = Mathf.Clamp01(v.at[g] / PullSeconds);
                 float e = k * k * (3f - 2f * k);
                 Vector3 hold = HoldPoint(v, g, v.count);
-                v.pos[g] = Vector3.Lerp(v.from[g], hold, e) + Vector3.up * (Mathf.Sin(k * Mathf.PI) * .3f);
+                // the body is lifted (arcing up and a touch past its path) and shakes in the beam's grip
+                float shake = ShakeAmount * Mathf.Clamp01(k * 3f);
+                v.pos[g] = Vector3.Lerp(v.from[g], hold, e) + Vector3.up * (Mathf.Sin(k * Mathf.PI) * .3f)
+                         + new Vector3(Mathf.Sin(v.at[g] * ShakeRate) * shake, Mathf.Cos(v.at[g] * ShakeRate * 1.3f) * shake * .5f, 0f);
                 body.transform.position = v.pos[g];
-                BeamTo(run, v.fx[g], nose, v.pos[g]);
+                BeamTo(run, v.fx[g], nose, v.pos[g], Mathf.Lerp(TractorWide, TractorNarrow, e));
+                if (v.link[g] != null) v.link[g].Set(nose, v.pos[g], Mathf.Lerp(.07f, .03f, e), Mathf.Lerp(.35f, .95f, e));
                 if (k >= 1f) Hurl(run, v, g, hold);
             }
             else
@@ -685,13 +713,13 @@ public partial class ShipAttackRunner
         return false;
     }
 
-    void BeamTo(AttackRun run, AttackSprite beam, Vector3 from, Vector3 to)
+    void BeamTo(AttackRun run, AttackSprite beam, Vector3 from, Vector3 to, float width = TractorWide)
     {
         if (beam == null || !beam.Active || beam.Run != run) return;
         Vector3 d = to - from;
         beam.transform.position = (from + to) * .5f;
         beam.transform.rotation = Quaternion.Euler(0f, 0f, Mathf.Atan2(d.y, d.x) * Mathf.Rad2Deg - 90f);
-        beam.transform.localScale = new Vector3(.4f, Mathf.Max(.3f, d.magnitude), 1f);
+        beam.transform.localScale = new Vector3(width, Mathf.Max(.3f, d.magnitude), 1f);
     }
 
     // The grabbed body is thrown at the densest knot of the other targets (straight up if there are none).
@@ -725,6 +753,7 @@ public partial class ShipAttackRunner
         v.to[g] = dir * Mathf.Max(5f, l.speed);
         if (v.fx[g] != null && v.fx[g].Active && v.fx[g].Run == run) v.fx[g].Stop();
         v.fx[g] = null;
+        if (v.link[g] != null) v.link[g].Hide();
     }
 
     // A thrown body is done: it dies (paid like any kill). A body whose run was cut short is just let go.
@@ -733,6 +762,7 @@ public partial class ShipAttackRunner
         var body = v.tgt[g];
         if (v.fx[g] != null && v.fx[g].Active && v.fx[g].Run == v.owner) v.fx[g].Stop();
         v.fx[g] = null;
+        if (v.link[g] != null) v.link[g].Hide();
         if (v.col[g] != null) v.col[g].enabled = true;
         v.col[g] = null;
         v.phase[g] = 3;
