@@ -143,7 +143,9 @@ public static class SpaceAsteroidFieldTest
         SpaceAsteroidField.ClearAll();
         var small = SpaceAsteroidField.Spawn(0, 1, new Vector2(0f, 2f), 0f, 0f, 10f);
         small.TakeShipAttack(0, 1f, small.transform.position);
-        Check("a small rock bursts in one hit, leaving nothing", SpaceAsteroidField.Live.Count == 0);
+        Check("a small rock's first hit only deflects it", !small.Broken && small.Deflected && SpaceAsteroidField.Live.Count == 1);
+        small.TakeShipAttack(0, 1f, small.transform.position);
+        Check("a small rock bursts on the second hit, leaving nothing", SpaceAsteroidField.Live.Count == 0);
 
         // the cap holds when the field is crowded
         SpaceAsteroidField.ClearAll();
@@ -193,7 +195,7 @@ public static class SpaceAsteroidFieldTest
         var near = SpaceAsteroidField.Spawn(0, 0, new Vector2(0f, 0f), 0f, 0f, 10f);
         var far = SpaceAsteroidField.Spawn(0, 1, new Vector2(0f, 2.5f), 0f, 0f, 10f);
         rail.Fire();
-        Check("a rail through two small field rocks breaks both", Gone(near) && Gone(far));
+        Check("a rail through two small field rocks hits both (deflected: the second does not live off the first's allowance)", (Gone(near) || near.Deflected) && (Gone(far) || far.Deflected));
         DropShip(ship);
         SpaceAsteroidField.ClearAll();
 
@@ -206,8 +208,8 @@ public static class SpaceAsteroidFieldTest
         var mid = SpaceAsteroidField.Spawn(1, 2, new Vector2(0f, 3f), 0f, 0f, 10f);
         wave.Fire();
         for (int i = 0; i < 150 && wave.ActiveRuns > 0; i++) wave.Step(Dt);
-        Check("a heat wave burns every field rock it passes (two small ones break, a medium one is hit)",
-              Gone(left) && Gone(right) && !Gone(mid) && mid.Health < SpaceAsteroidField.SizeHits[1] - .5f);
+        Check("a heat wave burns every field rock it passes (the two small ones are deflected or broken, a medium one is hit)",
+              (Gone(left) || left.Deflected) && (Gone(right) || right.Deflected) && !Gone(mid) && mid.Health < SpaceAsteroidField.SizeHits[1] - .5f);
         DropShip(ship);
         SpaceAsteroidField.ClearAll();
 

@@ -953,7 +953,7 @@ public static class SpaceEliteTest
         guard = 0;
         while (tow.TowPhase != TowSlingAttack.Phase.Settle && guard++ < 300) EliteSystem.Step(Dt);
         rock = tow.Rock;
-        bool shot = rock != null && ShipAttackHits.Hit(rock, 0);
+        bool shot = rock != null && (ShipAttackHits.Hit(rock, 0) || ShipAttackHits.Hit(rock, 0));   // (a rock: the first hit deflects, the second destroys)
         Step(Dt);
         Check("the flung asteroid is shot apart like any rock (a player weapon destroys it)", shot && rock == null);
         Step(2f);

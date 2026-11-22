@@ -910,7 +910,7 @@ public class CanopyMortarAttack : EliteAttack
     public Vector2 Spot(int i) => new Vector2(xs[Mathf.Clamp(i, 0, MaxGlobs - 1)], rowCentre.y);
     public float PoolRadius => def.shotSize * 2.1f * .42f;
     public static float GapFor(int lost) => Mathf.Max(GapMin, GapBase - GapPerHeart * Mathf.Max(0, lost));
-    int Lost => Mathf.Max(0, def.hearts - ship.Hearts);
+    int Lost => Mathf.Max(0, def.hearts - ship.ScriptHearts);
 
     public override void BeginTell(Vector2 seen)
     {

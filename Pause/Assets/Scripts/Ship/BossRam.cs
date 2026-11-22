@@ -25,6 +25,9 @@ public static class BossRam
     public static float RamWeight = 1f;
     // Seconds of shield (blue atom timer / Cloak) a landed ram uses up (was 1.2: half now).
     public static float RamShieldCost = .6f;
+    // Seconds of shield a landed ram on an ELITE uses up: none (combat rework: elites carry double hearts, so the ram costs the elite 1 heart and
+    // the shield nothing). The boss keeps RamShieldCost.
+    public static float EliteRamShieldCost = 0f;
     // The contact cooldown after a landed ram on an ELITE (a boss uses its own hit window instead).
     public static float EliteRamBlockSeconds = .5f;
 

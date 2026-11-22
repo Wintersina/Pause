@@ -101,7 +101,7 @@ public static class DeathComboTest
     // A real roster rock, its movers off.
     static GameObject Rock(Vector3 at)
     {
-        var go = EnemyFactory.Create(EnemyRoster.One(0, EnemyRole.Rock), at, Quaternion.identity);
+        var go = EnemyFactory.Create(EnemyRoster.One(0, EnemyRole.Rock), at, Quaternion.identity, 1f, false);   // (one-hit: these checks are about what a kill sets off and pays)
         var t = ClearTarget.Ensure(go);
         foreach (var b in go.GetComponents<MonoBehaviour>())
             if (!(b is EnemyIdentity) && !(b is ClearTarget)) b.enabled = false;

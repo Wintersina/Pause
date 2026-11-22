@@ -35,7 +35,7 @@ public class EliteHearts : HeartOrbit
     {
         ship = s;
         heartSize = s.Def.heartSize * OutlineGrow;
-        personalSpace = 1.3f;
+        personalSpace = 1.6f;
         BuildHearts();
         Update();   // settles the shown count, so the first heart lost shields
     }
@@ -44,7 +44,7 @@ public class EliteHearts : HeartOrbit
 
     public override void BuildHearts()
     {
-        if (ship != null) BuildHearts(ship.Def.hearts);
+        if (ship != null) BuildHearts(ship.Def.MaxHearts);
     }
 
     // Applies a lost heart now (EliteShip.TakeHit) instead of next frame.
@@ -60,6 +60,12 @@ public class EliteHearts : HeartOrbit
     }
 
     protected override bool Outlined { get { return true; } }
+
+    // Up to ten hearts on one ring (double health): the orbit widens faster per heart than the player's, so the hearts keep clear of each other.
+    protected override float CrowdGrowth { get { return .12f; } }
+
+    // Armoured elites carry ten (5 authored x the double health).
+    protected override int MaxHearts { get { return 12; } }
 
     // Pale-hulled elites (EliteDef.boldHearts) wear the bold outline in every world.
     protected override bool? BoldOutline { get { return ship != null && ship.Def.boldHearts ? true : (bool?)null; } }

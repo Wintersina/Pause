@@ -37,6 +37,7 @@ public static class BossHeartsTest
     {
         fails = 0;
         using var sandbox = new TestHarness.Sandbox();
+        EliteDef.ScaleOverride = 0;   // the real double hearts: the outline contrast is judged with the crowded ring
         try
         {
             EveryBossSpawnsWithFiveHearts();

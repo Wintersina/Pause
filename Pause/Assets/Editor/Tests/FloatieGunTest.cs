@@ -222,12 +222,14 @@ public static class FloatieGunTest
 
     static void Cooldowns()
     {
-        Check("level 0-3: #1 and #2 every 1 s, normal play",
-              Mathf.Approximately(FloatieTuning.Cooldown(0, 0, false), 1f) && Mathf.Approximately(FloatieTuning.Cooldown(1, 2, false), 1f) &&
-              Mathf.Approximately(FloatieTuning.Cooldown(0, 3, false), 1f));
-        Check("level 4: #1 and #2 every 0.75 s, the seeker every 1.5 s",
-              Mathf.Approximately(FloatieTuning.Cooldown(0, 4, false), .75f) && Mathf.Approximately(FloatieTuning.Cooldown(1, 4, false), .75f) &&
-              Mathf.Approximately(FloatieTuning.Cooldown(2, 4, false), 1.5f));
+        Check("level 0-3: #1 and #2 every 2 s, normal play (the base gun fires half as often: x2)",
+              Mathf.Approximately(FloatieTuning.Cooldown(0, 0, false), 2f) && Mathf.Approximately(FloatieTuning.Cooldown(1, 2, false), 2f) &&
+              Mathf.Approximately(FloatieTuning.Cooldown(0, 3, false), 2f));
+        Check("level 4: #1 and #2 every 1.5 s, the seeker every 3 s (x2, the final -25% still applies)",
+              Mathf.Approximately(FloatieTuning.Cooldown(0, 4, false), 1.5f) && Mathf.Approximately(FloatieTuning.Cooldown(1, 4, false), 1.5f) &&
+              Mathf.Approximately(FloatieTuning.Cooldown(2, 4, false), 3f));
+        Check("the base constants doubled (1 s -> 2 s, seeker 2 s -> 4 s), the boss rate untouched at 5 s",
+              Mathf.Approximately(FloatieTuning.NormalCooldown, 2f) && Mathf.Approximately(FloatieTuning.SeekerCooldown, 4f) && Mathf.Approximately(FloatieTuning.BossCooldown, 5f));
         bool five = true;
         for (int level = 0; level <= 4; level++)
             for (int i = 0; i < FloatieTuning.CountAt(level); i++) five &= Mathf.Approximately(FloatieTuning.Cooldown(i, level, true), 5f);
@@ -240,16 +242,16 @@ public static class FloatieGunTest
         var r = MakeShip(1, 0);
         r.battery.ResetTimers();
         Steps(r, 10.05f);
-        Check("level 0 fires once a second (" + r.battery.Shots[0] + " shots in 10 s)", r.battery.Shots[0] >= 9 && r.battery.Shots[0] <= 10);
+        Check("level 0 fires once every two seconds (" + r.battery.Shots[0] + " shots in 10 s)", r.battery.Shots[0] >= 4 && r.battery.Shots[0] <= 5);
         FloatieBullets.ReleaseAll();
 
         r.battery.SetLevel(4);
         r.battery.ResetTimers();
         for (int i = 0; i < 3; i++) r.battery.Shots[i] = 0;
         for (float t = 0f; t < 12f; t += Dt) { r.battery.Step(Dt); if (Mathf.Approximately(t % 1f, 0f)) FloatieBullets.ReleaseAll(); }
-        Check("level 4: #1 and #2 every 0.75 s (" + r.battery.Shots[0] + " / " + r.battery.Shots[1] + " in 12 s), the seeker every 1.5 s (" + r.battery.Shots[2] + ")",
-              r.battery.Shots[0] >= 15 && r.battery.Shots[0] <= 16 && r.battery.Shots[1] >= 15 && r.battery.Shots[1] <= 16 &&
-              r.battery.Shots[2] >= 7 && r.battery.Shots[2] <= 8);
+        Check("level 4: #1 and #2 every 1.5 s (" + r.battery.Shots[0] + " / " + r.battery.Shots[1] + " in 12 s), the seeker every 3 s (" + r.battery.Shots[2] + ")",
+              r.battery.Shots[0] >= 7 && r.battery.Shots[0] <= 8 && r.battery.Shots[1] >= 7 && r.battery.Shots[1] <= 8 &&
+              r.battery.Shots[2] >= 3 && r.battery.Shots[2] <= 4);
         Teardown(r);
 
         // a boss fight (its fly-in is the scripted entrance, which holds fire; the fight is 5 s)
@@ -277,7 +279,7 @@ public static class FloatieGunTest
         FreshScene();
         var r = MakeShip(1, 2);
         r.battery.ResetTimers();
-        Steps(r, 1.2f);
+        Steps(r, 2.2f);
         int base0 = r.battery.Shots[0];
         Check("(it fires in normal play)", base0 >= 1 && r.battery.CurrentHold == FloatieBattery.Hold.None);
 
@@ -289,7 +291,7 @@ public static class FloatieGunTest
         Check("while the ultimate is out nothing is fired and the wait is kept (hold " + r.battery.CurrentHold + ")",
               r.battery.Shots[0] + r.battery.Shots[1] == before && r.battery.CurrentHold == FloatieBattery.Hold.Ultimate);
         for (int i = 0; i < 100; i++) r.gun.Step(0f, Dt, Dt);
-        Steps(r, 1.6f);
+        Steps(r, 2.6f);
         Check("... it resumes when the ultimate is back", r.battery.Shots[0] + r.battery.Shots[1] > before && r.battery.CurrentHold == FloatieBattery.Hold.None);
 
         // a paused world: Step(0) and the pause rule
@@ -304,7 +306,7 @@ public static class FloatieGunTest
         Steps(r, 3f);
         Check("a paused game (finger up with pauses left) holds fire", r.battery.Shots[0] + r.battery.Shots[1] == shots && r.battery.CurrentHold == FloatieBattery.Hold.Frozen);
         TouchInput.PressedOverride = () => true;
-        Steps(r, 1.2f);
+        Steps(r, 2.2f);
         Check("... and fires again while the finger is down", r.battery.Shots[0] + r.battery.Shots[1] > shots);
         TouchInput.PressedOverride = null;
         score.pauseCounter = 0;
@@ -353,7 +355,7 @@ public static class FloatieGunTest
         r.battery.Extra(0).AimAt(0f, true);
         r.battery.Step(Dt);
         Check("... and sits straight early in its wait", Mathf.Abs(r.battery.Extra(0).AimTarget) < .01f);
-        Steps(r, .35f);
+        Steps(r, .85f);   // (floatie #2's first wait is half the 2 s cooldown: 1 s)
         Check("... but tilts toward its next angle before it fires", Mathf.Abs(r.battery.Extra(0).AimTarget) >= 15f && Mathf.Abs(r.battery.Extra(0).Aim) > 1f);
         FloatieBullets.ReleaseAll();
         Check("floatie #1 shoots straight up", s != null && Vector3.Dot(s.Heading, Vector3.up) > .9999f && r.battery.LastAngle[0] == 0f);
@@ -432,12 +434,16 @@ public static class FloatieGunTest
         Check("a bullet destroys an enemy projectile and is consumed", !shot.live && !b.Active && HostileShots.ShotDown == down + 1);
         Unreg(shot);
 
-        // a small enemy dies in one hit, with the usual kill credit
+        // a small enemy has 2 hearts: the first bullet takes one (it lives on), the second kills it, with the usual kill credit (paid once)
         var enemy = EnemyFactory.Create(EnemyRoster.One(3, EnemyRole.Fighter), new Vector2(1f, 1f), Quaternion.identity);
         ClearTarget.Ensure(enemy);
+        var hearts = enemy.GetComponent<EnemyHearts>();
         int kills = ShipAttackHits.Kills;
         b = BulletAt(new Vector3(1f, 1f, 0f));
-        Check("a bullet kills a small enemy in one hit (counted as a weapon kill) and is consumed",
+        Check("a bullet takes ONE of a small enemy's two hearts (it lives on) and is consumed",
+              enemy != null && hearts != null && hearts.Hearts == 1 && !b.Active && ShipAttackHits.Kills == kills);
+        b = BulletAt(new Vector3(1f, 1f, 0f));
+        Check("the second bullet kills it (counted as one weapon kill) and is consumed",
               enemy == null && !b.Active && ShipAttackHits.Kills == kills + 1);
 
         // a hazard (a rock / mine body)
@@ -549,9 +555,9 @@ public static class FloatieGunTest
         FloatieBullets.ReleaseAll();
         r.battery.ResetTimers();
         int shotsBefore = r.battery.Shots[0] + r.battery.Shots[1] + r.battery.Shots[2];
-        long bytes = TestHarness.AllocatedBytes(() => { for (int i = 0; i < 600; i++) r.battery.Step(Dt); });
+        long bytes = TestHarness.AllocatedBytes(() => { for (int i = 0; i < 1500; i++) r.battery.Step(Dt); });
         int fired = r.battery.Shots[0] + r.battery.Shots[1] + r.battery.Shots[2] - shotsBefore;
-        Check("firing allocates nothing (" + bytes + " bytes over " + fired + " shots and 600 frames)", fired >= 20 && bytes == 0);
+        Check("firing allocates nothing (" + bytes + " bytes over " + fired + " shots and 1500 frames)", fired >= 20 && bytes == 0);
         Object.DestroyImmediate(t1);
         Teardown(r);
     }

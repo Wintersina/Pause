@@ -963,8 +963,8 @@ public static class EliteTest
         Check("a surviving ram pops SHIELD BLOCKED (same word path as PAUSE BLOCKED)", shieldWords.Count == 1 && EliteShip.ShieldBlockedWord == "SHIELD BLOCKED");
         Check("a shielded ram costs the elite exactly one heart (RamWeight " + BossRam.RamWeight + "), pilot standing",
               e != null && e.Hearts == hearts - 1 && EliteShip.Rams == rams + 1 && collisionDetection.lifeCounter == 0);
-        Check("... it costs the shield " + BossRam.RamShieldCost + " s (half of the old 1.2)",
-              BossRam.RamShieldCost == .6f && Mathf.Abs(collisionDetection.invTimer - (5.8f - BossRam.RamShieldCost)) < 1e-3f);
+        Check("... and it leaves the shield time unchanged (elite ram cost " + BossRam.EliteRamShieldCost + " s; a boss still pays " + BossRam.RamShieldCost + " s)",
+              BossRam.EliteRamShieldCost == 0f && BossRam.RamShieldCost == .6f && Mathf.Abs(collisionDetection.invTimer - 5.8f) < 1e-3f);
         float timer = collisionDetection.invTimer;
         rig.Touch(e.gameObject);
         Check("... a ram the contact cooldown refused is throttled: no second word inside " + EliteShip.ShieldBlockedGap + " s", shieldWords.Count == 1);

@@ -3,9 +3,9 @@ using UnityEngine;
 // THE FLOATIES' SMALL GUN. Every ship's companion (UltimateGun, the "floatie" hovering beside the hull) also fires a small bullet
 // by itself, and the ship's weapon level (ShipWeaponUpgrades.Level, 0..MaxLevel = colours bought) adds floaties:
 //
-//   level 0-1  1 floatie  (the UltimateGun itself)                      straight up the screen, every 1 s
-//   level 2-3  2 floaties (+ a FloatieCompanion on the other side)      #2 fires up and angled left or right, every 1 s
-//   level 4    3 floaties (+ a seeker below the first), all 25% faster  #1/#2 every 0.75 s, the SEEKER every 1.5 s
+//   level 0-1  1 floatie  (the UltimateGun itself)                      straight up the screen, every 2 s
+//   level 2-3  2 floaties (+ a FloatieCompanion on the other side)      #2 fires up and angled left or right, every 2 s
+//   level 4    3 floaties (+ a seeker below the first), all 25% faster  #1/#2 every 1.5 s, the SEEKER every 3 s
 //
 // While a boss fight is on (BossEncounter.Running, the fly-in included) every floatie waits 5 s between shots. Fire holds (the
 // timers freeze, nothing is lost) while the ship's ultimate slides out / fires, the world is frozen (a pause), the pilot is dead,
@@ -20,8 +20,9 @@ using UnityEngine;
 public static class FloatieTuning
 {
     public const int MaxFloaties = 3;
-    public const float NormalCooldown = 1f;        // floatie #1 and #2, seconds
-    public const float SeekerCooldown = 2f;        // floatie #3 (it only exists at the final level, where the cut applies: 1.5 s)
+    // The normal gun fires half as often (combat rework, 2026-11-22: x2 on every base cooldown; was 1 s / 2 s). The boss rate is unchanged.
+    public const float NormalCooldown = 2f;        // floatie #1 and #2, seconds
+    public const float SeekerCooldown = 4f;        // floatie #3 (it only exists at the final level, where the cut applies: 3 s)
     public const float BossCooldown = 5f;          // every floatie while a boss is active
     public const float FinalLevelCut = .25f;       // the final level's cooldown cut
     public const float SpreadMinDegrees = 15f, SpreadMaxDegrees = 30f;   // floatie #2's random angle off straight up, left or right
@@ -316,7 +317,9 @@ public class FloatieBullet : MonoBehaviour
         }
         else if (target.TryGetComponent(out BossTarget _)) weight = FloatieTuning.BossWeight;
         Landed++;
+        ShipAttackHits.HitFrom = transform.position;
         ShipAttackHits.Hit(target, ship, weight, ref budget);
+        ShipAttackHits.HitFrom = null;
     }
 }
 

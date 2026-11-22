@@ -292,7 +292,7 @@ public static class SpaceHazardRocksTest
         Check("the jolt is tiny (under .1 u) and away from the blow", a.transform.position.y < pos.y && pos.y - a.transform.position.y < .1f);
         for (int i = 0; i < 12; i++) { a.Step(Dt, 0f, -50f); RockHitFx.Step(Dt); }
         Check("the flash and jolt settle", !a.FlashShowing && !a.JoltActive && (flashChild == null || !flashChild.GetComponent<SpriteRenderer>().enabled));
-        Check("... the rock is back on its line (no drift left over)", Mathf.Abs(a.transform.position.x - pos.x) < 1e-3f);
+        Check("... the only drift left is the deflection (the first hit throws the rock away from the blow)", a.Deflected && Mathf.Abs(a.transform.position.x - pos.x) < .5f);
         for (int i = 0; i < 20; i++) RockHitFx.Step(Dt);
         Check("the chips fade and go back to the pool", RockHitFx.ActiveChips == 0);
 
@@ -308,6 +308,7 @@ public static class SpaceHazardRocksTest
 
         // a lethal hit is the ordinary burst: no feedback state on a dead rock
         var small = SpaceAsteroidField.Spawn(0, 3, new Vector2(1.5f, 5f), 0f, 0f, 0f);
+        small.TakeShipAttack(0, 1f, small.transform.position);   // (the first hit of a small rock deflects it)
         small.TakeShipAttack(0, 1f, small.transform.position);
         Check("a lethal hit just bursts", small.Broken);
         // rapid hits do not flood the pool
@@ -372,7 +373,8 @@ public static class SpaceHazardRocksTest
         {
             var rock = SpaceAsteroidField.Spawn(0, i, new Vector2(0f, 2f), 0f, 0f, 0f);
             string id = SpaceHazardRockTypes.All[i].CodexId;
-            rock.TakeShipAttack(0, 1f, rock.transform.position);
+            rock.TakeShipAttack(0, 1f, rock.transform.position);   // deflect
+            rock.TakeShipAttack(0, 1f, rock.transform.position);   // break
             Check(SpaceHazardRockTypes.All[i].key + ": found on its first break, with the NEW badge",
                   rock.Broken && Codex.IsDiscovered(id) && Codex.IsNew(id) && Codex.IsRewardCollected(id));
         }
@@ -425,8 +427,8 @@ public static class SpaceHazardRocksTest
         Fresh();
         Check("the hazard field is Space only", SpaceAsteroidFieldDirector.Blocked(0, 120f) == null &&
               Enumerable.Range(1, 6).All(w => SpaceAsteroidFieldDirector.Blocked(w, 120f) == "not space"));
-        Check("the spawn rules are unchanged (25 s opening, 3 alive, 6 total, tiers 1/2/3 hits)",
+        Check("the spawn rules are unchanged (25 s opening, 3 alive, 6 total, tiers 2/2/3 hits)",
               SpaceAsteroidField.FirstSeconds == 25f && SpaceAsteroidField.MaxAlive == 3 && SpaceAsteroidField.MaxTotal == 6 &&
-              SpaceAsteroidField.SizeHits[0] == 1f && SpaceAsteroidField.SizeHits[1] == 2f && SpaceAsteroidField.SizeHits[2] == 3f);
+              SpaceAsteroidField.SizeHits[0] == 2f && SpaceAsteroidField.SizeHits[1] == 2f && SpaceAsteroidField.SizeHits[2] == 3f);
     }
 }
