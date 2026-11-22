@@ -1,0 +1,938 @@
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Reflection;
+using UnityEditor.SceneManagement;
+using UnityEngine;
+using UnityEngine.UI;
+using Object = UnityEngine.Object;
+
+// The SHOT ATOMS (ShotAtoms.cs, FloatieGuns.cs, ShotAtomHud.cs, the Codex entries): every atom's effect at levels 1-3, the world
+// schedule and level caps, the dust at the cap, drops (only elites and bosses, at their rates), the coin's catch and callout, the
+// bullet cap, the HUD row on every ScreenFit device, the Codex entries and the reset between runs.
+//
+//   Unity -batchmode -quit -projectPath Pause -executeMethod ShotAtomsTest.Run
+public static class ShotAtomsTest
+{
+    static int fails;
+    static void Check(string what, bool ok)
+    {
+        Debug.Log((ok ? "[SHOT] PASS  " : "[SHOT] FAIL  ") + what);
+        if (!ok) fails++;
+    }
+
+    public static void Run() { TestHarness.Exit(Execute()); }
+
+    const float Dt = 1f / 60f;
+    const BindingFlags Inst = BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public;
+
+    public static int Execute()
+    {
+        fails = 0;
+        using var sandbox = new TestHarness.Sandbox();
+        try
+        {
+            Schedule();
+            DropPicking();
+            DropRates();
+            DropHooks();
+            Twin();
+            Pierce();
+            Split();
+            Ricochet();
+            Arc();
+            Rapid();
+            BulletCap();
+            Catching();
+            HudLayout();
+            HudLive();
+            Spin();
+            CodexEntries();
+            Reset();
+        }
+        finally
+        {
+            Cleanup();
+        }
+        Debug.Log("[SHOT] failures: " + fails);
+        return fails;
+    }
+
+    // ---- fixtures -----------------------------------------------------------
+
+    static void Cleanup()
+    {
+        ShotAtoms.BeginRun();
+        FloatieBullets.ReleaseAll();
+        AttackPool.StopAll();
+        VoltArcs.StopAll();
+        EliteSystem.Clear();
+        EliteSystem.PlayerOverride = null;
+        PlayerPrefs.SetInt(WorldManager.PrefsCurrentWorld, 0);
+        AtomSpacing.Reset();
+        ShotAtomDrops.Spawned = null;
+        buttonClicks.playerDied = false;
+        startMenu.youAreInTutorial = false;
+        TouchInput.PressedOverride = null;
+        Time.timeScale = 1f;
+    }
+
+    static void ClearCoins()
+    {
+        foreach (var c in Object.FindObjectsByType<ShotAtomPickup>(FindObjectsSortMode.None)) Object.DestroyImmediate(c.gameObject);
+    }
+
+    static void FreshScene()
+    {
+        EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
+        var camGo = new GameObject("Main Camera", typeof(Camera));
+        camGo.tag = "MainCamera";
+        var cam = camGo.GetComponent<Camera>();
+        cam.orthographic = true;
+        cam.orthographicSize = 5f;
+        cam.aspect = .5625f;
+        camGo.transform.position = new Vector3(0f, 0f, -10f);
+        Cleanup();
+        score.pauseCounter = 0;
+        moveBackGround.speed = .2f;
+        RunScore.EndRun(RunScore.RunId);
+        RunScore.BeginRun(true, true);
+        PlayerPrefs.SetString("HasDoneTut", "true");
+        startMenu.youAreInTutorial = false;
+        collisionDetection.lifeCounter = 0;
+        collisionDetection.atomCheck = false;
+        PlayerInvuln.Reset();
+        TouchInput.PressedOverride = () => true;
+        UnityEngine.Random.InitState(777);
+    }
+
+    sealed class Rig
+    {
+        public GameObject ship;
+        public ShipPowerController power;
+        public FloatieBattery battery;
+    }
+
+    static Rig MakeShip(int id = 1)
+    {
+        PlayerPrefs.SetInt("spawnShip", id);
+        var r = new Rig();
+        r.ship = new GameObject("ship" + id, typeof(SpriteRenderer));
+        r.ship.transform.position = new Vector3(0f, -3f, 0f);
+        r.power = r.ship.AddComponent<ShipPowerController>();
+        r.power.SendMessage("Awake");
+        r.power.SendMessage("Start");
+        var gun = r.ship.GetComponentInChildren<UltimateGun>();
+        if (gun != null) gun.SendMessage("Awake");
+        r.battery = r.ship.GetComponent<FloatieBattery>();
+        if (r.battery != null) r.battery.SetLevel(0);
+        return r;
+    }
+
+    static void Teardown(Rig r)
+    {
+        FloatieBullets.ReleaseAll();
+        if (r == null || r.ship == null) return;
+        r.power.SendMessage("OnDestroy");
+        if (r.power.Runner != null) r.power.Runner.SendMessage("OnDestroy");
+        if (r.power.Secret != null) r.power.Secret.SendMessage("OnDestroy");
+        Object.DestroyImmediate(r.ship);
+        AttackPool.StopAll();
+    }
+
+    static GameObject Hazard(float x, float y)
+    {
+        var go = new GameObject("hazard");
+        go.tag = "Enimey";
+        go.transform.position = new Vector3(x, y, 0f);
+        ClearTarget.Ensure(go).SetRadius(.3f);
+        return go;
+    }
+
+    static bool Dead(GameObject go) { return go == null; }
+
+    static FloatieBullet.Mods ModsFor(int pierce = 0, int bounces = 0, int shards = 0, int arc = 0, float damage = 1f)
+    {
+        var m = FloatieBullet.Mods.Plain;
+        m.damage = damage; m.pierce = pierce; m.bounces = bounces; m.shards = shards; m.arc = arc;
+        return m;
+    }
+
+    static FloatieBullet Launch(Vector3 at, Vector3 heading, FloatieBullet.Mods mods)
+    {
+        var b = FloatieBullets.Take();
+        b.Launch(null, 1, at, heading, Color.white, default(FloatieAim.Pick), mods);
+        return b;
+    }
+
+    static void Fly(FloatieBullet b, int maxSteps = 400)
+    {
+        for (int i = 0; i < maxSteps && b.Active; i++) b.Tick(Dt);
+    }
+
+    static int ActiveBullets()
+    {
+        return FloatieBullets.Active;
+    }
+
+    // ---- no world schedule: every atom, every world ------------------------------------------
+
+    static void Schedule()
+    {
+        ShotAtoms.BeginRun();
+        bool every = true, reach = true;
+        for (int w = 0; w < WorldManager.Worlds.Length; w++)
+        {
+            PlayerPrefs.SetInt(WorldManager.PrefsCurrentWorld, w);
+            // every atom can drop in each world (a fresh run: all six eligible)...
+            ShotAtoms.BeginRun();
+            every &= ShotAtoms.EligibleCount() == 6;
+            var seen = new HashSet<ShotAtom>();
+            ShotAtom a;
+            for (int i = 0; i < 120; i++) if (ShotAtoms.TryPick(i / 120f, out a)) seen.Add(a);
+            every &= seen.Count == 6;
+            // ...and every atom reaches level 3 there, then pays dust
+            for (int atom = 0; atom < 6; atom++)
+            {
+                for (int n = 1; n <= 3; n++)
+                {
+                    var got = ShotAtoms.Collect((ShotAtom)atom);
+                    reach &= !got.maxed && got.level == n;
+                }
+                var over = ShotAtoms.Collect((ShotAtom)atom);
+                reach &= over.maxed && ShotAtoms.Level((ShotAtom)atom) == 3;
+            }
+        }
+        PlayerPrefs.SetInt(WorldManager.PrefsCurrentWorld, 0);
+        Check("every atom can drop in every one of the " + WorldManager.Worlds.Length + " worlds from the start of a run", every);
+        Check("every atom reaches level 3 in any world, and a catch past it pays dust", reach);
+        string src = File.ReadAllText("Assets/Scripts/Gameplay/Pickups/ShotAtoms.cs");
+        Check("no world unlock or level-cap tables are left", !src.Contains("UnlockWorld") && !src.Contains("MaxLevelOfWorld") && !src.Contains("CurrentIndex"));
+    }
+
+    static void DropPicking()
+    {
+        ShotAtoms.BeginRun();
+        ShotAtom a;
+        Check("a fresh run: all six atoms are eligible, the roll picks across them (0 -> TWIN, 0.99 -> RAPID)",
+              ShotAtoms.EligibleCount() == 6 && ShotAtoms.TryPick(0f, out a) && a == ShotAtom.Twin && ShotAtoms.TryPick(.99f, out a) && a == ShotAtom.Rapid && ShotAtoms.TryPick(1f, out a));
+        var c = ShotAtoms.Collect(ShotAtom.Rapid);
+        Check("a catch raises the level (RAPID I)", !c.maxed && c.level == 1 && ShotAtoms.Level(ShotAtom.Rapid) == 1 && ShotAtoms.Callout(ShotAtom.Rapid, c.level) == "RAPID I");
+        ShotAtoms.Collect(ShotAtom.Rapid);
+        Check("a drop picks only atoms that are not maxed yet: RAPID II still drops, RAPID III does not",
+              ShotAtoms.CanDrop(ShotAtom.Rapid) && ShotAtoms.Collect(ShotAtom.Rapid).level == 3 && !ShotAtoms.CanDrop(ShotAtom.Rapid) && ShotAtoms.EligibleCount() == 5);
+        var seen = new HashSet<ShotAtom>();
+        for (int i = 0; i < 100; i++) if (ShotAtoms.TryPick(i / 100f, out a)) seen.Add(a);
+        Check("... the roll reaches the five others and never the maxed one", seen.Count == 5 && !seen.Contains(ShotAtom.Rapid));
+        var over = ShotAtoms.Collect(ShotAtom.Rapid);
+        Check("a catch of a maxed atom pays dust and keeps level 3 (counted)", over.maxed && ShotAtoms.Level(ShotAtom.Rapid) == 3 && ShotAtoms.MaxedCatches == 1);
+        for (int atom = 0; atom < ShotAtomTuning.Count; atom++) ShotAtoms.SetLevel((ShotAtom)atom, 3);
+        Check("all six at level 3: no atom can drop (a drop pays dust instead)", !ShotAtoms.TryPick(.5f, out a) && ShotAtoms.EligibleCount() == 0);
+        Check("the callouts read TWIN II / ARC III", ShotAtoms.Callout(ShotAtom.Twin, 2) == "TWIN II" && ShotAtoms.Callout(ShotAtom.Arc, 3) == "ARC III");
+        ShotAtoms.BeginRun();
+    }
+
+    // ---- drops --------------------------------------------------------------------
+
+    static void DropRates()
+    {
+        FreshScene();
+        Check("the tuning: boss 100%, elite 50%", ShotAtomTuning.BossDropChance == 1f && ShotAtomTuning.EliteDropChance == .5f);
+        int before = ShotAtomDrops.Elites;
+        // the first elite of a run always drops, whatever the roll
+        ShotAtoms.BeginRun();
+        Check("a new run has not had its first elite kill", !ShotAtomDrops.FirstEliteDone);
+        AtomSpacing.Released();
+        ShotAtomDrops.OnEliteKilled(Vector3.zero, .999f);
+        Check("the first elite kill of a run drops even on the worst roll (and sets the flag)", ShotAtomDrops.Elites - before == 1 && ShotAtomDrops.FirstEliteDone);
+        ShotAtomDrops.Clear();
+        AtomSpacing.Released();
+        ShotAtomDrops.OnEliteKilled(Vector3.zero, .999f);
+        Check("a later elite uses the chance (a roll of .999 does not drop)", ShotAtomDrops.Elites - before == 1);
+        ShotAtomDrops.Clear();
+        AtomSpacing.Released();
+        ShotAtomDrops.OnEliteKilled(Vector3.zero, .1f);
+        Check("... and a low roll does", ShotAtomDrops.Elites - before == 2);
+        ShotAtoms.BeginRun();
+        Check("a new run resets the flag: its first elite is guaranteed again", !ShotAtomDrops.FirstEliteDone);
+        AtomSpacing.Released();
+        ShotAtomDrops.OnEliteKilled(Vector3.zero, .999f);
+        Check("... (it drops again on the worst roll)", ShotAtomDrops.Elites - before == 3);
+        ShotAtomDrops.Clear();
+        before = ShotAtomDrops.Elites;
+        for (int i = 0; i < 1000; i++)
+        {
+            ShotAtomDrops.Clear();
+            AtomSpacing.Released();   // (the spacing gap is closed: an earned coin waits in the queue, nothing is built)
+            ShotAtomDrops.OnEliteKilled(Vector3.zero, i / 1000f);
+        }
+        int offered = ShotAtomDrops.Elites - before;
+        Check("an elite drops half the time (500 of 1000 evenly spread rolls: " + offered + ")", offered == 500);
+        ShotAtomDrops.Clear();
+        before = ShotAtomDrops.Bosses;
+        for (int i = 0; i <= 200; i++)
+        {
+            ShotAtomDrops.Clear();
+            AtomSpacing.Released();
+            ShotAtomDrops.OnBossDestroyed(Vector3.zero, i / 200f);
+        }
+        int boss = ShotAtomDrops.Bosses - before;
+        Check("a boss always drops (every roll, 1.0 included: " + boss + " of 201)", boss == 201);
+        ShotAtomDrops.Clear();
+
+        // a drop appears as a coin of an eligible atom; with the atom spacing busy it waits, then comes
+        ShotAtoms.BeginRun();
+        AtomSpacing.Reset();
+        ShotAtomDrops.Clear();
+        var spawned = new List<ShotAtom>();
+        ShotAtomDrops.Spawned = (atom, at) => spawned.Add(atom);
+        ShotAtomDrops.OnBossDestroyed(new Vector3(.5f, 2f, 0f), 0f);
+        var coins = Object.FindObjectsByType<ShotAtomPickup>(FindObjectsSortMode.None);
+        Check("a boss kill puts one coin in the lane", coins.Length == 1 && spawned.Count == 1 && coins[0].atom == spawned[0] &&
+              coins[0].CompareTag("pickUp") && coins[0].name == ShotAtomPickup.NameFor(spawned[0]));
+        Check("... it floats with the atom drift (the world scroller + AtomSpin, no spin) and carries its flipbook",
+              coins[0].GetComponent<moveItemEnmInStrightLine>() != null && coins[0].GetComponent<AtomSpin>() != null &&
+              Mathf.Approximately(coins[0].GetComponent<AtomSpin>().degreesPerSecond, 0f) && coins[0].GetComponent<PickupFlipbook>() != null &&
+              coins[0].GetComponent<PickupFlipbook>().kind == ShotAtoms.KindOf(coins[0].atom) && coins[0].GetComponent<PickupFlipbook>().FrameCount == 8);
+        Check("... and the atom spacing now holds the next atom back", !AtomSpacing.Ready);
+        ShotAtomDrops.OnBossDestroyed(new Vector3(-.5f, 2f, 0f), 0f);
+        Check("a second drop inside the spacing gap waits its turn", ShotAtomDrops.Pending == 1 && spawned.Count == 1);
+        AtomSpacing.Tick(AtomSpacing.Gap + .1f);
+        ShotAtomDrops.Pump(0f);
+        Check("... and is released once the gap has passed (coins that were never caught do not use up the roll)", ShotAtomDrops.Pending == 0 && ShotAtomDrops.Released >= 2);
+        ClearCoins();
+
+        // everything maxed: dust, no coin
+        ShotAtoms.BeginRun();
+        for (int atom = 0; atom < ShotAtomTuning.Count; atom++) ShotAtoms.SetLevel((ShotAtom)atom, 3);
+        AtomSpacing.Reset();
+        ShotAtomDrops.Clear();
+        int dust = ShotAtomDrops.DustDrops;
+        ShotAtomDrops.OnBossDestroyed(Vector3.zero, 0f);
+        Check("a drop with everything maxed pays dust instead of a coin", ShotAtomDrops.DustDrops == dust + 1 && ShotAtomDrops.LastWasDust &&
+              Object.FindObjectsByType<ShotAtomPickup>(FindObjectsSortMode.None).Length == 0);
+        ShotAtomDrops.Spawned = null;
+        ShotAtoms.BeginRun();
+    }
+
+    static void DropHooks()
+    {
+        string elites = File.ReadAllText("Assets/Scripts/Gameplay/Elites/EliteFx.cs");
+        string boss = File.ReadAllText("Assets/Scripts/Bosses/BossEncounter.cs");
+        Check("a killed elite (EliteRewards.Pay) can drop one", elites.Contains("ShotAtomDrops.OnEliteKilled("));
+        Check("a destroyed boss (BeginOutro, not an escape) always drops one", boss.Contains("if (explode) ShotAtomDrops.OnBossDestroyed("));
+        int callers = 0;
+        foreach (var file in Directory.GetFiles("Assets/Scripts", "*.cs", SearchOption.AllDirectories))
+        {
+            string text = File.ReadAllText(file);
+            if (file.EndsWith("ShotAtoms.cs")) continue;
+            if (text.Contains("ShotAtomDrops.OnEliteKilled(") || text.Contains("ShotAtomDrops.OnBossDestroyed(")) callers++;
+        }
+        Check("those are the only two places a coin is ever earned (no enemy, rock, dust or ultimate kill drops one) (" + callers + " files)", callers == 2);
+
+        FreshScene();
+        AtomSpacing.Reset();
+        ShotAtomDrops.Clear();
+        int released = ShotAtomDrops.Released;
+        for (int i = 0; i < 30; i++)
+        {
+            var enemy = Hazard(i * .01f, 1f);
+            ShipAttackHits.Hit(enemy, 1);
+        }
+        Check("killing ordinary enemies and hazards never drops one", ShotAtomDrops.Released == released && ShotAtomDrops.Pending == 0);
+        startMenu.youAreInTutorial = true;
+        Check("no drop in the tutorial", !ShotAtomDrops.OnBossDestroyed(Vector3.zero, 0f));
+        startMenu.youAreInTutorial = false;
+        buttonClicks.playerDied = true;
+        Check("... nor once the pilot is dead", !ShotAtomDrops.OnEliteKilled(Vector3.zero, 0f));
+        buttonClicks.playerDied = false;
+        ClearCoins();
+    }
+
+    // ---- the atoms' effects -----------------------------------------------------------
+
+    static void Twin()
+    {
+        FreshScene();
+        var r = MakeShip();
+        bool counts = true, angles = true, damage = true;
+        for (int level = 0; level <= 3; level++)
+        {
+            ShotAtoms.SetLevel(ShotAtom.Twin, level);
+            FloatieBullets.ReleaseAll();
+            counts &= r.battery.Fire(0);
+            var active = new List<FloatieBullet>();
+            foreach (var b in FloatieBullets.All) if (b.Active) active.Add(b);
+            counts &= active.Count == level + 1 || (level == 0 && active.Count == 1);
+            for (int k = 0; k < active.Count && k < ShotAtomTuning.TwinAngles[level].Length; k++)
+            {
+                Vector3 h = active[k].Heading;
+                float a = Mathf.Atan2(-h.x, h.y) * Mathf.Rad2Deg;   // + is left
+                angles &= Mathf.Abs(a - ShotAtomTuning.TwinAngles[level][k]) < .1f;
+                damage &= Mathf.Approximately(active[k].Applied.damage, ShotAtomTuning.TwinDamage[level]);
+            }
+        }
+        Check("TWIN: 1, 2, 3, 4 bullets a volley at levels 0-3", counts);
+        Check("... L1 two parallel, L2 three in a narrow fan, L3 four (the fan's angles are the tuning's)", angles);
+        Check("... each extra shot does slightly less damage (the volley is worth 1.5x / 1.8x / 2x of one shot, never 2x / 3x / 4x)", damage &&
+              ShotAtomTuning.TwinShots[1] * ShotAtomTuning.TwinDamage[1] < 2f && ShotAtomTuning.TwinShots[2] * ShotAtomTuning.TwinDamage[2] < 3f &&
+              ShotAtomTuning.TwinShots[3] * ShotAtomTuning.TwinDamage[3] <= 2.01f && ShotAtomTuning.TwinDamage[1] < 1f);
+        ShotAtoms.SetLevel(ShotAtom.Twin, 1);
+        FloatieBullets.ReleaseAll();
+        r.battery.Fire(0);
+        var two = new List<FloatieBullet>();
+        foreach (var b in FloatieBullets.All) if (b.Active) two.Add(b);
+        float gap = Mathf.Abs(two[0].transform.position.x - two[1].transform.position.x);
+        Check("... the level 1 pair flies parallel, " + ShotAtomTuning.TwinParallelGap + " apart", two.Count == 2 && Mathf.Abs(gap - ShotAtomTuning.TwinParallelGap) < .01f &&
+              Vector3.Dot(two[0].Heading, two[1].Heading) > .9999f);
+        Check("... it is one volley: the floatie's shot counter counts it once", r.battery.Shots[0] == 5);
+        Teardown(r);
+
+        // an elite takes a quarter heart times the bullet's damage
+        FreshScene();
+        EliteSystem.Clear();
+        var pilot = new GameObject("~Pilot").transform;
+        pilot.position = new Vector3(0f, -2.5f, 0f);
+        EliteSystem.PlayerOverride = pilot;
+        var e = EliteShip.CreateInPlay(BaseEliteDefs.For("gunship"), new Vector2(0f, 1f));
+        e.AttackCooldown = 99f;
+        FloatieBank.Clear();
+        var bullet = Launch(e.transform.position + Vector3.down * .08f, Vector3.up, ModsFor(damage: ShotAtomTuning.TwinDamage[2]));
+        bullet.Tick(Dt);
+        Check("a TWIN bullet is a share of the quarter heart on an elite (" + FloatieBank.Of(e).ToString("0.000") + ")",
+              Mathf.Abs(FloatieBank.Of(e) - FloatieTuning.EliteWeight * ShotAtomTuning.TwinDamage[2]) < 1e-4f && !bullet.Active);
+        Object.DestroyImmediate(pilot.gameObject);
+        EliteSystem.PlayerOverride = null;
+        FloatieBank.Clear();
+    }
+
+    static void Pierce()
+    {
+        FreshScene();
+        bool ok = true;
+        string detail = "";
+        for (int level = 0; level <= 3; level++)
+        {
+            var targets = new List<GameObject>();
+            for (int i = 0; i < 5; i++) targets.Add(Hazard(0f, 0f + i * .8f));
+            var b = Launch(new Vector3(0f, -.6f, 0f), Vector3.up, ModsFor(pierce: ShotAtomTuning.PierceThrough[level]));
+            Fly(b);
+            int killed = 0;
+            foreach (var t in targets) if (Dead(t)) killed++;
+            ok &= killed == level + 1;
+            detail += " L" + level + "=" + killed;
+            foreach (var t in targets) if (t != null) Object.DestroyImmediate(t);
+            FloatieBullets.ReleaseAll();
+        }
+        Check("PIERCE: a shot kills 1 / 2 / 3 / 4 enemies in a line at levels 0-3 (through +1 enemy a level):" + detail, ok);
+        // never twice through the same enemy: a big body is hit once
+        var wide = Hazard(0f, 1f);
+        wide.GetComponent<ClearTarget>().SetRadius(.6f);
+        var pb = Launch(new Vector3(0f, .2f, 0f), Vector3.up, ModsFor(pierce: 3));
+        int before = FloatieBullet.Pierced;
+        Fly(pb, 4);
+        Check("... a pierced enemy is counted once (it is not hit again while the shot is inside it)", FloatieBullet.Pierced - before <= 1);
+        if (wide != null) Object.DestroyImmediate(wide);
+        FloatieBullets.ReleaseAll();
+    }
+
+    static void Split()
+    {
+        FreshScene();
+        bool counts = true, shardsOk = true;
+        for (int level = 1; level <= 3; level++)
+        {
+            FloatieBullets.ReleaseAll();
+            var target = Hazard(0f, 1f);
+            int before = FloatieBullet.ShardsLaunched;
+            var b = Launch(new Vector3(0f, .92f, 0f), Vector3.up, ModsFor(shards: level));
+            b.Tick(Dt);
+            counts &= FloatieBullet.ShardsLaunched - before == ShotAtomTuning.SplitShards[level] && !b.Active;
+            int shards = 0;
+            foreach (var s in FloatieBullets.All)
+            {
+                if (!s.Active) continue;
+                shards++;
+                shardsOk &= s.Applied.shard && Mathf.Approximately(s.Applied.damage, ShotAtomTuning.ShardDamage) && s.Applied.shards == 0 && s.Applied.arc == 0 && s.Applied.pierce == 0;
+                Vector3 h = s.Heading;
+                shardsOk &= Mathf.Abs(Mathf.Atan2(-h.x, h.y) * Mathf.Rad2Deg) > 1f || level == 2;   // diagonal (level 2 keeps one straight on)
+            }
+            counts &= shards == ShotAtomTuning.SplitShards[level];
+            if (target != null) Object.DestroyImmediate(target);
+        }
+        Check("SPLIT: a hit breaks the shot into 2 / 3 / 4 shards at levels 1-3 (and the shot itself ends)", counts);
+        Check("... small partial-damage shards that never split, zap or pierce again, flying diagonally", shardsOk);
+
+        // a shard really hits: level 1 sends shards at +-45 degrees; an enemy on that line dies
+        FloatieBullets.ReleaseAll();
+        var first = Hazard(0f, 1f);
+        float d = 1.2f;
+        var side = Hazard(Mathf.Sin(45f * Mathf.Deg2Rad) * d, 1f + Mathf.Cos(45f * Mathf.Deg2Rad) * d);
+        var b2 = Launch(new Vector3(0f, .92f, 0f), Vector3.up, ModsFor(shards: 1));
+        var pool = FloatieBullets.All;
+        for (int i = 0; i < 60; i++)
+            for (int k = 0; k < pool.Count; k++) if (pool[k].Active) pool[k].Tick(Dt);
+        Check("... a shard kills an enemy standing on its diagonal", Dead(first) && Dead(side));
+        if (side != null) Object.DestroyImmediate(side);
+        FloatieBullets.ReleaseAll();
+    }
+
+    static void Ricochet()
+    {
+        FreshScene();
+        bool ok = true;
+        string detail = "";
+        for (int level = 0; level <= 3; level++)
+        {
+            FloatieBullets.ReleaseAll();
+            int before = FloatieBullet.Bounced;
+            Vector3 heading = Quaternion.Euler(0f, 0f, -75f) * Vector3.up;   // 75 degrees to the right of straight up
+            var b = Launch(new Vector3(0f, -3f, 0f), heading, ModsFor(bounces: ShotAtomTuning.Bounces[level]));
+            bool inside = true;
+            for (int i = 0; i < 600 && b.Active; i++)
+            {
+                b.Tick(Dt);
+                inside &= b.transform.position.x >= -2.82f && b.transform.position.x <= 2.82f || b.BouncesLeft == 0;
+            }
+            int bounced = FloatieBullet.Bounced - before;
+            ok &= bounced == level && inside;
+            detail += " L" + level + "=" + bounced;
+        }
+        Check("RICOCHET: a shot bounces off the side edges 0 / 1 / 2 / 3 times at levels 0-3 and stays on screen while it has bounces:" + detail, ok);
+
+        FreshScene();
+        var r = MakeShip();
+        ShotAtoms.SetLevel(ShotAtom.Ricochet, 1);
+        bool leans = true;
+        for (int i = 0; i < 20; i++)
+        {
+            FloatieBullets.ReleaseAll();
+            r.battery.Fire(0);
+            FloatieBullet b = null;
+            foreach (var x in FloatieBullets.All) if (x.Active) b = x;
+            Vector3 h = b.Heading;
+            leans &= Mathf.Abs(Mathf.Abs(Mathf.Atan2(-h.x, h.y) * Mathf.Rad2Deg) - ShotAtomTuning.RicochetLeanDegrees) < .1f && b.BouncesLeft == 1;
+        }
+        Check("... the straight gun's shots lean " + ShotAtomTuning.RicochetLeanDegrees + " degrees so a bounce can happen at all", leans);
+        Teardown(r);
+    }
+
+    static void Arc()
+    {
+        FreshScene();
+        // hit A (0,1); B 1.2 right of it; C 1.2 right of B (all inside the view); D 3.5 above A; E 2.3 left of A
+        bool ok = true;
+        string detail = "";
+        for (int level = 1; level <= 3; level++)
+        {
+            FloatieBullets.ReleaseAll();
+            VoltArcs.StopAll();
+            var a = Hazard(0f, 1f);
+            var b = Hazard(1.2f, 1f);
+            var c = Hazard(2.4f, 1f);
+            var d = Hazard(0f, 4.5f);
+            var e = Hazard(-2.3f, 1f);
+            int zaps = FloatieBullet.ArcZaps, arcs = VoltArcs.TotalDrawn;
+            var bullet = Launch(new Vector3(0f, .92f, 0f), Vector3.up, ModsFor(arc: level));
+            bullet.Tick(Dt);
+            bool aDead = Dead(a), bDead = Dead(b), cDead = Dead(c), dDead = Dead(d), eDead = Dead(e);
+            int jumps = FloatieBullet.ArcZaps - zaps;
+            // L1: range 2.0, one jump: E (2.3) is out, B (1.5) is the nearest in range
+            // L2: range 2.6, one jump: E (2.3) is the nearest... no: B (1.5) is nearer, so B again
+            // L3: range 3.2, two jumps: B, then C (1.5 from B)
+            bool levelOk = aDead && jumps == ShotAtomTuning.ArcJumps[level] && VoltArcs.TotalDrawn - arcs == ShotAtomTuning.ArcJumps[level] && bDead && !dDead;
+            levelOk &= level == 3 ? cDead : !cDead;
+            levelOk &= !eDead;
+            ok &= levelOk;
+            detail += " L" + level + "=" + jumps + " jump" + (jumps == 1 ? "" : "s");
+            foreach (var t in new[] { a, b, c, d, e }) if (t != null) Object.DestroyImmediate(t);
+        }
+        Check("ARC: a hit zaps the nearest other enemy in range, 1 / 1 / 2 jumps at levels 1-3:" + detail, ok);
+
+        // range grows with level
+        bool rangeOk = true;
+        for (int level = 1; level <= 3; level++)
+        {
+            float dist = (ShotAtomTuning.ArcRange[level] + (level < 3 ? ShotAtomTuning.ArcRange[level + 1] : ShotAtomTuning.ArcRange[level] + 1f)) * .5f;
+            var a = Hazard(0f, 1f);
+            var far = Hazard(0f, 1f + dist);
+            var bullet = Launch(new Vector3(0f, .92f, 0f), Vector3.up, ModsFor(arc: level));
+            bullet.Tick(Dt);
+            // between this level's range and the next's: out of reach now (an enemy just inside the range is reached)
+            rangeOk &= !Dead(far);
+            foreach (var t in new[] { a, far }) if (t != null) Object.DestroyImmediate(t);
+            FloatieBullets.ReleaseAll();
+        }
+        Check("... a target just past a level's range is out of its reach", rangeOk);
+        bool grows = ShotAtomTuning.ArcRange[1] < ShotAtomTuning.ArcRange[2] && ShotAtomTuning.ArcRange[2] < ShotAtomTuning.ArcRange[3] &&
+                     ShotAtomTuning.ArcDamage[1] < ShotAtomTuning.ArcDamage[2] && ShotAtomTuning.ArcDamage[2] < ShotAtomTuning.ArcDamage[3] &&
+                     ShotAtomTuning.ArcJumps[1] == 1 && ShotAtomTuning.ArcJumps[2] == 1 && ShotAtomTuning.ArcJumps[3] == 2;
+        Check("... range and damage go up by level, the jumps go 1 / 1 / 2", grows);
+        VoltArcs.StopAll();
+        var a1 = Hazard(0f, 1f);
+        var b1 = Hazard(1f, 1f);
+        var shot = Launch(new Vector3(0f, .92f, 0f), Vector3.up, ModsFor(arc: 1));
+        shot.Tick(Dt);
+        var live = VoltArcs.LiveAt(0);
+        Check("... drawn with the Volt Viper's arc in ARC's own pale lightning (not the Viper's sodium white / teal, and no pink)",
+              live != null && live.coreColor == ShotAtomTuning.ArcCore && live.outerColor == ShotAtomTuning.ArcOuter && live.starColor == ShotAtomTuning.ArcStar &&
+              ShotAtomTuning.ArcCore != VoltArcs.CoreColor && ShotAtomTuning.ArcOuter.b > ShotAtomTuning.ArcOuter.r && ShotAtomTuning.ArcStar.b >= ShotAtomTuning.ArcStar.r);
+        foreach (var t in new[] { a1, b1 }) if (t != null) Object.DestroyImmediate(t);
+        VoltArcs.StopAll();
+        FloatieBullets.ReleaseAll();
+    }
+
+    static void Rapid()
+    {
+        FreshScene();
+        float baseCd = FloatieTuning.Cooldown(0, 0, false), baseSeeker = FloatieTuning.Cooldown(2, 4, false), baseBoss = FloatieTuning.Cooldown(0, 0, true);
+        bool ok = true;
+        float[] bonus = { 0f, .2f, .45f, .75f };
+        for (int level = 0; level <= 3; level++)
+        {
+            ShotAtoms.SetLevel(ShotAtom.Rapid, level);
+            ok &= Mathf.Abs(FloatieTuning.Cooldown(0, 0, false) - baseCd / (1f + bonus[level])) < 1e-4f;
+            ok &= Mathf.Abs(FloatieTuning.Cooldown(2, 4, false) - baseSeeker / (1f + bonus[level])) < 1e-4f;
+            ok &= Mathf.Abs(FloatieTuning.Cooldown(0, 0, true) - baseBoss / (1f + bonus[level])) < 1e-4f;
+        }
+        Check("RAPID: the gun's cooldown is base / (1 + 20% / 45% / 75%), the seeker's and a boss fight's too (base " + baseCd + " s on this build)", ok);
+        ShotAtoms.SetLevel(ShotAtom.Rapid, 3);
+        var r = MakeShip();
+        r.battery.ResetTimers();
+        for (int i = 0; i < 3; i++) r.battery.Shots[i] = 0;
+        for (float t = 0f; t < 12f; t += Dt) { r.battery.Step(Dt); if (Mathf.Approximately(t % 1f, 0f)) FloatieBullets.ReleaseAll(); }
+        float expected = 12f / (baseCd / 1.75f);
+        Check("... and it fires that much faster in play (" + r.battery.Shots[0] + " shots in 12 s, about " + expected.ToString("0") + ")",
+              Mathf.Abs(r.battery.Shots[0] - expected) <= 2f);
+        Check("the pure rule: Rapid(seconds) = seconds / (1 + bonus)", Mathf.Abs(ShotAtoms.Rapid(2f) - 2f / 1.75f) < 1e-4f && Mathf.Abs(ShotAtoms.RapidBonus() - .75f) < 1e-5f);
+        Teardown(r);
+    }
+
+    static void BulletCap()
+    {
+        FreshScene();
+        FloatieBullets.ReleaseAll();
+        AttackPool.StopAll();
+        int made = 0;
+        for (int i = 0; i < 60; i++)
+        {
+            var b = FloatieBullets.Take();
+            if (b == null) break;
+            b.Launch(null, 1, new Vector3(0f, -3f, 0f), Vector3.up, Color.white, default(FloatieAim.Pick));
+            made++;
+        }
+        Check("the cap: at most " + ShotAtomTuning.MaxBullets + " player bullets in the air (" + made + ")", made == ShotAtomTuning.MaxBullets && ActiveBullets() == ShotAtomTuning.MaxBullets &&
+              FloatieTuning.PoolSize == ShotAtomTuning.MaxBullets && FloatieBullets.Take() == null);
+        Check("... and the shared projectile cap still stands over it", ShotAtomTuning.MaxBullets < AttackPool.MaxProjectiles);
+        FloatieBullets.ReleaseAll();
+
+        // everything on, three floaties, a full minute: never over the cap, and allocating nothing
+        var r = MakeShip();
+        r.battery.SetLevel(4);
+        for (int i = 0; i < ShotAtomTuning.Count; i++) ShotAtoms.SetLevel((ShotAtom)i, 3);
+        var target = Hazard(1.5f, 4.4f);
+        int peak = 0;
+        r.battery.ResetTimers();
+        for (int i = 0; i < 3600; i++)
+        {
+            r.battery.Step(Dt);
+            peak = Mathf.Max(peak, FloatieBullets.Active);
+        }
+        Check("every atom at level 3 on a three-floatie ship for a minute: the bullets in the air never pass the cap (peak " + peak + ")", peak <= ShotAtomTuning.MaxBullets && peak > 0);
+        for (int i = 0; i < 400; i++) { r.battery.Step(Dt); if (i % 20 == 0) FloatieBullets.ReleaseAll(); }
+        FloatieBullets.ReleaseAll();
+        r.battery.ResetTimers();
+        int shots = r.battery.Shots[0] + r.battery.Shots[1] + r.battery.Shots[2];
+        long bytes = TestHarness.AllocatedBytes(() => { for (int i = 0; i < 600; i++) r.battery.Step(Dt); });
+        int fired = r.battery.Shots[0] + r.battery.Shots[1] + r.battery.Shots[2] - shots;
+        Check("... and firing with every atom allocates nothing (" + bytes + " bytes over " + fired + " volleys)", fired >= 20 && bytes == 0);
+        if (target != null) Object.DestroyImmediate(target);
+        Teardown(r);
+    }
+
+    // ---- catching a coin ---------------------------------------------------------------
+
+    static Rig2 SpawnShip()
+    {
+        var r = new Rig2();
+        r.ship = new GameObject(ShipId.ObjectName(1) + "(Clone)", typeof(SpriteRenderer), typeof(BoxCollider2D));
+        r.ship.GetComponent<BoxCollider2D>().isTrigger = true;
+        r.ship.AddComponent<Rigidbody2D>().bodyType = RigidbodyType2D.Kinematic;
+        spawnShips.ApplyHull(r.ship, 1);
+        r.cd = r.ship.AddComponent<collisionDetection>();
+        r.cd.explosionAnimation = new GameObject("~TestExplosion");
+        r.cd.boostSound = r.ship.AddComponent<AudioSource>();
+        r.cd.boostText = new GameObject("~boostText", typeof(RectTransform)).AddComponent<Text>();
+        r.cd.hypeText = new GameObject("~hypeText", typeof(RectTransform)).AddComponent<Text>();
+        r.cd.boost = new GameObject("~boost");
+        r.cd.boost.SetActive(false);
+        r.trigger = (Action<Collider2D>)Delegate.CreateDelegate(typeof(Action<Collider2D>), r.cd, typeof(collisionDetection).GetMethod("OnTriggerEnter2D", Inst));
+        r.cd.shield = ShipShield.For(r.ship).Visual;
+        collisionDetection.MAXLIFE = 3;
+        collisionDetection.lifeCounter = 0;
+        collisionDetection.atomCheck = false;
+        collisionDetection.invTimer = 0f;
+        return r;
+    }
+
+    sealed class Rig2
+    {
+        public GameObject ship;
+        public collisionDetection cd;
+        public Action<Collider2D> trigger;
+    }
+
+    static void Catching()
+    {
+        FreshScene();
+        ShotAtoms.BeginRun();
+        var rig = SpawnShip();
+        var coin = ShotAtomPickup.Build(ShotAtom.Rapid, Vector3.zero);
+        var coinCollider = coin.GetComponent<Collider2D>();
+        Check("the coin is a pickUp with the atom's name and the shot art (196 px, 700 px/unit like every atom)",
+              coin.CompareTag("pickUp") && coin.name == "shotAtom_rapid" && coin.GetComponent<SpriteRenderer>().sprite != null &&
+              coin.GetComponent<SpriteRenderer>().sprite.texture.width == 196 && Mathf.Approximately(coin.GetComponent<SpriteRenderer>().sprite.pixelsPerUnit, 700f));
+        int caught = collisionDetection.shotAtomPickups;
+        rig.trigger(coin.GetComponent<Collider2D>());
+        if (PickupBurst.LastPlayed != null) PickupBurst.LastPlayed.Finish();
+        Check("catching it adds a level (RAPID I), counts the pickup and calls it out",
+              ShotAtoms.Level(ShotAtom.Rapid) == 1 && collisionDetection.shotAtomPickups == caught + 1 && rig.cd.hypeText.text == "RAPID I");
+        Check("... with its own pickup burst (the shot_rapid_burst flipbook)", PickupBurst.LastPlayed != null &&
+              PickupArt.BurstName(PickupKind.ShotRapid) == "shot_rapid_burst" && PickupArt.Frames("shot_rapid_burst", 6)[0] != null);
+        var third = ShotAtomPickup.Build(ShotAtom.Arc, Vector3.zero);
+        rig.trigger(third.GetComponent<Collider2D>());
+        Check("an ARC coin in the same world is ARC I (any atom, any world) and the HUD order is catch order (RAPID, ARC)", ShotAtoms.Level(ShotAtom.Arc) == 1 && rig.cd.hypeText.text == "ARC I" &&
+              ShotAtoms.OrderCount == 2 && ShotAtoms.OrderAt(0) == ShotAtom.Rapid && ShotAtoms.OrderAt(1) == ShotAtom.Arc);
+        ShotAtoms.SetLevel(ShotAtom.Arc, 3);
+        var again = ShotAtomPickup.Build(ShotAtom.Arc, Vector3.zero);
+        rig.trigger(again.GetComponent<Collider2D>());
+        if (PickupBurst.LastPlayed != null) PickupBurst.LastPlayed.Finish();
+        Check("a fourth ARC is past level 3: it pays dust (\"" + rig.cd.hypeText.text + "\") and the level stays 3",
+              ShotAtoms.Level(ShotAtom.Arc) == 3 && rig.cd.hypeText.text == ShotAtoms.MaxedWord && ShotAtoms.MaxedCatches == 1);
+        Check("a pickup collected once is spent (its collider is off or it is gone)", coinCollider == null || !coinCollider.enabled);
+        foreach (var go in new[] { coin, again, third }) if (go != null) Object.DestroyImmediate(go);
+        Object.DestroyImmediate(rig.ship);
+        Object.DestroyImmediate(rig.cd.explosionAnimation);
+        collisionDetection.atomCheck = false;
+        ShotAtoms.BeginRun();
+        PlayerPrefs.SetInt(WorldManager.PrefsCurrentWorld, 0);
+    }
+
+    // ---- the HUD row ---------------------------------------------------------------------
+
+    static Rect AuthoredHud(TopBand.Frame band, Vector2 screen)
+    {
+        float hudScale = HudStyler.ScaleWithScreenSize(screen, new Vector2(800f, 600f), CanvasScaler.ScreenMatchMode.MatchWidthOrHeight, 0f);
+        return HudStyler.HudScreenRect(band, screen, hudScale, new Vector2(351f, 131f));
+    }
+
+    static void HudLayout()
+    {
+        bool fit = true, clear = true, apart = true, under = true, high = true, whole = true;
+        string firstBad = null;
+        int checkedRects = 0;
+        foreach (var d in FitDevice.All)
+        {
+            var screen = new Vector2(d.w, d.h);
+            Rect safe = d.Safe;
+            foreach (float rail in new[] { 0f, 2.2f })
+            {
+                var band = TopBand.FrameFor(safe, screen, rail, d.Cutouts);
+                Rect hud = AuthoredHud(band, screen);
+                var geo = ShotAtomHud.Compute(band, safe, screen, hud);
+                var obstacles = ShotAtomHud.Obstacles(band, safe, screen, hud);
+                var rects = new Rect[ShotAtomHud.MaxSlots];
+                for (int i = 0; i < rects.Length; i++)
+                {
+                    Rect r = rects[i] = ShotAtomHud.SlotRect(geo, i);
+                    Rect icon = ShotAtomHud.IconRect(geo, r);
+                    bool inside = r.xMin >= safe.xMin - .5f && r.xMax <= safe.xMax + .5f && r.yMin >= safe.yMin && r.yMax <= safe.yMax && r.xMin >= band.left - .5f && r.xMax <= band.right + .5f;
+                    bool clash = false;
+                    foreach (var o in obstacles) if (o.width > 0f && o.height > 0f && r.Overlaps(o)) clash = true;
+                    bool below = hud.height <= 0f || r.yMax <= hud.yMin + .5f;
+                    bool low = r.yMin >= screen.y * BoosterHud.LowestShare - .5f;
+                    for (int j = 0; j < i; j++) apart &= !r.Overlaps(rects[j]);
+                    fit &= inside;
+                    clear &= !clash;
+                    under &= below;
+                    high &= low;
+                    whole &= icon.width == icon.height && icon.x == Mathf.Round(icon.x) && icon.y == Mathf.Round(icon.y) && icon.xMin >= r.xMin - .5f && icon.xMax <= r.xMax + .5f && icon.yMin >= r.yMin - .5f;
+                    checkedRects++;
+                    if ((!inside || clash || !below || !low) && firstBad == null) firstBad = d.id + " rail " + rail + " slot " + i + " " + r;
+                }
+            }
+        }
+        string bad = firstBad != null ? " (first bad: " + firstBad + ")" : "";
+        Check("the shot-atom row sits inside the safe area and the top band on every ScreenFit device, with and without rails (" + checkedRects + " slots)" + bad, fit);
+        Check("... clear of the score board, the Replay/Home pair, the boss chip and banner, PORTAL DANGER's chip and the booster column" + bad, clear);
+        Check("... under the score board" + bad, under);
+        Check("... never in the bottom " + BoosterHud.LowestShare.ToString("0%") + " of the screen" + bad, high);
+        Check("... its six slots never overlap each other" + bad, apart);
+        Check("... coins are whole-pixel squares inside their slots", whole);
+        string src = File.ReadAllText("Assets/Scripts/UI/ShotAtomHud.cs");
+        Check("the row is not interactive (no Button, no GraphicRaycaster, nothing blocks a press) and runs on the run scene only",
+              !src.Contains("typeof(Button)") && !src.Contains("typeof(GraphicRaycaster)") && src.Contains("slot.icon.raycastTarget = false") &&
+              src.Contains("group.blocksRaycasts = false") && src.Contains("scene.name != \"gameS1\""));
+        Check("the row reads the shot atoms only (never the boosters' or the timed atoms' state)", !src.Contains("Boosters.") && !src.Contains("MagnetPull") && !src.Contains("atomCheck"));
+        Check("the labels read x1 / x2 / x3", ShotAtomHud.LevelLabel(1) == "x1" && ShotAtomHud.LevelLabel(2) == "x2" && ShotAtomHud.LevelLabel(3) == "x3");
+    }
+
+    static void HudLive()
+    {
+        ShotAtoms.BeginRun();
+        ShotAtoms.Collect(ShotAtom.Arc);
+        ShotAtoms.Collect(ShotAtom.Twin);
+        ShotAtoms.Collect(ShotAtom.Rapid);
+        ShotAtoms.Collect(ShotAtom.Twin);
+        var host = new GameObject(ShotAtomHud.HostName);
+        var hud = host.AddComponent<ShotAtomHud>();
+        hud.SendMessage("Update");
+        Check("the live row shows one coin per atom caught, in catch order (ARC, TWIN, RAPID), with the level under each (x1, x2, x1)",
+              hud.VisibleCount == 3 && hud.AtomAt(0) == ShotAtom.Arc && hud.AtomAt(1) == ShotAtom.Twin && hud.AtomAt(2) == ShotAtom.Rapid &&
+              hud.LabelAt(0) == "x1" && hud.LabelAt(1) == "x2" && hud.LabelAt(2) == "x1");
+        Check("... each coin is that atom's own idle drawing", hud.IconAt(0) != null && hud.IconAt(0).name.StartsWith("shot_arc_idle") && hud.IconAt(1).name.StartsWith("shot_twin_idle") &&
+              hud.IconAt(2).name.StartsWith("shot_rapid_idle"));
+        ShotAtoms.Collect(ShotAtom.Arc);
+        hud.SendMessage("Update");
+        Check("a level up changes the count, not the place", hud.VisibleCount == 3 && hud.AtomAt(0) == ShotAtom.Arc && hud.LabelAt(0) == "x2");
+        ShotAtoms.Collect(ShotAtom.Split);
+        hud.SendMessage("Update");
+        Check("a new atom joins on the end", hud.VisibleCount == 4 && hud.AtomAt(3) == ShotAtom.Split && hud.LabelAt(3) == "x1");
+        var images = host.GetComponentsInChildren<Image>(false);
+        Check("only the four coins are shown (no booster, no timed atom)", images.Length == 4);
+        bool inert = host.GetComponentsInChildren<GraphicRaycaster>(true).Length == 0 && host.GetComponentsInChildren<Button>(true).Length == 0;
+        Check("... and nothing on it takes a press", inert);
+        ShotAtoms.BeginRun();
+        hud.SendMessage("Update");
+        Check("a new run clears the row", hud.VisibleCount == 0 && host.GetComponentsInChildren<Image>(false).Length == 0);
+        Object.DestroyImmediate(host);
+    }
+
+    // ---- the spinning border ------------------------------------------------------------------
+
+    static void Spin()
+    {
+        FreshScene();
+        var coin = ShotAtomPickup.Build(ShotAtom.Twin, Vector3.zero);
+        var book = coin.GetComponent<PickupFlipbook>();
+        var sr = coin.GetComponent<SpriteRenderer>();
+        Quaternion rot0 = coin.transform.rotation;
+        var seen = new HashSet<int>();
+        var sprites = new HashSet<Sprite>();
+        int first = book.Frame;
+        int advanced = 0, last = first;
+        for (int i = 0; i < 40; i++)
+        {
+            book.Advance(PickupArt.ShotFrameSeconds * 1.01f);
+            seen.Add(book.Frame);
+            sprites.Add(sr.sprite);
+            if (book.Frame != last) advanced++;
+            last = book.Frame;
+        }
+        Check("the coin's border index advances over time and visits every one of the 8 drawings (" + seen.Count + " seen, " + advanced + " steps in 40)", advanced >= 39 && seen.Count == 8 && sprites.Count == 8);
+        float turn = PickupArt.ShotFrameSeconds * 8f * 8f;
+        Check("... one apparent full turn (8 x 45 degrees) takes " + turn.ToString("0.0") + " s: clearly visible, between 1.5 and 2 s", turn >= 1.5f && turn <= 2f);
+        Check("... the symbol stays upright and still: nothing on the coin rotates (the drawings carry the still symbol; AtomSpin is at 0 deg/s)",
+              coin.transform.rotation == rot0 && Mathf.Approximately(coin.GetComponent<AtomSpin>().degreesPerSecond, 0f) && coin.transform.childCount >= 0);
+        coin.GetComponent<AtomSpin>().SendMessage("Update");
+        Check("... still not turned after an AtomSpin frame", coin.transform.rotation == rot0);
+        Object.DestroyImmediate(coin);
+
+        // the HUD row's coins spin too
+        ShotAtoms.BeginRun();
+        ShotAtoms.Collect(ShotAtom.Rapid);
+        var host = new GameObject(ShotAtomHud.HostName);
+        var hud = host.AddComponent<ShotAtomHud>();
+        hud.SendMessage("Update");
+        int f0 = hud.FrameIndex;
+        Sprite s0 = hud.IconAt(0);
+        hud.Advance(PickupArt.ShotFrameSeconds * 1.01f);
+        hud.SendMessage("Update");
+        bool moved = hud.FrameIndex != f0 && hud.IconAt(0) != s0;
+        var icon = host.GetComponentInChildren<Image>(false);
+        Check("the HUD coin's border advances over time (frame " + f0 + " -> " + hud.FrameIndex + ") while its icon is never rotated", moved && icon != null && icon.rectTransform.localRotation == Quaternion.identity);
+        Object.DestroyImmediate(host);
+        ShotAtoms.BeginRun();
+
+        // the Codex entry loops the same drawings at the same pace
+        var anim = CodexAnimations.For(Codex.Find("atom_shot_arc"));
+        Check("the Codex entries loop the 8 drawings at the coin's pace (" + (anim != null ? anim.idle.Length : 0) + " frames)",
+              anim != null && anim.idle.Length == 8 && anim.idleHold != null && anim.idleHold.Length == 8 && Mathf.Abs(anim.idleHold[0] - PickupArt.ShotFrameSeconds) < 1e-5f);
+    }
+
+    // ---- the Codex ----------------------------------------------------------------------
+
+    static void CodexEntries()
+    {
+        var wanted = new[]
+        {
+            (ShotAtom.Twin, "Twin Atom", ""), (ShotAtom.Pierce, "Pierce Atom", ""), (ShotAtom.Split, "Split Atom", ""),
+            (ShotAtom.Ricochet, "Ricochet Atom", ""), (ShotAtom.Arc, "Arc Atom", ""), (ShotAtom.Rapid, "Rapid Atom", ""),
+        };
+        bool all = true, lore = true, art = true, locked = true, bulleted = true, match = true;
+        foreach (var (atom, name, world) in wanted)
+        {
+            var e = Codex.Find(CodexCatalogue.ShotAtomId(atom));
+            all &= e != null && e.name == name && e.category == CodexCategory.Atoms;
+            if (e == null) continue;
+            lore &= e.lore.Contains("elites and bosses") && !e.lore.Contains("UNLOCKS") && e.lore.Contains("LEVEL I  ") && e.lore.Contains("LEVEL II  ") && e.lore.Contains("LEVEL III  ") &&
+                    e.lore.Contains("MAX LEVEL");
+            art &= e.Sprite != null && e.Sprite.name.StartsWith("shot_" + ShotAtoms.Key(atom) + "_idle");
+            PickupKind kind;
+            art &= CodexAnimations.TryPickupKind(e.id, out kind) && kind == ShotAtoms.KindOf(atom) && CodexAnimations.For(e) != null;
+            bulleted &= CodexCatalogue.IsBulleted(e);
+            var coin = ShotAtomPickup.Build(atom, Vector3.zero);
+            match &= Codex.IdFor(coin) == e.id;
+            Object.DestroyImmediate(coin);
+            locked &= atom == ShotAtom.Rapid || atom == ShotAtom.Arc || !Codex.IsDiscovered(e.id) || DeveloperUnlocks.Enabled;
+        }
+        Check("the Codex lists the six shot atoms with their names in the Atoms tab", all);
+        Check("... each with its level effects, 'dropped by elites and bosses', no world unlock line, and the level cap", lore);
+        Check("... each with its coin as the icon and its idle flipbook", art);
+        Check("... the lore is a bullet list (one line each)", bulleted);
+        Check("... catching a coin (its name) resolves to its own entry, so the first catch discovers it like every atom", match);
+        Check("... and a new profile has not discovered them (they stay locked until the first catch; RAPID and ARC were caught earlier in this suite)", locked);
+        var twin = Codex.Find("atom_shot_twin");
+        Check("the TWIN lore quotes the tuning (2 parallel shots, 3 and 4 in a fan)", twin != null && twin.lore.Contains("2 parallel shots") && twin.lore.Contains("3 shots in a narrow fan") && twin.lore.Contains("4 shots in a narrow fan"));
+        Check("the old atoms are untouched (blue, red, green, violet, magnetic still there)", Codex.Find("atom_blue") != null && Codex.Find("atom_red") != null && Codex.Find("atom_green") != null &&
+              Codex.Find(CodexCatalogue.VioletAtomId) != null && Codex.Find(CodexCatalogue.MagnetAtomId) != null);
+        Check("every shot atom kind has its art (8 idle frames, 6 burst frames)", AllFrames());
+    }
+
+    static bool AllFrames()
+    {
+        for (int i = 0; i < ShotAtomTuning.Count; i++)
+        {
+            var kind = ShotAtoms.KindOf((ShotAtom)i);
+            var idle = PickupArt.Frames(PickupArt.IdleName(kind), PickupArt.IdleTicks(kind).Length);
+            var burst = PickupArt.Frames(PickupArt.BurstName(kind), PickupArt.BurstTicks.Length);
+            if (idle.Length != 8 || burst.Length != 6) return false;
+            foreach (var f in idle) if (f == null || f.texture.width != 196 || f.texture.filterMode != FilterMode.Point) return false;
+            foreach (var f in burst) if (f == null || f.texture.width != 388) return false;
+        }
+        return true;
+    }
+
+    // ---- reset ----------------------------------------------------------------------------
+
+    static void Reset()
+    {
+        ShotAtoms.BeginRun();
+        for (int i = 0; i < ShotAtomTuning.Count; i++) ShotAtoms.SetLevel((ShotAtom)i, 2);
+        ShotAtomDrops.Spawned = null;
+        AtomSpacing.Released();
+        ShotAtomDrops.OnBossDestroyed(Vector3.zero, 0f);
+        int version = ShotAtoms.Version;
+        ShotAtoms.BeginRun();
+        bool zero = true;
+        for (int i = 0; i < ShotAtomTuning.Count; i++) zero &= ShotAtoms.Level((ShotAtom)i) == 0;
+        Check("a new run wipes every level, the HUD order, the catch counters and the waiting drops",
+              zero && ShotAtoms.OrderCount == 0 && ShotAtoms.Catches == 0 && ShotAtoms.MaxedCatches == 0 && ShotAtomDrops.Pending == 0 && ShotAtoms.Version != version);
+        Check("... and with nothing caught the gun is the plain gun (1 bullet, no rapid)", ShotAtoms.RapidBonus() == 0f && ShotAtomTuning.TwinShots[ShotAtoms.Level(ShotAtom.Twin)] == 1);
+        string score = File.ReadAllText("Assets/Scripts/Core/score.cs");
+        Check("score.Awake starts every run with ShotAtoms.BeginRun() (the shot atoms are per run, nothing is saved)", score.Contains("ShotAtoms.BeginRun()"));
+        string save = File.ReadAllText("Assets/Scripts/Gameplay/Pickups/ShotAtoms.cs");
+        Check("the shot atoms never touch PlayerPrefs (state of the run only)", !save.Contains("PlayerPrefs"));
+        ClearCoins();
+    }
+}

@@ -51,7 +51,7 @@ public static class CodexPayoutTest
         Check("a bigger prize for rarer kinds: boss > elite > common enemy",
               CodexPayout.Boss > CodexPayout.Elite && CodexPayout.Elite > CodexPayout.EnemyBase);
         int full = Codex.Entries.Sum(e => CodexPayout.For(e));
-        Check("a full Codex is a bonus, not a shortcut (" + full + " dust)", full > 0 && full < 1500);
+        Check("a full Codex is a bonus, not a shortcut (" + full + " dust)", full > 0 && full < 1600);
 
         var first = Codex.Entries.First(e => e.category == CodexCategory.Enemies && !e.secret && BossCatalog.Find(e.id) == null && EliteCatalog.FindByCodexId(e.id) == null);
         var boss = Codex.Entries.First(e => BossCatalog.Find(e.id) != null);

@@ -186,6 +186,14 @@ public static class CodexCatalogue
                 "Only " + PickupRules.MagnetAtomsPerWorld + " drift through each world, and never mid-boss.",
                 new[] { "magnetatom" }),
 
+            // The permanent shot atoms (ShotAtoms): upgrades to the small gun, dropped by elites and bosses. Found by catching one.
+            ShotAtomEntry(ShotAtom.Twin),
+            ShotAtomEntry(ShotAtom.Pierce),
+            ShotAtomEntry(ShotAtom.Split),
+            ShotAtomEntry(ShotAtom.Ricochet),
+            ShotAtomEntry(ShotAtom.Arc),
+            ShotAtomEntry(ShotAtom.Rapid),
+
             // ------------------------------------------------------------- Worlds
             new CodexEntry(PortalId, "Wormhole Portal", CodexCategory.Worlds, () => TeleportPortalSprites.FrameAt(0),
                 "Fly long enough and the wormhole inside you tears a door in space. Dive through it to jump to " +
@@ -252,6 +260,77 @@ public static class CodexCatalogue
         return list.ToArray();
     }
 
+    // ---- the shot atoms ----
+    public const string ShotAtomPrefix = "atom_shot_";
+    public static string ShotAtomId(ShotAtom atom) { return ShotAtomPrefix + ShotAtoms.Key(atom); }
+    public static bool IsShotAtomId(string id) { return id != null && id.StartsWith(ShotAtomPrefix, StringComparison.Ordinal); }
+    public static bool TryShotAtom(string id, out ShotAtom atom)
+    {
+        for (int i = 0; i < ShotAtomTuning.Count; i++)
+            if (ShotAtomId((ShotAtom)i) == id) { atom = (ShotAtom)i; return true; }
+        atom = ShotAtom.Twin;
+        return false;
+    }
+
+    static CodexEntry ShotAtomEntry(ShotAtom atom)
+    {
+        var kind = ShotAtoms.KindOf(atom);
+        return new CodexEntry(ShotAtomId(atom), Cap(ShotAtoms.Name(atom)) + " Atom", CodexCategory.Atoms,
+            () => Pickup(kind, null), ShotAtomLore(atom),
+            new[] { Codex.Normalise(ShotAtomPickup.NameFor(atom)) });
+    }
+
+    static string Cap(string upper) { return upper.Substring(0, 1) + upper.Substring(1).ToLowerInvariant(); }
+
+    // One paragraph per bullet (CodexBulletMarks): what it does, each level, who drops it and the cap.
+    public static string ShotAtomLore(ShotAtom atom)
+    {
+        string name = ShotAtoms.Name(atom);
+        var lines = new List<string>();
+        lines.Add(name + "  " + ShotAtomEffect(atom) + " Permanent for the run, for your small gun only.");
+        for (int level = 1; level <= ShotAtomTuning.MaxLevel; level++)
+            lines.Add("LEVEL " + ShotAtoms.Roman[level] + "  " + ShotAtomLevelText(atom, level));
+        lines.Add("DROPPED BY  elites and bosses (a boss always, an elite half the time)");
+        lines.Add("MAX LEVEL  III; past it a catch pays star dust");
+        return string.Join("\n", lines);
+    }
+
+    public static string ShotAtomEffect(ShotAtom atom)
+    {
+        switch (atom)
+        {
+            case ShotAtom.Twin: return "More shots every time your small gun fires.";
+            case ShotAtom.Pierce: return "Your shots pass through the first enemy and keep going.";
+            case ShotAtom.Split: return "A shot that hits breaks into small diagonal shards.";
+            case ShotAtom.Ricochet: return "Your shots bounce off the screen's side edges.";
+            case ShotAtom.Arc: return "A hit zaps a spark to the nearest other enemy.";
+            default: return "Your small gun fires faster.";
+        }
+    }
+
+    public static string ShotAtomLevelText(ShotAtom atom, int level)
+    {
+        switch (atom)
+        {
+            case ShotAtom.Twin:
+                return level == 1 ? "2 parallel shots, each " + Pct(ShotAtomTuning.TwinDamage[level]) + " damage"
+                     : ShotAtomTuning.TwinShots[level] + " shots in a narrow fan, each " + Pct(ShotAtomTuning.TwinDamage[level]) + " damage";
+            case ShotAtom.Pierce:
+                return "passes through " + ShotAtomTuning.PierceThrough[level] + " extra " + (level == 1 ? "enemy" : "enemies");
+            case ShotAtom.Split:
+                return "breaks into " + ShotAtomTuning.SplitShards[level] + " shards on a hit, " + Pct(ShotAtomTuning.ShardDamage) + " damage each";
+            case ShotAtom.Ricochet:
+                return "bounces " + ShotAtomTuning.Bounces[level] + (level == 1 ? " time" : " times");
+            case ShotAtom.Arc:
+                return ShotAtomTuning.ArcJumps[level] + (ShotAtomTuning.ArcJumps[level] == 1 ? " jump" : " jumps") + ", " +
+                       ShotAtomTuning.ArcRange[level].ToString("0.#", System.Globalization.CultureInfo.InvariantCulture) + " range, " + Pct(ShotAtomTuning.ArcDamage[level]) + " damage";
+            default:
+                return "+" + Mathf.RoundToInt(ShotAtomTuning.RapidBonus[level] * 100f) + "% fire rate";
+        }
+    }
+
+    static string Pct(float v) { return Mathf.RoundToInt(v * 100f) + "%"; }
+
     // A ship's page is a bullet list, one paragraph (one "\n") per bullet: its description (a bullet per
     // sentence), then the spec lines -- attack, secret power, hearts, colours, upgrades, start speed. The text is
     // the same words as before, only cut into bullets; CodexBulletMarks draws the markers.
@@ -274,7 +353,7 @@ public static class CodexCatalogue
     // Whether an entry's lore is shown as a bullet list.
     public static bool IsBulleted(CodexEntry e)
     {
-        return BulletsEnabled && e != null && e.category == CodexCategory.Ships;
+        return BulletsEnabled && e != null && (e.category == CodexCategory.Ships || IsShotAtomId(e.id));
     }
 
     // What the ship fights with, from ShipLoadoutTable: its attack (fires when
@@ -617,7 +696,7 @@ public static class CodexCatalogue
     {
         var frames = PickupArt.Frames(PickupArt.IdleName(kind), PickupArt.IdleTicks(kind).Length);
         if (frames != null && frames.Length > 0 && frames[0] != null) return frames[0];
-        return Prefab(prefabPath);
+        return prefabPath != null ? Prefab(prefabPath) : null;
     }
 
     // LAST STAND's card: the wrecked hull of the ship the saved run flew (the equipped one before any).

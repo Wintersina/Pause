@@ -7,12 +7,21 @@ using UnityEngine;
 // guide's flipbook clock.
 // Serialized by number on the pickup prefabs (PickupFlipbook.kind): new
 // kinds go on the end, never in the middle.
-public enum PickupKind { Shield = 0, Pause = 1, Dust = 2, DustSmall = 3, Heal = 4, Cooldown = 5, Magnet = 6 }
+public enum PickupKind
+{
+    Shield = 0, Pause = 1, Dust = 2, DustSmall = 3, Heal = 4, Cooldown = 5, Magnet = 6,
+    // the permanent shot atoms (ShotAtoms.cs), in ShotAtom order
+    ShotTwin = 7, ShotPierce = 8, ShotSplit = 9, ShotRicochet = 10, ShotArc = 11, ShotRapid = 12,
+}
 
 public static class PickupArt
 {
     public const float Tick = 1f / 24f;
     public const string Root = "Pickups/Atoms/";
+    // The shot atoms' coins (shot_<atom>_idle_0..7, shot_<atom>_burst_0..5) live beside the pixel atoms, not in them: their art has
+    // soft edges the pixel-atom palette check (ArtRestyleTest) would refuse.
+    public const string ShotRoot = "Pickups/ShotAtoms/";
+    public static bool IsShot(PickupKind kind) { return kind >= PickupKind.ShotTwin; }
 
     // Star dust in the main game (the small Star Dust, smStar_1, and the
     // large Bright Star, LargeStar_1) is drawn this much bigger than its
@@ -87,9 +96,23 @@ public static class PickupArt
     public static readonly int[] HealIdleTicks = { 8, 2, 1, 2, 1, 2, 1, 2, 2, 2, 3 };
     // Pickup burst: 1-tick white impact, burst star, ring breaking into shards.
     public static readonly int[] BurstTicks = { 1, 2, 2, 2, 2, 3 };
+    // Shot atom coin: eight drawings of the spinning border (the symbol stays put), two ticks each.
+    // The eight drawings cover 0-45 degrees of the octagon, which repeats every 45: looping them is a continuous spin. At 36 drawings
+    // a second a 45 degree step takes 0.22 s, one apparent full turn about every 1.8 s. (The tick count is 1 each: the real clock
+    // is ShotFrameSeconds, see HoldSeconds.)
+    public static readonly int[] ShotIdleTicks = { 1, 1, 1, 1, 1, 1, 1, 1 };
+    public const float ShotFrameSeconds = 1f / 36f;
+
+    // How long drawing `ticks` of `kind`'s idle loop is held.
+    public static float HoldSeconds(PickupKind kind, int ticks)
+    {
+        return IsShot(kind) ? ShotFrameSeconds * ticks : ticks * Tick;
+    }
 
     public static string IdleName(PickupKind kind)
     {
+        ShotAtom shot;
+        if (ShotAtoms.TryAtomOf(kind, out shot)) return "shot_" + ShotAtoms.Key(shot) + "_idle";
         switch (kind)
         {
             case PickupKind.Shield: return "shield_idle";
@@ -104,6 +127,8 @@ public static class PickupArt
 
     public static string BurstName(PickupKind kind)
     {
+        ShotAtom shot;
+        if (ShotAtoms.TryAtomOf(kind, out shot)) return "shot_" + ShotAtoms.Key(shot) + "_burst";
         switch (kind)
         {
             case PickupKind.Shield: return "shield_burst";
@@ -117,6 +142,7 @@ public static class PickupArt
 
     public static int[] IdleTicks(PickupKind kind)
     {
+        if (IsShot(kind)) return ShotIdleTicks;
         switch (kind)
         {
             case PickupKind.Dust:
@@ -135,7 +161,8 @@ public static class PickupArt
         if (cache.TryGetValue(name, out frames) && frames != null && frames.Length == count && frames[0] != null)
             return frames;
         frames = new Sprite[count];
-        for (int i = 0; i < count; i++) frames[i] = Resources.Load<Sprite>(Root + name + "_" + i);
+        string root = name.StartsWith("shot_", System.StringComparison.Ordinal) ? ShotRoot : Root;
+        for (int i = 0; i < count; i++) frames[i] = Resources.Load<Sprite>(root + name + "_" + i);
         cache[name] = frames;
         return frames;
     }

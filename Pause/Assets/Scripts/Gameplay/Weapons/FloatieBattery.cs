@@ -393,11 +393,36 @@ public class FloatieBattery : MonoBehaviour
                 if (companion != null) companion.AimAt(0f, true);
             }
         }
-        var bullet = FloatieBullets.Take();
-        if (bullet == null) return false;
+        // The volley (the shot atoms, ShotAtoms.cs): TWIN's bullets, each carrying PIERCE / RICOCHET / SPLIT / ARC. Level 0 of
+        // every atom is the one plain bullet.
+        int twin = ShotAtoms.Level(ShotAtom.Twin);
+        int pierce = ShotAtoms.Level(ShotAtom.Pierce), split = ShotAtoms.Level(ShotAtom.Split);
+        int ricochet = ShotAtoms.Level(ShotAtom.Ricochet), arc = ShotAtoms.Level(ShotAtom.Arc);
+        int n = ShotAtomTuning.TwinShots[twin];
+        float[] angles = ShotAtomTuning.TwinAngles[twin], offsets = ShotAtomTuning.TwinOffsets[twin];
+        // a near-straight shot leans a little with RICOCHET, so it can reach a side edge at all (not a seeker's locked one)
+        float lean = 0f;
+        if (ricochet > 0 && pick.lockOn == null && Mathf.Abs(angle) < ShotAtomTuning.RicochetStraightWithin)
+            lean = Random.value < .5f ? ShotAtomTuning.RicochetLeanDegrees : -ShotAtomTuning.RicochetLeanDegrees;
+        Vector3 side = new Vector3(heading.y, -heading.x, 0f).normalized;
+        int fired = 0;
+        for (int k = 0; k < n; k++)
+        {
+            var bullet = FloatieBullets.Take();
+            if (bullet == null) break;   // at the bullet cap: the rest of the volley is not fired
+            var mods = FloatieBullet.Mods.Plain;
+            mods.damage = ShotAtomTuning.TwinDamage[twin];
+            mods.pierce = ShotAtomTuning.PierceThrough[pierce];
+            mods.bounces = ShotAtomTuning.Bounces[ricochet];
+            mods.shards = split;
+            mods.arc = arc;
+            Vector3 h = Quaternion.Euler(0f, 0f, angles[k] + lean) * heading;
+            bullet.Launch(this, ship, from + side * offsets[k], h, tint, pick, mods);
+            fired++;
+        }
+        if (fired == 0) return false;
         LastAngle[index] = angle;
         Shots[index]++;
-        bullet.Launch(this, ship, from, heading, tint, pick);
         return true;
     }
 

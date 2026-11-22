@@ -22,6 +22,8 @@ public sealed class VoltArc
     public GameObject root;
     public LineRenderer core, outer, starA, starB;
     public int Jags;   // re-jags so far (tests)
+    // This arc's colours (the Volt Viper's unless it was begun with its own: the shot atom ARC's pale lightning).
+    public Color coreColor = VoltArcs.CoreColor, outerColor = VoltArcs.OuterColor, starColor = VoltArcs.StarColor;
 }
 
 public static class VoltArcs
@@ -84,6 +86,12 @@ public static class VoltArcs
     // Starts an arc a -> b that lives `life` seconds. Returns its handle (valid for Hold while it is live).
     public static VoltArc Begin(Vector3 a, Vector3 b, float life = LinkLife)
     {
+        return Begin(a, b, life, CoreColor, OuterColor, StarColor);
+    }
+
+    // The same in its own colours (the shot atom ARC).
+    public static VoltArc Begin(Vector3 a, Vector3 b, float life, Color core, Color outer, Color star)
+    {
         Purge();
         VoltArc arc = null;
         for (int i = 0; i < pool.Count; i++) if (!pool[i].Live) { arc = pool[i]; break; }
@@ -95,6 +103,7 @@ public static class VoltArcs
         }
         arc.Live = true;
         arc.A = a; arc.B = b; arc.Age = 0f; arc.Life = life; arc.jagIn = 0f; arc.Jags = 0;
+        arc.coreColor = core; arc.outerColor = outer; arc.starColor = star;
         arc.generation = ++generationCounter;
         arc.root.SetActive(true);
         int slot = TotalDrawn % LogSize;
@@ -215,10 +224,10 @@ public static class VoltArcs
         float life = Mathf.Clamp01(1f - arc.Age / Mathf.Max(.01f, arc.Life));
         float flicker = (Mathf.FloorToInt(arc.Age / (JagEvery * .5f)) & 1) == 0 ? 1f : .78f;
         float k = Mathf.Sqrt(life) * flicker;
-        Tint(arc.core, CoreColor, k);
-        Tint(arc.outer, OuterColor, k);
-        Tint(arc.starA, StarColor, k);
-        Tint(arc.starB, StarColor, k);
+        Tint(arc.core, arc.coreColor, k);
+        Tint(arc.outer, arc.outerColor, k);
+        Tint(arc.starA, arc.starColor, k);
+        Tint(arc.starB, arc.starColor, k);
     }
 
     static void Tint(LineRenderer lr, Color c, float k)

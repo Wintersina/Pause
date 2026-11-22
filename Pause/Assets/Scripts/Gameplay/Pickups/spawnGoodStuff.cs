@@ -11,6 +11,8 @@ public class spawnGoodStuff : MonoBehaviour {
     public GameObject cooldownAtom;
     public GameObject magnetAtom;
     public static bool AtomOnScreen;
+    // The live spawner of this scene (the shot atoms' drops ask it for dust when everything is maxed).
+    public static spawnGoodStuff Current { get; private set; }
 
     private float atomDelayTimer;
     private float redAtomDelayTimer;
@@ -50,6 +52,7 @@ public class spawnGoodStuff : MonoBehaviour {
 	void Start () {
 
         AtomOnScreen = false;
+        Current = this;
         smStarTimer = 7f;
         midStarTimer = 14f;
         atomTimer = Random.Range(20f, 45f);
@@ -133,6 +136,8 @@ public class spawnGoodStuff : MonoBehaviour {
         // ...and the same atom not twice in a row within FusionTuning.SameKindGap,
         // plus the occasional fusion partner after a catch (AtomSpawnBias)
         AtomSpawnBias.Tick(dt);
+        // A coin earned by a killed elite or boss that was waiting for the spacing gap (ShotAtomDrops).
+        ShotAtomDrops.Pump();
         if (smStarTimer <= 0)
         {
             smStarTimer = Random.Range(5f, 7f);
@@ -239,6 +244,12 @@ public class spawnGoodStuff : MonoBehaviour {
         // A power-up refund (PowerUpRefund): the guaranteed drop its use
         // meter earned, after the same atom spacing as any atom.
         if (PowerUpRefund.Due && AtomSpacing.Ready) spawnRefund();
+    }
+
+    // The shot atoms' drop when every unlocked atom is at its cap: a bright star of dust where the coin would have been.
+    public void DropDust(Vector3 at)
+    {
+        if (midStar != null) Place(midStar, at);
     }
 
     // One atom of the dev fusion test's combo (no allowance, no boss limits).

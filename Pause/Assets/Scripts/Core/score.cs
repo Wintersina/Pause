@@ -64,6 +64,7 @@ public class score : MonoBehaviour {
         ledgerRun = StarDustLedger.BeginRun(paysRealDust);
         Boosters.ResetRun();
         HazardClear.BeginRun();
+        ShotAtoms.BeginRun();   // the shot atoms are per run: a new run starts with none
         if (paysRealDust) UpgradeOfferStore.RunStarted();
         // Practice runs score nothing; developer runs score but never save a
         // best (or reach a leaderboard).
