@@ -343,7 +343,7 @@ public static class FriendlyFireCoverageTest
         int hearts = other.Hearts;
         for (int i = 0; i < 90; i++) { EliteSystem.Shots.Step(Dt); HazardRuntime.Ensure().Step(Dt); EliteSystem.Step(Dt); }
         Check("an elite's shot costs another elite, which came into its path later, one heart (" + hearts + " -> " + other.Hearts + ")", other.Hearts == hearts - 1 || other.State == EliteState.Dead);
-        Check("... and never its own elite", shooterElite != null && shooterElite.Hearts == shooterElite.Def.hearts);
+        Check("... and never its own elite", shooterElite != null && shooterElite.Hearts == shooterElite.Def.MaxHearts);
 
         // a fresh formation cannot shoot itself apart: a roster shot spares an enemy in its first second on the board
         FreshBoard();

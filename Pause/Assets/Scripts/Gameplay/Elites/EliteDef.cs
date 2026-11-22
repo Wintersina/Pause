@@ -228,11 +228,13 @@ public class EliteDef
 
     // ---- hearts ----
     public int hearts = 2;              // the authored hearts: what the fight scripts, phases and per-heart scalings are written against
-    // Elites take double health (combat rework, 2026-11-22): every authored heart is `healthScale` real hearts, so a 3-heart elite
+    // Elites take double health (combat rework, 2026-11-22): every authored heart is HealthScale real hearts, so a 3-heart elite
     // wears 6 and an armoured 5-heart elite 10. The scripts keep reading the authored count (EliteShip.ScriptHearts).
     public const int HealthScale = 2;
-    public int healthScale = HealthScale;
-    public int MaxHearts => Mathf.Max(1, hearts) * Mathf.Max(1, healthScale);
+    // Tests that were written for the authored heart counts run with this at 1 (TestHarness.Sandbox); the tests of the doubling set it back to 0.
+    public static int ScaleOverride = 0;
+    public static int Scale { get { return ScaleOverride > 0 ? ScaleOverride : HealthScale; } }
+    public int MaxHearts => Mathf.Max(1, hearts) * Scale;
     public float heartSize = .18f;
     public float heartOrbit = .85f;     // orbit radius, x the hull's half-size
     public string heartStyle = "Atom";  // (legacy field, ignored: EliteHearts spins every elite's hearts in the player's own Atom style)

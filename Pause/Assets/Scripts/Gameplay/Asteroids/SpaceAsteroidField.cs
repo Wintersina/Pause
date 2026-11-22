@@ -305,7 +305,7 @@ public class FieldAsteroid : MonoBehaviour, IShipAttackTargetUncapped
         Health -= weight;
         if (Health <= .0001f) { Break(ship); return; }
         HitFeedback(at);
-        Deflect(at);
+        if (!deflected) Deflect(at);   // (once: later chips only flash and jolt)
     }
 
     // The first hit throws the rock away from the blow and flips its tumble (the non-lethal half of "deflect, then destroy").

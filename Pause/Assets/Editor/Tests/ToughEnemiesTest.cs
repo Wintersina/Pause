@@ -40,6 +40,7 @@ public static class ToughEnemiesTest
             Toughness.EditModeWindow = 0f;
             ShipAttackHits.HitFrom = null;
             EnemyHeartsView.ResetLive();
+            EliteDef.ScaleOverride = 1;   // (back to the sandbox's value)
         }
         Debug.Log("[TOUGH] failures: " + fails);
         return fails;
@@ -275,6 +276,7 @@ public static class ToughEnemiesTest
     static void EliteDoubleHearts()
     {
         FreshScene();
+        EliteDef.ScaleOverride = 0;   // the real rule (the sandbox runs the other suites at x1)
         var plain = new EliteDef { hearts = 3, armored = false };
         var armoured = new EliteDef { hearts = 5, armored = true };
         Check("an elite's health is doubled: 3 authored hearts -> 6, an armoured 5 -> 10",

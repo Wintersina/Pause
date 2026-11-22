@@ -229,6 +229,9 @@ public static class TestHarness
             }
             timeScale = Time.timeScale;
             KeepRuntimeArt(true);
+            // Elites carry double hearts in the game (EliteDef.HealthScale); the suites written for the authored counts run at 1:
+            // ToughEnemiesTest (and any suite about the doubling) sets the override back to 0 for itself.
+            EliteDef.ScaleOverride = 1;
             DockGrade.Strict = false;      // suites place any dock kind anywhere; DockAuditTest turns the game's dock rules on
 
             // Start every suite with developer mode off. The editor shares
@@ -261,6 +264,7 @@ public static class TestHarness
         public void Dispose()
         {
             DockGrade.Strict = true;
+            EliteDef.ScaleOverride = 0;
             // Drop whatever scene the suite opened or dirtied (never saved).
             EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
             KeepRuntimeArt(false);

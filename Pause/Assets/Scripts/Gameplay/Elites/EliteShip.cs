@@ -148,8 +148,8 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint, I
     public EliteAttack Attack { get; private set; }
     public EliteState State { get; private set; }
     public int Hearts { get; private set; }
-    // The hearts the fight script thinks in: the authored count (EliteDef.hearts), a lost authored heart being healthScale real ones.
-    public int ScriptHearts { get { int s = Mathf.Max(1, Def.healthScale); return (Hearts + s - 1) / s; } }
+    // The hearts the fight script thinks in: the authored count (EliteDef.hearts), a lost authored heart being EliteDef.Scale real ones.
+    public int ScriptHearts { get { int s = EliteDef.Scale; return (Hearts + s - 1) / s; } }
     public Vector2 Velocity { get { return velocity; } set { velocity = value; } }
     public float Facing { get { return facing; } }
     public Vector2 Seen { get { return seen; } }
@@ -2046,7 +2046,7 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint, I
     // calm-idle pass: an upright hull never leans more than this into a sideways move (defs asked for up to 10 deg)
     public const float BankCap = 4f;
     // Lost a heart and has a damaged drawing: shown from then on.
-    public bool Damaged => Def.cells.damaged >= 0 && (Hearts < Def.MaxHearts || Attack.ShowsDamaged) && Engaged;
+    public bool Damaged => Def.cells.damaged >= 0 && (ScriptHearts < Def.hearts || Attack.ShowsDamaged) && Engaged;
     public int BankCell => bankCell;
 
     void SetSprite(Sprite s)

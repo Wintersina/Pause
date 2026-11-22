@@ -33,6 +33,7 @@ public static class HeartsInArtTest
     {
         fails = 0;
         using var sandbox = new TestHarness.Sandbox();
+        EliteDef.ScaleOverride = 0;   // the real double hearts: the orbit art has to fit 6 and 10
         try
         {
             SameRedEverywhere();
@@ -166,10 +167,10 @@ public static class HeartsInArtTest
             float visible = BossHearts.VisibleHalf(eh.heartSize);
             Check(def.key + ": orbit " + eh.OrbitRadii.x.ToString("F2") + " passes outside the art (" + (silhouette * scale).ToString("F2") + " + heart " + visible.ToString("F2") + ")",
                   eh.OrbitRadii.x >= silhouette * scale + visible - 1e-3f);
-            bool ok = eh.Style == HeartStyle.Atom && eh.Hearts.Length == def.hearts;
+            bool ok = eh.Style == HeartStyle.Atom && eh.Hearts.Length == def.MaxHearts;
             var r0 = eh.Hearts[0].GetComponent<SpriteRenderer>();
             ok &= r0.color == ShipLivesIndicator.HeartTint && r0.sprite == Resources.Load<Sprite>(ShipLivesIndicator.HeartSpritePath);
-            Check(def.key + ": " + def.hearts + " player-red hearts in the player's Atom 3D spin", ok);
+            Check(def.key + ": " + def.MaxHearts + " player-red hearts (double the authored " + def.hearts + ") in the player's Atom 3D spin", ok);
 
             int frame = 0;
             string nm = ship.Hull.sprite != null ? ship.Hull.sprite.name : "";

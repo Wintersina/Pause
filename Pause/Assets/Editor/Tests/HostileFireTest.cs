@@ -269,7 +269,7 @@ public static class HostileFireTest
         // a's own shot fired from inside its hull: never hurts it
         var own = FireElite(a, EliteShots.Kind.Bolt, a.Position, Vector2.zero);
         StepShots(.6f);
-        Check("an elite's own shot never hurts it, even sitting on its hull (hearts " + a.Hearts + ")", a.Hearts == a.Def.hearts && own.Active);
+        Check("an elite's own shot never hurts it, even sitting on its hull (hearts " + a.Hearts + ")", a.Hearts == a.Def.MaxHearts && own.Active);
         own.Recycle();
 
         // a shell (pierces two) straight into b: one heart, never more

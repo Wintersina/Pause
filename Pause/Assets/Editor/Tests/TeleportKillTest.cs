@@ -76,7 +76,7 @@ public static class TeleportKillTest
     static GameObject Spawn(EnemyRole role, Vector3 at)
     {
         var def = EnemyRoster.One(0, role);
-        var go = EnemyFactory.Create(def, at, Quaternion.identity);
+        var go = EnemyFactory.Create(def, at, Quaternion.identity, 1f, false);   // (one-hit: these checks are about what a kill pays and chains)
         ClearTarget.Ensure(go);
         return go;
     }

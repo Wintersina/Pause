@@ -140,28 +140,48 @@ public class EnemyHeartsView : HeartOrbit
 {
     public const float Size = .11f;
     public const float Clearance = .04f;
-    static int live;
-    public static int Live { get { return live; } }
-    public static void ResetLive() { live = 0; }
+    static readonly System.Collections.Generic.List<EnemyHeartsView> views = new System.Collections.Generic.List<EnemyHeartsView>();
+    // Views alive right now (destroyed ones are pruned, so it is right even where OnDestroy does not run: edit-mode tests).
+    public static int Live
+    {
+        get
+        {
+            for (int i = views.Count - 1; i >= 0; i--) if (views[i] == null) views.RemoveAt(i);
+            return views.Count;
+        }
+    }
+    public static void ResetLive() { views.Clear(); }
 
     EnemyHearts owner;
     SpriteRenderer body;
-    bool counted;
+    ChaserEnemy chaser;
 
     public void Bind(EnemyHearts h)
     {
         owner = h;
         body = GetComponent<SpriteRenderer>();
+        chaser = GetComponent<ChaserEnemy>();
         heartSize = Size;
         personalSpace = 1.3f;
-        if (!counted) { counted = true; live++; }
+        if (!views.Contains(this)) views.Add(this);
         BuildHearts();
         Update();
     }
 
-    void OnDestroy()
+    void OnDestroy() { views.Remove(this); }
+
+    // A burrowing chaser (the Scarab Drone) is hidden under the sand: its hearts go with it.
+    protected override void LateUpdate()
     {
-        if (counted) { counted = false; live = Mathf.Max(0, live - 1); }
+        base.LateUpdate();
+        if (chaser == null || !chaser.Buried || Hearts == null) return;
+        for (int i = 0; i < Hearts.Length; i++)
+            if (Hearts[i] != null) { var r = Hearts[i].GetComponent<SpriteRenderer>(); if (r != null) r.enabled = false; }
+        for (int i = 0; i < Hearts.Length; i++)
+        {
+            var o = HeartOutlineRenderer(i);
+            if (o != null) o.enabled = false;
+        }
     }
 
     protected override void Start() { }   // built by Bind

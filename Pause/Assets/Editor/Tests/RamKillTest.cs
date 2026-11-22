@@ -126,21 +126,28 @@ public static class RamKillTest
         var r = Ship();
         try
         {
+            RunScore.EndRun(RunScore.RunId);
+            RunScore.BeginRun(true, true);
             Fresh();
             collisionDetection.atomCheck = true;
             var foe = Hazard(EnemyRole.Fighter, r.ship.transform.position + Vector3.right * .3f);
             var hearts = foe.GetComponent<EnemyHearts>();
             Check("(the enemy is a normal 2-heart fighter)", hearts != null && hearts.Hearts == 2);
+            long before = RunScore.Total;
             Ram(r, foe);
-            Check("a shield ram kills a 2-heart enemy outright, and the ship loses no heart", foe == null && collisionDetection.lifeCounter == 0);
+            Check("a shield ram kills a 2-heart enemy outright (paid as a kill in one touch, it was never struck), and the ship loses no heart",
+                  RunScore.Total > before && hearts.Strikes == 0 && collisionDetection.lifeCounter == 0);
+            Kill(foe);
 
             Fresh();
             collisionDetection.atomCheck = true;
             var rock = Hazard(EnemyRole.Rock, r.ship.transform.position + Vector3.right * .3f);
             var hazard = rock.GetComponent<HazardHits>();
             Check("(the rock is fresh: not deflected)", hazard != null && !hazard.Deflected);
+            before = RunScore.Total;
             Ram(r, rock);
-            Check("a shield ram destroys a fresh hazard outright, with no deflect", rock == null && collisionDetection.lifeCounter == 0);
+            Check("a shield ram destroys a fresh hazard outright (paid as a kill), with no deflect", RunScore.Total > before && !hazard.Deflected && hazard.Strikes == 0 && collisionDetection.lifeCounter == 0);
+            Kill(rock);
         }
         finally { Fresh(); r.Dispose(); }
     }
