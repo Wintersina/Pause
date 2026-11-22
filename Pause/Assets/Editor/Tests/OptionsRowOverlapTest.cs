@@ -215,7 +215,7 @@ public static class OptionsRowOverlapTest
         var perchSel = Px(rig, PerchOptions.RowName); var perchSl = Px(rig, PerchOptions.SliderName);
         Check(tag + "SHIP PERCH selector sits below the switches", perchSel.width > 1f && perchSel.yMax <= swBottom + 1f);
         Check(tag + "SHIP PERCH distance slider sits directly under the selector (gap under a third of the selector, centred with it)",
-              perchSl.width > 1f && perchSl.yMax <= perchSel.yMin + 1f && perchSel.yMin - perchSl.yMax < perchSel.height * .33f && Mathf.Abs(perchSl.x - perchSel.x) < 1f);
+              perchSl.width > 1f && perchSl.yMax <= perchSel.yMin + 1f && perchSel.yMin - perchSl.yMax < perchSel.height * .33f && Mathf.Abs(perchSl.center.x - perchSel.center.x) < 1f);
         Check(tag + "SHIP PERCH block sits above the sound sliders", perchSl.yMin >= slTop - 1f);
         var h1 = Px(rig, "SwitchesHeading"); var h2 = Px(rig, "SlidersHeading");
         Check(tag + "SWITCHES heading sits above the switches", h1.width > 1f && h1.yMin >= sw[0].yMax - 1f);
