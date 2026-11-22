@@ -654,10 +654,13 @@ public static class ShopScreenTest
         if (dock == null) return;
         Check("the dock has no star dust pack tiles", dock.transform.Find("~DockRack").Find("~DockSupport_support850") == null &&
               dock.transform.Find("~DockRack").Find("~DockSupport_support2500") == null);
-        Check("the 16 ships fill the rack: 3 columns, 6 rows", dock.layout.count == 16 && dock.layout.columns == 3 && dock.layout.rows == 6);
-        var last = dock.layout.BayCenter(15);
-        Check("the lone last berth (Paragon) is centred, not left with a gap", Mathf.Abs(last.x) < .001f);
-        Check("a full row stays left-aligned to columns", dock.layout.BayCenter(0).x < -.1f && dock.layout.BayCenter(2).x > .1f);
+        Check("the 16 ships all have a bay in the lot", dock.layout.count == 16 && dock.layout.columns * dock.layout.rows >= 16);
+        Check("the lot has no overlapping bays", AsteroidBackwardsAndShopColumnsTest.NoBayOverlap(dock.layout));
+        // (the saved grid the hearts / start-speed rules read stays three columns wide whatever the lot draws)
+        Check("the stat grid stays 3 columns", DockLayout.MaxColumns == 3 && SpaceDock.ColumnOf(SpaceDock.ShipAt(2)) == 3 && SpaceDock.RowOf(SpaceDock.ShipAt(3)) == 2);
+        var lone = new DockLayout { count = 16, columns = 3, rows = 6, lanes = 5, scale = 1f, mode = LotMode.Rows };
+        Check("a short last row's lone bay (Paragon) is centred, not left with a gap", Mathf.Abs(lone.BayCenter(15).x) < .001f);
+        Check("a full row stays left-aligned to columns", lone.BayCenter(0).x < -.1f && lone.BayCenter(2).x > .1f);
         Object.DestroyImmediate(dock.gameObject);
     }
 

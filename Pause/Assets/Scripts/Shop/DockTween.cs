@@ -68,6 +68,37 @@ public static class DockLaunch
     public const float FlightExponent = 1.9f;    // the hard ease-in on the fly-out
     public const float ApproachDistance = 1.25f; // straight run out of the berth before the bank
 
+    // The parking lot: the hull pulls straight out of its bay to the mouth (bay-local units, 64 kit px), then the
+    // fly-out leaves along the nose and turns up the lane.
+    public const float SlideDistance = 64f * DockLayout.Px;
+    public static float Slide(float t) { return DockTween.InOutCubic(DockTween.Clamp01Range(t, .22f, .8f)); }
+
+    // The Bezier control points of the fly-out from the bay's mouth `p0` with the hull's nose pointing `nose`: a
+    // sideways bay (lanes mode) turns 90 degrees into the lane and runs up it; a row bay nose-up just climbs, one
+    // nose-down swings around toward the lot's centre and climbs.
+    public static void ExitPath(Vector3 p0, Vector3 nose, float camX, float camTop, bool lanes, out Vector3 p1, out Vector3 p2)
+    {
+        float top = camTop + 1.2f;
+        if (Mathf.Abs(nose.x) > .5f)
+        {
+            // the lane's centre line is half a lane beyond the bay's mouth
+            float laneX = p0.x + Mathf.Sign(nose.x) * DockLayout.Lane * .5f;
+            p1 = new Vector3(laneX, p0.y, p0.z);
+            p2 = new Vector3(laneX, top, p0.z);
+        }
+        else if (nose.y > 0f)
+        {
+            p1 = p0 + new Vector3(0f, ApproachDistance, 0f);
+            p2 = new Vector3(camX + (p0.x - camX) * .2f, top, p0.z);
+        }
+        else
+        {
+            float side = p0.x < camX ? 1f : -1f;
+            p1 = p0 + new Vector3(0f, -(DockLayout.Lane * .5f + .6f), 0f);
+            p2 = new Vector3(p0.x + side * 1.1f, top, p0.z);
+        }
+    }
+
     public static float Clamps(float t) { return DockTween.OutCubic(DockTween.Clamp01Range(t, 0f, .32f)); }
     public static float Lift(float t) { return DockTween.InOutCubic(DockTween.Clamp01Range(t, .12f, .75f)); }
     public static float BackOff(float t) { return DockTween.InOutCubic(DockTween.Clamp01Range(t, .22f, .8f)); }

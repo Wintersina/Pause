@@ -15,7 +15,8 @@ public class DockStartWorld : MonoBehaviour
 {
     public const string Name = "~DockStartWorld";
     public const string RowName = "Row", PrevName = "Prev", NextName = "Next", LabelName = "World";
-    public const float Y = -98f, Height = 40f, MaxWidth = 460f, ArrowW = 76f;
+    public const float Y = -98f, Height = 40f, MaxWidth = 460f, ArrowW = 96f;
+    public const float TapPad = 26f;   // each target reaches this far above and below its art: 40 + 2 x 26 units, finger-sized on every screen
 
     GameObject row;
     Text label;
@@ -77,7 +78,7 @@ public class DockStartWorld : MonoBehaviour
         t.horizontalOverflow = HorizontalWrapMode.Overflow;
         t.color = AkiraPalette.WithAlpha(AkiraPalette.Cyan, .9f);
         t.text = text;
-        t.raycastPadding = new Vector4(0f, -4f, 0f, -4f);   // a finger-tall target
+        t.raycastPadding = new Vector4(0f, -TapPad, 0f, -TapPad);   // a finger-tall target
         var b = go.GetComponent<Button>();
         b.transition = Selectable.Transition.None;
         b.targetGraphic = t;

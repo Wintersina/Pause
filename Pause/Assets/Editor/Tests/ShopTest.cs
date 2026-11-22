@@ -58,7 +58,7 @@ public static class ShopTest
 
         int total = shopingShips.shipTotal;
         Check("roster includes retro and original ships", total == shopingShips.Roster.Length && total > 8);
-        Check("portrait phones get a three-column rack", dock.layout.columns == 3);
+        Check("portrait phones get horizontal lanes with at least three bays across", dock.layout.mode == LotMode.Rows && dock.layout.columns >= 3);
 
         float halfH = cam.orthographicSize, halfW = halfH * cam.aspect;
         Vector3 c = cam.transform.position;
@@ -68,13 +68,13 @@ public static class ShopTest
             var ship = SceneUtil.FindAny("ship" + i);
             string name = shopingShips.NameFor(i);
             Check("ship" + i + " (" + name + ") is parked in its own berth",
-                  bay != null && ship != null && ship.transform.parent == bay.transform);
+                  bay != null && ship != null && ship.transform.parent.parent == bay.transform);
             if (bay == null || ship == null) continue;
             var sr = ship.GetComponent<SpriteRenderer>();
             Check("ship" + i + " has art", sr != null && sr.sprite != null);
             Check("ship" + i + " is registered with the shop", shopingShips.ships[i] == ship);
-            float h = sr.bounds.size.y;
-            Check("ship" + i + " uses the compact dock size", h > 0.16f && h < 0.80f);
+            float h = Mathf.Max(sr.bounds.size.x, sr.bounds.size.y);
+            Check("ship" + i + " fills about 75% of its bay (" + h.ToString("F2") + ")", h > 0.30f && h <= DockBay.HullSize + .001f);
             Check("Boost" + i + " exists for lift-off", SceneUtil.FindAny("Boost" + i) != null);
             Check("ship" + i + " carries no live-gameplay components",
                   ship.GetComponent<collisionDetection>() == null && ship.GetComponent<movePlayer>() == null);
@@ -102,8 +102,9 @@ public static class ShopTest
         var below = dock.bays[SpaceDock.ShipAt(dock.layout.columns)].transform.position;
         Check("neighbouring berths are packed close (" + (b2.x - b1.x).ToString("F2") + "u apart)",
               b2.x - b1.x < 1.9f && b2.x - b1.x >= DockLayout.BaySize.x * dock.layout.scale - .001f);
-        Check("berth rows are packed close (" + (b1.y - below.y).ToString("F2") + "u apart)",
-              b1.y - below.y < 1.6f && b1.y - below.y >= DockLayout.BaySize.y * dock.layout.scale - .001f);
+        // (the next row down faces back across a drive lane)
+        Check("bay rows are packed close (" + (b1.y - below.y).ToString("F2") + "u apart)",
+              b1.y - below.y <= (DockLayout.BayL + DockLayout.Lane) * dock.layout.scale + .001f && b1.y - below.y >= DockLayout.BayL * dock.layout.scale - .001f);
 
         // Powered down until selected: no flame, dim hull, standby lights.
         foreach (var thruster in Object.FindObjectsByType<ShipThruster>(FindObjectsSortMode.None))
@@ -474,7 +475,8 @@ public static class ShopTest
             dock.Relayout();
             float halfW = cam.orthographicSize * cam.aspect;
             float cx = cam.transform.position.x;
-            float bayW = DockLayout.BaySize.x * dock.layout.scale;
+            Vector2 ext = dock.layout.BayExtent * dock.layout.scale;
+            float bayW = ext.x;
             bool fits = true, ordered = true;
             for (int slot = 0; slot < ShipId.Count; slot++)
             {
@@ -487,11 +489,11 @@ public static class ShopTest
                     bool sameRow = slot % dock.layout.columns != 0;
                     // reading order: left to right, then the next row down
                     ordered &= sameRow ? p.x > prev.x + bayW - .001f && Mathf.Abs(p.y - prev.y) < 1e-4f
-                                       : p.y < prev.y - DockLayout.BaySize.y * dock.layout.scale + .001f;
+                                       : p.y < prev.y - ext.y + .001f;
                 }
             }
             string tag = size.x + "x" + size.y;
-            Check(tag + ": three columns, every berth fits the width", dock.layout.columns == 3 && fits);
+            Check(tag + ": " + dock.layout.mode + ", " + dock.layout.columns + " columns, every bay fits the width", dock.layout.columns >= 2 && fits);
             Check(tag + ": berths read cheapest first, left to right, top to bottom, without overlapping", ordered);
             PopupFits(dock, cam, tag);
             screenScope.Dispose();

@@ -31,6 +31,71 @@ public static class DockArt
         return sprite;
     }
 
+    // Parking-lot kit pieces (Dock/Lot/*.png, point-filtered pixel art, authored 1 px = DockLayout.Px world units).
+    static readonly Dictionary<string, Sprite> lotCache = new Dictionary<string, Sprite>();
+    static Sprite[] digits;
+
+    public static Sprite Lot(string name)
+    {
+        Sprite sprite;
+        if (lotCache.TryGetValue(name, out sprite) && sprite != null) return sprite;
+        var texture = Resources.Load<Texture2D>("Dock/Lot/" + name);
+        if (texture == null) return null;
+        sprite = Sprite.Create(texture, new Rect(0, 0, texture.width, texture.height), new Vector2(.5f, .5f),
+                               DockLayout.PixelsPerUnit, 0, SpriteMeshType.FullRect);
+        sprite.name = "Lot_" + name;
+        lotCache[name] = sprite;
+        return sprite;
+    }
+
+    // One 12 x 16 digit cell of number_stencils.png (0..9).
+    public static Sprite Digit(int d)
+    {
+        if (digits == null) digits = new Sprite[10];
+        d = Mathf.Clamp(d, 0, 9);
+        if (digits[d] != null) return digits[d];
+        var texture = Resources.Load<Texture2D>("Dock/Lot/number_stencils");
+        if (texture == null) return null;
+        digits[d] = Sprite.Create(texture, new Rect(d * 12, 0, 12, 16), new Vector2(.5f, .5f), DockLayout.PixelsPerUnit, 0, SpriteMeshType.FullRect);
+        digits[d].name = "LotDigit" + d;
+        return digits[d];
+    }
+
+    // The "more below" chevron: an 11 x 6 pixel V (the same art as the shop's ScrollHint), point filtered.
+    static Sprite chevron;
+    public static Sprite HintChevron
+    {
+        get
+        {
+            if (chevron != null) return chevron;
+            const int w = 11, h = 6;
+            var tex = new Texture2D(w, h, TextureFormat.RGBA32, false) { wrapMode = TextureWrapMode.Clamp, filterMode = FilterMode.Point, name = "DockHintChevron" };
+            var clear = new Color(1f, 1f, 1f, 0f);
+            for (int y = 0; y < h; y++) for (int x = 0; x < w; x++) tex.SetPixel(x, y, clear);
+            for (int y = 0; y < 5; y++)
+                foreach (int x in new[] { 5 - y, 6 - y, 5 + y - 1, 5 + y })
+                    if (x >= 0 && x < w) tex.SetPixel(x, y, Color.white);
+            tex.Apply(false, true);
+            chevron = Sprite.Create(tex, new Rect(0, 0, w, h), new Vector2(.5f, .5f), 100f);
+            return chevron;
+        }
+    }
+
+    // A 1x1 white pixel sprite one world unit square: tinted and scaled for solid bands.
+    static Sprite solid;
+    public static Sprite Solid
+    {
+        get
+        {
+            if (solid != null) return solid;
+            var tex = new Texture2D(1, 1, TextureFormat.RGBA32, false) { filterMode = FilterMode.Point, name = "DockSolid" };
+            tex.SetPixel(0, 0, Color.white);
+            tex.Apply(false, true);
+            solid = Sprite.Create(tex, new Rect(0, 0, 1, 1), new Vector2(.5f, .5f), 1f);
+            return solid;
+        }
+    }
+
     // Sprite material with a saturation control, so a powered-down hull can
     // sit greyed out. Null (default sprite material) if the shader is absent.
     public static Material ShipMaterial

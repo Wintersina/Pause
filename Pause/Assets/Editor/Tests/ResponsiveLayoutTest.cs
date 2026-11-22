@@ -40,7 +40,7 @@ public static class ResponsiveLayoutTest
     // enforced on them; the rest are the "known, later PR" queue (WideKnown) and are skipped until their PR lands.
     public static FitDevice[] WideDevices
     {
-        get { return new[] { FitDevice.Find("desk-1920x1080"), FitDevice.Find("desk-2560x1080") }; }
+        get { return new[] { FitDevice.Find("desk-1920x1080"), FitDevice.Find("desk-2560x1080"), FitDevice.Find("desk-2560x1600") }; }
     }
     public static readonly string[] WideEnforced = { "dock", "dock-popup-owned", "dock-popup-buy" };
     // Follow-up queue: Shop, death / leaderboard / options, home, pause / toasts / dialogs, then the Codex.
@@ -75,7 +75,7 @@ public static class ResponsiveLayoutTest
         return f.kind == "OVERLAP" && f.element.Contains("~DockPopup") && f.element.Contains("Canvas/PlayButton");
     }
 
-    static readonly HashSet<string> LayoutKinds = new HashSet<string> { "OFFSCREEN", "SAFE", "CUTOUT", "CORNER", "HOMEBAR", "OVERLAP", "TAPSIZE", "PROPORTION" };
+    static readonly HashSet<string> LayoutKinds = new HashSet<string> { "OFFSCREEN", "SAFE", "CUTOUT", "CORNER", "HOMEBAR", "OVERLAP", "TAPSIZE", "PROPORTION", "DOCKLOT" };
 
     public static int Execute()
     {
@@ -116,20 +116,21 @@ public static class ResponsiveLayoutTest
         return fails;
     }
 
-    // Phones (aspect under DockLayout.TabletAspect) keep exactly the width-only scale. A tablet-shaped portrait view's one-pane dock rack is scaled to the space between the header and the footer (never scrolling over the
-    // footer buttons) wherever that stays above DockLayout.MinWideScale, on phone and tablet portrait aspects.
+    // The parking lot's shape per view (pure arithmetic; the staged "dock" screens above check the real scene on every
+    // device): phones (9:16..9:21) get horizontal lanes, tablets / Mac windows / wide windows vertical lanes, every
+    // bay present, never shrunk, and the lot is no wider than the screen.
     static void DockRackFits()
     {
-        foreach (float aspect in new[] { .46f, .5f, .5625f, .64f, .695f, .70f, .75f })
+        foreach (float aspect in new[] { .4286f, .46f, .5f, .5625f, .64f, .695f, .70f, .75f, 1.6f })
         {
             float halfH = CameraFit.ComputeSize(5f, 2.85f, (int)(aspect * 1000f), 1000);
             float halfW = halfH * aspect;
-            float space = halfH * 2f * .78f;   // the header and footer bands leave about 78% of the view
-            var l = DockLayout.ForTall(15, halfW, halfH, space);
-            bool fits = l.Height * l.scale <= space + .001f || Mathf.Approximately(l.scale, DockLayout.MinWideScale);
-            bool phone = aspect < DockLayout.TabletAspect;
-            Check("dock rack @ aspect " + aspect + ": scale " + l.scale.ToString("0.00") + ", height " + (l.Height * l.scale).ToString("0.0") + " of " + space.ToString("0.0"),
-                  (phone ? l.scale == DockLayout.For(15, halfW).scale : fits) && l.scale <= 1f && l.Width * l.scale <= halfW * 2f + .001f);
+            var l = DockLayout.For(16, halfW * 2f, DockLayout.PrefersLanes(halfW, halfH));
+            bool phone = aspect < DockLayout.LaneAspect;
+            Check("dock lot @ aspect " + aspect + ": " + l.mode + ", " + l.columns + " columns x " + l.rows + " rows, " + l.lanes + " lanes",
+                  l.mode == (phone ? LotMode.Rows : LotMode.Lanes) && l.columns * l.rows >= 16 && l.scale == 1f &&
+                  l.Width <= halfW * 2f + .001f && AsteroidBackwardsAndShopColumnsTest.NoBayOverlap(l) &&
+                  (phone ? l.columns >= 3 : l.lanes >= 1 && l.lanes <= DockLayout.MaxLanes));
         }
     }
 
