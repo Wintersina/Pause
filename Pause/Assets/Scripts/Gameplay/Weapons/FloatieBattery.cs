@@ -236,7 +236,11 @@ public class FloatieBattery : MonoBehaviour
     {
         FloatieBullets.ReleaseAll(this);
         for (int i = 0; i < extras.Length; i++)
-            if (extras[i] != null) Object.Destroy(extras[i].gameObject);
+            if (extras[i] != null)
+            {
+                if (Application.isPlaying) Object.Destroy(extras[i].gameObject);
+                else Object.DestroyImmediate(extras[i].gameObject);
+            }
     }
 
     // ---- when it holds fire ---------------------------------------------

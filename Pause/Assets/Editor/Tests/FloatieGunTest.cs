@@ -389,7 +389,8 @@ public static class FloatieGunTest
               Vector3.Dot(face.FacingDir, toNear) > .995f && Vector3.Dot(LastActive().Heading, face.FacingDir) > .995f);
         face.AimAt(0f, true);
         FloatieBullets.ReleaseAll();
-        for (int i = 0; i < 40; i++) r.battery.Step(Dt);
+        r.battery.ResetTimers();   // (the seeker's next shot is a third of a second off: the target stays alive while it tracks)
+        for (int i = 0; i < 18; i++) r.battery.Step(Dt);
         float expect = Mathf.Atan2(-(near.transform.position.x - face.Muzzle.x), near.transform.position.y - face.Muzzle.y) * Mathf.Rad2Deg;
         Check("... tracking it smoothly while it waits (" + face.Aim.ToString("0.0") + " of " + expect.ToString("0.0") + ")", Mathf.Abs(Mathf.DeltaAngle(face.Aim, expect)) < 3f);
         FloatieBullets.ReleaseAll();
