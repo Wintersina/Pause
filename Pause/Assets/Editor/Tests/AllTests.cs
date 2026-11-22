@@ -67,6 +67,7 @@ public static class AllTests
         ("ShopScreenTest", ShopScreenTest.Execute),
         ("AdsTest", AdsTest.Execute),
         ("AppIconTest", AppIconTest.Execute),
+        ("AndroidPortraitFeatureTest", AndroidPortraitFeatureTest.Execute),
         ("ArtRestyleTest", ArtRestyleTest.Execute),
         ("AchievementCatalogTest", AchievementCatalogTest.Execute),
         ("AchievementTrackingTest", AchievementTrackingTest.Execute),
