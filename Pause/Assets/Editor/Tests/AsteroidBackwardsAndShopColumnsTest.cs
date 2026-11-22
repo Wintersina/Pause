@@ -79,16 +79,14 @@ public static class AsteroidBackwardsAndShopColumnsTest
         {
             float size = CameraFit.ComputeSize(5f, 2.85f, s.x, s.y);
             float halfW = size * s.x / s.y;
-            var layout = DockLayout.For(count, halfW * 2f, DockLayout.PrefersLanes(halfW, size));
+            var layout = DockLayout.For(count, halfW * 2f, size * 2f - 2.6f);
             string tag = s.x + "x" + s.y;
-            bool phone = s.x / (float)s.y < DockLayout.LaneAspect;
-            Check(tag + ": " + (phone ? "a phone gets horizontal lanes (Rows)" : "a wide / tablet view gets vertical lanes"),
-                  layout.mode == (phone ? LotMode.Rows : LotMode.Lanes));
             Check(tag + ": every ship has a bay", layout.columns * layout.rows >= count);
             Check(tag + ": the lot is no wider than the screen", layout.Width * layout.scale <= halfW * 2f + .001f);
-            Check(tag + ": bays are never shrunk or stretched", layout.scale == 1f);
-            if (phone) Check(tag + ": a phone fits at least three bays across (" + layout.columns + ")", layout.columns >= 3);
-            else Check(tag + ": lanes " + layout.lanes + " (1 to " + DockLayout.MaxLanes + ")", layout.lanes >= 1 && layout.lanes <= DockLayout.MaxLanes);
+            Check(tag + ": bays are never stretched past " + DockLayout.MaxScale + " (" + layout.scale.ToString("F2") + ")", layout.scale <= DockLayout.MaxScale + .001f);
+            Check(tag + ": vertical runways, " + layout.lanes + " (1 to " + DockLayout.MaxLanes + ")", layout.lanes >= 1 && layout.lanes <= DockLayout.MaxLanes);
+            Check(tag + ": 1 runway on phones (< .6), 2 on wide tablets (>= .7)",
+                  s.x / (float)s.y >= .6f ? layout.lanes == 2 || s.x / (float)s.y < .7f : layout.lanes == 1);
             Check(tag + ": no two bays overlap", NoBayOverlap(layout));
         }
 
@@ -98,7 +96,7 @@ public static class AsteroidBackwardsAndShopColumnsTest
 
         ShopRackSplitsWideViews(count);
 
-        var narrow = DockLayout.For(count, 5.7f, false);
+        var narrow = DockLayout.For(count, 4.6f);
         float top, bottom;
         narrow.ScrollRange(1f, -1f, out top, out bottom);
         Check("a lot taller than its space scrolls (range > 0)", bottom - top > 0f);
@@ -136,8 +134,8 @@ public static class AsteroidBackwardsAndShopColumnsTest
             Check(tag + ": the panes tile the view, the card pane on the right",
                   Mathf.Approximately(rackPane.xMax, cardPane.xMin) && Mathf.Approximately(cardPane.xMax, view.xMax) &&
                   rackPane.xMin == view.xMin && cardPane.width <= view.width * DockLayout.CardShare + .001f);
-            var layout = DockLayout.For(count, rackPane.width, DockLayout.PrefersLanes(halfW, halfH));
-            Check(tag + ": every ship has a bay (" + layout.mode + ", " + layout.columns + " columns)", layout.columns * layout.rows >= count);
+            var layout = DockLayout.For(count, rackPane.width, rackPane.height);
+            Check(tag + ": every ship has a bay (" + layout.lanes + " runways, " + layout.columns + " columns)", layout.columns * layout.rows >= count);
             Check(tag + ": the lot fits its pane's width", layout.Width * layout.scale <= rackPane.width + .001f);
             Check(tag + ": no two bays overlap", NoBayOverlap(layout));
         }

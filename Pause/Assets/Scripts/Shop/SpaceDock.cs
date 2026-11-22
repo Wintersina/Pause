@@ -405,7 +405,7 @@ public class SpaceDock : MonoBehaviour
         float tapWorld = 48f * (fit ? UiScale.UnitPx * worldPerPixel : worldPerPoint);
         float grow = Mathf.Max(1f, tapWorld / DockLayout.BayW);
         float lotWidth = (wide ? rackPane.width : right - left) / grow;
-        layout = DockLayout.For(count, lotWidth, DockLayout.PrefersLanes(halfW, halfH));
+        layout = DockLayout.For(count, lotWidth, (cardTop - bottom - HintBand) / grow);
         layout.scale *= grow;
         camX = camPos.x;
         browseOffset = (wide ? view.center.x : (left + right) * .5f) - camPos.x;
@@ -420,6 +420,10 @@ public class SpaceDock : MonoBehaviour
         if (layout.Height * layout.scale > spaceTop - spaceBottom + .001f && spaceTop - spaceBottom - HintBand > 2f)
         {
             spaceBottom += HintBand;
+            // cut the viewport at a whole bay row, so the scroll never ends on a half-bay
+            float rowH = DockLayout.BayW * layout.scale;
+            int whole = Mathf.FloorToInt((spaceTop - spaceBottom) / rowH + .001f);
+            if (whole >= 2 && whole < layout.rows) spaceBottom = spaceTop - whole * rowH;
         }
         hintFloor = hintBottom;
         BuildLot();
@@ -473,67 +477,40 @@ public class SpaceDock : MonoBehaviour
         edgeLeft.transform.localPosition = new Vector3(-railX, 0f, 0f);
         edgeRight.transform.localPosition = new Vector3(railX, 0f, 0f);
 
-        bool lanesMode = layout.mode == LotMode.Lanes;
-        // drive lanes
+        // vertical runways (arrows all point up, one every two bay rows)
         for (int l = 0; l < Mathf.Max(layout.lanes, laneTiles.Count); l++)
         {
             if (l >= laneTiles.Count) laneTiles.Add(Piece("Lane" + l, null, SpriteDrawMode.Tiled, 0));
             var tile = laneTiles[l];
             tile.gameObject.SetActive(l < layout.lanes);
             if (l >= layout.lanes) continue;
-            tile.sprite = DockArt.Lot(lanesMode ? "lane_tile_v" : "lane_tile");
-            if (lanesMode)
-            {
-                tile.size = new Vector2(DockLayout.Lane, h);
-                tile.transform.localPosition = new Vector3(layout.LaneCenter(l), 0f, 0f);
-            }
-            else
-            {
-                tile.size = new Vector2(layout.SpanWidth, DockLayout.Lane);
-                tile.transform.localPosition = new Vector3(0f, layout.LaneCenter(l), 0f);
-            }
+            tile.sprite = DockArt.Lot("lane_tile_v");
+            tile.size = new Vector2(DockLayout.Lane, h);
+            tile.transform.localPosition = new Vector3(layout.LaneCenter(l), 0f, 0f);
         }
-        // traffic arrows: one per lane (rows: alternating directions) or one every two bay rows (lanes: all up)
-        int arrowCount = lanesMode ? layout.lanes * ((layout.rows + 1) / 2) : layout.lanes;
+        int perLane = (layout.rows + 1) / 2, arrowCount = layout.lanes * perLane;
         for (int a = 0; a < Mathf.Max(arrowCount, arrows.Count); a++)
         {
             if (a >= arrows.Count) arrows.Add(Piece("Arrow" + a, null, SpriteDrawMode.Simple, 1));
             var arrow = arrows[a];
             arrow.gameObject.SetActive(a < arrowCount);
             if (a >= arrowCount) continue;
-            if (lanesMode)
-            {
-                int perLane = (layout.rows + 1) / 2, lane = a / perLane, k = a % perLane;
-                arrow.sprite = DockArt.Lot("lane_arrow_up");
-                arrow.transform.localPosition = new Vector3(layout.LaneCenter(lane), h * .5f - (2 * k + 1) * DockLayout.BayW, 0f);
-            }
-            else
-            {
-                arrow.sprite = DockArt.Lot(a % 2 == 0 ? "lane_arrow" : "lane_arrow_up");
-                arrow.transform.localPosition = new Vector3(0f, layout.LaneCenter(a), 0f);
-            }
+            int lane = a / perLane, k = a % perLane;
+            arrow.sprite = DockArt.Lot("lane_arrow_up");
+            arrow.transform.localPosition = new Vector3(layout.LaneCenter(lane), h * .5f - (2 * k + 1) * DockLayout.BayW, 0f);
             arrow.sortingOrder = 1;
         }
         // thin painted seams between neighbouring bays
         int seamCount = 0;
         for (int slot = 0; slot < layout.count; slot++)
         {
-            bool seam = lanesMode ? layout.RowIndex(slot) > 0 : layout.ColumnIndex(slot) > 0 && layout.RowIndex(slot) * layout.columns + layout.ColumnIndex(slot) < layout.count;
-            if (!seam) continue;
+            if (layout.RowIndex(slot) == 0) continue;
             if (seamCount >= dividers.Count) dividers.Add(Piece("Seam" + seamCount, null, SpriteDrawMode.Simple, 3));
             var s = dividers[seamCount++];
             s.gameObject.SetActive(true);
             Vector2 c = layout.BayCenter(slot);
-            if (lanesMode)
-            {
-                s.sprite = DockArt.Lot("bay_divider_h");
-                s.transform.localPosition = new Vector3(c.x, c.y + DockLayout.BayW * .5f, 0f);
-            }
-            else
-            {
-                s.sprite = DockArt.Lot("bay_divider");
-                s.transform.localPosition = new Vector3(c.x - DockLayout.BayW * .5f, c.y, 0f);
-            }
+            s.sprite = DockArt.Lot("bay_divider_h");
+            s.transform.localPosition = new Vector3(c.x, c.y + DockLayout.BayW * .5f, 0f);
             s.color = new Color(1f, 1f, 1f, .7f);
         }
         for (int s = seamCount; s < dividers.Count; s++) dividers[s].gameObject.SetActive(false);
@@ -1003,7 +980,7 @@ public class SpaceDock : MonoBehaviour
         float camX = cam != null ? cam.transform.position.x : 0f;
         float camTop = (cam != null ? cam.transform.position.y : 0f) + halfH;
         Vector3 p1, p2;
-        DockLaunch.ExitPath(p0, nose, camX, camTop, layout.mode == LotMode.Lanes, out p1, out p2);
+        DockLaunch.ExitPath(p0, nose, camX, camTop, true, out p1, out p2);
         float flight = LaunchDuration - UndockTime;
         float f = 0f;
         float spin = 0f;

@@ -58,7 +58,7 @@ public static class ShopTest
 
         int total = shopingShips.shipTotal;
         Check("roster includes retro and original ships", total == shopingShips.Roster.Length && total > 8);
-        Check("portrait phones get horizontal lanes with at least three bays across", dock.layout.mode == LotMode.Rows && dock.layout.columns >= 3);
+        Check("portrait phones get one vertical runway with a bay column on each side", dock.layout.lanes == 1 && dock.layout.columns == 2);
 
         float halfH = cam.orthographicSize, halfW = halfH * cam.aspect;
         Vector3 c = cam.transform.position;
@@ -81,7 +81,7 @@ public static class ShopTest
 
             Vector3 p = bay.transform.position;
             Check("berth " + i + " is on screen on a 9:16 phone",
-                  Mathf.Abs(p.x - c.x) + DockLayout.BaySize.x * .5f * dock.layout.scale <= halfW + .001f &&
+                  Mathf.Abs(p.x - c.x) + DockLayout.BayL * .5f * dock.layout.scale <= halfW + .001f &&
                   Mathf.Abs(p.y - c.y) < halfH);
 
             // Labels: the name on every berth; owned = a quiet icon, locked =
@@ -99,12 +99,29 @@ public static class ShopTest
         // and the one below 0 in the cheapest-first order).
         var b1 = dock.bays[SpaceDock.ShipAt(0)].transform.position;
         var b2 = dock.bays[SpaceDock.ShipAt(1)].transform.position;
-        var below = dock.bays[SpaceDock.ShipAt(dock.layout.columns)].transform.position;
-        Check("neighbouring berths are packed close (" + (b2.x - b1.x).ToString("F2") + "u apart)",
-              b2.x - b1.x < 1.9f && b2.x - b1.x >= DockLayout.BaySize.x * dock.layout.scale - .001f);
-        // (the next row down faces back across a drive lane)
-        Check("bay rows are packed close (" + (b1.y - below.y).ToString("F2") + "u apart)",
-              b1.y - below.y <= (DockLayout.BayL + DockLayout.Lane) * dock.layout.scale + .001f && b1.y - below.y >= DockLayout.BayL * dock.layout.scale - .001f);
+        var below = dock.bays[SpaceDock.ShipAt(2)].transform.position;
+        float sc = dock.layout.scale;
+        Check("the two bays across a runway are one runway apart (" + (b2.x - b1.x).ToString("F2") + "u)",
+              Mathf.Abs((b2.x - b1.x) - (DockLayout.BayL + DockLayout.Lane) * sc) < .001f);
+        Check("bay rows are packed edge to edge (" + (b1.y - below.y).ToString("F2") + "u apart)",
+              Mathf.Abs((b1.y - below.y) - DockLayout.BayW * sc) < .001f);
+
+        // Labels sit inside their bay with a margin, clear of the frame lines and of each other.
+        for (int i = 1; i < total; i++)
+        {
+            var bay = dock.bays[i];
+            if (bay == null) continue;
+            Vector2 e = bay.Extent;
+            float m = 4f * DockLayout.Px;
+            var inner = new Rect(-e.x + m, -e.y + m, 2f * (e.x - m), 2f * (e.y - m));
+            Rect n = bay.NumberRect, ch = bay.ChipRect;
+            Check("berth " + i + ": the number sits inside the bay frame", inner.Contains(n.min) && inner.Contains(n.max));
+            if (bay.ShowsPrice)
+            {
+                Check("berth " + i + ": the price pill sits inside the bay frame", inner.Contains(ch.min) && inner.Contains(ch.max));
+                Check("berth " + i + ": the number and the price pill do not touch", !n.Overlaps(ch));
+            }
+        }
 
         // Powered down until selected: no flame, dim hull, standby lights.
         foreach (var thruster in Object.FindObjectsByType<ShipThruster>(FindObjectsSortMode.None))
@@ -486,15 +503,16 @@ public static class ShopTest
                 if (slot > 0)
                 {
                     Vector3 prev = dock.bays[SpaceDock.ShipAt(slot - 1)].transform.position;
-                    bool sameRow = slot % dock.layout.columns != 0;
-                    // reading order: left to right, then the next row down
-                    ordered &= sameRow ? p.x > prev.x + bayW - .001f && Mathf.Abs(p.y - prev.y) < 1e-4f
-                                       : p.y < prev.y - ext.y + .001f;
+                    // runway by runway: left then right bay of a row, the next row down; the next runway starts at the top
+                    int perLane = dock.layout.rows * 2;
+                    if (slot % 2 == 1) ordered &= p.x > prev.x + 1f && Mathf.Abs(p.y - prev.y) < 1e-4f;
+                    else if (slot % perLane == 0) ordered &= p.x > prev.x && p.y > prev.y;
+                    else ordered &= p.y < prev.y - .001f && p.x < prev.x;
                 }
             }
             string tag = size.x + "x" + size.y;
-            Check(tag + ": " + dock.layout.mode + ", " + dock.layout.columns + " columns, every bay fits the width", dock.layout.columns >= 2 && fits);
-            Check(tag + ": berths read cheapest first, left to right, top to bottom, without overlapping", ordered);
+            Check(tag + ": " + dock.layout.lanes + " runway(s), " + dock.layout.columns + " columns, every bay fits the width", dock.layout.columns >= 2 && fits);
+            Check(tag + ": berths read cheapest first, runway by runway, top to bottom, without overlapping", ordered);
             PopupFits(dock, cam, tag);
             screenScope.Dispose();
         }

@@ -881,14 +881,7 @@ public static class ScreenFitScreens
     {
         var l = dock.layout;
         float aspect = rig.device.w / (float)rig.device.h;
-        if (aspect < ScreenLayout.WideAspect)
-        {
-            bool phone = aspect < DockLayout.LaneAspect;
-            if ((l.mode == LotMode.Rows) != phone)
-                rig.Fail("DOCKLOT", "lot", "aspect " + aspect.ToString("F2") + " got " + l.mode + ", expected " + (phone ? "Rows (phones)" : "Lanes (tablets / wide)"));
-        }
-        else if (aspect >= ScreenFrame.WideFrom && l.mode != LotMode.Lanes)
-            rig.Fail("DOCKLOT", "lot", "a wide view (" + aspect.ToString("F2") + ") got " + l.mode + ", expected Lanes");
+        if (l.lanes < 1 || l.lanes > DockLayout.MaxLanes) rig.Fail("DOCKLOT", "lot", l.lanes + " runways");
         int total = shopingShips.shipTotal - 1;
         for (int id = 1; id <= total; id++)
             if (id >= dock.bays.Length || dock.bays[id] == null) rig.Fail("DOCKLOT", "bay " + id, "no bay for this ship (incl. the Paragon / shop bay)");
@@ -938,6 +931,13 @@ public static class ScreenFitScreens
             Rect n = bay.NumberRect;
             Vector2 c = l.BayCenter(slot);
             numbers.Add(new Rect(c.x + n.x, c.y + n.y, n.width, n.height));
+            // number and price pill inside the bay frame with a margin, and not touching each other
+            Vector2 e = bay.Extent;
+            float m = 4f * DockLayout.Px;
+            var inner = new Rect(-e.x + m, -e.y + m, 2f * (e.x - m), 2f * (e.y - m));
+            Rect ch = bay.ChipRect;
+            if (!inner.Contains(n.min) || !inner.Contains(n.max)) rig.Fail("DOCKLOT", "bay " + (slot + 1) + " number", "touches the bay frame");
+            if (bay.ShowsPrice && (!inner.Contains(ch.min) || !inner.Contains(ch.max) || n.Overlaps(ch))) rig.Fail("DOCKLOT", "bay " + (slot + 1) + " price", "touches the frame or the number");
         }
         for (int i = 0; i < numbers.Count; i++)
             for (int j = i + 1; j < numbers.Count; j++)
