@@ -754,6 +754,7 @@ public static class AttackPool
         Purge();
         for (int i = 0; i < projectiles.Count; i++) if (projectiles[i].Active) projectiles[i].Finish(false);
         for (int i = 0; i < sprites.Count; i++) if (sprites[i].Active) sprites[i].Stop();
+        FxLinks.StopAll();
     }
 }
 
@@ -992,6 +993,7 @@ public class AttackProjectile : MonoBehaviour
     readonly System.Collections.Generic.List<GameObject> struck = new System.Collections.Generic.List<GameObject>(16);   // Javelin: already hit by this strike
     Vector3 rocketTo;      // Rocket: where the javelin manifests
     float rocketStopY;     // ...and where it will strike down to
+    LinkLine telegraph;    // Rocket: the thin crackle down the javelin's lane, shown for the last JavelinLead seconds
 
     // Projectiles launched since load (tests, previews).
     public static int LaunchCount;
@@ -1061,6 +1063,7 @@ public class AttackProjectile : MonoBehaviour
         hops = 0;
         pierceLeft = 0;
         StopAtY = float.MinValue;
+        telegraph = null;
         struck.Clear();
         transform.position = at;
         if (!Active) Flying.Add(this);
@@ -1096,6 +1099,9 @@ public class AttackProjectile : MonoBehaviour
         {
             // straight at the lane's top; on arrival the javelin manifests from it
             Vector3 left = rocketTo - from;
+            // shortly before the javelin manifests, a thin crackling line flickers down its lane to the impact point
+            if (telegraph == null && left.magnitude <= speed * FxLinks.JavelinLead)
+                telegraph = FxLinks.JavelinTelegraph(ship, rocketTo.x, rocketTo.y, rocketStopY);
             if (left.sqrMagnitude <= (speed * dt) * (speed * dt))
             {
                 transform.position = rocketTo;
@@ -1176,7 +1182,12 @@ public class AttackProjectile : MonoBehaviour
         var r = run;
         int sh = ship;
         float w = weight;
+        var tele = telegraph;
+        telegraph = null;
         Finish(false);
+        // the strike: the crackle flashes once, wider and whiter, and fades
+        if (tele != null && tele.Active)
+            tele.Flash(FxLinks.JavelinFlashSeconds, Color.Lerp(FxLinks.ShipColor(sh, 1f), Color.white, .6f), FxLinks.JavelinFlashWidth);
         if (by == null || r == null) return;
         // a small spark where the rocket opens into its javelin
         AttackPool.Sprite().Play(AttackSprite.Source.AttackBurst, sh, at, Vector3.one * .4f, 0f,
@@ -1208,6 +1219,7 @@ public class AttackProjectile : MonoBehaviour
         if (!Active) return;
         Active = false;
         Flying.Remove(this);
+        if (telegraph != null) { telegraph.Stop(); telegraph = null; }
         target = null;
         lastSpecial = null;
         if (hit)

@@ -126,6 +126,7 @@ public partial class ShipAttackRunner
                 if (w.sprite != null && w.sprite.Active) w.sprite.Stop();
                 if (w.ring != null && w.ring.Active) w.ring.Stop();
                 if (w.mush != null && w.mush.Active) w.mush.Stop();
+                ReleaseLinks(w);
                 w.on = false;
                 w.sprite = w.ring = w.mush = null;
             }
@@ -895,6 +896,8 @@ public partial class ShipAttackRunner
         public int stage;   // 0 waiting, 1 flying, 2 fuse, 3 shockwave
         public AttackRun run;
         public AttackSprite sprite, ring, mush;
+        public LinkLine trail, spark;   // the faint path behind the falling warhead, the flicker at its impact point
+        public float bow;
         public Vector3 from, to, center;
         public bool fell;
         public float t, delay, flight, fuse, maxRadius, weight, bossWeight;
@@ -986,10 +989,42 @@ public partial class ShipAttackRunner
     // The falling warhead drawing (nose down), at its start point. The one place a warhead sprite is made.
     void SpawnFalling(Warhead w, float size)
     {
+        if (w.trail != null) w.trail.Stop();
+        w.trail = null;
+        w.bow = ((int)(w.to.x * 7f) & 1) == 0 ? FxLinks.TrailBow : -FxLinks.TrailBow;   // arc either way, by where it lands
         w.sprite = AttackPool.Sprite().Play(AttackSprite.Source.AttackLoop, ship, w.from, Vector3.one * size, FallRotation,
             ShipFxArt.LoopTicks, true, 0f, null, Vector3.zero, 69).Owned(w.run);
         w.fell = true;
         WarheadFalls++;
+    }
+
+    static void ReleaseLinks(Warhead w)
+    {
+        if (w.trail != null) w.trail.Stop();
+        if (w.spark != null) w.spark.Stop();
+        w.trail = w.spark = null;
+    }
+
+    // The faint curved trail behind a falling warhead (it follows the warhead), and, for the last SparkLead
+    // seconds before impact (and through the nuke's fuse), a short flickering spark at the impact point.
+    void ShowWarheadLinks(Warhead w, Vector3 p, float secondsToImpact)
+    {
+        Vector3 tail = Vector3.Lerp(p, w.from, Mathf.Clamp01(FxLinks.TrailLength / Mathf.Max(.01f, (w.from - p).magnitude)));
+        if (w.trail == null || !w.trail.Active) w.trail = FxLinks.MissileTrail(ship, tail, p, w.bow);
+        else w.trail.MoveTrail(tail, p, w.bow);
+        if (secondsToImpact <= FxLinks.SparkLead && (w.spark == null || !w.spark.Active))
+            w.spark = FxLinks.ImpactSpark(ship, w.to);
+    }
+
+    // Test hooks: warhead i's drawn position and its trail (null when it has none right now).
+    public bool WarheadLinks(int i, out Vector3 warheadAt, out LinkLine trail, out LinkLine spark)
+    {
+        warheadAt = Vector3.zero; trail = spark = null;
+        if (warheads == null || i < 0 || i >= warheads.Length || !warheads[i].on) return false;
+        var w = warheads[i];
+        if (w.sprite != null && w.sprite.Active) warheadAt = w.sprite.Body.position;
+        trail = w.trail; spark = w.spark;
+        return w.sprite != null && w.sprite.Active;
     }
 
     void StepNukeRun(AttackRun run)
@@ -1072,13 +1107,15 @@ public partial class ShipAttackRunner
                         Vector3 p = Vector3.Lerp(w.from, w.to, e);
                         if (w.sprite == null && !w.fell) SpawnFalling(w, w.mini ? .3f : .6f);   // never skip the fall
                         if (w.sprite != null && w.sprite.Active) w.sprite.Body.position = p;
-                        if (k < 1f) break;
+                        if (k < 1f) { ShowWarheadLinks(w, p, w.flight - w.t); break; }
+                        if (w.trail != null) { w.trail.Stop(); w.trail = null; }
                         w.center = w.to;
                         w.t = 0f;
                         if (w.fuse > 0f) w.stage = 2; else Detonate(w);
                     }
                     break;
                 case 2:
+                    if (w.spark == null || !w.spark.Active) w.spark = FxLinks.ImpactSpark(ship, w.to);   // the nuke's fuse: the impact point flickers
                     // the fuse: the warhead blinks, faster as it burns down
                     if (w.sprite != null && w.sprite.Active)
                     {
@@ -1100,6 +1137,7 @@ public partial class ShipAttackRunner
         FallsShown++;
         if (w.sprite != null && w.sprite.Active) w.sprite.Stop();
         w.sprite = null;
+        ReleaseLinks(w);
         w.stage = 3;
         w.t = 0f;
         if (!w.mini) w.maxRadius = FarthestCorner(w.center);
