@@ -85,14 +85,17 @@ public static class AsteroidBackwardsAndShopColumnsTest
             Check(tag + ": the lot is no wider than the screen", layout.Width * layout.scale <= halfW * 2f + .001f);
             Check(tag + ": bays are never stretched past " + DockLayout.MaxScale + " (" + layout.scale.ToString("F2") + ")", layout.scale <= DockLayout.MaxScale + .001f);
             Check(tag + ": vertical runways, " + layout.lanes + " (1 to " + DockLayout.MaxLanes + ")", layout.lanes >= 1 && layout.lanes <= DockLayout.MaxLanes);
-            Check(tag + ": 1 runway on phones (< .6), 2 on wide tablets (>= .7)",
-                  s.x / (float)s.y >= .6f ? layout.lanes == 2 || s.x / (float)s.y < .7f : layout.lanes == 1);
+            Check(tag + ": 1 runway on phones (< .57), 2 on wide tablets (>= .7)",
+                  s.x / (float)s.y >= .57f ? layout.lanes == 2 || s.x / (float)s.y < .7f : layout.lanes == 1);
             Check(tag + ": no two bays overlap", NoBayOverlap(layout));
         }
 
         // bays are 70-75% of the mockups' size: a phone fits more across than the mockups' three
         Check("bays are drawn at 75% of the mockup size", Mathf.Approximately(DockLayout.BayScale, .75f) &&
               Mathf.Approximately(DockLayout.BayW, 96f * .75f / 64f));
+        // a parked hull is never bigger than the player's ship in play (reference hull x ShipScale.Main)
+        Check("the lot's scale cap keeps a parked hull at or under the in-play ship (" + DockLayout.MaxScale.ToString("F3") + ")",
+              DockBay.HullSize * DockLayout.MaxScale <= shopingShips.ReferenceHullSize * ShipScale.Main + .0001f);
 
         ShopRackSplitsWideViews(count);
 

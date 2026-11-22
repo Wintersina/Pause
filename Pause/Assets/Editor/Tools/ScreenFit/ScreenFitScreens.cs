@@ -923,9 +923,9 @@ public static class ScreenFitScreens
         Vector2 ext = l.BayExtent * l.scale;
         Vector2 a = rig.Pixel(Vector3.zero), b = rig.Pixel(new Vector3(ext.x, ext.y, 0f));
         float wPx = Mathf.Abs(b.x - a.x), hPx = Mathf.Abs(b.y - a.y);
-        // a docked-card (wide) view is width-bound: a whole runway (3.9 world units at 1x) must fit beside the card, so on
-        // the densest covers a bay may sit up to 25% under the floor (it is still the whole 128 x 96 kit-px bay that taps)
-        if (aspect >= ScreenLayout.WideAspect) minTap *= .75f;
+        // the lot is capped at the in-play ship's size (DockLayout.MaxScale), so a bay cannot grow to the full finger
+        // floor on a dense cover: it still has to be a usable (56 px) target
+        minTap = Mathf.Min(minTap, 56f);
         if (Mathf.Min(wPx, hPx) < minTap) rig.Fail("DOCKLOT", "bay", "tap target " + wPx.ToString("F0") + "x" + hPx.ToString("F0") + "px is under " + minTap.ToString("F0"));
         var numbers = new List<Rect>();
         for (int slot = 0; slot < l.count; slot++)
@@ -940,6 +940,13 @@ public static class ScreenFitScreens
             float m = 4f * DockLayout.Px;
             var inner = new Rect(-e.x + m, -e.y + m, 2f * (e.x - m), 2f * (e.y - m));
             Rect ch = bay.ChipRect;
+            // a parked hull is never bigger on screen than the player's ship in play (same camera in every scene)
+            if (bay.hull != null && bay.hull.sprite != null)
+            {
+                Vector3 hs = bay.hull.sprite.bounds.size, ls = bay.hull.transform.lossyScale;   // (unrotated: a spinner turns)
+                float parked = Mathf.Max(hs.x * Mathf.Abs(ls.x), hs.y * Mathf.Abs(ls.y)), flown = shopingShips.ReferenceHullSize * ShipScale.Main;
+                if (parked > flown + .002f) rig.Fail("DOCKLOT", "bay " + (slot + 1) + " hull", "parked hull " + parked.ToString("F3") + " u is bigger than the in-play ship " + flown.ToString("F3") + " u");
+            }
             if (!inner.Contains(n.min) || !inner.Contains(n.max)) rig.Fail("DOCKLOT", "bay " + (slot + 1) + " number", "touches the bay frame");
             if (bay.ShowsPrice && (!inner.Contains(ch.min) || !inner.Contains(ch.max) || n.Overlaps(ch))) rig.Fail("DOCKLOT", "bay " + (slot + 1) + " price", "touches the frame or the number");
         }

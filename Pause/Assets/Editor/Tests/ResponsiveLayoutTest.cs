@@ -129,7 +129,7 @@ public static class ResponsiveLayoutTest
             var l = DockLayout.For(16, halfW * 2f, halfH * 2f - 2.6f);
             int want = halfW * 2f - 2f * DockLayout.SideMargin >= DockLayout.WidthFor(2) * DockLayout.TwoLaneMinScale ? 2 : 1;
             Check("dock lot @ aspect " + aspect + ": " + l.lanes + " runway(s), " + l.columns + " columns x " + l.rows + " rows, scale " + l.scale.ToString("F2"),
-                  l.lanes == want && l.columns * l.rows >= 16 && l.scale <= DockLayout.MaxScale + .001f && (l.lanes == 1 || l.scale >= DockLayout.FitHeightMinScale - .001f) &&
+                  l.lanes == want && l.columns * l.rows >= 16 && l.scale <= DockLayout.MaxScale + .001f && l.scale >= DockLayout.FitHeightMinScale - .001f &&
                   l.Width * l.scale <= halfW * 2f + .001f && AsteroidBackwardsAndShopColumnsTest.NoBayOverlap(l));
             // numbering runs runway by runway: slot 0..7 in runway 1, 8..15 in runway 2, 01/02 across the top
             if (l.lanes == 2)

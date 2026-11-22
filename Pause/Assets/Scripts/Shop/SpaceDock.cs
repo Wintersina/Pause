@@ -401,16 +401,9 @@ public class SpaceDock : MonoBehaviour
         // only slides it aside and never puts a lane under the card.
         // A bay is a finger-sized tap target: where the 75% bay would be under 48 dp / pt (a dense cover screen), the
         // whole lot is drawn larger (and fitted to the width that leaves).
-        float tapWorld = 48f * (fit ? UiScale.UnitPx * worldPerPixel : worldPerPoint);
-        float needScale = tapWorld / DockLayout.BayW;
+        // (the lot is never drawn bigger than the in-play ship: DockLayout.MaxScale)
         float lotWidth = wide ? rackPane.width : right - left;
-        layout = DockLayout.For(count, lotWidth, cardTop - bottom - HintBand, needScale);
-        if (wide && layout.scale < needScale - .001f)
-        {
-            // a dense pane (a foldable cover): the lot may take the outer gutter too, so its bays stay finger-sized
-            rackPane.xMin = Mathf.Max(left, rackPane.xMin - DockLayout.Gutter);
-            layout = DockLayout.For(count, rackPane.width, cardTop - bottom - HintBand, needScale);
-        }
+        layout = DockLayout.For(count, lotWidth, cardTop - bottom - HintBand);
         camX = camPos.x;
         browseOffset = (wide ? view.center.x : (left + right) * .5f) - camPos.x;
         this.rackPane = rackPane;

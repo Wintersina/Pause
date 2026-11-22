@@ -75,6 +75,9 @@ public static class ShopTest
             Check("ship" + i + " is registered with the shop", shopingShips.ships[i] == ship);
             float h = Mathf.Max(sr.bounds.size.x, sr.bounds.size.y) / dock.layout.scale;   // (bay units: the rack itself is scaled)
             Check("ship" + i + " fills about 75% of its bay (" + h.ToString("F2") + ")", h > 0.30f && h <= DockBay.HullSize + .001f);
+            float inPlay = shopingShips.ReferenceHullSize * ShipScale.Main;
+            Check("ship" + i + " is parked no bigger than it flies (" + (h * dock.layout.scale).ToString("F3") + " <= " + inPlay.ToString("F3") + " u)",
+                  h * dock.layout.scale <= inPlay + .002f);
             Check("Boost" + i + " exists for lift-off", SceneUtil.FindAny("Boost" + i) != null);
             Check("ship" + i + " carries no live-gameplay components",
                   ship.GetComponent<collisionDetection>() == null && ship.GetComponent<movePlayer>() == null);

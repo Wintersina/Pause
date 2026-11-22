@@ -41,12 +41,14 @@ public struct DockLayout
     public const float PaneGap = .3f;
     public const float Gutter = .3f;
     public const int MaxLanes = 2;
-    // Bays never grow past this (1 = the phone size): a bigger screen gets margins, not bigger bays.
-    public const float MaxScale = 1.1f;
+    // Bays never grow past the size at which a parked hull is as big as the player's ship in actual play (the
+    // reference hull x ShipScale.Main, 0.783 u longest edge, the same camera everywhere): a bigger screen gets
+    // margins, not bigger bays.
+    public const float MaxScale = ShipScale.Main * shopingShips.ReferenceHullSize / DockBay.HullSize;
     // Two runways are used once they fit at this scale or more; below it one bigger runway reads better.
     public const float TwoLaneMinScale = .75f;
     // Two runways shrink to fit the height down to this scale (so all 16 bays show); below it the lot scrolls.
-    public const float FitHeightMinScale = .7f;
+    public const float FitHeightMinScale = .5f;
     public const float NumberW = 24f * Px, NumberH = 16f * Px;
 
     public int count;
@@ -57,19 +59,16 @@ public struct DockLayout
 
     // `usable` = the width the lot may take (world units); `space` = the height it may take (0 = unknown, never shrink
     // to fit it).
-    // `minScale` = the smallest scale at which a bay is still a finger-sized tap target (0 = no floor): it keeps two runways
-    // from being chosen, or the height fit from shrinking the bays, below it, and lifts the MaxScale cap where a dense
-    // screen needs bigger bays.
-    public static DockLayout For(int count, float usable, float space = 0f, float minScale = 0f)
+    public static DockLayout For(int count, float usable, float space = 0f)
     {
         var l = new DockLayout { count = Mathf.Max(1, count) };
         usable = Mathf.Max(1f, usable - SideMargin * 2f);
-        l.lanes = count > 4 && usable >= WidthFor(2) * Mathf.Max(TwoLaneMinScale, minScale) ? MaxLanes : 1;
+        l.lanes = count > 4 && usable >= WidthFor(2) * TwoLaneMinScale ? MaxLanes : 1;
         l.columns = l.lanes * 2;
         l.rows = Mathf.CeilToInt(l.count / (float)l.columns);
-        l.scale = Mathf.Min(Mathf.Max(MaxScale, minScale), usable / l.Width);
+        l.scale = Mathf.Min(MaxScale, usable / l.Width);
         if (l.lanes == 2 && space > 0f && l.Height * l.scale > space)
-            l.scale = Mathf.Min(l.scale, Mathf.Max(Mathf.Max(FitHeightMinScale, minScale), space / l.Height));
+            l.scale = Mathf.Min(l.scale, Mathf.Max(FitHeightMinScale, space / l.Height));
         return l;
     }
 
