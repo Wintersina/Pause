@@ -524,6 +524,19 @@ public static class FloatieGunTest
         }
         Check("every ship's step 2 says +1 FLOATIE and step 4 +1 SEEKER FLOATIE, -25% (its own label kept first)", ok);
         Check("steps 1 and 3 are unchanged", none);
+        // the dock's two-line row: floatie words only when everything fits in DockTextMax, and never past it
+        bool dockOk = true, anyFloatie = false;
+        for (int ship = 1; ship <= 16; ship++)
+        {
+            if (!ShipWeaponUpgrades.Has(ship)) continue;
+            for (int level = 1; level <= 4; level++)
+            {
+                string d = ShipWeaponUpgrades.DockStepText(ship, level), own = ShipWeaponUpgrades.Step(ship, level).label;
+                dockOk &= d.StartsWith(own) && (d == own || d.Length <= ShipWeaponUpgrades.DockTextMax);
+                anyFloatie |= d != own;
+            }
+        }
+        Check("the dock text keeps within its line budget and still carries the floatie words where they fit", dockOk && anyFloatie);
     }
 
     static void NoAllocation()

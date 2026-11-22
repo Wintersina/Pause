@@ -54,6 +54,14 @@ public static class FloatieTuning
         return side01 < .5f ? size : -size;
     }
 
+    // The same, as short as it can be (the dock's weapon row has two short lines).
+    public static string DockNote(int level)
+    {
+        if (level == 2) return "+1 FLOATIE";
+        if (level >= ShipWeaponUpgrades.MaxLevel) return "+SEEKER, -25% CD";
+        return null;
+    }
+
     // The word the dock, the shop's offer and the Codex add to a step: what the floaties gain at that level (null: nothing).
     public static string StepNote(int level)
     {
