@@ -242,13 +242,19 @@ public partial class ShipAttackRunner
     // (a hard stop while enemies keep arriving). Each enemy is caught once per firing (run.hit).
     public const float ChainRadius = 1.5f;          // world units, at level 0
     public const float ChainLinkSeconds = .12f;   // freeze-to-shatter of a chained enemy: the delay between links
+    // ICE CRACKS: frozen enemies within IceLinkReach (+ the splash width) of each other are joined by a jagged crack (each one
+    // to its nearest frozen neighbour, at most IceLinkCap on screen). When one shatters the crack runs through the frozen
+    // enemies linked to it and they shatter IceCrackSeconds later, in a quick chain: the same hits, sooner.
+    public const float IceLinkReach = 1.5f, IceCrackSeconds = .12f;
+    public const int IceLinkCap = 12;
+    public int CrackedLinks { get; private set; }   // frozen enemies a shatter pulled in through a crack (tests)
     public const float ChainWindowSeconds = 6f;   // new links stop this long after the ring has covered the screen
     public int ChainLinks { get; private set; }   // enemies frozen by a shatter so far (tests)
     const float NovaRingArtRadius = .35f;       // the ring drawing's radius in world units at scale 1
 
     class FrozenEntry
     {
-        public bool on, cracking;
+        public bool on, cracking, pulled;
         public GameObject go;
         public ClearTarget target;
         public FrozenState state;
@@ -334,6 +340,7 @@ public partial class ShipAttackRunner
         if (st == null) return false;
         e.on = true;
         e.cracking = false;
+        e.pulled = false;
         e.go = t.gameObject;
         e.target = t;
         e.state = st;
@@ -362,8 +369,60 @@ public partial class ShipAttackRunner
         frozenCount = Mathf.Max(0, frozenCount - 1);
     }
 
+    void DrawIceLinks()
+    {
+        var lines = Links;
+        int drawn = 0;
+        for (int i = 0; i < frozen.Length && drawn < IceLinkCap; i++)
+        {
+            var e = frozen[i];
+            if (!e.on || e.go == null) continue;
+            float reach = IceLinkReach + (e.run != null ? e.run.loadout.width : 0f);
+            int best = NearestFrozen(i, reach);
+            if (best < 0) continue;
+            if (best < i && NearestFrozen(best, reach) == i) continue;   // the pair is drawn from the lower index
+            var o = frozen[best];
+            if (lines.Link(ShipLinkLines.Kind.Ice, e.go.transform.position, o.go.transform.position, e.radius * .5f, o.radius * .5f,
+                    ShipLinkLines.IceWidth, ShipLinkLines.IceColor, .1f, i * 11 + best)) drawn++;
+        }
+    }
+
+    int NearestFrozen(int i, float reach)
+    {
+        var e = frozen[i];
+        int best = -1;
+        float bestSq = reach * reach;
+        for (int j = 0; j < frozen.Length; j++)
+        {
+            var o = frozen[j];
+            if (j == i || !o.on || o.go == null) continue;
+            float sq = ((Vector2)(o.go.transform.position - e.go.transform.position)).sqrMagnitude;
+            if (sq <= bestSq) { bestSq = sq; best = j; }
+        }
+        return best;
+    }
+
+    // A shatter at `at` runs its crack to the frozen enemies near it: they shatter IceCrackSeconds from now.
+    void CrackThrough(FrozenEntry from, Vector3 at, float reach)
+    {
+        var lines = Links;
+        for (int j = 0; j < frozen.Length; j++)
+        {
+            var o = frozen[j];
+            if (o == from || !o.on || o.pulled || o.go == null) continue;
+            Vector3 p = o.go.transform.position;
+            if (((Vector2)(p - at)).sqrMagnitude > reach * reach) continue;
+            o.pulled = true;
+            o.cracking = true;
+            o.shatterAt = Mathf.Min(o.shatterAt, o.t + IceCrackSeconds);
+            CrackedLinks++;
+            lines.Crack(at, p, IceCrackSeconds);
+        }
+    }
+
     void StepFrozen(float dt)
     {
+        DrawIceLinks();
         for (int i = 0; i < frozen.Length; i++)
         {
             var e = frozen[i];
@@ -395,8 +454,10 @@ public partial class ShipAttackRunner
         var go = e.go;
         var run = e.run;
         float radius = e.radius;
+        var shattered = e;
         ReleaseFrozen(e, false);
         ShatterCount++;
+        if (run != null && run.active) CrackThrough(shattered, at, IceLinkReach + splash);
         AttackPool.Sprite().Play(AttackSprite.Source.AttackBurst, ship, at, Vector3.one * Mathf.Max(.8f, radius * 2.6f), 0f,
             ShipFxArt.BurstTicks, false, 0f, null, Vector3.zero, 71);
         ShipAttackHits.Hit(go, ship);
@@ -436,7 +497,7 @@ public partial class ShipAttackRunner
             if (dv.sqrMagnitude > reach * reach) continue;
             if (run.hit.Contains(t.gameObject) || FrozenByNova(t.gameObject)) continue;
             if (IsSpecial(t.gameObject)) { HitOnce(run.hit, t.gameObject, ShatterSplashWeight); continue; }
-            if (Freeze(run, t, ChainLinkSeconds)) { run.hit.Add(t.gameObject); ChainLinks++; }
+            if (Freeze(run, t, ChainLinkSeconds)) { run.hit.Add(t.gameObject); ChainLinks++; Links.Crack(at, t.transform.position, ChainLinkSeconds); }
         }
     }
 

@@ -30,6 +30,10 @@ public partial class ShipAttackRunner : MonoBehaviour
     readonly List<ClearTarget> targets = new List<ClearTarget>(64);
 
     public int Ship => ship;
+
+    // The thin lines between linked things (Arcane Eye tethers, mine wires, ice cracks): ShipLinkLines.cs.
+    ShipLinkLines links;
+    public ShipLinkLines Links { get { return links ?? (links = new ShipLinkLines(transform)); } }
     public ShipLoadout Loadout => loadout;
     public int FireCount { get; private set; }
 
@@ -291,6 +295,7 @@ public partial class ShipAttackRunner : MonoBehaviour
             var p = list[i];
             if (p != null && p.Active && p.Owner == this) p.Tick(dt);
         }
+        if (links != null) links.EndFrame(dt);
     }
 
     void Step(AttackRun run, float dt)
@@ -579,6 +584,7 @@ public partial class ShipAttackRunner : MonoBehaviour
     {
         for (int i = 0; i < runs.Length; i++) if (runs[i] != null) runs[i].Stop();
         StopTop();
+        if (links != null) links.Clear();
         var list = AttackPool.Projectiles;
         for (int i = 0; i < list.Count; i++)
             if (list[i] != null && list[i].Active && list[i].Owner == this) list[i].Finish(false);
@@ -587,6 +593,7 @@ public partial class ShipAttackRunner : MonoBehaviour
     void OnDestroy()
     {
         StopAll();
+        if (links != null) { links.Dispose(); links = null; }
         DestroyTurrets();
         for (int i = 0; i < runs.Length; i++) if (runs[i] != null && runs[i].spark != null) runs[i].spark.Dispose();
     }
