@@ -7,13 +7,13 @@ using UnityEngine.UI;
 // default ON). Built at runtime from the screen's own "Tutorial" button like
 // the other rows, so it shares their font and look.
 //
-// It sits in the free slot above SHIP PERCH (y 237). Builds that offer
+// It heads the SWITCHES group of the grouped player layout (OptionsLayout), under its heading. Builds that offer
 // developer mode fill that area, so the row is left out there (the setting
 // still works; it is just not shown).
 public class VibrationOptions : MonoBehaviour
 {
     public const string RowName = "VibrationToggle";
-    public const float RowY = 237f, RowH = 88f, RowW = 520f, HitPad = 6f;
+    public const float RowY = OptionsLayout.VibrationY, RowH = 88f, RowW = 520f, HitPad = 6f;
 
     Text label;
     OptionsSwitch toggle;
@@ -37,7 +37,9 @@ public class VibrationOptions : MonoBehaviour
     {
         var template = SceneUtil.FindAny("Tutorial");
         if (template == null) return;
-        var row = DeveloperOptions.Clone(template, OptionsScroll.RowParent(template), RowName,
+        var parent = OptionsScroll.RowParent(template);
+        OptionsLayout.Heading(parent, template, "SwitchesHeading", OptionsLayout.SwitchesHeading, OptionsLayout.SwitchesHeadingY);
+        var row = DeveloperOptions.Clone(template, parent, RowName,
                         new Vector2(0f, RowY), new Vector2(RowW, RowH), Toggle);
         label = row.GetComponentInChildren<Text>(true);
         var button = row.GetComponent<Button>();

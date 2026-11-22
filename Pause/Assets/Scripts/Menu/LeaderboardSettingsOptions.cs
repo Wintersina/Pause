@@ -6,12 +6,15 @@ using UnityEngine.UI;
 // switch and DELETE MY SHARED SCORES (LeaderboardSettingsPanel). Built at runtime from the screen's own "Tutorial"
 // button like the other rows, so it shares their font and look.
 //
-// It sits in the free slot above VIBRATION (y 340), in every build (the developer stack ends at 147).
+// It tops the column in every build: y 340 in builds with developer mode (the developer stack ends at 147), the
+// head of the grouped player layout otherwise (OptionsLayout).
 public class LeaderboardSettingsOptions : MonoBehaviour
 {
     public const string RowName = "LeaderboardSettingsRow";
     public const string Caption = "LEADERBOARD SETTINGS";
-    public const float RowY = 340f, RowH = 88f, RowW = 520f, HitPad = 6f;
+    public const float DevRowY = 340f, RowH = 88f, RowW = 520f, HitPad = 6f;
+
+    public static float RowY { get { return OptionsLayout.Grouped ? OptionsLayout.LeaderboardY : DevRowY; } }
 
     [RuntimeInitializeOnLoadMethod]
     static void Init()

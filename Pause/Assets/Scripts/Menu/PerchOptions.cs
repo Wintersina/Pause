@@ -5,23 +5,28 @@ using UnityEngine.UI;
 
 // The SHIP PERCH row of the Options screen (leaderboardS3): where the ship
 // floats relative to the finger (PerchSettings). A button on the left cycles
-// the direction (ABOVE / ABOVE LEFT / ABOVE RIGHT, shown with an arrow) and a
-// slider on the right sets the distance (it clicks onto the stock gap, the
-// default, when dragged near it). Built at runtime from the screen's own "Tutorial" button like
+// the direction (ABOVE / ABOVE LEFT / ABOVE RIGHT, shown with an arrow); that
+// button sits in the SWITCHES group. The distance is a 3-stop slider in the
+// SLIDERS group (OptionsLayout), with the numbers 1 2 3 under the track, the
+// chosen one lit, and a tap on a number (or anywhere on the track) selecting
+// that stop. Built at runtime from the screen's own "Tutorial" button like
 // the sound row, with the same neon slider art.
 //
-// It sits in the free slot above UPGRADE OFFERS (y 147). Builds that offer
-// developer mode fill that area (the sound row moves there), so the row is
+// Builds that offer developer mode fill that area (the sound row moves there), so the row is
 // left out there; the setting still works.
 public class PerchOptions : MonoBehaviour
 {
     public const string RowName = "PerchToggle", SliderName = "PerchSlider";
-    public const float RowY = 147f, RowH = 88f, HitPad = 6f;
-    const float ButtonW = 300f, ButtonX = -130f, SliderW = 220f, SliderX = 140f;
-    const float TrackH = 16f, HandleW = 24f, HandleH = 36f;
+    public const string TicksName = "Ticks", CaptionName = "Caption";
+    public const float RowY = OptionsLayout.PerchDirectionY, RowH = 88f, RowW = 520f, HitPad = 6f;
+    public const float SliderY = OptionsLayout.PerchSliderY, SliderW = 420f, SliderH = OptionsLayout.PerchSliderH;
+    public const float TrackH = 16f, HandleW = 24f, HandleH = 36f;
+    // Row-local layout of the slider (centre origin): caption on top, then the track and handle, tick numbers under them.
+    public const float CaptionY = 44f, CaptionH = 22f, TrackY = 4f, TickY = -44f, TickH = 22f, TickW = 28f, SidePad = 4f;
 
     Text label;
     Slider slider;
+    Text[] ticks;
     bool refreshing;
 
     [RuntimeInitializeOnLoadMethod]
@@ -40,7 +45,14 @@ public class PerchOptions : MonoBehaviour
     public static string Caption(int tilt)
     {
         string arrow = tilt == PerchSettings.AboveLeft ? "<  " : (tilt == PerchSettings.AboveRight ? ">  " : "");
-        return "SHIP PERCH\n" + arrow + PerchSettings.TiltName(tilt);
+        return "SHIP PERCH  " + arrow + PerchSettings.TiltName(tilt);
+    }
+
+    // Where stop 0..2 sits along the slider's own width (canvas units from its centre): the handle's centre.
+    public static float StopX(int stop)
+    {
+        float travel = SliderW - 2f * SidePad - HandleW;
+        return (stop / (float)(PerchSettings.StopCount - 1) - .5f) * travel;
     }
 
     void Start()
@@ -49,7 +61,7 @@ public class PerchOptions : MonoBehaviour
         if (template == null) return;
         var parent = OptionsScroll.RowParent(template);
         var row = DeveloperOptions.Clone(template, parent, RowName,
-                        new Vector2(ButtonX, RowY), new Vector2(ButtonW, RowH), Cycle);
+                        new Vector2(0f, RowY), new Vector2(RowW, RowH), Cycle);
         label = row.GetComponentInChildren<Text>(true);
         var button = row.GetComponent<Button>();
         if (button != null && button.targetGraphic != null)
@@ -57,10 +69,10 @@ public class PerchOptions : MonoBehaviour
         if (label != null)
         {
             label.resizeTextForBestFit = true;
-            label.resizeTextMinSize = 16;
-            label.resizeTextMaxSize = 26;
+            label.resizeTextMinSize = 18;
+            label.resizeTextMaxSize = 34;
         }
-        BuildSlider(parent);
+        BuildSlider(parent, label);
         Refresh();
     }
 
@@ -83,42 +95,76 @@ public class PerchOptions : MonoBehaviour
         return img;
     }
 
-    // Same chunky track + fill + handle as the volume sliders, centred in the row.
-    void BuildSlider(Transform parent)
+    static Text MakeText(Transform parent, string name, Text like, string text, float y, float h, float w, int min, int max, Color color)
+    {
+        var rt = Rect(name, parent);
+        rt.anchorMin = rt.anchorMax = rt.pivot = new Vector2(.5f, .5f);
+        rt.anchoredPosition = new Vector2(0f, y);
+        rt.sizeDelta = new Vector2(w, h);
+        var t = rt.gameObject.AddComponent<Text>();
+        if (like != null) { t.font = like.font; t.fontStyle = like.fontStyle; }
+        t.text = text;
+        t.color = color;
+        t.alignment = TextAnchor.MiddleCenter;
+        t.raycastTarget = false;   // a tap on a number falls through to the slider, which snaps to the nearest stop
+        t.resizeTextForBestFit = true;
+        t.resizeTextMinSize = min;
+        t.resizeTextMaxSize = max;
+        return t;
+    }
+
+    // The same chunky track + fill + handle as the volume sliders, with three stops: the handle snaps to 1, 2 or 3
+    // and the numbers under the track say which one is chosen.
+    void BuildSlider(Transform parent, Text like)
     {
         var root = Rect(SliderName, parent);
         root.anchorMin = root.anchorMax = root.pivot = new Vector2(.5f, .5f);
-        root.anchoredPosition = new Vector2(SliderX, RowY);
-        root.sizeDelta = new Vector2(SliderW, RowH);
+        root.anchoredPosition = new Vector2(0f, SliderY);
+        root.sizeDelta = new Vector2(SliderW, SliderH);
         var hit = root.gameObject.AddComponent<Image>();
         hit.color = new Color(0f, 0f, 0f, 0f);
         hit.raycastPadding = new Vector4(0f, -HitPad, 0f, -HitPad);
 
+        MakeText(root, CaptionName, like, "PERCH DISTANCE", CaptionY, CaptionH, SliderW, 14, 22, AkiraPalette.Muted);
+
         var track = Art(root, "Track", "options_track", true).rectTransform;
         track.anchorMin = new Vector2(0f, .5f); track.anchorMax = new Vector2(1f, .5f);
-        track.offsetMin = new Vector2(4f, -TrackH * .5f); track.offsetMax = new Vector2(-4f, TrackH * .5f);
+        track.offsetMin = new Vector2(SidePad, TrackY - TrackH * .5f); track.offsetMax = new Vector2(-SidePad, TrackY + TrackH * .5f);
 
         var fillArea = Rect("Fill Area", root);
         fillArea.anchorMin = new Vector2(0f, .5f); fillArea.anchorMax = new Vector2(1f, .5f);
-        fillArea.offsetMin = new Vector2(4f, -TrackH * .5f); fillArea.offsetMax = new Vector2(-4f, TrackH * .5f);
+        fillArea.offsetMin = new Vector2(SidePad, TrackY - TrackH * .5f); fillArea.offsetMax = new Vector2(-SidePad, TrackY + TrackH * .5f);
         var fill = Art(fillArea, "Fill", "options_fill", true).rectTransform;
         fill.anchorMin = Vector2.zero; fill.anchorMax = new Vector2(0f, 1f);
         fill.offsetMin = fill.offsetMax = Vector2.zero;
 
         var slide = Rect("Handle Slide Area", root);
         slide.anchorMin = new Vector2(0f, .5f); slide.anchorMax = new Vector2(1f, .5f);
-        slide.offsetMin = new Vector2(4f + HandleW * .5f, -HandleH * .5f); slide.offsetMax = new Vector2(-4f - HandleW * .5f, HandleH * .5f);
-        var handle = Art(slide, "Handle", "options_handle", false).rectTransform;
-        handle.sizeDelta = new Vector2(HandleW, HandleH);
+        // zero height: Slider stretches the handle over this area's height, so sizeDelta.y alone (HandleH) is its height
+        slide.offsetMin = new Vector2(SidePad + HandleW * .5f, TrackY); slide.offsetMax = new Vector2(-SidePad - HandleW * .5f, TrackY);
+        var handleImg = Art(slide, "Handle", "options_handle", false);
+        handleImg.rectTransform.sizeDelta = new Vector2(HandleW, HandleH);
+
+        ticks = new Text[PerchSettings.StopCount];
+        var tickRoot = Rect(TicksName, root);
+        tickRoot.anchorMin = tickRoot.anchorMax = tickRoot.pivot = new Vector2(.5f, .5f);
+        tickRoot.sizeDelta = new Vector2(SliderW, TickH);
+        tickRoot.anchoredPosition = new Vector2(0f, TickY);
+        for (int i = 0; i < ticks.Length; i++)
+        {
+            ticks[i] = MakeText(tickRoot, "Tick" + (i + 1), like, (i + 1).ToString(), 0f, TickH, TickW, 16, 26, AkiraPalette.Muted);
+            ticks[i].rectTransform.anchoredPosition = new Vector2(StopX(i), 0f);
+        }
 
         slider = root.gameObject.AddComponent<Slider>();
         slider.fillRect = fill;
-        slider.handleRect = handle;
+        slider.handleRect = handleImg.rectTransform;
         slider.targetGraphic = hit;
         slider.transition = Selectable.Transition.None;
         slider.direction = Slider.Direction.LeftToRight;
-        slider.minValue = 0f; slider.maxValue = 1f; slider.wholeNumbers = false;
+        slider.minValue = 0f; slider.maxValue = PerchSettings.StopCount - 1; slider.wholeNumbers = true;
         slider.onValueChanged.AddListener(OnSlide);
+        OptionsSliderHandle.Attach(slider, handleImg);
 
         var trigger = root.gameObject.AddComponent<EventTrigger>();
         var up = new EventTrigger.Entry { eventID = EventTriggerType.PointerUp };
@@ -136,16 +182,21 @@ public class PerchOptions : MonoBehaviour
     void OnSlide(float v)
     {
         if (refreshing) return;
-        float scale = PerchSettings.FromSlider(v);
-        if (Mathf.Abs(scale - PerchSettings.DefaultScale) < .04f) scale = PerchSettings.DefaultScale;
-        PerchSettings.SetScale(scale);
+        PerchSettings.SetStop(Mathf.RoundToInt(v));
+        Refresh();
     }
+
+    // Tick colours: the chosen stop's number bright amber, the others dim.
+    public static Color TickColor(bool selected) { return selected ? AkiraPalette.Amber : AkiraPalette.WithAlpha(AkiraPalette.Muted, .6f); }
 
     public void Refresh()
     {
         refreshing = true;
         if (label != null) label.text = Caption(PerchSettings.Tilt);
-        if (slider != null) slider.SetValueWithoutNotify(PerchSettings.ToSlider(PerchSettings.Scale));
+        int stop = PerchSettings.Stop;
+        if (slider != null) slider.SetValueWithoutNotify(stop);
+        if (ticks != null)
+            for (int i = 0; i < ticks.Length; i++) ticks[i].color = TickColor(i == stop);
         refreshing = false;
     }
 }
