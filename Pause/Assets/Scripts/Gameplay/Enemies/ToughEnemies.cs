@@ -45,7 +45,11 @@ public static class Toughness
     {
         if (go == null || def == null) return;
         if (def.IsHazard) { if (go.GetComponent<HazardHits>() == null) go.AddComponent<HazardHits>().Init(def.role == EnemyRole.Mine); }
-        else if (go.GetComponent<EnemyHearts>() == null) go.AddComponent<EnemyHearts>().Init(HeartsPerEnemy);
+        else if (go.GetComponent<EnemyHearts>() == null)
+        {
+            go.AddComponent<EnemyHearts>().Init(HeartsPerEnemy);
+            if (go.TryGetComponent(out ChaserEnemy chaser)) chaser.RecacheBurrow();
+        }
     }
 
     // The attacker's place for "away from the hit": ShipAttackHits.HitFrom if the caller set it, else the player's ship, else straight below.

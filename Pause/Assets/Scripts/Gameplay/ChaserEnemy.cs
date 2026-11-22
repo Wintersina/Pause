@@ -111,6 +111,14 @@ public class ChaserEnemy : MonoBehaviour, IMovementFootprint
         foreach (var c in burrowColliders) if (c != null) c.enabled = !buried;
     }
 
+    // The hearts that orbit it are built after Configure cached its renderers: take them in, so they go under the sand with it.
+    public void RecacheBurrow()
+    {
+        if (burrowRenderers == null) return;
+        burrowRenderers = GetComponentsInChildren<Renderer>(true);
+        burrowColliders = GetComponentsInChildren<Collider2D>(true);
+    }
+
     void OnDisable() { if (Buried) SetBuried(false); }
 
     public bool Aiming => style == ChaserStyle.Lancer && !wandering && styleClock < LancerAimSeconds;
