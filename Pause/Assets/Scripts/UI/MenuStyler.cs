@@ -29,7 +29,8 @@ public class MenuStyler : MonoBehaviour
         {
             var label = button.GetComponentInChildren<Text>(true);
             if (label == null) continue;
-            StyleLabel(label);
+            // the space dock's ship card keeps its own clean type: no ink outline / red cel drop behind its labels
+            if (button.GetComponentInParent<DockPopup>(true) == null) StyleLabel(label);
             if (SceneManager.GetActiveScene().name == HomeScene) StylePlate(button);
             CelPress.AddTo(button.gameObject);
             if (button.name == PrimaryButton) styler.primary.Add(label);

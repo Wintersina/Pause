@@ -7,15 +7,17 @@ using UnityEngine.UI;
 
 // The ship-select space dock (shopS6).
 //
-// Every ship is parked in its own berth of a docking rack: walls, support
-// spines, gantries between rows and a launch gate at the top. Parked ships
-// are powered down. Tapping one powers it up and floats its card above (or
+// Every ship is parked in its own bay of the SPACE PARKING LOT (DockLayout): bays backed in against service walls,
+// facing a drive lane. Phones get horizontal lanes with rows of bays facing each other across them; wide and tablet
+// views get vertical lanes with a bay column on each side and the ships' noses pointing sideways into the lane. The
+// lot scrolls vertically behind opaque header and footer bands, so it never runs under the star dust read-out, the
+// start-world picker or the Back / Lift-off buttons. Parked ships are powered down. Tapping one powers it up and floats its card above (or
 // below) it (LAUNCH if owned, price + BUY if not); its X, tapping anywhere
 // else or Back dismisses it. An owned ship's popup also carries its hull-skin swatches: an owned
 // skin equips on tap (saved at once); a locked one previews on the hull with
 // its price and BUY, and Back (or leaving the ship) puts the equipped skin
-// back. Launching undocks the ship -- clamps release, it lifts and backs out of
-// its berth, then accelerates out through the gate with its engine flaring
+// back. Launching undocks the ship -- it lifts and pulls straight out of its bay
+// into the lane (forward = its nose), turns nose-up and accelerates up the lane and out of view with its engine flaring
 // -- and the game continues to the same scene the PLAY button always led to.
 //
 // Berths are laid out cheapest first (BayOrder: price ascending, ties by
@@ -42,10 +44,15 @@ public class SpaceDock : MonoBehaviour
 
     Camera cam;
     shopingShips shop;
-    SpriteRenderer backplate, gate;
-    readonly SpriteRenderer[] walls = new SpriteRenderer[2];
-    readonly List<SpriteRenderer> spines = new List<SpriteRenderer>();
-    readonly List<SpriteRenderer> gantries = new List<SpriteRenderer>();
+    SpriteRenderer edgeLeft, edgeRight, headerBand, footerBand;
+    readonly List<SpriteRenderer> laneTiles = new List<SpriteRenderer>();
+    readonly List<SpriteRenderer> arrows = new List<SpriteRenderer>();
+    readonly List<SpriteRenderer> dividers = new List<SpriteRenderer>();
+    // the "more below" hint over the lot's bottom edge (ScrollHint's rule, drawn in world space)
+    SpriteRenderer hintFade, hintChevron;
+    TextMesh hintLabel;
+    bool hintShown;
+    float hintAlpha;
     readonly List<RectTransform> header = new List<RectTransform>();
     readonly List<RectTransform> footer = new List<RectTransform>();
     readonly Vector3[] corners = new Vector3[4];
@@ -233,13 +240,29 @@ public class SpaceDock : MonoBehaviour
         rack = new GameObject("~DockRack").transform;
         rack.SetParent(transform, false);
 
-        backplate = Piece("Backplate", DockArt.Get("backplate", 14f), SpriteDrawMode.Sliced, 0);
-        for (int k = 0; k < 2; k++)
-        {
-            walls[k] = Piece("Wall" + k, DockArt.Get("wall"), SpriteDrawMode.Tiled, 1);
-            walls[k].flipX = k == 1;
-        }
-        gate = Piece("LaunchGate", DockArt.Get("gate"), SpriteDrawMode.Tiled, 3);
+        edgeLeft = Piece("EdgeLeft", DockArt.Lot("lot_edge_left"), SpriteDrawMode.Tiled, 1);
+        edgeRight = Piece("EdgeRight", DockArt.Lot("lot_edge_right"), SpriteDrawMode.Tiled, 1);
+        headerBand = Band("HeaderBand");
+        footerBand = Band("FooterBand");
+        hintFade = Band("HintBand");   // solid: nothing shows behind the hint
+        hintFade.sortingOrder = BandOrder;
+        hintChevron = Band("HintChevron");
+        hintChevron.sprite = DockArt.HintChevron;
+        hintChevron.sortingOrder = BandOrder + 1;
+        hintChevron.color = DockArt.Cyan;
+        var labelGo = new GameObject("HintLabel");
+        labelGo.transform.SetParent(transform, false);
+        hintLabel = labelGo.AddComponent<TextMesh>();
+        hintLabel.font = font;
+        hintLabel.fontSize = 64;
+        hintLabel.characterSize = .15f * 10f / 64f;
+        hintLabel.anchor = TextAnchor.MiddleCenter;
+        hintLabel.alignment = TextAlignment.Center;
+        hintLabel.text = HintText;
+        hintLabel.color = DockArt.Cyan;
+        var hintRenderer = labelGo.GetComponent<MeshRenderer>();
+        if (font != null) hintRenderer.sharedMaterial = font.material;
+        hintRenderer.sortingOrder = BandOrder + 2;
 
         int total = shopingShips.shipTotal;
         if (shopingShips.ships == null || shopingShips.ships.Length < total)
@@ -265,6 +288,21 @@ public class SpaceDock : MonoBehaviour
         FindChrome();
         RefreshStatuses();
         Relayout();
+    }
+
+    const int BandOrder = 30;    // above the lot and its ships, below a launching ship (DockBay.OrderLaunch) and the card
+    public const string HintText = "MORE BELOW";
+
+    // A solid / sprite piece under the dock root (not the scrolling lot).
+    SpriteRenderer Band(string name)
+    {
+        var go = new GameObject(name);
+        go.transform.SetParent(transform, false);
+        var sr = go.AddComponent<SpriteRenderer>();
+        sr.sprite = DockArt.Solid;
+        sr.sortingOrder = BandOrder;
+        sr.color = AkiraPalette.Night0;
+        return sr;
     }
 
     SpriteRenderer Piece(string name, Sprite sprite, SpriteDrawMode mode, int order)
@@ -312,29 +350,34 @@ public class SpaceDock : MonoBehaviour
         float halfH = cam.orthographicSize;
         float halfW = halfH * cam.aspect;
         Vector3 camPos = cam.transform.position;
-        // The 16 roster ships fill five rows and one berth; the lone Paragon berth sits centred in the last row
-        // (DockLayout.BayCenter), so freeing the star dust pack tiles leaves no gap.
+        // The 16 roster ships fill the lot; the lone Paragon bay is the last one (centred in its row on a phone).
         int count = shopingShips.shipTotal - 1;
 
-        // The header and footer follow the safe area (notch / Dynamic Island /
-        // punch-hole above, home indicator / nav bar below) before the rack is
-        // fitted between them.
+        // The header and footer follow the safe area (notch / Dynamic Island / punch-hole above, home indicator / nav
+        // bar below) before the lot is fitted between them.
         PlaceChrome();
 
-        // The rack fills the space between the HUD header and the footer
-        // buttons, and scrolls only if it cannot fit there.
+        // The lot fills the space between the HUD header (star dust, instruction, start-world picker) and the footer
+        // buttons, and scrolls inside it. Opaque bands cover everything outside, so a bay never rides under a button.
         float viewTop = camPos.y + halfH, viewBottom = camPos.y - halfH;
         Canvas.ForceUpdateCanvases();
-        float headerBottom = viewTop, footerTop = viewBottom;
+        float headerBottom = viewTop, footerTop = viewBottom, headerArt = viewTop;
         foreach (var rt in header)
-            if (rt != null && rt.gameObject.activeInHierarchy) headerBottom = Mathf.Min(headerBottom, ScreenToWorldY(rt, 0));
-        foreach (var rt in footer)
             if (rt != null && rt.gameObject.activeInHierarchy)
-                // tablet-shaped portrait views keep the rack and the card clear of the buttons' tap areas (which reach
-                // FooterTapPad above their art); phones keep the art edge exactly as before
-                footerTop = Mathf.Max(footerTop, halfW / halfH >= DockLayout.TabletAspect && halfW / halfH < DockLayout.WideAspect ? HitEdgeY(rt, true) : ScreenToWorldY(rt, 1));
-        float top = headerBottom - .06f, bottom = footerTop + .06f;
-        if (top - bottom < 2f) { top = viewTop - .1f; bottom = viewBottom + .1f; }
+            {
+                headerArt = Mathf.Min(headerArt, ScreenToWorldY(rt, 0));
+                headerBottom = Mathf.Min(headerBottom, ScreenToWorldY(rt, 0), HitEdgeY(rt, false));
+            }
+        // the footer buttons' tap areas reach FooterTapPad above their art: the lot stays clear of those too
+        foreach (var rt in footer)
+            if (rt != null && rt.gameObject.activeInHierarchy) footerTop = Mathf.Max(footerTop, HitEdgeY(rt, true));
+        HeaderBottomY = headerBottom;
+        FooterTopY = footerTop;
+        // the lot stays clear of the header's tap areas (the start-world picker's reach past its art); the ship card, a
+        // modal above them, only keeps clear of the art
+        float top = headerBottom - .02f, bottom = footerTop + .06f, cardTop = headerArt - .06f;
+        if (top - bottom < 2f) { top = cardTop = viewTop - .1f; bottom = viewBottom + .1f; }
+        float hintBottom = bottom;     // (the solid hint band, when the lot scrolls, takes the next HintBand above it)
 
         // Sideways the popup keeps inside the safe area too (waterfall edges).
         float worldPerPixel = halfH * 2f / Mathf.Max(1, ScreenInfo.Height);
@@ -343,81 +386,58 @@ public class SpaceDock : MonoBehaviour
         // The card is sized in points / dp (UiScale): world units per point.
         float worldPerPoint = UiScale.PxPerPoint * worldPerPixel;
 
-        // A near-square view: the rack on the left, the selected ship's card docked on the right.
+        // A near-square view: the lot on the left, the selected ship's card docked on the right.
         wide = DockLayout.IsWide(halfW, halfH);
         // Wide / Ultra (a desktop window): the card is fit to a pane of PaneShare of the width, not phone-sized.
         bool fit = wide && ScreenFrame.Classify(halfW, halfH) >= ScreenFrame.Aspect.Wide;
-        Rect view = new Rect(left, bottom, right - left, top - bottom), rackPane = view, cardPane = view;
+        Rect view = new Rect(left, bottom, right - left, cardTop - bottom), rackPane = view, cardPane = view;
         if (wide)
         {
             // the same gutter at both screen edges, a gap between the panes
-            view = new Rect(left + DockLayout.Gutter, bottom, right - left - 2f * DockLayout.Gutter, top - bottom);
+            view = new Rect(left + DockLayout.Gutter, bottom, right - left - 2f * DockLayout.Gutter, cardTop - bottom);
             float cardWidth = fit ? view.width * DockPopup.PaneShare - DockLayout.PaneGap : worldPerPoint * DockPopup.PopupScale * DockPopup.PanelWidth;
             DockLayout.Panes(view, cardWidth, out rackPane, out cardPane);
         }
-        layout = wide ? DockLayout.ForWide(count, rackPane) : DockLayout.ForTall(count, halfW, halfH, top - bottom);
+        // The lot is fitted to the width it keeps while a card is docked beside it (its own pane), so selecting a ship
+        // only slides it aside and never puts a lane under the card.
+        // A bay is a finger-sized tap target: where the 75% bay would be under 48 dp / pt (a dense cover screen), the
+        // whole lot is drawn larger (and fitted to the width that leaves).
+        float tapWorld = 48f * (fit ? UiScale.UnitPx * worldPerPixel : worldPerPoint);
+        float grow = Mathf.Max(1f, tapWorld / DockLayout.BayW);
+        float lotWidth = (wide ? rackPane.width : right - left) / grow;
+        layout = DockLayout.For(count, lotWidth, DockLayout.PrefersLanes(halfW, halfH));
+        layout.scale *= grow;
         camX = camPos.x;
-        rackSlideX = wide ? rackPane.center.x - camPos.x : 0f;
-        // Browsing, the rack takes the whole view (fitting its height down to MinWideScale, scrolling below);
-        // with a ship picked it shrinks into its pane beside the card.
-        selectScale = layout.scale;
-        browseScale = wide ? DockLayout.ForWide(count, new Rect(view.x, view.y, view.width, view.height)).scale : layout.scale;
+        browseOffset = (wide ? view.center.x : (left + right) * .5f) - camPos.x;
+        this.rackPane = rackPane;
         spaceTop = top;
         spaceBottom = bottom;
+        spaceLeft = left;
+        spaceRight = right;
 
-        for (int i = 1; i < bays.Length; i++)
-            if (bays[i] != null) bays[i].transform.localPosition = layout.BayCenter(SlotOf(i));
-
-        float w = layout.Width, h = layout.Height;
-        backplate.size = new Vector2(w, h);
-        backplate.transform.localPosition = Vector3.zero;
-        float wallH = h;
-        for (int k = 0; k < 2; k++)
+        // A lot taller than its space gets a solid band at its foot for the MORE BELOW hint, so no bay ever sits
+        // behind the chevron: the scroll viewport ends above it.
+        if (layout.Height * layout.scale > spaceTop - spaceBottom + .001f && spaceTop - spaceBottom - HintBand > 2f)
         {
-            walls[k].size = new Vector2(DockLayout.Wall, wallH);
-            walls[k].transform.localPosition = new Vector3((k == 0 ? -1f : 1f) * (w - DockLayout.Wall) * .5f, 0f, 0f);
+            spaceBottom += HintBand;
         }
-        float inner = w - 2f * DockLayout.Wall;
-        gate.size = new Vector2(inner, DockLayout.Gate);
-        gate.transform.localPosition = new Vector3(0f, h * .5f - DockLayout.Gate * .5f, 0f);
-
-        float bayTop = h * .5f - DockLayout.Gate;
-        float bayBottom = bayTop - (layout.rows * DockLayout.BaySize.y + (layout.rows - 1) * DockLayout.Gantry);
-        int spineCount = layout.columns - 1;
-        for (int c = 0; c < Mathf.Max(spineCount, spines.Count); c++)
-        {
-            if (c >= spines.Count) spines.Add(Piece("Spine" + c, DockArt.Get("spine"), SpriteDrawMode.Tiled, 1));
-            var spine = spines[c];
-            spine.gameObject.SetActive(c < spineCount);
-            if (c >= spineCount) continue;
-            float x = layout.BayCenter(c).x + layout.PitchX * .5f;
-            spine.size = new Vector2(DockLayout.Spine, bayTop - bayBottom);
-            spine.transform.localPosition = new Vector3(x, (bayTop + bayBottom) * .5f, 0f);
-        }
-        int gantryCount = layout.rows - 1;
-        for (int r = 0; r < Mathf.Max(gantryCount, gantries.Count); r++)
-        {
-            if (r >= gantries.Count) gantries.Add(Piece("Gantry" + r, DockArt.Get("gantry"), SpriteDrawMode.Tiled, 3));
-            var gantry = gantries[r];
-            gantry.gameObject.SetActive(r < gantryCount);
-            if (r >= gantryCount) continue;
-            float y = layout.BayCenter(r * layout.columns).y - layout.PitchY * .5f;
-            gantry.size = new Vector2(inner, DockLayout.Gantry);
-            gantry.transform.localPosition = new Vector3(0f, y, 0f);
-        }
+        hintFloor = hintBottom;
+        BuildLot();
+        ComputeSelectOffset();
 
         ApplyRackScale();
         nudge = 0f;
         PlaceRack();
+        PlaceBands(camPos, halfW, halfH);
 
         if (wide)
         {
             cardPane.xMin += DockLayout.PaneGap;
             if (fit)
             {
-                // the card's pane spans the rack's own vertical extent (the rack beside it, at its selected size)
-                float rackH = Mathf.Min(layout.Height * selectScale, top - bottom);
-                float centerY = layout.Height * selectScale <= top - bottom ? (top + bottom) * .5f : top - rackH * .5f;
+                // the card's pane spans the lot's own vertical extent
+                float rackH = Mathf.Min(layout.Height * layout.scale, top - bottom);
+                float centerY = layout.Height * layout.scale <= top - bottom ? (top + bottom) * .5f : top - rackH * .5f;
                 float paneTop = centerY + rackH * .5f, paneBottom = centerY - rackH * .5f;
                 // ...but clear of the header buttons' tap areas, which reach past their art (the footer's PLAY reach
                 // stays under the card: a modal card sits over it by design)
@@ -427,14 +447,189 @@ public class SpaceDock : MonoBehaviour
             }
             popup.safeView = cardPane;
         }
-        else popup.safeView = new Rect(left, bottom, right - left, top - bottom);
+        else popup.safeView = new Rect(left, bottom, right - left, cardTop - bottom);
         popup.Docked = wide;
         popup.FitPane = fit;
         popup.SetDensity(fit ? UiScale.UnitPx * worldPerPixel : worldPerPoint);
     }
 
+    // Lays every lot piece out for `layout`: bays, lane tiles and arrows, seams, edge rails. Pieces are pooled (built
+    // on the first layout that needs them), so a resize allocates nothing new once the lot has been seen.
+    void BuildLot()
+    {
+        for (int i = 1; i < bays.Length; i++)
+        {
+            if (bays[i] == null) continue;
+            int slot = SlotOf(i);
+            bays[i].transform.localPosition = layout.BayCenter(slot);
+            bays[i].SetFacing(layout.FacingOf(slot));
+            bays[i].SetNumber(slot + 1);
+            bays[i].SetLabelScale(1f);
+        }
+
+        float w = layout.Width, h = layout.Height;
+        float railX = (w - DockLayout.Rail) * .5f;
+        edgeLeft.size = edgeRight.size = new Vector2(DockLayout.Rail, h);
+        edgeLeft.transform.localPosition = new Vector3(-railX, 0f, 0f);
+        edgeRight.transform.localPosition = new Vector3(railX, 0f, 0f);
+
+        bool lanesMode = layout.mode == LotMode.Lanes;
+        // drive lanes
+        for (int l = 0; l < Mathf.Max(layout.lanes, laneTiles.Count); l++)
+        {
+            if (l >= laneTiles.Count) laneTiles.Add(Piece("Lane" + l, null, SpriteDrawMode.Tiled, 0));
+            var tile = laneTiles[l];
+            tile.gameObject.SetActive(l < layout.lanes);
+            if (l >= layout.lanes) continue;
+            tile.sprite = DockArt.Lot(lanesMode ? "lane_tile_v" : "lane_tile");
+            if (lanesMode)
+            {
+                tile.size = new Vector2(DockLayout.Lane, h);
+                tile.transform.localPosition = new Vector3(layout.LaneCenter(l), 0f, 0f);
+            }
+            else
+            {
+                tile.size = new Vector2(layout.SpanWidth, DockLayout.Lane);
+                tile.transform.localPosition = new Vector3(0f, layout.LaneCenter(l), 0f);
+            }
+        }
+        // traffic arrows: one per lane (rows: alternating directions) or one every two bay rows (lanes: all up)
+        int arrowCount = lanesMode ? layout.lanes * ((layout.rows + 1) / 2) : layout.lanes;
+        for (int a = 0; a < Mathf.Max(arrowCount, arrows.Count); a++)
+        {
+            if (a >= arrows.Count) arrows.Add(Piece("Arrow" + a, null, SpriteDrawMode.Simple, 1));
+            var arrow = arrows[a];
+            arrow.gameObject.SetActive(a < arrowCount);
+            if (a >= arrowCount) continue;
+            if (lanesMode)
+            {
+                int perLane = (layout.rows + 1) / 2, lane = a / perLane, k = a % perLane;
+                arrow.sprite = DockArt.Lot("lane_arrow_up");
+                arrow.transform.localPosition = new Vector3(layout.LaneCenter(lane), h * .5f - (2 * k + 1) * DockLayout.BayW, 0f);
+            }
+            else
+            {
+                arrow.sprite = DockArt.Lot(a % 2 == 0 ? "lane_arrow" : "lane_arrow_up");
+                arrow.transform.localPosition = new Vector3(0f, layout.LaneCenter(a), 0f);
+            }
+            arrow.sortingOrder = 1;
+        }
+        // thin painted seams between neighbouring bays
+        int seamCount = 0;
+        for (int slot = 0; slot < layout.count; slot++)
+        {
+            bool seam = lanesMode ? layout.RowIndex(slot) > 0 : layout.ColumnIndex(slot) > 0 && layout.RowIndex(slot) * layout.columns + layout.ColumnIndex(slot) < layout.count;
+            if (!seam) continue;
+            if (seamCount >= dividers.Count) dividers.Add(Piece("Seam" + seamCount, null, SpriteDrawMode.Simple, 3));
+            var s = dividers[seamCount++];
+            s.gameObject.SetActive(true);
+            Vector2 c = layout.BayCenter(slot);
+            if (lanesMode)
+            {
+                s.sprite = DockArt.Lot("bay_divider_h");
+                s.transform.localPosition = new Vector3(c.x, c.y + DockLayout.BayW * .5f, 0f);
+            }
+            else
+            {
+                s.sprite = DockArt.Lot("bay_divider");
+                s.transform.localPosition = new Vector3(c.x - DockLayout.BayW * .5f, c.y, 0f);
+            }
+            s.color = new Color(1f, 1f, 1f, .7f);
+        }
+        for (int s = seamCount; s < dividers.Count; s++) dividers[s].gameObject.SetActive(false);
+    }
+
+    // Opaque bands over everything outside the scroll viewport, and the hint at its bottom edge.
+    void PlaceBands(Vector3 camPos, float halfW, float halfH)
+    {
+        float span = halfW * 2f + 4f;
+        float viewTop = camPos.y + halfH, viewBottom = camPos.y - halfH;
+        SetBand(headerBand, camPos.x, spaceTop, viewTop + 2f, span);
+        SetBand(footerBand, camPos.x, viewBottom - 2f, spaceBottom, span);
+        bool band = spaceBottom - hintFloor > .001f;
+        hintFade.gameObject.SetActive(band);
+        SetBand(hintFade, camPos.x, hintFloor, spaceBottom, span);
+        hintChevronBase = hintFloor + .3f;
+        hintChevron.transform.localScale = Vector3.one * 3f;
+        hintLabel.transform.position = new Vector3(camPos.x + browseOffset, hintFloor + .62f, 0f);
+        TickHint(10f);
+    }
+
+    static void SetBand(SpriteRenderer band, float cx, float yMin, float yMax, float width)
+    {
+        band.transform.position = new Vector3(cx, (yMin + yMax) * .5f, 0f);
+        band.transform.localScale = new Vector3(width, Mathf.Max(.0001f, yMax - yMin), 1f);
+    }
+
+    // ----------------------------------------------------------------- scroll hint
+
+    float hintChevronBase, hintFloor;
+    public const float HintBand = .95f;   // world height of the solid band the hint sits on
+    float pageFrom, pageTo, pageT = -1f;
+    const float HintUnits = 100f;   // ScrollHint's thresholds are canvas units; one world unit is about this many
+    public bool HintShown { get { return hintShown; } }
+    public float HintAlpha { get { return hintAlpha; } }
+    // Tappable strip of the hint (world), for tests and Tap.
+    public Rect HintRect
+    {
+        get { return new Rect(camX + browseOffset - .9f, hintFloor, 1.8f, spaceBottom - hintFloor); }
+    }
+
+    // ScrollHint's rule: shown while content hides below, gone at the end of the lot or when it all fits.
+    void TickHint(float dt)
+    {
+        float overflow = Mathf.Max(0f, rackYMax - rackYMin), fromBottom = Mathf.Max(0f, rackYMax - rackY);
+        hintShown = ScrollHint.ShouldShow(overflow * HintUnits, fromBottom * HintUnits, hintShown);
+        hintAlpha = Mathf.MoveTowards(hintAlpha, hintShown ? 1f : 0f, ScrollHint.FadeSpeed * Mathf.Max(0f, dt));
+        var accent = DockArt.Cyan; accent.a = hintAlpha;
+        hintChevron.color = accent;
+        hintLabel.color = accent;
+        float bob = Mathf.Sin(Time.unscaledTime * ScrollHint.BobSpeed) * .04f;
+        var cp = hintChevron.transform.position;
+        hintChevron.transform.position = new Vector3(camX + browseOffset, hintChevronBase + bob, cp.z);
+    }
+
+    // One page down, eased.
+    void PageDown()
+    {
+        pageFrom = rackY;
+        pageTo = Mathf.Min(rackYMax, rackY + (spaceTop - spaceBottom) * ScrollHint.PageFraction);
+        pageT = 0f;
+        scrollVelocity = 0f;
+    }
+
+    void TickPage(float dt)
+    {
+        if (pageT < 0f) return;
+        pageT += dt / ScrollHint.ScrollSeconds;
+        float k = DockTween.InOutCubic(pageT);
+        SetRackY(Mathf.Lerp(pageFrom, pageTo, k));
+        if (pageT >= 1f) pageT = -1f;
+    }
+
+    // The lot slides aside for the docked card; where it does, and by how much it has slid.
+    float browseOffset, selectOffset, spaceLeft, spaceRight;
+    Rect rackPane;
+
+    // Where the lot's centre sits (relative to the camera) while a ship is selected in a wide view: centred in the
+    // lot pane if it fits there, else shifted just enough to keep the selected bay inside the pane.
+    void ComputeSelectOffset()
+    {
+        selectOffset = browseOffset;
+        if (!wide) return;
+        float w = layout.Width * layout.scale;
+        if (w <= rackPane.width + .001f) { selectOffset = rackPane.center.x - camX; return; }
+        float centreX = rackPane.center.x;
+        if (Selected > 0)
+        {
+            float bx = layout.BayCenter(SlotOf(Selected)).x * layout.scale;
+            centreX = Mathf.Clamp(rackPane.center.x - bx, rackPane.xMax - w * .5f, rackPane.xMin + w * .5f);
+        }
+        selectOffset = centreX - camX;
+    }
+
     // The card fits neither above nor below the selected ship (a short
-    // phone): slide the rack by `dy` so it does. Undone when the selection
+    // phone): slide the lot by `dy` so it does. Undone when the selection
     // changes or ends.
     float nudge;
 
@@ -455,29 +650,25 @@ public class SpaceDock : MonoBehaviour
     {
         if (rack == null) return;
         var p = rack.position;
-        rack.position = new Vector3(camX + rackSlideX * DockTween.OutCubic(rackSlide), rackY + nudge, p.z);
+        rack.position = new Vector3(camX + Mathf.Lerp(browseOffset, selectOffset, DockTween.OutCubic(rackSlide)), rackY + nudge, p.z);
     }
 
-    // Wide view: the rack sits in the middle until a ship is picked, then slides left to make room for its
-    // docked card (rackSlide 0..1). Outside play there is no Update, so it snaps.
+    // Wide view: the lot sits in the middle until a ship is picked, then slides left to make room for its docked
+    // card (rackSlide 0..1). Outside play there is no Update, so it snaps.
     bool wide;
-    float browseScale, selectScale, spaceTop, spaceBottom;
+    float spaceTop, spaceBottom;
 
-    // The rack's scale now (wide: between its browsing and its beside-the-card size), the scroll range
-    // that scale leaves, and the berth labels grown to stay readable when the rack is drawn small.
+    // The lot's scale (1 unless not even the narrowest lot fits) and the scroll range it leaves.
     void ApplyRackScale()
     {
-        layout.scale = wide ? Mathf.Lerp(browseScale, selectScale, DockTween.OutCubic(rackSlide)) : selectScale;
         rack.localScale = new Vector3(layout.scale, layout.scale, 1f);
-        float k = wide ? Mathf.Clamp(DockLayout.LabelFloor / layout.scale, 1f, 1.5f) : 1f;
-        for (int i = 1; i < bays.Length; i++) if (bays[i] != null) bays[i].SetLabelScale(k);
         layout.ScrollRange(spaceTop, spaceBottom, out rackYMin, out rackYMax);
-        // an untouched rack rests at the top of its range (a layout pass before the header was sized must not strand it higher)
+        // an untouched lot rests at the top of its range (a layout pass before the header was sized must not strand it higher)
         rackY = scrolled ? Mathf.Clamp(rackY, rackYMin, rackYMax) : rackYMin;
     }
     bool scrolled;
 
-    // The rack's drawn extent in world space (for tests).
+    // The lot's drawn extent in world space (for tests).
     public Rect RackWorldRect
     {
         get
@@ -486,12 +677,34 @@ public class SpaceDock : MonoBehaviour
             return new Rect(rack.position.x - w * .5f, rack.position.y - h * .5f, w, h);
         }
     }
-    float camX, rackSlideX, rackSlide;
+    // World y of the header's lowest edge and the footer buttons' highest tap edge (the lot's viewport sits between).
+    public float HeaderBottomY { get; private set; }
+    public float FooterTopY { get; private set; }
+
+    // Scrolls the lot to `t` (0 = top, 1 = bottom). Tests.
+    public void SetScroll(float t)
+    {
+        SetRackY(Mathf.Lerp(rackYMin, rackYMax, Mathf.Clamp01(t)));
+    }
+    public bool Scrollable { get { return rackYMax - rackYMin > .001f; } }
+
+    // A bay's drawn extent in world space (for tests and the screen-fit rig).
+    public Rect BayWorldRect(int id)
+    {
+        var bay = bays[id];
+        Vector2 half = bay.Extent * layout.scale;
+        Vector3 c = bay.transform.position;
+        return new Rect(c.x - half.x, c.y - half.y, half.x * 2f, half.y * 2f);
+    }
+    // The scroll viewport between the header and footer bands (world), for tests.
+    public Rect ViewportWorldRect { get { return new Rect(spaceLeft, spaceBottom, spaceRight - spaceLeft, spaceTop - spaceBottom); } }
+    float camX, rackSlide;
     const float SlideTime = .22f;
 
     void SlideRack()
     {
         if (!Application.isPlaying) rackSlide = wide && Selected > 0 ? 1f : 0f;
+        ComputeSelectOffset();
         ApplyRackScale();
         PlaceRack();
     }
@@ -501,7 +714,6 @@ public class SpaceDock : MonoBehaviour
         float target = wide && Selected > 0 ? 1f : 0f;
         if (rackSlide == target) return;
         rackSlide = Mathf.MoveTowards(rackSlide, target, dt / SlideTime);
-        ApplyRackScale();
         PlaceRack();
     }
 
@@ -657,7 +869,7 @@ public class SpaceDock : MonoBehaviour
     void ShowPopup(int index)
     {
         var bay = bays[index];
-        popup.Show(index, bay.ship, bay.hullHalfSize.y * layout.scale, IsOwned(index),
+        popup.Show(index, bay.ship, bay.ScreenHalfHeight * layout.scale, IsOwned(index),
                    index == EquippedIndex(), shopingShips.CostFor(index), StarDustLedger.Saved);
         // Skins appear once the ship itself is owned.
         if (IsOwned(index)) popup.ShowSkins(index, ShipSkins.Shown(index), StarDustLedger.Saved);
@@ -757,6 +969,7 @@ public class SpaceDock : MonoBehaviour
         var ship = bay.ship;
         bay.Launching = true;
         bay.SetPowered(true);
+        bay.SetHighlightOff();
         foreach (var sr in ship.GetComponentsInChildren<SpriteRenderer>(true))
             sr.sortingOrder = sr == bay.hull ? DockBay.OrderLaunch : DockBay.OrderLaunch - 1;
         var thruster = bay.thruster;
@@ -766,15 +979,14 @@ public class SpaceDock : MonoBehaviour
         float t = 0f;
         skipLaunch = false;
 
-        // 1. Undock, in berth space: clamps release, the hull lifts off the
-        //    pad (grows, shadow slides away) and eases back out of the cradle.
+        // 1. Undock, in bay space: the hull lifts off the pad (grows, shadow slides away) and pulls straight out of
+        //    its bay, forward = its nose, to the bay's mouth at the lane.
         while (t < UndockTime && !skipLaunch)
         {
             t += Time.unscaledDeltaTime;
-            bay.SetClampOpen(DockLaunch.Clamps(t));
             float lift = DockLaunch.Lift(t);
-            float back = DockLaunch.BackOff(t);
-            ship.localPosition = rest + new Vector3(0f, -DockLaunch.BackOffDistance * back, 0f);
+            float slide = DockLaunch.Slide(t);
+            ship.localPosition = rest + new Vector3(0f, DockLaunch.SlideDistance * slide, 0f);
             ship.localScale = restScale * (1f + DockLaunch.LiftGrow * lift);
             ship.localRotation = restRotation;
             bay.SetShadow(.1f * lift, .55f - .2f * lift);
@@ -782,16 +994,16 @@ public class SpaceDock : MonoBehaviour
             yield return null;
         }
 
-        // 2. Fly out: accelerate forward through the berth mouth, bank toward
-        //    the centre lane and climb out through the launch gate.
+        // 2. Fly out: accelerate forward into the lane, turn nose-up and drive up the lane and out of view.
         Vector3 worldScale = ship.lossyScale;
+        Vector3 nose = ship.up;
         ship.SetParent(transform, true);
         Vector3 p0 = ship.position;
         float halfH = cam != null ? cam.orthographicSize : 5f;
         float camX = cam != null ? cam.transform.position.x : 0f;
         float camTop = (cam != null ? cam.transform.position.y : 0f) + halfH;
-        Vector3 p1 = p0 + new Vector3(0f, DockLaunch.ApproachDistance, 0f);
-        Vector3 p2 = new Vector3(camX + (p0.x - camX) * .2f, camTop + 1.2f, p0.z);
+        Vector3 p1, p2;
+        DockLaunch.ExitPath(p0, nose, camX, camTop, layout.mode == LotMode.Lanes, out p1, out p2);
         float flight = LaunchDuration - UndockTime;
         float f = 0f;
         float spin = 0f;
@@ -808,9 +1020,10 @@ public class SpaceDock : MonoBehaviour
             }
             else
             {
+                // the path starts along the nose and ends pointing up the lane: the hull simply follows it
                 Vector3 tangent = DockTween.BezierTangent(p0, p1, p2, u);
                 float heading = Mathf.Atan2(tangent.y, tangent.x) * Mathf.Rad2Deg - 90f;
-                ship.rotation = Quaternion.Euler(0f, 0f, heading * DockLaunch.TurnIn(f));
+                ship.rotation = Quaternion.Euler(0f, 0f, heading);
             }
             float grow = DockLaunch.FlightGrow(f);
             ship.localScale = new Vector3(worldScale.x * grow, worldScale.y * grow, 1f);
@@ -837,6 +1050,8 @@ public class SpaceDock : MonoBehaviour
 
         float dt = Time.unscaledDeltaTime;
         TickSlide(dt);
+        TickPage(dt);
+        TickHint(dt);
         bool scrollable = rackYMax - rackYMin > .001f;
         Vector2 pointer = Input.mousePosition;
 
@@ -867,7 +1082,10 @@ public class SpaceDock : MonoBehaviour
             if (!dragging)
             {
                 Vector3 world = cam.ScreenToWorldPoint(new Vector3(pointer.x, pointer.y, -cam.transform.position.z));
-                Tap(world);
+                // the bands over the lot's ends are not part of the lot: a tap there reaches nothing underneath
+                if (world.y > spaceTop || world.y < hintFloor) { }
+                else if (hintShown && hintAlpha > .3f && HintRect.Contains(world)) PageDown();
+                else Tap(world);
             }
         }
         if (!pressing && scrollVelocity != 0f)

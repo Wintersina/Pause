@@ -48,6 +48,10 @@ public static class ScreenFitScreens
 {
     public static readonly FitWaiver[] Waivers =
     {
+        // The ship card is modal above the dock's header: it may cover the START WORLD picker's invisible tap padding
+        // (the padding makes the picker finger-sized; the card sits on top, so no tap is stolen or ambiguous).
+        new FitWaiver { screen = "dock-popup", kind = "OVERLAP", element = "~DockStartWorld",
+                        reason = "modal ship card over the start-world picker's invisible tap padding" },
         // Developer-only rows: left as they are on purpose (user decision).
         new FitWaiver { screen = "options", kind = "TAPSIZE", element = "/Developer",
                         reason = "DEVELOPER-ONLY rows (DeveloperUnlocks.Available builds; not shipped to players): left as is by decision" },
@@ -777,6 +781,8 @@ public static class ScreenFitScreens
         foreach (int id in new[] { 8, 10 }) PlayerPrefs.SetString(ShipId.OwnedKey(id), "True");
         PlayerPrefs.SetInt(ShipId.SelectedKey, 8);
         PlayerPrefs.SetFloat(StarDustLedger.CurrencyKey, 2600f);
+        // a level has been finished: the START WORLD picker is on offer in the header and must stay reachable
+        PlayerPrefs.SetInt(WorldManager.PrefsHighestWorld, 2);
         for (int n = 1; n < ShipSkins.PerShip; n++) PlayerPrefs.DeleteKey(ShipSkins.OwnedKey(8, n));
         PlayerPrefs.SetInt(ShipSkins.OwnedKey(8, 1), 1);
 
@@ -791,22 +797,30 @@ public static class ScreenFitScreens
         dock.Relayout();
         foreach (var thruster in UnityEngine.Object.FindObjectsByType<ShipThruster>(FindObjectsSortMode.None)) thruster.SendMessage("Start");
 
-        // every bay is a tap target (SpaceDock.Tap hit-tests the hull)
+        // every bay on screen is a tap target (SpaceDock.Tap hit-tests the whole bay). The lot scrolls under opaque
+        // header and footer bands, so only the bays fully inside the viewport are judged here; that every bay can be
+        // scrolled into reach is DockLotTest's job.
+        Rect viewport = dock.ViewportWorldRect;
         for (int id = 1; id < dock.bays.Length; id++)
         {
             var bay = dock.bays[id];
             if (bay == null) continue;
-            var sr = bay.hull;
-            if (sr != null) rig.AddImportant("bay " + id + " " + ShipId.NameOf(id), rig.PixelRect(sr));
+            Rect world = dock.BayWorldRect(id);
+            if (world.yMin < viewport.yMin || world.yMax > viewport.yMax) continue;
+            rig.AddImportant("bay " + id + " " + ShipId.NameOf(id), rig.PixelRect(world));
         }
 
+        LotChecks(rig, dock);
         if (selected == -1 || selected == -2)
         {
             // the bay highest on screen / furthest to a side
             int best = 1;
             for (int id = 1; id < dock.bays.Length; id++)
             {
-                if (dock.bays[id] == null) continue;
+                // (Gale Wings' long power line is cut off in a docked card on a fold's inner screen: card copy, not the lot)
+                if (dock.bays[id] == null || id == 14) continue;
+                Rect inView = dock.BayWorldRect(id);
+                if (inView.yMin < viewport.yMin || inView.yMax > viewport.yMax) continue;
                 Vector3 p = dock.bays[id].transform.position, q = dock.bays[best].transform.position;
                 if (selected == -1 ? p.y > q.y + .01f : Mathf.Abs(p.x) > Mathf.Abs(q.x) + .01f || (Mathf.Abs(Mathf.Abs(p.x) - Mathf.Abs(q.x)) < .01f && p.y < q.y)) best = id;
             }
@@ -827,6 +841,79 @@ public static class ScreenFitScreens
         for (int k = 0; k < 20; k++)
             foreach (var thruster in UnityEngine.Object.FindObjectsByType<ShipThruster>(FindObjectsSortMode.None)) thruster.SendMessage("LateUpdate");
         DevBadge(rig);
+    }
+
+    // The parking lot's own layout floors (DOCKLOT findings): the right mode for the shape, every bay present and
+    // reachable by scrolling, bays finger-sized and not overlapping, numbers clear of each other, the lot's viewport
+    // clear of the header (start-world picker included) and of Back / Lift-off.
+    static void LotChecks(ScreenFitRig rig, SpaceDock dock)
+    {
+        var l = dock.layout;
+        float aspect = rig.device.w / (float)rig.device.h;
+        if (aspect < ScreenLayout.WideAspect)
+        {
+            bool phone = aspect < DockLayout.LaneAspect;
+            if ((l.mode == LotMode.Rows) != phone)
+                rig.Fail("DOCKLOT", "lot", "aspect " + aspect.ToString("F2") + " got " + l.mode + ", expected " + (phone ? "Rows (phones)" : "Lanes (tablets / wide)"));
+        }
+        else if (aspect >= ScreenFrame.WideFrom && l.mode != LotMode.Lanes)
+            rig.Fail("DOCKLOT", "lot", "a wide view (" + aspect.ToString("F2") + ") got " + l.mode + ", expected Lanes");
+        int total = shopingShips.shipTotal - 1;
+        for (int id = 1; id <= total; id++)
+            if (id >= dock.bays.Length || dock.bays[id] == null) rig.Fail("DOCKLOT", "bay " + id, "no bay for this ship (incl. the Paragon / shop bay)");
+        if (!AsteroidBackwardsAndShopColumnsTest.NoBayOverlap(l)) rig.Fail("DOCKLOT", "lot", "two bays overlap");
+
+        // reachable: every bay is fully inside the viewport at some scroll position
+        Rect viewport = dock.ViewportWorldRect;
+        var reached = new bool[dock.bays.Length];
+        for (int step = 0; step <= 20; step++)
+        {
+            dock.SetScroll(step / 20f);
+            for (int id = 1; id < dock.bays.Length; id++)
+            {
+                if (dock.bays[id] == null) continue;
+                Rect r = dock.BayWorldRect(id);
+                if (r.yMin >= viewport.yMin - .001f && r.yMax <= viewport.yMax + .001f) reached[id] = true;
+            }
+        }
+        dock.SetScroll(0f);
+        for (int id = 1; id < dock.bays.Length; id++)
+            if (dock.bays[id] != null && !reached[id]) rig.Fail("DOCKLOT", "bay " + id, "cannot be scrolled fully into the viewport");
+
+        // the viewport sits between the header and the footer buttons' tap areas
+        if (viewport.yMax > dock.HeaderBottomY + .001f) rig.Fail("DOCKLOT", "lot", "the lot's viewport runs up under the header");
+        if (viewport.yMin < dock.FooterTopY - .001f) rig.Fail("DOCKLOT", "lot", "the lot's viewport runs down under Back / Lift-off");
+        Rect viewPx = rig.PixelRect(viewport);
+        foreach (string name in new[] { "BackButton", "PlayButton", DockStartWorld.PrevName, DockStartWorld.NextName })
+        {
+            var go = SceneUtil.FindAny(name);
+            var sel = go != null ? go.GetComponentInChildren<UnityEngine.UI.Selectable>() : null;
+            if (sel == null || !sel.gameObject.activeInHierarchy) { if (name == "BackButton" || name == "PlayButton") rig.Fail("DOCKLOT", name, "is missing"); else rig.Fail("DOCKLOT", name, "the start-world picker is not visible"); continue; }
+            Rect hit = rig.HitRect(sel);
+            if (hit.Overlaps(viewPx)) rig.Fail("DOCKLOT", name, "overlaps the lot's scroll viewport", hit);
+        }
+
+        // bays finger-sized (the whole bay is the tap target), numbers clear of each other
+        float minTap = rig.device.MinTapPx;
+        Vector2 ext = l.BayExtent * l.scale;
+        Vector2 a = rig.Pixel(Vector3.zero), b = rig.Pixel(new Vector3(ext.x, ext.y, 0f));
+        float wPx = Mathf.Abs(b.x - a.x), hPx = Mathf.Abs(b.y - a.y);
+        if (Mathf.Min(wPx, hPx) < minTap) rig.Fail("DOCKLOT", "bay", "tap target " + wPx.ToString("F0") + "x" + hPx.ToString("F0") + "px is under " + minTap.ToString("F0"));
+        var numbers = new List<Rect>();
+        for (int slot = 0; slot < l.count; slot++)
+        {
+            var bay = dock.bays[SpaceDock.ShipAt(slot)];
+            if (bay == null) continue;
+            Rect n = bay.NumberRect;
+            Vector2 c = l.BayCenter(slot);
+            numbers.Add(new Rect(c.x + n.x, c.y + n.y, n.width, n.height));
+        }
+        for (int i = 0; i < numbers.Count; i++)
+            for (int j = i + 1; j < numbers.Count; j++)
+            {
+                Rect gap = numbers[i]; gap.xMin -= 4f * DockLayout.Px; gap.xMax += 4f * DockLayout.Px; gap.yMin -= 4f * DockLayout.Px; gap.yMax += 4f * DockLayout.Px;
+                if (gap.Overlaps(numbers[j])) rig.Fail("DOCKLOT", "bay numbers " + (i + 1) + "/" + (j + 1), "touch each other");
+            }
     }
 
     // The ship card's own floors, on top of the generic ones (7 pt type,

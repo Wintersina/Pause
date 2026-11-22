@@ -206,6 +206,8 @@ public class DockPopup : MonoBehaviour
         var tailImage = tail.gameObject.AddComponent<Image>();
         tailImage.sprite = DockArt.Get("popup_tail");
         tailImage.raycastTarget = false;
+        // the card sits against its bay; the pointer chevron only read as a stray mark on the lot's lane art
+        tailImage.enabled = false;
 
         // Everything below the power preview lives in `body`, laid out from its
         // own top exactly as before the preview existed.

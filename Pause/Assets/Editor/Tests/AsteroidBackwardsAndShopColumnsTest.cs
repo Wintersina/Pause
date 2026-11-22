@@ -79,38 +79,47 @@ public static class AsteroidBackwardsAndShopColumnsTest
         {
             float size = CameraFit.ComputeSize(5f, 2.85f, s.x, s.y);
             float halfW = size * s.x / s.y;
-            var layout = DockLayout.For(count, halfW);
+            var layout = DockLayout.For(count, halfW * 2f, DockLayout.PrefersLanes(halfW, size));
             string tag = s.x + "x" + s.y;
-            Check(tag + ": at least three berth columns", layout.columns >= 3);
-            Check(tag + ": every ship has a berth", layout.columns * layout.rows >= count);
-            Check(tag + ": the rack is no wider than the screen",
-                  layout.Width * layout.scale <= halfW * 2f + .001f);
-            Check(tag + ": berths are not shrunk much", layout.scale > .9f);
-            Vector2 a = layout.BayCenter(0), b = layout.BayCenter(1);
-            Check(tag + ": neighbouring berths do not overlap", b.x - a.x >= DockLayout.BaySize.x - .001f);
-            if (s.y > s.x)
-            {
-                // ~1.9 world units of header + footer HUD on a portrait phone.
-                // the 15 dust ships; Paragon's berth is the 6th row, reached by scrolling
-                // (the rack scrolls when taller than its space: below)
-                var dust = DockLayout.For(PremiumShips.StandardCount, halfW);
-                Check(tag + ": the whole dust roster fits between header and footer",
-                      dust.Height * dust.scale <= size * 2f - 1.9f);
-            }
+            bool phone = s.x / (float)s.y < DockLayout.LaneAspect;
+            Check(tag + ": " + (phone ? "a phone gets horizontal lanes (Rows)" : "a wide / tablet view gets vertical lanes"),
+                  layout.mode == (phone ? LotMode.Rows : LotMode.Lanes));
+            Check(tag + ": every ship has a bay", layout.columns * layout.rows >= count);
+            Check(tag + ": the lot is no wider than the screen", layout.Width * layout.scale <= halfW * 2f + .001f);
+            Check(tag + ": bays are never shrunk or stretched", layout.scale == 1f);
+            if (phone) Check(tag + ": a phone fits at least three bays across (" + layout.columns + ")", layout.columns >= 3);
+            else Check(tag + ": lanes " + layout.lanes + " (1 to " + DockLayout.MaxLanes + ")", layout.lanes >= 1 && layout.lanes <= DockLayout.MaxLanes);
+            Check(tag + ": no two bays overlap", NoBayOverlap(layout));
         }
+
+        // bays are 70-75% of the mockups' size: a phone fits more across than the mockups' three
+        Check("bays are drawn at 75% of the mockup size", Mathf.Approximately(DockLayout.BayScale, .75f) &&
+              Mathf.Approximately(DockLayout.BayW, 96f * .75f / 64f));
 
         ShopRackSplitsWideViews(count);
 
-        var narrow = DockLayout.For(count, 2.85f);
+        var narrow = DockLayout.For(count, 5.7f, false);
         float top, bottom;
         narrow.ScrollRange(1f, -1f, out top, out bottom);
-        Check("a rack taller than its space scrolls (range > 0)", bottom - top > 0f);
-        narrow.ScrollRange(10f, -10f, out top, out bottom);
-        Check("a rack that fits is centred and does not scroll", Mathf.Approximately(top, bottom));
+        Check("a lot taller than its space scrolls (range > 0)", bottom - top > 0f);
+        narrow.ScrollRange(30f, -30f, out top, out bottom);
+        Check("a lot that fits is centred and does not scroll", Mathf.Approximately(top, bottom));
     }
 
-    // Near-square views (Z Flip7 cover 948x1048, a fold's inner screen): the rack and the ship card sit side by
-    // side, the whole fleet shows without scrolling, tall phones keep the single rack.
+    public static bool NoBayOverlap(DockLayout l)
+    {
+        Vector2 e = l.BayExtent * .5f;
+        for (int a = 0; a < l.count; a++)
+            for (int b = a + 1; b < l.count; b++)
+            {
+                Vector2 ca = l.BayCenter(a), cb = l.BayCenter(b);
+                if (Mathf.Abs(ca.x - cb.x) < 2f * e.x - .0005f && Mathf.Abs(ca.y - cb.y) < 2f * e.y - .0005f) return false;
+            }
+        return true;
+    }
+
+    // Near-square views (Z Flip7 cover 948x1048, a fold's inner screen): the lot and the ship card sit side by
+    // side; the lot is fitted to its own pane's width (never stretched), tall phones keep the single lot.
     static void ShopRackSplitsWideViews(int count)
     {
         foreach (var s in new[] { new Vector2Int(948, 1048), new Vector2Int(1812, 2176), new Vector2Int(1100, 800) })
@@ -127,20 +136,10 @@ public static class AsteroidBackwardsAndShopColumnsTest
             Check(tag + ": the panes tile the view, the card pane on the right",
                   Mathf.Approximately(rackPane.xMax, cardPane.xMin) && Mathf.Approximately(cardPane.xMax, view.xMax) &&
                   rackPane.xMin == view.xMin && cardPane.width <= view.width * DockLayout.CardShare + .001f);
-            var layout = DockLayout.ForWide(count, rackPane);
-            Check(tag + ": three columns, every ship has a berth", layout.columns == 3 && layout.columns * layout.rows >= count);
-            Check(tag + ": the rack fits its pane's width", layout.Width * layout.scale <= rackPane.width + .001f);
-            Check(tag + ": the rack fits its pane's height (no scrolling) or is at the minimum scale",
-                  layout.Height * layout.scale <= rackPane.height + .001f || Mathf.Approximately(layout.scale, DockLayout.MinWideScale));
-            Check(tag + ": height never shrinks the berths below the minimum",
-                  layout.scale >= Mathf.Min(DockLayout.MinWideScale, DockLayout.For(count, rackPane.width * .5f + DockLayout.SideMargin).scale) - .001f);
-            float top, bottom;
-            layout.ScrollRange(view.yMax, view.yMin, out top, out bottom);
-            Check(tag + ": the rack does not scroll", Mathf.Approximately(top, bottom));
-            // browsing (no card), the rack is drawn larger than beside the card, within the view's width
-            float browse = DockLayout.For(count, (view.width - 2f * DockLayout.Gutter) * .5f).scale;
-            Check(tag + ": browsing draws the rack larger than beside the card, inside the gutters",
-                  browse >= layout.scale && DockLayout.For(count, 100f).Width * browse <= view.width - 2f * DockLayout.Gutter + .001f);
+            var layout = DockLayout.For(count, rackPane.width, DockLayout.PrefersLanes(halfW, halfH));
+            Check(tag + ": every ship has a bay (" + layout.mode + ", " + layout.columns + " columns)", layout.columns * layout.rows >= count);
+            Check(tag + ": the lot fits its pane's width", layout.Width * layout.scale <= rackPane.width + .001f);
+            Check(tag + ": no two bays overlap", NoBayOverlap(layout));
         }
         float tall = CameraFit.ComputeSize(5f, 2.85f, 1080, 2520);
         Check("a tall phone is not a wide view", !DockLayout.IsWide(tall * 1080f / 2520f, tall));

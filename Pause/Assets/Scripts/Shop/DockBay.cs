@@ -1,10 +1,12 @@
 using UnityEngine;
 
-// One berth of the space dock and the ship parked in it.
+// One bay of the space parking lot and the ship parked in it. The bay root is never rotated (labels stay upright);
+// its "Orient" child holds the floor, wall, highlight, shadow and ship and is turned so the nose points up, down or
+// sideways into the lane (SetFacing). A parking space is 96 x 128 kit px.
 //
 // A parked ship is powered down: greyed out, engine cold, no idle motion,
-// berth lights at a low amber standby. Selecting it powers it up -- colour
-// warms back in, the bay lights come up cyan, the landing ring glows, the
+// bay dark. Selecting it powers it up -- colour
+// warms back in, a thin cyan highlight frames the bay, the
 // engine lights and the hull starts a gentle hover. The component disables
 // itself once a berth has settled powered-down, so fourteen idle berths cost
 // nothing per frame.
@@ -18,24 +20,21 @@ using UnityEngine;
 public class DockBay : MonoBehaviour
 {
     // Sorting orders, back to front.
-    public const int OrderBay = 2, OrderRing = 4, OrderShadow = 5, OrderClamp = 6,
-                     OrderLight = 7, OrderLabel = 8, OrderShip = 11, OrderLaunch = 40;
+    public const int OrderBay = 2, OrderBack = 3, OrderShadow = 5, OrderHighlight = 10,
+                     OrderShip = 11, OrderLabel = 12, OrderLaunch = 40;
 
-    public static readonly Vector3 ShipRest = new Vector3(0f, .10f, 0f);
-    public const float HullSize = .64f;      // longest edge of every parked hull
+    // The ship sits a hair toward its nose, clear of the service wall it is backed against.
+    public static readonly Vector3 ShipRest = new Vector3(0f, 4f * DockLayout.Px, 0f);
+    // A hull fills about 75% of its bay: at most 76 px across and 100 px long (nose-up frame).
+    public static readonly Vector2 HullBox = new Vector2(76f * DockLayout.Px, 100f * DockLayout.Px);
+    public const float HullSize = 100f * DockLayout.Px;   // longest edge a parked hull may have
+    public const float LabelBase = .8f;      // number / tag / icon size next to the 75% lot
     const float PowerTime = .38f;
     public const float RevealTime = .6f;
     public const float RevealPeak = .3f;     // white-out point of the reveal (0..1)
     public static readonly Color SilhouetteInk = AkiraPalette.Ink;
 
-    static readonly Vector3[] LightSpots =
-    {
-        new Vector3(-.69f, .56f), new Vector3(.69f, .56f),
-        new Vector3(-.69f, -.36f), new Vector3(.69f, -.36f),
-    };
     static readonly Color OffTint = new Color(.62f, .68f, .80f, 1f);
-    static readonly Color LightOff = AkiraPalette.WithAlpha(AkiraPalette.Sodium, .38f);
-    static readonly Color LightOn = AkiraPalette.Cyan;
     static readonly Color NameOwned = AkiraPalette.WithAlpha(AkiraPalette.Bone, .95f);
     static readonly Color NameLocked = AkiraPalette.WithAlpha(AkiraPalette.Muted, .9f);
     static int saturationId, silhouetteId, inkId, flashId;
@@ -54,15 +53,16 @@ public class DockBay : MonoBehaviour
     public bool Owned { get; private set; }
     public bool Equipped { get; private set; }
 
-    SpriteRenderer bayRenderer, ring, shadow, statusIcon, chip, chipDust;
-    readonly SpriteRenderer[] lights = new SpriteRenderer[4];
-    readonly Transform[] clamps = new Transform[2];
+    SpriteRenderer floor, back, highlight, shadow, statusIcon, chip, chipDust;
+    readonly SpriteRenderer[] digits = new SpriteRenderer[2];
+    Transform orient;
+    Vector2 extent = new Vector2(DockLayout.BayW, DockLayout.BayL) * .5f;   // half size, bay-root space
+    Vector2 nose = Vector2.up;
     TextMesh nameText, chipText;
     readonly Sprite[] idle = new Sprite[ShipHullArt.IdleDrawings];
     Sprite rest;
     MaterialPropertyBlock block;
     float power;
-    float clampOpen;
     float spin;
     float phase;
     ShipRotors rotors;                       // spinning rotors, for ships that have them
@@ -93,26 +93,21 @@ public class DockBay : MonoBehaviour
         }
         block = new MaterialPropertyBlock();
 
-        bayRenderer = MakeSprite("Berth", DockArt.Get("bay"), Vector3.zero, OrderBay);
-        ring = MakeSprite("Ring", DockArt.Get("ring"), ShipRest, OrderRing);
-        shadow = MakeSprite("Shadow", DockArt.Get("shadow"), ShipRest + new Vector3(.05f, -.06f), OrderShadow);
-        for (int k = 0; k < lights.Length; k++)
-        {
-            lights[k] = MakeSprite("Light" + k, DockArt.Get("light"), LightSpots[k], OrderLight);
-            lights[k].transform.localScale = Vector3.one * .9f;
-        }
-        for (int k = 0; k < 2; k++)
-        {
-            var clamp = MakeSprite("Clamp" + k, DockArt.Get("clamp"), Vector3.zero, OrderClamp);
-            clamp.flipX = k == 1;
-            clamps[k] = clamp.transform;
-        }
+        var orientGo = new GameObject("Orient");
+        orient = orientGo.transform;
+        orient.SetParent(transform, false);
+        floor = MakeSprite("Bay", DockArt.Lot("bay_floor"), Vector3.zero, OrderBay, orient);
+        // the service wall / clamp is the bottom 24 px of the nose-up frame
+        back = MakeSprite("Wall", DockArt.Lot("bay_back"), new Vector3(0f, -(64f - 12f) * DockLayout.Px, 0f), OrderBack, orient);
+        highlight = MakeSprite("Highlight", DockArt.Lot("bay_highlight"), Vector3.zero, OrderHighlight, orient);
+        shadow = MakeSprite("Shadow", DockArt.Get("shadow"), ShipRest + new Vector3(.05f, -.06f), OrderShadow, orient);
+        for (int k = 0; k < 2; k++) digits[k] = MakeSprite("Digit" + k, null, Vector3.zero, OrderLabel, transform);
 
         // The ship itself. Named "ship<N>" so the rest of the game (and the
         // tests) find it the way they always have.
         var shipGo = new GameObject("ship" + i);
         ship = shipGo.transform;
-        ship.SetParent(transform, false);
+        ship.SetParent(orient, false);
         ship.localPosition = ShipRest;
         hull = shipGo.AddComponent<SpriteRenderer>();
         LoadSkin(ShipSkins.Shown(i));
@@ -120,8 +115,9 @@ public class DockBay : MonoBehaviour
         hull.sortingOrder = OrderShip;
         var material = DockArt.ShipMaterial;
         if (material != null) hull.sharedMaterial = material;
-        float extent = rest != null ? Mathf.Max(rest.bounds.size.x, rest.bounds.size.y) : 1f;
-        float k2 = extent > 0f ? HullSize / extent : 1f;
+        float k2 = 1f;
+        if (rest != null && rest.bounds.size.x > 0f && rest.bounds.size.y > 0f)
+            k2 = Mathf.Min(HullBox.x / rest.bounds.size.x, HullBox.y / rest.bounds.size.y);
         ship.localScale = new Vector3(k2, k2, 1f);
         hullHalfSize = rest != null ? (Vector2)rest.bounds.extents * k2 : new Vector2(.3f, .3f);
         shadow.transform.localScale = new Vector3(hullHalfSize.x * 2.4f / .64f, hullHalfSize.y * 2.2f / .64f, 1f);
@@ -151,13 +147,14 @@ public class DockBay : MonoBehaviour
         }
 
         // Name plate, set into the recess along the berth's back wall.
-        nameText = MakeText("Name", font, new Vector3(0f, -.553f, 0f), .078f, TextAnchor.MiddleCenter);
+        // (the lot's bays carry a number, not a name plate; the ship's card names it. Kept for NameLabel.)
+        nameText = MakeText("Name", font, Vector3.zero, .078f, TextAnchor.MiddleCenter);
         nameText.text = (shopingShips.NameFor(i) ?? "").ToUpperInvariant();
+        nameText.GetComponent<MeshRenderer>().enabled = false;
 
         // Status corner: a check (owned), a chevron (equipped) or a price tag.
-        statusIcon = MakeSprite("Status", DockArt.Get("icon_owned"), new Vector3(.47f, .42f), OrderLabel);
-        statusIcon.transform.localScale = Vector3.one * .62f;
-        chip = MakeSprite("PriceTag", DockArt.Get("chip", 6f), new Vector3(.3f, .43f), OrderLabel);
+        statusIcon = MakeSprite("Status", DockArt.Get("icon_owned"), Vector3.zero, OrderLabel);
+        chip = MakeSprite("PriceTag", DockArt.Get("chip", 6f), Vector3.zero, OrderLabel);
         chip.drawMode = SpriteDrawMode.Sliced;
         chipDust = MakeSprite("Dust", DockArt.Get("icon_dust"), Vector3.zero, OrderLabel + 1);
         chipDust.transform.SetParent(chip.transform, false);
@@ -166,15 +163,17 @@ public class DockBay : MonoBehaviour
         chipText.transform.SetParent(chip.transform, false);
         chipText.color = DockArt.Gold;
 
-        SetClampOpen(0f);
+        SetNumber(i);
+        SetFacing(Facing.Up);
+        SetLabelScale(1f);
         ApplyPower(0f);
         enabled = false;
     }
 
-    SpriteRenderer MakeSprite(string name, Sprite sprite, Vector3 local, int order)
+    SpriteRenderer MakeSprite(string name, Sprite sprite, Vector3 local, int order, Transform parent = null)
     {
         var go = new GameObject(name);
-        go.transform.SetParent(transform, false);
+        go.transform.SetParent(parent != null ? parent : transform, false);
         go.transform.localPosition = local;
         var sr = go.AddComponent<SpriteRenderer>();
         sr.sprite = sprite;
@@ -262,22 +261,88 @@ public class DockBay : MonoBehaviour
 
     // The corner price tag, right edge fixed, at the current label scale.
     float chipWidth = .4f, labelK = 1f;
+    float E { get { return labelK * LabelBase; } }
+
+    // The tag sits on the service wall: right of the number in a row bay, under it in a lane bay (flush with the
+    // wall's outer edge, so it grows into the bay, never toward the neighbouring bay).
     void PlaceChip()
     {
-        const float right = .555f;
-        chip.transform.localScale = new Vector3(labelK, labelK, 1f);
-        chip.transform.localPosition = new Vector3(right - chipWidth * labelK * .5f, .43f, 0f);
+        chip.transform.localScale = new Vector3(E, E, 1f);
+        float w = chipWidth * E;
+        float px = DockLayout.Px;
+        if (Side) chip.transform.localPosition = new Vector3(WallSign * (62f * px - w * .5f), 18f * px, 0f);
+        else chip.transform.localPosition = new Vector3(43f * px - w * .5f, WallY, 0f);
+    }
+
+    bool Side { get { return nose.x != 0f; } }
+    float WallSign { get { return -nose.x; } }                              // lane bays: which side the wall is on
+    float WallY { get { return -nose.y * 52f * DockLayout.Px; } }           // row bays: wall centre
+    public Facing Face { get; private set; }
+    public Vector2 Extent { get { return extent; } }
+    // How far the hull reaches above / below its centre on screen (the card floats clear of it).
+    public float ScreenHalfHeight { get { return Side ? hullHalfSize.x : hullHalfSize.y; } }
+
+    // Turns the bay so the nose points `f`; labels stay upright. The wall is on the opposite side.
+    public void SetFacing(Facing f)
+    {
+        Face = f;
+        float angle = f == Facing.Up ? 0f : f == Facing.Down ? 180f : f == Facing.Right ? -90f : 90f;
+        orient.localRotation = Quaternion.Euler(0f, 0f, angle);
+        nose = f == Facing.Up ? Vector2.up : f == Facing.Down ? Vector2.down : f == Facing.Right ? Vector2.right : Vector2.left;
+        extent = (Side ? new Vector2(DockLayout.BayL, DockLayout.BayW) : new Vector2(DockLayout.BayW, DockLayout.BayL)) * .5f;
+        PositionLabels();
+    }
+
+    // Number (two stencil digits) and status icon on the wall.
+    void PositionLabels()
+    {
+        float px = DockLayout.Px;
+        Vector3 numberAt, iconAt;
+        if (Side)
+        {
+            numberAt = new Vector3(WallSign * 52f * px, 35f * px, 0f);
+            iconAt = new Vector3(WallSign * 52f * px, 18f * px, 0f);
+        }
+        else
+        {
+            numberAt = new Vector3(-29f * px, WallY, 0f);
+            iconAt = new Vector3(40f * px, WallY, 0f);
+        }
+        // digit cells are 12 px wide; the pair is centred on numberAt
+        digits[0].transform.localPosition = numberAt + new Vector3(-6f * px, 0f, 0f);
+        digits[1].transform.localPosition = numberAt + new Vector3(6f * px, 0f, 0f);
+        statusIcon.transform.localPosition = iconAt;
+        PlaceChip();
+    }
+
+    int number;
+    public int Number { get { return number; } }
+    // The bay's number on the wall, 01..99.
+    public void SetNumber(int n)
+    {
+        number = n;
+        digits[0].sprite = DockArt.Digit(Mathf.Clamp(n, 0, 99) / 10);
+        digits[1].sprite = DockArt.Digit(Mathf.Clamp(n, 0, 99) % 10);
+    }
+
+    // Rectangles (bay-root space) the number and tag occupy, for the layout tests.
+    public Rect NumberRect
+    {
+        get
+        {
+            Vector3 a = digits[0].transform.localPosition, b = digits[1].transform.localPosition;
+            return new Rect(a.x - 6f * DockLayout.Px, a.y - 8f * DockLayout.Px, (b.x - a.x) + 12f * DockLayout.Px, 16f * DockLayout.Px);
+        }
     }
 
     // A rack drawn smaller than the berths were designed for (the wide dock beside its card) grows the
     // name plates, price tags and status icons by `k` (1 = as designed) so they stay readable.
     public void SetLabelScale(float k)
     {
-        if (Mathf.Approximately(k, labelK)) return;
         labelK = k;
-        nameText.transform.localScale = new Vector3(k, k, 1f);
-        statusIcon.transform.localScale = Vector3.one * .62f * k;
-        statusIcon.transform.localPosition = new Vector3(.555f - .085f * k, .42f, 0f);
+        nameText.transform.localScale = new Vector3(E, E, 1f);
+        statusIcon.transform.localScale = Vector3.one * .62f * E;
+        for (int d = 0; d < 2; d++) digits[d].transform.localScale = new Vector3(k, k, 1f);
         PlaceChip();
     }
 
@@ -323,20 +388,13 @@ public class DockBay : MonoBehaviour
         enabled = true;
     }
 
-    // 0 = clamps gripping the hull, 1 = retracted into the berth walls.
-    public void SetClampOpen(float open)
-    {
-        clampOpen = Mathf.Clamp01(open);
-        float grip = hullHalfSize.x + .005f;
-        float retract = .14f * clampOpen;
-        // The clamp sprite is .40 wide; its jaw is its inner edge.
-        clamps[0].localPosition = new Vector3(-(grip + .20f + retract), ShipRest.y, 0f);
-        clamps[1].localPosition = new Vector3(grip + .20f + retract, ShipRest.y, 0f);
-    }
+    // The launching hull has left its bay: the selection highlight goes out.
+    public void SetHighlightOff() { highlight.color = new Color(1f, 1f, 1f, 0f); }
 
     public void SetShadow(float altitude, float alpha)
     {
-        shadow.transform.localPosition = ship.localPosition + new Vector3(.05f + altitude * .5f, -.06f - altitude, 0f);
+        // the shadow falls down and to the right on screen whichever way the bay is turned
+        shadow.transform.position = ship.position + new Vector3(.05f + altitude * .5f, -.06f - altitude, 0f);
         shadow.color = new Color(1f, 1f, 1f, alpha);
     }
 
@@ -393,17 +451,8 @@ public class DockBay : MonoBehaviour
         }
         float t = Time.unscaledTime;
         float pulse = p > 0f ? .5f + .5f * Mathf.Sin(t * 3.2f + phase) : 0f;
-        Color light = Color.Lerp(LightOff, LightOn, p);
-        light.a *= 1f - .18f * pulse * p;
-        float lightScale = Mathf.Lerp(.55f, 1.05f, p);
-        for (int k = 0; k < lights.Length; k++)
-        {
-            lights[k].color = light;
-            lights[k].transform.localScale = new Vector3(lightScale, lightScale, 1f);
-        }
-        ring.color = new Color(DockArt.Cyan.r, DockArt.Cyan.g, DockArt.Cyan.b, p * (.5f + .25f * pulse));
-        float rs = Mathf.Lerp(.86f, 1f, p);
-        ring.transform.localScale = new Vector3(rs, rs, 1f);
+        // the selected bay: a thin cyan highlight (kit bay_highlight), nothing at all while parked
+        highlight.color = new Color(1f, 1f, 1f, p * (1f - .2f * pulse));
         // A silhouette's engine stays cold, selected or not.
         bool burn = Launching || (Powered && power > .3f && Alive);
         if (thruster != null) thruster.powered = burn;
@@ -427,13 +476,12 @@ public class DockBay : MonoBehaviour
     public bool ShowsStatusIcon { get { return statusIcon.enabled; } }
     public bool ShowsPrice { get { return chip.gameObject.activeSelf; } }
     public string PriceLabel { get { return chipText.text; } }
-    public float LightLevel { get { return lights[0].color.a; } }
+    public float LightLevel { get { return highlight.color.a; } }
 
     public bool Contains(Vector3 world)
     {
         Vector3 local = transform.InverseTransformPoint(world);
-        return Mathf.Abs(local.x) <= DockLayout.BaySize.x * .5f &&
-               Mathf.Abs(local.y) <= DockLayout.BaySize.y * .5f;
+        return Mathf.Abs(local.x) <= extent.x && Mathf.Abs(local.y) <= extent.y;
     }
 
 }
