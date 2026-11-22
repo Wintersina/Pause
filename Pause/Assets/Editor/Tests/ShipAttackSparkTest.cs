@@ -29,6 +29,12 @@ public static class ShipAttackSparkTest
         RetargetsWhenTargetDies();
         FiresOncePerCharge();
         BossIsTargetedUnderItsHitWindow();
+        ArcDrawnBetweenEachLinkedPair();
+        ArcLooksLikeLightning();
+        NoEnemyLinksTheSparks();
+        VolleyLinkCountIsCapped();
+        VolleySwitchesBackToEnemies();
+        VolleyArcHurtsACrossingEnemyOnce();
         AttackPool.StopAll();
         Debug.Log("[SPARK] failures: " + fails);
         return fails;
@@ -239,5 +245,144 @@ public static class ShipAttackSparkTest
         Check("with a boss up the spark may only home on the boss", ShipAttackTargets.CanTarget(bt, true) && !ShipAttackTargets.CanTarget(minion.GetComponent<ClearTarget>(), true));
         Object.DestroyImmediate(boss);
         Object.DestroyImmediate(minion);
+    }
+
+    // ---- arcs and the no-enemy volley -------------------------------------
+
+    // Was an arc a -> b drawn among the newest `window` arcs?
+    static bool Drew(Vector2 a, Vector2 b, int window)
+    {
+        for (int i = 0; i < Mathf.Min(window, VoltArcs.LogCount); i++)
+        {
+            Vector2 la, lb;
+            VoltArcs.LogAt(i, out la, out lb);
+            if ((la - a).sqrMagnitude < .0025f && (lb - b).sqrMagnitude < .0025f) return true;
+        }
+        return false;
+    }
+
+    static void ArcDrawnBetweenEachLinkedPair()
+    {
+        FreshScene();
+        VoltArcs.StopAll();
+        var c = Viper();
+        var e1 = Enemy(0f, -.5f);
+        var e2 = Enemy(1.5f, .5f);
+        var e3 = Enemy(1.5f, 2.2f);
+        Vector2 p1 = e1.transform.position, p2 = e2.transform.position, p3 = e3.transform.position;
+        int drawn = VoltArcs.TotalDrawn;
+        c.Runner.Fire();
+        Vector2 nose = c.Runner.Nose;
+        Steps(c.Runner, 1.2f);
+        Check("all three enemies fell", e1 == null && e2 == null && e3 == null);
+        Check("an arc was drawn for the ship's link and each hop (" + (VoltArcs.TotalDrawn - drawn) + ")", VoltArcs.TotalDrawn - drawn == 3);
+        Check("ship -> first target", Drew(nose, p1, 3));
+        Check("first target -> second", Drew(p1, p2, 3));
+        Check("second target -> third", Drew(p2, p3, 3));
+        Teardown(c);
+    }
+
+    static void ArcLooksLikeLightning()
+    {
+        FreshScene();
+        VoltArcs.StopAll();
+        var c = Viper();
+        var e = Enemy(0f, 1f);
+        c.Runner.Fire();
+        Steps(c.Runner, .3f);   // the spark arrives and strikes, the arc is on screen
+        var arc = VoltArcs.LiveAt(0);
+        Check("an arc is up after the strike", arc != null && e == null);
+        if (arc != null)
+        {
+            Check("jagged: a polyline of " + VoltArcs.Segments + " points", arc.core.positionCount == VoltArcs.Segments && arc.outer.positionCount == VoltArcs.Segments);
+            Check("bright thin core, wider faint outer line", arc.core.startWidth < arc.outer.startWidth && arc.core.startWidth <= .08f && arc.outer.startColor.a < .5f);
+            Check("a small spark at each contact point", arc.starA.positionCount > 1 && arc.starB.positionCount > 1);
+            Check("it lingers 0.15-0.25 s", arc.Life >= .15f && arc.Life <= .25f);
+            int jags = arc.Jags;
+            Steps(c.Runner, .1f);
+            Check("it re-jags while it fades (" + jags + " -> " + arc.Jags + ")", arc.Jags > jags);
+            Steps(c.Runner, .3f);
+            Check("then it is gone", !arc.Live);
+        }
+        Teardown(c);
+    }
+
+    static void NoEnemyLinksTheSparks()
+    {
+        FreshScene();
+        VoltArcs.StopAll();
+        var c = Viper();
+        int drawn = VoltArcs.TotalDrawn;
+        c.Runner.Fire();
+        Steps(c.Runner, .08f);
+        Check("one spark out: one link, ship -> shot 1 (" + c.Runner.VolleyLinkCount + ")", c.Runner.VolleyLinkCount == 1);
+        Steps(c.Runner, .3f);
+        Check("three sparks out: ship -> 1 -> 2 -> 3 (" + c.Runner.VolleyLinkCount + " links)", c.Runner.VolleyLinkCount == ShipAttackRunner.VolleyShots);
+        Check("the arcs are live on screen", VoltArcs.LiveCount >= ShipAttackRunner.VolleyShots);
+        Check("held arcs are reused, not redrawn every frame (" + (VoltArcs.TotalDrawn - drawn) + ")", VoltArcs.TotalDrawn - drawn <= ShipAttackRunner.VolleyShots + 1);
+        Steps(c.Runner, 3f);
+        Check("the volley ends cleanly", c.Runner.ActiveRuns == 0 && c.Runner.VolleyLinkCount == 0);
+        Teardown(c);
+    }
+
+    static void VolleyLinkCountIsCapped()
+    {
+        FreshScene();
+        VoltArcs.StopAll();
+        var c = Viper();
+        int maxLive = 0;
+        for (int k = 0; k < 3; k++)   // free shots overlap with the main one
+        {
+            c.Runner.FireFree();
+            for (float t = 0f; t < .3f; t += .02f)
+            {
+                c.Runner.Step(.02f);
+                maxLive = Mathf.Max(maxLive, VoltArcs.LiveCount);
+            }
+        }
+        Check("the arc pool never grows past " + VoltArcs.MaxArcs + " (live " + maxLive + ", pool " + VoltArcs.PoolSize + ")", maxLive <= VoltArcs.MaxArcs && VoltArcs.PoolSize <= VoltArcs.MaxArcs);
+        c.Runner.StopAll();
+        c.Runner.Fire();
+        int one = 0;
+        for (float t = 0f; t < .6f; t += .02f) { c.Runner.Step(.02f); one = Mathf.Max(one, c.Runner.VolleyLinkCount); }
+        Check("one volley links at most " + ShipAttackRunner.VolleyShots + " pairs (" + one + ")", one == ShipAttackRunner.VolleyShots);
+        Teardown(c);
+    }
+
+    static void VolleySwitchesBackToEnemies()
+    {
+        FreshScene();
+        VoltArcs.StopAll();
+        var c = Viper();
+        c.Runner.Fire();
+        Steps(c.Runner, .3f);
+        Check("no enemy: the sparks are linked", c.Runner.VolleyLinkCount == ShipAttackRunner.VolleyShots);
+        var e = Enemy(.2f, 1.5f);
+        Vector2 p = e.transform.position;
+        Vector2 nose = c.Runner.Nose;
+        Steps(c.Runner, .04f);
+        Check("an enemy comes into range: the volley links stop", c.Runner.VolleyLinkCount == 0);
+        Steps(c.Runner, 1.5f);
+        Check("the chain took the enemy", e == null);
+        Check("with an arc from the ship to it", Drew(nose, p, 2));
+        Teardown(c);
+    }
+
+    // The boss is up but off screen, so the sparks have nothing they may home on and the volley flies; a minion
+    // crossing the ship's first arc takes a hit.
+    static void VolleyArcHurtsACrossingEnemyOnce()
+    {
+        FreshScene();
+        VoltArcs.StopAll();
+        var boss = Make("boss body", "Enimey", 0f, 8f);
+        boss.AddComponent<BossTarget>();
+        var c = Viper();
+        var minion = Enemy(0f, -1f);   // straight above the nose, on the line to shot 1
+        int kills = ShipAttackHits.Kills;
+        c.Runner.Fire();
+        Steps(c.Runner, .3f);
+        Check("a plain enemy on the arc was struck (" + (ShipAttackHits.Kills - kills) + ")", minion == null && ShipAttackHits.Kills == kills + 1);
+        Teardown(c);
+        Object.DestroyImmediate(boss);
     }
 }
