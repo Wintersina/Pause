@@ -923,8 +923,9 @@ public static class ScreenFitScreens
         Vector2 ext = l.BayExtent * l.scale;
         Vector2 a = rig.Pixel(Vector3.zero), b = rig.Pixel(new Vector3(ext.x, ext.y, 0f));
         float wPx = Mathf.Abs(b.x - a.x), hPx = Mathf.Abs(b.y - a.y);
-        // a docked-card (wide) view is width-bound: one runway must fit beside the card, so a bay may sit up to 10% under the floor
-        if (aspect >= ScreenLayout.WideAspect) minTap *= .9f;
+        // a docked-card (wide) view is width-bound: a whole runway (3.9 world units at 1x) must fit beside the card, so on
+        // the densest covers a bay may sit up to 25% under the floor (it is still the whole 128 x 96 kit-px bay that taps)
+        if (aspect >= ScreenLayout.WideAspect) minTap *= .75f;
         if (Mathf.Min(wPx, hPx) < minTap) rig.Fail("DOCKLOT", "bay", "tap target " + wPx.ToString("F0") + "x" + hPx.ToString("F0") + "px is under " + minTap.ToString("F0"));
         var numbers = new List<Rect>();
         for (int slot = 0; slot < l.count; slot++)
