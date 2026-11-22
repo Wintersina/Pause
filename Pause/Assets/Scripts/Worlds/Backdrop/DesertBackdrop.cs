@@ -1120,20 +1120,17 @@ public class DesertDirector : PlanetDirector
         return true;
     }
 
-    // A worm's planned life (ridge, eruption, the ridge after it) on ground with no painted prop under it: the spot it starts on, the points
-    // of its trail every ~1.5 s (a narrow 40% core: the trail is a line of ridge), and its SURFACING SPOT (the eruption) with the eruption's
-    // body (half its footprint) clear.
+    // A worm's planned life on ground with no painted prop under its key points: where it starts, its SURFACING SPOT (the eruption; its body,
+    // half the footprint the spray and razing use: a giant's whole 13-cell spray cannot be kept off a painted tile) and where its trail ends.
+    // (The trail between them is a faint dust line that may cross a bit of rubble; the points that read as the worm are kept clear.)
     bool PathOnGround(float x, double gy, float vx, float vy, float ridgeSeconds, float rx, float ry, float cell)
     {
         float ey = cell * .2f;
         float total = ridgeSeconds + 1.2f + 4.3f;
-        for (float t = 0f; t <= total + .01f; t += 1.5f)
-        {
-            float tt = t <= ridgeSeconds ? t : ridgeSeconds + Mathf.Min(1.2f, t - ridgeSeconds) * .25f + Mathf.Max(0f, t - ridgeSeconds - 1.2f);
-            if (planner.Match(x + vx * tt, gy + vy * tt, rx * .4f, ry * .6f, WormGround) < 1f) return false;
-        }
-        // (the eruption's body is ~half the footprint the worm's spray and razing use: a giant's whole 13-cell spray cannot be kept off a painted tile)
-        return planner.Match(x + vx * ridgeSeconds, gy + vy * ridgeSeconds, rx * .5f, ey * .6f, WormGround) >= 1f;
+        float tEnd = ridgeSeconds + Mathf.Min(1.2f, 1.2f) * .25f + (total - ridgeSeconds - 1.2f);
+        return planner.Match(x, gy, rx * .4f, ry * .6f, WormGround) >= 1f &&
+               planner.Match(x + vx * tEnd, gy + vy * tEnd, rx * .4f, ry * .6f, WormGround) >= 1f &&
+               planner.Match(x + vx * ridgeSeconds, gy + vy * ridgeSeconds, rx * .5f, ey * .6f, WormGround) >= 1f;
     }
 
     // A worm's ridge touches a pinned item: destroy it (a site makes the worm dive instead).

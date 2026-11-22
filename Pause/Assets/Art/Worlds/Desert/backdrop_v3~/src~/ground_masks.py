@@ -17,7 +17,7 @@ written to <out>/v<N>/mask.txt. The letters are the engine's GroundClass names; 
 
 Method: no hand painting. Per variant a detector flags the pixels that belong to a painted prop (colour distance from the
 ground's median chromaticity, edge energy, local top-hat brightness, teal water, work-fire glow -- see the props_* functions); a cell with
->= the variant's share (VARIANTS) flagged pixels is C. The shares are tuned so every painted prop (and its skirt) is blocked while 11-60% of the
+>= the variant's share (VARIANTS) flagged pixels is C. The shares are tuned so every painted prop (and its skirt) is blocked while 9-60% of the
 tile stays free for a docks-size footprint (v3 / v4 are crowded by design, so they ignore the smallest rubble). v1 / v3 / v4 ground
 is soft (W), v2's flat is hardpan (O).  --debug DIR writes an overlay per variant.
 
@@ -92,7 +92,7 @@ VARIANTS = {
     1: (props_dunes, 'W', .10),
     2: (props_salt, 'O', .10),
     3: (props_oasis, 'W', .25),
-    4: (props_craters, 'W', .16),
+    4: (props_craters, 'W', .24),
 }
 
 
