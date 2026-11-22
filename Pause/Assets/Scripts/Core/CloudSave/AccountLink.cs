@@ -59,6 +59,7 @@ public static class AccountLink
     public static Func<float> Now = () => Time.realtimeSinceStartup;
     static SignInReport lastReport;
     static bool silentFailed;
+    static bool silentFinished;
     static IPlayerAccount accountOverride;
 
     // Interactive attempts actually handed to the platform (tests, diagnostics).
@@ -238,7 +239,7 @@ public static class AccountLink
         if (ok) report.outcome = SignInOutcome.Success;
         report.interactive = interactive;
         lastReport = report;
-        if (!interactive) silentFailed = !ok;
+        if (!interactive) { silentFailed = !ok; silentFinished = true; }
         else if (ok) silentFailed = false;
 
         Debug.Log("[Account] " + (interactive ? "interactive" : "silent") + " sign-in to "
@@ -287,6 +288,19 @@ public static class AccountLink
         if (on) PlayerPrefs.SetInt(DisconnectedKey, 1);
         else PlayerPrefs.DeleteKey(DisconnectedKey);
         PrefsSaver.SaveNow();
+    }
+
+    // ---- the home screen sign-in button ----
+
+    // True once the launch (silent) sign-in has answered, either way. Until then the sign-in is "in progress".
+    public static bool SilentFinished { get { return silentFinished; } }
+
+    // The home screen's SIGN IN button is wanted when the platform has a store account, the silent launch
+    // sign-in has finished, the player did not choose SIGN OUT, and they are still not signed in (it fails,
+    // is cancelled, or the player cancelled a later attempt). No per-frame polling: the button follows Changed.
+    public static bool ShouldShowHomeSignIn
+    {
+        get { return Available && silentFinished && !Disconnected && !Account.IsSignedIn; }
     }
 
     // ---- the home screen hint ----
@@ -392,6 +406,7 @@ public static class AccountLink
         pendingCallbacks = null;
         lastReport = default(SignInReport);
         silentFailed = false;
+        silentFinished = false;
         InteractiveAttempts = 0;
         resumeTried = false;
         accountOverride = null;

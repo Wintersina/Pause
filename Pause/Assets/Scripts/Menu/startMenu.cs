@@ -33,6 +33,15 @@ public class startMenu : MonoBehaviour {
         }
     }
 
+    void OnEnable() { AccountLink.Changed += OnAccountChanged; }
+    void OnDisable() { AccountLink.Changed -= OnAccountChanged; }
+
+    // The SIGN IN button appears / disappears with the account state; the footer re-lays out around it.
+    public void OnAccountChanged()
+    {
+        if (HomeSignIn.Refresh()) LayoutHome();
+    }
+
     // Update is called once per frame
     void Update()
     {
@@ -81,6 +90,7 @@ public class startMenu : MonoBehaviour {
         var canvasObject = SceneUtil.FindAny("MainMenuCanvas");
         if (canvasObject == null) return;
         EnsurePrivacyButton();
+        HomeSignIn.Refresh();
         ShopHomeEntry.Ensure();
         var canvas = canvasObject.GetComponent<Canvas>();
         var scaler = canvasObject.GetComponent<CanvasScaler>();
@@ -123,15 +133,31 @@ public class startMenu : MonoBehaviour {
         // The footer: PRIVACY POLICY, with Quit under it (no Quit on iOS: the
         // policy link takes its place at the bottom). On a canvas too short for
         // two stacked rows under the menu column, the two sit side by side.
+        // The SIGN IN button (only while the launch sign-in failed) joins the footer row beside PRIVACY POLICY.
+        bool signOn = HomeSignIn.Visible;
+        float signW = signOn ? Mathf.Min(HomeSignIn.Width, (width - 64f) * 0.4f) : 0f, signGap = signOn ? FooterSideGap : 0f;
+        // On a narrow canvas PRIVACY POLICY keeps its width (its text must fit) and SIGN IN takes the row above it.
+        bool tight = signOn && width - 64f - signW - signGap < PrivacyWidth * .9f;
         float footerWidth = Mathf.Min(180f, (width - 64f) * 0.5f);
         var quit = SceneUtil.FindAny("QuitButton");
         bool hasQuit = quit != null && quit.activeSelf;
         float footerY = 44f + safeBottom;
         float columnBottom = height * 0.5f + topEdge - columnHeight - 6f;
         float stackedTop = footerY + FooterRowUnits * 1.5f + FooterGap + FooterGap * 0.5f;
-        FooterStacked = !hasQuit || stackedTop <= columnBottom;
+        FooterStacked = !hasQuit || stackedTop <= columnBottom || tight;
         // Side by side the footer row is one row tall; on a canvas too short even for that under a six-row
         // column (the foldable's cover display), the column rises by what it overlaps instead of covering it.
+        if (FooterStacked && tight)
+        {
+            // the extra SIGN IN row above PRIVACY POLICY: the column rises by what it would overlap
+            float deficit = stackedTop + FooterRowUnits + FooterGap + 16f - (columnBottom + 6f);   // + the two tap paddings
+            if (deficit > 0f)
+            {
+                topEdge += deficit;
+                Place("UIPanel", new Vector2(0.5f, 0.5f), new Vector2(0f, topEdge - columnHeight * 0.5f),
+                      new Vector2(Mathf.Min(520f, width * 0.78f), columnHeight));
+            }
+        }
         if (!FooterStacked)
         {
             float sideTop = footerY + FooterRowUnits + FooterGap * .5f;
@@ -146,28 +172,36 @@ public class startMenu : MonoBehaviour {
         if (FooterStacked)
         {
             Place("QuitButton", new Vector2(0.5f, 0f), new Vector2(0f, footerY), new Vector2(footerWidth, FooterRowUnits));
-            Place(PrivacyButtonName, new Vector2(0.5f, 0f),
-                  new Vector2(0f, footerY + (hasQuit ? FooterRowUnits + FooterGap : 0f)),
-                  new Vector2(Mathf.Min(PrivacyWidth, width - 64f), FooterRowUnits));
+            float privacyW = Mathf.Min(PrivacyWidth, tight ? width - 64f : width - 64f - signW - signGap);
+            float total = privacyW + (signOn && !tight ? signGap + signW : 0f);
+            float rowY = footerY + (hasQuit ? FooterRowUnits + FooterGap : 0f);
+            Place(PrivacyButtonName, new Vector2(0.5f, 0f), new Vector2(-total * 0.5f + privacyW * 0.5f, rowY),
+                  new Vector2(privacyW, FooterRowUnits));
+            if (signOn && !tight) Place(HomeSignIn.ButtonName, new Vector2(0.5f, 0f), new Vector2(total * 0.5f - signW * 0.5f, rowY),
+                                        new Vector2(signW, FooterRowUnits));
+            else if (signOn) Place(HomeSignIn.ButtonName, new Vector2(0.5f, 0f), new Vector2(0f, rowY + FooterRowUnits + FooterGap),
+                                   new Vector2(signW, FooterRowUnits));
         }
         else
         {
-            float room = width - 64f - FooterSideGap;
+            float room = width - (signOn ? 112f : 64f) - FooterSideGap - signW - signGap;   // the row sits in the rounded bottom corners: keep it off them
             float privacyW = Mathf.Min(PrivacyWidth, room * 0.6f), quitW = Mathf.Min(180f, room - privacyW);
-            float total = privacyW + FooterSideGap + quitW;
+            float total = privacyW + FooterSideGap + quitW + signGap + signW;
             Place(PrivacyButtonName, new Vector2(0.5f, 0f), new Vector2(-total * 0.5f + privacyW * 0.5f, footerY),
                   new Vector2(privacyW, FooterRowUnits));
-            Place("QuitButton", new Vector2(0.5f, 0f), new Vector2(total * 0.5f - quitW * 0.5f, footerY),
-                  new Vector2(quitW, FooterRowUnits));
+            Place("QuitButton", new Vector2(0.5f, 0f),
+                  new Vector2(-total * 0.5f + privacyW + FooterSideGap + quitW * 0.5f, footerY), new Vector2(quitW, FooterRowUnits));
+            if (signOn) Place(HomeSignIn.ButtonName, new Vector2(0.5f, 0f), new Vector2(total * 0.5f - signW * 0.5f, footerY),
+                              new Vector2(signW, FooterRowUnits));
         }
         // finger-sized targets without bigger art (the art is 56 units tall)
-        foreach (string name in new[] { "QuitButton", PrivacyButtonName })
+        foreach (string name in new[] { "QuitButton", PrivacyButtonName, HomeSignIn.ButtonName })
         {
             var go = SceneUtil.FindAny(name);
             var graphic = go != null ? go.GetComponent<Graphic>() : null;
             if (graphic != null) graphic.raycastPadding = new Vector4(-8f, -FooterGap * .5f, -8f, -FooterGap * .5f);
         }
-        foreach (string name in new[] { "PlayButton", "shopButton", ShopHomeEntry.ButtonName, "achivButton", "LeaderboardButton", "QuitButton", PrivacyButtonName })
+        foreach (string name in new[] { "PlayButton", "shopButton", ShopHomeEntry.ButtonName, "achivButton", "LeaderboardButton", "QuitButton", PrivacyButtonName, HomeSignIn.ButtonName })
         {
             var button = SceneUtil.FindAny(name);
             if (button == null) continue;

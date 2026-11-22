@@ -78,6 +78,7 @@ public static class ScreenFitScreens
     {
         new FitScreen { id = "splash", scene = "spashS7", title = "Splash (HapticGate)", fullBleed = true, stage = Splash },
         new FitScreen { id = "home", fullBleed = true, scene = "startS4", title = "Title / main menu", stage = r => Home(r, false) },
+        new FitScreen { id = "home-signin", fullBleed = true, scene = "startS4", title = "Home + SIGN IN button (launch sign-in failed)", stage = r => HomeBase(r, true) },
         new FitScreen { id = "home-toasts", fullBleed = true, scene = "startS4", title = "Home + quit / account toasts", stage = r => Home(r, true) },
         new FitScreen { id = "codex-grid", fullBleed = true, scene = "startS4", title = "Codex / pilot's log: list", stage = r => CodexScreen(r, false) },
         new FitScreen { id = "codex-detail", fullBleed = true, scene = "startS4", title = "Codex / pilot's log: entry", stage = r => CodexScreen(r, true) },
@@ -182,8 +183,11 @@ public static class ScreenFitScreens
 
     // ---- home -------------------------------------------------------------------
 
-    public static startMenu HomeBase(ScreenFitRig rig)
+    public static startMenu HomeBase(ScreenFitRig rig, bool signedOutAfterLaunch = false)
     {
+        // Every home screen starts from "nothing happened this launch": no SIGN IN button, unless asked for.
+        AccountLink.ResetSession();
+        if (signedOutAfterLaunch) HomeSignInTest.StageFailedLaunch(rig.device.ios);
         PlayerPrefs.SetString("HasDoneTut", "true");
         MenuStyler.StyleScene();
         foreach (var cb in UnityEngine.Object.FindObjectsByType<CodexHomeButton>(FindObjectsInactive.Include, FindObjectsSortMode.None)) cb.Build();
