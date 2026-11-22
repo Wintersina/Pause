@@ -582,6 +582,9 @@ public partial class ShipAttackRunner : MonoBehaviour
         StopAll();
         DestroyTurrets();
         for (int i = 0; i < runs.Length; i++) if (runs[i] != null && runs[i].spark != null) runs[i].DisposeSparks();
+        for (int i = 0; i < runs.Length; i++)
+            if (runs[i] != null && runs[i].v3 != null)
+                for (int k = 0; k < AttackV3.Max; k++) if (runs[i].v3.link[k] != null) runs[i].v3.link[k].Destroy();
     }
 }
 

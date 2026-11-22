@@ -108,6 +108,7 @@ public partial class ShipAttackRunner
                 var s = sentries[i];
                 if (s.sprite != null && s.sprite.Active) s.sprite.Stop();
                 if (s.turret != null) s.turret.Hide();
+                if (s.line != null) s.line.Hide();
                 s.on = false;
                 s.sprite = null;
             }
@@ -482,6 +483,9 @@ public partial class ShipAttackRunner
         public bool mortal;           // it can be hit at all (l.hits > 0)
         public bool downed;           // shot down: folding away early
         public float guard;           // seconds of no-hit after a hit
+        public AttackLink line;       // the aim line (target) or faint scan line (idle) drawn from the muzzle
+        public ClearTarget lastAim;   // whom the line pointed at last frame (a change makes the line jump)
+        public float jump;            // seconds left of the brighter, thicker flash after a target switch
     }
 
     class Bolt
@@ -558,6 +562,8 @@ public partial class ShipAttackRunner
             s.mortal = s.hp > 0;
             s.downed = false;
             s.guard = 0f;
+            s.lastAim = null;
+            s.jump = 0f;
             made++;
         }
         if (made == 0) run.Stop();
@@ -617,6 +623,7 @@ public partial class ShipAttackRunner
                     s.turret.Tick(dt);
                     if (s.drift) DriftSentry(s, dt);
                     AimSentry(s, dt);
+                    DrawSentryLine(s, dt);
                     s.fireClock += dt;
                     float gap = 1f / s.rate;
                     while (s.fireClock >= gap)
@@ -630,11 +637,13 @@ public partial class ShipAttackRunner
                     s.stage = 4;
                     s.t = 0f;
                     s.aim = null;
+                    if (s.line != null) s.line.Hide();
                     break;
                 default:
                     float fold = DeploySeconds * (s.downed ? SentryDeathFold : 1f);
                     if (s.t < fold) { s.turret.Unfold(1f - s.t / fold); s.turret.Tick(dt); break; }
                     if (s.turret != null) s.turret.Hide();
+                    if (s.line != null) s.line.Hide();
                     if (s.sprite != null && s.sprite.Active) s.sprite.Stop();
                     s.sprite = null;
                     s.on = false;
@@ -705,6 +714,7 @@ public partial class ShipAttackRunner
         s.stage = 4;
         s.t = 0f;
         s.aim = null;
+        if (s.line != null) s.line.Hide();
         Vector3 at = s.turret != null ? s.turret.Pivot : s.to;
         SentryBursts++;
         AttackPool.Sprite().Play(AttackSprite.Source.AttackBurst, ship, at, Vector3.one * SentryDeathBurstSize, 0f,
@@ -723,8 +733,42 @@ public partial class ShipAttackRunner
     {
         if (sentries == null) return;
         for (int i = 0; i < sentries.Length; i++)
+        {
             if (sentries[i].turret != null) sentries[i].turret.Destroy();
+            if (sentries[i].line != null) sentries[i].line.Destroy();
+        }
     }
+
+    // ---- the aim line: a thin gold line from the muzzle to the mark it is firing at, so the gun visibly
+    // connects to its target. No mark: a faint scan line that sweeps with the idle head. A new mark makes the
+    // line jump to it (a short, brighter, thicker flash). Never drawn on the enemy itself: it runs between objects.
+    public const float AimLineWidth = .03f, AimLineAlpha = .6f, AimJumpWidth = .07f, AimJumpAlpha = .95f, AimJumpSeconds = .14f;
+    public const float ScanLineWidth = .02f, ScanLineAlpha = .16f, ScanLineLength = 2.6f;
+    static readonly Color SentryLineTint = new Color(1f, .84f, .38f, 1f);   // the Warden's own gold
+
+    void DrawSentryLine(Sentry s, float dt)
+    {
+        if (s.turret == null) return;
+        if (s.line == null || !s.line.Alive) s.line = new AttackLink(SentryLineTint, 66);
+        Vector3 muzzle = s.turret.Muzzle;
+        if (s.jump > 0f) s.jump -= dt;
+        if (s.aim != null)
+        {
+            if (s.aim != s.lastAim) s.jump = AimJumpSeconds;
+            bool j = s.jump > 0f;
+            s.line.Set(muzzle, s.aim.transform.position, j ? AimJumpWidth : AimLineWidth, j ? AimJumpAlpha : AimLineAlpha);
+        }
+        else
+        {
+            float r = s.turret.Angle * Mathf.Deg2Rad;
+            Vector3 dir = new Vector3(-Mathf.Sin(r), Mathf.Cos(r), 0f);
+            s.line.Set(muzzle, muzzle + dir * Mathf.Min(ScanLineLength, Mathf.Max(1f, s.reach)), ScanLineWidth, ScanLineAlpha);
+        }
+        s.lastAim = s.aim;
+    }
+
+    // The aim / scan line of sentry i (tests): null until it has been drawn.
+    public AttackLink SentryLine(int i) { return sentries != null && sentries[i].on ? sentries[i].line : null; }
 
     // The mark: the nearest real body in reach of the sentry (never backdrop rocks); the head turns toward it.
     void AimSentry(Sentry s, float dt)
