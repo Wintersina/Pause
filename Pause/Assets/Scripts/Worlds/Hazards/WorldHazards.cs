@@ -125,6 +125,22 @@ public sealed class WorldHazards : MonoBehaviour
     public WindVisuals Wind { get { return wind ?? (wind = new WindVisuals()); } }
     public WeatherLayer Weather { get { return weather ?? (weather = new WeatherLayer()); } }
 
+    // The three drawn layers are built on first use. If one cannot be built on this device (10026: a stripped engine
+    // class), it is given up for the run instead of being rebuilt, and leaked, every frame; the others still draw.
+    bool visualsBroken, windBroken, weatherBroken;
+    public bool DrawingBroken { get { return visualsBroken || windBroken || weatherBroken; } }
+
+    static void Guarded(ref bool broken, string what, System.Action draw)
+    {
+        if (broken) return;
+        try { draw(); }
+        catch (System.Exception e)
+        {
+            broken = true;
+            Debug.LogError("WorldHazards: " + what + " switched off for this run after an error: " + e);
+        }
+    }
+
     float Rand(float a, float b) { return a + (float)rng.NextDouble() * (b - a); }
 
     void Awake()
@@ -155,11 +171,29 @@ public sealed class WorldHazards : MonoBehaviour
         float dt = Time.deltaTime;
         bool flying = WorldManager.Flying;
         if (flying && dt > 0f && !Disabled) Step(dt);
-        Visuals.Draw(fields);
+        DrawLayers(flying ? dt : 0f);
+    }
+
+    System.Action drawVisuals, drawWind, drawWeather;
+    float drawDt;
+    int drawWorld;
+
+    // One frame of the drawn layers (LateUpdate; tests call it directly).
+    public void DrawLayers(float dt)
+    {
+        drawDt = dt;
+        drawWorld = world >= 0 ? world : (WorldManager.Instance != null ? WorldManager.SpawnWorld : 0);
+        if (drawVisuals == null)
+        {
+            // (delegates made once: nothing is allocated per frame)
+            drawVisuals = () => Visuals.Draw(fields);
+            drawWind = () => Wind.Draw(drawDt, drawWorld);
+            drawWeather = () => Weather.Step(drawDt, drawWorld, fields);
+        }
+        Guarded(ref visualsBroken, "hazard visuals", drawVisuals);
         DazedSparks.Draw(Time.time);
-        int shownWorld = world >= 0 ? world : (WorldManager.Instance != null ? WorldManager.SpawnWorld : 0);
-        Wind.Draw(flying ? dt : 0f, shownWorld);
-        Weather.Step(flying ? dt : 0f, shownWorld, fields);
+        Guarded(ref windBroken, "wind visuals", drawWind);
+        Guarded(ref weatherBroken, "weather layer", drawWeather);
     }
 
     // ---- one running frame (dt explicit: tests and simulations step it by hand) ----

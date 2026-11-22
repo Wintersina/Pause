@@ -5,4 +5,9 @@
        Java through AndroidJavaObject / reflection-style callbacks). -->
   <assembly fullname="Assembly-CSharp" preserve="all"/>
   <assembly fullname="Google.Play.Games" preserve="all"/>
+  <!-- Engine classes the game only ever creates from code (no scene or prefab holds one). SpriteMask: the solar
+       flare's openings (HazardVisuals). Its native module also needs com.unity.modules.tilemap in
+       Packages/manifest.json; without both the player has no SpriteMask class (build 10026: a pool leaked every
+       frame until the app ran out of memory). EngineModuleGuardTest checks both. -->
+  <assembly fullname="UnityEngine.SpriteMaskModule" preserve="all"/>
 </linker>
