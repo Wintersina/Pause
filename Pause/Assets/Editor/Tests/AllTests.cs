@@ -58,6 +58,7 @@ public static class AllTests
         ("PerfPass2Test", PerfPass2Test.Execute),
         ("AccountCloudSaveTest", AccountCloudSaveTest.Execute),
         ("AccountSignInTest", AccountSignInTest.Execute),
+        ("HomeSignInTest", HomeSignInTest.Execute),
         ("PreRegistrationRewardTest", PreRegistrationRewardTest.Execute),
         ("ParagonPurchaseTest", ParagonPurchaseTest.Execute),
         ("SupportPurchaseTest", SupportPurchaseTest.Execute),

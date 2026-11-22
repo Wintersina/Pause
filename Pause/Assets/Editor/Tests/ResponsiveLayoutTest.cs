@@ -58,7 +58,7 @@ public static class ResponsiveLayoutTest
     // Screens whose layout is a function of the screen's shape.
     static readonly string[] Screens =
     {
-        "home", "codex-grid", "codex-detail", "shop", "options", "options-start-world", "leaderboard", "leaderboard-settings",
+        "home", "home-signin", "codex-grid", "codex-detail", "shop", "options", "options-start-world", "leaderboard", "leaderboard-settings",
         "credits", "dock", "dock-popup-owned", "game-paused", "game-death", "tutorial-complete",
     };
 
@@ -66,7 +66,7 @@ public static class ResponsiveLayoutTest
     // cannot keep finger-sized rows AND the logo / card on screen (see the PR). Skipped on that one shape only.
     static bool Known(FitDevice d, string screen)
     {
-        return d.id == "r-cover-948x1048-dense" && (screen == "home" || screen == "dock-popup-owned");
+        return d.id == "r-cover-948x1048-dense" && (screen == "home" || screen == "home-signin" || screen == "dock-popup-owned");
     }
 
     // A modal card sits over the dock's PLAY button by design.
@@ -99,6 +99,7 @@ public static class ResponsiveLayoutTest
                         Check(id + " @ " + device.id + ": " + f.kind + " " + f.element + " " + f.detail, false);
                     }
                     if (bad == 0) Check(id + " @ " + device.id + ": taps inside the safe area, none overlapping", true);
+                    if (id == "home-signin") AccountLink.ResetSession();
                 }
                 if (!Known(device, "home")) HomeLogo(device);
             }
