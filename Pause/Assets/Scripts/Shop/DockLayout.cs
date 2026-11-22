@@ -5,7 +5,7 @@ using UnityEngine;
 // px.
 //
 // One unit, repeated: a VERTICAL RUNWAY with a bay column on each side. Ships are backed in with their noses pointing
-// sideways into the runway; the runway's arrows point up. Narrow views (phones, a foldable's cover pane) get one
+// sideways into the runway; the runway has a dashed centre line. Narrow views (phones, a foldable's cover pane) get one
 // runway; wider views get two side by side (never more). The unit is scaled to fit the width but never grown past
 // MaxScale, so a big screen centres the lot with margins instead of blowing the bays up.
 //

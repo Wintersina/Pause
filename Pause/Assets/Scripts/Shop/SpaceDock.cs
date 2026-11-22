@@ -46,7 +46,6 @@ public class SpaceDock : MonoBehaviour
     shopingShips shop;
     SpriteRenderer edgeLeft, edgeRight, headerBand, footerBand;
     readonly List<SpriteRenderer> laneTiles = new List<SpriteRenderer>();
-    readonly List<SpriteRenderer> arrows = new List<SpriteRenderer>();
     readonly List<SpriteRenderer> dividers = new List<SpriteRenderer>();
     // the "more below" hint over the lot's bottom edge (ScrollHint's rule, drawn in world space)
     SpriteRenderer hintFade, hintChevron;
@@ -463,7 +462,7 @@ public class SpaceDock : MonoBehaviour
         popup.SetDensity(fit ? UiScale.UnitPx * worldPerPixel : worldPerPoint);
     }
 
-    // Lays every lot piece out for `layout`: bays, lane tiles and arrows, seams, edge rails. Pieces are pooled (built
+    // Lays every lot piece out for `layout`: bays, runway tiles, seams, edge rails. Pieces are pooled (built
     // on the first layout that needs them), so a resize allocates nothing new once the lot has been seen.
     void BuildLot()
     {
@@ -483,7 +482,7 @@ public class SpaceDock : MonoBehaviour
         edgeLeft.transform.localPosition = new Vector3(-railX, 0f, 0f);
         edgeRight.transform.localPosition = new Vector3(railX, 0f, 0f);
 
-        // vertical runways (arrows all point up, one every two bay rows)
+        // vertical runways (a dashed centre line, no arrows)
         for (int l = 0; l < Mathf.Max(layout.lanes, laneTiles.Count); l++)
         {
             if (l >= laneTiles.Count) laneTiles.Add(Piece("Lane" + l, null, SpriteDrawMode.Tiled, 0));
@@ -493,18 +492,6 @@ public class SpaceDock : MonoBehaviour
             tile.sprite = DockArt.Lot("lane_tile_v");
             tile.size = new Vector2(DockLayout.Lane, h);
             tile.transform.localPosition = new Vector3(layout.LaneCenter(l), 0f, 0f);
-        }
-        int perLane = (layout.rows + 1) / 2, arrowCount = layout.lanes * perLane;
-        for (int a = 0; a < Mathf.Max(arrowCount, arrows.Count); a++)
-        {
-            if (a >= arrows.Count) arrows.Add(Piece("Arrow" + a, null, SpriteDrawMode.Simple, 1));
-            var arrow = arrows[a];
-            arrow.gameObject.SetActive(a < arrowCount);
-            if (a >= arrowCount) continue;
-            int lane = a / perLane, k = a % perLane;
-            arrow.sprite = DockArt.Lot("lane_arrow_up");
-            arrow.transform.localPosition = new Vector3(layout.LaneCenter(lane), h * .5f - (2 * k + 1) * DockLayout.BayW, 0f);
-            arrow.sortingOrder = 1;
         }
         // thin painted seams between neighbouring bays
         int seamCount = 0;
