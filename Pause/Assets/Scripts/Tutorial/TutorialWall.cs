@@ -151,7 +151,7 @@ public class TutorialWall : MonoBehaviour
 
         var holder = new GameObject("~TutorialWall");
         var wall = holder.AddComponent<TutorialWall>();
-        var first = EnemyFactory.Create(def, new Vector3(0f, spawnY, 0f), Quaternion.identity);
+        var first = EnemyFactory.Create(def, new Vector3(0f, spawnY, 0f), Quaternion.identity, 1f, false);
         if (first == null) { Destroy(holder); return null; }
         float w = FallbackPieceWidth, hh = FallbackPieceHalfHeight;
         var col = first.GetComponentInChildren<Collider2D>();
@@ -169,7 +169,7 @@ public class TutorialWall : MonoBehaviour
         int n = PlanRow(ShipReach.HalfWidth, w, shipW, out spacing, out firstX);
         for (int i = 0; i < n; i++)
         {
-            var go = i == 0 ? first : EnemyFactory.Create(def, new Vector3(0f, spawnY, 0f), Quaternion.identity);
+            var go = i == 0 ? first : EnemyFactory.Create(def, new Vector3(0f, spawnY, 0f), Quaternion.identity, 1f, false);
             if (go == null) continue;
             TutorialEnemy.Prepare(go);
             go.transform.position = new Vector3(firstX + i * spacing, spawnY, 0f);

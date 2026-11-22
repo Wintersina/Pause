@@ -24,7 +24,8 @@ public static class EnemyFactory
 {
     // `size`: a rock's size as a multiple of its roster size (HazardSize;
     // the spawner draws it). Ignored for everything but a rock.
-    public static GameObject Create(EnemyDef def, Vector3 position, Quaternion rotation, float size = 1f)
+    // `tough`: false builds a one-hit enemy (the tutorial); otherwise see Toughness.
+    public static GameObject Create(EnemyDef def, Vector3 position, Quaternion rotation, float size = 1f, bool tough = true)
     {
         if (def == null) return null;
         var go = new GameObject(def.ObjectName);
@@ -105,6 +106,8 @@ public static class EnemyFactory
         size = HazardSize.Apply(go, def, size);
         SpawnFootprint.Attach(go, SpawnSpace.BodyHalf(def, size));
         SpawnFootprint.Bind(go, go.GetComponent<IMovementFootprint>());
+        // 2 hearts (a rock or mine: deflected by the first hit, destroyed by the second); the tutorial's enemies stay one-hit
+        if (tough) Toughness.Attach(go, def);
         return go;
     }
 

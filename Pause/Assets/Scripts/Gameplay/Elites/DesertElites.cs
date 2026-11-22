@@ -81,7 +81,7 @@ public abstract class DesertSpotAttack : EliteAttack
     public int Count => count;
     public int Laid => laid;
     public Vector2 Spot(int i) => spot[Mathf.Clamp(i, 0, MaxSpots - 1)];
-    public int HeartsLost => Mathf.Max(0, def.hearts - ship.Hearts);
+    public int HeartsLost => Mathf.Max(0, def.hearts - ship.ScriptHearts);
 
     void ShowRings(bool fast)
     {

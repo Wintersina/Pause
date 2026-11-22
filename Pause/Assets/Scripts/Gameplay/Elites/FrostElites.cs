@@ -611,7 +611,7 @@ public class FrostBloomAttack : EliteAttack
     public int BeamShots => beamShots;
     public EliteShot Orb { get; private set; }
     public EliteShot Orb2 { get; private set; }
-    public int Orbs => ship == null ? 1 : FrostFlight.Declares(ship, "twin") ? (FrostFlight.Is(ship.Script.VariantName, "twin") ? 2 : 1) : ship.Hearts < DoubleBelow ? 2 : 1;
+    public int Orbs => ship == null ? 1 : FrostFlight.Declares(ship, "twin") ? (FrostFlight.Is(ship.Script.VariantName, "twin") ? 2 : 1) : ship.ScriptHearts < DoubleBelow ? 2 : 1;
 
     public FrostBloomAttack() { Id = "frost_bloom"; }
 
@@ -1203,8 +1203,8 @@ public class FloeBargeAttack : FloeCastAttack
     public EliteShot SkidSlab => slab;
     public EliteTelegraph SkidLane => skidLane;
     public int Casts => casts;
-    public float SkidSpeed => def.skidSpeed * (1f + SpeedPerHeart * Mathf.Max(0, def.hearts - ship.Hearts));
-    int Every => ship.Hearts <= 1 ? CastEveryLast : CastEvery;
+    public float SkidSpeed => def.skidSpeed * (1f + SpeedPerHeart * Mathf.Max(0, def.hearts - ship.ScriptHearts));
+    int Every => ship.ScriptHearts <= 1 ? CastEveryLast : CastEvery;
     public override float TellSeconds => skid ? Mathf.Max(EliteDef.MinAimedTell, def.tellSeconds * SkidTell) : base.TellSeconds;
     float SlabRadius => def.hazardSize * .42f;
 
@@ -1325,7 +1325,7 @@ public class TenderRigAttack : DroneDeployAttack
     public Vector2 MineSpot => mineSpot;
     public EliteMarks Marks => marks;
     public EliteShot Mine(int i) => i >= 0 && i < mines.Length ? mines[i] : null;
-    public float MineGap => Mathf.Max(MineEveryMin, MineEvery - MineEveryLost * Mathf.Max(0, def.hearts - ship.Hearts));
+    public float MineGap => Mathf.Max(MineEveryMin, MineEvery - MineEveryLost * Mathf.Max(0, def.hearts - ship.ScriptHearts));
 
     // The cone's nozzle: between the two lower pods.
     public Vector2 FogOrigin => def.muzzles.Length >= 4 ? (ship.MuzzleWorld(2) + ship.MuzzleWorld(3)) * .5f : ship.MuzzleWorld(0);
@@ -1489,7 +1489,7 @@ public class IcicleBarrageAttack : ArmourShatterAttack
 
     public override bool HoldsDuringTell => Stripped;
     public override float TellSeconds => Stripped ? BaseTell * BarrageTell : base.TellSeconds;
-    public int HeartsLost => Mathf.Max(0, def.hearts - ship.Hearts);
+    public int HeartsLost => Mathf.Max(0, def.hearts - ship.ScriptHearts);
     // (a scripted barrage beat names its lanes in shotCount; otherwise the lanes grow with the hearts lost)
     public int LaneCount => ship.Script.Varied ? Mathf.Clamp(def.shotCount, 3, MaxLanes) : Mathf.Min(MaxLanes, BaseLanes + (HeartsLost >= 2 ? 1 : 0) + (HeartsLost >= 4 ? 1 : 0));
     public int Columns => columns;

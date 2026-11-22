@@ -774,7 +774,7 @@ public class WardBarrageAttack : EliteAttack
     public int Gap => gap;
     public int Gap2 => gap2;
     public Vector2 Row => row;
-    public int HeartsLost => Mathf.Max(0, def.hearts - ship.Hearts);
+    public int HeartsLost => Mathf.Max(0, def.hearts - ship.ScriptHearts);
     // The script's beats: "gapL" / "gapR" a single row with its gap on that side of the pilot, "doubleL" / "doubleR" the same with a
     // second row behind it, "mine" a mine drop.
     string Beat => ship.Script.VariantName;
@@ -827,7 +827,7 @@ public class WardBarrageAttack : EliteAttack
     // Where the mines of this drop go: ahead of the pilot, the first toward the middle.
     void PlanMines(Vector2 p)
     {
-        mineCount = ship.Hearts <= TwoMinesAt ? 2 : 1;
+        mineCount = ship.ScriptHearts <= TwoMinesAt ? 2 : 1;
         float edge = EliteSystem.RailEdge - .5f;
         float toward = p.x > 0f ? -1f : 1f;
         float y = Mathf.Min(p.y + def.lobAhead, Mathf.Max(EliteSystem.ViewBottom + 1f, ship.Position.y - 1.2f));

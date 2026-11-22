@@ -44,7 +44,7 @@ public class EliteHearts : HeartOrbit
 
     public override void BuildHearts()
     {
-        if (ship != null) BuildHearts(ship.Def.hearts);
+        if (ship != null) BuildHearts(ship.Def.MaxHearts);
     }
 
     // Applies a lost heart now (EliteShip.TakeHit) instead of next frame.
@@ -60,6 +60,9 @@ public class EliteHearts : HeartOrbit
     }
 
     protected override bool Outlined { get { return true; } }
+
+    // Armoured elites carry ten (5 authored x the double health).
+    protected override int MaxHearts { get { return 12; } }
 
     // Pale-hulled elites (EliteDef.boldHearts) wear the bold outline in every world.
     protected override bool? BoldOutline { get { return ship != null && ship.Def.boldHearts ? true : (bool?)null; } }

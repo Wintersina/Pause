@@ -34,7 +34,9 @@ public static class SpaceAsteroidField
 
     // size tiers: 0 small, 1 medium, 2 large
     public static readonly float[] Width = { HazardSize.MinDrawnWidth, .85f, 1.25f };   // drawn width (u); the small tier is the shared minimum
-    public static readonly float[] SizeHits = { 1f, 2f, 3f };               // full ship-attack hits to break it
+    public static readonly float[] SizeHits = { 2f, 2f, 3f };               // full ship-attack hits to break it (combat rework: the first hit deflects, the second breaks a small or medium one; was 1 / 2 / 3)
+    public const float DeflectKick = 1.1f;                  // u/s a non-lethal hit throws the rock away from the blow (and flips its tumble)
+    public const float HitWindow = Toughness.HitWindow;     // s: a second full hit this soon is the same attack frame, ignored (ticks under half a hit are not)
     public static readonly float[] TierWeight = { .35f, .45f, .20f };       // what the director draws
     public const float ScrollShare = .55f;                  // share of the board's scroll it falls at
     public const float ScrollK = 30f;                       // the board's scroll is speed * 30 u/s (moveItemEnmInStrightLine)
@@ -170,6 +172,9 @@ public class FieldAsteroid : MonoBehaviour, IShipAttackTargetUncapped
     int shown = -1, startFrame;
     float spin, flash, blinkAge, joltLeft, chipWait, worldRadius, reach;
     Vector2 joltDir;
+    float lastHitAt = -999f;
+    bool deflected;
+    public bool Deflected { get { return deflected; } }
     Vector3 joltOffset;
     Sprite[] frames;
     SpriteRenderer sr, overlay;
@@ -232,6 +237,13 @@ public class FieldAsteroid : MonoBehaviour, IShipAttackTargetUncapped
         var tr = transform;
         Vector3 p = tr.position - joltOffset;          // (the hit's nudge is laid over the real position each frame)
         p.x += SideSpeed * dt;
+        if (deflected && Pattern != SpaceAsteroidField.ZigZag)
+        {
+            // a deflected rock bounces off the rails instead of leaving the lane sideways
+            float edge = Mathf.Max(.3f, SpaceAsteroidField.Edge - SpaceAsteroidField.Width[Tier] * .3f);
+            if (p.x > edge) { p.x = edge; Vx = -Mathf.Abs(Vx); }
+            else if (p.x < -edge) { p.x = -edge; Vx = Mathf.Abs(Vx); }
+        }
         if (Pattern == SpaceAsteroidField.ZigZag)
         {
             zigAge += dt;
@@ -283,9 +295,31 @@ public class FieldAsteroid : MonoBehaviour, IShipAttackTargetUncapped
     public void TakeShipAttack(int ship, float weight, Vector3 at)
     {
         if (Broken) return;
+        // one attack frame hits once: a full hit inside the ignore window of the last one does not count again
+        float now = Toughness.Now;
+        if (weight >= .5f)
+        {
+            if (now - lastHitAt < Toughness.Window) { Toughness.Ignored++; return; }
+            lastHitAt = now;
+        }
         Health -= weight;
         if (Health <= .0001f) { Break(ship); return; }
         HitFeedback(at);
+        Deflect(at);
+    }
+
+    // The first hit throws the rock away from the blow and flips its tumble (the non-lethal half of "deflect, then destroy").
+    void Deflect(Vector3 at)
+    {
+        Vector2 away = new Vector2(transform.position.x - at.x, transform.position.y - at.y);
+        if (away.sqrMagnitude < 1e-4f) away = Vector2.up;
+        away.Normalize();
+        if (Mathf.Abs(away.x) < .35f) away.x = (away.x > .001f ? 1f : away.x < -.001f ? -1f : (transform.position.x > 0f ? -1f : 1f)) * .35f;
+        deflected = true;
+        Toughness.Deflections++;
+        Vx += away.x * SpaceAsteroidField.DeflectKick;
+        Vy += Mathf.Max(.2f, away.y) * SpaceAsteroidField.DeflectKick * .6f;
+        spin = -Mathf.Sign(spin == 0f ? 1f : spin) * (Mathf.Abs(spin) + 60f);
     }
 
     // A non-lethal hit: the white flash, a tiny jolt away from the blow, and a few chips in the type's accent colour.

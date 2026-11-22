@@ -148,6 +148,8 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint, I
     public EliteAttack Attack { get; private set; }
     public EliteState State { get; private set; }
     public int Hearts { get; private set; }
+    // The hearts the fight script thinks in: the authored count (EliteDef.hearts), a lost authored heart being healthScale real ones.
+    public int ScriptHearts { get { int s = Mathf.Max(1, Def.healthScale); return (Hearts + s - 1) / s; } }
     public Vector2 Velocity { get { return velocity; } set { velocity = value; } }
     public float Facing { get { return facing; } }
     public Vector2 Seen { get { return seen; } }
@@ -316,7 +318,7 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint, I
         // (a private copy: the script varies its numbers per phase and per attack)
         def = def.Instance();
         Def = def;
-        Hearts = def.hearts;
+        Hearts = def.MaxHearts;
         Brain = EliteBrains.Create(def.brain);
         Attack = EliteAttacks.Create(def.attack);
         Script = new EliteScriptRunner(this, def);
@@ -1506,7 +1508,7 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint, I
         bool phased = State != EliteState.Attack && ApplyPhase();
         velocity += away * (phased ? PhaseKick : FlinchKick);
         if (phased) cooldown = Mathf.Max(Script.WaitSeconds(), EliteTuning.Gap(EliteScriptRunner.PhaseBreath));
-        if (Hearts == 1 && Def.hurtHide && !Def.armored && !lastExitDone && State != EliteState.Retreat)
+        if (ScriptHearts == 1 && Def.hurtHide && !Def.armored && !lastExitDone && State != EliteState.Retreat)
         {
             lastExitDone = true;
             string how = Script.LastExit;
@@ -1519,7 +1521,7 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint, I
     // The hearts took it into a new phase of the script: the loop restarts at its first step, with the new phase's numbers.
     bool ApplyPhase()
     {
-        if (!Script.OnHearts(Hearts)) return false;
+        if (!Script.OnHearts(ScriptHearts)) return false;
         EliteSystem.Fx.Sparks(transform.position, Def.ShotColor, 12);
         Script.Begin();
         Brain.OnPhase(Script.Phase);
@@ -2044,7 +2046,7 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint, I
     // calm-idle pass: an upright hull never leans more than this into a sideways move (defs asked for up to 10 deg)
     public const float BankCap = 4f;
     // Lost a heart and has a damaged drawing: shown from then on.
-    public bool Damaged => Def.cells.damaged >= 0 && (Hearts < Def.hearts || Attack.ShowsDamaged) && Engaged;
+    public bool Damaged => Def.cells.damaged >= 0 && (Hearts < Def.MaxHearts || Attack.ShowsDamaged) && Engaged;
     public int BankCell => bankCell;
 
     void SetSprite(Sprite s)
