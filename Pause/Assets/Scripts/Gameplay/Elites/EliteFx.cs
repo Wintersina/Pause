@@ -354,5 +354,7 @@ public static class EliteRewards
         LastDust = score.AwardRewardDust(def.Dust);
         Codex.Discover(ship.gameObject);
         SecretPowerController.OnKill();
+        // A killed elite drops a shot atom half the time (ShotAtomDrops); not while the death crash is breaking the board.
+        if (!DeathCrash.Running) ShotAtomDrops.OnEliteKilled(ship.Position);
     }
 }

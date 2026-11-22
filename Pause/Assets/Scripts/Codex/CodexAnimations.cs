@@ -211,6 +211,8 @@ public static class CodexAnimations
             case CodexCatalogue.VioletAtomId: kind = PickupKind.Cooldown; return true;
             case CodexCatalogue.MagnetAtomId: kind = PickupKind.Magnet; return true;
         }
+        ShotAtom shot;
+        if (CodexCatalogue.TryShotAtom(id, out shot)) { kind = ShotAtoms.KindOf(shot); return true; }
         kind = PickupKind.Shield;
         return false;
     }
@@ -224,7 +226,7 @@ public static class CodexAnimations
         var ticks = PickupArt.IdleTicks(kind);
         var frames = PickupArt.Frames(PickupArt.IdleName(kind), ticks.Length);
         var holds = new float[ticks.Length];
-        for (int i = 0; i < ticks.Length; i++) holds[i] = ticks[i] * PickupArt.Tick;
+        for (int i = 0; i < ticks.Length; i++) holds[i] = PickupArt.HoldSeconds(kind, ticks[i]);
         var a = CodexAnimation.Loop(CodexAnimKind.Atom, frames, holds);
         if (a == null) return null;
         if (kind == PickupKind.Heal)

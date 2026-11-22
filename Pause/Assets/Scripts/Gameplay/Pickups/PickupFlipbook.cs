@@ -82,9 +82,9 @@ public class PickupFlipbook : MonoBehaviour, IPoolReset
         if (frames == null || frames.Length == 0 || dt <= 0f) return;
         clock += dt;
         int guard = 0;
-        while (clock >= ticks[frame] * PickupArt.Tick && guard++ < 64)
+        while (clock >= PickupArt.HoldSeconds(kind, ticks[frame]) && guard++ < 64)
         {
-            clock -= ticks[frame] * PickupArt.Tick;
+            clock -= PickupArt.HoldSeconds(kind, ticks[frame]);
             Show((frame + 1) % frames.Length);
         }
     }

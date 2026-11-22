@@ -53,8 +53,10 @@ public class PickupGlow : MonoBehaviour, IPoolReset
             case PickupKind.Cooldown: return AkiraPalette.VioletHi;
             case PickupKind.Magnet: return AkiraPalette.MagnetBlueHi;
             case PickupKind.Heal: return HealGreen;
-            default: return AkiraPalette.Amber;
         }
+        ShotAtom shot;
+        if (ShotAtoms.TryAtomOf(kind, out shot)) return ShotAtoms.Colour(shot);
+        return AkiraPalette.Amber;
     }
 
     public static readonly Color HealGreen = new Color(.706f, .949f, .275f);   // #B4F246, the heal ramp's light

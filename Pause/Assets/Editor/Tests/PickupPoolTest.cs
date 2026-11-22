@@ -658,7 +658,7 @@ public static class PickupPoolTest
         int end = start < 0 ? -1 : col.IndexOf("public void RaiseShield", start, StringComparison.Ordinal);
         string pickups = start >= 0 && end > start ? col.Substring(start, end - start) : "";
         Check("the pickup branch of collisionDetection is found", pickups.Length > 1000);
-        Check("every pickup in it is removed through Pooled.Destroy (7 sites, none raw)", RawDestroys(pickups) == 0 && Regex.Matches(pickups, @"Pooled\.Destroy\(hit\.gameObject\)").Count == 7);
+        Check("every pickup in it is removed through Pooled.Destroy (8 sites, none raw)", RawDestroys(pickups) == 0 && Regex.Matches(pickups, @"Pooled\.Destroy\(hit\.gameObject\)").Count == 8);
         Check("the generic destroyers (below-camera strip, spawn overlap) release through the funnel", RawDestroys(Src("Gameplay/destoryAnything.cs")) == 0 &&
               RawDestroys(Src("Gameplay/Spawning/spawnCorrectly.cs")) == 0 && Src("Gameplay/destoryAnything.cs").Contains("Pooled.Destroy(") && Src("Gameplay/Spawning/spawnCorrectly.cs").Contains("Pooled.Destroy("));
         Check("the green atom and the atom mover remove themselves through the funnel", RawDestroys(Src("Gameplay/Pickups/HealAtom.cs")) == 0 && RawDestroys(Src("Gameplay/moveItemEnmInStrightLine.cs")) == 0);

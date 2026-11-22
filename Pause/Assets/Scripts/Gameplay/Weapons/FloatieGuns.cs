@@ -31,7 +31,7 @@ public static class FloatieTuning
     public const float BulletRadius = .09f;        // hit radius
     public const float EliteWeight = .25f;         // of a heart (the elite's hit rules bank it)
     public const float BossWeight = .25f;          // of a hit on the boss (its hit window and banking apply)
-    public const int PoolSize = 16;                // bullets alive at once, at most
+    public const int PoolSize = ShotAtomTuning.MaxBullets;   // bullets alive at once, at most (the shot atoms' cap; twin and split need the room)
 
     public static int CountAt(int level)
     {
@@ -41,11 +41,12 @@ public static class FloatieTuning
     public static bool IsFinal(int level) { return level >= ShipWeaponUpgrades.MaxLevel; }
 
     // Seconds between floatie `index` (0-based) shots at `level`.
+    // (the shot atom RAPID then shortens it: +20% / +45% / +75% fire rate, boss fights included)
     public static float Cooldown(int index, int level, bool bossActive)
     {
-        if (bossActive) return BossCooldown;
+        if (bossActive) return ShotAtoms.Rapid(BossCooldown);
         float baseSeconds = index >= 2 ? SeekerCooldown : NormalCooldown;
-        return IsFinal(level) ? baseSeconds * (1f - FinalLevelCut) : baseSeconds;
+        return ShotAtoms.Rapid(IsFinal(level) ? baseSeconds * (1f - FinalLevelCut) : baseSeconds);
     }
 
     // Floatie #2's angle off straight up (degrees, + is to the left): `side01` < .5 left, otherwise right; `spread01` 0..1 picks the size.
@@ -184,6 +185,30 @@ public class FloatieBullet : MonoBehaviour
     ClearTarget lockTarget;
     FloatieBattery owner;
 
+    // The shot atoms on this bullet (ShotAtoms.cs). Plain: whole damage, nothing else.
+    public struct Mods
+    {
+        public float damage;     // of a whole shot (elites / the boss take it as a share of the weight)
+        public int pierce;       // more enemies it passes through
+        public int bounces;      // side-edge ricochets left
+        public int shards;       // level of SPLIT (0: none)
+        public int arc;          // level of ARC (0: none)
+        public bool shard;       // a split shard: small, short, never splits or zaps again
+        public float speed, life;
+        public ClearTarget ignore;   // a shard's parent: it starts inside it
+        public static Mods Plain { get { return new Mods { damage = 1f }; } }
+    }
+    Mods mods;
+    float speed, maxAge;
+    readonly ClearTarget[] passed = new ClearTarget[6];
+    int passedCount;
+
+    // Counters (tests, previews).
+    public static int Pierced, Bounced, ShardsLaunched, ArcZaps;
+    public Mods Applied => mods;
+    public int PierceLeft => mods.pierce;
+    public int BouncesLeft => mods.bounces;
+
     public bool Active { get; private set; }
     public Vector3 Heading => dir;
     public FloatieBattery Owner => owner;
@@ -210,6 +235,8 @@ public class FloatieBullet : MonoBehaviour
         return pill;
     }
 
+    const float ShardScale = .7f;
+
     public void Build()
     {
         body = gameObject.AddComponent<SpriteRenderer>();
@@ -221,6 +248,19 @@ public class FloatieBullet : MonoBehaviour
 
     public void Launch(FloatieBattery by, int shipId, Vector3 at, Vector3 heading, Color tint, FloatieAim.Pick lockOnPick)
     {
+        Launch(by, shipId, at, heading, tint, lockOnPick, Mods.Plain);
+    }
+
+    public void Launch(FloatieBattery by, int shipId, Vector3 at, Vector3 heading, Color tint, FloatieAim.Pick lockOnPick, Mods withMods)
+    {
+        mods = withMods;
+        if (mods.damage <= 0f) mods.damage = 1f;
+        speed = mods.speed > 0f ? mods.speed : FloatieTuning.BulletSpeed;
+        maxAge = mods.life > 0f ? mods.life : MaxAge;
+        passedCount = 0;
+        if (mods.ignore != null) passed[passedCount++] = mods.ignore;
+        float k = mods.shard ? ShardScale : 1f;
+        transform.localScale = new Vector3(Width / (3f / 40f) * k, Length / (8f / 40f) * k, 1f);
         owner = by;
         ship = shipId;
         dir = heading.sqrMagnitude > 1e-6f ? heading.normalized : Vector3.up;
@@ -262,15 +302,30 @@ public class FloatieBullet : MonoBehaviour
             if (!alive) { lockOn = null; lockTarget = null; }
             else dir = PowerFx.SteerHeading(dir, lockOn.position - from, TurnDegreesPerSecond, dt);
         }
-        Vector3 to = from + dir * (FloatieTuning.BulletSpeed * dt);
+        Vector3 to = from + dir * (speed * dt);
+        if (mods.bounces > 0) Ricochet(ref to);
         transform.position = to;
         Face();
 
         if (Resolve(from, to)) return;
-        if (age > MaxAge || !FloatieAim.InView(to, ViewMargin)) Release();
+        if (age > maxAge || !FloatieAim.InView(to, ViewMargin)) Release();
     }
 
     static bool Valid(ClearTarget t) { return FloatieAim.Valid(t); }
+
+    // RICOCHET: past a side edge of the screen the shot is mirrored back in and loses one bounce.
+    void Ricochet(ref Vector3 to)
+    {
+        Rect v = ShipTargets.View(0f);
+        if (to.x < v.xMin && dir.x < 0f) { to.x = v.xMin + (v.xMin - to.x); dir.x = -dir.x; mods.bounces--; Bounced++; }
+        else if (to.x > v.xMax && dir.x > 0f) { to.x = v.xMax - (to.x - v.xMax); dir.x = -dir.x; mods.bounces--; Bounced++; }
+    }
+
+    bool HasPassed(ClearTarget t)
+    {
+        for (int i = 0; i < passedCount; i++) if (passed[i] == t) return true;
+        return false;
+    }
 
     // The first hostile shot or hazard along the step: one bullet, one hit.
     bool Resolve(Vector3 from, Vector3 to)
@@ -288,7 +343,7 @@ public class FloatieBullet : MonoBehaviour
         for (int i = 0; i < live.Count; i++)
         {
             var t = live[i];
-            if (!Valid(t)) continue;
+            if (!Valid(t) || HasPassed(t)) continue;
             Vector3 p = t.transform.position;
             float reach = r + t.Radius;
             if (HostileShots.SegmentDistanceSq(a, b, p) > reach * reach) continue;
@@ -301,25 +356,98 @@ public class FloatieBullet : MonoBehaviour
             if (HostileShots.ShootDown(shot)) { ShotDown++; Release(); return true; }
         }
         if (best == null) return false;
-        Strike(best.gameObject);
+        Strike(best);
+        // PIERCE: it goes on through the next enemy (never twice through the same one)
+        if (mods.pierce > 0 && passedCount < passed.Length)
+        {
+            mods.pierce--;
+            passed[passedCount++] = best;
+            Pierced++;
+            return false;
+        }
         Release();
         return true;
     }
 
-    // Lands on `target`: whole kills for the small things, a quarter of a heart on an elite and a quarter of a hit on the boss.
-    void Strike(GameObject target)
+    // Lands on `hit`: whole kills for the small things, a quarter of a heart on an elite and a quarter of a hit on the boss (all
+    // times this bullet's damage), then what the shot atoms add: SPLIT's shards and ARC's spark.
+    void Strike(ClearTarget hit)
     {
-        float budget = 1f, weight = 1f;
+        Vector3 at = hit.transform.position;
+        Landed++;
+        Damage(hit.gameObject, ship, mods.damage, transform.position);
+        if (mods.shard) return;
+        if (mods.shards > 0) Split(at, hit);
+        if (mods.arc > 0) Zap(at, hit);
+    }
+
+    // One hit of `scale` of a whole shot on `target`.
+    static void Damage(GameObject target, int ship, float scale, Vector3 blowFrom)
+    {
+        float budget = 1f, weight = scale;
         if (target.TryGetComponent(out EliteShip elite))
         {
             weight = 1f;
-            if (!FloatieBank.Add(elite, FloatieTuning.EliteWeight)) { Landed++; return; }   // banked: the heart follows with the fourth
+            if (!FloatieBank.Add(elite, FloatieTuning.EliteWeight * scale)) return;   // banked: the heart follows with the fourth
         }
-        else if (target.TryGetComponent(out BossTarget _)) weight = FloatieTuning.BossWeight;
-        Landed++;
-        ShipAttackHits.HitFrom = transform.position;
+        else if (target.TryGetComponent(out BossTarget _)) weight = FloatieTuning.BossWeight * scale;
+        ShipAttackHits.HitFrom = blowFrom;
         ShipAttackHits.Hit(target, ship, weight, ref budget);
         ShipAttackHits.HitFrom = null;
+    }
+
+    // SPLIT: small diagonal shards leave the struck enemy (a shard never splits, zaps or pierces).
+    void Split(Vector3 at, ClearTarget parent)
+    {
+        int level = mods.shards;
+        float[] angles = ShotAtomTuning.SplitAngles[level];
+        for (int i = 0; i < angles.Length; i++)
+        {
+            var b = FloatieBullets.Take();
+            if (b == null) return;   // at the cap: the rest are not fired
+            Vector3 heading = Quaternion.Euler(0f, 0f, angles[i]) * dir;
+            var m = new Mods { damage = ShotAtomTuning.ShardDamage, shard = true, speed = ShotAtomTuning.ShardSpeed, life = ShotAtomTuning.ShardLife, ignore = parent };
+            b.Launch(owner, ship, at, heading, body.color, default(FloatieAim.Pick), m);
+            ShardsLaunched++;
+        }
+    }
+
+    static readonly ClearTarget[] zapped = new ClearTarget[4];
+
+    // ARC: a spark to the nearest other enemy in range, then on (the level's jumps), each one hit for a share of a shot.
+    void Zap(Vector3 at, ClearTarget first)
+    {
+        int level = mods.arc;
+        float range = ShotAtomTuning.ArcRange[level], scale = ShotAtomTuning.ArcDamage[level];
+        int jumps = ShotAtomTuning.ArcJumps[level], count = 0;
+        zapped[count++] = first;
+        Vector3 from = at;
+        for (int j = 0; j < jumps && count < zapped.Length; j++)
+        {
+            ClearTarget next = null;
+            float bestSq = range * range;
+            var live = ClearTarget.Live;
+            for (int i = 0; i < live.Count; i++)
+            {
+                var t = live[i];
+                if (!Valid(t) || !FloatieAim.InView(t.transform.position, 0f)) continue;
+                bool used = false;
+                for (int z = 0; z < count; z++) if (zapped[z] == t) { used = true; break; }
+                if (used) continue;
+                float sq = ((Vector2)(t.transform.position - from)).sqrMagnitude;
+                if (sq >= bestSq) continue;
+                bestSq = sq;
+                next = t;
+            }
+            if (next == null) break;
+            Vector3 to = next.transform.position;
+            VoltArcs.Begin(from, to, VoltArcs.LinkLife, ShotAtomTuning.ArcCore, ShotAtomTuning.ArcOuter, ShotAtomTuning.ArcStar);
+            zapped[count++] = next;
+            ArcZaps++;
+            Damage(next.gameObject, ship, scale, from);
+            from = to;
+        }
+        for (int i = 0; i < count; i++) zapped[i] = null;
     }
 }
 

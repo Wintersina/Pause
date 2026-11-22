@@ -41,7 +41,7 @@ public class collisionDetection : MonoBehaviour {
     public static int lifeCounter;
     // Atoms picked up this session, by kind. The tutorial watches these to
     // know the player caught the atom it just introduced.
-    public static int healAtomPickups, shieldAtomPickups, pauseAtomPickups, cooldownAtomPickups, magnetAtomPickups;
+    public static int healAtomPickups, shieldAtomPickups, pauseAtomPickups, cooldownAtomPickups, magnetAtomPickups, shotAtomPickups;
     public static int MAXLIFE;
 
     public GameObject shield;
@@ -554,6 +554,26 @@ public class collisionDetection : MonoBehaviour {
                 // (after the vacuum's own sync above, which reports itself: AtomFusions.OnExternal)
                 AtomFusions.OnAtom(AtomKind.Magnet, hit.transform.position);
                 Pooled.Destroy(hit.gameObject);   // (pooled pickups go back to their pool: PrefabPool)
+            }
+            else if (hit.gameObject.TryGetComponent(out ShotAtomPickup shotCoin))
+            {
+                // A shot atom (ShotAtoms): a permanent level of one gun upgrade, or dust once that atom is at the world's cap.
+                shotAtomPickups++;
+                var got = ShotAtoms.Collect(shotCoin.atom);
+                Color coinColour = ShotAtoms.Colour(got.atom);
+                if (got.maxed)
+                {
+                    awardDust(ShotAtomTuning.MaxedDust);
+                    if (hypeText != null) hypeText.text = ShotAtoms.MaxedWord;
+                    PickupWord(ShotAtoms.MaxedWord, hit.transform.position, coinColour);
+                }
+                else
+                {
+                    string word = ShotAtoms.Callout(got.atom, got.level);
+                    if (hypeText != null) hypeText.text = word;
+                    PickupWord(word, hit.transform.position, coinColour);
+                }
+                Pooled.Destroy(hit.gameObject);
             }
             else if(PrefabName.Is(hit.gameObject, "atom3a"))
             {

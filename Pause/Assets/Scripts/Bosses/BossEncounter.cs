@@ -514,6 +514,7 @@ public class BossEncounter : MonoBehaviour
         if (explode) RunScore.OnBoss(true, remaining, false, at);
         else RunScore.OnBossEscaped(at);
         AchievementTracker.OnBossOutro(world, explode);
+        if (explode) ShotAtomDrops.OnBossDestroyed(at);   // a destroyed boss always drops a shot atom
         actor.BeginOutro(explode);
     }
 

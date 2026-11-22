@@ -890,6 +890,12 @@ public static class CodexTest
             var heal = new GameObject(HealAtom.ObjectName);
             temp.Add(heal);
             Hook("atom_green", "picking up the heal atom", () => Codex.Discover(heal), toasts);
+            for (int sa = 0; sa < ShotAtomTuning.Count; sa++)
+            {
+                var coin = ShotAtomPickup.Build((ShotAtom)sa, Vector3.zero);
+                temp.Add(coin);
+                Hook(CodexCatalogue.ShotAtomId((ShotAtom)sa), "catching a shot atom coin", () => Codex.Discover(coin), toasts);
+            }
             var portal = new GameObject("~Portal");
             temp.Add(portal);
             Hook(CodexCatalogue.PortalId, "flying through the portal", () => Codex.Discover(portal), toasts);
