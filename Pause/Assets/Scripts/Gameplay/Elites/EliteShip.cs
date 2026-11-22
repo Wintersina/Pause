@@ -81,8 +81,8 @@ using UnityEngine;
 //   * touching the pilot (collisionDetection -> Rammed; the pilot loses a heart too unless shielded), a crash,
 //     a rail, another elite, friendly fire: one heart, then GraceSeconds (half a second) in which none of
 //     these crash / contact sources hurt it again (it keeps it from being ground down by one overlap);
-//   * a shielded ram (blue atom / Cloak) is a boss ram (BossRam): BossRam.RamWeight of a heart, BossRam.RamShieldCost of
-//     shield, paced by the boss's 0.25 s hit window (RamBlock) instead of the heart windows; grace never blocks it.
+//   * a shielded ram (blue atom / Cloak) is a boss ram (BossRam): BossRam.RamWeight (a whole heart) per ram, BossRam.RamShieldCost of
+//     shield, paced by BossRam.EliteRamBlockSeconds (0.5 s) instead of the heart windows; grace never blocks it.
 // Every kill, crash or lure included, pays ScoreRules.EliteDown (times the running kill chain's
 // multiplier, RunScore.OnElite) + EliteDownDust with an "ELITE DOWN" popup.
 //
@@ -1706,7 +1706,7 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint, I
     {
         if (!InPlay) return;
         if (ramBlock > 1e-4f || hitBlock > 1e-4f) { ShowShieldBlocked(); return; }
-        ramBlock = BossRam.RamBlockSeconds;
+        ramBlock = BossRam.EliteRamBlockSeconds;
         Rams++;
         BossRam.SpendShield(BossRam.RamShieldCost);
         ramDamage += BossRam.RamWeight;

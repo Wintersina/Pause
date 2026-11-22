@@ -10,9 +10,9 @@ using UnityEngine;
 //     ship's weapons (BossTarget.Strike: blast, sound, heart / hit point bookkeeping),
 //     with no cooldown of its own: the boss's hit window (BossConfig.HitInvulnerableSeconds,
 //     BossEncounter.TakePlayerHit) is the only limiter, and a landed ram opens it;
-//     10 hit points and 10 hearts (a heart is one full hit), so RamWeight .3 is under a third of a heart a ram;
+//     10 hit points and 10 hearts (a heart is one full hit), so RamWeight 1 is one heart a ram;
 //   * a ram that lands costs the shield RamShieldCost seconds of its timer, so one blue atom
-//     (5.8 s) buys about four rams at most, never a melted boss;
+//     (5.8 s) buys about nine rams at most (a boss has 10 hearts, and each lands at least a window apart);
 //   * the body hitbox stays (nothing is destroyed, nothing paid as a kill);
 //   * a contact the window blocks costs nothing: the shield just shrugs it off.
 // An elite (a mini-boss) is rammed the same way: EliteShip.ShieldRam reuses RamWeight, RamShieldCost and the window.
@@ -21,10 +21,12 @@ using UnityEngine;
 public static class BossRam
 {
     // ---- tunables ----
-    // Share of one full ultimate hit a ram deals.
-    public static float RamWeight = .3f;
-    // Seconds of shield (blue atom timer / Cloak) a landed ram uses up.
-    public static float RamShieldCost = 1.2f;
+    // Share of one full ultimate hit a ram deals: a whole hit (one heart) (was .3).
+    public static float RamWeight = 1f;
+    // Seconds of shield (blue atom timer / Cloak) a landed ram uses up (was 1.2: half now).
+    public static float RamShieldCost = .6f;
+    // The contact cooldown after a landed ram on an ELITE (a boss uses its own hit window instead).
+    public static float EliteRamBlockSeconds = .5f;
 
     // The hit window a landed ram opens (an elite borrows it: EliteShip.ShieldRam).
     public static float RamBlockSeconds => BossConfig.HitInvulnerableSeconds;
