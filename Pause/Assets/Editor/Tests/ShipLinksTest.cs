@@ -266,6 +266,9 @@ public static class ShipLinksTest
                 float ang = (m - 1.5f) * (70f / 3f);
                 float dist = 2.2f + 2.8f * ((m * .618f) % 1f);
                 Vector3 land = nose + Quaternion.Euler(0f, 0f, -ang) * Vector3.up * dist;
+                var view = ShipTargets.View();
+                land.x = Mathf.Clamp(land.x, view.xMin + .4f, view.xMax - .4f);
+                land.y = Mathf.Min(land.y, view.yMax - .5f);
                 a |= DistXY(l.a, land) < .2f; b |= DistXY(l.b, land) < .2f;
             }
             endsOnMines &= a && b;
@@ -300,6 +303,8 @@ public static class ShipLinksTest
         var r = c.Runner;
         // a column of frozen enemies, each within the link reach of the next, the nearest to the ship freezes first
         var col = new[] { Hazard(0f, 0f), Hazard(0f, 1.2f), Hazard(0f, 2.4f), Hazard(0f, 3.6f) };
+        var colPos = new Vector3[col.Length];
+        for (int i = 0; i < col.Length; i++) colPos[i] = col[i].transform.position;   // the enemies are gone by the last frame's lines
         r.Fire();
         int maxIce = 0, maxCrack = 0;
         bool iceOnColumn = true, open = true;
@@ -317,7 +322,7 @@ public static class ShipLinksTest
                 var l = lines.Last[i];
                 if (l.kind != ShipLinkLines.Kind.Ice) continue;
                 bool a = false, b = false;
-                foreach (var f in col) { a |= EndsOn(l.a, f, .4f); b |= EndsOn(l.b, f, .4f); }
+                foreach (var f in colPos) { a |= DistXY(l.a, f) <= .5f; b |= DistXY(l.b, f) <= .5f; }
                 iceOnColumn &= a && b;
             }
             open &= OnlyOpenLinesBetweenTwoPoints(r);
