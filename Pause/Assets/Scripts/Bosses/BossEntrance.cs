@@ -25,7 +25,7 @@ using UnityEngine;
 // whatever ends the intro -- the fight, the pilot's death (Abort), a scene
 // load (the encounter goes with the scene) -- ends the slow motion on the
 // same frame. A finger lifted with pauses left freezes the world exactly as
-// in flight (and the entrance's clock, on real time, carries on).
+// in flight (and the entrance's clock, flight and shockwave freeze with it).
 public static class BossEntrance
 {
     // Time.timeScale `introClock` real seconds into the entrance (while the

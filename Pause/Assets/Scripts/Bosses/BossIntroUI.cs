@@ -359,7 +359,7 @@ public class BossIntroUI : MonoBehaviour
 
     void Update()
     {
-        Step(Mathf.Min(Time.unscaledDeltaTime, .1f));
+        Step(BossEncounter.WorldRealDt(Mathf.Min(Time.unscaledDeltaTime, .1f)));
     }
 
     // One frame of the intro, dt in real (unscaled) seconds.
