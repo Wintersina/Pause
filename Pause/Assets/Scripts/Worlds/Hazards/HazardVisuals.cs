@@ -8,7 +8,7 @@ public sealed class HazardVisuals
     public const int Pool = 150, PerField = 14;
     public const int SortingOrder = -7;
     readonly SpriteRenderer[] sr = new SpriteRenderer[Pool];
-    readonly Transform root;
+    Transform root;
     readonly SpriteRenderer[] artSr = new SpriteRenderer[14];   // 14: a three-band flare train of three stacked tiles each needs nine   // the world's approved hazard sheet: a swirl's body or a front's tiles
     readonly SpriteMask[] holeMasks = new SpriteMask[HazardField.MaxBands];   // the painted flare's openings: one mask per band, cutting that band's tiles
     int masksUsed;
@@ -26,9 +26,33 @@ public sealed class HazardVisuals
     public SpriteRenderer[] ArtRenderers => artSr;
     public SpriteRenderer[] Renderers => sr;
 
+    // The opening's SpriteMask, or null where the player has no SpriteMask class. That happened in build 10026: nothing in a
+    // scene or prefab uses SpriteMask, its native module needs the Tilemap module (Packages/manifest.json) and without it the
+    // engine strips the class, so AddComponent returned null, this constructor threw, WorldHazards.Visuals stayed null and
+    // built a whole new pool EVERY FRAME (162 objects a frame: the slowdown, then the out-of-memory crash). The class is kept
+    // now (manifest + link.xml, EngineModuleGuardTest), and should it ever go missing again the flare simply draws without a
+    // mask (MasksAvailable false: tiles over the opening are left out instead of clipped).
+    public static System.Func<GameObject, SpriteMask> MaskFactory = DefaultMask;
+    static SpriteMask DefaultMask(GameObject go) { return go.AddComponent<SpriteMask>(); }
+    public bool MasksAvailable { get; private set; }
+    // Pools built since load (tests: one per WorldHazards, never one per frame).
+    public static int Built { get; private set; }
+
     public HazardVisuals()
     {
+        Built++;
         root = new GameObject("~HazardFx").transform;
+        try { Build(); }
+        catch (System.Exception)
+        {
+            // never leave a half-built pool behind: the caller may not keep this instance
+            Destroy();
+            throw;
+        }
+    }
+
+    void Build()
+    {
         for (int i = 0; i < Pool; i++)
         {
             var go = new GameObject("p" + i, typeof(SpriteRenderer));
@@ -38,20 +62,28 @@ public sealed class HazardVisuals
             r.enabled = false;
             sr[i] = r;
         }
-        for (int i = 0; i < artSr.Length; i++)
+        for (int i = 0; i < artSr.Length; i++) artSr[i] = Hero("art" + i, SortingOrder);
+        MasksAvailable = true;
+        for (int i = 0; i < holeMasks.Length && MasksAvailable; i++)
         {
-            artSr[i] = Hero("art" + i, SortingOrder);
-            artSr[i].maskInteraction = SpriteMaskInteraction.VisibleOutsideMask;   // a flare band's opening is a mask; with none active this changes nothing
-        }
-        for (int i = 0; i < holeMasks.Length; i++)
-        {
-            var go = new GameObject("holeMask" + i, typeof(SpriteMask));
+            var go = new GameObject("holeMask" + i);
             go.transform.SetParent(root, false);
-            var m = go.GetComponent<SpriteMask>();
+            SpriteMask m = null;
+            try { m = MaskFactory != null ? MaskFactory(go) : null; } catch (System.Exception) { m = null; }
+            if (m == null)
+            {
+                MasksAvailable = false;
+                Object.DestroyImmediate(go);
+                for (int k = 0; k < i; k++) { if (holeMasks[k] != null) Object.DestroyImmediate(holeMasks[k].gameObject); holeMasks[k] = null; }
+                Debug.LogWarning("HazardVisuals: this build has no SpriteMask class; flare openings are drawn without a mask");
+                break;
+            }
             m.sprite = WhiteSquare();
             m.enabled = false;
             holeMasks[i] = m;
         }
+        // a flare band's opening is a mask; with none active this changes nothing
+        if (MasksAvailable) for (int i = 0; i < artSr.Length; i++) artSr[i].maskInteraction = SpriteMaskInteraction.VisibleOutsideMask;
     }
 
     static Sprite WhiteSquare()
@@ -75,7 +107,8 @@ public sealed class HazardVisuals
         return r;
     }
 
-    public void Destroy() { if (root != null) Object.DestroyImmediate(root.gameObject); }
+    public void Destroy() { if (root != null) Object.DestroyImmediate(root.gameObject); root = null; }
+    public bool Alive { get { return root != null; } }
 
     public static float Hash(int i, int k)
     {
@@ -91,7 +124,7 @@ public sealed class HazardVisuals
             if (fields[f].Active) n = DrawField(fields[f], n);
         for (int i = n; i < Pool; i++) if (sr[i].enabled) sr[i].enabled = false;
         for (int i = artDrawn; i < artSr.Length; i++) artSr[i].enabled = false;
-        for (int i = masksUsed; i < holeMasks.Length; i++) if (holeMasks[i].enabled) holeMasks[i].enabled = false;
+        for (int i = masksUsed; i < holeMasks.Length; i++) if (holeMasks[i] != null && holeMasks[i].enabled) holeMasks[i].enabled = false;
         masksUsedLast = masksUsed;
         artLast = artDrawn; artDrawn = 0;
         Drawn = n;
@@ -448,7 +481,8 @@ public sealed class HazardVisuals
                 float lead = f.sweepX - f.side * b * d.bandGap + f.side * d.size * .5f;
                 float cx = lead - f.side * (FlareLead - .5f) * W;
                 if (warn) { lead = -f.side * f.laneHalf; cx = lead - f.side * (FlareLead - .5f) * W; if (b > 0) break; }
-                if (HazardForce.HasHole(f, b) && masksUsed < holeMasks.Length)
+                bool hole = HazardForce.HasHole(f, b);
+                if (hole && MasksAvailable && masksUsed < holeMasks.Length)
                 {
                     // the opening: a mask over this band's tiles (they are clipped, not redrawn), the same place the warning showed
                     var mk = holeMasks[masksUsed++]; mk.enabled = true;
@@ -457,6 +491,8 @@ public sealed class HazardVisuals
                 }
                 for (int i = 0; i < perBand && used < artSr.Length; i++)
                 {
+                    // no mask in this build: a tile that would cover the opening is left out (a wider gap, never a false wall)
+                    if (hole && !MasksAvailable && Mathf.Abs(f.viewBottom + W * .5f + i * W * .92f - f.holeY[b]) < (W + d.holeSize) * .5f) continue;
                     var r = artSr[used++]; r.enabled = true;
                     r.sprite = warn ? HazardArt.Cell(2, d.artWarnCol + ((int)(f.t * 4f) & 1)) : HazardArt.Cell(d.artRow, (frame + i * 2 + b * 3) % 6);
                     r.transform.position = new Vector3(cx, f.viewBottom + W * .5f + i * W * .92f, 0f);

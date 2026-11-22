@@ -407,6 +407,8 @@ public static class AllTests
         ("DesertBackdropTest", DesertBackdropTest.Execute),
         ("WorldGatingTest", WorldGatingTest.Execute),
         ("WorldLeakTest", WorldLeakTest.Execute),
+        ("PerfSoakTest", PerfSoakTest.Execute),
+        ("EngineModuleGuardTest", EngineModuleGuardTest.Execute),
         ("SpaceLegSpawnTest", SpaceLegSpawnTest.Execute),
         ("WorldLogicTest", WorldLogicTest.Execute),
         ("WorldPaceTest", WorldPaceTest.Execute),

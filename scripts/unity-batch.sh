@@ -135,7 +135,8 @@ if [ -z "$log" ]; then
     log="$LOG_DIR/$tree-$(date +%Y%m%d-%H%M%S)-$$.log"
     args+=(-logFile "$log")
 fi
-has -quit || args=(-quit "${args[@]}")
+# UNITY_BATCH_NO_QUIT=1: a job that must enter Play mode (scripts/perf-soak.sh); it exits the editor itself.
+[ "${UNITY_BATCH_NO_QUIT:-0}" = 1 ] || has -quit || args=(-quit "${args[@]}")
 has -batchmode || args=(-batchmode "${args[@]}")
 
 # ---- class: medium / heavy, by -executeMethod (unknown = heavy) ------------
