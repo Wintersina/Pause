@@ -36,7 +36,7 @@ public static class PlatformMark
         { 'e', new Color32(0x0B, 0x0A, 0x14, 255) },
     };
 
-    // Apple (16 x 15): w = white outline, r = fruit, d = shade, h = highlight, l = leaf, v = leaf vein, s = stem.
+    // Apple (16 x 15): w = ink outline, r = fruit, d = shade, h = highlight, l = leaf, v = leaf vein, s = stem.
     static readonly string[] Apple =
     {
         ".........www....",
@@ -58,7 +58,7 @@ public static class PlatformMark
 
     static readonly Dictionary<char, Color32> ApplePalette = new Dictionary<char, Color32>
     {
-        { 'w', White },
+        { 'w', new Color32(0x0B, 0x0A, 0x14, 255) },
         { 'r', new Color32(0xE2, 0x48, 0x5A, 255) },
         { 'd', new Color32(0x9F, 0x31, 0x50, 255) },
         { 'h', new Color32(0xFF, 0xD0, 0xD8, 255) },
