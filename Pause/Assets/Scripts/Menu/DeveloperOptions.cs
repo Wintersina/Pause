@@ -97,6 +97,7 @@ public class DeveloperOptions : MonoBehaviour
             button.onClick = new Button.ButtonClickedEvent();
             button.onClick.AddListener(onClick);
         }
+        CelPress.AddTo(go);   // every Options row dips when pressed, so it reads as tappable
         return go;
     }
 

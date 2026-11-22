@@ -17,6 +17,7 @@ public class UpgradeOfferOptions : MonoBehaviour
     public const float RowY = 57f, RowH = 88f, RowW = 520f, HitPad = 6f;
 
     Text label;
+    OptionsSwitch toggle;
 
     [RuntimeInitializeOnLoadMethod]
     static void Init()
@@ -49,6 +50,7 @@ public class UpgradeOfferOptions : MonoBehaviour
             label.resizeTextMinSize = 18;
             label.resizeTextMaxSize = 34;
         }
+        toggle = OptionsSwitch.Attach(row, label, UpgradeOfferStore.Enabled);
         Refresh();
     }
 
@@ -65,5 +67,6 @@ public class UpgradeOfferOptions : MonoBehaviour
         bool on = UpgradeOfferStore.Enabled;
         label.text = Caption(on);
         label.color = on ? AkiraPalette.Bone : AkiraPalette.Muted;
+        if (toggle != null) toggle.Set(on);
     }
 }
