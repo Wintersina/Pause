@@ -316,8 +316,10 @@ public class collisionDetection : MonoBehaviour {
             if (Planetfall.ShieldsShip || Liftoff.ShieldsShip || PortalArrival.ShieldsShip) return;
             // A boss's entrance, from its first frame to the fight: the same
             // guarantee (BossEncounter.ShieldsShip; derived from the phase,
-            // so it ends with the intro, a death or the scene).
-            if (BossEncounter.ShieldsShip) return;
+            // so it ends with the intro, a death or the scene). A shield or
+            // Cloak still smashes what it meets, as in normal play (the board
+            // is the player's until the boss's shockwave wipes it).
+            if (BossEncounter.ShieldsShip && !Invulnerable) return;
             // A full secret meter whose power answers a hit (Shield Pulse,
             // Phase Cloak, Blink Dash) spends itself now, and a Hard Shell
             // eats the hit: either way it lands as a shielded hit.

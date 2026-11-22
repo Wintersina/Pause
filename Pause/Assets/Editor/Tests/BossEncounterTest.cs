@@ -356,9 +356,9 @@ public static class BossEncounterTest
         e.Step(.1f, 1f);
         Check("the boss intro cancels a boost in progress (no limit break into a boss)",
               e.State == BossEncounter.Phase.Intro && SpeedRamp.Boost == 0f && SpeedRamp.BoostTarget == 0f);
-        e.Step(BossConfig.SpeedDrainSeconds * .5f, 0f);
+        e.Step(BossConfig.SpeedDrainSeconds * .5f, 1f);
         Check("speed drains during the intro", moveBackGround.speed < .41f && moveBackGround.speed > BossConfig.FightSpeed);
-        e.Step(BossConfig.SpeedDrainSeconds, 0f);
+        e.Step(BossConfig.SpeedDrainSeconds, 1f);
         Check("the run's speed has eased to the fight speed", Mathf.Approximately(moveBackGround.speed, BossConfig.FightSpeed));
         RunWhile(e, BossEncounter.Phase.Intro);
         Check("fight speed is 0.20 (HUD 20)", moveBackGround.speed == BossConfig.FightSpeed &&

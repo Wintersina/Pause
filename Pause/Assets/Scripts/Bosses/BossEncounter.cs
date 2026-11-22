@@ -241,6 +241,13 @@ public class BossEncounter : MonoBehaviour
         if (freePress && state != Phase.Intro && TouchInput.IsPressed) freePress = false;
     }
 
+    // The entrance's slow motion is a timeScale > 0, so its clock (and the
+    // flight, shockwave and intro UI on it) runs on real seconds -- but a
+    // frozen world (timeScale 0: a lifted finger, the pause menu) freezes the
+    // whole entrance with it and it resumes exactly where it stopped.
+    public static float WorldRealDt(float realDt) => WorldRealDt(realDt, Time.timeScale);
+    public static float WorldRealDt(float realDt, float timeScale) => timeScale > 0.0001f ? realDt : 0f;
+
     // One frame. realDt is unscaled; the world's time is realDt * timeScale,
     // so a frozen world (timeScale 0) freezes the fight and its projectiles.
     public void Step(float realDt, float timeScale)
@@ -257,7 +264,7 @@ public class BossEncounter : MonoBehaviour
             case Phase.Pending:
                 if (!ShipPowerController.CinematicClearActive) StartIntro();
                 break;
-            case Phase.Intro: TickIntro(realDt); break;
+            case Phase.Intro: TickIntro(WorldRealDt(realDt, timeScale)); break;
             case Phase.Fight: TickFight(dt, realDt); break;
             case Phase.Outro: TickOutro(dt); break;
         }

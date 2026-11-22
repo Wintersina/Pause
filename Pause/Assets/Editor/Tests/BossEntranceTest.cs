@@ -48,6 +48,8 @@ public static class BossEntranceTest
             SlowMotionEndsOnDeath();
             SlowMotionEndsOnSceneReset();
             FingerUpStillFreezes();
+            PauseFreezesTheWholeArrival();
+            ShieldedRamKillsDuringArrival();
             SongStartsOnTheFirstFrame();
             RisesOutOfTheBackdrop();
             RisesFromALandingSite();
@@ -216,12 +218,73 @@ public static class BossEntranceTest
         bg.SendMessage("Update");
         Check("a lifted finger freezes the world through the entrance too (the pause overlay case)", Time.timeScale == 0f);
         Check("... and costs no pause, the entrance is scripted", BossEncounter.FreePress && score.pauseCounter == pauses);
+        for (int i = 0; i < 200; i++) e.Step(.1f, Time.timeScale);
+        Check("... and a frozen world holds the entrance (it plays on once the world runs)", e.State == BossEncounter.Phase.Intro);
         RunWhile(e, BossEncounter.Phase.Intro);
-        Check("the entrance still plays out on real time", e.State == BossEncounter.Phase.Fight);
+        Check("the entrance plays out on world time", e.State == BossEncounter.Phase.Fight);
         bg.SendMessage("Update");
         Check("after it the frozen world is the player's ordinary pause", Time.timeScale == 0f && score.pauseCounter == pauses);
         score.pauseCounter = 0;
         Object.DestroyImmediate(bg.gameObject);
+    }
+
+    // Paused (timeScale 0): the boss stops flying in -- clock, arrival, shockwave -- and resumes where it left off.
+    static void PauseFreezesTheWholeArrival()
+    {
+        FreshScene();
+        var e = Begin();
+        RunTo(e, BossConfig.BossArriveAt + .6f);
+        var actor = e.Actor;
+        float clock = e.IntroClock, progress = actor.ArrivalProgress01;
+        Vector3 pos = actor.transform.position;
+        for (int i = 0; i < 100; i++) e.Step(.1f, 0f);
+        Check("paused: the intro clock, the boss's flight and its position hold still",
+              e.State == BossEncounter.Phase.Intro && e.IntroClock == clock &&
+              actor.ArrivalProgress01 == progress && actor.transform.position == pos);
+        e.Step(.1f, BossConfig.EntranceSlowScale);
+        Check("resumed: it carries on from exactly where it stopped",
+              Mathf.Approximately(e.IntroClock, clock + .1f) && actor.ArrivalProgress01 > progress);
+        RunTo(e, BossConfig.LandAt + .05f);
+        Check("the landing happened on the resumed clock", e.Landed && e.Shockwave != null);
+        float age = e.Shockwave.Age;
+        for (int i = 0; i < 100; i++) e.Step(.1f, 0f);
+        Check("paused: the shockwave does not grow", e.Shockwave == null || e.Shockwave.Age == age);
+        Check("the intro UI step is gated the same way",
+              BossEncounter.WorldRealDt(.1f, 0f) == 0f && BossEncounter.WorldRealDt(.1f, .3f) == .1f &&
+              File.ReadAllText("Assets/Scripts/Bosses/BossIntroUI.cs").Contains("BossEncounter.WorldRealDt("));
+    }
+
+    // A shield during the arrival still smashes what it meets (kill credit as normal); the shockwave then clears only the rest.
+    static void ShieldedRamKillsDuringArrival()
+    {
+        FreshScene();
+        var ship = new Ship();
+        try
+        {
+            RunScore.BeginRun(true, true);
+            var other = Hazard("rock", "Astr", new Vector2(-2f, 3f));
+            var e = Begin();
+            RunTo(e, 1f);
+            // unshielded contact: no change
+            ship.Hit("alien2(Clone)", "Enimey");
+            Check("arrival, unshielded: still untouchable", collisionDetection.lifeCounter == 0 && RunScore.Total == 0);
+            collisionDetection.atomCheck = true;
+            collisionDetection.invTimer = 3f;
+            long before = RunScore.Total;
+            var h = new GameObject("alien1(Clone)", typeof(CircleCollider2D));
+            h.tag = "Enimey";
+            h.transform.position = ship.go.transform.position + Vector3.right * .3f;
+            ClearTarget.Ensure(h).SetRadius(.3f);
+            ship.trigger(h.GetComponent<Collider2D>());
+            Check("arrival, shielded: the ram pays normal kill credit", RunScore.Total > before && RunScore.Parts.killCount >= 1);
+            Check("... costs no heart", collisionDetection.lifeCounter == 0 && !buttonClicks.playerDied);
+            Object.DestroyImmediate(h);   // (Destroy lands at the end of the frame in the game)
+            int wiped = FriendlyFire.ShockwaveKills;
+            RunWhile(e, BossEncounter.Phase.Intro);
+            Check("the shockwave still clears the rest, and not the rammed one twice",
+                  other == null && FriendlyFire.ShockwaveKills - wiped == 1 && e.State == BossEncounter.Phase.Fight);
+        }
+        finally { ship.Dispose(); }
     }
 
     // ---- 2. the song --------------------------------------------------------
@@ -535,7 +598,7 @@ public static class BossEntranceTest
     static void SharedCodeIsWired()
     {
         string collision = File.ReadAllText("Assets/Scripts/Ship/collisionDetection.cs");
-        Check("collisionDetection honours the entrance's guard", collision.Contains("if (BossEncounter.ShieldsShip) return;"));
+        Check("collisionDetection honours the entrance's guard", collision.Contains("if (BossEncounter.ShieldsShip && !Invulnerable) return;"));
         string bg = File.ReadAllText("Assets/Scripts/Gameplay/moveBackGround.cs");
         Check("moveBackGround asks the entrance for its scale every frame (never stores it)",
               bg.Contains("Time.timeScale = BossEncounter.EntranceTimeScale;"));
