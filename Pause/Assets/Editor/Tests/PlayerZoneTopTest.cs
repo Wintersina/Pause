@@ -415,7 +415,7 @@ public static class PlayerZoneTopTest
                 collisionDetection.invTimer = 5.8f;
                 int hits = e.Hits; float dmg = e.Damage;
                 Ram(r, body);
-                Check(id + ": a shielded ram on the boss is one hit of " + BossRam.RamWeight + " (" + (e.Damage - dmg).ToString("F2") + "), no heart lost",
+                Check(id + ": a shielded ram on the boss is one whole hit (heart) of " + BossRam.RamWeight + " (" + (e.Damage - dmg).ToString("F2") + "), pilot unhurt",
                       e.Hits == hits + 1 && Mathf.Abs(e.Damage - dmg - BossRam.RamWeight) < 1e-4f && collisionDetection.lifeCounter == 0);
                 Check(id + ": ... it costs the shield " + BossRam.RamShieldCost + " s (" + F(collisionDetection.invTimer) + " left) and leaves the body standing",
                       Mathf.Abs(collisionDetection.invTimer - (5.8f - BossRam.RamShieldCost)) < 1e-3f && e.Actor.BodyHitbox == body);
