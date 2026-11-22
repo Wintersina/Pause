@@ -47,6 +47,94 @@ public sealed class ScrollHint : MonoBehaviour, IPointerClickHandler
     public Text Label { get { return label; } }
     public bool Animating { get { return animStart >= 0f; } }
 
+    // ---- optional solid band (opt-in via UseBand; the default look above is unchanged) ----
+    // The hint sits on an opaque strip at the bottom of the scroll and the viewport is shrunk by the strip's height
+    // while it shows, so no row ever renders behind it. The viewport grows back (eased with the alpha) at the end.
+    public const float BandMinHeight = 76f, BandSoftEdge = 10f;
+    bool bandMode;
+    float bandHeight;
+    RectTransform bandRoot, bandChevronL, bandChevronR;
+    Vector2 baseOffMin, baseOffMax;
+    public bool BandMode { get { return bandMode; } }
+    public RectTransform Band { get { return bandRoot; } }
+    // Pixels (units) currently taken off the bottom of the viewport; 0 when the band is hidden.
+    public float BandInset { get { return bandMode ? bandHeight * alpha : 0f; } }
+    public float BandHeight { get { return bandHeight; } }
+
+    // Switches this hint to the solid-band look. `bandColor` should be the panel's background; `labelColor` null = a
+    // brightened accent. `height` <= 0 = finger-sized (at least BandMinHeight). Call once, right after Attach.
+    public void UseBand(Color bandColor, float height = 0f, Color? labelColor = null)
+    {
+        if (bandMode) return;
+        bandMode = true;
+        bandHeight = height > 0f ? height : Mathf.Max(BandMinHeight, CodexUi.TapUnits);
+        var vp = scroll.viewport;
+        baseOffMin = vp.offsetMin; baseOffMax = vp.offsetMax;
+        var rt = (RectTransform)transform;
+        var col = labelColor ?? Color.Lerp(chevronImage.color, Color.white, .35f);
+
+        // the soft fade becomes a short edge above the band; the band itself is solid
+        fadeImage.color = bandColor;
+        fade.anchorMin = new Vector2(0f, 0f); fade.anchorMax = new Vector2(1f, 0f);
+        fade.pivot = new Vector2(.5f, 0f);
+        fade.anchoredPosition = new Vector2(0f, bandHeight); fade.sizeDelta = new Vector2(0f, BandSoftEdge);
+        var solid = CodexUi.NewImage("Band", rt, null, bandColor);
+        solid.raycastTarget = false;
+        bandRoot = solid.rectTransform;
+        bandRoot.anchorMin = new Vector2(0f, 0f); bandRoot.anchorMax = new Vector2(1f, 0f);
+        bandRoot.pivot = new Vector2(.5f, 0f);
+        bandRoot.anchoredPosition = Vector2.zero; bandRoot.sizeDelta = new Vector2(0f, bandHeight);
+        bandRoot.SetSiblingIndex(1);   // above the fade, below the label / chevrons
+
+        label.color = col;
+        label.resizeTextMaxSize = 30; label.resizeTextMinSize = 16; label.fontSize = 30; label.fontStyle = FontStyle.Bold;
+        chevronImage.color = col;
+        chevron.localScale = new Vector3(1.4f, 1.4f, 1f);
+        var l2 = CodexUi.NewImage("ChevronR", rt, chevronImage.sprite, col);
+        l2.raycastTarget = false;
+        bandChevronR = l2.rectTransform;
+        bandChevronL = chevron;
+        // label centred in the band; a chevron either side of it (they bob together)
+        label.alignment = TextAnchor.MiddleCenter;
+        SetBottomCenter(label.rectTransform, 0f, 0f, 260f, bandHeight);
+        // the whole band is the tap target
+        tapStrip.anchorMin = new Vector2(0f, 0f); tapStrip.anchorMax = new Vector2(1f, 0f);
+        tapStrip.pivot = new Vector2(.5f, 0f);
+        tapStrip.anchoredPosition = Vector2.zero; tapStrip.sizeDelta = new Vector2(0f, bandHeight);
+        bandChevronL.anchorMin = bandChevronL.anchorMax = bandChevronR.anchorMin = bandChevronR.anchorMax = new Vector2(.5f, 0f);
+        bandChevronL.pivot = bandChevronR.pivot = new Vector2(.5f, .5f);
+        bandChevronL.sizeDelta = bandChevronR.sizeDelta = new Vector2(44f, 24f);
+        bandChevronR.localScale = bandChevronL.localScale;
+        baseChevronY = bandHeight * .5f;
+    }
+
+    float FullViewportHeight()
+    {
+        var sr = (RectTransform)scroll.transform;
+        return sr.rect.height - baseOffMin.y + baseOffMax.y;
+    }
+
+    void ApplyBand()
+    {
+        var vp = scroll.viewport;
+        vp.offsetMin = new Vector2(baseOffMin.x, baseOffMin.y + BandInset);
+        vp.offsetMax = baseOffMax;
+        float labelW = Mathf.Clamp(label.preferredWidth + 8f, 120f, 300f);
+        float half = labelW * .5f + 34f;
+        float bob = Mathf.Sin(Time.unscaledTime * BobSpeed) * BobAmplitude;
+        bandChevronL.anchoredPosition = new Vector2(-half, baseChevronY + bob);
+        bandChevronR.anchoredPosition = new Vector2(half, baseChevronY + bob);
+        bandChevronR.localScale = bandChevronL.localScale;
+        // the viewport just grew (band collapsing): never leave a gap under the last row
+        if (!shown && scroll.content != null)
+        {
+            float max = Mathf.Max(0f, scroll.content.rect.height - (FullViewportHeight() - BandInset));
+            var c = scroll.content;
+            if (c.anchoredPosition.y > max && animStart < 0f && alpha < 1f)
+                c.anchoredPosition = new Vector2(c.anchoredPosition.x, max);
+        }
+    }
+
     // Builds the hint as the last child of the scroll's rect. `font` may be null (default font).
     public static ScrollHint Attach(ScrollRect scroll, Font font, string text, Color accent, Color fadeColor)
     {
@@ -84,6 +172,7 @@ public sealed class ScrollHint : MonoBehaviour, IPointerClickHandler
     // (0 = its middle), `width` wide at most, sitting `bottomPad` above the viewport's bottom edge.
     public void Place(float centerX, float width, float bottomPad = 10f)
     {
+        if (bandMode) return;   // the band is full width and centred; nothing to place
         float tapH = CodexUi.TapUnits;
         float w = Mathf.Max(CodexUi.TapUnits, width);
         SetBottomCenter(tapStrip, centerX, bottomPad, w, tapH);
@@ -106,7 +195,8 @@ public sealed class ScrollHint : MonoBehaviour, IPointerClickHandler
     {
         overflow = 0f; fromBottom = 0f;
         if (scroll == null || scroll.content == null || scroll.viewport == null) return;
-        overflow = Mathf.Max(0f, scroll.content.rect.height - scroll.viewport.rect.height);
+        float vh = bandMode ? FullViewportHeight() - BandInset : scroll.viewport.rect.height;
+        overflow = Mathf.Max(0f, scroll.content.rect.height - vh);
         fromBottom = Mathf.Max(0f, overflow - scroll.content.anchoredPosition.y);
     }
 
@@ -115,13 +205,15 @@ public sealed class ScrollHint : MonoBehaviour, IPointerClickHandler
     {
         float overflow, fromBottom;
         Measure(out overflow, out fromBottom);
-        shown = ShouldShow(overflow, fromBottom, shown);
+        // the "fits" rule judges the full-height viewport, so the band's own inset never makes a fitting list look scrollable
+        shown = ShouldShow(overflow - BandInset, fromBottom, shown);
         float target = shown ? 1f : 0f;
         alpha = Mathf.MoveTowards(alpha, target, FadeSpeed * Mathf.Max(0f, dt));
         group.alpha = alpha;
         group.blocksRaycasts = alpha > .3f && shown;   // a hidden hint never eats a tap
         float bob = Mathf.Sin(Time.unscaledTime * BobSpeed) * BobAmplitude;
-        if (chevron != null) chevron.anchoredPosition = new Vector2(baseX, baseChevronY + bob);
+        if (bandMode) ApplyBand();
+        else if (chevron != null) chevron.anchoredPosition = new Vector2(baseX, baseChevronY + bob);
         StepAnim();
     }
 
