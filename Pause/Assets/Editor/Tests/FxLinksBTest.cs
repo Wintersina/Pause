@@ -198,7 +198,8 @@ public static class FxLinksBTest
     {
         FreshScene();
         var c = Ship(13);
-        var grabbed = Hazard(0f, 0f);
+        // the hold point is 1.5 u above the nose, so a body just above the nose is lifted (one higher up is drawn down to it)
+        var grabbed = Hazard(0f, c.Runner.Nose.y + .2f);
         grabbed.AddComponent<BoxCollider2D>();
         c.Runner.Fire();
         Steps(c.Runner, .1f);
