@@ -358,6 +358,7 @@ public partial class ShipAttackRunner
             {
                 var t = targets[i];
                 if (t == null || !t.isActiveAndEnabled || !ShipTargets.IsThreat(t) || t.IsShotHitbox) continue;
+                if (t.transform.position.y <= eyePos.y) continue;   // never behind the eye
                 bool taken = false;
                 for (int k = 0; k < v.count; k++) taken |= v.tgt[k] == t;
                 if (taken) continue;
