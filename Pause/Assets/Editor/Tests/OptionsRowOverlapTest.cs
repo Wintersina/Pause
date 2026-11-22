@@ -90,6 +90,27 @@ public static class OptionsRowOverlapTest
                 names.Add(b.name); rects.Add(r);
             }
             Check(tag + "PRIVACY OPTIONS row " + (privacy ? "exists" : "absent"), names.Contains(PrivacyOptionsRow.RowName) == privacy);
+            if (!dev)
+            {
+                foreach (var rowName in new[] { VibrationOptions.RowName, UpgradeOfferOptions.RowName })
+                {
+                    var row = GameObject.Find(rowName);
+                    var sw = OptionsSwitch.Find(row);
+                    Check(tag + rowName + " shows an ON/OFF switch", sw != null);
+                    if (sw == null) continue;
+                    Check(tag + rowName + " row dips on press", row.GetComponent<CelPress>() != null);
+                    var swRect = rig.PixelRect((RectTransform)sw.transform);
+                    var rowRect = rig.PixelRect((RectTransform)row.transform);
+                    Check(tag + rowName + " switch sits inside the row", swRect.xMin >= rowRect.xMin - 1f && swRect.xMax <= rowRect.xMax + 1f);
+                    var text = row.GetComponentInChildren<Text>(true);
+                    if (text != null && text.gameObject != row)
+                        Check(tag + rowName + " label clear of the switch", rig.PixelRect(text.rectTransform).xMax <= swRect.xMin + 1f);
+                    sw.Set(true, false);
+                    float onX = sw.KnobX;
+                    sw.Set(false, false);
+                    Check(tag + rowName + " knob left when OFF, right when ON", sw.KnobX < 0f && onX > 0f && !sw.On);
+                }
+            }
             Check(tag + "Credits button exists", names.Contains("CreditsButton"));
             int overlaps = 0;
             for (int i = 0; i < rects.Count; i++)

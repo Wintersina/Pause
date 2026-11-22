@@ -16,6 +16,7 @@ public class VibrationOptions : MonoBehaviour
     public const float RowY = 237f, RowH = 88f, RowW = 520f, HitPad = 6f;
 
     Text label;
+    OptionsSwitch toggle;
 
     [RuntimeInitializeOnLoadMethod]
     static void Init()
@@ -48,6 +49,7 @@ public class VibrationOptions : MonoBehaviour
             label.resizeTextMinSize = 18;
             label.resizeTextMaxSize = 34;
         }
+        toggle = OptionsSwitch.Attach(row, label, DeathHaptics.Enabled);
         Refresh();
     }
 
@@ -64,5 +66,6 @@ public class VibrationOptions : MonoBehaviour
         bool on = DeathHaptics.Enabled;
         label.text = Caption(on);
         label.color = on ? AkiraPalette.Bone : AkiraPalette.Muted;
+        if (toggle != null) toggle.Set(on);
     }
 }
