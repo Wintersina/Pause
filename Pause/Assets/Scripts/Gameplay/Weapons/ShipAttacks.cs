@@ -285,6 +285,7 @@ public partial class ShipAttackRunner : MonoBehaviour
         for (int i = 0; i < runs.Length; i++)
             if (runs[i] != null && runs[i].active) Step(runs[i], dt);
         StepTopObjects(dt);
+        VoltArcs.Tick(dt);
         var list = AttackPool.Projectiles;
         for (int i = 0; i < list.Count; i++)
         {
@@ -346,7 +347,7 @@ public partial class ShipAttackRunner : MonoBehaviour
                 break;
 
             case ShipAttack.ChainLightning:
-                if (run.fired == 0) StepSpark(run, dt);
+                if (run.fired == 0) StepSparks(run, dt);
                 if (run.active && run.fired == 1) StepChain(run);
                 break;
 
@@ -390,7 +391,7 @@ public partial class ShipAttackRunner : MonoBehaviour
                 t = ShipAttackTargets.Nearest(run.point, run.hops == 0 ? SparkArriveRadius + 1f : l.width, run.hit, false);
             if (t == null || run.hops >= l.maxHits) { run.active = false; break; }
             Vector3 to = t.transform.position;
-            Arc(run.point, to);
+            VoltArcs.Begin(run.hops == 0 ? Nose : run.point, to);   // ship -> first target, then target -> next target
             AttackPool.Sprite().Play(AttackSprite.Source.AttackBurst, ship, to, Vector3.one * .5f, 0f,
                 ShipFxArt.BurstTicks, false, 0f, null, Vector3.zero, 71);
             var tgo = t.gameObject;   // read before the hit: a kill can destroy the object on the spot (edit-mode tests)
@@ -401,15 +402,6 @@ public partial class ShipAttackRunner : MonoBehaviour
             run.hops++;
             run.next += .06f;
         }
-    }
-
-    void Arc(Vector3 a, Vector3 b)
-    {
-        Vector3 d = b - a;
-        float len = Mathf.Max(.2f, d.magnitude);
-        float ang = Mathf.Atan2(d.y, d.x) * Mathf.Rad2Deg;
-        AttackPool.Sprite().Play(AttackSprite.Source.AttackLoop, ship, (a + b) * .5f, new Vector3(len, ShipFxArt.BeamThin, 1f),
-            ang, ShipFxArt.LoopTicks, true, .22f, null, Vector3.zero, 70);
     }
 
     void StepCone(AttackRun run)
@@ -578,6 +570,7 @@ public partial class ShipAttackRunner : MonoBehaviour
     public void StopAll()
     {
         for (int i = 0; i < runs.Length; i++) if (runs[i] != null) runs[i].Stop();
+        VoltArcs.StopAll();
         StopTop();
         var list = AttackPool.Projectiles;
         for (int i = 0; i < list.Count; i++)
@@ -588,7 +581,7 @@ public partial class ShipAttackRunner : MonoBehaviour
     {
         StopAll();
         DestroyTurrets();
-        for (int i = 0; i < runs.Length; i++) if (runs[i] != null && runs[i].spark != null) runs[i].spark.Dispose();
+        for (int i = 0; i < runs.Length; i++) if (runs[i] != null && runs[i].spark != null) runs[i].DisposeSparks();
     }
 }
 
@@ -607,6 +600,23 @@ public class AttackRun
     public Vector3 point, dir;   // dir: the thrown disc's heading
     public AttackSprite visual, disc;
     public SparkBolt spark;   // Volt Viper's spark (ShipAttackSpark.cs), allocated once per slot
+    public SparkBolt[] extraSparks;   // shots 2 and 3 of a no-enemy volley, allocated on first use
+    public bool volley;               // the spark has no enemy to chain: its sparks link to each other instead
+    public int launched;              // sparks launched so far (1 = just the first)
+    public readonly VoltArc[] links = new VoltArc[ShipAttackRunner.VolleyShots];
+    public readonly int[] linkGen = new int[ShipAttackRunner.VolleyShots];
+    public readonly int[] arcHitId = new int[8];        // enemies an arc struck lately, and until when (run.t)
+    public readonly float[] arcHitUntil = new float[8];
+    public void DisposeSparks()
+    {
+        if (spark != null) spark.Dispose();
+        if (extraSparks != null) for (int i = 0; i < extraSparks.Length; i++) if (extraSparks[i] != null) extraSparks[i].Dispose();
+    }
+    public void HideSparks()
+    {
+        if (spark != null) spark.Hide();
+        if (extraSparks != null) for (int i = 0; i < extraSparks.Length; i++) if (extraSparks[i] != null) extraSparks[i].Hide();
+    }
     public AttackV3 v3;   // scratch of the v3 attacks (ShipAttacksV3.cs), allocated once per slot
     public readonly List<GameObject> hit = new List<GameObject>(32);
 
@@ -623,7 +633,9 @@ public class AttackRun
         budget = 1f;
         point = dir = Vector3.zero;
         visual = disc = null;
-        if (spark != null) spark.Hide();
+        HideSparks();
+        volley = false; launched = 0;
+        for (int i = 0; i < arcHitUntil.Length; i++) arcHitUntil[i] = 0f;
         hit.Clear();
         if (v3 != null) v3.Reset();
     }
@@ -632,7 +644,7 @@ public class AttackRun
     {
         active = false;
         if (v3 != null) v3.Release();
-        if (spark != null) spark.Hide();
+        HideSparks();
         if (visual != null && visual.Active && visual.Run == this) visual.Stop();
         if (disc != null && disc.Active && disc.Run == this) disc.Stop();
         visual = disc = null;

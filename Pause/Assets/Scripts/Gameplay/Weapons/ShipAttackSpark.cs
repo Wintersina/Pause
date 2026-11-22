@@ -94,11 +94,13 @@ public sealed class SparkBolt
         root.SetActive(false);
     }
 
-    public void Launch(Vector3 from)
+    public void Launch(Vector3 from) { Launch(from, Vector2.up); }
+
+    public void Launch(Vector3 from, Vector2 heading)
     {
         if (root == null) Build();
         flying = true; arrived = fizzled = false;
-        pos = from; dir = Vector2.up; age = 0f; steps = 0;
+        pos = from; dir = heading.normalized; age = 0f; steps = 0;
         target = null;
         root.SetActive(true);
         Draw();
@@ -145,22 +147,137 @@ public partial class ShipAttackRunner
     public const float SparkLifetime = 1.6f;      // seconds before it gives up
     public const float SparkArriveRadius = .3f;   // reaches its target within this (plus 0.6 of the target's radius)
 
+    // No enemy to chain to: a firing launches a volley of VolleyShots sparks, VolleyStagger apart, fanned a little either
+    // side of straight up. The arc links the ship to shot 1, shot 1 to shot 2, shot 2 to shot 3 (firing order, so the
+    // newest few; never more than VolleyShots links) while they fly, so the attack still reads as electric. The moment an
+    // enemy can be homed on the volley ends and the sparks home and chain as normal (the switch back).
+    //
+    // Damage choice: a volley arc DOES hurt an enemy that crosses it (a spark and its arc are the same attack, and a
+    // charge that kills nothing while an enemy flies through its lightning would read as broken), but gently: a normal
+    // enemy dies like it would to any chain hop, an elite or the boss takes only VolleyArcWeight of a hit (elites share
+    // the firing's budget, the boss keeps its 0.25 s hit window), and one enemy is struck at most once per
+    // VolleyArcCooldown. A volley only exists when the screen has no homeable enemy, so it cannot out-damage the chain.
+    public const int VolleyShots = 3;
+    public const float VolleyStagger = .12f;      // seconds between launches
+    public const float VolleyFanDegrees = 14f;    // shot 2 leans right, shot 3 left, by this much
+    public const float VolleyArcWeight = .25f;
+    public const float VolleyArcCooldown = .5f;
+    public const float VolleyArcReach = .1f;      // arc half-width added to the enemy's radius
+
     void StartSpark(AttackRun run, Vector3 nose)
     {
         if (run.spark == null) run.spark = new SparkBolt();
         run.spark.Launch(nose);
         run.point = nose;
         run.fired = 0;   // 0: the spark is flying, 1: the chain is running
+        run.launched = 1;
+        run.volley = ShipAttackTargets.Nearest(nose, 0f, null, true) == null;
+        for (int i = 0; i < run.links.Length; i++) { run.links[i] = null; run.linkGen[i] = -1; }
     }
 
-    void StepSpark(AttackRun run, float dt)
+    // Volley arcs held up right now, across the runs (tests).
+    public int VolleyLinkCount
     {
-        var s = run.spark;
-        if (s == null || !s.flying) { run.active = false; return; }
+        get
+        {
+            int n = 0;
+            for (int i = 0; i < runs.Length; i++)
+            {
+                var r = runs[i];
+                if (r == null || !r.active || !r.volley) continue;
+                for (int k = 0; k < r.links.Length; k++) if (r.links[k] != null && r.links[k].Live && r.links[k].generation == r.linkGen[k]) n++;
+            }
+            return n;
+        }
+    }
+
+    // The sparks of a firing in the order they were fired: [0] is shot 1.
+    SparkBolt SparkAt(AttackRun run, int i)
+    {
+        if (i == 0) return run.spark;
+        return run.extraSparks != null && i - 1 < run.extraSparks.Length ? run.extraSparks[i - 1] : null;
+    }
+
+    void StepSparks(AttackRun run, float dt)
+    {
+        if (run.volley)
+        {
+            while (run.launched < VolleyShots && run.t >= run.launched * VolleyStagger)
+            {
+                if (run.extraSparks == null) run.extraSparks = new SparkBolt[VolleyShots - 1];
+                var extra = run.extraSparks[run.launched - 1] ?? (run.extraSparks[run.launched - 1] = new SparkBolt());
+                float lean = (run.launched & 1) == 1 ? VolleyFanDegrees : -VolleyFanDegrees;
+                extra.Launch(Nose, Quaternion.Euler(0f, 0f, -lean) * Vector3.up);
+                run.launched++;
+            }
+        }
+        for (int i = 0; i < run.launched && run.fired == 0; i++)
+        {
+            var s = SparkAt(run, i);
+            if (s != null && s.flying) StepSpark(run, s, dt);
+        }
+        if (run.fired != 0) return;   // one spark arrived: the chain took over
+        bool anyFlying = false;
+        for (int i = 0; i < run.launched; i++) { var s = SparkAt(run, i); if (s != null && s.flying) anyFlying = true; }
+        if (!anyFlying && !(run.volley && run.launched < VolleyShots)) { run.active = false; return; }
+        if (run.volley) LinkVolley(run);
+    }
+
+    // The volley's arcs: ship -> shot 1 -> shot 2 -> shot 3, each pair that is still flying, held on while they fly.
+    void LinkVolley(AttackRun run)
+    {
+        Vector3 from = Nose;
+        int link = 0;
+        for (int i = 0; i < run.launched && link < run.links.Length; i++)
+        {
+            var s = SparkAt(run, i);
+            if (s == null || !s.flying) continue;
+            Vector3 to = new Vector3(s.pos.x, s.pos.y, 0f);
+            run.links[link] = VoltArcs.Hold(run.links[link], run.linkGen[link], from, to);
+            run.linkGen[link] = VoltArcs.GenerationOf(run.links[link]);
+            StrikeAlong(run, from, to);
+            from = to;
+            link++;
+        }
+    }
+
+    // An enemy crossing a volley arc takes a light hit, once per VolleyArcCooldown.
+    void StrikeAlong(AttackRun run, Vector3 a, Vector3 b)
+    {
+        ShipTargets.Collect(targets);
+        for (int i = 0; i < targets.Count; i++)
+        {
+            var t = targets[i];
+            if (t == null || !ShipAttackTargets.IsEnemy(t) || !ShipTargets.InHomingView(t.transform.position)) continue;
+            float along;
+            if (!SegmentHits(a, b, t.transform.position, VolleyArcReach + t.Radius, out along)) continue;
+            var go = t.gameObject;
+            int id = go.GetInstanceID();
+            int slot = -1;
+            for (int k = 0; k < run.arcHitId.Length; k++)
+            {
+                if (run.arcHitUntil[k] > run.t && run.arcHitId[k] == id) { slot = -2; break; }
+                if (slot == -1 && run.arcHitUntil[k] <= run.t) slot = k;
+            }
+            if (slot == -2) continue;
+            if (slot >= 0) { run.arcHitId[slot] = id; run.arcHitUntil[slot] = run.t + VolleyArcCooldown; }
+            Vector3 at = t.transform.position;
+            ShipAttackHits.Hit(go, ship, VolleyArcWeight, ref run.budget);
+            AttackPool.Sprite().Play(AttackSprite.Source.AttackBurst, ship, at, Vector3.one * .3f, 0f,
+                ShipFxArt.BurstTicks, false, 0f, null, Vector3.zero, 71);
+        }
+    }
+
+    void StepSpark(AttackRun run, SparkBolt s, float dt)
+    {
         s.age += dt;
         Vector3 here = s.pos;
         if (s.target != null && !ShipAttackTargets.CanTarget(s.target, true)) s.target = null;   // died / left: retarget
         if (s.target == null) s.target = ShipAttackTargets.Nearest(here, 0f, null, true, true);
+        if (s.target != null && run.volley)
+        {
+            run.volley = false;   // an enemy is in reach: back to chaining enemies, the volley arcs fade out
+        }
         Vector2 prev = s.pos;
         if (s.target != null)
         {
@@ -191,7 +308,7 @@ public partial class ShipAttackRunner
                 run.fired = 1;
                 AttackPool.Sprite().Play(AttackSprite.Source.AttackBurst, ship, new Vector3(c.x, c.y, 0f), Vector3.one * .4f, 0f,
                     ShipFxArt.BurstTicks, false, 0f, null, Vector3.zero, 71);
-                s.Hide();
+                run.HideSparks();
                 return;
             }
         }
@@ -201,8 +318,7 @@ public partial class ShipAttackRunner
             s.fizzled = true;
             AttackPool.Sprite().Play(AttackSprite.Source.AttackBurst, ship, new Vector3(s.pos.x, Mathf.Min(s.pos.y, ShipTargets.View().yMax), 0f),
                 Vector3.one * .25f, 0f, ShipFxArt.BurstTicks, false, 0f, null, Vector3.zero, 71);
-            s.Hide();
-            run.active = false;
+            s.Hide();   // the run ends in StepSparks once no spark is left flying
         }
     }
 }
