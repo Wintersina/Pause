@@ -67,8 +67,8 @@ public class HealAtomSpawner : MonoBehaviour
 
         timer = Random.Range(gapSeconds.x, gapSeconds.y);
 
-        // Damaged players need it; an undamaged one does not.
-        if (collisionDetection.lifeCounter <= 0) return;
+        // Damaged players need it; an undamaged one only gets one while the healing drone has room to bank it.
+        if (collisionDetection.lifeCounter <= 0 && HealBank.Count >= HealBank.Max) return;
         if (Random.value > chance) return;
         // boss fight: at most BossEncounter.MaxHealAtomsPerFight in total
         if (!BossEncounter.TryReserveHealAtom()) return;

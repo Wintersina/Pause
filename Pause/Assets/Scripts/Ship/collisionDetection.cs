@@ -160,7 +160,7 @@ public class collisionDetection : MonoBehaviour {
     // What an atom just did, in one word floating up from where it was
     // caught (ScoreHud.ShowWord: pooled, on the world's clock), in the
     // atom's own colour, above its "+N". Constant strings: no allocation.
-    public const string HealWord = "+1 HULL", PauseWord = "+1 PAUSE", ShieldWord = "SHIELD";
+    public const string BankWord = "BANKED", HealWord = "+1 HULL", PauseWord = "+1 PAUSE", ShieldWord = "SHIELD";
     public const float PickupWordLift = .5f;
     // The blue atom's shield, on its own (MagnetCombo syncs it with a magnet).
     public const float ShieldAtomSeconds = 5.8f;
@@ -192,6 +192,15 @@ public class collisionDetection : MonoBehaviour {
         if (callout == MagnetCombo.Callout.None) { PickupWord(ownWord, at, ownColour); return; }
         if (hypeText != null)
             hypeText.text = callout == MagnetCombo.Callout.Combo ? MagnetCombo.ComboWordShort : MagnetCombo.WordFor(callout, MagnetPull.Chain);
+    }
+
+    // The healing drone's banked atom does its work: one heart comes back (HealBank.Tick, ShipDamageFx). Never past full.
+    public static bool BankHealed(Vector3 at)
+    {
+        if (lifeCounter <= 0 || buttonClicks.playerDied) return false;
+        lifeCounter--;
+        PickupWord(HealWord, at, PickupGlow.HealGreen);
+        return true;
     }
 
     static void PickupWord(string word, Vector3 at, Color colour)
@@ -279,6 +288,9 @@ public class collisionDetection : MonoBehaviour {
         // the kill cam's tape rolls from the first frame (the tutorial cannot be lost: no tape)
         if (!startMenu.youAreInTutorial && !TutorialCannotDie(gameObject)) KillCamRecorder.BeginRun();
         lifeCounter = 0;
+        HealBank.Reset();            // a banked green atom is a run's
+        HealDrone.Attach(gameObject);        // the green mini-drone that sprays the damage and spends the bank
+        HealBankIcon.Attach(gameObject);     // the banked atoms' icon at the tail
         // atomic fusions: no primed atoms, no fusion running (off in the tutorial)
         AtomFusions.BeginRun(gameObject);
     }
@@ -353,7 +365,11 @@ public class collisionDetection : MonoBehaviour {
             // (DeathCrash), and the killer with it -- a mine tumbles into a
             // rail rather than bursting here.
             // (the tutorial can never be lost: TutorialCannotDie)
-            bool fatal = !safe && lifeCounter + 1 >= MAXLIFE && !TutorialCannotDie(gameObject);
+            bool lastHeart = !safe && lifeCounter + 1 >= MAXLIFE && !TutorialCannotDie(gameObject);
+            // A banked green atom (HealBank) is the safety net: the healing drone spends it on this hit. The last heart is
+            // absorbed outright; any other comes back after a short beat (ShipDamageFx restores it). Only an unshielded hit spends one.
+            HealBank.Hit bankHit = safe ? HealBank.Hit.None : HealBank.OnHit(lastHeart);
+            bool fatal = lastHeart && bankHit != HealBank.Hit.Absorb;
             // (its burst frame, friendly-fire blast and explosion: RamKill, below)
             if (PrefabName.Is(hit.gameObject, "mine") && !safe && !fatal)
                 EnemyDeathAudio.Play(hit.gameObject);
@@ -396,6 +412,7 @@ public class collisionDetection : MonoBehaviour {
                 // though the player's own explosion is the visual focus.
                 if (!PrefabName.Is(hit.gameObject, "mine")) EnemyDeathAudio.Play(hit.gameObject);
                 lifeCounter += 1;
+                if (bankHit == HealBank.Hit.Absorb) lifeCounter = MAXLIFE - 1;   // the banked atom took the last heart's hit
                 // the tutorial keeps its last heart whatever hits it
                 if (TutorialCannotDie(gameObject)) { Hints.NoteCrash(lifeCounter >= MAXLIFE); lifeCounter = Mathf.Min(lifeCounter, MAXLIFE - 1); }
                 AdaptiveDifficulty.OnHeartTaken();
@@ -503,12 +520,13 @@ public class collisionDetection : MonoBehaviour {
                 healAtomPickups++;
                 RunScore.OnAtom(RunScore.Atom.Heal, hit.transform.position);
                 bool healWasted = lifeCounter <= 0;   // full hearts: a second one is an OVERHEAL
-                // repairs one point of hull damage; lifeControler picks the
-                // sprite back up from lifeCounter on the next frame
-                if (lifeCounter > 0) lifeCounter--;
-                if (hypeText != null) hypeText.text = "REPAIRED";
+                // At full hearts the healing drone banks it for later (HealBank); below full it repairs one point of
+                // hull damage at once; lifeControler picks the sprite back up from lifeCounter on the next frame
+                var caught = HealBank.OnCatch(lifeCounter > 0, TutorialCannotDie(gameObject));
+                if (caught == HealBank.Catch.Heal) lifeCounter--;
+                if (hypeText != null) hypeText.text = caught == HealBank.Catch.Bank ? "BANKED" : "REPAIRED";
                 BoostUltimate(dust: false);
-                PickupWord(HealWord, hit.transform.position, PickupGlow.HealGreen);
+                PickupWord(caught == HealBank.Catch.Bank ? BankWord : HealWord, hit.transform.position, PickupGlow.HealGreen);
                 AtomCharged(PickupGlow.HealGreen);
                 AtomFusions.OnAtom(AtomKind.Heal, hit.transform.position, AtomFusions.HealGates(healWasted));
                 Pooled.Destroy(hit.gameObject);   // (pooled pickups go back to their pool: PrefabPool)

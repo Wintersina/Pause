@@ -167,8 +167,9 @@ public static class CodexCatalogue
                 new[] { "pauseatom" }),
             new CodexEntry("atom_green", "Green Atom", CodexCategory.Atoms, () => Texture("Pickups/heal_atom_green"),
                 "A rare repair kit from who-knows-where: it patches one heart of hull damage and cuts " +
-                GreenAtomCut + " off your weapon's charge. It only turns up when you're already banged up, and " +
-                "never more than a couple of times a world.",
+                GreenAtomCut + " off your weapon's charge. While you're hurt with two hearts or more, a little green " +
+                "HEALING DRONE slides out to spray the damage. Catch one at full hull and it banks it instead (up to " +
+                HealBank.Max + ", shown at your tail); lose a heart and it spends one to bring it back.",
                 new[] { Codex.Normalise(HealAtom.ObjectName) }),
             new CodexEntry(VioletAtomId, "Violet Atom", CodexCategory.Atoms,
                 () => Pickup(PickupKind.Cooldown, "prefabs/cooldownAtom"),
