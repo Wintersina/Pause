@@ -22,6 +22,7 @@ using Object = UnityEngine.Object;
 //   10 the Shop's ON/OFF switch: off freezes the time left and stops every effect, survives a restart, on resumes, buying switches on;
 //      Hazard Clear off never auto-fires
 //   11 legacy 10-minute purchases keep their 10 minutes next to the new 5-minute ones (prefs and cloud)
+//   13 ATOM RUSH (500 dust, a charge spent when a real run starts): shop entry, buying, per-run use only, consumption, cloud counters, the HUD indicator
 //   12 the read-only API the HUD reads (IsTimed / Owns / IsOn / IsActive / SecondsLeft / ChargesLeft / Changed)
 public static class BoostersTest
 {
@@ -66,6 +67,7 @@ public static class BoostersTest
             Switch();
             Legacy();
             ReadApi();
+            AtomRush();
         }
         finally
         {
@@ -505,7 +507,8 @@ public static class BoostersTest
             var sprite = ShopIconArt.Get(BoosterHudSource.IconName(k));
             Check("the " + k + " icon is the Shop's own icon, point filtered", sprite != null && sprite.texture.filterMode == FilterMode.Point &&
                   sprite == ShopIconArt.Get(ShopIconArt.NameFor(new ShopRow { kind = k == Boosters.Kind.DustMultiplier ? ShopRowKind.DustBooster :
-                                                                                    k == Boosters.Kind.HomingAtoms ? ShopRowKind.HomingAtoms : ShopRowKind.HazardClear })));
+                                                                                    k == Boosters.Kind.HomingAtoms ? ShopRowKind.HomingAtoms :
+                                                                                    k == Boosters.Kind.AtomRush ? ShopRowKind.AtomRush : ShopRowKind.HazardClear })));
         }
 
         HudBehaviour();
@@ -1095,6 +1098,94 @@ public static class BoostersTest
         Boosters.Toggle(Boosters.Kind.HomingAtoms);
         Check("api: off is owned but not active, time still read", Boosters.Owns(Boosters.Kind.HomingAtoms) && !Boosters.IsActive(Boosters.Kind.HomingAtoms) &&
               Mathf.Approximately(Boosters.SecondsLeft(Boosters.Kind.HomingAtoms), 300f) && Boosters.Status(Boosters.Kind.HomingAtoms) == "5:00 left");
+        Reset(0f);
+    }
+
+    // ---- 13: ATOM RUSH ----
+    static void AtomRush()
+    {
+        var kind = Boosters.Kind.AtomRush;
+        Reset(2000f);
+        var row = ShopCatalog.BoosterRow(kind);
+        Check("rush: the Shop has the entry, named ATOM RUSH, 500 dust, with its description and icon",
+              Boosters.AtomRushPrice == 500f && Boosters.Price(kind) == 500f && row.kind == ShopRowKind.AtomRush && row.IsBooster && row.title == "ATOM RUSH" && row.button == "500 DUST" &&
+              row.subtitle == Boosters.Description(kind) && ShopIconArt.Get("booster_atom_rush") != null && BoosterHudSource.IconName(kind) == "booster_atom_rush" &&
+              ShopCatalog.Rows().Exists(r => r.kind == ShopRowKind.AtomRush));
+        Check("rush: it is a charge, not a clock", !Boosters.IsTimed(kind) && !Boosters.Owns(kind) && Boosters.Status(kind) == "");
+
+        Check("rush: buying takes exactly 500 and holds one charge",
+              Boosters.BuyAtomRush() == Boosters.BuyResult.Bought && Mathf.Approximately(PlayerPrefs.GetFloat(StarDustLedger.CurrencyKey), 1500f) &&
+              Boosters.RushCharges == 1 && Boosters.BoughtRush == 1 && Boosters.Owns(kind) && Boosters.Status(kind) == "x1" && !Boosters.AnyActive);
+        Boosters.Reload();
+        Check("rush: a restart keeps the charge and the balance", Boosters.RushCharges == 1 && Mathf.Approximately(PlayerPrefs.GetFloat(StarDustLedger.CurrencyKey), 1500f));
+        Check("rush: holding one does nothing until a run starts (the rates are normal)", !Boosters.RunRushActive && Mathf.Approximately(ShotAtomDrops.EnemyChance, ShotAtomTuning.EnemyDropChance));
+
+        // not enough dust / the hold limit
+        Reset(499f);
+        Check("rush: 499 dust cannot buy it", Boosters.BuyAtomRush() == Boosters.BuyResult.NotEnoughDust && Boosters.RushCharges == 0 && !Boosters.CanBuy(kind));
+        Reset(100000f);
+        int bought = 0;
+        while (Boosters.BuyAtomRush() == Boosters.BuyResult.Bought && bought < 30) bought++;
+        Check("rush: at most " + Boosters.MaxRushCharges + " charges are held", bought == Boosters.MaxRushCharges && Boosters.AtLimit(kind));
+
+        // used only in the run it is spent in
+        Reset(5000f);
+        Boosters.BuyAtomRush();
+        Boosters.BuyAtomRush();
+        Check("rush: a practice run (no real dust) spends nothing", !Boosters.BeginRush(false) && Boosters.RushCharges == 2 && !Boosters.RunRushActive);
+        startMenu.youAreInTutorial = true;
+        Check("rush: the tutorial spends nothing", !Boosters.BeginRush(true) && Boosters.RushCharges == 2 && !Boosters.RunRushActive);
+        startMenu.youAreInTutorial = false;
+        Boosters.SetOn(kind, false);
+        Check("rush: switched off in the Shop it is not spent", !Boosters.BeginRush(true) && Boosters.RushCharges == 2 && !Boosters.IsActive(kind));
+        Boosters.SetOn(kind, true);
+        Check("rush: a real run spends one charge and turns the rates up", Boosters.BeginRush(true) && Boosters.RushCharges == 1 && Boosters.UsedRush == 1 && Boosters.RunRushActive);
+        Check("rush: the rates are x3 while it runs (enemy 1.5% -> 4.5%, cooldown 20 -> 10 s, elite 100%, boss second 100%)",
+              Mathf.Approximately(ShotAtomDrops.EnemyChance, .045f) && Mathf.Approximately(ShotAtomDrops.EnemyCooldown, 10f) &&
+              ShotAtomDrops.Rushed(ShotAtomTuning.EliteDropChance) == 1f && ShotAtomDrops.Rushed(ShotAtomTuning.BossSecondDropChance) == 1f);
+        Boosters.Reload();
+        Check("rush: the spent charge is on disk (a restart keeps 1 held, 1 used)", Boosters.RushCharges == 1 && Boosters.UsedRush == 1);
+        Boosters.BeginRush(true);
+        Boosters.ResetRun();
+        Check("rush: the next run's reset ends the effect (the rates are normal again) ", !Boosters.RunRushActive && Mathf.Approximately(ShotAtomDrops.EnemyChance, ShotAtomTuning.EnemyDropChance));
+        Check("rush: a run with no charge left gets no rush", !Boosters.BeginRush(true) && Boosters.RushCharges == 0 && !Boosters.RunRushActive && !Boosters.Owns(kind));
+
+        // through the real run start (score.Awake)
+        Reset(5000f);
+        Boosters.BuyAtomRush();
+        var s = BeginRealRun(5000f);
+        Check("rush: score.Awake of a real run spends the charge and the run has the rush", Boosters.RunRushActive && Boosters.RushCharges == 0);
+        // the HUD indicator: shown for that run only, as x3
+        BoosterHudSource.Entry e;
+        var list = HudEntries();
+        Check("rush: the run HUD column shows the Atom Rush icon with x3", Has(list, kind, out e) && !e.timed && e.Label == "x3" && list.Count == 1);
+        var host = new GameObject(BoosterHud.HostName);
+        var hud = host.AddComponent<BoosterHud>();
+        hud.SendMessage("Update");
+        bool icon = false;
+        foreach (var im in host.GetComponentsInChildren<Image>(false)) icon |= im.sprite != null && im.sprite == ShopIconArt.Get("booster_atom_rush");
+        Check("... on the live column too", hud.VisibleCount == 1 && icon);
+        Object.DestroyImmediate(host);
+        EndRun(s);
+        s = BeginRealRun(5000f);
+        Check("rush: the next run has no rush and no icon (the charge was used up)", !Boosters.RunRushActive && HudEntries().Count == 0);
+        EndRun(s);
+
+        // cloud: counters round trip, merge by max, charged on merge
+        Reset(5000f);
+        Boosters.BuyAtomRush();
+        Boosters.BuyAtomRush();
+        Boosters.BeginRush(true);
+        var snap = ProgressSnapshot.Capture(1000);
+        Check("rush: the snapshot carries bought 2 / used 1", snap.boostRushBought == 2 && snap.boostRushUsed == 1);
+        foreach (string k in Keys) PlayerPrefs.DeleteKey(k);
+        snap.Apply();
+        Check("rush: apply writes them back", Boosters.BoughtRush == 2 && Boosters.UsedRush == 1 && Boosters.RushCharges == 1);
+        var newer = new ProgressSnapshot { savedAtUtc = 3000, currency = 1000f, boostRushBought = 1, boostRushUsed = 1 };
+        var older = new ProgressSnapshot { savedAtUtc = 1000, currency = 5000f, boostRushBought = 3, boostRushUsed = 0 };
+        var merged = ProgressMerge.Merge(newer, older);
+        Check("rush: merge keeps the larger counters and charges the newer balance for the purchases only the other side knows (2 x 500)",
+              merged.boostRushBought == 3 && merged.boostRushUsed == 1 && Mathf.Approximately(merged.currency, 0f) && Mathf.Approximately(ProgressMerge.UnpaidBoosters(newer, older), 1000f));
         Reset(0f);
     }
 }

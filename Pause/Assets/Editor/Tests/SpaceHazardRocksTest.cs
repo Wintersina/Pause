@@ -281,9 +281,9 @@ public static class SpaceHazardRocksTest
         var a = SpaceAsteroidField.Spawn(2, 1, new Vector2(0f, 5f), 0f, 0f, 0f);
         Vector3 pos = a.transform.position;
         Check("before a hit: no flash, no jolt, no chips", !a.FlashShowing && !a.JoltActive && RockHitFx.ActiveChips == 0);
-        a.TakeShipAttack(0, 1f, pos + new Vector3(0f, 1f, 0f));
+        a.HitFeedback(pos + new Vector3(0f, 1f, 0f));   // (a player hit now breaks a rock outright, so the feedback is driven directly)
         var flashChild = a.transform.Find("flash");
-        Check("a non-lethal hit flashes the rock (white overlay up)", !a.Broken && a.FlashShowing && (RockHitFx.Flash == null || (flashChild != null && flashChild.GetComponent<SpriteRenderer>().enabled)));
+        Check("a non-lethal feedback flashes the rock (white overlay up)", !a.Broken && a.FlashShowing && (RockHitFx.Flash == null || (flashChild != null && flashChild.GetComponent<SpriteRenderer>().enabled)));
         Check("... jolts it", a.JoltActive);
         Check("... and throws accent chips (" + RockHitFx.ActiveChips + ")", RockHitFx.ActiveChips >= SpaceAsteroidField.HitChips);
         Check("the flash lasts long enough to see (>= .1 s)", SpaceAsteroidField.HitFlashSeconds >= .1f);
@@ -292,15 +292,15 @@ public static class SpaceHazardRocksTest
         Check("the jolt is tiny (under .1 u) and away from the blow", a.transform.position.y < pos.y && pos.y - a.transform.position.y < .1f);
         for (int i = 0; i < 12; i++) { a.Step(Dt, 0f, -50f); RockHitFx.Step(Dt); }
         Check("the flash and jolt settle", !a.FlashShowing && !a.JoltActive && (flashChild == null || !flashChild.GetComponent<SpriteRenderer>().enabled));
-        Check("... the only drift left is the deflection (the first hit throws the rock away from the blow)", a.Deflected && Mathf.Abs(a.transform.position.x - pos.x) < .5f);
+        Check("... and nothing deflects it: it stays in its lane", Mathf.Abs(a.transform.position.x - pos.x) < .01f);
         for (int i = 0; i < 20; i++) RockHitFx.Step(Dt);
         Check("the chips fade and go back to the pool", RockHitFx.ActiveChips == 0);
 
         // nothing allocated by a hit once the pool exists
-        a.TakeShipAttack(0, .1f, pos);          // warm-up (builds the pool)
+        a.HitFeedback(pos);          // warm-up (builds the pool)
         for (int i = 0; i < 6; i++) { a.Step(Dt, 0f, -50f); RockHitFx.Step(Dt); }
         long before = System.GC.GetAllocatedBytesForCurrentThread();
-        a.TakeShipAttack(0, .1f, pos + Vector3.up);
+        a.HitFeedback(pos + Vector3.up);
         a.Step(Dt, 0f, -50f);
         RockHitFx.Step(Dt);
         long grew = System.GC.GetAllocatedBytesForCurrentThread() - before;
@@ -308,13 +308,12 @@ public static class SpaceHazardRocksTest
 
         // a lethal hit is the ordinary burst: no feedback state on a dead rock
         var small = SpaceAsteroidField.Spawn(0, 3, new Vector2(1.5f, 5f), 0f, 0f, 0f);
-        small.TakeShipAttack(0, 1f, small.transform.position);   // (the first hit of a small rock deflects it)
         small.TakeShipAttack(0, 1f, small.transform.position);
         Check("a lethal hit just bursts", small.Broken);
         // rapid hits do not flood the pool
         RockHitFx.Reset();
         var tough = SpaceAsteroidField.Spawn(2, 2, new Vector2(-1.5f, 5f), 0f, 0f, 0f);
-        for (int i = 0; i < 20; i++) tough.TakeShipAttack(0, .01f, tough.transform.position + Vector3.up);
+        for (int i = 0; i < 20; i++) tough.HitFeedback(tough.transform.position + Vector3.up);
         Check("a flurry of tiny hits throws one burst of chips, not twenty (" + RockHitFx.ActiveChips + ")", RockHitFx.ActiveChips <= SpaceAsteroidField.HitChips + 1);
         SpaceAsteroidField.ClearAll();
         RockHitFx.Reset();
@@ -365,7 +364,7 @@ public static class SpaceHazardRocksTest
         Check("the old drift asteroid still has no entry", Codex.Find("hazard_space_drift_asteroid") == null);
 
         // a hit that does not break it discovers nothing
-        Check("a hit that does not break it discovers nothing", ForgetAndHit());
+        Check("hit feedback alone (nothing broken) discovers nothing", ForgetAndHit());
 
         // first break discovers it, type by type: NEW badge, 5 dust paid on the spot
         float dust0 = PlayerPrefs.GetFloat(StarDustLedger.CurrencyKey);
@@ -373,8 +372,7 @@ public static class SpaceHazardRocksTest
         {
             var rock = SpaceAsteroidField.Spawn(0, i, new Vector2(0f, 2f), 0f, 0f, 0f);
             string id = SpaceHazardRockTypes.All[i].CodexId;
-            rock.TakeShipAttack(0, 1f, rock.transform.position);   // deflect
-            rock.TakeShipAttack(0, 1f, rock.transform.position);   // break
+            rock.TakeShipAttack(0, 1f, rock.transform.position);   // one hit breaks it
             Check(SpaceHazardRockTypes.All[i].key + ": found on its first break, with the NEW badge",
                   rock.Broken && Codex.IsDiscovered(id) && Codex.IsNew(id) && Codex.IsRewardCollected(id));
         }
@@ -412,7 +410,7 @@ public static class SpaceHazardRocksTest
         string id = SpaceHazardRockTypes.All[2].CodexId;
         PlayerPrefs.SetString(Codex.PrefsKey, "");
         Codex.Reload();
-        rock.TakeShipAttack(0, 1f, rock.transform.position);
+        rock.HitFeedback(rock.transform.position);
         bool ok = !rock.Broken && !Codex.IsDiscovered(id);
         SpaceAsteroidField.ClearAll();
         PlayerPrefs.SetString(Codex.PrefsKey, "");
@@ -427,8 +425,8 @@ public static class SpaceHazardRocksTest
         Fresh();
         Check("the hazard field is Space only", SpaceAsteroidFieldDirector.Blocked(0, 120f) == null &&
               Enumerable.Range(1, 6).All(w => SpaceAsteroidFieldDirector.Blocked(w, 120f) == "not space"));
-        Check("the spawn rules are unchanged (25 s opening, 3 alive, 6 total, tiers 2/2/3 hits)",
+        Check("the spawn rules are unchanged (25 s opening, 3 alive, 6 total, one-hit breaks, tier health 1/2/3 kept)",
               SpaceAsteroidField.FirstSeconds == 25f && SpaceAsteroidField.MaxAlive == 3 && SpaceAsteroidField.MaxTotal == 6 &&
-              SpaceAsteroidField.SizeHits[0] == 2f && SpaceAsteroidField.SizeHits[1] == 2f && SpaceAsteroidField.SizeHits[2] == 3f);
+              SpaceAsteroidField.SizeHits[0] == 1f && SpaceAsteroidField.SizeHits[1] == 2f && SpaceAsteroidField.SizeHits[2] == 3f);
     }
 }

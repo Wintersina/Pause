@@ -7,7 +7,7 @@ using UnityEngine;
 // A row is never buyable unless its product is Available (Play returned a price and the billing flow is
 // connected), so on iOS, in the editor, or with no price nothing looks buyable: the row reads UNAVAILABLE.
 // The Shop entry is on the home screen on every platform (nothing here is platform-specific).
-public enum ShopRowKind { RemoveAds, Paragon, Pack, DustBooster, HazardClear, HomingAtoms, WatchAd, QuickAd }
+public enum ShopRowKind { RemoveAds, Paragon, Pack, DustBooster, HazardClear, HomingAtoms, AtomRush, WatchAd, QuickAd }
 
 public enum ShopRowState
 {
@@ -24,7 +24,7 @@ public sealed class ShopRow
     public ShopRowKind kind;
     public SupportPurchase.Pack pack;   // Pack rows only
     public Boosters.Kind booster;       // booster rows only
-    public bool IsBooster { get { return kind == ShopRowKind.DustBooster || kind == ShopRowKind.HazardClear || kind == ShopRowKind.HomingAtoms; } }
+    public bool IsBooster { get { return kind == ShopRowKind.DustBooster || kind == ShopRowKind.HazardClear || kind == ShopRowKind.HomingAtoms || kind == ShopRowKind.AtomRush; } }
     public ShopRowState state;
     public string title, subtitle, button;
     // Booster rows only: what is held, as one line ("ON  4:32 left", "OFF  x3", "NOT OWNED"), and the on/off switch.
@@ -94,7 +94,7 @@ public static class ShopCatalog
             new ShopSection("SHIP", ParagonRow()),
             packs,
             new ShopSection("BOOSTERS", BoosterRow(Boosters.Kind.DustMultiplier), BoosterRow(Boosters.Kind.HazardClear),
-                            BoosterRow(Boosters.Kind.HomingAtoms)),
+                            BoosterRow(Boosters.Kind.HomingAtoms), BoosterRow(Boosters.Kind.AtomRush)),
             new ShopSection("FREE STAR DUST", WatchAdRow(), QuickAdRow()),
         };
     }
@@ -230,6 +230,7 @@ public static class ShopCatalog
         {
             case Boosters.Kind.DustMultiplier: return ShopRowKind.DustBooster;
             case Boosters.Kind.HomingAtoms: return ShopRowKind.HomingAtoms;
+            case Boosters.Kind.AtomRush: return ShopRowKind.AtomRush;
             default: return ShopRowKind.HazardClear;
         }
     }

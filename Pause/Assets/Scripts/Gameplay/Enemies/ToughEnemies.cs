@@ -8,8 +8,7 @@ using UnityEngine;
 //     codex: paid once, in ShipAttackHits.Kill). Two hearts orbit the enemy (EnemyHeartsView, the elites' own HeartOrbit engine, pooled and
 //     capped); a hit pops one in a small burst and the other keeps orbiting. A non-lethal hit also flashes the hull white (EnemyFlipbook.Flash) and
 //     throws a few white chips (RockHitFx.Chips). No outline, ring or bar is drawn on the enemy.
-//   * Hazards (rocks and mines: EnemyDef.IsHazard) carry HazardHits instead: the FIRST hit deflects the hazard (it bounces away from the hit,
-//     spins, flashes, throws chips, and stays inside the rails), the SECOND destroys it.
+//   * Hazards (rocks and mines: EnemyDef.IsHazard) stay ONE-hit: any player hit destroys one (no deflect, no hearts).
 //   * Both ignore a repeat hit inside HitWindow (0.1 s), so one frame of a multi-hit attack counts once.
 //   * The tutorial's enemies stay one-hit (EnemyFactory.Create tough: false), so the first lesson is not harder.
 //
@@ -20,9 +19,6 @@ public static class Toughness
     public const int HeartsPerEnemy = 2;          // a normal enemy
     public const float HitWindow = .1f;        // s: a second hit this soon after the last one is ignored
     public const int MaxHeartViews = 10;       // enemies wearing orbiting hearts at once; past it the hearts still count, only the drawing is skipped
-    public const float DeflectSpeed = 2.4f;    // u/s a deflected hazard is thrown at
-    public const float DeflectDecay = 2.6f;    // 1/s: how fast the bounce dies away
-    public const float DeflectSpin = 220f;     // deg/s of extra spin the bounce adds
     public const int HitChips = 4;
 
     // Tests: a clock that can be moved by hand (null: Time.time).
@@ -36,16 +32,16 @@ public static class Toughness
     public enum Result { None, Ignored, Hurt, Lethal }
 
     // Counters (tests, tuning).
-    public static int Hurts, Ignored, Deflections;
+    public static int Hurts, Ignored;
 
-    public static void ResetCounters() { Hurts = 0; Ignored = 0; Deflections = 0; }
+    public static void ResetCounters() { Hurts = 0; Ignored = 0; }
 
-    // Gives a freshly built enemy its hearts (an ordinary enemy) or its deflect state (a hazard). The tutorial builds its enemies without (EnemyFactory.Create tough: false).
+    // Gives a freshly built enemy its hearts (an ordinary enemy) (a hazard gets nothing: one hit kills it). The tutorial builds its enemies without (EnemyFactory.Create tough: false).
     public static void Attach(GameObject go, EnemyDef def)
     {
         if (go == null || def == null) return;
-        if (def.IsHazard) { if (go.GetComponent<HazardHits>() == null) go.AddComponent<HazardHits>().Init(def.role == EnemyRole.Mine); }
-        else if (go.GetComponent<EnemyHearts>() == null)
+        if (def.IsHazard) return;   // hazards (rocks, mines) die in one player hit
+        if (go.GetComponent<EnemyHearts>() == null)
         {
             go.AddComponent<EnemyHearts>().Init(HeartsPerEnemy);
             if (go.TryGetComponent(out ChaserEnemy chaser)) chaser.RecacheBurrow();
@@ -68,7 +64,6 @@ public static class Toughness
         if (target == null) return false;
         Result r = Result.None;
         if (target.TryGetComponent(out EnemyHearts hearts)) r = hearts.Strike(Origin(target));
-        else if (target.TryGetComponent(out HazardHits hazard)) r = hazard.Strike(Origin(target));
         return r == Result.Hurt || r == Result.Ignored;
     }
 
@@ -142,8 +137,8 @@ public class EnemyHearts : MonoBehaviour
 [DefaultExecutionOrder(50)]
 public class EnemyHeartsView : HeartOrbit
 {
-    public const float Size = .11f;
-    public const float Clearance = .04f;
+    public const float Size = .19f;        // was .11 (x1.73): readable at a glance on a phone; elites use their own EliteDef.heartSize (.18), bosses BossConfig.HeartSize
+    public const float Clearance = .07f;   // was .04: a wider margin for the bigger hearts
     static readonly System.Collections.Generic.List<EnemyHeartsView> views = new System.Collections.Generic.List<EnemyHeartsView>();
     // Views alive right now (destroyed ones are pruned, so it is right even where OnDestroy does not run: edit-mode tests).
     public static int Live
@@ -166,7 +161,7 @@ public class EnemyHeartsView : HeartOrbit
         body = GetComponent<SpriteRenderer>();
         chaser = GetComponent<ChaserEnemy>();
         heartSize = Size;
-        personalSpace = 1.3f;
+        personalSpace = 1.6f;
         if (!views.Contains(this)) views.Add(this);
         BuildHearts();
         Update();
@@ -247,86 +242,4 @@ public class EnemyHeartsView : HeartOrbit
     }
 
     protected override SpriteRenderer HullRenderer() { return body; }
-}
-
-// A hazard (rock or mine) that survives its first hit: the first hit deflects it, the second destroys it.
-public class HazardHits : MonoBehaviour
-{
-    public bool Deflected { get; private set; }
-    public int Strikes { get; private set; }
-    public int IgnoredHits { get; private set; }
-    public Vector2 Velocity { get { return vel; } }
-
-    bool railBound;
-    float lastHit = -999f, spin, xOff, lastX = float.NaN;
-    Vector2 vel;
-
-    public void Init(bool mine) { railBound = mine; lastHit = -999f; }
-
-    public Toughness.Result Strike(Vector3 from)
-    {
-        float now = Toughness.Now;
-        if (now - lastHit < Toughness.Window) { IgnoredHits++; Toughness.Ignored++; return Toughness.Result.Ignored; }
-        lastHit = now;
-        Strikes++;
-        if (Deflected) return Toughness.Result.Lethal;
-        Deflected = true;
-        Toughness.Deflections++;
-        Toughness.Hurts++;
-        Deflect(from);
-        Toughness.HitFx(gameObject, from, Mathf.Max(.15f, ClearTarget.MeasureRadius(gameObject)));
-        return Toughness.Result.Hurt;
-    }
-
-    // Thrown away from the hit with a little spin. A rail mine only slides along its rail (up or down), never sideways.
-    void Deflect(Vector3 from)
-    {
-        Vector2 away = (Vector2)(transform.position - from);
-        if (away.sqrMagnitude < 1e-4f) away = Vector2.up;
-        away.Normalize();
-        // never thrown down the lane at the player: the bounce always has a share of "back up"
-        if (away.y < .25f) away.y = .25f;
-        // and a sideways share, so it visibly changes direction
-        if (Mathf.Abs(away.x) < .35f) away.x = (away.x > .001f ? 1f : away.x < -.001f ? -1f : (transform.position.x > 0f ? -1f : 1f)) * .35f;
-        if (railBound) away.x = 0f;
-        away.Normalize();
-        vel = away * Toughness.DeflectSpeed;
-        float dir = away.x >= 0f ? -1f : 1f;
-        spin = dir * Toughness.DeflectSpin;
-    }
-
-    void LateUpdate()
-    {
-        if (!Deflected) return;
-        if (buttonClicks.playerDied) return;
-        if (!(TouchInput.IsPressed || score.pauseCounter <= 0)) return;
-        Step(Time.deltaTime);
-    }
-
-    // One frame of the bounce (dt explicit for tests). Runs after the mover (LateUpdate), so it adds to wherever the mover put the hazard.
-    public void Step(float dt)
-    {
-        if (!Deflected || dt <= 0f) return;
-        if (vel.sqrMagnitude < .0004f && Mathf.Abs(spin) < 1f) { vel = Vector2.zero; spin = 0f; return; }
-        Vector3 p = transform.position;
-        float dx = vel.x * dt, dy = vel.y * dt;
-        bool wrote = !float.IsNaN(lastX) && Mathf.Abs(p.x - lastX) > 1e-4f;   // the mover wrote x itself (a weave): lay the whole offset over it
-        if (!railBound) xOff += dx;
-        float x = railBound ? p.x : (wrote ? p.x + xOff : p.x + dx);
-        // inside the rails: bounce off the edge
-        float lim = Mathf.Max(.3f, SpaceAsteroidField.Edge - .3f);
-        if (!railBound)
-        {
-            if (x > lim) { xOff -= x - lim; x = lim; vel.x = -Mathf.Abs(vel.x); }
-            else if (x < -lim) { xOff += -lim - x; x = -lim; vel.x = Mathf.Abs(vel.x); }
-        }
-        p.x = x;
-        p.y += dy;
-        transform.position = p;
-        lastX = x;
-        transform.Rotate(0f, 0f, spin * dt);
-        float decay = Mathf.Exp(-Toughness.DeflectDecay * dt);
-        vel *= decay;
-        spin *= decay;
-    }
 }

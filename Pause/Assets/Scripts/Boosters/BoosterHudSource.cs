@@ -7,6 +7,7 @@ using UnityEngine;
 // What counts as "showing":
 //   DUST x2       time left on the multiplier (Boosters.RemainingSeconds), in a real run (practice runs never multiply).
 //   HOMING ATOMS  time left on homing (Boosters.HomingRemainingSeconds), in a real run.
+//   ATOM RUSH     the run began with a charge spent (Boosters.RunRushActive); the label is the x3.
 //   HAZARD CLEAR  at least one charge held (Boosters.ClearCharges); not armed (dimmed) while a scripted beat holds the ship.
 // Nothing shows in the tutorial, a practice run, a menu, or once the pilot is dead, and a booster the pilot switched off
 // in the Shop (Boosters.IsOn) never shows.
@@ -28,7 +29,7 @@ public static class BoosterHudSource
     }
 
     // Top to bottom: the two timed boosters, then the held charges.
-    public static readonly Boosters.Kind[] Order = { Boosters.Kind.DustMultiplier, Boosters.Kind.HomingAtoms, Boosters.Kind.HazardClear };
+    public static readonly Boosters.Kind[] Order = { Boosters.Kind.DustMultiplier, Boosters.Kind.HomingAtoms, Boosters.Kind.AtomRush, Boosters.Kind.HazardClear };
 
     // The Shop's icon file for each booster (Resources/ShopIcons, ShopIconArt).
     public static string IconName(Boosters.Kind kind)
@@ -37,6 +38,7 @@ public static class BoosterHudSource
         {
             case Boosters.Kind.DustMultiplier: return "booster_dust_x2";
             case Boosters.Kind.HomingAtoms: return "booster_homing_atoms";
+            case Boosters.Kind.AtomRush: return "booster_atom_rush";
             default: return "booster_hazard_clear";
         }
     }
@@ -51,7 +53,15 @@ public static class BoosterHudSource
     public static bool Read(Boosters.Kind kind, out Entry e)
     {
         e = new Entry { kind = kind, armed = true, timed = Boosters.IsTimed(kind) };
-        if (!InRun || !Boosters.IsActive(kind)) return false;
+        if (!InRun) return false;
+        if (kind == Boosters.Kind.AtomRush)
+        {
+            // spent when the run began: shown for that run only, with the drop multiplier as its label ("x3")
+            if (!Boosters.RunRushActive) return false;
+            e.count = Mathf.RoundToInt(ShotAtomTuning.RushMultiplier);
+            return true;
+        }
+        if (!Boosters.IsActive(kind)) return false;
         if (e.timed) e.secondsLeft = Boosters.SecondsLeft(kind);
         else
         {

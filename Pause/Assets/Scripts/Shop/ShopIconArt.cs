@@ -31,6 +31,7 @@ public static class ShopIconArt
             case ShopRowKind.DustBooster: return "booster_dust_x2";
             case ShopRowKind.HazardClear: return "booster_hazard_clear";
             case ShopRowKind.HomingAtoms: return "booster_homing_atoms";
+            case ShopRowKind.AtomRush: return "booster_atom_rush";
             default: return null;
         }
     }

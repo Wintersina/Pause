@@ -113,6 +113,8 @@ public static class ProgressMerge
             boostHomingUsedMs = Math.Max(local.boostHomingUsedMs, cloud.boostHomingUsedMs),
             boostDustBought5m = Math.Max(local.boostDustBought5m, cloud.boostDustBought5m),
             boostHomingBought5m = Math.Max(local.boostHomingBought5m, cloud.boostHomingBought5m),
+            boostRushBought = Math.Max(local.boostRushBought, cloud.boostRushBought),
+            boostRushUsed = Math.Max(local.boostRushUsed, cloud.boostRushUsed),
         };
         return result;
     }
@@ -142,6 +144,7 @@ public static class ProgressMerge
         return Math.Max(0, other.boostDustBought - newer.boostDustBought) * Boosters.DustBoosterPrice +
                Math.Max(0, other.boostClearBought - newer.boostClearBought) * Boosters.HazardClearPrice +
                Math.Max(0, other.boostHomingBought - newer.boostHomingBought) * Boosters.HomingPrice +
+               Math.Max(0, other.boostRushBought - newer.boostRushBought) * Boosters.AtomRushPrice +
                Math.Max(0, other.boostDustBought5m - newer.boostDustBought5m) * Boosters.DustBoosterPrice +
                Math.Max(0, other.boostHomingBought5m - newer.boostHomingBought5m) * Boosters.HomingPrice;
     }

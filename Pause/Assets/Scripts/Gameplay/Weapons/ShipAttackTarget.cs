@@ -7,7 +7,7 @@ using UnityEngine;
 // ClearTarget.Ensure(go) (optionally ClearTarget.SetRadius for its size), so
 // the directional attacks and the cinematic volley both find it.
 //
-// (Ordinary enemies and hazards are not special targets: they carry EnemyHearts / HazardHits and take one heart / one stage per hit,
+// (Ordinary enemies and hazards are not special targets: enemies carry EnemyHearts and take one heart per hit; hazards die in one hit,
 // see Toughness.)
 // Every attack routes its hits through ShipAttackHits.Hit, which calls
 // TakeShipAttack instead of destroying the object when it finds one.
@@ -51,7 +51,7 @@ public static class ShipAttackHits
     public static int AttackTargetHits;
     public static float AttackTargetWeight;
 
-    // Where the blow came from, when the caller knows (a floatie bullet's position): "away from the hit" for a deflected hazard.
+    // Where the blow came from, when the caller knows (a floatie bullet's position): "away from the hit" for a heart-pop's chips.
     // Null: the player's ship (Toughness.Origin).
     public static Vector3? HitFrom;
 
@@ -81,8 +81,8 @@ public static class ShipAttackHits
             special.TakeShipAttack(ship, w, target.transform.position);
             return false;
         }
-        // A tough enemy (2 hearts) or hazard (deflect, then destroy) takes ONE heart / one stage per hit, whatever the hit's weight; only
-        // the hit that takes the last one falls through to the ordinary kill. Plain bodies (and the tests' bare targets) die as before.
+        // A tough enemy (2 hearts) takes ONE heart per hit, whatever the hit's weight; only the hit that takes the last one falls through
+        // to the ordinary kill. Hazards and plain bodies (and the tests' bare targets) die in one hit.
         if (Toughness.Absorb(target)) return false;
         Kill(target, ship);
         return true;

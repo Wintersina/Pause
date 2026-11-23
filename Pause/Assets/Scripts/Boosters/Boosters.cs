@@ -1,6 +1,6 @@
 using UnityEngine;
 
-// BOOSTERS: three repeatable star-dust purchases (docs/economy.md, "Boosters").
+// BOOSTERS: four repeatable star-dust purchases (docs/economy.md, "Boosters").
 //
 //   DUST MULTIPLIER  2x star dust for 5 minutes of PLAY. The clock runs only on unfrozen frames of a real run (score.payDust),
 //                    never in a menu, a frozen world, a scripted entrance or the tutorial. Buying more adds 5 minutes onto
@@ -9,6 +9,9 @@ using UnityEngine;
 //   HAZARD CLEAR     a charge held in inventory, fires BY ITSELF when a hit would cost a heart (collisionDetection -> HazardClear.AutoSave), saving the heart.
 //   HOMING ATOMS     5 minutes of PLAY (the same clock rules as the multiplier) during which every atom that comes on screen locks
 //                    onto the ship and flies at it (AtomHoming): dodge it or teleport and it misses. Star dust is not pulled.
+//
+//   ATOM RUSH        a charge held in inventory, spent when a real run STARTS (BeginRush, from score.Awake): for that one run every
+//                    shot-atom drop chance is x3 (ShotAtomTuning.RushMultiplier; ShotAtomDrops). Held charges that are not spent do nothing.
 //
 // All are bought here with dust and nothing else: no store product, no platform code (iOS = Android).
 //
@@ -42,6 +45,8 @@ public static class Boosters
     public const int MaxClearCharges = 9;               // held at once
     public const float HomingPrice = 1000f;
     public const float HomingSeconds = 300f;            // 5 minutes of play per purchase
+    public const float AtomRushPrice = 500f;            // per charge (one run)
+    public const int MaxRushCharges = 9;                // held at once
     public const float LegacyBoosterSeconds = 600f;     // what a purchase gave before Nov 2026 (the legacy counters)
     public const float MaxStoredSeconds = 3600f;        // remaining boosted time never stacks past an hour
     public const float MaxDustMultiplier = 3f;          // booster + rewarded ad, together
@@ -53,6 +58,9 @@ public static class Boosters
     public const string DustUsedMsKey = "boosterDustUsedMs";
     public const string ClearBoughtKey = "boosterClearBought";
     public const string ClearUsedKey = "boosterClearUsed";
+    public const string RushBoughtKey = "boosterRushBought";
+    public const string RushUsedKey = "boosterRushUsed";
+    public const string RushOffKey = "boosterRushOff";
     public const string HomingBoughtKey = "boosterHomingBought5m";
     public const string HomingBoughtLegacyKey = "boosterHomingBought";  // 10-minute purchases, frozen
     public const string HomingUsedMsKey = "boosterHomingUsedMs";
@@ -66,9 +74,10 @@ public static class Boosters
     {
         DustBoughtKey, DustBoughtLegacyKey, DustUsedMsKey, ClearBoughtKey, ClearUsedKey,
         HomingBoughtKey, HomingBoughtLegacyKey, HomingUsedMsKey, DustOffKey, HomingOffKey, ClearOffKey,
+        RushBoughtKey, RushUsedKey, RushOffKey,
     };
 
-    public enum Kind { DustMultiplier, HazardClear, HomingAtoms }
+    public enum Kind { DustMultiplier, HazardClear, HomingAtoms, AtomRush }
     public enum BuyResult { Bought, NotEnoughDust, AtLimit, RunInProgress }
 
     // ---- the pure rule ----
@@ -84,8 +93,8 @@ public static class Boosters
 
     // ---- cached counters ----
     static bool loaded;
-    static int boughtDust, boughtDustLegacy, usedMs, boughtClear, usedClear, boughtHoming, boughtHomingLegacy, usedHomingMs;
-    static bool dustOff, homingOff, clearOff;
+    static int boughtDust, boughtDustLegacy, usedMs, boughtClear, usedClear, boughtHoming, boughtHomingLegacy, usedHomingMs, boughtRush, usedRush;
+    static bool dustOff, homingOff, clearOff, rushOff;
     static float fracMs, fracHomingMs;
 
     static void EnsureLoaded() { if (!loaded) Reload(); }
@@ -102,6 +111,9 @@ public static class Boosters
         boughtHoming = Mathf.Max(0, PlayerPrefs.GetInt(HomingBoughtKey, 0));
         boughtHomingLegacy = Mathf.Max(0, PlayerPrefs.GetInt(HomingBoughtLegacyKey, 0));
         usedHomingMs = Mathf.Max(0, PlayerPrefs.GetInt(HomingUsedMsKey, 0));
+        boughtRush = Mathf.Max(0, PlayerPrefs.GetInt(RushBoughtKey, 0));
+        usedRush = Mathf.Max(0, PlayerPrefs.GetInt(RushUsedKey, 0));
+        rushOff = PlayerPrefs.GetInt(RushOffKey, 0) == 1;
         dustOff = PlayerPrefs.GetInt(DustOffKey, 0) == 1;
         homingOff = PlayerPrefs.GetInt(HomingOffKey, 0) == 1;
         clearOff = PlayerPrefs.GetInt(ClearOffKey, 0) == 1;
@@ -116,6 +128,9 @@ public static class Boosters
     public static int UsedClear { get { EnsureLoaded(); return usedClear; } }
     public static int BoughtHoming { get { EnsureLoaded(); return boughtHoming + boughtHomingLegacy; } }
     public static int UsedHomingMs { get { EnsureLoaded(); return usedHomingMs; } }
+    public static int BoughtRush { get { EnsureLoaded(); return boughtRush; } }
+    public static int UsedRush { get { EnsureLoaded(); return usedRush; } }
+    public static int RushCharges { get { EnsureLoaded(); return Mathf.Max(0, boughtRush - usedRush); } }
 
     // ---- state ----
     static long GrantedMs(int bought, int legacy, float seconds)
@@ -143,6 +158,25 @@ public static class Boosters
     // A charge is held and the switch is on. Developer mode grants nothing here: it fires, and spends, only on real held charges.
     public static bool ClearAvailable { get { return ClearCharges > 0 && !clearOff; } }
 
+    // A charge is held and the switch is on.
+    public static bool RushAvailable { get { return RushCharges > 0 && !rushOff; } }
+
+    // The live run spent an Atom Rush charge when it began: shot-atom drop chances are multiplied for this run only (ShotAtomDrops).
+    public static bool RunRushActive { get; private set; }
+    // Set by score.Awake after ResetRun: a real run (not the tutorial or a practice run) with a charge held and switched on spends it.
+    public static bool BeginRush(bool realRun)
+    {
+        RunRushActive = false;
+        if (!realRun || startMenu.youAreInTutorial || !RushAvailable) return false;
+        usedRush++;
+        PlayerPrefs.SetInt(RushUsedKey, usedRush);
+        PrefsSaver.MarkDirty();
+        RunRushActive = true;
+        RaiseChanged();
+        return true;
+    }
+    public static void SetRunRushForTest(bool on) { RunRushActive = on; }
+
     // ================================================================== READ-ONLY API (Shop rows, the in-game HUD)
     // Stable: other screens read boosters only through these (plus Changed). Nothing here writes.
 
@@ -157,7 +191,7 @@ public static class Boosters
     }
 
     // Dust x2 and Homing Atoms count play time; Hazard Clear counts charges.
-    public static bool IsTimed(Kind kind) { return kind != Kind.HazardClear; }
+    public static bool IsTimed(Kind kind) { return kind == Kind.DustMultiplier || kind == Kind.HomingAtoms; }
 
     // Something is held: time left (timed) or a charge (Hazard Clear), switched on or off.
     public static bool Owns(Kind kind) { return IsTimed(kind) ? SecondsLeft(kind) > 0f : ChargesLeft(kind) > 0; }
@@ -170,6 +204,7 @@ public static class Boosters
         {
             case Kind.DustMultiplier: return !dustOff;
             case Kind.HomingAtoms: return !homingOff;
+            case Kind.AtomRush: return !rushOff;
             default: return !clearOff;
         }
     }
@@ -189,7 +224,7 @@ public static class Boosters
     }
 
     // Hazard Clear charges held; 0 for the timed boosters.
-    public static int ChargesLeft(Kind kind) { return kind == Kind.HazardClear ? ClearCharges : 0; }
+    public static int ChargesLeft(Kind kind) { return kind == Kind.HazardClear ? ClearCharges : kind == Kind.AtomRush ? RushCharges : 0; }
 
     // ================================================================== the switch (Shop only)
 
@@ -203,6 +238,7 @@ public static class Boosters
         {
             case Kind.DustMultiplier: dustOff = !on; PlayerPrefs.SetInt(DustOffKey, on ? 0 : 1); break;
             case Kind.HomingAtoms: homingOff = !on; PlayerPrefs.SetInt(HomingOffKey, on ? 0 : 1); break;
+            case Kind.AtomRush: rushOff = !on; PlayerPrefs.SetInt(RushOffKey, on ? 0 : 1); break;
             default: clearOff = !on; PlayerPrefs.SetInt(ClearOffKey, on ? 0 : 1); break;
         }
         Flush();   // the clock as it stands, so the frozen time is on disk with the switch
@@ -222,7 +258,7 @@ public static class Boosters
     // Dust the booster alone added to the live run (so the ad code can add its own x on the unboosted base:
     // base = earned - RunBoostExtra, final = base x DustMultiplier(...) stays at 3x). Reset by ResetRun.
     public static float RunBoostExtra { get; private set; }
-    public static void ResetRun() { RunBoostExtra = 0f; RunDustUsed = false; RunHomingUsed = false; }
+    public static void ResetRun() { RunBoostExtra = 0f; RunDustUsed = false; RunHomingUsed = false; RunRushActive = false; }
 
     // The dust multiplier was ACTIVE on at least one unfrozen frame of real run flight this run (set by Tick, so it stays true after the
     // time runs out mid-run). The leaderboards route a run with this set to the Power-Ups board. Merely owning booster time does not set it.
@@ -352,6 +388,22 @@ public static class Boosters
         return BuyResult.Bought;
     }
 
+    public static BuyResult BuyAtomRush()
+    {
+        EnsureLoaded();
+        if (InRun) return BuyResult.RunInProgress;
+        if (RushCharges >= MaxRushCharges) return BuyResult.AtLimit;
+        float have = StarDustLedger.Saved;
+        if (have < AtomRushPrice) return BuyResult.NotEnoughDust;
+        PlayerPrefs.SetFloat(StarDustLedger.CurrencyKey, have - AtomRushPrice);
+        boughtRush++;
+        PlayerPrefs.SetInt(RushBoughtKey, boughtRush);
+        rushOff = false; PlayerPrefs.SetInt(RushOffKey, 0);
+        PrefsSaver.SaveNow();
+        RaiseChanged();
+        return BuyResult.Bought;
+    }
+
     // Spends one charge (the clear fired). False when there is none (developer mode included) or it is switched off.
     public static bool ConsumeClear()
     {
@@ -377,6 +429,7 @@ public static class Boosters
         {
             case Kind.DustMultiplier: return "DUST x2";
             case Kind.HomingAtoms: return "HOMING ATOMS";
+            case Kind.AtomRush: return "ATOM RUSH";
             default: return "HAZARD CLEAR";
         }
     }
@@ -389,6 +442,8 @@ public static class Boosters
                 return "Double star dust for 5 minutes of play. Pickups and rewards only. Buy again to add 5 minutes. No ads while it runs.";
             case Kind.HomingAtoms:
                 return "For 5 minutes of play every atom flies at your ship. Dodge or teleport and it misses. Buy again to add 5 minutes.";
+            case Kind.AtomRush:
+                return "Shot atoms drop 3x as often for one run: more from enemies, every elite, and a second one from every boss. Spent when the run starts.";
             default:
                 return "Fires by itself when a hit would cost a heart: saves the heart and wipes rocks, mines and shots on screen. No score. Bosses stay.";
         }
@@ -400,6 +455,7 @@ public static class Boosters
         {
             case Kind.DustMultiplier: return DustBoosterPrice;
             case Kind.HomingAtoms: return HomingPrice;
+            case Kind.AtomRush: return AtomRushPrice;
             default: return HazardClearPrice;
         }
     }
@@ -417,6 +473,7 @@ public static class Boosters
         {
             case Kind.DustMultiplier: return BuyDustBooster();
             case Kind.HomingAtoms: return BuyHoming();
+            case Kind.AtomRush: return BuyAtomRush();
             default: return BuyHazardClear();
         }
     }
@@ -428,6 +485,7 @@ public static class Boosters
         {
             case Kind.DustMultiplier: return RemainingSeconds + DustBoosterSeconds > MaxStoredSeconds + .01f;
             case Kind.HomingAtoms: return HomingRemainingSeconds + HomingSeconds > MaxStoredSeconds + .01f;
+            case Kind.AtomRush: return RushCharges >= MaxRushCharges;
             default: return ClearCharges >= MaxClearCharges;
         }
     }

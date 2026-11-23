@@ -11,8 +11,8 @@ using UnityEngine;
 //   ARC       a hit zaps a spark to the nearest other enemy in range (1 / 1 / 2 jumps)
 //   RAPID     the gun fires +20% / +45% / +75% faster
 //
-// Each catch adds a level (max 3); a catch past the max pays star dust instead. They drop ONLY from killed elites and bosses (a boss
-// always, an elite half the time, and the first elite of every run always), one random atom that is not maxed yet (every atom can drop in every world and reach level 3 in any of them).
+// Each catch adds a level (max 3); a catch past the max pays star dust instead. They drop from bosses (one always, a second half the time),
+// elites (the first of a run always, later ones 80%) and, rarely, ordinary kills (1.5%, at most one per 20 s), one random atom that is not maxed yet (every atom can drop in every world and reach level 3 in any of them).
 // All of it is state of the run: BeginRun (score.Awake) wipes it.
 //
 // EVERY number lives in ShotAtomTuning.
@@ -24,8 +24,14 @@ public static class ShotAtomTuning
     public const int MaxLevel = 3;
 
     // ---- drops ----
-    public const float EliteDropChance = .5f;     // a killed elite
-    public const float BossDropChance = 1f;       // a destroyed boss
+    public const float EliteDropChance = .8f;     // a killed elite (was .5)
+    public const float BossDropChance = 1f;       // a destroyed boss: the first drop
+    public const float BossSecondDropChance = .5f; // ...and a second one this often
+    public const float EnemyDropChance = .015f;   // an ordinary enemy kill (not a hazard, elite or boss)
+    public const float EnemyDropCooldown = 20f;   // s: at most one drop from ordinary enemies per this (the atom spacing still applies)
+    // ATOM RUSH booster (one run): every chance x RushMultiplier (capped at 1), the ordinary-enemy cooldown x RushCooldownScale.
+    public const float RushMultiplier = 3f;       // +200%
+    public const float RushCooldownScale = .5f;
     public const bool FirstEliteGuaranteed = true; // the first elite killed in a run always drops one (later ones use EliteDropChance)
     public const float MaxedDust = 2f;            // star dust a catch pays once the atom is at its level cap (the blue atom's)
     public const int MaxCoinsOnScreen = 3;        // coins waiting for the atom spacing at once, at most
@@ -209,7 +215,8 @@ public static class ShotAtomDrops
 
     // Has this run's first elite kill happened (it always drops)? Reset by ShotAtoms.BeginRun.
     public static bool FirstEliteDone { get; private set; }
-    public static void NewRun() { FirstEliteDone = false; }
+    public static void NewRun() { FirstEliteDone = false; lastEnemyDrop = -9999f; }
+    public static void ResetSeams() { ClockOverride = null; EnemyRollOverride = -1f; lastEnemyDrop = -9999f; }
 
     static bool Counts()
     {
@@ -218,26 +225,71 @@ public static class ShotAtomDrops
         return true;
     }
 
-    // A killed elite: a coin half the time (`roll` 0..1: below the chance drops; -1 rolls it).
+    // Test seam: a clock that can be moved by hand (null: Time.time).
+    public static System.Func<float> ClockOverride;
+    static float Now { get { return ClockOverride != null ? ClockOverride() : Time.time; } }
+    static float lastEnemyDrop = -9999f;
+    // Test seam: the roll an ordinary kill uses when none is given (negative: Random.value).
+    public static float EnemyRollOverride = -1f;
+    public static int Enemies { get; private set; }     // drops earned from ordinary kills this session (tests)
+
+    // Atom Rush multiplies a chance (never past certain).
+    public static float Rushed(float chance) { return Boosters.RunRushActive ? Mathf.Min(1f, chance * ShotAtomTuning.RushMultiplier) : chance; }
+    public static float EnemyChance { get { return Rushed(ShotAtomTuning.EnemyDropChance); } }
+    public static float EnemyCooldown { get { return Boosters.RunRushActive ? ShotAtomTuning.EnemyDropCooldown * ShotAtomTuning.RushCooldownScale : ShotAtomTuning.EnemyDropCooldown; } }
+
+    // A killed elite: a coin 80% of the time, the run's first always (`roll` 0..1: below the chance drops; -1 rolls it).
     public static bool OnEliteKilled(Vector3 at, float roll = -1f)
     {
         if (!Counts()) return false;
         if (roll < 0f) roll = Random.value;
         bool first = !FirstEliteDone;
         FirstEliteDone = true;
-        if (!(first && ShotAtomTuning.FirstEliteGuaranteed) && !Wins(roll, ShotAtomTuning.EliteDropChance)) return false;
+        if (!(first && ShotAtomTuning.FirstEliteGuaranteed) && !Wins(roll, Rushed(ShotAtomTuning.EliteDropChance))) return false;
         Elites++;
         return Offer(at);
     }
 
-    // A destroyed boss: always one.
-    public static bool OnBossDestroyed(Vector3 at, float roll = -1f)
+    // A destroyed boss: always one, and a second half the time (`roll2`: -1 rolls it).
+    public static bool OnBossDestroyed(Vector3 at, float roll = -1f, float roll2 = -1f)
     {
         if (!Counts()) return false;
         if (roll < 0f) roll = Random.value;
+        if (roll2 < 0f) roll2 = Random.value;
         if (!Wins(roll, ShotAtomTuning.BossDropChance)) return false;
         Bosses++;
-        return Offer(at);
+        bool ok = Offer(at);
+        if (Wins(roll2, Rushed(ShotAtomTuning.BossSecondDropChance)))
+        {
+            Bosses++;
+            Offer(at);
+        }
+        return ok;
+    }
+
+    // An ordinary enemy kill (collisionDetection.AwardDestroyedTarget): a small chance, at most one per EnemyDropCooldown.
+    public static bool OnEnemyKilled(GameObject target, float roll = -1f)
+    {
+        if (target == null || !target.CompareTag("Enimey")) return false;
+        if (target.name.StartsWith("Boss", System.StringComparison.Ordinal) || target.TryGetComponent(out EliteShip _)) return false;
+        var identity = target.GetComponent<EnemyIdentity>();
+        if (identity != null && identity.Def != null ? identity.Def.IsHazard : PrefabName.Is(target, "mine")) return false;
+        return RollEnemyDrop(target.transform.position, roll);
+    }
+
+    public static bool RollEnemyDrop(Vector3 at, float roll = -1f)
+    {
+        if (!Counts()) return false;
+        // edit-mode tests never get a random coin out of an unrelated kill: only an explicit roll (or the override) can drop one there
+        if (!Application.isPlaying && roll < 0f && EnemyRollOverride < 0f) return false;
+        float now = Now;
+        if (now - lastEnemyDrop < EnemyCooldown) return false;
+        if (roll < 0f) roll = EnemyRollOverride >= 0f ? EnemyRollOverride : Random.value;
+        if (!Wins(roll, EnemyChance)) return false;
+        if (!Offer(at)) return false;
+        lastEnemyDrop = now;
+        Enemies++;
+        return true;
     }
 
     static bool Wins(float roll, float chance) { return chance >= 1f || roll < chance; }

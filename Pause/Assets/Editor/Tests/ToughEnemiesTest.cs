@@ -2,7 +2,7 @@ using UnityEditor.SceneManagement;
 using UnityEngine;
 
 // The combat rework's toughness (ToughEnemies.cs): every ordinary enemy has 2 hearts (orbiting, one pops per hit), every hit from a weapon
-// takes exactly one heart, hazards deflect on the first hit and break on the second, a repeat hit inside the ignore window does not count,
+// takes exactly one heart, hazards (rocks, mines, field rocks) die to ANY player hit in one hit (no deflect), a repeat hit inside the ignore window does not count,
 // the orbiting hearts are capped and cleaned up, elites carry double hearts, the tutorial's enemies stay one-hit.
 //
 //   Unity -batchmode -quit -projectPath Pause -executeMethod ToughEnemiesTest.Run
@@ -29,9 +29,8 @@ public static class ToughEnemiesTest
             PoolCap();
             IgnoreWindow();
             TutorialStaysOneHit();
-            HazardDeflectThenDestroy();
-            HazardStaysInPlay();
-            FieldRockDeflects();
+            HazardsDieInOneHit();
+            FieldRockOneHit();
             EliteDoubleHearts();
         }
         finally
@@ -95,7 +94,7 @@ public static class ToughEnemiesTest
             var go = Make(def);
             if (def.IsHazard)
             {
-                rocks &= go.GetComponent<HazardHits>() != null && go.GetComponent<EnemyHearts>() == null;
+                rocks &= go.GetComponent<EnemyHearts>() == null && go.GetComponent<EnemyHeartsView>() == null;
             }
             else
             {
@@ -110,7 +109,9 @@ public static class ToughEnemiesTest
         }
         Check("every ordinary enemy of every world has 2 hearts (" + checkedDefs + " defs; bad: " + bad + ")", checkedDefs > 20 && hearts);
         Check("... and two hearts orbit it (as many shown as it has)", view);
-        Check("rocks and mines carry the deflect-then-destroy rule instead", rocks);
+        Check("rocks and mines carry no hearts at all (one hit kills them)", rocks);
+        Check("the normal enemies' hearts are 1.6-1.8x the old .11 (" + EnemyHeartsView.Size + ") and sit further out",
+              EnemyHeartsView.Size >= .11f * 1.6f && EnemyHeartsView.Size <= .11f * 1.8f && EnemyHeartsView.Clearance > .04f);
         Check("(the hearts' drawings are all cleaned up with the bodies: " + EnemyHeartsView.Live + " live)", EnemyHeartsView.Live == 0);
     }
 
@@ -199,13 +200,7 @@ public static class ToughEnemiesTest
         Check("a hit past the 0.1 s window counts and kills", dead && go == null);
 
         var rock = Make(EnemyRoster.One(0, EnemyRole.Rock));
-        var z = rock.GetComponent<HazardHits>();
-        HitOnce(rock);
-        clock += .02f;
-        HitOnce(rock);
-        Check("the same window guards a hazard: the repeat inside it neither destroys it nor deflects it twice", rock != null && z.Strikes == 1 && z.IgnoredHits == 1);
-        clock += .2f;
-        Check("... and the next real hit destroys it", HitOnce(rock) && rock == null);
+        Check("a hazard ignores no hit: the first one destroys it, window or not", HitOnce(rock) && rock == null);
         Toughness.ClockOverride = null;
         Toughness.EditModeWindow = 0f;
     }
@@ -214,63 +209,36 @@ public static class ToughEnemiesTest
     {
         FreshScene();
         var go = Make(EnemyRoster.One(0, EnemyRole.Alien), 0f, 1f, false);
-        Check("a tutorial enemy (tough: false) has no hearts", go.GetComponent<EnemyHearts>() == null && go.GetComponent<HazardHits>() == null);
+        Check("a tutorial enemy (tough: false) has no hearts", go.GetComponent<EnemyHearts>() == null);
         Check("... and dies to the first hit", HitOnce(go) && go == null);
     }
 
-    static void HazardDeflectThenDestroy()
+    static void HazardsDieInOneHit()
     {
         FreshScene();
-        var rock = Make(EnemyRoster.One(0, EnemyRole.Rock), 0f, 1f);
-        var z = rock.GetComponent<HazardHits>();
-        Vector3 at = rock.transform.position;
-        int kills = ShipAttackHits.Kills, deflections = Toughness.Deflections;
-        bool dead = HitOnce(rock, 1f, at + new Vector3(-.3f, -1f, 0f));
-        Check("the first hit deflects the rock (it lives, deflected, counted)", !dead && rock != null && z.Deflected && Toughness.Deflections == deflections + 1 && ShipAttackHits.Kills == kills);
-        Check("... thrown away from the hit (hit from the lower left: it goes up and to the right)", z.Velocity.y > 0f && z.Velocity.x > 0f);
-        Quaternion before = rock.transform.rotation;
-        for (int i = 0; i < 30; i++) z.Step(1f / 60f);
-        Vector3 moved = rock.transform.position - at;
-        Check("... and it bounces: it moved up and sideways and spun (" + moved.x.ToString("0.00") + ", " + moved.y.ToString("0.00") + ")",
-              moved.y > .1f && moved.x > .05f && Quaternion.Angle(before, rock.transform.rotation) > 1f);
-        dead = HitOnce(rock);
-        Check("the second hit destroys it (the ordinary kill, once)", dead && rock == null && ShipAttackHits.Kills == kills + 1);
-
-        // a rail mine only slides along its rail
-        var mine = Make(EnemyRoster.One(0, EnemyRole.Mine), 1f, 1f);
-        var mz = mine.GetComponent<HazardHits>();
-        HitOnce(mine, 1f, mine.transform.position + new Vector3(-.5f, -1f, 0f));
-        float x0 = mine.transform.position.x;
-        for (int i = 0; i < 30; i++) mz.Step(1f / 60f);
-        Check("a deflected rail mine bounces along its rail (x unchanged), then the next hit destroys it", mz.Deflected && Mathf.Abs(mine.transform.position.x - x0) < .001f && HitOnce(mine) && mine == null);
+        foreach (var role in new[] { EnemyRole.Rock, EnemyRole.Mine })
+        {
+            foreach (float w in new[] { 1f, .5f, .25f })
+            {
+                var hz = Make(EnemyRoster.One(0, role), role == EnemyRole.Mine ? 1f : 0f, 1f);
+                int kills = ShipAttackHits.Kills;
+                bool dead = HitOnce(hz, w, hz.transform.position + new Vector3(-.3f, -1f, 0f));
+                Check(role + ": one hit of weight " + w + " destroys it (the ordinary kill, once)", dead && hz == null && ShipAttackHits.Kills == kills + 1);
+            }
+        }
     }
 
-    static void HazardStaysInPlay()
+    static void FieldRockOneHit()
     {
         FreshScene();
-        float edge = SpaceAsteroidField.Edge;
-        var rock = Make(EnemyRoster.One(0, EnemyRole.Rock), edge - .35f, 1f);
-        var z = rock.GetComponent<HazardHits>();
-        HitOnce(rock, 1f, rock.transform.position + new Vector3(-.5f, -1f, 0f));   // thrown towards the right rail
-        float maxX = 0f;
-        for (int i = 0; i < 240; i++) { z.Step(1f / 60f); maxX = Mathf.Max(maxX, Mathf.Abs(rock.transform.position.x)); }
-        Check("a deflected rock stays inside the rails (max |x| " + maxX.ToString("0.00") + " of " + edge.ToString("0.00") + ")", maxX <= edge + .001f);
-        Check("... and the bounce dies away (it does not keep flying)", z.Velocity.magnitude < .1f);
-    }
-
-    static void FieldRockDeflects()
-    {
-        FreshScene();
-        Check("space field rocks: a small and a medium rock take two hits (deflect, then break), a large one three",
-              Mathf.Approximately(SpaceAsteroidField.SizeHits[0], 2f) && Mathf.Approximately(SpaceAsteroidField.SizeHits[1], 2f) && Mathf.Approximately(SpaceAsteroidField.SizeHits[2], 3f));
-        var rock = SpaceAsteroidField.Spawn(0, 0, new Vector2(0f, 1f), 0f, 0f, 20f);
-        Check("(a field rock exists)", rock != null && !rock.Broken);
-        if (rock == null) return;
-        float vx = rock.Vx;
-        rock.TakeShipAttack(1, 1f, rock.transform.position + new Vector3(-.4f, -1f, 0f));
-        Check("the first hit deflects it (alive, deflected, thrown to the right: Vx " + vx.ToString("0.00") + " -> " + rock.Vx.ToString("0.00") + ")", !rock.Broken && rock.Deflected && rock.Vx > vx);
-        rock.TakeShipAttack(1, 1f, rock.transform.position + new Vector3(-.4f, -1f, 0f));
-        Check("the second hit breaks it", rock == null || rock.Broken);
+        for (int tier = 0; tier < 3; tier++)
+        {
+            var rock = SpaceAsteroidField.Spawn(tier, 0, new Vector2(0f, 1f), 0f, 0f, 20f);
+            Check("(a tier " + tier + " field rock exists)", rock != null && !rock.Broken);
+            if (rock == null) continue;
+            rock.TakeShipAttack(1, tier == 0 ? .25f : 1f, rock.transform.position + new Vector3(-.4f, -1f, 0f));
+            Check("tier " + tier + ": one player hit breaks it, whatever its size or the hit's weight", rock == null || rock.Broken);
+        }
     }
 
     static void EliteDoubleHearts()

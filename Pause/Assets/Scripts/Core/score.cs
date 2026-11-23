@@ -63,6 +63,7 @@ public class score : MonoBehaviour {
         PowerUpRefund.BeginRun(paysRealDust);   // off in the tutorial and practice runs
         ledgerRun = StarDustLedger.BeginRun(paysRealDust);
         Boosters.ResetRun();
+        Boosters.BeginRush(paysRealDust);   // an Atom Rush charge is spent here, for this run only
         HazardClear.BeginRun();
         ShotAtoms.BeginRun();   // the shot atoms are per run: a new run starts with none
         if (paysRealDust) UpgradeOfferStore.RunStarted();

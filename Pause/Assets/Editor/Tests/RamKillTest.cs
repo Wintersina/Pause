@@ -142,11 +142,10 @@ public static class RamKillTest
             Fresh();
             collisionDetection.atomCheck = true;
             var rock = Hazard(EnemyRole.Rock, r.ship.transform.position + Vector3.right * .3f);
-            var hazard = rock.GetComponent<HazardHits>();
-            Check("(the rock is fresh: not deflected)", hazard != null && !hazard.Deflected);
+            Check("(the rock has no hearts: one hit kills it)", rock.GetComponent<EnemyHearts>() == null);
             before = RunScore.Total;
             Ram(r, rock);
-            Check("a shield ram destroys a fresh hazard outright (paid as a kill), with no deflect", RunScore.Total > before && !hazard.Deflected && hazard.Strikes == 0 && collisionDetection.lifeCounter == 0);
+            Check("a shield ram destroys a hazard outright (paid as a kill)", RunScore.Total > before && collisionDetection.lifeCounter == 0);
             Kill(rock);
         }
         finally { Fresh(); r.Dispose(); }
