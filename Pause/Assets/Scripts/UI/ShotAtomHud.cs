@@ -10,17 +10,19 @@ using UnityEngine.UI;
 // NOT a control: no Button, no GraphicRaycaster, every graphic has raycastTarget off and the canvas group blocks nothing, so a
 // finger on it is an ordinary press. Built on gameS1 only (never the tutorial).
 //
-// PLACEMENT (pure, Geometry / SlotRect, ShotAtomsTest): the row starts at the score board's left edge, a gap under its bottom, and
-// is slid down under whatever else reaches over it on this screen (the Replay/Home pair, the boss warning's chip and banner, PORTAL
-// DANGER's chip, the booster column's slots: BoosterHud.Obstacles). All six slots are always reserved, so a coin joining the row
-// never moves anything. It follows ScreenFit's top band (rails, notches, cutouts, safe area), so tall phones, the Flip cover
-// screen, foldables and tablets all get it; on a narrow band the coins shrink to fit.
+// PLACEMENT (pure, Geometry / SlotRect, ShotAtomsTest): the row starts at the score board's inner left edge, a gap under the
+// board's bottom FRAME (the art reaches below the layout rect), and stays inside the board's width, so it never meets the rails.
+// It is slid down only under what is actually showing under the board: the boss warning's banner and chip while they are up,
+// PORTAL DANGER's chip while it is up. (They used to be reserved always, which pushed the row below the boss banner's empty
+// slot: well under the board.) The Replay/Home pair is always an obstacle; the booster column only narrows the row. All six slots
+// are always reserved, so a coin joining the row never moves anything. It follows ScreenFit's top band (rails, notches,
+// cutouts, safe area), so tall phones, the Flip cover screen, foldables and tablets all get it; on a narrow board the coins shrink.
 public class ShotAtomHud : MonoBehaviour
 {
     public const string HostName = "~ShotAtomHud";
-    public const float IconUnits = 26f;        // a coin's size in quick-action canvas units
-    public const float MinSlotUnits = 22f;     // wide enough for "x3"
-    public const float LabelUnits = 11f;       // the level line under a coin
+    public const float IconUnits = 34f;        // a coin's size in quick-action canvas units
+    public const float MinSlotUnits = 30f;     // wide enough for "x3"
+    public const float LabelUnits = 14f;       // the level line under a coin
     public const float GapUnits = 4f;          // between two slots, and under the score board
     public const int MaxSlots = ShotAtomTuning.Count;
 
@@ -29,25 +31,60 @@ public class ShotAtomHud : MonoBehaviour
         public float left, top, icon, pitch, slotWidth, slotHeight, label;
     }
 
-    // Every rect the row must stay clear of, in screen px: the Replay/Home pair, the boss warning's chip and banner, PORTAL DANGER's
-    // chip, the score read-out and the booster column's three slots.
+    // Every rect the row must stay clear of, in screen px: the Replay/Home pair always; the boss warning's chip and banner while
+    // `boss` is up; PORTAL DANGER's chip while `portal` is up. (The score read-out and the booster column are handled in Compute:
+    // the row starts under the first and is kept beside the second.)
+    public static Rect[] Obstacles(TopBand.Frame band, Rect safe, Vector2 screen, Rect hud, bool boss, bool portal)
+    {
+        var list = new System.Collections.Generic.List<Rect>(4);
+        list.Add(PauseQuickActions.ScreenRectFor(band, screen));
+        if (boss)
+        {
+            var warning = BossWarningHud.ComputeLayout(safe, screen, hud, band);
+            list.Add(warning.chip);
+            list.Add(warning.banner);
+        }
+        if (portal)
+        {
+            float portalScale = Mathf.Min(screen.x / 800f, screen.y / 1200f);   // its canvas: 800x1200, Expand
+            list.Add(PortalPressureHud.ChipScreenRect(band, portalScale > 0f ? portalScale : 1f));
+        }
+        return list.ToArray();
+    }
+
+    // Everything that can ever sit under the board (tests: nothing may overlap the row while it is all up).
     public static Rect[] Obstacles(TopBand.Frame band, Rect safe, Vector2 screen, Rect hud)
     {
-        var basic = BoosterHud.Obstacles(band, safe, screen, hud);
-        var all = new Rect[basic.Length + BoosterHud.MaxSlots];
-        for (int i = 0; i < basic.Length; i++) all[i] = basic[i];
-        for (int i = 0; i < BoosterHud.MaxSlots; i++) all[basic.Length + i] = BoosterHud.SlotRect(band, safe, screen, hud, i);
-        return all;
+        return Obstacles(band, safe, screen, hud, true, true);
     }
 
     public static Geometry Compute(TopBand.Frame band, Rect safe, Vector2 screen, Rect hud)
     {
+        return Compute(band, safe, screen, hud, false, false);
+    }
+
+    public static Geometry Compute(TopBand.Frame band, Rect safe, Vector2 screen, Rect hud, bool boss, bool portal)
+    {
         var g = new Geometry();
         float s = PauseQuickActions.CanvasScaleFor(screen);
         float gap = Mathf.Max(1f, Mathf.Round(GapUnits * s));
-        g.left = Mathf.Max(hud.height > 0f ? hud.xMin : band.left, band.left);
-        float avail = Mathf.Max(MaxSlots, band.right - g.left);
+        bool board = hud.height > 0f;
+        float inset = board ? gap : 0f;
+        g.left = Mathf.Max(board ? hud.xMin + inset : band.left, band.left);
+        float right = board ? Mathf.Min(hud.xMax - inset, band.right) : Mathf.Min(band.right, PauseQuickActions.ScreenRectFor(band, screen).xMin - gap);
+        float startTop = (board ? hud.yMin - HudStyler.BoardBottomGrowthPx(screen) : band.top) - gap;
         float want = Mathf.Max(8f, Mathf.Round(IconUnits * s));
+        float label = Mathf.Round(LabelUnits * s);
+
+        // the booster column, where it reaches into the row's band, narrows the row instead of pushing it down
+        for (int i = 0; i < BoosterHud.MaxSlots; i++)
+        {
+            Rect b = BoosterHud.SlotRect(band, safe, screen, hud, i);
+            if (b.width <= 0f || b.xMax <= g.left || b.yMax < startTop - want - label || b.yMin > startTop) continue;
+            right = Mathf.Min(right, Mathf.Max(g.left, b.xMin - gap));
+        }
+
+        float avail = Mathf.Max(MaxSlots, right - g.left);
         float slotWidth = Mathf.Max(want, Mathf.Round(MinSlotUnits * s));
         float pitch = slotWidth + gap;
         if (pitch * MaxSlots - gap > avail)
@@ -58,11 +95,10 @@ public class ShotAtomHud : MonoBehaviour
         g.pitch = pitch;
         g.slotWidth = slotWidth;
         g.icon = Mathf.Min(want, slotWidth);
-        g.label = Mathf.Round(LabelUnits * s);
+        g.label = label;
         g.slotHeight = g.icon + g.label;
-        float startTop = (hud.height > 0f ? hud.yMin : band.top) - gap;
         float xMax = g.left + MaxSlots * pitch - gap;
-        g.top = BoosterHud.ColumnTop(Obstacles(band, safe, screen, hud), g.left, xMax, startTop, gap);
+        g.top = BoosterHud.ColumnTop(Obstacles(band, safe, screen, hud, boss, portal), g.left, xMax, startTop, gap);
         return g;
     }
 
@@ -95,7 +131,10 @@ public class ShotAtomHud : MonoBehaviour
         public Text label;
         public ShotAtom atom;
         public int level = -1;
+        public float pulse;      // 1 -> 0 after a level up: the coin swells a little
     }
+
+    public const float PulseSeconds = .45f, PulseSwell = .4f;
 
     readonly Slot[] slots = new Slot[MaxSlots];
     Canvas canvas;
@@ -116,7 +155,52 @@ public class ShotAtomHud : MonoBehaviour
     CanvasScaler hudScaler;
     int hudLookFrame = -1000;
 
+    BossWarningHud warning;
+    int warningLookFrame = -1000;
+    bool bossUp, portalUp;
+    Geometry geometry;
+    Rect liveHud;
+
+    public static ShotAtomHud Instance { get; private set; }
+    void OnEnable() { Instance = this; }
+    void OnDisable() { if (Instance == this) Instance = null; }
+
+    // Where the upgrade popup hangs, in screen px: the top-centre point just under the row's reserved slots, centred on the
+    // score board. False when there is no row on this screen (the tutorial, the menus): the popup then falls back.
+    public static bool PopupAnchor(out Vector2 topCentre)
+    {
+        topCentre = Vector2.zero;
+        var row = Instance;
+        if (row == null || !row.isActiveAndEnabled) return false;
+        var screen = new Vector2(Screen.width, Screen.height);
+        Rect safe = Screen.safeArea;
+        var band = TopBand.FrameFor(safe, screen);
+        Rect hud = row.LiveHudRect(band, screen);
+        row.RefreshWarnings();
+        var g = Compute(band, safe, screen, hud, row.bossUp, row.portalUp);
+        float gap = Mathf.Max(1f, Mathf.Round(GapUnits * PauseQuickActions.CanvasScaleFor(screen)));
+        float cx = hud.height > 0f ? hud.center.x : (band.left + band.right) * .5f;
+        topCentre = new Vector2(Mathf.Round(cx), Mathf.Round(g.top - g.slotHeight - gap));
+        return true;
+    }
+
+    // Is the boss warning / PORTAL DANGER up (cached lookups, re-found twice a second)?
+    void RefreshWarnings()
+    {
+        if (warning == null && Time.frameCount - warningLookFrame >= 30)
+        {
+            warningLookFrame = Time.frameCount;
+            warning = FindFirstObjectByType<BossWarningHud>();
+        }
+        bossUp = warning != null && (warning.BannerVisible || warning.ChipVisible || warning.FinalVisible);
+        var portal = PortalPressureHud.Instance;
+        portalUp = portal != null && portal.Showing;
+    }
+
     public int VisibleCount { get { return shownCount; } }
+    public Geometry CurrentGeometry { get { return geometry; } }
+    public Rect CurrentHud { get { return liveHud; } }
+    public float PulseAt(int slot) { return slots[slot].pulse; }
     public int FrameIndex { get { return frame; } }
     public void Advance(float dt) { clock += dt; }   // tests: spin by dt seconds
     public ShotAtom AtomAt(int slot) { return slots[slot].atom; }
@@ -155,7 +239,7 @@ public class ShotAtomHud : MonoBehaviour
             slot.icon.preserveAspect = true;
             var ir = (RectTransform)ig.transform;
             ir.anchorMin = ir.anchorMax = Vector2.zero;
-            ir.pivot = Vector2.zero;
+            ir.pivot = new Vector2(.5f, .5f);   // swells about its middle on a level up
 
             var tg = new GameObject("Label", typeof(RectTransform), typeof(Text), typeof(Outline));
             tg.transform.SetParent(go.transform, false);
@@ -195,8 +279,11 @@ public class ShotAtomHud : MonoBehaviour
                 var slot = slots[i];
                 if (on)
                 {
-                    slot.atom = ShotAtoms.OrderAt(i);
-                    slot.level = ShotAtoms.Level(slot.atom);
+                    var atom = ShotAtoms.OrderAt(i);
+                    int level = ShotAtoms.Level(atom);
+                    if (atom != slot.atom || level != slot.level) slot.pulse = 1f;
+                    slot.atom = atom;
+                    slot.level = level;
                     slot.label.text = LevelLabel(slot.level);
                     slot.icon.sprite = Frame(slot.atom);
                 }
@@ -204,6 +291,14 @@ public class ShotAtomHud : MonoBehaviour
             }
         }
         if (shownCount == 0) return;
+        float dt = Time.unscaledDeltaTime;
+        for (int i = 0; i < shownCount; i++)
+            if (slots[i].pulse > 0f)
+            {
+                slots[i].pulse = Mathf.Max(0f, slots[i].pulse - dt / PulseSeconds);
+                float k = 1f + PulseSwell * slots[i].pulse;
+                slots[i].icon.rectTransform.localScale = new Vector3(k, k, 1f);
+            }
 
         // the border spins (the coin's own flipbook), on scaled time like every pickup
         clock += Time.unscaledDeltaTime * Time.timeScale;
@@ -232,10 +327,15 @@ public class ShotAtomHud : MonoBehaviour
         Rect safe = Screen.safeArea;
         var band = TopBand.FrameFor(safe, screen);
         Rect hud = LiveHudRect(band, screen);
-        if (placed && screen == appliedScreen && safe == appliedSafe && band.Same(appliedBand) && hud == appliedHud) return;
+        bool boss = bossUp, portal = portalUp;
+        RefreshWarnings();
+        if (placed && screen == appliedScreen && safe == appliedSafe && band.Same(appliedBand) && hud == appliedHud &&
+            boss == bossUp && portal == portalUp) return;
         placed = true;
         appliedScreen = screen; appliedSafe = safe; appliedBand = band; appliedHud = hud;
-        var g = Compute(band, safe, screen, hud);
+        liveHud = hud;
+        var g = Compute(band, safe, screen, hud, bossUp, portalUp);
+        geometry = g;
         int fontSize = Mathf.Max(9, Mathf.RoundToInt(LabelUnits * PauseQuickActions.CanvasScaleFor(screen)));
         for (int i = 0; i < MaxSlots; i++)
         {
@@ -245,7 +345,7 @@ public class ShotAtomHud : MonoBehaviour
             slot.root.anchoredPosition = r.position;
             slot.root.sizeDelta = r.size;
             var ir = slot.icon.rectTransform;
-            ir.anchoredPosition = ic.position - r.position;
+            ir.anchoredPosition = ic.position - r.position + ic.size * .5f;
             ir.sizeDelta = ic.size;
             var tr = slot.label.rectTransform;
             tr.anchoredPosition = Vector2.zero;

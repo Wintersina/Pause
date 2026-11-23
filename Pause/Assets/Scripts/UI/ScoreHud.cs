@@ -691,6 +691,61 @@ public class ScoreHud : MonoBehaviour
         return p.text;
     }
 
+    // A shot atom's "upgrade gained" popup (ShotAtoms.UpgradeTitle / UpgradeHint): a big title line over a smaller effect hint, centred
+    // on `screenAnchor` (screen px, its TOP: the point just under the shot-atom HUD row; NaN = under the score board's middle), held
+    // ShotAtoms.UpgradeSeconds, in the popups' pool, pop and fade. One slot: a second catch while it shows replaces it in place.
+    int atomSlot = -1;
+    string atomText;
+    public Text ShowAtomUpgrade(string title, string hint, Color colour, Vector2 screenAnchor)
+    {
+        if (canvasRect == null || string.IsNullOrEmpty(title)) return null;
+        if (popups == null) BuildPopups();
+        int index;
+        if (AtomUpgradeShowing) index = atomSlot;
+        else
+        {
+            index = nextPopup;
+            nextPopup = (nextPopup + 1) % popups.Length;
+        }
+        atomSlot = index;
+        var p = popups[index];
+        if (p.glow != null && p.glow.enabled) p.glow.enabled = false;
+        int size = PopupSize(ShotAtoms.UpgradeTitleSize);
+        int hintSize = Mathf.Max(12, Mathf.RoundToInt(size * .62f));
+        p.text.supportRichText = true;
+        p.text.fontSize = size;
+        p.text.text = string.IsNullOrEmpty(hint) ? title
+            : title + "\n<size=" + hintSize + "><color=#" + ColorUtility.ToHtmlStringRGB(AkiraPalette.Bone) + ">" + hint + "</color></size>";
+        atomText = p.text.text;
+        p.text.color = colour;
+        p.seconds = ShotAtoms.UpgradeSeconds;
+        p.rise = 0f;
+        Vector2 size2 = canvasRect.rect.size;
+        Vector2 at;
+        if (float.IsNaN(screenAnchor.x) || float.IsNaN(screenAnchor.y))
+            at = new Vector2(0f, size2.y * .5f - size2.y * .2f);
+        else
+        {
+            Camera uiCam = canvas != null && canvas.renderMode != RenderMode.ScreenSpaceOverlay ? canvas.worldCamera : null;
+            if (!RectTransformUtility.ScreenPointToLocalPointInRectangle(canvasRect, screenAnchor, uiCam, out at)) at = Vector2.zero;
+        }
+        at.y -= (size + hintSize) * .6f;   // the anchor is the text block's top; the pivot is its middle
+        p.from = KeepInSafeArea(p.text, at, 0f);
+        p.age = 0f;
+        p.text.gameObject.SetActive(true);
+        p.text.transform.SetAsLastSibling();
+        p.text.rectTransform.anchoredPosition = p.from;
+        p.text.rectTransform.localScale = Vector3.zero;
+        popups[index] = p;
+        return p.text;
+    }
+
+    // Is the upgrade popup on screen (tests)?
+    public bool AtomUpgradeShowing => atomSlot >= 0 && popups != null && atomSlot < popups.Length && popups[atomSlot].age >= 0f &&
+                                      ReferenceEquals(popups[atomSlot].text.text, atomText);
+    public Text AtomUpgradeText => AtomUpgradeShowing ? popups[atomSlot].text : null;
+    public int PopupPoolSize => popups != null ? popups.Length : 0;
+
     // A fusion's callout (AtomFusions): ShowCallout plus the fusion's own
     // glow colour round the letters. Same single slot.
     public const float GlowDistance = 4f;

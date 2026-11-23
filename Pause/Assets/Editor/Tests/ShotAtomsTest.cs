@@ -785,6 +785,13 @@ public static class ShotAtomsTest
         FreshScene();
         ShotAtoms.BeginRun();
         var rig = SpawnShip();
+        var canvasGo = new GameObject("~AtomPopupCanvas", typeof(Canvas));
+        canvasGo.GetComponent<Canvas>().renderMode = RenderMode.ScreenSpaceOverlay;
+        var speedGo = new GameObject("SpeedText", typeof(RectTransform), typeof(Text));
+        speedGo.transform.SetParent(canvasGo.transform, false);
+        var popupHud = ScoreHud.AttachPopupsOnly(canvasGo, speedGo.GetComponent<Text>());
+        if (popupHud != null) popupHud.SendMessage("OnEnable");   // edit mode: subscribe by hand
+        int pool0 = popupHud != null ? popupHud.PopupPoolSize : -1;
         var coin = ShotAtomPickup.Build(ShotAtom.Rapid, Vector3.zero);
         var coinCollider = coin.GetComponent<Collider2D>();
         Check("the coin is a pickUp with the atom's name and the shot art (196 px, 700 px/unit like every atom)",
@@ -797,18 +804,47 @@ public static class ShotAtomsTest
               ShotAtoms.Level(ShotAtom.Rapid) == 1 && collisionDetection.shotAtomPickups == caught + 1 && rig.cd.hypeText.text == "RAPID I");
         Check("... with its own pickup burst (the shot_rapid_burst flipbook)", PickupBurst.LastPlayed != null &&
               PickupArt.BurstName(PickupKind.ShotRapid) == "shot_rapid_burst" && PickupArt.Frames("shot_rapid_burst", 6)[0] != null);
+        {
+            var shown = popupHud != null ? popupHud.AtomUpgradeText : null;
+            Check("catching a coin shows the upgrade popup: 'RAPID FIRE  LV 1' with the hint '+20% fire rate', in the atom's own colour",
+                  shown != null && shown.text.Contains("RAPID FIRE  LV 1") && shown.text.Contains("+20% fire rate") && shown.color == ShotAtoms.Colour(ShotAtom.Rapid));
+        }
         var third = ShotAtomPickup.Build(ShotAtom.Arc, Vector3.zero);
+        var firstPopup = popupHud != null ? popupHud.AtomUpgradeText : null;
         rig.trigger(third.GetComponent<Collider2D>());
         Check("an ARC coin in the same world is ARC I (any atom, any world) and the HUD order is catch order (RAPID, ARC)", ShotAtoms.Level(ShotAtom.Arc) == 1 && rig.cd.hypeText.text == "ARC I" &&
               ShotAtoms.OrderCount == 2 && ShotAtoms.OrderAt(0) == ShotAtom.Rapid && ShotAtoms.OrderAt(1) == ShotAtom.Arc);
+        {
+            var shown = popupHud != null ? popupHud.AtomUpgradeText : null;
+            Check("a second catch replaces the popup in place (ARC SHOT  LV 1, one pooled text, no new popup object)",
+                  shown != null && ReferenceEquals(shown, firstPopup) && shown.text.Contains("ARC SHOT  LV 1") && shown.text.Contains("hits zap a nearby enemy") &&
+                  popupHud.PopupPoolSize == pool0);
+        }
         ShotAtoms.SetLevel(ShotAtom.Arc, 3);
         var again = ShotAtomPickup.Build(ShotAtom.Arc, Vector3.zero);
         rig.trigger(again.GetComponent<Collider2D>());
         if (PickupBurst.LastPlayed != null) PickupBurst.LastPlayed.Finish();
+        {
+            var shown = popupHud != null ? popupHud.AtomUpgradeText : null;
+            Check("at the cap the popup says 'ARC MAXED  +2 DUST'", shown != null && shown.text.Contains("ARC MAXED  +2 DUST") && shown.text.Contains("already at level 3"));
+            popupHud.StepPopups(ShotAtoms.UpgradeSeconds * .5f);
+            bool half = popupHud.AtomUpgradeShowing;
+            popupHud.StepPopups(ShotAtoms.UpgradeSeconds);
+            Check("the popup holds 1.5 to 2 s, then it is gone and back in the pool (no object made or destroyed)",
+                  ShotAtoms.UpgradeSeconds >= 1.5f && ShotAtoms.UpgradeSeconds <= 2f && half && !popupHud.AtomUpgradeShowing && popupHud.PopupPoolSize == pool0);
+            bool texts = true;
+            foreach (ShotAtom a in System.Enum.GetValues(typeof(ShotAtom)))
+                for (int lv = 1; lv <= ShotAtomTuning.MaxLevel; lv++)
+                    texts &= ShotAtoms.UpgradeTitle(a, lv).EndsWith("LV " + lv) && ShotAtoms.UpgradeHint(a, lv).Length > 4;
+            Check("every atom and level has a title and a hint; the twin hints read '2 shots at once' / '3 shots in a fan'",
+                  texts && ShotAtoms.UpgradeTitle(ShotAtom.Twin, 2) == "TWIN SHOT  LV 2" && ShotAtoms.UpgradeHint(ShotAtom.Twin, 1) == "2 shots at once" &&
+                  ShotAtoms.UpgradeHint(ShotAtom.Twin, 2) == "3 shots in a fan" && ShotAtoms.MaxedTitle(ShotAtom.Twin) == "TWIN MAXED  +2 DUST");
+        }
         Check("a fourth ARC is past level 3: it pays dust (\"" + rig.cd.hypeText.text + "\") and the level stays 3",
               ShotAtoms.Level(ShotAtom.Arc) == 3 && rig.cd.hypeText.text == ShotAtoms.MaxedWord && ShotAtoms.MaxedCatches == 1);
         Check("a pickup collected once is spent (its collider is off or it is gone)", coinCollider == null || !coinCollider.enabled);
         foreach (var go in new[] { coin, again, third }) if (go != null) Object.DestroyImmediate(go);
+        Object.DestroyImmediate(canvasGo);
         Object.DestroyImmediate(rig.ship);
         Object.DestroyImmediate(rig.cd.explosionAnimation);
         collisionDetection.atomCheck = false;
@@ -826,7 +862,7 @@ public static class ShotAtomsTest
 
     static void HudLayout()
     {
-        bool fit = true, clear = true, apart = true, under = true, high = true, whole = true;
+        bool fit = true, clear = true, apart = true, under = true, high = true, whole = true, inBoard = true, snug = true, railsClear = true;
         string firstBad = null;
         int checkedRects = 0;
         foreach (var d in FitDevice.All)
@@ -837,9 +873,17 @@ public static class ShotAtomsTest
             {
                 var band = TopBand.FrameFor(safe, screen, rail, d.Cutouts);
                 Rect hud = AuthoredHud(band, screen);
-                var geo = ShotAtomHud.Compute(band, safe, screen, hud);
-                var obstacles = ShotAtomHud.Obstacles(band, safe, screen, hud);
+                foreach (bool up in new[] { false, true })
+                {
+                var geo = ShotAtomHud.Compute(band, safe, screen, hud, up, up);
+                var basic = ShotAtomHud.Obstacles(band, safe, screen, hud, up, up);
+                var obstacles = new Rect[basic.Length + BoosterHud.MaxSlots + 1];
+                basic.CopyTo(obstacles, 0);
+                for (int b = 0; b < BoosterHud.MaxSlots; b++) obstacles[basic.Length + b] = BoosterHud.SlotRect(band, safe, screen, hud, b);
+                obstacles[obstacles.Length - 1] = hud;
                 var rects = new Rect[ShotAtomHud.MaxSlots];
+                float gapPx = Mathf.Max(1f, Mathf.Round(ShotAtomHud.GapUnits * PauseQuickActions.CanvasScaleFor(screen)));
+                float frameBottom = hud.yMin - HudStyler.BoardBottomGrowthPx(screen);
                 for (int i = 0; i < rects.Length; i++)
                 {
                     Rect r = rects[i] = ShotAtomHud.SlotRect(geo, i);
@@ -856,7 +900,12 @@ public static class ShotAtomsTest
                     high &= low;
                     whole &= icon.width == icon.height && icon.x == Mathf.Round(icon.x) && icon.y == Mathf.Round(icon.y) && icon.xMin >= r.xMin - .5f && icon.xMax <= r.xMax + .5f && icon.yMin >= r.yMin - .5f;
                     checkedRects++;
-                    if ((!inside || clash || !below || !low) && firstBad == null) firstBad = d.id + " rail " + rail + " slot " + i + " " + r;
+                    inBoard &= hud.height <= 0f || (r.xMin >= hud.xMin - .5f && r.xMax <= hud.xMax + .5f);
+                    railsClear &= r.xMin >= band.left - .5f && r.xMax <= band.right + .5f;
+                    // with nothing else under the board the row sits right under the board's bottom frame (a gap, no more)
+                    if (!up) snug &= hud.height <= 0f || (r.yMax <= frameBottom + .5f && r.yMax >= frameBottom - gapPx - 2.5f);
+                    if ((!inside || clash || !below || !low) && firstBad == null) firstBad = d.id + " rail " + rail + (up ? " warned" : "") + " slot " + i + " " + r + " hud " + hud;
+                }
                 }
             }
         }
@@ -864,6 +913,8 @@ public static class ShotAtomsTest
         Check("the shot-atom row sits inside the safe area and the top band on every ScreenFit device, with and without rails (" + checkedRects + " slots)" + bad, fit);
         Check("... clear of the score board, the Replay/Home pair, the boss chip and banner, PORTAL DANGER's chip and the booster column" + bad, clear);
         Check("... under the score board" + bad, under);
+        Check("... horizontally inside the score board's width (so never beside the rails)" + bad, inBoard && railsClear);
+        Check("... directly under the board's bottom frame, one gap down, while no boss warning or PORTAL DANGER is up (not slid low)" + bad, snug);
         Check("... never in the bottom " + BoosterHud.LowestShare.ToString("0%") + " of the screen" + bad, high);
         Check("... its six slots never overlap each other" + bad, apart);
         Check("... coins are whole-pixel squares inside their slots", whole);
@@ -884,6 +935,7 @@ public static class ShotAtomsTest
         ShotAtoms.Collect(ShotAtom.Twin);
         var host = new GameObject(ShotAtomHud.HostName);
         var hud = host.AddComponent<ShotAtomHud>();
+        hud.SendMessage("OnEnable");   // edit mode: the instance is set by hand
         hud.SendMessage("Update");
         Check("the live row shows one coin per atom caught, in catch order (ARC, TWIN, RAPID), with the level under each (x1, x2, x1)",
               hud.VisibleCount == 3 && hud.AtomAt(0) == ShotAtom.Arc && hud.AtomAt(1) == ShotAtom.Twin && hud.AtomAt(2) == ShotAtom.Rapid &&
@@ -900,6 +952,13 @@ public static class ShotAtomsTest
         Check("only the four coins are shown (no booster, no timed atom)", images.Length == 4);
         bool inert = host.GetComponentsInChildren<GraphicRaycaster>(true).Length == 0 && host.GetComponentsInChildren<Button>(true).Length == 0;
         Check("... and nothing on it takes a press", inert);
+        Vector2 anchor;
+        bool anchored = ShotAtomHud.PopupAnchor(out anchor);
+        Check("the upgrade popup hangs just under the row's slots (" + anchor + ")", anchored && anchor.y <= ShotAtomHud.SlotRect(hud.CurrentGeometry, 0).yMin + .5f);
+        ShotAtoms.Collect(ShotAtom.Split);
+        hud.SendMessage("Update");
+        Check("a level up pulses that coin (swells, then settles back to its size)", hud.PulseAt(3) > 0f);
+        for (int i = 0; i < 60; i++) { hud.SendMessage("Update"); }
         ShotAtoms.BeginRun();
         hud.SendMessage("Update");
         Check("a new run clears the row", hud.VisibleCount == 0 && host.GetComponentsInChildren<Image>(false).Length == 0);
