@@ -200,6 +200,16 @@ public class collisionDetection : MonoBehaviour {
         if (hud != null) hud.ShowWord(word, at + Vector3.up * PickupWordLift, colour, 28);
     }
 
+    // A shot atom's "upgrade gained" popup, under the score board next to the HUD row (ScoreHud.ShowAtomUpgrade).
+    static void AtomUpgradePopup(string title, string hint, Color colour)
+    {
+        var hud = ScoreHud.Current;
+        if (hud == null) return;
+        Vector2 anchor;
+        if (!ShotAtomHud.PopupAnchor(out anchor)) anchor = new Vector2(float.NaN, float.NaN);
+        hud.ShowAtomUpgrade(title, hint, colour, anchor);
+    }
+
     static void AtomCharged(Color colour)
     {
         if (ShipPowerController.Instance != null) ShipPowerController.Instance.AtomCharged(colour);
@@ -566,13 +576,13 @@ public class collisionDetection : MonoBehaviour {
                 {
                     awardDust(ShotAtomTuning.MaxedDust);
                     if (hypeText != null) hypeText.text = ShotAtoms.MaxedWord;
-                    PickupWord(ShotAtoms.MaxedWord, hit.transform.position, coinColour);
+                    AtomUpgradePopup(ShotAtoms.MaxedTitle(got.atom), ShotAtoms.MaxedHint(), coinColour);
                 }
                 else
                 {
                     string word = ShotAtoms.Callout(got.atom, got.level);
                     if (hypeText != null) hypeText.text = word;
-                    PickupWord(word, hit.transform.position, coinColour);
+                    AtomUpgradePopup(ShotAtoms.UpgradeTitle(got.atom, got.level), ShotAtoms.UpgradeHint(got.atom, got.level), coinColour);
                 }
                 Pooled.Destroy(hit.gameObject);
             }

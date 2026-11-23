@@ -89,6 +89,12 @@ public class HudStyler : MonoBehaviour
         return new Vector2(o.x * k, o.w * k);
     }
 
+    // How far the world's board frame reaches BELOW the read-out's layout rect, in screen px.
+    public static float BoardBottomGrowthPx(Vector2 screen, int world = -1)
+    {
+        return HudSkin.BoardOut(world < 0 ? HudSkin.CurrentWorld : world).y * FlooredHudScale(screen);
+    }
+
     public static float SideBySideFit(TopBand.Frame band, Vector2 screen)
     {
         float actionScale = PauseQuickActions.CanvasScaleFor(screen);

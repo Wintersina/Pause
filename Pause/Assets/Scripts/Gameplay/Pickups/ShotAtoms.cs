@@ -168,6 +168,45 @@ public static class ShotAtoms
         return Name(atom) + " " + Roman[Mathf.Clamp(level, 0, ShotAtomTuning.MaxLevel)];
     }
 
+    // ---- the catch popup (ScoreHud.ShowAtomUpgrade): a title and a one-line effect hint ----
+    public const float UpgradeSeconds = 1.8f;
+    public const int UpgradeTitleSize = 40;
+
+    // "TWIN SHOT  LV 2", "RAPID FIRE  LV 3"
+    public static string UpgradeTitle(ShotAtom atom, int level)
+    {
+        return (atom == ShotAtom.Rapid ? "RAPID FIRE" : Name(atom) + " SHOT") + "  LV " + Mathf.Clamp(level, 1, ShotAtomTuning.MaxLevel);
+    }
+
+    // "2 shots at once", "+20% fire rate": what this level does
+    public static string UpgradeHint(ShotAtom atom, int level)
+    {
+        level = Mathf.Clamp(level, 1, ShotAtomTuning.MaxLevel);
+        switch (atom)
+        {
+            case ShotAtom.Twin:
+                return ShotAtomTuning.TwinShots[level] + (level == 1 ? " shots at once" : " shots in a fan");
+            case ShotAtom.Pierce:
+                return "shots pass through " + ShotAtomTuning.PierceThrough[level] + (level == 1 ? " enemy" : " enemies");
+            case ShotAtom.Split:
+                return "hits break into " + ShotAtomTuning.SplitShards[level] + " shards";
+            case ShotAtom.Ricochet:
+                return "shots bounce " + ShotAtomTuning.Bounces[level] + (level == 1 ? " time" : " times") + " off the sides";
+            case ShotAtom.Arc:
+                return level == 1 ? "hits zap a nearby enemy" : level == 2 ? "zaps reach farther, hit harder" : "zaps jump to 2 enemies";
+            default:
+                return "+" + Mathf.RoundToInt(ShotAtomTuning.RapidBonus[level] * 100f) + "% fire rate";
+        }
+    }
+
+    // "TWIN MAXED  +2 DUST"
+    public static string MaxedTitle(ShotAtom atom)
+    {
+        return Name(atom) + " MAXED  +" + ShotAtomTuning.MaxedDust.ToString("0.##") + " DUST";
+    }
+
+    public static string MaxedHint() { return "already at level " + ShotAtomTuning.MaxLevel; }
+
     public static Color Colour(ShotAtom atom)
     {
         switch (atom)
