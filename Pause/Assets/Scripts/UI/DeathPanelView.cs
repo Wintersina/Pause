@@ -81,15 +81,58 @@ public class DeathPanelView : MonoBehaviour, IPointerDownHandler
     public const float ButtonClearance = 10f;   // glow edge to border
     public const float ButtonGlowPad = 4f;      // glow reaches this far past the button body
     public const float ButtonColumnGap = 24f;
-    // Space, Frost, Verdant, Ember, Tide, Storm, Desert (units).
-    static readonly float[] BorderHalfSpan = { 335f, 273f, 310f, 316f, 296f, 319f, 299f };
-    // Extra frame half-width per world (units): the frame is drawn this much wider on each side
-    // (its borders keep their size, the art simply moves outward) so its icicles, vines, coral or
-    // worm-head corners clear the cards; the content stays exactly where it was.
-    // The fit (ComputeFit) does not count it, so the text scale stays as it was: the extra comes out of the
-    // fit's 12-unit side margin, which is why it stays at or under 8 (the widest it can be at 480x854).
-    static readonly float[] FrameExtraHalf = { 0f, 0f, 0f, 0f, 0f, 0f, 8f };
-    public static float FrameExtra(int world) { return FrameExtraHalf[Mathf.Clamp(world, 0, FrameExtraHalf.Length - 1)]; }
+    // ---- The content fills the frame: its width is DERIVED from the frame art ----
+    // Every world's frame has its own painted side border (icicles, vines, coral, a worm head ...) that reaches a different
+    // distance in, so a fixed card width left Frost, Tide and Desert with 34-50 units of dead margin and Ember / Storm with 21.
+    // The fit measures the real frame sprite (FrameInsets.SideClearance: the 9-slice borders at their drawn size, the
+    // innermost painted pixel on every row the stack spans) and settles ONE padding, TargetClearance units, on every world:
+    //   1. the cards and buttons are CardWidth wide (the widest the cards go) and the frame is drawn FrameExtra wider (or
+    //      narrower, never below MinExtra / above MaxExtra: the phone fit keeps a 12-unit side margin) per side so the
+    //      painted art lands TargetClearance from them;
+    //   2. where the frame cannot grow enough (Frost's border reaches deep), the column narrows by the shortfall.
+    // Pure measurement of the readable sprite, cached per world; an unreadable one falls back to the baked FitFallback* tables
+    // (DeathPanelTest checks that they agree with the measurement). Space, Frost, Verdant, Ember, Tide, Storm, Desert.
+    public const float TargetClearance = 22f;                 // painted art to the cards / buttons, units
+    public const float MinExtra = -14f, MaxExtra = 8f;
+    static readonly float[] FitFallbackExtra = { -14f, -4.67f, -6.67f, -6.67f, -11.33f, -5.33f, -6f };
+    static readonly float[] FitFallbackHalf = { 300f, 300f, 300f, 300f, 300f, 300f, 300f };
+    public static float FallbackExtra(int world) { return FitFallbackExtra[Mathf.Clamp(world, 0, 6)]; }
+    public static float FallbackHalf(int world) { return FitFallbackHalf[Mathf.Clamp(world, 0, 6)]; }
+    static readonly float[] fitExtra = new float[7], fitHalf = new float[7], fitInner = new float[7];
+    static readonly bool[] fitDone = new bool[7];
+
+    // The padding-fitted frame growth and column half-width for a world: reads the frame sprite (never call from a field initialiser).
+    static void EnsureFit(int world)
+    {
+        world = Mathf.Clamp(world, 0, 6);
+        if (fitDone[world]) return;
+        float shift = StackShift(world);
+        var stack = Rect.MinMaxRect(-FullHalf, DockY - ButtonHeight * .5f - shift, FullHalf, CardRects[0].yMax - shift);
+        float fw = Width + 2f * GlowMargin;
+        var sprite = HudSkin.DeathPanel(world);
+        float l = FrameInsets.SideClearance(sprite, FrameBorderScale, fw, FrameHeight, stack, true);
+        float r = FrameInsets.SideClearance(sprite, FrameBorderScale, fw, FrameHeight, stack, false);
+        if (float.IsNaN(l) || float.IsNaN(r) || sprite == null)
+        {
+            fitExtra[world] = FitFallbackExtra[world];
+            fitHalf[world] = FitFallbackHalf[world];
+            fitInner[world] = FitFallbackHalf[world] + TargetClearance;
+        }
+        else
+        {
+            float g = Mathf.Min(l, r);   // the gap at CardWidth, frame at its plain width
+            float extra = Mathf.Clamp(TargetClearance - g, MinExtra, MaxExtra);
+            fitExtra[world] = extra;
+            fitHalf[world] = FullHalf - Mathf.Max(0f, TargetClearance - (g + extra));
+            fitInner[world] = FullHalf + g + extra;   // the painted art's distance from the centre line
+        }
+        fitDone[world] = true;
+    }
+    const float FullHalf = CardWidth * .5f;
+
+    // Extra frame half-width per world (units, may be negative): the frame is drawn this much wider on each side (its borders
+    // keep their size, the art simply moves outward). The text scale (ComputeFit) does not count it.
+    public static float FrameExtra(int world) { EnsureFit(world); return fitExtra[Mathf.Clamp(world, 0, 6)]; }
     // Every plate (banner, cards, buttons) is a rectangle with a PlateCut-unit 45 degree cut at its top-left and
     // bottom-right corners, the buttons' shipped cut (30 px at 200 ppu). The banner is a plain rectangle, so it must
     // clear every frame's inner corners: FrameCornerCut is the leg (units) of the 45 degree cut each frame's inner
@@ -101,7 +144,7 @@ public class DeathPanelView : MonoBehaviour, IPointerDownHandler
     static readonly float[] SideInnerPx = { 35f, 58f, 52f, 53f, 62f, 59f, 87f };
     public const float PlateCut = 15f;
     const float BorderPxToUnits = 100f / 83.33f / FrameBorderScale;
-    const float BannerShadow = 8f, BannerMinHalf = 215f;
+    const float BannerShadow = 8f, BannerMinHalf = 215f, TitlePad = 8f;
     // Half the width of the frame's dark opening on the middle rows.
     static float OpeningHalf(int world) { return FrameWidth(world) * .5f - SideInnerPx[Mathf.Clamp(world, 0, 6)] * BorderPxToUnits; }
     // The banner (body + drop shadow) spans the opening less BannerGap each side, and further in where the frame's
@@ -122,21 +165,16 @@ public class DeathPanelView : MonoBehaviour, IPointerDownHandler
     public static float FrameWidth(int world) { return Width + 2f * GlowMargin + 2f * FrameExtra(world); }
     public const float FrameHeight = Height + 2f * GlowMargin;
     // Distance from the centre line to the frame's inner edge on the button rows (the widened frame included).
-    public static float BorderSpan(int world) { return BaseBorderSpan(world) + FrameExtra(world); }
-    static float BaseBorderSpan(int world) { return BorderHalfSpan[Mathf.Clamp(world, 0, BorderHalfSpan.Length - 1)]; }
-    public static float ButtonHalfSpan(int world)
-    {
-        float inner = BaseBorderSpan(world);   // content width does not follow the frame's extra width
-        return Mathf.Min(CardWidth * .5f, inner - ButtonClearance - ButtonGlowPad);
-    }
+    public static float BorderSpan(int world) { EnsureFit(world); return fitInner[Mathf.Clamp(world, 0, 6)]; }
+    // The column's half-width: the frame art leaves TargetClearance beside it (see EnsureFit).
+    public static float ButtonHalfSpan(int world) { EnsureFit(world); return fitHalf[Mathf.Clamp(world, 0, 6)]; }
     public const float ReplayY = -208f, DockY = -310f;
     // [REPLAY, MENU, SPACE DOCK] for a world's frame.
-    public static Rect[] ButtonRects(int world) { return ButtonRectsAt(world, StackShift(world)); }
+    public static Rect[] ButtonRects(int world) { return ButtonRectsAt(world, StackShift(world), ButtonHalfSpan(world)); }
     // The same with an explicit downward shift (no sprite load: safe in static
     // and instance field initialisers, where Resources.Load throws).
-    static Rect[] ButtonRectsAt(int world, float down)
+    static Rect[] ButtonRectsAt(int world, float down, float span)
     {
-        float span = ButtonHalfSpan(world);
         float w = span - ButtonColumnGap * .5f;
         return new[]
         {
@@ -213,11 +251,11 @@ public class DeathPanelView : MonoBehaviour, IPointerDownHandler
         Centered(0f, -122f, CardWidth, 64f),   // killed by / hurt by
     };
     // (the widest set, Space's; the frames' own spans come from ButtonRects)
-    public static readonly Rect ReplayRect = ButtonRectsAt(0, 0f)[0];
-    public static readonly Rect MenuRect = ButtonRectsAt(0, 0f)[1];
+    public static readonly Rect ReplayRect = ButtonRectsAt(0, 0f, FullHalf)[0];
+    public static readonly Rect MenuRect = ButtonRectsAt(0, 0f, FullHalf)[1];
     // SPACE DOCK: a full-column button under REPLAY / MENU that goes straight
     // to the ship dock (shopS6) so the run's star dust can be spent at once.
-    public static readonly Rect DockRect = ButtonRectsAt(0, 0f)[2];
+    public static readonly Rect DockRect = ButtonRectsAt(0, 0f, FullHalf)[2];
     public const string DockScene = "shopS6";
     public const int ButtonCount = 3;
     public const int CardCount = 4;
@@ -301,7 +339,7 @@ public class DeathPanelView : MonoBehaviour, IPointerDownHandler
     public RectTransform ReplaySlot { get { return buttonSlots[0]; } }
     public RectTransform MenuSlot { get { return buttonSlots[1]; } }
     public RectTransform DockSlot { get { return buttonSlots[2]; } }
-    Rect[] buttonRects = ButtonRectsAt(0, 0f);
+    Rect[] buttonRects = ButtonRectsAt(0, 0f, FullHalf);
     Rect ButtonRect(int i) { return buttonRects[i]; }
     public bool IntroFinished { get { return finalApplied; } }
 
@@ -430,10 +468,13 @@ public class DeathPanelView : MonoBehaviour, IPointerDownHandler
         Place(slab.rectTransform, Shifted(Centered(0f, HeaderRect.center.y, 2f * BannerSpanHalf(w), BannerHeight)));
 
         var title = NewText("Title", panel, "FLIGHT COMPLETE", 40, Bone, TextAnchor.MiddleCenter);
-        Place(title.rectTransform, Shifted(HeaderRect));
+        // the title's rect is the banner's inner area: its span less the drop shadow and a padding each side, so it can never
+        // run past a plate that the frame's width narrowed (BannerSpanHalf)
+        float titleW = Mathf.Min(HeaderRect.width, 2f * BannerSpanHalf(w) - BannerShadow - 2f * TitlePad);
+        Place(title.rectTransform, Shifted(Centered(0f, HeaderRect.center.y, titleW, HeaderRect.height)));
         AddOutline(title.gameObject, Ink, 2f);
 
-        float half = Mathf.Min(title.preferredWidth, HeaderRect.width - 80f) * .5f + 28f;
+        float half = Mathf.Min(title.preferredWidth, titleW - 80f) * .5f + 28f;
         for (int i = 0; i < 2; i++)
         {
             var sparkle = NewImage(i == 0 ? "SparkleLeft" : "SparkleRight", panel, Load("dp_sparkle"), Gold);
@@ -462,15 +503,16 @@ public class DeathPanelView : MonoBehaviour, IPointerDownHandler
     void BuildCards(Text bestText, Text runText, Text dustText)
     {
         cards[0] = BuildCard(0, "SCORE", results.newBest ? null : ScoreSubLabel(results), Cyan, bestText, out scoreValue);
-        Place(scoreValue.rectTransform, Centered(ValueRight - 170f, 0f, 340f, 80f));
+        scoreValue.fontSize = 62;   // fills the card: "9,999,999" takes ~64 % of its width (the TEXTFILL check wants >= 60 %)
+        Place(scoreValue.rectTransform, Centered(ValueRight - 200f, 0f, 400f, 92f));
         cards[1] = BuildBreakdown(runText);
         cards[2] = BuildCard(2, "STAR DUST", results.newDust ? null : "EARNED THIS RUN", Gold, dustText, out dustValue);
         cards[3] = BuildKilledBy();
 
         // Star dust: the earned amount and the new total on separate lines,
         // both right-aligned on the same column as the score.
-        Place(dustValue.rectTransform, Centered(ValueRight - 150f, 13f, 300f, 52f));
-        dustValue.fontSize = 40;
+        Place(dustValue.rectTransform, Centered(ValueRight - 160f, 13f, 320f, 56f));
+        dustValue.fontSize = 46;
         dustTotal = NewText("Total", cards[2], "", 18, Muted, TextAnchor.MiddleRight);
         Place(dustTotal.rectTransform, Centered(ValueRight - 150f, -28f, 300f, 26f));
 

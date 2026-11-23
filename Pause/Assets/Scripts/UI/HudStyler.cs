@@ -95,6 +95,17 @@ public class HudStyler : MonoBehaviour
         return HudSkin.BoardOut(world < 0 ? HudSkin.CurrentWorld : world).y * FlooredHudScale(screen);
     }
 
+    // How far the world's board frame's VISIBLE bottom edge hangs below the read-out's layout rect `hud` (the rect the read-out
+    // really occupies, lane shrink included), in screen px. Unlike BoardBottomGrowthPx this skips the frame art's transparent
+    // bottom strip (HudSkin.BoardVisibleBottomClear) and scales with the live rect, so it is the painted edge, per world.
+    public static float BoardVisibleBottomPx(Rect hud, int world = -1)
+    {
+        if (hud.height <= 0f) return 0f;
+        float k = hud.height / Mathf.Max(1f, authoredHeight);
+        int w = world < 0 ? HudSkin.CurrentWorld : world;
+        return Mathf.Max(0f, HudSkin.BoardOut(w).y - HudSkin.BoardVisibleBottomClear(w)) * k;
+    }
+
     public static float SideBySideFit(TopBand.Frame band, Vector2 screen)
     {
         float actionScale = PauseQuickActions.CanvasScaleFor(screen);

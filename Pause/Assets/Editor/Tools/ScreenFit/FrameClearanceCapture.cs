@@ -28,11 +28,14 @@ public static class FrameClearanceCapture
         ScreenFitScreens.DeathMeasured = Measure;
         using (new TestHarness.Sandbox())
         {
+            for (int fw = 0; fw < Names.Length; fw++)
+                Debug.Log("[FIT] " + Names[fw] + " extra=" + DeathPanelView.FrameExtra(fw).ToString("F2") + " half=" + DeathPanelView.ButtonHalfSpan(fw).ToString("F2") + " inner=" + DeathPanelView.BorderSpan(fw).ToString("F2"));
             for (int w = 0; w < Names.Length; w++)
                 foreach (var d in devices)
                 {
                     dev = d;
                     var shot = ScreenFitRunner.Run(ScreenFitScreens.DeathOn(w), d, Path.Combine(dir, tag + Names[w] + "_" + d.w + "x" + d.h + ".png"), 0);
+                    foreach (var f in shot.findings) if (!f.waived) Debug.Log("[FRAMEFIND] " + Names[w] + " " + d.id + " " + f.kind + " " + f.element + ": " + f.detail);
                     Debug.Log("[FRAMESHOT] " + Names[w] + " " + d.id + " err=" + shot.error + " failures=" + shot.failures + " minTextPt=" + shot.minTextPt.ToString("F1") + " (" + shot.minTextName + ")");
                 }
         }

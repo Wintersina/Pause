@@ -1815,6 +1815,7 @@ public static class ScreenFitScreens
                         Debug.Log(line);
                         if (DeathMeasured != null) DeathMeasured(world, fr.width / (pr.Find("Frame") as RectTransform).rect.width);
                         if (PopupMeasured != null) PopupMeasured("death", fr);
+                        DeathTextFit(rig, pr, world, DeathSample == null);
                     }
                     if (System.Environment.GetEnvironmentVariable("DEATH_FRAME_ONLY") == "1")
                     {
@@ -1828,6 +1829,44 @@ public static class ScreenFitScreens
         Canvas.ForceUpdateCanvases();
         WorldChecks(rig, false);
         if (DeathSample == null) DevBadge(rig);
+    }
+
+    // Every Text on the FLIGHT COMPLETE panel sits INSIDE the plate that frames it (its card, button or the red banner: the
+    // rect itself, in panel space, so the check holds at every device's scale), is not wider / taller than its rect (no overflow,
+    // nothing clipped), and where the text is meant to fill (the title across the banner, the score headline across its cell, at the
+    // worst-case sample) it takes at least FillShare of the plate's width.
+    const float FillShare = .6f;
+    static void DeathTextFit(ScreenFitRig rig, RectTransform pr, int world, bool worstCase)
+    {
+        var corners = new Vector3[4];
+        System.Func<RectTransform, Rect> inPanel = rt =>
+        {
+            rt.GetWorldCorners(corners);
+            Vector2 a = pr.InverseTransformPoint(corners[0]), b = pr.InverseTransformPoint(corners[2]);
+            return Rect.MinMaxRect(Mathf.Min(a.x, b.x), Mathf.Min(a.y, b.y), Mathf.Max(a.x, b.x), Mathf.Max(a.y, b.y));
+        };
+        foreach (var t in pr.GetComponentsInChildren<Text>(false))
+        {
+            if (t.name == DeathPanelView.BonusPopupName || !t.gameObject.activeInHierarchy) continue;
+            // the plate: the nearest card / button slot above it, else the banner slab (the title)
+            RectTransform plate = null;
+            for (var tr = t.transform.parent; tr != null && tr != pr; tr = tr.parent)
+                if (tr.name.StartsWith("Card") || tr.name.EndsWith("Slot")) { plate = (RectTransform)tr; break; }
+            if (plate == null && t.name == "Title") plate = pr.Find("TitleSlab") as RectTransform;
+            if (plate == null) continue;
+            Rect pl = inPanel(plate), tr2 = inPanel(t.rectTransform);
+            const float tol = 1f;
+            string who = "world " + world + " " + t.name + " '" + t.text + "'";
+            if (tr2.xMin < pl.xMin - tol || tr2.xMax > pl.xMax + tol || tr2.yMin < pl.yMin - tol || tr2.yMax > pl.yMax + tol)
+                rig.Fail("TEXTFIT", t.name, who + " leaves its plate (" + tr2 + " vs " + pl + ")");
+            bool wraps = t.horizontalOverflow == HorizontalWrapMode.Wrap;
+            if (t.preferredWidth > tr2.width + tol && !wraps)
+                rig.Fail("TEXTFIT", t.name, who + " overflows its rect sideways (" + t.preferredWidth.ToString("F1") + " > " + tr2.width.ToString("F1") + ")");
+            if (t.preferredHeight > tr2.height + tol && wraps)
+                rig.Fail("TEXTFIT", t.name, who + " overflows its rect vertically (" + t.preferredHeight.ToString("F1") + " > " + tr2.height.ToString("F1") + ")");
+            if (worstCase && (t.name == "Title" || t.transform.parent.name == "Card0" && t.fontSize >= 40) && t.preferredWidth < FillShare * pl.width)
+                rig.Fail("TEXTFILL", t.name, who + " fills only " + (t.preferredWidth / pl.width).ToString("P0") + " of its plate");
+        }
     }
 
     // An open portal kept waiting past its grace (PortalPressure): the portal
