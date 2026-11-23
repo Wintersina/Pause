@@ -731,13 +731,38 @@ public static class ShopTest
 
         var planet = dock.planet;
         Check("the dock has a planet behind it", planet != null && planet.Renderer != null && planet.Renderer.sprite != null &&
-              planet.CellName != null && planet.CellName.StartsWith("giant_"));
+              planet.CellName != null);
         if (planet == null || planet.Renderer == null) return;
         int lowest = int.MaxValue;
         foreach (var r in dock.GetComponentsInChildren<SpriteRenderer>(true))
-            if (r != planet.Renderer && r.gameObject.activeInHierarchy) lowest = Mathf.Min(lowest, r.sortingOrder);
+            if (r.GetComponentInParent<DockPlanet>() == null && r.gameObject.activeInHierarchy) lowest = Mathf.Min(lowest, r.sortingOrder);
         Check("the planet sorts behind the deck, the bays and the ships (" + planet.Renderer.sortingOrder + " < " + lowest + ")",
               planet.Renderer.sortingOrder < lowest && planet.Renderer.sortingOrder > BackdropCatalog.BaseOrder + 100);
         Check("the planet is dimmed and large", planet.Renderer.color.r < 1f && planet.Diameter > 1f);
+
+        // it shows the DESTINATION of the start-world picker: each world its own planet, Space an asteroid, a crossfade on change
+        string[] expected = { null, "giant_04", "giant_03", "giant_02", "giant_01", "giant_00", "giant_05" };   // DockPlanet.WorldCell
+        var seen = new System.Collections.Generic.HashSet<Sprite>();
+        bool each = true;
+        for (int w = 1; w < expected.Length; w++)
+        {
+            planet.Show(w, false);
+            each &= planet.World == w && !planet.IsAsteroid && planet.ShownSprite != null && planet.ShownSprite.name == expected[w] && planet.Renderer.sprite == planet.ShownSprite;
+            seen.Add(planet.ShownSprite);
+        }
+        Check("each of the six worlds shows its own planet cell (" + seen.Count + " distinct)", each && seen.Count == 6);
+        planet.Show(0, false);
+        Check("Space (no landfall) shows an asteroid, a Space hazard rock", planet.World == 0 && planet.IsAsteroid && planet.ShownSprite != null && planet.ShownSprite.name == DockPlanet.RockName);
+        planet.Show(3, false);
+        Sprite before = planet.ShownSprite;
+        planet.Show(4);
+        bool started = planet.Fading && planet.FrontAlpha < .05f && planet.ShownSprite != before && planet.World == 4;
+        planet.Tick(DockPlanet.FadeSeconds * .5f);
+        bool mid = planet.Fading && planet.FrontAlpha > .3f && planet.FrontAlpha < .7f;
+        planet.Tick(DockPlanet.FadeSeconds);
+        Check("a change of selection swaps the planet with a 0.25 s crossfade", started && mid && !planet.Fading && Mathf.Approximately(planet.FrontAlpha, 1f));
+        planet.Show(0);
+        planet.Tick(1f);
+        Check("... and from a planet to Space the rock fades in the same spot", planet.IsAsteroid && planet.Renderer.sortingOrder == DockPlanet.Order);
     }
 }

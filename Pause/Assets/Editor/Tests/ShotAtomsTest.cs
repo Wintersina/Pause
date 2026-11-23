@@ -909,17 +909,17 @@ public static class ShotAtomsTest
             {
                 var band = TopBand.FrameFor(safe, screen, rail, d.Cutouts);
                 Rect hud = AuthoredHud(band, screen);
-                foreach (bool up in new[] { false, true })
+                for (int world = 0; world < HudSkin.WorldCount; world++)
                 {
-                var geo = ShotAtomHud.Compute(band, safe, screen, hud, up, up);
-                var basic = ShotAtomHud.Obstacles(band, safe, screen, hud, up, up);
+                var geo = ShotAtomHud.Compute(band, safe, screen, hud, world);
+                var basic = ShotAtomHud.Obstacles(band, safe, screen, hud);
                 var obstacles = new Rect[basic.Length + BoosterHud.MaxSlots + 1];
                 basic.CopyTo(obstacles, 0);
                 for (int b = 0; b < BoosterHud.MaxSlots; b++) obstacles[basic.Length + b] = BoosterHud.SlotRect(band, safe, screen, hud, b);
                 obstacles[obstacles.Length - 1] = hud;
                 var rects = new Rect[ShotAtomHud.MaxSlots];
                 float gapPx = Mathf.Max(1f, Mathf.Round(ShotAtomHud.GapUnits * PauseQuickActions.CanvasScaleFor(screen)));
-                float frameBottom = hud.yMin - HudStyler.BoardBottomGrowthPx(screen);
+                float frameBottom = hud.yMin - HudStyler.BoardVisibleBottomPx(hud, world);
                 for (int i = 0; i < rects.Length; i++)
                 {
                     Rect r = rects[i] = ShotAtomHud.SlotRect(geo, i);
@@ -939,8 +939,8 @@ public static class ShotAtomsTest
                     inBoard &= hud.height <= 0f || (r.xMin >= hud.xMin - .5f && r.xMax <= hud.xMax + .5f);
                     railsClear &= r.xMin >= band.left - .5f && r.xMax <= band.right + .5f;
                     // with nothing else under the board the row sits right under the board's bottom frame (a gap, no more)
-                    if (!up) snug &= hud.height <= 0f || (r.yMax <= frameBottom + .5f && r.yMax >= frameBottom - gapPx - 2.5f);
-                    if ((!inside || clash || !below || !low) && firstBad == null) firstBad = d.id + " rail " + rail + (up ? " warned" : "") + " slot " + i + " " + r + " hud " + hud;
+                    if (i == 0) snug &= hud.height <= 0f || Mathf.Abs(r.yMax - (frameBottom - gapPx)) <= 2f;
+                    if ((!inside || clash || !below || !low) && firstBad == null) firstBad = d.id + " rail " + rail + " world " + world + " slot " + i + " " + r + " hud " + hud;
                 }
                 }
             }
@@ -950,11 +950,14 @@ public static class ShotAtomsTest
         Check("... clear of the score board, the Replay/Home pair, the boss chip and banner, PORTAL DANGER's chip and the booster column" + bad, clear);
         Check("... under the score board" + bad, under);
         Check("... horizontally inside the score board's width (so never beside the rails)" + bad, inBoard && railsClear);
-        Check("... directly under the board's bottom frame, one gap down, while no boss warning or PORTAL DANGER is up (not slid low)" + bad, snug);
+        Check("... the row's top is the board's VISIBLE bottom edge minus one gap (+-2 px) for every world's frame on every ScreenFit device" + bad, snug);
         Check("... never in the bottom " + BoosterHud.LowestShare.ToString("0%") + " of the screen" + bad, high);
         Check("... its six slots never overlap each other" + bad, apart);
         Check("... coins are whole-pixel squares inside their slots", whole);
         string src = File.ReadAllText("Assets/Scripts/UI/ShotAtomHud.cs");
+        Check("the row never moves for the boss banner / chip or PORTAL DANGER's chip (it reads neither) and is drawn above both canvases",
+              !src.Contains("BossWarningHud.") && !src.Contains("PortalPressureHud.") && ShotAtomHud.SortOrder > BossWarningHud.SortingOrder && ShotAtomHud.SortOrder > PortalPressureHud.SortingOrder);
+        BoardFrameArt();
         Check("the row is not interactive (no Button, no GraphicRaycaster, nothing blocks a press) and runs on the run scene only",
               !src.Contains("typeof(Button)") && !src.Contains("typeof(GraphicRaycaster)") && src.Contains("slot.icon.raycastTarget = false") &&
               src.Contains("group.blocksRaycasts = false") && src.Contains("scene.name != \"gameS1\""));
@@ -967,13 +970,47 @@ public static class ShotAtomsTest
             foreach (float rail in new[] { 0f, 2.2f })
             {
                 var band = TopBand.FrameFor(d.Safe, screen, rail, d.Cutouts);
-                var g = ShotAtomHud.Compute(band, d.Safe, screen, AuthoredHud(band, screen), true, true);
+                var g = ShotAtomHud.Compute(band, d.Safe, screen, AuthoredHud(band, screen));
                 int baseSize = Mathf.Max(9, Mathf.RoundToInt(ShotAtomHud.LabelUnits * PauseQuickActions.CanvasScaleFor(screen)));
                 int size = ShotAtomHud.LabelFontSize(baseSize, g.slotWidth, 3);
                 labelFits &= size >= 6 && size <= baseSize && (size == 6 || size * 3 * ShotAtomHud.LabelCharWidth <= g.slotWidth + .01f);
             }
         }
         Check("... the two-digit label 'x10' fits its slot on every ScreenFit device (the font shrinks on a narrow board, never under 6)", labelFits);
+    }
+
+    // The visible bottom comes from the art: the table of transparent bottom rows matches every world's hud_board.png, and
+    // the anchor follows the frame when the world changes.
+    static void BoardFrameArt()
+    {
+        bool table = true; string bad = null;
+        for (int w = 0; w < HudSkin.WorldCount; w++)
+        {
+            string path = "Assets/Resources/" + HudSkin.FramePath(w) + ".png";
+            if (!File.Exists(path)) path = "Assets/Art/Resources/" + HudSkin.FramePath(w) + ".png";
+            var tex = new Texture2D(2, 2, TextureFormat.RGBA32, false);
+            tex.LoadImage(File.ReadAllBytes(path));
+            var px = tex.GetPixels32();
+            int clear = 0;
+            for (int y = 0; y < tex.height; y++)
+            {
+                bool any = false;
+                for (int x = 0; x < tex.width && !any; x++) any = px[y * tex.width + x].a >= 32;
+                if (any) break;
+                clear++;
+            }
+            Object.DestroyImmediate(tex);
+            float expected = clear * HudSkin.BoardCanvasRefPpu / HudSkin.BoardSpritePpu;
+            if (Mathf.Abs(expected - HudSkin.BoardVisibleBottomClear(w)) > .01f) { table = false; if (bad == null) bad = "world " + w + " art " + expected + " table " + HudSkin.BoardVisibleBottomClear(w); }
+        }
+        Check("the table of transparent bottom rows matches every world's hud_board.png" + (bad != null ? " (" + bad + ")" : ""), table);
+
+        var screen = new Vector2(1080f, 2340f);
+        var safe = new Rect(0f, 0f, screen.x, screen.y);
+        var band = TopBand.FrameFor(safe, screen, 0f, new Rect[0]);
+        Rect hud = AuthoredHud(band, screen);
+        float frost = ShotAtomHud.Compute(band, safe, screen, hud, 1).top, space = ShotAtomHud.Compute(band, safe, screen, hud, 0).top;
+        Check("the row re-anchors to a different frame (Frost " + frost + " vs Space " + space + "): the visible bottoms differ, so do the rows", !Mathf.Approximately(frost, space));
     }
 
     static void HudLive()

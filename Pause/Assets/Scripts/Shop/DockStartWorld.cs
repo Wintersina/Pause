@@ -25,6 +25,8 @@ public class DockStartWorld : MonoBehaviour
 
     // Whether the picker is on offer (pure, for tests).
     public static bool Visible(bool unlocked, bool developerMode) { return unlocked && !developerMode; }
+    // The world whose landfall the dock backdrop shows: the picker's selection while the picker is on offer, else Space (0).
+    public static int ShownWorld { get { return Visible(PlayerStartWorld.Unlocked, Dev) ? PlayerStartWorld.Selected : 0; } }
     static bool Dev { get { return DeveloperUnlocks.Available && DeveloperUnlocks.Enabled; } }
 
     public GameObject Row { get { return row; } }

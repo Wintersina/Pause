@@ -239,7 +239,7 @@ public class SpaceDock : MonoBehaviour
         rack = new GameObject("~DockRack").transform;
         rack.SetParent(transform, false);
 
-        planet = DockPlanet.Create(transform, Random.Range(0, DockPlanet.Cells));
+        planet = DockPlanet.Create(transform, DockStartWorld.ShownWorld);
         edgeLeft = Piece("EdgeLeft", DockArt.Lot("lot_edge_left"), SpriteDrawMode.Tiled, 1);
         edgeRight = Piece("EdgeRight", DockArt.Lot("lot_edge_right"), SpriteDrawMode.Tiled, 1);
         headerBand = Band("HeaderBand");
@@ -1021,6 +1021,7 @@ public class SpaceDock : MonoBehaviour
     void Update()
     {
         if (cam == null) return;
+        if (planet != null) planet.Show(DockStartWorld.ShownWorld);   // follows the start-world picker (a crossfade on a change)
         if (Launching)
         {
             // A tap skips the launch animation.

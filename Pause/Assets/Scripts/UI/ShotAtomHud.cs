@@ -12,9 +12,10 @@ using UnityEngine.UI;
 //
 // PLACEMENT (pure, Geometry / SlotRect, ShotAtomsTest): the row starts at the score board's inner left edge, a gap under the
 // board's bottom FRAME (the art reaches below the layout rect), and stays inside the board's width, so it never meets the rails.
-// It is slid down only under what is actually showing under the board: the boss warning's banner and chip while they are up,
-// PORTAL DANGER's chip while it is up. (They used to be reserved always, which pushed the row below the boss banner's empty
-// slot: well under the board.) The Replay/Home pair is always an obstacle; the booster column only narrows the row. All six slots
+// The row is ALWAYS pinned there: it never slides for the boss warning's banner / chip or PORTAL DANGER's chip (the row's canvas
+// is drawn above theirs instead). It hangs under the frame's VISIBLE bottom (HudStyler.BoardVisibleBottomPx: the art's
+// transparent bottom strip and the live read-out scale taken out, per world) and re-anchors when the world's frame changes.
+// The Replay/Home pair is always an obstacle; the booster column only narrows the row. All six slots
 // are always reserved, so a coin joining the row never moves anything. It follows ScreenFit's top band (rails, notches,
 // cutouts, safe area), so tall phones, the Flip cover screen, foldables and tablets all get it; on a narrow board the coins shrink.
 public class ShotAtomHud : MonoBehaviour
@@ -25,45 +26,28 @@ public class ShotAtomHud : MonoBehaviour
     public const float LabelUnits = 14f;       // the level line under a coin
     public const float GapUnits = 4f;          // between two slots, and under the score board
     public const int MaxSlots = ShotAtomTuning.Count;
+    public const int SortOrder = 88;           // above the boss warning (85) and PORTAL DANGER (84), under the booster column (89)
 
     public struct Geometry
     {
         public float left, top, icon, pitch, slotWidth, slotHeight, label;
     }
 
-    // Every rect the row must stay clear of, in screen px: the Replay/Home pair always; the boss warning's chip and banner while
-    // `boss` is up; PORTAL DANGER's chip while `portal` is up. (The score read-out and the booster column are handled in Compute:
-    // the row starts under the first and is kept beside the second.)
-    public static Rect[] Obstacles(TopBand.Frame band, Rect safe, Vector2 screen, Rect hud, bool boss, bool portal)
-    {
-        var list = new System.Collections.Generic.List<Rect>(4);
-        list.Add(PauseQuickActions.ScreenRectFor(band, screen));
-        if (boss)
-        {
-            var warning = BossWarningHud.ComputeLayout(safe, screen, hud, band);
-            list.Add(warning.chip);
-            list.Add(warning.banner);
-        }
-        if (portal)
-        {
-            float portalScale = Mathf.Min(screen.x / 800f, screen.y / 1200f);   // its canvas: 800x1200, Expand
-            list.Add(PortalPressureHud.ChipScreenRect(band, portalScale > 0f ? portalScale : 1f));
-        }
-        return list.ToArray();
-    }
-
-    // Everything that can ever sit under the board (tests: nothing may overlap the row while it is all up).
+    // Every rect the row must stay clear of, in screen px: the Replay/Home pair. (The boss warning's banner and chip and PORTAL
+    // DANGER's chip are NOT obstacles: the row never moves for them; it is drawn above them, canvas sort order 88 over 85.
+    // The score read-out and the booster column are handled in Compute: the row starts under the first and is kept beside the second.)
     public static Rect[] Obstacles(TopBand.Frame band, Rect safe, Vector2 screen, Rect hud)
     {
-        return Obstacles(band, safe, screen, hud, true, true);
+        return new[] { PauseQuickActions.ScreenRectFor(band, screen) };
     }
 
     public static Geometry Compute(TopBand.Frame band, Rect safe, Vector2 screen, Rect hud)
     {
-        return Compute(band, safe, screen, hud, false, false);
+        return Compute(band, safe, screen, hud, -1);
     }
 
-    public static Geometry Compute(TopBand.Frame band, Rect safe, Vector2 screen, Rect hud, bool boss, bool portal)
+    // `world`: whose board frame is on screen (-1 = the live world). The row hangs one gap under that frame's VISIBLE bottom edge.
+    public static Geometry Compute(TopBand.Frame band, Rect safe, Vector2 screen, Rect hud, int world)
     {
         var g = new Geometry();
         float s = PauseQuickActions.CanvasScaleFor(screen);
@@ -72,7 +56,7 @@ public class ShotAtomHud : MonoBehaviour
         float inset = board ? gap : 0f;
         g.left = Mathf.Max(board ? hud.xMin + inset : band.left, band.left);
         float right = board ? Mathf.Min(hud.xMax - inset, band.right) : Mathf.Min(band.right, PauseQuickActions.ScreenRectFor(band, screen).xMin - gap);
-        float startTop = (board ? hud.yMin - HudStyler.BoardBottomGrowthPx(screen) : band.top) - gap;
+        float startTop = (board ? hud.yMin - HudStyler.BoardVisibleBottomPx(hud, world) : band.top) - gap;
         float want = Mathf.Max(8f, Mathf.Round(IconUnits * s));
         float label = Mathf.Round(LabelUnits * s);
 
@@ -98,7 +82,7 @@ public class ShotAtomHud : MonoBehaviour
         g.label = label;
         g.slotHeight = g.icon + g.label;
         float xMax = g.left + MaxSlots * pitch - gap;
-        g.top = BoosterHud.ColumnTop(Obstacles(band, safe, screen, hud, boss, portal), g.left, xMax, startTop, gap);
+        g.top = BoosterHud.ColumnTop(Obstacles(band, safe, screen, hud), g.left, xMax, startTop, gap);
         return g;
     }
 
@@ -164,9 +148,7 @@ public class ShotAtomHud : MonoBehaviour
     CanvasScaler hudScaler;
     int hudLookFrame = -1000;
 
-    BossWarningHud warning;
-    int warningLookFrame = -1000;
-    bool bossUp, portalUp;
+    int appliedWorld = -1;
     Geometry geometry;
     Rect liveHud;
 
@@ -185,25 +167,11 @@ public class ShotAtomHud : MonoBehaviour
         Rect safe = Screen.safeArea;
         var band = TopBand.FrameFor(safe, screen);
         Rect hud = row.LiveHudRect(band, screen);
-        row.RefreshWarnings();
-        var g = Compute(band, safe, screen, hud, row.bossUp, row.portalUp);
+        var g = Compute(band, safe, screen, hud);
         float gap = Mathf.Max(1f, Mathf.Round(GapUnits * PauseQuickActions.CanvasScaleFor(screen)));
         float cx = hud.height > 0f ? hud.center.x : (band.left + band.right) * .5f;
         topCentre = new Vector2(Mathf.Round(cx), Mathf.Round(g.top - g.slotHeight - gap));
         return true;
-    }
-
-    // Is the boss warning / PORTAL DANGER up (cached lookups, re-found twice a second)?
-    void RefreshWarnings()
-    {
-        if (warning == null && Time.frameCount - warningLookFrame >= 30)
-        {
-            warningLookFrame = Time.frameCount;
-            warning = FindFirstObjectByType<BossWarningHud>();
-        }
-        bossUp = warning != null && (warning.BannerVisible || warning.ChipVisible || warning.FinalVisible);
-        var portal = PortalPressureHud.Instance;
-        portalUp = portal != null && portal.Showing;
     }
 
     public int VisibleCount { get { return shownCount; } }
@@ -222,7 +190,7 @@ public class ShotAtomHud : MonoBehaviour
         holder.transform.SetParent(transform, false);
         canvas = holder.GetComponent<Canvas>();
         canvas.renderMode = RenderMode.ScreenSpaceOverlay;
-        canvas.sortingOrder = 88;      // under the booster column (89) and the quick actions (90)
+        canvas.sortingOrder = SortOrder;      // under the booster column (89) and the quick actions (90)
         canvas.pixelPerfect = true;
         var scaler = holder.GetComponent<CanvasScaler>();
         scaler.uiScaleMode = CanvasScaler.ScaleMode.ConstantPixelSize;   // 1 canvas unit = 1 px: the rects are in screen pixels
@@ -336,14 +304,14 @@ public class ShotAtomHud : MonoBehaviour
         Rect safe = Screen.safeArea;
         var band = TopBand.FrameFor(safe, screen);
         Rect hud = LiveHudRect(band, screen);
-        bool boss = bossUp, portal = portalUp;
-        RefreshWarnings();
-        if (placed && screen == appliedScreen && safe == appliedSafe && band.Same(appliedBand) && hud == appliedHud &&
-            boss == bossUp && portal == portalUp) return;
+        int world = HudSkin.CurrentWorld;
+        // re-anchored whenever the screen, the read-out or the board's frame (the world) changes; never for a warning
+        if (placed && screen == appliedScreen && safe == appliedSafe && band.Same(appliedBand) && hud == appliedHud && world == appliedWorld) return;
         placed = true;
+        appliedWorld = world;
         appliedScreen = screen; appliedSafe = safe; appliedBand = band; appliedHud = hud;
         liveHud = hud;
-        var g = Compute(band, safe, screen, hud, bossUp, portalUp);
+        var g = Compute(band, safe, screen, hud, world);
         geometry = g;
         int fontSize = Mathf.Max(9, Mathf.RoundToInt(LabelUnits * PauseQuickActions.CanvasScaleFor(screen)));
         for (int i = 0; i < MaxSlots; i++)

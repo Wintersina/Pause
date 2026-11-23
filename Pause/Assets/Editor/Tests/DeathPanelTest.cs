@@ -61,10 +61,8 @@ public static class DeathPanelTest
         {
             string tag = names[w] + ": ";
             float extra = DeathPanelView.FrameExtra(w);
-            if (w == WidenedWorld)
-                Check(tag + "frame is a little wider (extra " + extra + " per side, 0 < extra <= " + WidenedExtraMax + ")", extra > 0f && extra <= WidenedExtraMax);
-            else
-                Check(tag + "frame keeps its original width (" + DeathPanelView.FrameWidth(w) + ")", extra == 0f && Mathf.Approximately(DeathPanelView.FrameWidth(w), 720f));
+            Check(tag + "the frame is drawn " + extra.ToString("F1") + " units wider per side, within the " + DeathPanelView.MinExtra + " .. " + DeathPanelView.MaxExtra + " the phone fit can take",
+                  extra >= DeathPanelView.MinExtra - .01f && extra <= DeathPanelView.MaxExtra + .01f && Mathf.Approximately(DeathPanelView.FrameWidth(w), 720f + 2f * extra));
 
             var sprite = HudSkin.DeathPanel(w);
             float shift = DeathPanelView.StackShift(w);
@@ -84,6 +82,11 @@ public static class DeathPanelTest
             }
             Check(tag + "frame art stays >= " + MinSideClearance + " units from the cards and buttons (least " + least.ToString("F1") + ")",
                   !float.IsNaN(least) && least >= MinSideClearance);
+            Check(tag + "the baked fallback (for an unreadable sprite) agrees with the measured fit (" + DeathPanelView.FallbackExtra(w) + " / " + DeathPanelView.FallbackHalf(w) + ")",
+                  Mathf.Abs(DeathPanelView.FallbackExtra(w) - extra) <= .1f && Mathf.Abs(DeathPanelView.FallbackHalf(w) - DeathPanelView.ButtonHalfSpan(w)) <= .1f);
+            // the content FILLS the frame: the same padding (TargetClearance) on every world, never a wide dead margin
+            Check(tag + "the cards and buttons fill the frame: the painted art is " + DeathPanelView.TargetClearance + " units away (+-1.5; measured " + least.ToString("F1") + ")",
+                  !float.IsNaN(least) && Mathf.Abs(least - DeathPanelView.TargetClearance) <= 1.5f);
         }
     }
 
@@ -347,6 +350,25 @@ public static class DeathPanelTest
                 Check(NodePath(g.transform, panel) + " text fits its rect ('" + text.text + "')",
                       text.preferredWidth <= r.width + 1f);
         }
+
+        // Every text sits inside the plate that frames it (its card, its button, the title's banner), does not overflow it, and the
+        // headline texts fill their plate (the same rule the ScreenFit death screens check on every device and world).
+        foreach (var t in panel.GetComponentsInChildren<Text>(false))
+        {
+            if (t.name == DeathPanelView.BonusPopupName) continue;
+            Transform plate = null;
+            for (var tr = t.transform.parent; tr != null && tr != panel; tr = tr.parent)
+                if (tr.name.StartsWith("Card") || tr.name.EndsWith("Slot")) { plate = tr; break; }
+            if (plate == null && t.name == "Title") plate = panel.Find("TitleSlab");
+            if (plate == null) continue;
+            Rect pl = PanelSpace(panel, (RectTransform)plate), tr2 = PanelSpace(panel, t.rectTransform);
+            Check(NodePath(t.transform, panel) + " lies inside its plate", Contains(Inset(pl, -1f), tr2));
+            if (t.horizontalOverflow != HorizontalWrapMode.Wrap)
+                Check(NodePath(t.transform, panel) + " is not wider than its rect ('" + t.text + "')", t.preferredWidth <= tr2.width + 1f);
+        }
+        var titleText = panel.Find("Title").GetComponent<Text>();
+        var slabRect = PanelSpace(panel, (RectTransform)panel.Find("TitleSlab"));
+        Check("the title fills at least 60% of its banner's width (" + (titleText.preferredWidth / slabRect.width).ToString("P0") + ")", titleText.preferredWidth >= .6f * slabRect.width);
 
         // Cards: laid out where the constants say, not overlapping, and the
         // label column never runs into the value column.

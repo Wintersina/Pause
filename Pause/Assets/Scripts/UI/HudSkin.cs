@@ -63,6 +63,17 @@ public static class HudSkin
     // x = left, y = bottom, z = right, w = top.
     public static Vector4 BoardOut(int world) { return OutFor(BoardOuts, world); }
 
+    // Fully transparent rows at the bottom of each world's hud_board.png, in sprite px (ShotAtomsTest reads the PNGs and checks
+    // this table). The five opt3 frames (Frost, Verdant, Ember, Storm, Desert) end 35 px above the sprite's edge; Space and Tide
+    // paint to the last row. The frame's VISIBLE bottom is therefore BoardOut.y minus this (BoardVisibleBottomClear), not BoardOut.y.
+    static readonly int[] BoardBottomClearPx = { 0, 35, 35, 35, 0, 35, 35 };
+    public const float BoardSpritePpu = 200f, BoardCanvasRefPpu = 100f;   // hud_board's import ppu / the HUD canvas's reference ppu
+    // Canvas units of that transparent strip (the sliced bottom border is drawn at its real size).
+    public static float BoardVisibleBottomClear(int world)
+    {
+        return BoardBottomClearPx[Mathf.Clamp(world, 0, BoardBottomClearPx.Length - 1)] * BoardCanvasRefPpu / BoardSpritePpu;
+    }
+
     static Vector4 OutFor(float[][] table, int world)
     {
         var m = table[Mathf.Clamp(world, 0, table.Length - 1)];
