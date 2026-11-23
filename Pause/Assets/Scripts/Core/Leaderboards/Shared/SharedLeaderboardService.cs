@@ -446,11 +446,27 @@ public sealed class SharedLeaderboardService
         var cp = new CachedPage { savedAt = UnixNow(), fetchedAt = UnixNow(), hasPlayer = page.hasPlayer, player = page.player };
         cp.entries.AddRange(page.entries);
         memory[CacheKey(t, c)] = cp;
+        DropMore(t, c);   // a fresh first page: the pages behind it are stale
         PlayerPrefs.SetString(CacheKey(t, c), JsonUtility.ToJson(cp));
+    }
+
+    // Later pages (cursor queries) are kept in memory only, per first-row-after cursor, for CacheSeconds.
+    sealed class MorePage { public long fetchedAt; public List<LeaderboardEntry> entries; }
+    readonly Dictionary<string, MorePage> moreMemory = new Dictionary<string, MorePage>();
+
+    static string MoreKey(SharedTable t, SharedColumn c, string uid, int count) { return (int)t + "_" + (int)c + "_" + uid + "_" + count; }
+
+    void DropMore(SharedTable t, SharedColumn c)
+    {
+        string prefix = (int)t + "_" + (int)c + "_";
+        var stale = new List<string>();
+        foreach (var k in moreMemory.Keys) if (k.StartsWith(prefix, StringComparison.Ordinal)) stale.Add(k);
+        foreach (var k in stale) moreMemory.Remove(k);
     }
 
     void InvalidateCache(SharedTable t)
     {
+        foreach (var c in SharedDoc.Columns) DropMore(t, c);
         foreach (var c in SharedDoc.Columns)
         {
             memory.Remove(CacheKey(t, c));
@@ -499,6 +515,40 @@ public sealed class SharedLeaderboardService
             if (cached != null)
             {
                 done(new Loaded { page = ToPage(cached), fromCache = true, ageSeconds = Math.Max(0, UnixNow() - cached.fetchedAt) });
+                return;
+            }
+            done(new Loaded { page = page ?? LeaderboardPage.Failed(LeaderboardStatus.Error) });
+        });
+    }
+
+    // The board is paged: 10 rows first (LoadBoard), then PageRows per cursor query, up to MaxRows in all.
+    public const int PageRows = SharedBoardLimits.MaxListLimit;
+    public const int MaxRows = 100;
+
+    // The next page of one board, after the last row the panel holds (`after`), ranked from `startRank`. Reads cost
+    // 0 within CacheSeconds of the same page. Never asks for more than PageRows, nor past MaxRows.
+    public void LoadMore(SharedTable table, SharedColumn column, SharedCursor after, int startRank, Action<Loaded> done)
+    {
+        if (!Enabled) { done(new Loaded { page = LeaderboardPage.Failed(LeaderboardStatus.Unavailable) }); return; }
+        if (!Backend.IsSignedIn) { done(new Loaded { page = LeaderboardPage.Failed(LeaderboardStatus.NotSignedIn) }); return; }
+        int count = Math.Min(PageRows, MaxRows - (startRank - 1));
+        if (count <= 0) { done(new Loaded { page = new LeaderboardPage { status = LeaderboardStatus.Ok } }); return; }
+        string key = MoreKey(table, column, after.uid, count);
+        MorePage hit;
+        long now = UnixNow();
+        if (moreMemory.TryGetValue(key, out hit) && now - hit.fetchedAt < CacheSeconds)
+        {
+            var cached = new LeaderboardPage { status = LeaderboardStatus.Ok };
+            cached.entries.AddRange(hit.entries);
+            done(new Loaded { page = cached, fromCache = true, ageSeconds = Math.Max(0, now - hit.fetchedAt) });
+            return;
+        }
+        Backend.LoadAfter(table, column, after, startRank, count, page =>
+        {
+            if (page != null && page.Ok)
+            {
+                moreMemory[key] = new MorePage { fetchedAt = UnixNow(), entries = new List<LeaderboardEntry>(page.entries) };
+                done(new Loaded { page = page });
                 return;
             }
             done(new Loaded { page = page ?? LeaderboardPage.Failed(LeaderboardStatus.Error) });
