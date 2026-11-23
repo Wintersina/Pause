@@ -449,7 +449,7 @@ public static class HostileReachTest
             int evaded = 0;
             foreach (var def in EliteCatalog.All)
             {
-                int connected = 0, attempted = 0, fromTwo = 0, fromOne = 0, inGrace = 0, midEvade = 0, midAttack = 0, shortJumps = 0;
+                int connected = 0, attempted = 0, fromMore = 0, fromLow = 0, inGrace = 0, midEvade = 0, midAttack = 0, shortJumps = 0;
                 string first = null;
                 for (int k = 0; k < Trials; k++)
                 {
@@ -489,7 +489,7 @@ public static class HostileReachTest
                     // (a hide-when-hurt elite that was just hit is away, untouchable: no jump to aim at it, and no grace window to land in)
                     if (e.Hidden || e.Offstage) { Cleanup(ship, rock); continue; }   // (a roamer outside the board is untouchable too)
                     attempted++;
-                    if (e.Hearts >= 2) fromTwo++; else fromOne++;
+                    if (e.Hearts > EliteShip.TeleportHearts) fromMore++; else fromLow++;
                     if (e.Grace > 0f) inGrace++;
                     if (e.Evading) midEvade++;
                     if (e.State == EliteState.Attack) midAttack++;
@@ -503,16 +503,16 @@ public static class HostileReachTest
                     int kills = EliteShip.Kills, had = e.Hearts;
                     ship.position = to;
                     TeleportFx.Play(from, to);
-                    // THE PAUSE CONNECTS: exactly one heart (PAUSE BLOCKED); on its last heart an ordinary kill
+                    // THE PAUSE CONNECTS: exactly TeleportHearts (2) hearts (PAUSE BLOCKED); on 2 or fewer an ordinary kill
                     bool dead = (e == null || e.State == EliteState.Dead) && EliteShip.Kills == kills + 1 && EliteShip.LastKillCause == EliteDamage.Teleport;
-                    bool oneHeart = had > 1 ? !dead && e != null && e.Hearts == had - 1 && e.LastHitCause == EliteDamage.Teleport : dead;
+                    bool oneHeart = had > EliteShip.TeleportHearts ? !dead && e != null && e.Hearts == had - EliteShip.TeleportHearts && e.LastHitCause == EliteDamage.Teleport : dead;
                     if (oneHeart) connected++;
                     else Trial(ref first, def, k, "survived (hearts " + (e != null ? e.Hearts : -1) + ", grace " + (e != null ? F(e.Grace) : "-") + ", offset " + F(off.magnitude) + ")");
                     Cleanup(ship, rock);
                 }
-                Check((evasion ? "" : "evasion off: ") + def.displayName + ": a pause jump aimed at it costs exactly one heart in " + connected + "/" + attempted + " seeded runs (from 2 hearts " + fromTwo +
-                      ", from 1 " + fromOne + ", in grace " + inGrace + ", mid-evasion " + midEvade + ", mid-attack " + midAttack + ", short hops " + shortJumps + ")" +
-                      (first != null ? " first miss: " + first : ""), connected == attempted && attempted >= Trials * 2 / 3 / (def.hurtHide ? 2 : 1) / (def.brain == "breaker" ? 4 : def.brain == "deep" || def.brain == "trawl" || def.brain == "stoker" || def.brain == "strafer" || def.brain == "burrower" || def.brain == "glint" || def.brain == "airship" || def.brain == "hooker" ? 2 : 1)   /* (Tide's three roamers, Sunstoke, the Coalrunner and Desert's two spend half their time wholly off the board, untouchable) */ && (inGrace > 0 || def.hurtHide) && fromTwo > 0);
+                Check((evasion ? "" : "evasion off: ") + def.displayName + ": a pause jump aimed at it costs exactly two hearts (or kills at 2 or fewer) in " + connected + "/" + attempted + " seeded runs (from 3+ hearts " + fromMore +
+                      ", from 2 or fewer " + fromLow + ", in grace " + inGrace + ", mid-evasion " + midEvade + ", mid-attack " + midAttack + ", short hops " + shortJumps + ")" +
+                      (first != null ? " first miss: " + first : ""), connected == attempted && attempted >= Trials * 2 / 3 / (def.hurtHide ? 2 : 1) / (def.brain == "breaker" ? 4 : def.brain == "deep" || def.brain == "trawl" || def.brain == "stoker" || def.brain == "strafer" || def.brain == "burrower" || def.brain == "glint" || def.brain == "airship" || def.brain == "hooker" ? 2 : 1)   /* (Tide's three roamers, Sunstoke, the Coalrunner and Desert's two spend half their time wholly off the board, untouchable) */ && (inGrace > 0 || def.hurtHide) && fromMore > 0);
                 evaded += midEvade;
             }
             if (evasion) Check("... jumps landed mid-evasion across the elites (" + evaded + ")", evaded > 0);

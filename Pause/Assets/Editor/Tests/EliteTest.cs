@@ -927,8 +927,9 @@ public static class EliteTest
         Step(EliteShip.HitBlockSeconds + .05f);
         int k1 = EliteShip.Kills, paid1 = EliteRewards.Paid;
         Check("(setup: one heart left)", e != null && e.Hearts == 1);
-        TeleportFx.Strike(e.Position);
-        TeleportFx.Strike(e.Position);
+        Vector2 dyingAt = e.Position;   // (the first landing destroys it: the second one must still land on the spot)
+        TeleportFx.Strike(dyingAt);
+        TeleportFx.Strike(dyingAt);
         Check("a pause jump on a 1-heart elite kills it, paid once", (e == null || e.State == EliteState.Dead) && EliteShip.Kills == k1 + 1 && EliteRewards.Paid == paid1 + 1);
 
         Fresh(.05f);
