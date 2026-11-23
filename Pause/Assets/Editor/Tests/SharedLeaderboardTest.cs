@@ -48,6 +48,7 @@ public static class SharedLeaderboardTest
             Vectors();
             ServiceTests();
             Reading();
+            Paging();
             SyncAndDelete();
             Hook();
             AdapterGuards();
@@ -534,6 +535,70 @@ public static class SharedLeaderboardTest
         fake.CompleteLoads();
         Check("read: and completes later", pending != null && pending.page.Ok);
         fake.DeferLoads = false;
+    }
+
+    // Paging past the top 10: cursor queries of at most 25 rows, ranks that continue, no skipped or repeated player at a
+    // page boundary (ties included), a cap of 100 rows, and the 5-minute cache per page.
+    static void Paging()
+    {
+        var s = Service();
+        for (int i = 0; i < 130; i++)   // many ties on score (every 4 players share one) and on dust
+            fake.Seed(SharedTable.Main, "u" + i.ToString("D3"), Player("P" + i, 10000 - (i / 4) * 10, 50 + (i / 7) * 10, i % 5, 1 + i % 9));
+        foreach (var column in new[] { SharedColumn.Score, SharedColumn.Dust, SharedColumn.Worlds })
+        {
+            fake.AfterCalls = 0; fake.AfterLimits.Clear();
+            Loaded(s, SharedTable.Main, column, true, out var first);
+            var all = new List<LeaderboardEntry>(first.page.entries);
+            Check("paging " + column + ": the first page is the top 10", all.Count == 10 && all[0].rank == 1 && fake.AfterCalls == 0);
+            while (all.Count < SharedLeaderboardService.MaxRows + 20)
+            {
+                SharedLeaderboardService.Loaded more = null;
+                s.LoadMore(SharedTable.Main, column, SharedCursor.From(all[all.Count - 1]), all.Count + 1, l => more = l);
+                if (more == null || !more.page.Ok || more.page.entries.Count == 0) break;
+                all.AddRange(more.page.entries);
+            }
+            var ids = new HashSet<string>();
+            bool dup = false, ranks = true, order = true;
+            for (int i = 0; i < all.Count; i++)
+            {
+                if (!ids.Add(all[i].playerId)) dup = true;
+                if (all[i].rank != i + 1) ranks = false;
+                if (i > 0 && all[i].value > all[i - 1].value) order = false;
+            }
+            Check("paging " + column + ": stops at the 100-row cap", all.Count == SharedLeaderboardService.MaxRows);
+            Check("paging " + column + ": no player skipped or repeated across page boundaries (ties included)", !dup && ids.Count == 100);
+            Check("paging " + column + ": ranks continue 1..100 in sort order", ranks && order);
+            bool limits = fake.AfterLimits.Count > 0;
+            foreach (int l in fake.AfterLimits) if (l > SharedBoardLimits.MaxListLimit || !SharedBoardLimits.AllowList(l)) limits = false;
+            Check("paging " + column + ": every cursor query asks for 25 rows or fewer (the rules cap), 25 + 25 + 25 + 15", limits
+                  && fake.AfterLimits.Count == 4 && fake.AfterLimits[3] == 15);
+            Check("paging " + column + ": the cursor is the last row held (tab number, score, uid)",
+                  fake.LastCursor.uid == all[84].playerId && fake.LastCursor.primary == all[84].value);
+        }
+        // Reads cost nothing again within the cache window; a new first page drops the pages behind it.
+        unix += 301;   // every cached page has expired; the next first page is read fresh and drops the pages behind it
+        fake.AfterCalls = 0;
+        Loaded(s, SharedTable.Main, SharedColumn.Score, false, out var again);
+        var cur = SharedCursor.From(again.page.entries[9]);
+        s.LoadMore(SharedTable.Main, SharedColumn.Score, cur, 11, l => { });
+        s.LoadMore(SharedTable.Main, SharedColumn.Score, cur, 11, l => { });
+        Check("paging: the same page twice is one read within 5 minutes", fake.AfterCalls == 1);
+        unix += 301;
+        s.LoadMore(SharedTable.Main, SharedColumn.Score, cur, 11, l => { });
+        Check("paging: and a fresh read after 5 minutes", fake.AfterCalls == 2);
+        SharedLeaderboardService.Loaded beyond = null;
+        s.LoadMore(SharedTable.Main, SharedColumn.Score, cur, 101, l => beyond = l);
+        Check("paging: nothing is asked past row 100", beyond != null && beyond.page.Ok && beyond.page.entries.Count == 0 && fake.AfterCalls == 2);
+        fake.Fail = SharedResult.Offline;
+        SharedLeaderboardService.Loaded failed = null;
+        s.LoadMore(SharedTable.Main, SharedColumn.Dust, cur, 11, l => failed = l);
+        Check("paging: a failed page is an error page, never an exception", failed != null && !failed.page.Ok);
+        fake.Fail = null;
+        fake.SignedIn = false;
+        SharedLeaderboardService.Loaded signedOut = null;
+        s.LoadMore(SharedTable.Main, SharedColumn.Score, cur, 11, l => signedOut = l);
+        Check("paging: signed out is the NotSignedIn state", signedOut != null && signedOut.page.status == LeaderboardStatus.NotSignedIn);
+        fake.SignedIn = true;
     }
 
     static void Loaded(SharedLeaderboardService s, SharedTable t, SharedColumn c, bool force, out SharedLeaderboardService.Loaded result)

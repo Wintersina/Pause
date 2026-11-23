@@ -263,6 +263,38 @@ public sealed class FirebaseSharedBoard : ISharedBoardBackend
         catch (Exception) { done(LeaderboardPage.Failed(LeaderboardStatus.Error)); }
     }
 
+    // The next page: one cursor query (orderBy the tab's number, score, document id; startAfter the last row's
+    // values). Limit <= MaxListLimit so the rules accept it. 25 reads, no own-row read.
+    public void LoadAfter(SharedTable table, SharedColumn column, SharedCursor after, int startRank, int count, Action<LeaderboardPage> done)
+    {
+        if (!IsAvailable) { done(LeaderboardPage.Failed(LeaderboardStatus.Unavailable)); return; }
+        if (!IsSignedIn) { done(LeaderboardPage.Failed(LeaderboardStatus.NotSignedIn)); return; }
+        try
+        {
+            string uid = UserId;
+            string field = SharedBoardLimits.Field(column);
+            Query q = db.Collection(SharedBoardLimits.Collection(table)).OrderByDescending(field);
+            if (column != SharedColumn.Score) q = q.OrderByDescending("score");
+            q = q.OrderByDescending(FieldPath.DocumentId);
+            q = column == SharedColumn.Score ? q.StartAfter(after.primary, after.uid) : q.StartAfter(after.primary, after.score, after.uid);
+            q = q.Limit(Math.Min(count, SharedBoardLimits.MaxListLimit));
+            q.GetSnapshotAsync().ContinueWithOnMainThread(t =>
+            {
+                if (t.IsFaulted || t.IsCanceled) { done(LeaderboardPage.Failed(Status(Classify(t.Exception)))); return; }
+                var page = new LeaderboardPage { status = LeaderboardStatus.Ok };
+                int rank = startRank;
+                foreach (var snap in t.Result.Documents)
+                {
+                    var doc = DocFromSnapshot(snap);
+                    if (doc == null) continue;
+                    page.entries.Add(SharedBoardRows.ToEntry(rank++, snap.Id, doc, column, snap.Id == uid));
+                }
+                done(page);
+            });
+        }
+        catch (Exception) { done(LeaderboardPage.Failed(LeaderboardStatus.Error)); }
+    }
+
     static LeaderboardStatus Status(SharedResult r)
     {
         return r == SharedResult.SignedOut ? LeaderboardStatus.NotSignedIn : LeaderboardStatus.Error;

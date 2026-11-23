@@ -12,6 +12,20 @@ public enum SharedTable { Main, Power }
 
 public enum SharedColumn { Score, Dust, Worlds }
 
+// Where the next page of a board starts: just after this row in the sort order (the tab's number, then the
+// score, then the document id: the same keys the query orders by, so ties never skip or repeat a player).
+public struct SharedCursor
+{
+    public string uid;
+    public long primary;   // the tab's own number (score, dust in hundredths or worlds)
+    public long score;     // the row's score, 0 when unknown (the tie-break of the dust and worlds tabs)
+
+    public static SharedCursor From(LeaderboardEntry e)
+    {
+        return new SharedCursor { uid = e.playerId, primary = e.value, score = e.hasScore ? e.runScore : 0 };
+    }
+}
+
 [Serializable]
 public struct SharedRun
 {

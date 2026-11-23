@@ -360,6 +360,7 @@ public class LeaderboardPanel : MonoBehaviour
         rows.offsetMin = rows.offsetMax = Vector2.zero;
         scroll.content = rows;
         scroll.viewport = list;
+        scroll.onValueChanged.AddListener(OnListScrolled);
         scroll.enabled = false;
 
         playerRow = Place(panelRoot, "PlayerRow", 0f, PlayerRowTop - Drop, Inner, PlayerRowHeight).gameObject;
@@ -697,6 +698,7 @@ public class LeaderboardPanel : MonoBehaviour
         rows.sizeDelta = new Vector2(0f, 0f);
         rows.anchoredPosition = Vector2.zero;
         SetScrolling(false);
+        ResetPaging();
         Clear(playerRow.transform);
         loadingCells.Clear();
         ActionButton = null;
@@ -816,17 +818,21 @@ public class LeaderboardPanel : MonoBehaviour
         shipSkins.Clear();
         shipDrawing = -1;
         int n = Mathf.Min(top.entries.Count, LeaderboardService.PanelRows);
-        for (int i = 0; i < n; i++)
+        if (shared != null && board != null && !board.poweredUpOnly) BuildPagedRows(board, top, player);
+        else
         {
-            var e = top.entries[i];
-            bool mine = e.isLocalPlayer || (player.HasValue && e.rank == player.Value.rank && player.Value.rank > 0);
-            var rt = Place(rows, "Row" + i, 0f, i * RowStep, Inner, RowHeight);
-            Row(rt, e, board, mine, false);
+            for (int i = 0; i < n; i++)
+            {
+                var e = top.entries[i];
+                bool mine = e.isLocalPlayer || (player.HasValue && e.rank == player.Value.rank && player.Value.rank > 0);
+                var rt = Place(rows, "Row" + i, 0f, i * RowStep, Inner, RowHeight);
+                Row(rt, e, board, mine, false);
+            }
+            RowCount = n;
+            float content = n > 0 ? (n - 1) * RowStep + RowHeight : 0f;
+            rows.sizeDelta = new Vector2(0f, content);
+            SetScrolling(content > ListHeight + .5f);
         }
-        RowCount = n;
-        float content = n > 0 ? (n - 1) * RowStep + RowHeight : 0f;
-        rows.sizeDelta = new Vector2(0f, content);
-        SetScrolling(content > ListHeight + .5f);
 
         // Own row, always: the player's rank even outside the top 10.
         PlayerRowShown = true;
@@ -857,6 +863,255 @@ public class LeaderboardPanel : MonoBehaviour
             Row(rowRect, none, board, true, true);
             PlayerRankText = "#--";
         }
+    }
+
+    // ---- the shared main board scrolls past the top 10 ----
+    //
+    // The first 10 rows come from the service's cached first page; scrolling to the end asks the service for the next
+    // page (a cursor query, 25 rows, up to 100 in all). Only a screenful of rows (plus a few) exist as GameObjects:
+    // a fixed pool of row views that are re-filled as they scroll in, so scrolling allocates no new objects (a view is
+    // rebuilt only when the incoming row has a different shape, e.g. no ship or no platform mark).
+
+    sealed class RowView
+    {
+        public RectTransform rt;
+        public int index = -1;
+        public bool hasShip, hasMark, hasRow;
+        public int shipSlot = -1;
+        public CelShape plate;
+        public Text rank, name, shipNone, hearts, pauses;
+        public Image ship, mark, heart, bar0, bar1;
+        public Text[] cells;
+    }
+
+    readonly List<LeaderboardEntry> pagedEntries = new List<LeaderboardEntry>();
+    readonly HashSet<string> pagedIds = new HashSet<string>();
+    RowView[] pool;
+    LeaderboardBoard pagedBoard;
+    bool moreAvail, moreLoading;
+    float moreRetryAt;
+    Text footer;
+
+    public int PagedRowCount { get { return pagedEntries.Count; } }
+    public int PoolSize { get { return pool != null ? pool.Length : 0; } }
+    public bool MoreAvailable { get { return moreAvail; } }
+    public bool MoreLoading { get { return moreLoading; } }
+    public string FooterText { get { return footer != null ? footer.text : null; } }
+    // Tests and tools: scroll the list to a content offset (panel units from the top) as a drag would.
+    public void ScrollListTo(float y)
+    {
+        rows.anchoredPosition = new Vector2(0f, Mathf.Max(0f, y));
+        OnListScrolled(Vector2.zero);
+    }
+    public float ListContentHeight { get { return rows != null ? rows.sizeDelta.y : 0f; } }
+    public float ListViewHeight { get { return ListHeight; } }
+    public int PooledRowObjects { get { return rows != null ? rows.childCount : 0; } }
+
+    void ResetPaging()
+    {
+        pagedEntries.Clear();
+        pagedIds.Clear();
+        pool = null;
+        pagedBoard = null;
+        moreAvail = moreLoading = false;
+        moreRetryAt = 0f;
+        footer = null;
+    }
+
+    void BuildPagedRows(LeaderboardBoard board, LeaderboardPage top, LeaderboardEntry? player)
+    {
+        pagedBoard = board;
+        foreach (var e in top.entries)
+            if (pagedIds.Add(e.playerId ?? "#" + pagedEntries.Count)) pagedEntries.Add(e);
+        moreAvail = top.entries.Count >= SharedLeaderboardService.PanelRows && pagedEntries.Count < SharedLeaderboardService.MaxRows;
+        int size = Mathf.Clamp(Mathf.CeilToInt(ListHeight / RowStep) + 3, 4, SharedLeaderboardService.MaxRows);
+        pool = new RowView[size];
+        for (int i = 0; i < size; i++) pool[i] = new RowView();
+        RowCount = pagedEntries.Count;
+        Relayout();
+        BindWindow();
+    }
+
+    // Content height (rows + the footer line while there is more or the cap is reached), scrolling on or off.
+    void Relayout()
+    {
+        int n = pagedEntries.Count;
+        bool showFooter = moreAvail || (n >= SharedLeaderboardService.MaxRows);
+        float content = n > 0 ? (n - 1) * RowStep + RowHeight : 0f;
+        if (showFooter) content += RowStep;
+        rows.sizeDelta = new Vector2(0f, content);
+        SetScrolling(content > ListHeight + .5f);
+        if (footer != null) { Destroy(footer.gameObject); footer = null; }
+        if (showFooter)
+        {
+            var f = Place(rows, "Footer", 0f, n * RowStep, Inner, RowHeight);
+            footer = Label(f, "", 20, AkiraPalette.Muted, TextAnchor.MiddleCenter, 2f);
+            footer.text = FooterMessage(null);
+        }
+        RowCount = n;
+    }
+
+    string FooterMessage(string error)
+    {
+        if (error != null) return error;
+        if (moreLoading || moreAvail) return "LOADING MORE";
+        return "TOP " + SharedLeaderboardService.MaxRows;
+    }
+
+    void OnListScrolled(Vector2 unused)
+    {
+        if (pool == null) return;
+        BindWindow();
+        float y = rows.anchoredPosition.y;
+        // Near the end of what is loaded (and the player has really scrolled): the next page.
+        if (y > 1f && y + ListHeight >= rows.sizeDelta.y - 2f * RowStep) RequestMore();
+    }
+
+    // Every pooled view shows the row of its window position: row i lives in view i % pool.Length.
+    void BindWindow()
+    {
+        int n = pagedEntries.Count;
+        int first = Mathf.Max(0, Mathf.FloorToInt(rows.anchoredPosition.y / RowStep));
+        int last = Mathf.Min(n - 1, first + pool.Length - 1);
+        for (int i = first; i <= last; i++)
+        {
+            var view = pool[i % pool.Length];
+            if (view.index != i) BindView(view, i);
+        }
+    }
+
+    void BindView(RowView v, int i)
+    {
+        var e = pagedEntries[i];
+        bool mine = e.isLocalPlayer;
+        if (!TryRefill(v, e, mine))
+        {
+            // Another shape (no ship, no platform mark ...) or a first use: a fresh view in its place.
+            if (v.rt != null) { v.rt.gameObject.SetActive(false); Destroy(v.rt.gameObject); }
+            v.rt = Place(rows, "Row" + i, 0f, i * RowStep, Inner, RowHeight);
+            int before = shipImages.Count;
+            Row(v.rt, e, pagedBoard, mine, false);
+            Capture(v, e, before);
+        }
+        v.index = i;
+        v.rt.name = "Row" + i;
+        v.rt.anchoredPosition = new Vector2(0f, -i * RowStep - RowHeight * .5f);
+        shipDrawing = -1;   // the next frame swaps the idle flipbook onto the refilled ship
+    }
+
+    // The shape of a main-board row: what the entry has decides which children exist.
+    static void Shape(ref LeaderboardEntry e, out bool hasShip, out bool hasMark, out bool hasRow)
+    {
+        if (PremiumShips.IsPremium(e.startShip)) { e.startShip = 0; e.startHearts = 0; e.startSkin = 0; e.hasPauses = false; e.pauses = 0; }
+        hasShip = ShipHullArt.Has(e.startShip);
+        hasMark = PlatformMark.For(e.platform) != null;
+        hasRow = e.rank > 0 || e.value != 0;
+    }
+
+    // Finds the children of a freshly built row so a later refill needs no lookups.
+    void Capture(RowView v, LeaderboardEntry e, int shipsBefore)
+    {
+        bool hasShip, hasMark, hasRow;
+        Shape(ref e, out hasShip, out hasMark, out hasRow);
+        v.hasShip = hasShip; v.hasMark = hasMark; v.hasRow = hasRow;
+        var rt = v.rt;
+        v.plate = rt.GetComponent<CelShape>();
+        v.rank = rt.Find("Rank").GetComponent<Text>();
+        v.name = rt.Find("Name").GetComponent<Text>();
+        var shipT = rt.Find("Ship"); v.ship = shipT != null ? shipT.GetComponent<Image>() : null;
+        var noneT = rt.Find("ShipNone"); v.shipNone = noneT != null ? noneT.GetComponent<Text>() : null;
+        var markT = rt.Find("Platform"); v.mark = markT != null ? markT.GetComponent<Image>() : null;
+        // A built row adds its ship to the animated list; a view keeps one slot there for its whole life.
+        if (shipImages.Count > shipsBefore)
+        {
+            var img = shipImages[shipsBefore]; int id = shipIds[shipsBefore], skin = shipSkins[shipsBefore];
+            shipImages.RemoveRange(shipsBefore, shipImages.Count - shipsBefore);
+            shipIds.RemoveRange(shipsBefore, shipIds.Count - shipsBefore);
+            shipSkins.RemoveRange(shipsBefore, shipSkins.Count - shipsBefore);
+            if (v.shipSlot < 0) { v.shipSlot = shipImages.Count; shipImages.Add(img); shipIds.Add(id); shipSkins.Add(skin); }
+            else { shipImages[v.shipSlot] = img; shipIds[v.shipSlot] = id; shipSkins[v.shipSlot] = skin; }
+        }
+        else if (v.shipSlot >= 0) shipImages[v.shipSlot] = null;
+        if (!hasRow) return;
+        var h = rt.Find("Hearts"); v.heart = h.Find("Glyph").GetComponent<Image>(); v.hearts = h.Find("Count").GetComponent<Text>();
+        var p = rt.Find("Pauses"); v.pauses = p.Find("Count").GetComponent<Text>();
+        v.bar0 = p.Find("Glyph/Bar0").GetComponent<Image>(); v.bar1 = p.Find("Glyph/Bar1").GetComponent<Image>();
+        int n = mainColumns.Count;
+        v.cells = new Text[n];
+        for (int c = 0; c < n; c++) v.cells[c] = rt.Find("Cell_" + mainColumns[c].id).GetComponent<Text>();
+    }
+
+    // Re-fills a view in place when the entry has the view's shape; false means build a new one. Mirrors Row().
+    bool TryRefill(RowView v, LeaderboardEntry e, bool mine)
+    {
+        if (v.rt == null) return false;
+        bool hasShip, hasMark, hasRow;
+        Shape(ref e, out hasShip, out hasMark, out hasRow);
+        if (hasShip != v.hasShip || hasMark != v.hasMark || hasRow != v.hasRow) return false;
+        v.plate.SetFill(mine ? AkiraPalette.Red : AkiraPalette.Card);
+        v.rank.text = e.rank > 0 ? "#" + e.rank : "#--";
+        v.rank.color = mine ? AkiraPalette.Bone : AkiraPalette.Amber;
+        if (hasShip)
+        {
+            v.ship.sprite = ShipHullArt.Get(e.startShip, e.startSkin, 0, 0);
+            if (v.shipSlot >= 0) { shipIds[v.shipSlot] = e.startShip; shipSkins[v.shipSlot] = e.startSkin; }
+        }
+        else if (hasRow && v.shipNone != null) v.shipNone.color = mine ? AkiraPalette.Bone : AkiraPalette.Muted;
+        float markRoom = 0f;
+        if (hasMark) { v.mark.sprite = PlatformMark.For(e.platform); markRoom = PlatformMark.Reserve; }
+        string who = string.IsNullOrEmpty(e.playerName) ? "PILOT" : e.playerName.ToUpperInvariant();
+        FitName(v.name, who, MainNameWidth - markRoom - 4f);
+        if (!hasRow) return true;
+        int hearts = e.startHearts > 0 ? e.startHearts : -1;
+        int pauses = e.hasPauses ? Mathf.Clamp(e.pauses, 0, LeaderboardRunTag.MostPauses) : -1;
+        Color numColor = mine ? AkiraPalette.Bone : AkiraPalette.Amber;
+        v.heart.color = mine ? HeartOnRed : Color.white;
+        FillCount(v.hearts, hearts, RunLineHeartsWidth, numColor, mine);
+        Color barColor = pauses >= 0 ? numColor : (mine ? AkiraPalette.Bone : AkiraPalette.Muted);
+        v.bar0.color = barColor;
+        v.bar1.color = barColor;
+        FillCount(v.pauses, pauses, RunLinePausesWidth, numColor, mine);
+        for (int c = 0; c < v.cells.Length; c++)
+        {
+            var col = mainColumns[c];
+            FillCell(v.cells[c], col, e, pagedBoard != null && col.id == pagedBoard.id, mine);
+        }
+        return true;
+    }
+
+    void RequestMore()
+    {
+        if (shared == null || !moreAvail || moreLoading || pagedEntries.Count == 0) return;
+        if (Time.unscaledTime < moreRetryAt) return;
+        moreLoading = true;
+        if (footer != null) footer.text = FooterMessage(null);
+        int token = request;
+        int start = pagedEntries.Count + 1;
+        int asked = Mathf.Min(SharedLeaderboardService.PageRows, SharedLeaderboardService.MaxRows - pagedEntries.Count);
+        string boardId = SelectedBoard;
+        shared.LoadMore(TableOf(boardId), ColumnOf(boardId), SharedCursor.From(pagedEntries[pagedEntries.Count - 1]), start, loaded =>
+        {
+            if (this == null || token != request) return;   // closed, or another tab / reload since
+            moreLoading = false;
+            var page = loaded != null ? loaded.page : null;
+            if (page == null || !page.Ok)
+            {
+                moreRetryAt = Time.unscaledTime + 5f;   // try again on a later scroll, not in a loop
+                if (footer != null) footer.text = FooterMessage("COULDN'T LOAD MORE");
+                return;
+            }
+            foreach (var e in page.entries)
+            {
+                if (pagedEntries.Count >= SharedLeaderboardService.MaxRows) break;
+                if (!pagedIds.Add(e.playerId ?? "#" + pagedEntries.Count)) continue;   // a player who moved up a page meanwhile
+                var row = e;
+                row.rank = pagedEntries.Count + 1;
+                pagedEntries.Add(row);
+            }
+            moreAvail = page.entries.Count >= asked && pagedEntries.Count < SharedLeaderboardService.MaxRows;
+            Relayout();
+            BindWindow();
+        });
     }
 
     void Row(RectTransform rt, LeaderboardEntry e, LeaderboardBoard board, bool mine, bool own)
@@ -1066,10 +1321,15 @@ public class LeaderboardPanel : MonoBehaviour
         count.pivot = new Vector2(0f, .5f);
         count.sizeDelta = new Vector2(width - x, 0f);
         count.anchoredPosition = new Vector2(x, 0f);
-        string shown = value >= 0 ? value.ToString() : Dash;
-        var text = Label(count, shown, RunLineSize, value >= 0 ? color : (mine ? AkiraPalette.Bone : AkiraPalette.Muted),
-                         TextAnchor.MiddleLeft, 2f, ValueMinSize);
-        FitText(text, RunLineSize, ValueMinSize, width - x - 2f);
+        FillCount(Label(count, Dash, RunLineSize, Color.white, TextAnchor.MiddleLeft, 2f, ValueMinSize), value, width, color, mine);
+    }
+
+    // The number (or dash) of a run-line slot: shared by a new row and a recycled one.
+    void FillCount(Text text, int value, float width, Color color, bool mine)
+    {
+        text.text = value >= 0 ? value.ToString() : Dash;
+        text.color = value >= 0 ? color : (mine ? AkiraPalette.Bone : AkiraPalette.Muted);
+        FitText(text, RunLineSize, ValueMinSize, width - (RunLineGlyph + 2f) - 2f);
     }
 
     // The row's number cells on the main tab, one per offered column ("Cell_<board id>"). The column being sorted shows the
@@ -1081,8 +1341,6 @@ public class LeaderboardPanel : MonoBehaviour
         {
             var col = mainColumns[i];
             bool sorted = sortedBoard != null && col.id == sortedBoard.id;
-            string full, compact;
-            CellText(col, e, sorted, out full, out compact);
             var cell = Child(rt, "Cell_" + col.id);
             cell.anchorMin = new Vector2(1f, 0f);
             cell.anchorMax = new Vector2(1f, 1f);
@@ -1091,17 +1349,27 @@ public class LeaderboardPanel : MonoBehaviour
             cell.sizeDelta = new Vector2(width, 0f);
             cell.anchoredPosition = new Vector2(-ValueInset - (n - 1 - i) * ColWidth - 4f, 0f);
             int size = sorted ? SortedCellSize : OtherCellSize;
-            Color color = full == Dash ? (mine ? AkiraPalette.Bone : AkiraPalette.Muted)
-                        : sorted ? (mine ? AkiraPalette.Bone : AkiraPalette.Cyan)
-                        : (mine ? AkiraPalette.Bone : AkiraPalette.Amber);
-            var text = Label(cell, full, size, color, TextAnchor.MiddleRight, sorted ? 3f : 2f, ValueMinSize);
+            FillCell(Label(cell, Dash, size, Color.white, TextAnchor.MiddleRight, sorted ? 3f : 2f, ValueMinSize), col, e, sorted, mine);
+        }
+    }
+
+    // One number cell's text, colour and fit; shared by a new row and a recycled one.
+    void FillCell(Text text, LeaderboardBoard col, LeaderboardEntry e, bool sorted, bool mine)
+    {
+        string full, compact;
+        CellText(col, e, sorted, out full, out compact);
+        float width = ColWidth - 8f;
+        int size = sorted ? SortedCellSize : OtherCellSize;
+        text.text = full;
+        text.color = full == Dash ? (mine ? AkiraPalette.Bone : AkiraPalette.Muted)
+                   : sorted ? (mine ? AkiraPalette.Bone : AkiraPalette.Cyan)
+                   : (mine ? AkiraPalette.Bone : AkiraPalette.Amber);
+        FitText(text, size, ValueMinSize, width - FitMargin);
+        // The full number does not fit even at the 16-unit floor (a long score): the compact form (1.2M) does.
+        if (compact != full && text.preferredWidth > width - FitMargin)
+        {
+            text.text = compact;
             FitText(text, size, ValueMinSize, width - FitMargin);
-            // The full number does not fit even at the 16-unit floor (a long score): the compact form (1.2M) does.
-            if (compact != full && text.preferredWidth > width - FitMargin)
-            {
-                text.text = compact;
-                FitText(text, size, ValueMinSize, width - FitMargin);
-            }
         }
     }
 

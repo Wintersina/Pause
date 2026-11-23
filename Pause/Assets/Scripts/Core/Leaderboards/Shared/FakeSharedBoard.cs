@@ -21,7 +21,10 @@ public sealed class FakeSharedBoard : ISharedBoardBackend
     // The seconds the fake server's clock shows; the rules' write interval is measured against it.
     public double Now = 1000000;
 
-    public int SignInCalls, UploadCalls, LoadCalls, DeleteCalls;
+    public int SignInCalls, UploadCalls, LoadCalls, DeleteCalls, AfterCalls;
+    // The limit of every cursor query the client sent (the rules refuse anything over SharedBoardLimits.MaxListLimit).
+    public readonly List<int> AfterLimits = new List<int>();
+    public SharedCursor LastCursor;
     public readonly List<SharedDoc> Uploads = new List<SharedDoc>();
     public readonly Dictionary<string, SharedDoc>[] Docs =
     {
@@ -81,6 +84,50 @@ public sealed class FakeSharedBoard : ISharedBoardBackend
         if (DeferLoads) deferred.Add(run); else run();
     }
 
+    public void LoadAfter(SharedTable table, SharedColumn column, SharedCursor after, int startRank, int count, Action<LeaderboardPage> done)
+    {
+        AfterCalls++;
+        AfterLimits.Add(count);
+        LastCursor = after;
+        Action run = () =>
+        {
+            if (!IsSignedIn) { done(LeaderboardPage.Failed(LeaderboardStatus.NotSignedIn)); return; }
+            if (Fail.HasValue || !SharedBoardLimits.AllowList(count)) { done(LeaderboardPage.Failed(LeaderboardStatus.Error)); return; }
+            var rows = Sorted(table, column);
+            var page = new LeaderboardPage { status = LeaderboardStatus.Ok };
+            int rank = startRank;
+            foreach (var p in rows)
+            {
+                if (page.entries.Count >= count) break;
+                if (Compare(p, after, column) <= 0) continue;   // only rows strictly after the cursor
+                page.entries.Add(SharedBoardRows.ToEntry(rank++, p.Key, p.Value, column, p.Key == Uid));
+            }
+            done(page);
+        };
+        if (DeferLoads) deferred.Add(run); else run();
+    }
+
+    // The row against a cursor in the sort order: negative = before it.
+    static int Compare(KeyValuePair<string, SharedDoc> row, SharedCursor c, SharedColumn column)
+    {
+        int d = c.primary.CompareTo(row.Value.Metric(column));
+        if (d == 0 && column != SharedColumn.Score) d = c.score.CompareTo(row.Value.score);
+        return d != 0 ? d : string.CompareOrdinal(c.uid, row.Key);
+    }
+
+    List<KeyValuePair<string, SharedDoc>> Sorted(SharedTable table, SharedColumn column)
+    {
+        var rows = new List<KeyValuePair<string, SharedDoc>>();
+        foreach (var p in Docs[(int)table]) rows.Add(p);
+        rows.Sort((a, b) =>
+        {
+            int c = b.Value.Metric(column).CompareTo(a.Value.Metric(column));
+            if (c == 0) c = b.Value.score.CompareTo(a.Value.score);
+            return c != 0 ? c : string.CompareOrdinal(b.Key, a.Key);
+        });
+        return rows;
+    }
+
     public void CompleteLoads()
     {
         var list = new List<Action>(deferred);
@@ -92,15 +139,7 @@ public sealed class FakeSharedBoard : ISharedBoardBackend
     {
         if (!IsSignedIn) return LeaderboardPage.Failed(LeaderboardStatus.NotSignedIn);
         if (Fail.HasValue) return LeaderboardPage.Failed(Fail.Value == SharedResult.SignedOut ? LeaderboardStatus.NotSignedIn : LeaderboardStatus.Error);
-        var rows = new List<KeyValuePair<string, SharedDoc>>();
-        foreach (var p in Docs[(int)table])
-            rows.Add(p);   // one row per player, in every tab
-        rows.Sort((a, b) =>
-        {
-            int c = b.Value.Metric(column).CompareTo(a.Value.Metric(column));
-            if (c == 0) c = b.Value.score.CompareTo(a.Value.score);   // ties: by score (the composite indexes do the same)
-            return c != 0 ? c : string.CompareOrdinal(a.Key, b.Key);
-        });
+        var rows = Sorted(table, column);   // one row per player, in every tab; ties by score, then document id (as the indexes do)
         var page = new LeaderboardPage { status = LeaderboardStatus.Ok };
         for (int i = 0; i < rows.Count && i < count; i++)
             page.entries.Add(SharedBoardRows.ToEntry(i + 1, rows[i].Key, rows[i].Value, column, rows[i].Key == Uid));

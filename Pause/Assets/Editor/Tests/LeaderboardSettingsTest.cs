@@ -57,6 +57,7 @@ public static class LeaderboardSettingsTest
         {
             Home();
             SharedPanel();
+            Paging();
             Modal();
         }
         finally
@@ -182,6 +183,96 @@ public static class LeaderboardSettingsTest
         Check("home: an unavailable backend opens the native panel", !panel.SharedMode);
         LeaderboardPanel.Close();
     }
+
+    // ---- 2b the shared board scrolls past the top 10 ----
+
+    static void Paging()
+    {
+        var screens = new[]
+        {
+            ("tall phone", Phone, PhoneSafe),
+            ("Flip7 cover 948x1048", new Vector2(948f, 1048f), new Rect(0f, 0f, 948f, 1048f)),
+            ("16:9 landscape", new Vector2(1920f, 1080f), new Rect(0f, 0f, 1920f, 1080f)),
+            ("small 2:3", new Vector2(640f, 960f), new Rect(0f, 0f, 640f, 960f)),
+        };
+        foreach (var (name, screen, safe) in screens)
+        {
+            Setup();
+            for (int i = 0; i < 140; i++)
+                sharedFake.Seed(SharedTable.Main, "p" + i.ToString("D3"),
+                    Doc("PILOT" + i, i % 2 == 0 ? SharedBoardLimits.Android : SharedBoardLimits.Ios, 20000 - i * 100, 100 + i * 5, 3 + i % 6, 1 + i % 9));
+            // the local player sits at rank 16 of the score board (inside the second page)
+            sharedFake.Seed(SharedTable.Main, sharedFake.Uid, Doc("KANEDA", SharedBoardLimits.Ios, 20000 - 14 * 100 - 50, 10, 1, 2));
+            var panel = LeaderboardPanel.OpenHome(screen, safe, true);
+            Check(name + ": shared board, top 10 first, one read, no cursor query",
+                  panel.SharedMode && panel.RowCount == 10 && sharedFake.LoadCalls == 1 && sharedFake.AfterCalls == 0 && panel.MoreAvailable);
+            Check(name + ": the list scrolls (a footer line follows row 10)", panel.ListScrolls && panel.ListContentHeight > panel.ListViewHeight);
+            Check(name + ": a pool of row views, a screenful plus a few, never one per row",
+                  panel.PoolSize >= 4 && panel.PoolSize <= 25 && ActiveRows(panel) <= panel.PoolSize);
+
+            panel.ScrollListTo(panel.ListContentHeight - panel.ListViewHeight);
+            Check(name + ": scrolling to the end loads the next 25 with one cursor query",
+                  sharedFake.AfterCalls == 1 && sharedFake.AfterLimits[0] == 25 && panel.PagedRowCount == 35);
+            Check(name + ": the cursor is the 10th row", sharedFake.LastCursor.uid == "p009");
+
+            // the own row, loaded on page 2: ranks continue (#16) and it is highlighted (bone rank on the red plate)
+            var rowsT = panel.PanelRoot.Find("List/Rows");
+            panel.ScrollListTo(14f * 58f);
+            var rank16 = rowsT.Find("Row15/Rank");
+            Check(name + ": row 16 reads #16 and is the player's own, drawn highlighted",
+                  rank16 != null && rank16.GetComponent<Text>().text == "#16" && rank16.GetComponent<Text>().color == AkiraPalette.Bone
+                  && rowsT.Find("Row15/Name").GetComponent<Text>().text.Contains("KANEDA"));
+            var rank17 = rowsT.Find("Row16/Rank");
+            Check(name + ": the next row reads #17 and is not highlighted", rank17 != null && rank17.GetComponent<Text>().text == "#17" && rank17.GetComponent<Text>().color != AkiraPalette.Bone);
+
+            int objects = rowsT.GetComponentsInChildren<Transform>(true).Length;
+            for (int i = 0; i < 12; i++) panel.ScrollListTo(panel.ListContentHeight - panel.ListViewHeight);
+            Check(name + ": the board stops at 100 rows; every cursor query asked for 25 or fewer",
+                  panel.PagedRowCount == 100 && !panel.MoreAvailable && panel.FooterText == "TOP 100" && Max(sharedFake.AfterLimits) <= SharedBoardLimits.MaxListLimit
+                  && sharedFake.AfterCalls == 4);
+            int calls = sharedFake.AfterCalls;
+            panel.ScrollListTo(panel.ListContentHeight - panel.ListViewHeight);
+            Check(name + ": nothing more is read past the cap", sharedFake.AfterCalls == calls);
+            panel.ScrollListTo(0f);
+            panel.ScrollListTo(40f * 58f);
+            panel.ScrollListTo(97f * 58f);
+            Check(name + ": scrolling the whole board never grows the row views", ActiveRows(panel) <= panel.PoolSize);
+            Check(name + ": the last row is bound at the bottom", rowsT.Find("Row99/Rank") != null && rowsT.Find("Row99/Rank").GetComponent<Text>().text == "#100");
+
+            // another sort resets paging; the Power-Ups table stays the top 10
+            panel.SelectBoard(LeaderboardBoards.RunStarDust);
+            Check(name + ": switching the sort starts over at the top 10", panel.RowCount == 10 && panel.PagedRowCount == 10);
+            panel.SelectBoard(LeaderboardBoards.BoostedRuns);
+            Check(name + ": the Power-Ups table is not paged", panel.PagedRowCount == 0 && !panel.MoreAvailable);
+            LeaderboardPanel.Close();
+        }
+
+        // a failed page keeps what is shown, says so, and retries on a later scroll
+        Setup();
+        for (int i = 0; i < 40; i++) sharedFake.Seed(SharedTable.Main, "q" + i.ToString("D2"), Doc("Q" + i, SharedBoardLimits.Android, 9000 - i * 10, 10, 1, 1));
+        var p2 = LeaderboardPanel.OpenHome(Phone, PhoneSafe, true);
+        sharedFake.Fail = SharedResult.Offline;
+        p2.ScrollListTo(p2.ListContentHeight - p2.ListViewHeight);
+        Check("a failed page: rows stay, the footer says so, more is still offered",
+              p2.PagedRowCount == 10 && p2.MoreAvailable && p2.FooterText == "COULDN'T LOAD MORE" && !p2.MoreLoading);
+        LeaderboardPanel.Close();
+        Setup();
+        sharedFake.Seed(SharedTable.Main, "a", Doc("A", SharedBoardLimits.Android, 100, 10, 1, 1));
+        var p3 = LeaderboardPanel.OpenHome(Phone, PhoneSafe, true);
+        Check("fewer than 10 rows: nothing more to load", p3.PagedRowCount == 1 && !p3.MoreAvailable && !p3.ListScrolls);
+        LeaderboardPanel.Close();
+    }
+
+    static int ActiveRows(LeaderboardPanel panel)
+    {
+        int n = 0;
+        var rowsT = panel.PanelRoot.Find("List/Rows");
+        for (int i = 0; i < rowsT.childCount; i++)
+            if (rowsT.GetChild(i).gameObject.activeSelf && rowsT.GetChild(i).name.StartsWith("Row")) n++;
+        return n;
+    }
+
+    static int Max(List<int> v) { int m = 0; foreach (int x in v) if (x > m) m = x; return m; }
 
     // ---- 2 the shared panel ----
 

@@ -45,6 +45,10 @@ public interface ISharedBoardBackend
     // A row outside the page has rank 0 (no count query).
     void LoadTop(SharedTable table, SharedColumn column, int count, Action<LeaderboardPage> done);
 
+    // The next `count` rows (at most SharedBoardLimits.MaxListLimit) after `after`, ranked from `startRank`.
+    // One cursor query; no own row (the first page already has it).
+    void LoadAfter(SharedTable table, SharedColumn column, SharedCursor after, int startRank, int count, Action<LeaderboardPage> done);
+
     // Deletes the player's documents in both tables, then the Firebase user. docsDeleted is false when the
     // documents could not be removed (then nothing else happens); authDeleted is false when the user could
     // not be deleted (it is signed out instead).
@@ -75,6 +79,10 @@ public sealed class NullSharedBoard : ISharedBoardBackend
     public void SignOut() { }
     public void Upload(SharedTable table, string name, SharedDoc overlay, Action<SharedResult, SharedDoc> done) { if (done != null) done(SharedResult.Error, null); }
     public void LoadTop(SharedTable table, SharedColumn column, int count, Action<LeaderboardPage> done)
+    {
+        if (done != null) done(LeaderboardPage.Failed(LeaderboardStatus.Unavailable));
+    }
+    public void LoadAfter(SharedTable table, SharedColumn column, SharedCursor after, int startRank, int count, Action<LeaderboardPage> done)
     {
         if (done != null) done(LeaderboardPage.Failed(LeaderboardStatus.Unavailable));
     }
