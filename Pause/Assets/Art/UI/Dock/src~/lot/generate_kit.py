@@ -1,3 +1,6 @@
+# RETIRED (Nov 22): the shipped Dock/Resources/Dock/Lot/*.png are the owner-approved translucent "space port" kit
+# (lane_tile_v is 144 px wide, bays sit on a 16 px gap). This opaque-deck generator only writes to ./kit and ./mock*,
+# never to Resources, so running it cannot overwrite the shipped art; do NOT copy its output over Lot/.
 from __future__ import annotations
 
 from pathlib import Path

@@ -106,8 +106,10 @@ public static class ShopTest
         float sc = dock.layout.scale;
         Check("the two bays across a runway are one runway apart (" + (b2.x - b1.x).ToString("F2") + "u)",
               Mathf.Abs((b2.x - b1.x) - (DockLayout.BayL + DockLayout.Lane) * sc) < .001f);
-        Check("bay rows are packed edge to edge (" + (b1.y - below.y).ToString("F2") + "u apart)",
-              Mathf.Abs((b1.y - below.y) - DockLayout.BayW * sc) < .001f);
+        Check("bay rows sit one row pitch (bay + 16 kit px gap) apart (" + (b1.y - below.y).ToString("F2") + "u)",
+              Mathf.Abs((b1.y - below.y) - DockLayout.RowPitch * sc) < .001f && DockLayout.BayGapPx == 16);
+        Check("the runway is 144 kit px (50% wider than the old 96)", DockLayout.LanePx == 144 && DockLayout.GroupPx == 128 + 144 + 128);
+        DockKitAndPlanet(dock);
 
         // Labels sit inside their bay with a margin, clear of the frame lines and of each other.
         for (int i = 1; i < total; i++)
@@ -707,5 +709,35 @@ public static class ShopTest
         result.colours = seen.Count;
         result.rendered = true;
         return result;
+    }
+
+    // The translucent space-port kit sizes, and the planet behind the lot (a Space world planet, behind every lot piece).
+    static void DockKitAndPlanet(SpaceDock dock)
+    {
+        var sizes = new System.Collections.Generic.Dictionary<string, Vector2Int>
+        {
+            { "bay_back", new Vector2Int(96, 24) }, { "bay_divider", new Vector2Int(8, 128) }, { "bay_divider_h", new Vector2Int(128, 4) },
+            { "bay_floor", new Vector2Int(96, 128) }, { "bay_highlight", new Vector2Int(96, 128) }, { "lane_tile", new Vector2Int(96, 48) },
+            { "lane_tile_v", new Vector2Int(144, 96) }, { "lot_edge_left", new Vector2Int(16, 96) }, { "lot_edge_right", new Vector2Int(16, 96) },
+        };
+        foreach (var kv in sizes)
+        {
+            var sp = DockArt.Lot(kv.Key);
+            Check("kit piece " + kv.Key + " is " + kv.Value.x + "x" + kv.Value.y,
+                  sp != null && Mathf.RoundToInt(sp.rect.width) == kv.Value.x && Mathf.RoundToInt(sp.rect.height) == kv.Value.y);
+            Check("kit piece " + kv.Key + " is point filtered, uncompressed pixel art",
+                  sp != null && sp.texture.filterMode == FilterMode.Point);
+        }
+
+        var planet = dock.planet;
+        Check("the dock has a planet behind it", planet != null && planet.Renderer != null && planet.Renderer.sprite != null &&
+              planet.CellName != null && planet.CellName.StartsWith("giant_"));
+        if (planet == null || planet.Renderer == null) return;
+        int lowest = int.MaxValue;
+        foreach (var r in dock.GetComponentsInChildren<SpriteRenderer>(true))
+            if (r != planet.Renderer && r.gameObject.activeInHierarchy) lowest = Mathf.Min(lowest, r.sortingOrder);
+        Check("the planet sorts behind the deck, the bays and the ships (" + planet.Renderer.sortingOrder + " < " + lowest + ")",
+              planet.Renderer.sortingOrder < lowest && planet.Renderer.sortingOrder > BackdropCatalog.BaseOrder + 100);
+        Check("the planet is dimmed and large", planet.Renderer.color.r < 1f && planet.Diameter > 1f);
     }
 }

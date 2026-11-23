@@ -23,10 +23,13 @@ public struct DockLayout
     public const float PixelsPerUnit = 1f / Px;
 
     // kit sizes, in px
-    public const int BayWpx = 96, BayLpx = 128, LanePx = 96, RailPx = 16, GroupGapPx = 16;
-    public const int GroupPx = BayLpx + LanePx + BayLpx;   // a lane group of the vertical layout: bay, lane, bay (352)
+    public const int BayWpx = 96, BayLpx = 128, LanePx = 144, RailPx = 16, GroupGapPx = 16;
+    // Parking spots breathe: a clear gap between neighbouring bays in a column (row pitch = BayWpx + BayGapPx = 112).
+    public const int BayGapPx = 16;
+    public const int GroupPx = BayLpx + LanePx + BayLpx;   // a lane group of the vertical layout: bay, lane, bay (400)
 
     public const float BayW = BayWpx * Px, BayL = BayLpx * Px, Lane = LanePx * Px, Rail = RailPx * Px, GroupGap = GroupGapPx * Px;
+    public const float BayGap = BayGapPx * Px, RowPitch = (BayWpx + BayGapPx) * Px;
 
     // The old name: a Rows-mode bay (nose-up frame).
     public static readonly Vector2 BaySize = new Vector2(BayW, BayL);
@@ -90,7 +93,7 @@ public struct DockLayout
 
     // Unscaled lot size, rails included.
     public float Width { get { return WidthFor(lanes); } }
-    public float Height { get { return rows * BayW; } }
+    public float Height { get { return rows * RowPitch - BayGap; } }
 
     // World size of one placed bay (turned on its side).
     public Vector2 BayExtent { get { return new Vector2(BayL, BayW); } }
@@ -110,7 +113,7 @@ public struct DockLayout
         int lane = LaneOf(slot), side = slot % 2;
         float left = -Width * .5f + Rail + lane * (GroupPx * Px + GroupGap);
         float x = left + (side == 0 ? BayL * .5f : BayL + Lane + BayL * .5f);
-        return new Vector2(x, Height * .5f - (RowIndex(slot) + .5f) * BayW);
+        return new Vector2(x, Height * .5f - RowIndex(slot) * RowPitch - BayW * .5f);
     }
 
     // x of the centre of runway i.

@@ -239,6 +239,7 @@ public class SpaceDock : MonoBehaviour
         rack = new GameObject("~DockRack").transform;
         rack.SetParent(transform, false);
 
+        planet = DockPlanet.Create(transform, Random.Range(0, DockPlanet.Cells));
         edgeLeft = Piece("EdgeLeft", DockArt.Lot("lot_edge_left"), SpriteDrawMode.Tiled, 1);
         edgeRight = Piece("EdgeRight", DockArt.Lot("lot_edge_right"), SpriteDrawMode.Tiled, 1);
         headerBand = Band("HeaderBand");
@@ -419,7 +420,7 @@ public class SpaceDock : MonoBehaviour
         {
             spaceBottom += HintBand;
             // cut the viewport at a whole bay row, so the scroll never ends on a half-bay
-            float rowH = DockLayout.BayW * layout.scale;
+            float rowH = DockLayout.RowPitch * layout.scale;
             int whole = Mathf.FloorToInt((spaceTop - spaceBottom) / rowH + .001f);
             if (whole >= 2 && whole < layout.rows) spaceBottom = spaceTop - whole * rowH;
             hintFloor = Mathf.Max(hintFloor, spaceBottom - HintBand);   // the hint hugs the viewport, not the footer
@@ -431,6 +432,7 @@ public class SpaceDock : MonoBehaviour
         nudge = 0f;
         PlaceRack();
         PlaceBands(camPos, halfW, halfH);
+        PlacePlanet(wide ? rackPane : new Rect(left, bottom, right - left, top - bottom));
 
         if (wide)
         {
@@ -454,6 +456,20 @@ public class SpaceDock : MonoBehaviour
         popup.Docked = wide;
         popup.FitPane = fit;
         popup.SetDensity(fit ? UiScale.UnitPx * worldPerPixel : worldPerPoint);
+    }
+
+    public DockPlanet planet;
+
+    // The planet behind the lot: as wide as the lot's pane (or the lot space's height, whichever is smaller), its
+    // centre low and on the right so a good part of the disc is cropped by the pane edge and the lot covers the rest.
+    // Always inside the safe pane; the bands over the header / footer hide whatever pokes under them.
+    void PlacePlanet(Rect pane)
+    {
+        if (planet == null) return;
+        float space = spaceTop - spaceBottom;
+        float d = Mathf.Min(pane.width * 1.15f, space * .8f);
+        d = Mathf.Max(d, .5f);
+        planet.Place(new Vector2(pane.xMax - d * .2f, Mathf.Lerp(spaceBottom, spaceTop, .28f)), d);
     }
 
     // Lays every lot piece out for `layout`: bays, runway tiles, seams, edge rails. Pieces are pooled (built
@@ -497,7 +513,7 @@ public class SpaceDock : MonoBehaviour
             s.gameObject.SetActive(true);
             Vector2 c = layout.BayCenter(slot);
             s.sprite = DockArt.Lot("bay_divider_h");
-            s.transform.localPosition = new Vector3(c.x, c.y + DockLayout.BayW * .5f, 0f);
+            s.transform.localPosition = new Vector3(c.x, c.y + DockLayout.BayW * .5f + DockLayout.BayGap * .5f, 0f);
             s.color = new Color(1f, 1f, 1f, .7f);
         }
         for (int s = seamCount; s < dividers.Count; s++) dividers[s].gameObject.SetActive(false);

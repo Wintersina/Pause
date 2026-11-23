@@ -111,3 +111,6 @@ locked bays, and one selected bay with a thin cyan highlight. The header is
 the minimal text “STAR DUST 102  SPACE DOCK · TAP A SHIP”. The footer is a
 dedicated band below the scroll viewport containing only “Back” and
 “Lift-off” labels. There are no thick UI boxes over ships.
+
+NOTE (Nov 22): the pieces shipped in Resources/Dock/Lot are now the translucent space-port kit (low-alpha deck,
+lane_tile_v 144 x 96, bay_divider_h 128 x 4). generate_kit.py is retired and no longer matches them.
