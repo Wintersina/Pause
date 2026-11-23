@@ -146,6 +146,7 @@ public class collisionDetection : MonoBehaviour {
         // ...and sometimes it sets off a DEATH COMBO (a chain victim never
         // rolls again: DeathCombo.Resolving).
         DeathCombo.OnPlayerKill(target);
+        ShotAtomDrops.OnEnemyKilled(target);   // a rare shot-atom coin (1.5%, one per 20 s)
     }
 
     // The kill achievements: every enemy (kills_*), rail mine, rock, and a

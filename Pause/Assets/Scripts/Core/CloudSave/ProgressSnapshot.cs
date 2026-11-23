@@ -96,6 +96,8 @@ public class ProgressSnapshot
     public int boostDustBought, boostDustUsedMs, boostClearBought, boostClearUsed;
     // Homing atoms (Boosters.Kind.HomingAtoms): purchases and milliseconds of homing play spent. Same rules as the multiplier's pair.
     public int boostHomingBought, boostHomingUsedMs;
+    // Atom Rush charges (Boosters.Kind.AtomRush) bought and spent. Additive, merged by MAX like the hazard-clear pair.
+    public int boostRushBought, boostRushUsed;
     // boostDustBought / boostHomingBought above are the LEGACY 10-minute purchases (Boosters.*BoughtLegacyKey: the old keys, so an
     // older build still reads them). Purchases since the 5-minute change (Nov 2026) go here instead. Additive, no schema bump (an
     // older blob lacks them = 0), merged by MAX like the rest.
@@ -204,6 +206,8 @@ public class ProgressSnapshot
         s.boostHomingBought = PlayerPrefs.GetInt(Boosters.HomingBoughtLegacyKey, 0);
         s.boostHomingBought5m = PlayerPrefs.GetInt(Boosters.HomingBoughtKey, 0);
         s.boostHomingUsedMs = PlayerPrefs.GetInt(Boosters.HomingUsedMsKey, 0);
+        s.boostRushBought = PlayerPrefs.GetInt(Boosters.RushBoughtKey, 0);
+        s.boostRushUsed = PlayerPrefs.GetInt(Boosters.RushUsedKey, 0);
 
         var counters = new List<Counter>();
         foreach (string key in CounterKeys())
@@ -275,6 +279,8 @@ public class ProgressSnapshot
         SetOrDelete(Boosters.HomingBoughtLegacyKey, boostHomingBought);
         SetOrDelete(Boosters.HomingBoughtKey, boostHomingBought5m);
         SetOrDelete(Boosters.HomingUsedMsKey, boostHomingUsedMs);
+        SetOrDelete(Boosters.RushBoughtKey, boostRushBought);
+        SetOrDelete(Boosters.RushUsedKey, boostRushUsed);
         Boosters.Reload();
         Codex.OnExternalChange();   // drop the cached sets so the next write can't undo this
     }

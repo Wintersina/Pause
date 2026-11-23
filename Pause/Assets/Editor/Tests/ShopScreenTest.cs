@@ -92,9 +92,9 @@ public static class ShopScreenTest
             if (!seen.Add(sprite)) distinct = false;
             pixel &= sprite.texture.filterMode == FilterMode.Point && sprite.texture.mipmapCount == 1;
         }
-        Check("Remove Ads, three packs, three boosters and the watch-ad row: " + count + " rows", count == 8);
+        Check("Remove Ads, three packs, four boosters and the watch-ad row: " + count + " rows", count == 9);
         Check("every Remove Ads, pack, booster and watch-ad row resolves to a sprite", allFound);
-        Check("each of them has its own sprite", distinct && seen.Count == 8);
+        Check("each of them has its own sprite", distinct && seen.Count == 9);
         Check("shop icons are Point filtered with no mipmaps (crisp pixel art)", pixel);
         var small = ShopIconArt.NameFor(new ShopRow { kind = ShopRowKind.Pack, pack = SupportPurchase.Small });
         var huge = ShopIconArt.NameFor(new ShopRow { kind = ShopRowKind.Pack, pack = SupportPurchase.Huge });
@@ -109,10 +109,10 @@ public static class ShopScreenTest
         var sections = ShopCatalog.Sections();
         Check("five sections: ads, ship, star dust, boosters, free star dust (one list the panel lays out from)",
               sections.Count == 5 && sections[4].label == "FREE STAR DUST" && sections[4].rows.Count == 2 && sections[4].rows[0].kind == ShopRowKind.WatchAd && sections[4].rows[1].kind == ShopRowKind.QuickAd && sections[0].label == "ADS" && sections[1].label == "SHIP" && sections[2].label == "STAR DUST" &&
-              sections[3].label == "BOOSTERS" && sections[3].rows.Count == 3);
+              sections[3].label == "BOOSTERS" && sections[3].rows.Count == 4 && sections[3].rows[3].kind == ShopRowKind.AtomRush);
         var rows = ShopCatalog.Rows();
-        Check("rows: Remove Ads, Paragon, 850 / 2,500 / 6,000, then Dust x2, Hazard Clear and Homing Atoms, then the two ad rows", rows.Count == 10 &&
-              rows[8].title == ShopCatalog.WatchAdTitle && rows[9].title == ShopCatalog.QuickAdTitle && ShopCatalog.WatchAdDust == 55f && ShopCatalog.QuickAdDust == 25f &&
+        Check("rows: Remove Ads, Paragon, 850 / 2,500 / 6,000, then Dust x2, Hazard Clear, Homing Atoms and Atom Rush (500), then the two ad rows", rows.Count == 11 &&
+              rows[9].title == ShopCatalog.WatchAdTitle && rows[10].title == ShopCatalog.QuickAdTitle && rows[8].kind == ShopRowKind.AtomRush && rows[8].IsBooster && rows[8].button == "500 DUST" && ShopCatalog.WatchAdDust == 55f && ShopCatalog.QuickAdDust == 25f &&
               rows[5].kind == ShopRowKind.DustBooster && rows[6].kind == ShopRowKind.HazardClear && rows[7].kind == ShopRowKind.HomingAtoms &&
               rows[7].IsBooster &&
               rows[0].kind == ShopRowKind.RemoveAds && rows[1].kind == ShopRowKind.Paragon &&
@@ -309,8 +309,8 @@ public static class ShopScreenTest
         var defaultGate = ShopPanel.RewardGate;
         ShopPanel.RewardGate = () => true;   // the pre-existing cases: no ad up, app focused
         Check("the panel opens and owns Back", panel != null && ShopPanel.IsOpen && BackNavigator.Top == (object)panel);
-        Check("it has the ten rows and scrolls vertically only",
-              panel.RowCount == 10 && panel.Scroll.vertical && !panel.Scroll.horizontal);
+        Check("it has the eleven rows and scrolls vertically only",
+              panel.RowCount == 11 && panel.Scroll.vertical && !panel.Scroll.horizontal);
         Check("the star dust balance is shown", panel.DustText.text == "1,234");
         Check("booster rows read their dust price and are live with 1,234 dust",
               panel.RowButtonText(5).text == "600 DUST" && panel.RowButton(5).interactable &&
@@ -492,13 +492,19 @@ public static class ShopScreenTest
               panel.RowButtonText(2).text == "UNAVAILABLE");
 
         // sized for a tall phone and a tablet: content fits the width and the rows do not overlap
-        foreach (var size in new[] { new Vector2Int(1080, 2520), new Vector2Int(1080, 1920), new Vector2Int(1536, 2048) })
+        var shapes = new List<(string name, int w, int h, Rect safe, Rect[] cutouts)>
         {
-            using (ScreenInfo.Override(size.x, size.y, new Rect(0f, 0f, size.x, size.y), null, 420f))
+            ("1080x2520", 1080, 2520, new Rect(0f, 0f, 1080, 2520), null), ("1080x1920", 1080, 1920, new Rect(0f, 0f, 1080, 1920), null),
+            ("1536x2048", 1536, 2048, new Rect(0f, 0f, 1536, 2048), null),
+        };
+        foreach (var d in FitDevice.All) shapes.Add((d.id, d.w, d.h, d.Safe, d.Cutouts));   // every ScreenFit device (the extra Atom Rush row must fit them all)
+        foreach (var size in shapes)
+        {
+            using (ScreenInfo.Override(size.w, size.h, size.safe, size.cutouts, 420f))
             {
                 panel.Layout();
                 var vp = panel.Content.parent as RectTransform;
-                Check(size.x + "x" + size.y + ": content is no wider than its viewport and has height",
+                Check(size.name + ": content is no wider than its viewport and has height",
                       panel.Content.rect.width <= vp.rect.width + .5f && panel.Content.rect.height > 400f);
                 bool ordered = true;
                 float last = float.MaxValue;
@@ -509,7 +515,7 @@ public static class ShopScreenTest
                     ordered &= top < last;
                     last = top - rt.sizeDelta.y + .01f;
                 }
-                Check(size.x + "x" + size.y + ": rows stack top to bottom without overlapping", ordered);
+                Check(size.name + ": rows stack top to bottom without overlapping", ordered);
             }
         }
 

@@ -5,7 +5,7 @@ using UnityEngine;
 // SPACE ASTEROID FIELD (Scripts/Gameplay/Asteroids) and SPACE'S RANDOM OPENING SKY (Worlds/Backdrop/SpaceOpening).
 //
 //   HAZARD     a field rock is a real "Astr" hazard: trigger collider, ClearTarget (weapons and the ultimate see it)
-//   HITS       it takes SizeHits worth of ship attacks, then bursts; large -> two medium, medium -> two small, small gone
+//   HITS       ANY player hit (gun, ship attack, ultimate, power, atom shot) breaks it outright, whatever its size; large -> two medium, medium -> two small, small gone
 //   WEAPONS    it takes every weapon hit in full (never spends the firing's elite allowance: a rail through two rocks
 //              breaks both, a heat wave burns every rock it passes); to a secret power it is plain debris (Thunderclap
 //              strikes it dead, Tractor Pull drags it in and kills it, a Black Hole swallows it, the nova's ring burns it)
@@ -124,28 +124,22 @@ public static class SpaceAsteroidFieldTest
     {
         Fresh();
         var big = SpaceAsteroidField.Spawn(2, 0, new Vector2(0f, 2f), 0f, 0f, 10f);
-        big.TakeShipAttack(0, 1f, big.transform.position);
-        Check("a large rock survives one hit", !big.Broken && SpaceAsteroidField.Live.Count == 1);
-        big.TakeShipAttack(0, 1f, big.transform.position);
-        Check("... and two", !big.Broken);
         int splits = SpaceAsteroidField.Splits;
         big.TakeShipAttack(0, 1f, big.transform.position);
-        Check("the third breaks it into two medium rocks", SpaceAsteroidField.Live.Count == 2 && SpaceAsteroidField.Splits == splits + 1);
+        Check("one hit breaks a large rock into two medium rocks", big.Broken && SpaceAsteroidField.Live.Count == 2 && SpaceAsteroidField.Splits == splits + 1);
         foreach (var a in SpaceAsteroidField.Live) Check("... each a medium (tier 1)", a != null && a.Tier == 1);
         Check("... and the pieces part sideways", SpaceAsteroidField.Live[0].Vx * SpaceAsteroidField.Live[1].Vx < 0f);
 
-        // a gatling-style fraction chips it instead of killing it
+        // even a gatling-style fraction kills it now (no chipping, no deflect)
         var chunk = SpaceAsteroidField.Live[0];
         chunk.TakeShipAttack(0, .25f, chunk.transform.position);
-        Check("a quarter-weight hit only chips a medium rock", !chunk.Broken && Mathf.Abs(chunk.Health - 1.75f) < .001f);
+        Check("a quarter-weight hit breaks a medium rock too (into two small ones)", chunk.Broken && SpaceAsteroidField.Live.Count == 3);
 
         // small ones just burst
         SpaceAsteroidField.ClearAll();
         var small = SpaceAsteroidField.Spawn(0, 1, new Vector2(0f, 2f), 0f, 0f, 10f);
         small.TakeShipAttack(0, 1f, small.transform.position);
-        Check("a small rock's first hit only deflects it", !small.Broken && small.Deflected && SpaceAsteroidField.Live.Count == 1);
-        small.TakeShipAttack(0, 1f, small.transform.position);
-        Check("a small rock bursts on the second hit, leaving nothing", SpaceAsteroidField.Live.Count == 0);
+        Check("a small rock bursts on the first hit, leaving nothing", small.Broken && SpaceAsteroidField.Live.Count == 0);
 
         // the cap holds when the field is crowded
         SpaceAsteroidField.ClearAll();
@@ -159,7 +153,7 @@ public static class SpaceAsteroidFieldTest
         SpaceAsteroidField.ClearAll();
         var tough = SpaceAsteroidField.Spawn(1, 2, new Vector2(0f, 2f), 0f, 0f, 10f);
         ShipAttackHits.Hit(tough.gameObject, 0);
-        Check("ShipAttackHits.Hit lands as a hit (a medium rock takes two)", tough != null && !tough.Broken && Mathf.Abs(tough.Health - 1f) < .001f);
+        Check("ShipAttackHits.Hit lands as a hit and breaks even a medium rock in one", tough == null || tough.Broken);
         SpaceAsteroidField.ClearAll();
     }
 
@@ -195,7 +189,7 @@ public static class SpaceAsteroidFieldTest
         var near = SpaceAsteroidField.Spawn(0, 0, new Vector2(0f, 0f), 0f, 0f, 10f);
         var far = SpaceAsteroidField.Spawn(0, 1, new Vector2(0f, 2.5f), 0f, 0f, 10f);
         rail.Fire();
-        Check("a rail through two small field rocks hits both (deflected: the second does not live off the first's allowance)", (Gone(near) || near.Deflected) && (Gone(far) || far.Deflected));
+        Check("a rail through two small field rocks breaks both (the second does not live off the first's allowance)", Gone(near) && Gone(far));
         DropShip(ship);
         SpaceAsteroidField.ClearAll();
 
@@ -208,8 +202,8 @@ public static class SpaceAsteroidFieldTest
         var mid = SpaceAsteroidField.Spawn(1, 2, new Vector2(0f, 3f), 0f, 0f, 10f);
         wave.Fire();
         for (int i = 0; i < 150 && wave.ActiveRuns > 0; i++) wave.Step(Dt);
-        Check("a heat wave burns every field rock it passes (the two small ones are deflected or broken, a medium one is hit)",
-              (Gone(left) || left.Deflected) && (Gone(right) || right.Deflected) && !Gone(mid) && mid.Health < SpaceAsteroidField.SizeHits[1] - .5f);
+        Check("a heat wave breaks every field rock it passes (the two small ones and the medium one)",
+              Gone(left) && Gone(right) && Gone(mid));
         DropShip(ship);
         SpaceAsteroidField.ClearAll();
 

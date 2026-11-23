@@ -106,7 +106,7 @@ public static class EnemyFactory
         size = HazardSize.Apply(go, def, size);
         SpawnFootprint.Attach(go, SpawnSpace.BodyHalf(def, size));
         SpawnFootprint.Bind(go, go.GetComponent<IMovementFootprint>());
-        // 2 hearts (a rock or mine: deflected by the first hit, destroyed by the second); the tutorial's enemies stay one-hit
+        // 2 hearts (a rock or mine stays one-hit); the tutorial's enemies stay one-hit
         if (tough) Toughness.Attach(go, def);
         return go;
     }

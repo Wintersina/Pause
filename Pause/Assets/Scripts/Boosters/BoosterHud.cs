@@ -33,7 +33,7 @@ public class BoosterHud : MonoBehaviour
     // Every phone and tablet keeps the column in its top ~third; the near-square Flip cover screen needs the room.
     public const float LowestShare = .35f;
 
-    public const int MaxSlots = 3;
+    public const int MaxSlots = 4;
 
     public const float MaxWidthShare = .1f;    // an icon is never wider than this share of the screen
 

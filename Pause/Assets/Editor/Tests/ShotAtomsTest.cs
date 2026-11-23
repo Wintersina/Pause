@@ -71,6 +71,8 @@ public static class ShotAtomsTest
         PlayerPrefs.SetInt(WorldManager.PrefsCurrentWorld, 0);
         AtomSpacing.Reset();
         ShotAtomDrops.Spawned = null;
+        ShotAtomDrops.ResetSeams();
+        Boosters.SetRunRushForTest(false);
         buttonClicks.playerDied = false;
         startMenu.youAreInTutorial = false;
         TouchInput.PressedOverride = null;
@@ -237,7 +239,9 @@ public static class ShotAtomsTest
     static void DropRates()
     {
         FreshScene();
-        Check("the tuning: boss 100%, elite 50%", ShotAtomTuning.BossDropChance == 1f && ShotAtomTuning.EliteDropChance == .5f);
+        Check("the tuning: boss 100% + a 50% second, elite 80% (first of a run guaranteed), ordinary kill 1.5% / one per 20 s, Atom Rush x3 (cooldown halved)",
+              ShotAtomTuning.BossDropChance == 1f && ShotAtomTuning.BossSecondDropChance == .5f && ShotAtomTuning.EliteDropChance == .8f && ShotAtomTuning.FirstEliteGuaranteed &&
+              ShotAtomTuning.EnemyDropChance == .015f && ShotAtomTuning.EnemyDropCooldown == 20f && ShotAtomTuning.RushMultiplier == 3f && ShotAtomTuning.RushCooldownScale == .5f);
         int before = ShotAtomDrops.Elites;
         // the first elite of a run always drops, whatever the roll
         ShotAtoms.BeginRun();
@@ -267,17 +271,28 @@ public static class ShotAtomsTest
             ShotAtomDrops.OnEliteKilled(Vector3.zero, i / 1000f);
         }
         int offered = ShotAtomDrops.Elites - before;
-        Check("an elite drops half the time (500 of 1000 evenly spread rolls: " + offered + ")", offered == 500);
+        Check("an elite drops 80% of the time (800 of 1000 evenly spread rolls: " + offered + ")", offered == 800);
         ShotAtomDrops.Clear();
         before = ShotAtomDrops.Bosses;
         for (int i = 0; i <= 200; i++)
         {
             ShotAtomDrops.Clear();
             AtomSpacing.Released();
-            ShotAtomDrops.OnBossDestroyed(Vector3.zero, i / 200f);
+            ShotAtomDrops.OnBossDestroyed(Vector3.zero, i / 200f, .999f);
         }
         int boss = ShotAtomDrops.Bosses - before;
         Check("a boss always drops (every roll, 1.0 included: " + boss + " of 201)", boss == 201);
+        ShotAtomDrops.Clear();
+        before = ShotAtomDrops.Bosses;
+        int second = 0;
+        for (int i = 0; i < 1000; i++)
+        {
+            ShotAtomDrops.Clear();
+            AtomSpacing.Released();
+            ShotAtomDrops.OnBossDestroyed(Vector3.zero, 0f, i / 1000f);
+        }
+        second = ShotAtomDrops.Bosses - before - 1000;
+        Check("a boss's second drop comes half the time (500 of 1000 evenly spread rolls: " + second + ")", second == 500);
         ShotAtomDrops.Clear();
 
         // a drop appears as a coin of an eligible atom; with the atom spacing busy it waits, then comes
@@ -286,7 +301,7 @@ public static class ShotAtomsTest
         ShotAtomDrops.Clear();
         var spawned = new List<ShotAtom>();
         ShotAtomDrops.Spawned = (atom, at) => spawned.Add(atom);
-        ShotAtomDrops.OnBossDestroyed(new Vector3(.5f, 2f, 0f), 0f);
+        ShotAtomDrops.OnBossDestroyed(new Vector3(.5f, 2f, 0f), 0f, .999f);
         var coins = Object.FindObjectsByType<ShotAtomPickup>(FindObjectsSortMode.None);
         Check("a boss kill puts one coin in the lane", coins.Length == 1 && spawned.Count == 1 && coins[0].atom == spawned[0] &&
               coins[0].CompareTag("pickUp") && coins[0].name == ShotAtomPickup.NameFor(spawned[0]));
@@ -295,7 +310,7 @@ public static class ShotAtomsTest
               Mathf.Approximately(coins[0].GetComponent<AtomSpin>().degreesPerSecond, 0f) && coins[0].GetComponent<PickupFlipbook>() != null &&
               coins[0].GetComponent<PickupFlipbook>().kind == ShotAtoms.KindOf(coins[0].atom) && coins[0].GetComponent<PickupFlipbook>().FrameCount == 8);
         Check("... and the atom spacing now holds the next atom back", !AtomSpacing.Ready);
-        ShotAtomDrops.OnBossDestroyed(new Vector3(-.5f, 2f, 0f), 0f);
+        ShotAtomDrops.OnBossDestroyed(new Vector3(-.5f, 2f, 0f), 0f, .999f);
         Check("a second drop inside the spacing gap waits its turn", ShotAtomDrops.Pending == 1 && spawned.Count == 1);
         AtomSpacing.Tick(AtomSpacing.Gap + .1f);
         ShotAtomDrops.Pump(0f);
@@ -308,7 +323,7 @@ public static class ShotAtomsTest
         AtomSpacing.Reset();
         ShotAtomDrops.Clear();
         int dust = ShotAtomDrops.DustDrops;
-        ShotAtomDrops.OnBossDestroyed(Vector3.zero, 0f);
+        ShotAtomDrops.OnBossDestroyed(Vector3.zero, 0f, .999f);
         Check("a drop with everything maxed pays dust instead of a coin", ShotAtomDrops.DustDrops == dust + 1 && ShotAtomDrops.LastWasDust &&
               Object.FindObjectsByType<ShotAtomPickup>(FindObjectsSortMode.None).Length == 0);
         ShotAtomDrops.Spawned = null;
@@ -320,7 +335,7 @@ public static class ShotAtomsTest
         string elites = File.ReadAllText("Assets/Scripts/Gameplay/Elites/EliteFx.cs");
         string boss = File.ReadAllText("Assets/Scripts/Bosses/BossEncounter.cs");
         Check("a killed elite (EliteRewards.Pay) can drop one", elites.Contains("ShotAtomDrops.OnEliteKilled("));
-        Check("a destroyed boss (BeginOutro, not an escape) always drops one", boss.Contains("if (explode) ShotAtomDrops.OnBossDestroyed("));
+        Check("a destroyed boss (BeginOutro, not an escape) drops one (and maybe a second)", boss.Contains("if (explode) ShotAtomDrops.OnBossDestroyed("));
         int callers = 0;
         foreach (var file in Directory.GetFiles("Assets/Scripts", "*.cs", SearchOption.AllDirectories))
         {
@@ -328,18 +343,101 @@ public static class ShotAtomsTest
             if (file.EndsWith("ShotAtoms.cs")) continue;
             if (text.Contains("ShotAtomDrops.OnEliteKilled(") || text.Contains("ShotAtomDrops.OnBossDestroyed(")) callers++;
         }
-        Check("those are the only two places a coin is ever earned (no enemy, rock, dust or ultimate kill drops one) (" + callers + " files)", callers == 2);
+        Check("elites and bosses are earned in two places (" + callers + " files), ordinary kills in a third: collisionDetection.AwardDestroyedTarget",
+              callers == 2 && File.ReadAllText("Assets/Scripts/Ship/collisionDetection.cs").Contains("ShotAtomDrops.OnEnemyKilled("));
 
         FreshScene();
         AtomSpacing.Reset();
         ShotAtomDrops.Clear();
+        ShotAtomDrops.ResetSeams();
         int released = ShotAtomDrops.Released;
         for (int i = 0; i < 30; i++)
         {
             var enemy = Hazard(i * .01f, 1f);
             ShipAttackHits.Hit(enemy, 1);
         }
-        Check("killing ordinary enemies and hazards never drops one", ShotAtomDrops.Released == released && ShotAtomDrops.Pending == 0);
+        Check("an unrelated edit-mode kill never rolls a coin by itself (no override, no roll)", ShotAtomDrops.Released == released && ShotAtomDrops.Pending == 0);
+
+        // ---- ordinary kills: 1.5%, at most one per 20 s, spacing respected ----
+        float clock = 100f;
+        ShotAtomDrops.ClockOverride = () => clock;
+        ShotAtoms.BeginRun();
+        AtomSpacing.Reset();
+        ShotAtomDrops.Clear();
+        var plain = Hazard(0f, 1f);
+        int enemies = ShotAtomDrops.Enemies;
+        Check("an ordinary kill on a bad roll drops nothing", !ShotAtomDrops.OnEnemyKilled(plain, .5f) && ShotAtomDrops.Enemies == enemies);
+        Check("... a roll under 1.5% drops one", ShotAtomDrops.OnEnemyKilled(plain, .01f) && ShotAtomDrops.Enemies == enemies + 1);
+        ShotAtomDrops.Clear();
+        AtomSpacing.Reset();
+        clock += 19f;
+        Check("... but not again within 20 s", !ShotAtomDrops.OnEnemyKilled(plain, .0f) && ShotAtomDrops.Enemies == enemies + 1);
+        clock += 1.5f;
+        Check("... and again after the cooldown", ShotAtomDrops.OnEnemyKilled(plain, .0f) && ShotAtomDrops.Enemies == enemies + 2);
+        ShotAtomDrops.Clear();
+        AtomSpacing.Reset();
+        int hit = 0;
+        for (int i = 0; i < 1000; i++)
+        {
+            clock += 25f;
+            ShotAtomDrops.Clear();
+            AtomSpacing.Reset();
+            if (ShotAtomDrops.OnEnemyKilled(plain, i / 1000f)) hit++;
+        }
+        Check("evenly spread rolls give 1.5% (15 of 1000: " + hit + ")", hit == 15);
+        // a boss body or a hazard that happens to carry an identity never rolls
+        var rock = Hazard(0f, 1f);
+        rock.tag = "Astr";
+        var bossBit = Hazard(0f, 1f);
+        bossBit.name = "BossPart";
+        clock += 100f;
+        Check("rocks (tag Astr) and boss parts never drop from the kill roll", !ShotAtomDrops.OnEnemyKilled(rock, 0f) && !ShotAtomDrops.OnEnemyKilled(bossBit, 0f));
+        // spacing: with the gap busy the coin waits in the queue, it is not built at once
+        ShotAtomDrops.Clear();
+        AtomSpacing.Released();
+        int rel = ShotAtomDrops.Released;
+        clock += 100f;
+        ShotAtomDrops.OnEnemyKilled(plain, 0f);
+        Check("an ordinary drop respects the atom spacing (queued, not released)", ShotAtomDrops.Pending == 1 && ShotAtomDrops.Released == rel);
+        ShotAtomDrops.Clear();
+        ClearCoins();
+
+        // ---- ATOM RUSH: every chance x3 for the run it was spent in ----
+        Boosters.SetRunRushForTest(true);
+        Check("rush: ordinary chance 4.5%, cooldown 10 s, elite 100%, boss second 100%",
+              Mathf.Approximately(ShotAtomDrops.EnemyChance, .045f) && Mathf.Approximately(ShotAtomDrops.EnemyCooldown, 10f) &&
+              ShotAtomDrops.Rushed(ShotAtomTuning.EliteDropChance) == 1f && ShotAtomDrops.Rushed(ShotAtomTuning.BossSecondDropChance) == 1f);
+        ShotAtoms.BeginRun();
+        ShotAtomDrops.Clear();
+        AtomSpacing.Reset();
+        clock += 100f;
+        Check("rush: a roll of 4% drops (it would not without the booster)", ShotAtomDrops.OnEnemyKilled(plain, .04f));
+        ShotAtomDrops.Clear();
+        AtomSpacing.Reset();
+        clock += 11f;
+        Check("rush: the cooldown is 10 s", ShotAtomDrops.OnEnemyKilled(plain, 0f));
+        ShotAtomDrops.Clear();
+        AtomSpacing.Reset();
+        int firstElite = ShotAtomDrops.Elites;
+        ShotAtomDrops.OnEliteKilled(Vector3.zero, .999f);   // the first: guaranteed
+        ShotAtomDrops.Clear();
+        AtomSpacing.Reset();
+        ShotAtomDrops.OnEliteKilled(Vector3.zero, .999f);
+        Check("rush: a later elite drops on the worst roll", ShotAtomDrops.Elites == firstElite + 2);
+        ShotAtomDrops.Clear();
+        AtomSpacing.Reset();
+        int b0 = ShotAtomDrops.Bosses;
+        ShotAtomDrops.OnBossDestroyed(Vector3.zero, 0f, .999f);
+        Check("rush: a boss always gives two", ShotAtomDrops.Bosses == b0 + 2);
+        Boosters.SetRunRushForTest(false);
+        ShotAtomDrops.Clear();
+        AtomSpacing.Reset();
+        clock += 100f;
+        Check("rush off: back to 1.5%", !ShotAtomDrops.OnEnemyKilled(plain, .04f));
+        ShotAtomDrops.ResetSeams();
+        ShotAtomDrops.Clear();
+        ClearCoins();
+        FreshScene();
         startMenu.youAreInTutorial = true;
         Check("no drop in the tutorial", !ShotAtomDrops.OnBossDestroyed(Vector3.zero, 0f));
         startMenu.youAreInTutorial = false;
