@@ -308,7 +308,7 @@ public static class ShotAtomsTest
         Check("... it floats with the atom drift (the world scroller + AtomSpin, no spin) and carries its flipbook",
               coins[0].GetComponent<moveItemEnmInStrightLine>() != null && coins[0].GetComponent<AtomSpin>() != null &&
               Mathf.Approximately(coins[0].GetComponent<AtomSpin>().degreesPerSecond, 0f) && coins[0].GetComponent<PickupFlipbook>() != null &&
-              coins[0].GetComponent<PickupFlipbook>().kind == ShotAtoms.KindOf(coins[0].atom) && coins[0].GetComponent<PickupFlipbook>().FrameCount == 8);
+              coins[0].GetComponent<PickupFlipbook>().kind == ShotAtoms.KindOf(coins[0].atom) && coins[0].GetComponent<PickupFlipbook>().FrameCount == 14);
         Check("... and the atom spacing now holds the next atom back", !AtomSpacing.Ready);
         ShotAtomDrops.OnBossDestroyed(new Vector3(-.5f, 2f, 0f), 0f, .999f);
         Check("a second drop inside the spacing gap waits its turn", ShotAtomDrops.Pending == 1 && spawned.Count == 1);
@@ -927,9 +927,9 @@ public static class ShotAtomsTest
             if (book.Frame != last) advanced++;
             last = book.Frame;
         }
-        Check("the coin's border index advances over time and visits every one of the 8 drawings (" + seen.Count + " seen, " + advanced + " steps in 40)", advanced >= 39 && seen.Count == 8 && sprites.Count == 8);
-        float turn = PickupArt.ShotFrameSeconds * 8f * 8f;
-        Check("... one apparent full turn (8 x 45 degrees) takes " + turn.ToString("0.0") + " s: clearly visible, between 1.5 and 2 s", turn >= 1.5f && turn <= 2f);
+        Check("the coin's border index advances over time and visits every one of the 14 drawings (" + seen.Count + " seen, " + advanced + " steps in 40)", advanced >= 39 && seen.Count == 14 && sprites.Count == 14);
+        float turn = PickupArt.ShotFrameSeconds * 14f;
+        Check("... one full turn of the ring (14 drawings) takes " + turn.ToString("0.0") + " s: clearly visible, between 1.5 and 2 s", turn >= 1.5f && turn <= 2f);
         Check("... the symbol stays upright and still: nothing on the coin rotates (the drawings carry the still symbol; AtomSpin is at 0 deg/s)",
               coin.transform.rotation == rot0 && Mathf.Approximately(coin.GetComponent<AtomSpin>().degreesPerSecond, 0f) && coin.transform.childCount >= 0);
         coin.GetComponent<AtomSpin>().SendMessage("Update");
@@ -954,8 +954,8 @@ public static class ShotAtomsTest
 
         // the Codex entry loops the same drawings at the same pace
         var anim = CodexAnimations.For(Codex.Find("atom_shot_arc"));
-        Check("the Codex entries loop the 8 drawings at the coin's pace (" + (anim != null ? anim.idle.Length : 0) + " frames)",
-              anim != null && anim.idle.Length == 8 && anim.idleHold != null && anim.idleHold.Length == 8 && Mathf.Abs(anim.idleHold[0] - PickupArt.ShotFrameSeconds) < 1e-5f);
+        Check("the Codex entries loop the 14 drawings at the coin's pace (" + (anim != null ? anim.idle.Length : 0) + " frames)",
+              anim != null && anim.idle.Length == 14 && anim.idleHold != null && anim.idleHold.Length == 14 && Mathf.Abs(anim.idleHold[0] - PickupArt.ShotFrameSeconds) < 1e-5f);
     }
 
     // ---- the Codex ----------------------------------------------------------------------
@@ -994,7 +994,7 @@ public static class ShotAtomsTest
         Check("the TWIN lore quotes the tuning (2 parallel shots, 3 and 4 in a fan)", twin != null && twin.lore.Contains("2 parallel shots") && twin.lore.Contains("3 shots in a narrow fan") && twin.lore.Contains("4 shots in a narrow fan"));
         Check("the old atoms are untouched (blue, red, green, violet, magnetic still there)", Codex.Find("atom_blue") != null && Codex.Find("atom_red") != null && Codex.Find("atom_green") != null &&
               Codex.Find(CodexCatalogue.VioletAtomId) != null && Codex.Find(CodexCatalogue.MagnetAtomId) != null);
-        Check("every shot atom kind has its art (8 idle frames, 6 burst frames)", AllFrames());
+        Check("every shot atom kind has its art (14 idle frames, 6 burst frames)", AllFrames());
     }
 
     static bool AllFrames()
@@ -1004,7 +1004,7 @@ public static class ShotAtomsTest
             var kind = ShotAtoms.KindOf((ShotAtom)i);
             var idle = PickupArt.Frames(PickupArt.IdleName(kind), PickupArt.IdleTicks(kind).Length);
             var burst = PickupArt.Frames(PickupArt.BurstName(kind), PickupArt.BurstTicks.Length);
-            if (idle.Length != 8 || burst.Length != 6) return false;
+            if (idle.Length != 14 || burst.Length != 6) return false;
             foreach (var f in idle) if (f == null || f.texture.width != 196 || f.texture.filterMode != FilterMode.Point) return false;
             foreach (var f in burst) if (f == null || f.texture.width != 388) return false;
         }
