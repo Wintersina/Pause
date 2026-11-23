@@ -119,8 +119,17 @@ public class ShotAtomHud : MonoBehaviour
         return new Rect(Mathf.Round(slot.center.x - g.icon * .5f), slot.yMax - g.icon, g.icon, g.icon);
     }
 
-    // "x2"
+    // "x2", "x10"
     public static string LevelLabel(int level) { return "x" + Mathf.Clamp(level, 0, ShotAtomTuning.MaxLevel); }
+
+    public const float LabelCharWidth = .62f;   // of the font size: a wide digit in the HUD font
+
+    // The level line's font size: LabelUnits' size, shrunk on a narrow board so even "x10" (two digits) fits inside its slot.
+    public static int LabelFontSize(int baseSize, float slotWidth, int chars)
+    {
+        int fit = Mathf.FloorToInt(slotWidth / (Mathf.Max(1, chars) * LabelCharWidth));
+        return Mathf.Max(6, Mathf.Min(baseSize, fit));
+    }
 
     // ---- live ----
 
@@ -350,7 +359,7 @@ public class ShotAtomHud : MonoBehaviour
             var tr = slot.label.rectTransform;
             tr.anchoredPosition = Vector2.zero;
             tr.sizeDelta = new Vector2(0f, g.label);
-            slot.label.fontSize = fontSize;
+            slot.label.fontSize = LabelFontSize(fontSize, g.slotWidth, LevelLabel(ShotAtomTuning.MaxLevel).Length);
         }
     }
 

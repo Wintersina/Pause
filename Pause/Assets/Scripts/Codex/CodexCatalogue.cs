@@ -288,10 +288,11 @@ public static class CodexCatalogue
         string name = ShotAtoms.Name(atom);
         var lines = new List<string>();
         lines.Add(name + "  " + ShotAtomEffect(atom) + " Permanent for the run, for your small gun only.");
-        for (int level = 1; level <= ShotAtomTuning.MaxLevel; level++)
-            lines.Add("LEVEL " + ShotAtoms.Roman[level] + "  " + ShotAtomLevelText(atom, level));
+        // the range of the effect: the first level and the last (ten levels would be a wall of text)
+        lines.Add("LEVEL 1  " + ShotAtomLevelText(atom, 1));
+        lines.Add("LEVEL " + ShotAtomTuning.MaxLevel + "  " + ShotAtomLevelText(atom, ShotAtomTuning.MaxLevel));
         lines.Add("DROPPED BY  elites and bosses (a boss always, an elite half the time)");
-        lines.Add("MAX LEVEL  III; past it a catch pays star dust");
+        lines.Add("MAX LEVEL  " + ShotAtomTuning.MaxLevel + "; past it a catch pays star dust");
         return string.Join("\n", lines);
     }
 
@@ -318,7 +319,7 @@ public static class CodexCatalogue
             case ShotAtom.Pierce:
                 return "passes through " + ShotAtomTuning.PierceThrough[level] + " extra " + (level == 1 ? "enemy" : "enemies");
             case ShotAtom.Split:
-                return "breaks into " + ShotAtomTuning.SplitShards[level] + " shards on a hit, " + Pct(ShotAtomTuning.ShardDamage) + " damage each";
+                return "breaks into " + ShotAtomTuning.SplitShards[level] + " shards on a hit, " + Pct(ShotAtomTuning.SplitDamage[level]) + " damage each";
             case ShotAtom.Ricochet:
                 return "bounces " + ShotAtomTuning.Bounces[level] + (level == 1 ? " time" : " times");
             case ShotAtom.Arc:

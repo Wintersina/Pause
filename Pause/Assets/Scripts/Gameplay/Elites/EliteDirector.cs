@@ -9,7 +9,7 @@ using UnityEngine.SceneManagement;
 //   * ONE elite at a time (MaxAlive; parked, launching, hiding and retreating
 //     ones count): the next one is not even timed until the last is dead or
 //     gone, then the ordinary gap runs (GapSeconds, a little shorter on later
-//     loops: LoopRules -> RunLoop.Index, GapLoopScale)
+//     loops: LoopRules -> RunLoop.Index, GapLoopScale; shorter still with the shot atoms' power: PowerCreep.EliteGapScale)
 //   * groups are always of size 1 (SpawnGroup still takes a size, capped by MaxAlive)
 //   * none in the first FirstSeconds of flight in a world, none during a
 //     boss (BossEncounter.Running) or in its run-up (SecondsLeftInWorld <
@@ -167,7 +167,7 @@ public class EliteDirector : MonoBehaviour
     public static float NextGap()
     {
         float loopScale = 1f / Mathf.Min(1.5f, 1f + GapLoopScale * Mathf.Max(0, RunLoop.Index));
-        return Random.Range(GapSeconds.x, GapSeconds.y) * loopScale;
+        return Random.Range(GapSeconds.x, GapSeconds.y) * loopScale * PowerCreep.EliteGapScale;   // power creep: up to 45% shorter (still one at a time)
     }
 
     public static int AliveCount

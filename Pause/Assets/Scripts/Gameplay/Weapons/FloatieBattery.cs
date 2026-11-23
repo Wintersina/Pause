@@ -414,6 +414,7 @@ public class FloatieBattery : MonoBehaviour
             mods.damage = ShotAtomTuning.TwinDamage[twin];
             mods.pierce = ShotAtomTuning.PierceThrough[pierce];
             mods.bounces = ShotAtomTuning.Bounces[ricochet];
+            mods.life = ShotAtomTuning.RicochetLife[ricochet];   // 0: the plain lifetime
             mods.shards = split;
             mods.arc = arc;
             Vector3 h = Quaternion.Euler(0f, 0f, angles[k] + lean) * heading;

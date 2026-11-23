@@ -7,7 +7,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using Object = UnityEngine.Object;
 
-// The SHOT ATOMS (ShotAtoms.cs, FloatieGuns.cs, ShotAtomHud.cs, the Codex entries): every atom's effect at levels 1-3, the world
+// The SHOT ATOMS (ShotAtoms.cs, FloatieGuns.cs, ShotAtomHud.cs, the Codex entries): every atom's effect at levels 1-10, the world
 // schedule and level caps, the dust at the cap, drops (only elites and bosses, at their rates), the coin's catch and callout, the
 // bullet cap, the HUD row on every ScreenFit device, the Codex entries and the reset between runs.
 //
@@ -193,21 +193,21 @@ public static class ShotAtomsTest
             ShotAtom a;
             for (int i = 0; i < 120; i++) if (ShotAtoms.TryPick(i / 120f, out a)) seen.Add(a);
             every &= seen.Count == 6;
-            // ...and every atom reaches level 3 there, then pays dust
+            // ...and every atom reaches the top level there, then pays dust
             for (int atom = 0; atom < 6; atom++)
             {
-                for (int n = 1; n <= 3; n++)
+                for (int n = 1; n <= ShotAtomTuning.MaxLevel; n++)
                 {
                     var got = ShotAtoms.Collect((ShotAtom)atom);
                     reach &= !got.maxed && got.level == n;
                 }
                 var over = ShotAtoms.Collect((ShotAtom)atom);
-                reach &= over.maxed && ShotAtoms.Level((ShotAtom)atom) == 3;
+                reach &= over.maxed && ShotAtoms.Level((ShotAtom)atom) == ShotAtomTuning.MaxLevel;
             }
         }
         PlayerPrefs.SetInt(WorldManager.PrefsCurrentWorld, 0);
         Check("every atom can drop in every one of the " + WorldManager.Worlds.Length + " worlds from the start of a run", every);
-        Check("every atom reaches level 3 in any world, and a catch past it pays dust", reach);
+        Check("every atom reaches level 10 in any world, and a catch past it pays dust", reach);
         string src = File.ReadAllText("Assets/Scripts/Gameplay/Pickups/ShotAtoms.cs");
         Check("no world unlock or level-cap tables are left", !src.Contains("UnlockWorld") && !src.Contains("MaxLevelOfWorld") && !src.Contains("CurrentIndex"));
     }
@@ -220,17 +220,18 @@ public static class ShotAtomsTest
               ShotAtoms.EligibleCount() == 6 && ShotAtoms.TryPick(0f, out a) && a == ShotAtom.Twin && ShotAtoms.TryPick(.99f, out a) && a == ShotAtom.Rapid && ShotAtoms.TryPick(1f, out a));
         var c = ShotAtoms.Collect(ShotAtom.Rapid);
         Check("a catch raises the level (RAPID I)", !c.maxed && c.level == 1 && ShotAtoms.Level(ShotAtom.Rapid) == 1 && ShotAtoms.Callout(ShotAtom.Rapid, c.level) == "RAPID I");
-        ShotAtoms.Collect(ShotAtom.Rapid);
-        Check("a drop picks only atoms that are not maxed yet: RAPID II still drops, RAPID III does not",
-              ShotAtoms.CanDrop(ShotAtom.Rapid) && ShotAtoms.Collect(ShotAtom.Rapid).level == 3 && !ShotAtoms.CanDrop(ShotAtom.Rapid) && ShotAtoms.EligibleCount() == 5);
+        for (int n = 2; n < ShotAtomTuning.MaxLevel; n++) ShotAtoms.Collect(ShotAtom.Rapid);
+        Check("a drop picks only atoms that are not maxed yet: RAPID IX still drops, RAPID X does not",
+              ShotAtoms.CanDrop(ShotAtom.Rapid) && ShotAtoms.Collect(ShotAtom.Rapid).level == ShotAtomTuning.MaxLevel && !ShotAtoms.CanDrop(ShotAtom.Rapid) && ShotAtoms.EligibleCount() == 5);
         var seen = new HashSet<ShotAtom>();
         for (int i = 0; i < 100; i++) if (ShotAtoms.TryPick(i / 100f, out a)) seen.Add(a);
         Check("... the roll reaches the five others and never the maxed one", seen.Count == 5 && !seen.Contains(ShotAtom.Rapid));
         var over = ShotAtoms.Collect(ShotAtom.Rapid);
-        Check("a catch of a maxed atom pays dust and keeps level 3 (counted)", over.maxed && ShotAtoms.Level(ShotAtom.Rapid) == 3 && ShotAtoms.MaxedCatches == 1);
-        for (int atom = 0; atom < ShotAtomTuning.Count; atom++) ShotAtoms.SetLevel((ShotAtom)atom, 3);
-        Check("all six at level 3: no atom can drop (a drop pays dust instead)", !ShotAtoms.TryPick(.5f, out a) && ShotAtoms.EligibleCount() == 0);
-        Check("the callouts read TWIN II / ARC III", ShotAtoms.Callout(ShotAtom.Twin, 2) == "TWIN II" && ShotAtoms.Callout(ShotAtom.Arc, 3) == "ARC III");
+        Check("a catch of a maxed atom pays dust and keeps level 10 (counted)", over.maxed && ShotAtoms.Level(ShotAtom.Rapid) == ShotAtomTuning.MaxLevel && ShotAtoms.MaxedCatches == 1);
+        for (int atom = 0; atom < ShotAtomTuning.Count; atom++) ShotAtoms.SetLevel((ShotAtom)atom, ShotAtomTuning.MaxLevel);
+        Check("all six at level 10: no atom can drop (a drop pays dust instead)", !ShotAtoms.TryPick(.5f, out a) && ShotAtoms.EligibleCount() == 0);
+        Check("the callouts read TWIN II / ARC X", ShotAtoms.Callout(ShotAtom.Twin, 2) == "TWIN II" && ShotAtoms.Callout(ShotAtom.Arc, 10) == "ARC X");
+        Check("PowerLevel is the sum of the levels (60 with all six maxed)", ShotAtoms.PowerLevel == 60 && ShotAtoms.MaxPower == 60);
         ShotAtoms.BeginRun();
     }
 
@@ -319,7 +320,7 @@ public static class ShotAtomsTest
 
         // everything maxed: dust, no coin
         ShotAtoms.BeginRun();
-        for (int atom = 0; atom < ShotAtomTuning.Count; atom++) ShotAtoms.SetLevel((ShotAtom)atom, 3);
+        for (int atom = 0; atom < ShotAtomTuning.Count; atom++) ShotAtoms.SetLevel((ShotAtom)atom, ShotAtomTuning.MaxLevel);
         AtomSpacing.Reset();
         ShotAtomDrops.Clear();
         int dust = ShotAtomDrops.DustDrops;
@@ -453,15 +454,15 @@ public static class ShotAtomsTest
     {
         FreshScene();
         var r = MakeShip();
-        bool counts = true, angles = true, damage = true;
-        for (int level = 0; level <= 3; level++)
+        bool counts = true, angles = true, damage = true, growth = true, widening = true;
+        for (int level = 0; level <= ShotAtomTuning.MaxLevel; level++)
         {
             ShotAtoms.SetLevel(ShotAtom.Twin, level);
             FloatieBullets.ReleaseAll();
             counts &= r.battery.Fire(0);
             var active = new List<FloatieBullet>();
             foreach (var b in FloatieBullets.All) if (b.Active) active.Add(b);
-            counts &= active.Count == level + 1 || (level == 0 && active.Count == 1);
+            counts &= active.Count == ShotAtomTuning.TwinShots[level];
             for (int k = 0; k < active.Count && k < ShotAtomTuning.TwinAngles[level].Length; k++)
             {
                 Vector3 h = active[k].Heading;
@@ -469,12 +470,19 @@ public static class ShotAtomsTest
                 angles &= Mathf.Abs(a - ShotAtomTuning.TwinAngles[level][k]) < .1f;
                 damage &= Mathf.Approximately(active[k].Applied.damage, ShotAtomTuning.TwinDamage[level]);
             }
+            if (level >= 4)
+            {
+                float prev = ShotAtomTuning.TwinShots[level - 1] * ShotAtomTuning.TwinDamage[level - 1];
+                float now = ShotAtomTuning.TwinShots[level] * ShotAtomTuning.TwinDamage[level];
+                growth &= now / prev >= 1.08f && now / prev <= 1.16f;
+                widening &= ShotAtomTuning.TwinHalfFan[level] > ShotAtomTuning.TwinHalfFan[level - 1];
+            }
         }
-        Check("TWIN: 1, 2, 3, 4 bullets a volley at levels 0-3", counts);
-        Check("... L1 two parallel, L2 three in a narrow fan, L3 four (the fan's angles are the tuning's)", angles);
-        Check("... each extra shot does slightly less damage (the volley is worth 1.5x / 1.8x / 2x of one shot, never 2x / 3x / 4x)", damage &&
-              ShotAtomTuning.TwinShots[1] * ShotAtomTuning.TwinDamage[1] < 2f && ShotAtomTuning.TwinShots[2] * ShotAtomTuning.TwinDamage[2] < 3f &&
-              ShotAtomTuning.TwinShots[3] * ShotAtomTuning.TwinDamage[3] <= 2.01f && ShotAtomTuning.TwinDamage[1] < 1f);
+        Check("TWIN: 1, 2, 3, 4, 4, 5, 5, 6, 6, 7, 7 bullets a volley at levels 0-10", counts);
+        Check("... L1 two parallel, L2+ a fan whose angles are the tuning's (it widens with the level, at most +-" + ShotAtomTuning.TwinHalfFan[10] + " degrees)", angles && widening && ShotAtomTuning.TwinHalfFan[10] <= 22f);
+        Check("... the volley's worth grows 8-16% a level from level 4 on, never as fast as the shot count (L10 = " +
+              (ShotAtomTuning.TwinShots[10] * ShotAtomTuning.TwinDamage[10]).ToString("0.00") + "x of one shot)", damage && growth &&
+              ShotAtomTuning.TwinShots[10] * ShotAtomTuning.TwinDamage[10] < 5f && ShotAtomTuning.TwinDamage[1] < 1f);
         ShotAtoms.SetLevel(ShotAtom.Twin, 1);
         FloatieBullets.ReleaseAll();
         r.battery.Fire(0);
@@ -483,7 +491,7 @@ public static class ShotAtomsTest
         float gap = Mathf.Abs(two[0].transform.position.x - two[1].transform.position.x);
         Check("... the level 1 pair flies parallel, " + ShotAtomTuning.TwinParallelGap + " apart", two.Count == 2 && Mathf.Abs(gap - ShotAtomTuning.TwinParallelGap) < .01f &&
               Vector3.Dot(two[0].Heading, two[1].Heading) > .9999f);
-        Check("... it is one volley: the floatie's shot counter counts it once", r.battery.Shots[0] == 5);
+        Check("... it is one volley: the floatie's shot counter counts it once", r.battery.Shots[0] == ShotAtomTuning.MaxLevel + 2);  // one Fire per level 0..max, plus the level 1 pair
         Teardown(r);
 
         // an elite takes a quarter heart times the bullet's damage
@@ -509,10 +517,10 @@ public static class ShotAtomsTest
         FreshScene();
         bool ok = true;
         string detail = "";
-        for (int level = 0; level <= 3; level++)
+        for (int level = 0; level <= ShotAtomTuning.MaxLevel; level++)
         {
             var targets = new List<GameObject>();
-            for (int i = 0; i < 5; i++) targets.Add(Hazard(0f, 0f + i * .8f));
+            for (int i = 0; i < ShotAtomTuning.MaxLevel + 2; i++) targets.Add(Hazard(0f, 0f + i * .4f));
             var b = Launch(new Vector3(0f, -.6f, 0f), Vector3.up, ModsFor(pierce: ShotAtomTuning.PierceThrough[level]));
             Fly(b);
             int killed = 0;
@@ -522,7 +530,7 @@ public static class ShotAtomsTest
             foreach (var t in targets) if (t != null) Object.DestroyImmediate(t);
             FloatieBullets.ReleaseAll();
         }
-        Check("PIERCE: a shot kills 1 / 2 / 3 / 4 enemies in a line at levels 0-3 (through +1 enemy a level):" + detail, ok);
+        Check("PIERCE: a shot kills 1 .. 11 enemies in a line at levels 0-10 (through +1 enemy a level):" + detail, ok);
         // never twice through the same enemy: a big body is hit once
         var wide = Hazard(0f, 1f);
         wide.GetComponent<ClearTarget>().SetRadius(.6f);
@@ -538,7 +546,7 @@ public static class ShotAtomsTest
     {
         FreshScene();
         bool counts = true, shardsOk = true;
-        for (int level = 1; level <= 3; level++)
+        for (int level = 1; level <= ShotAtomTuning.MaxLevel; level++)
         {
             FloatieBullets.ReleaseAll();
             var target = Hazard(0f, 1f);
@@ -551,14 +559,15 @@ public static class ShotAtomsTest
             {
                 if (!s.Active) continue;
                 shards++;
-                shardsOk &= s.Applied.shard && Mathf.Approximately(s.Applied.damage, ShotAtomTuning.ShardDamage) && s.Applied.shards == 0 && s.Applied.arc == 0 && s.Applied.pierce == 0;
+                shardsOk &= s.Applied.shard && Mathf.Approximately(s.Applied.damage, ShotAtomTuning.SplitDamage[level]) && s.Applied.shards == 0 && s.Applied.arc == 0 && s.Applied.pierce == 0;
                 Vector3 h = s.Heading;
-                shardsOk &= Mathf.Abs(Mathf.Atan2(-h.x, h.y) * Mathf.Rad2Deg) > 1f || level == 2;   // diagonal (level 2 keeps one straight on)
+                shardsOk &= Mathf.Abs(Mathf.Atan2(-h.x, h.y) * Mathf.Rad2Deg) > 1f || ShotAtomTuning.SplitShards[level] % 2 == 1;   // diagonal (an odd count keeps one straight on)
             }
             counts &= shards == ShotAtomTuning.SplitShards[level];
             if (target != null) Object.DestroyImmediate(target);
         }
-        Check("SPLIT: a hit breaks the shot into 2 / 3 / 4 shards at levels 1-3 (and the shot itself ends)", counts);
+        Check("SPLIT: a hit breaks the shot into 2, 2, 3, 3, 4, 4, 5, 5, 6, 6 shards at levels 1-10 (and the shot itself ends), shard damage 40% -> 65%", counts &&
+              ShotAtomTuning.SplitDamage[1] == .40f && ShotAtomTuning.SplitDamage[10] == .65f);
         Check("... small partial-damage shards that never split, zap or pierce again, flying diagonally", shardsOk);
 
         // a shard really hits: level 1 sends shards at +-45 degrees; an enemy on that line dies
@@ -580,23 +589,30 @@ public static class ShotAtomsTest
         FreshScene();
         bool ok = true;
         string detail = "";
-        for (int level = 0; level <= 3; level++)
+        for (int level = 0; level <= ShotAtomTuning.MaxLevel; level++)
         {
             FloatieBullets.ReleaseAll();
             int before = FloatieBullet.Bounced;
-            Vector3 heading = Quaternion.Euler(0f, 0f, -75f) * Vector3.up;   // 75 degrees to the right of straight up
-            var b = Launch(new Vector3(0f, -3f, 0f), heading, ModsFor(bounces: ShotAtomTuning.Bounces[level]));
+            Vector3 heading = Quaternion.Euler(0f, 0f, -88f) * Vector3.up;   // nearly flat to the right: the most bounces a life can hold
+            var m = ModsFor(bounces: ShotAtomTuning.Bounces[level]);
+            m.life = ShotAtomTuning.RicochetLife[level];
+            var b = Launch(new Vector3(0f, -3f, 0f), heading, m);
             bool inside = true;
-            for (int i = 0; i < 600 && b.Active; i++)
+            float aged = 0f;
+            for (int i = 0; i < 900 && b.Active; i++)
             {
                 b.Tick(Dt);
+                aged += Dt;
                 inside &= b.transform.position.x >= -2.82f && b.transform.position.x <= 2.82f || b.BouncesLeft == 0;
             }
             int bounced = FloatieBullet.Bounced - before;
-            ok &= bounced == level && inside;
+            // every bounce a life can hold is made (a crossing takes ~.63 s); the cap on the life is never passed
+            bool lifeOk = aged <= Mathf.Max(FloatieBullet.MaxAge, ShotAtomTuning.RicochetLife[level]) + .05f;
+            ok &= (level <= 5 ? bounced == level : bounced >= 5 && bounced <= level) && inside && lifeOk;
             detail += " L" + level + "=" + bounced;
         }
-        Check("RICOCHET: a shot bounces off the side edges 0 / 1 / 2 / 3 times at levels 0-3 and stays on screen while it has bounces:" + detail, ok);
+        Check("RICOCHET: a shot bounces off the side edges up to 0 .. 10 times (all of them while its life lasts, at most " + ShotAtomTuning.RicochetLifeCap + " s) and stays on screen while it has bounces:" + detail,
+              ok && ShotAtomTuning.RicochetLife[10] == ShotAtomTuning.RicochetLifeCap && ShotAtomTuning.Bounces[10] == 10);
 
         FreshScene();
         var r = MakeShip();
@@ -618,54 +634,57 @@ public static class ShotAtomsTest
     static void Arc()
     {
         FreshScene();
-        // hit A (0,1); B 1.2 right of it; C 1.2 right of B (all inside the view); D 3.5 above A; E 2.3 left of A
+        // a grid of enemies a unit apart inside the view: the chain always has a next one in range
         bool ok = true;
         string detail = "";
-        for (int level = 1; level <= 3; level++)
+        for (int level = 1; level <= ShotAtomTuning.MaxLevel; level++)
         {
             FloatieBullets.ReleaseAll();
             VoltArcs.StopAll();
-            var a = Hazard(0f, 1f);
-            var b = Hazard(1.2f, 1f);
-            var c = Hazard(2.4f, 1f);
-            var d = Hazard(0f, 4.5f);
-            var e = Hazard(-2.3f, 1f);
+            var grid = new List<GameObject>();
+            for (int gx = -2; gx <= 2; gx++)
+                for (int gy = 1; gy <= 3; gy++) grid.Add(Hazard(gx, gy));
             int zaps = FloatieBullet.ArcZaps, arcs = VoltArcs.TotalDrawn;
             var bullet = Launch(new Vector3(0f, .92f, 0f), Vector3.up, ModsFor(arc: level));
             bullet.Tick(Dt);
-            bool aDead = Dead(a), bDead = Dead(b), cDead = Dead(c), dDead = Dead(d), eDead = Dead(e);
+            int dead = 0;
+            foreach (var t in grid) if (Dead(t)) dead++;
             int jumps = FloatieBullet.ArcZaps - zaps;
-            // L1: range 2.0, one jump: E (2.3) is out, B (1.5) is the nearest in range
-            // L2: range 2.6, one jump: E (2.3) is the nearest... no: B (1.5) is nearer, so B again
-            // L3: range 3.2, two jumps: B, then C (1.5 from B)
-            bool levelOk = aDead && jumps == ShotAtomTuning.ArcJumps[level] && VoltArcs.TotalDrawn - arcs == ShotAtomTuning.ArcJumps[level] && bDead && !dDead;
-            levelOk &= level == 3 ? cDead : !cDead;
-            levelOk &= !eDead;
+            bool levelOk = jumps == ShotAtomTuning.ArcJumps[level] && dead == 1 + ShotAtomTuning.ArcJumps[level] &&
+                           VoltArcs.TotalDrawn - arcs == ShotAtomTuning.ArcJumps[level];
             ok &= levelOk;
-            detail += " L" + level + "=" + jumps + " jump" + (jumps == 1 ? "" : "s");
-            foreach (var t in new[] { a, b, c, d, e }) if (t != null) Object.DestroyImmediate(t);
+            detail += " L" + level + "=" + jumps;
+            foreach (var t in grid) if (t != null) Object.DestroyImmediate(t);
         }
-        Check("ARC: a hit zaps the nearest other enemy in range, 1 / 1 / 2 jumps at levels 1-3:" + detail, ok);
+        Check("ARC: a hit zaps the nearest other enemies in range, 1, 1, 2, 2, 3, 3, 4, 4, 5, 6 jumps at levels 1-10:" + detail, ok);
 
-        // range grows with level
+        // range: a target just inside a level's range is reached, just past it is not
         bool rangeOk = true;
-        for (int level = 1; level <= 3; level++)
+        for (int level = 1; level <= ShotAtomTuning.MaxLevel; level++)
         {
-            float dist = (ShotAtomTuning.ArcRange[level] + (level < 3 ? ShotAtomTuning.ArcRange[level + 1] : ShotAtomTuning.ArcRange[level] + 1f)) * .5f;
-            var a = Hazard(0f, 1f);
-            var far = Hazard(0f, 1f + dist);
-            var bullet = Launch(new Vector3(0f, .92f, 0f), Vector3.up, ModsFor(arc: level));
+            float r = ShotAtomTuning.ArcRange[level];
+            var a = Hazard(-2f, 1f);
+            var near = Hazard(-2f + r - .05f, 1f);
+            var bullet = Launch(new Vector3(-2f, .92f, 0f), Vector3.up, ModsFor(arc: level));
             bullet.Tick(Dt);
-            // between this level's range and the next's: out of reach now (an enemy just inside the range is reached)
+            rangeOk &= Dead(near);
+            foreach (var t in new[] { a, near }) if (t != null) Object.DestroyImmediate(t);
+            FloatieBullets.ReleaseAll();
+            VoltArcs.StopAll();
+            var a2 = Hazard(-2f, 1f);
+            var far = Hazard(-2f + r + .05f, 1f);
+            var bullet2 = Launch(new Vector3(-2f, .92f, 0f), Vector3.up, ModsFor(arc: level));
+            bullet2.Tick(Dt);
             rangeOk &= !Dead(far);
-            foreach (var t in new[] { a, far }) if (t != null) Object.DestroyImmediate(t);
+            foreach (var t in new[] { a2, far }) if (t != null) Object.DestroyImmediate(t);
             FloatieBullets.ReleaseAll();
         }
-        Check("... a target just past a level's range is out of its reach", rangeOk);
-        bool grows = ShotAtomTuning.ArcRange[1] < ShotAtomTuning.ArcRange[2] && ShotAtomTuning.ArcRange[2] < ShotAtomTuning.ArcRange[3] &&
-                     ShotAtomTuning.ArcDamage[1] < ShotAtomTuning.ArcDamage[2] && ShotAtomTuning.ArcDamage[2] < ShotAtomTuning.ArcDamage[3] &&
-                     ShotAtomTuning.ArcJumps[1] == 1 && ShotAtomTuning.ArcJumps[2] == 1 && ShotAtomTuning.ArcJumps[3] == 2;
-        Check("... range and damage go up by level, the jumps go 1 / 1 / 2", grows);
+        Check("... a target just inside a level's range is reached, just past it is not", rangeOk);
+        bool grows = ShotAtomTuning.ArcRange[1] == 2f && ShotAtomTuning.ArcRange[10] == 4f && ShotAtomTuning.ArcDamage[1] == .5f && ShotAtomTuning.ArcDamage[10] == .85f &&
+                     ShotAtomTuning.ArcJumps[10] == 6 && ShotAtomTuning.ArcJumps[10] + 2 <= 8;
+        for (int l = 2; l <= ShotAtomTuning.MaxLevel; l++)
+            grows &= ShotAtomTuning.ArcRange[l] > ShotAtomTuning.ArcRange[l - 1] && ShotAtomTuning.ArcDamage[l] > ShotAtomTuning.ArcDamage[l - 1] && ShotAtomTuning.ArcJumps[l] >= ShotAtomTuning.ArcJumps[l - 1];
+        Check("... range 2.0 -> 4.0 and damage 50% -> 85% go up every level, the jumps never go down (1 .. 6)", grows);
         VoltArcs.StopAll();
         var a1 = Hazard(0f, 1f);
         var b1 = Hazard(1f, 1f);
@@ -685,24 +704,27 @@ public static class ShotAtomsTest
         FreshScene();
         float baseCd = FloatieTuning.Cooldown(0, 0, false), baseSeeker = FloatieTuning.Cooldown(2, 4, false), baseBoss = FloatieTuning.Cooldown(0, 0, true);
         bool ok = true;
-        float[] bonus = { 0f, .2f, .45f, .75f };
-        for (int level = 0; level <= 3; level++)
+        float[] bonus = ShotAtomTuning.RapidBonus;
+        for (int level = 0; level <= ShotAtomTuning.MaxLevel; level++)
         {
             ShotAtoms.SetLevel(ShotAtom.Rapid, level);
-            ok &= Mathf.Abs(FloatieTuning.Cooldown(0, 0, false) - baseCd / (1f + bonus[level])) < 1e-4f;
-            ok &= Mathf.Abs(FloatieTuning.Cooldown(2, 4, false) - baseSeeker / (1f + bonus[level])) < 1e-4f;
-            ok &= Mathf.Abs(FloatieTuning.Cooldown(0, 0, true) - baseBoss / (1f + bonus[level])) < 1e-4f;
+            ok &= Mathf.Abs(FloatieTuning.Cooldown(0, 0, false) - Mathf.Max(ShotAtomTuning.MinCooldown, baseCd / (1f + bonus[level]))) < 1e-4f;
+            ok &= Mathf.Abs(FloatieTuning.Cooldown(2, 4, false) - Mathf.Max(ShotAtomTuning.MinCooldown, baseSeeker / (1f + bonus[level]))) < 1e-4f;
+            ok &= Mathf.Abs(FloatieTuning.Cooldown(0, 0, true) - Mathf.Max(ShotAtomTuning.MinCooldown, baseBoss / (1f + bonus[level]))) < 1e-4f;
         }
-        Check("RAPID: the gun's cooldown is base / (1 + 20% / 45% / 75%), the seeker's and a boss fight's too (base " + baseCd + " s on this build)", ok);
-        ShotAtoms.SetLevel(ShotAtom.Rapid, 3);
+        Check("RAPID: the gun's cooldown is base / (1 + 20% .. 160%), the seeker's and a boss fight's too (base " + baseCd + " s on this build)", ok &&
+              bonus[1] == .20f && bonus[2] == .35f && bonus[9] == 1.40f && bonus[10] == 1.60f);
+        ShotAtoms.SetLevel(ShotAtom.Rapid, ShotAtomTuning.MaxLevel);
+        Check("... and never under the floor (" + ShotAtomTuning.MinCooldown + " s): a 1 s cooldown at level 10 is " + ShotAtoms.Rapid(1f).ToString("0.00") + " s, a cooldown already lower is left alone",
+              Mathf.Abs(ShotAtoms.Rapid(1f) - ShotAtomTuning.MinCooldown) < 1e-5f && Mathf.Abs(ShotAtoms.Rapid(.3f) - .3f) < 1e-5f && FloatieTuning.Cooldown(0, 0, false) >= ShotAtomTuning.MinCooldown);
         var r = MakeShip();
         r.battery.ResetTimers();
         for (int i = 0; i < 3; i++) r.battery.Shots[i] = 0;
         for (float t = 0f; t < 12f; t += Dt) { r.battery.Step(Dt); if (Mathf.Approximately(t % 1f, 0f)) FloatieBullets.ReleaseAll(); }
-        float expected = 12f / (baseCd / 1.75f);
+        float expected = 12f / (baseCd / (1f + ShotAtomTuning.RapidBonus[ShotAtomTuning.MaxLevel]));
         Check("... and it fires that much faster in play (" + r.battery.Shots[0] + " shots in 12 s, about " + expected.ToString("0") + ")",
               Mathf.Abs(r.battery.Shots[0] - expected) <= 2f);
-        Check("the pure rule: Rapid(seconds) = seconds / (1 + bonus)", Mathf.Abs(ShotAtoms.Rapid(2f) - 2f / 1.75f) < 1e-4f && Mathf.Abs(ShotAtoms.RapidBonus() - .75f) < 1e-5f);
+        Check("the pure rule: Rapid(seconds) = seconds / (1 + bonus), floored", Mathf.Abs(ShotAtoms.Rapid(2f) - 2f / 2.6f) < 1e-4f && Mathf.Abs(ShotAtoms.RapidBonus() - 1.6f) < 1e-5f);
         Teardown(r);
     }
 
@@ -724,26 +746,36 @@ public static class ShotAtomsTest
         Check("... and the shared projectile cap still stands over it", ShotAtomTuning.MaxBullets < AttackPool.MaxProjectiles);
         FloatieBullets.ReleaseAll();
 
-        // everything on, three floaties, a full minute: never over the cap, and allocating nothing
+        // ALL-L10 SOAK: every atom at level 10, three floaties, a target to hit, one simulated minute: never over the cap, the object
+        // count flat, nothing allocated per frame
         var r = MakeShip();
         r.battery.SetLevel(4);
-        for (int i = 0; i < ShotAtomTuning.Count; i++) ShotAtoms.SetLevel((ShotAtom)i, 3);
+        for (int i = 0; i < ShotAtomTuning.Count; i++) ShotAtoms.SetLevel((ShotAtom)i, ShotAtomTuning.MaxLevel);
         var target = Hazard(1.5f, 4.4f);
-        int peak = 0;
+        int peak = 0, peakShared = 0, peakTotal = 0;
         r.battery.ResetTimers();
+        int objects0 = Object.FindObjectsByType<GameObject>(FindObjectsSortMode.None).Length;
         for (int i = 0; i < 3600; i++)
         {
             r.battery.Step(Dt);
             peak = Mathf.Max(peak, FloatieBullets.Active);
+            peakTotal = Mathf.Max(peakTotal, FloatieBullets.Active + AttackPool.ActiveProjectiles);
+            peakShared = Mathf.Max(peakShared, FloatieBullets.Size);
+            if (i % 300 == 0 && (target == null || !target.activeInHierarchy)) target = Hazard(1.5f, 4.4f);
         }
-        Check("every atom at level 3 on a three-floatie ship for a minute: the bullets in the air never pass the cap (peak " + peak + ")", peak <= ShotAtomTuning.MaxBullets && peak > 0);
+        Check("every atom at level 10 on a three-floatie ship for a minute: the bullets in the air never pass the cap (peak " + peak + " of " + ShotAtomTuning.MaxBullets + ")", peak <= ShotAtomTuning.MaxBullets && peak > 0);
+        Check("... and with the attack pool they never pass its shared cap (peak " + peakTotal + " of " + AttackPool.MaxProjectiles + "), the bullet pool never grows past its size (" + peakShared + ")",
+              peakTotal <= AttackPool.MaxProjectiles && peakShared <= ShotAtomTuning.MaxBullets && VoltArcs.PoolSize <= VoltArcs.MaxArcs);
         for (int i = 0; i < 400; i++) { r.battery.Step(Dt); if (i % 20 == 0) FloatieBullets.ReleaseAll(); }
         FloatieBullets.ReleaseAll();
         r.battery.ResetTimers();
         int shots = r.battery.Shots[0] + r.battery.Shots[1] + r.battery.Shots[2];
         long bytes = TestHarness.AllocatedBytes(() => { for (int i = 0; i < 600; i++) r.battery.Step(Dt); });
         int fired = r.battery.Shots[0] + r.battery.Shots[1] + r.battery.Shots[2] - shots;
-        Check("... and firing with every atom allocates nothing (" + bytes + " bytes over " + fired + " volleys)", fired >= 20 && bytes == 0);
+        Check("... and firing with every atom at level 10 allocates nothing (" + bytes + " bytes over " + fired + " volleys)", fired >= 20 && bytes == 0);
+        int objects1 = Object.FindObjectsByType<GameObject>(FindObjectsSortMode.None).Length;
+        Check("... and the object count is bounded: " + objects0 + " -> " + objects1 + " (at most the bullet pool + its root, the arc pool at 5 objects an arc + its root, and a few enemies more)",
+              objects1 - objects0 <= ShotAtomTuning.MaxBullets + 1 + VoltArcs.MaxArcs * 5 + 1 + 4);
         if (target != null) Object.DestroyImmediate(target);
         Teardown(r);
     }
@@ -820,13 +852,13 @@ public static class ShotAtomsTest
                   shown != null && ReferenceEquals(shown, firstPopup) && shown.text.Contains("ARC SHOT  LV 1") && shown.text.Contains("hits zap a nearby enemy") &&
                   popupHud.PopupPoolSize == pool0);
         }
-        ShotAtoms.SetLevel(ShotAtom.Arc, 3);
+        ShotAtoms.SetLevel(ShotAtom.Arc, ShotAtomTuning.MaxLevel);
         var again = ShotAtomPickup.Build(ShotAtom.Arc, Vector3.zero);
         rig.trigger(again.GetComponent<Collider2D>());
         if (PickupBurst.LastPlayed != null) PickupBurst.LastPlayed.Finish();
         {
             var shown = popupHud != null ? popupHud.AtomUpgradeText : null;
-            Check("at the cap the popup says 'ARC MAXED  +2 DUST'", shown != null && shown.text.Contains("ARC MAXED  +2 DUST") && shown.text.Contains("already at level 3"));
+            Check("at the cap the popup says 'ARC MAXED  +2 DUST'", shown != null && shown.text.Contains("ARC MAXED  +2 DUST") && shown.text.Contains("already at level 10"));
             popupHud.StepPopups(ShotAtoms.UpgradeSeconds * .5f);
             bool half = popupHud.AtomUpgradeShowing;
             popupHud.StepPopups(ShotAtoms.UpgradeSeconds);
@@ -839,9 +871,13 @@ public static class ShotAtomsTest
             Check("every atom and level has a title and a hint; the twin hints read '2 shots at once' / '3 shots in a fan'",
                   texts && ShotAtoms.UpgradeTitle(ShotAtom.Twin, 2) == "TWIN SHOT  LV 2" && ShotAtoms.UpgradeHint(ShotAtom.Twin, 1) == "2 shots at once" &&
                   ShotAtoms.UpgradeHint(ShotAtom.Twin, 2) == "3 shots in a fan" && ShotAtoms.MaxedTitle(ShotAtom.Twin) == "TWIN MAXED  +2 DUST");
+            Check("the popup reads 'LV 10' at the top, with MAXED on the hint line (two digits, the title stays short)",
+                  ShotAtoms.UpgradeTitle(ShotAtom.Ricochet, 10) == "RICOCHET SHOT  LV 10" && ShotAtoms.UpgradeTitle(ShotAtom.Rapid, 10) == "RAPID FIRE  LV 10" &&
+                  ShotAtoms.UpgradeHint(ShotAtom.Twin, 10) == "MAXED  7 shots in a fan" && ShotAtoms.UpgradeHint(ShotAtom.Rapid, 10) == "MAXED  +160% fire rate" &&
+                  !ShotAtoms.UpgradeHint(ShotAtom.Twin, 9).StartsWith("MAXED") && ShotAtoms.UpgradeTitle(ShotAtom.Pierce, 1).EndsWith("LV 1"));
         }
-        Check("a fourth ARC is past level 3: it pays dust (\"" + rig.cd.hypeText.text + "\") and the level stays 3",
-              ShotAtoms.Level(ShotAtom.Arc) == 3 && rig.cd.hypeText.text == ShotAtoms.MaxedWord && ShotAtoms.MaxedCatches == 1);
+        Check("an ARC past level 10 pays dust (\"" + rig.cd.hypeText.text + "\") and the level stays 10",
+              ShotAtoms.Level(ShotAtom.Arc) == ShotAtomTuning.MaxLevel && rig.cd.hypeText.text == ShotAtoms.MaxedWord && ShotAtoms.MaxedCatches == 1);
         Check("a pickup collected once is spent (its collider is off or it is gone)", coinCollider == null || !coinCollider.enabled);
         foreach (var go in new[] { coin, again, third }) if (go != null) Object.DestroyImmediate(go);
         Object.DestroyImmediate(canvasGo);
@@ -923,7 +959,21 @@ public static class ShotAtomsTest
               !src.Contains("typeof(Button)") && !src.Contains("typeof(GraphicRaycaster)") && src.Contains("slot.icon.raycastTarget = false") &&
               src.Contains("group.blocksRaycasts = false") && src.Contains("scene.name != \"gameS1\""));
         Check("the row reads the shot atoms only (never the boosters' or the timed atoms' state)", !src.Contains("Boosters.") && !src.Contains("MagnetPull") && !src.Contains("atomCheck"));
-        Check("the labels read x1 / x2 / x3", ShotAtomHud.LevelLabel(1) == "x1" && ShotAtomHud.LevelLabel(2) == "x2" && ShotAtomHud.LevelLabel(3) == "x3");
+        Check("the labels read x1 / x2 / x3 ... x10", ShotAtomHud.LevelLabel(1) == "x1" && ShotAtomHud.LevelLabel(2) == "x2" && ShotAtomHud.LevelLabel(3) == "x3" && ShotAtomHud.LevelLabel(10) == "x10" && ShotAtomHud.LevelLabel(11) == "x10");
+        bool labelFits = true;
+        foreach (var d in FitDevice.All)
+        {
+            var screen = new Vector2(d.w, d.h);
+            foreach (float rail in new[] { 0f, 2.2f })
+            {
+                var band = TopBand.FrameFor(d.Safe, screen, rail, d.Cutouts);
+                var g = ShotAtomHud.Compute(band, d.Safe, screen, AuthoredHud(band, screen), true, true);
+                int baseSize = Mathf.Max(9, Mathf.RoundToInt(ShotAtomHud.LabelUnits * PauseQuickActions.CanvasScaleFor(screen)));
+                int size = ShotAtomHud.LabelFontSize(baseSize, g.slotWidth, 3);
+                labelFits &= size >= 6 && size <= baseSize && (size == 6 || size * 3 * ShotAtomHud.LabelCharWidth <= g.slotWidth + .01f);
+            }
+        }
+        Check("... the two-digit label 'x10' fits its slot on every ScreenFit device (the font shrinks on a narrow board, never under 6)", labelFits);
     }
 
     static void HudLive()
@@ -1032,8 +1082,8 @@ public static class ShotAtomsTest
             var e = Codex.Find(CodexCatalogue.ShotAtomId(atom));
             all &= e != null && e.name == name && e.category == CodexCategory.Atoms;
             if (e == null) continue;
-            lore &= e.lore.Contains("elites and bosses") && !e.lore.Contains("UNLOCKS") && e.lore.Contains("LEVEL I  ") && e.lore.Contains("LEVEL II  ") && e.lore.Contains("LEVEL III  ") &&
-                    e.lore.Contains("MAX LEVEL");
+            lore &= e.lore.Contains("elites and bosses") && !e.lore.Contains("UNLOCKS") && e.lore.Contains("LEVEL 1  ") && e.lore.Contains("LEVEL 10  ") &&
+                    e.lore.Contains("MAX LEVEL  10");
             art &= e.Sprite != null && e.Sprite.name.StartsWith("shot_" + ShotAtoms.Key(atom) + "_idle");
             PickupKind kind;
             art &= CodexAnimations.TryPickupKind(e.id, out kind) && kind == ShotAtoms.KindOf(atom) && CodexAnimations.For(e) != null;
@@ -1050,7 +1100,7 @@ public static class ShotAtomsTest
         Check("... catching a coin (its name) resolves to its own entry, so the first catch discovers it like every atom", match);
         Check("... and a new profile has not discovered them (they stay locked until the first catch; RAPID and ARC were caught earlier in this suite)", locked);
         var twin = Codex.Find("atom_shot_twin");
-        Check("the TWIN lore quotes the tuning (2 parallel shots, 3 and 4 in a fan)", twin != null && twin.lore.Contains("2 parallel shots") && twin.lore.Contains("3 shots in a narrow fan") && twin.lore.Contains("4 shots in a narrow fan"));
+        Check("the TWIN lore quotes the tuning range (2 parallel shots at level 1, 7 in a fan at level 10) and the max level", twin != null && twin.lore.Contains("2 parallel shots") && twin.lore.Contains("7 shots in a narrow fan") && twin.lore.Contains("MAX LEVEL  10"));
         Check("the old atoms are untouched (blue, red, green, violet, magnetic still there)", Codex.Find("atom_blue") != null && Codex.Find("atom_red") != null && Codex.Find("atom_green") != null &&
               Codex.Find(CodexCatalogue.VioletAtomId) != null && Codex.Find(CodexCatalogue.MagnetAtomId) != null);
         Check("every shot atom kind has its art (14 idle frames, 6 burst frames)", AllFrames());

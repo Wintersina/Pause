@@ -309,6 +309,7 @@ public static class AllTests
         ("FloatieGunTest", FloatieGunTest.Execute),
         ("ToughEnemiesTest", ToughEnemiesTest.Execute),
         ("ShotAtomsTest", ShotAtomsTest.Execute),
+        ("PowerCreepTest", PowerCreepTest.Execute),
         ("ShipDamageTest", ShipDamageTest.Execute),
         ("ShipLivesIndicatorTest", ShipLivesIndicatorTest.Execute),
         ("ShipLivesTest", ShipLivesTest.Execute),
