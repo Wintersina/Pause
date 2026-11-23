@@ -26,7 +26,7 @@ public class DockPlanet : MonoBehaviour
     Material material;
     Vector4 disc;
     float turn, rate;
-    readonly MaterialPropertyBlock mpb = new MaterialPropertyBlock();
+    MaterialPropertyBlock mpb;   // made lazily: a MonoBehaviour field initializer cannot make native objects
 
     public static DockPlanet Create(Transform parent, int cell)
     {
@@ -86,6 +86,7 @@ public class DockPlanet : MonoBehaviour
 
     void Paint()
     {
+        if (mpb == null) mpb = new MaterialPropertyBlock();
         mpb.Clear();
         mpb.SetTexture(IdMainTex, sprite.texture);
         mpb.SetVector(IdDisc, disc);
