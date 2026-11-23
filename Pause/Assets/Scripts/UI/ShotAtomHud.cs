@@ -2,8 +2,11 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
-// The run's SHOT ATOM row: a horizontal row of small coins right under the score board, one per shot atom caught this run, in the
-// order they were caught, each with its level under it ("x1".."x3"). Only the permanent shot atoms (ShotAtoms): never the
+// The run's SHOT ATOM block (PER DRONE): right under the score board, one compact ROW per drone (up to six): a small drone glyph, then
+// that drone's atom coins (Twin, Pierce, Split, Ricochet, Arc in fixed columns, so a coin never moves), each with its level under it
+// ("x1".."x10"); RAPID, which every drone shares, shows once as one coin at the end of the first row. The block is as tall as the
+// ship has drones (reserved from the start, so a coin joining never moves anything) and is shrunk to fit a short screen.
+// (It used to be one row of the atoms in the order caught.) Only the permanent shot atoms (ShotAtoms): never the
 // boosters (BoosterHud keeps the right-hand column) and never the timed atoms. A coin is the atom's own idle flipbook, small, with
 // the border spinning and the symbol still.
 //
@@ -12,30 +15,34 @@ using UnityEngine.UI;
 //
 // PLACEMENT (pure, Geometry / SlotRect, ShotAtomsTest): the row starts at the score board's inner left edge, a gap under the
 // board's bottom FRAME (the art reaches below the layout rect), and stays inside the board's width, so it never meets the rails.
-// The row is ALWAYS pinned there: it never slides for the boss warning's banner / chip or PORTAL DANGER's chip (the row's canvas
+// The block is ALWAYS pinned there: it never slides for the boss warning's banner / chip or PORTAL DANGER's chip (its canvas
 // is drawn above theirs instead). It hangs under the frame's VISIBLE bottom (HudStyler.BoardVisibleBottomPx: the art's
 // transparent bottom strip and the live read-out scale taken out, per world) and re-anchors when the world's frame changes.
-// The Replay/Home pair is always an obstacle; the booster column only narrows the row. All six slots
+// The Replay/Home pair is always an obstacle; the booster column only narrows the block. All the drone rows
 // are always reserved, so a coin joining the row never moves anything. It follows ScreenFit's top band (rails, notches,
 // cutouts, safe area), so tall phones, the Flip cover screen, foldables and tablets all get it; on a narrow board the coins shrink.
 public class ShotAtomHud : MonoBehaviour
 {
     public const string HostName = "~ShotAtomHud";
-    public const float IconUnits = 34f;        // a coin's size in quick-action canvas units
-    public const float MinSlotUnits = 30f;     // wide enough for "x3"
-    public const float LabelUnits = 14f;       // the level line under a coin
-    public const float GapUnits = 4f;          // between two slots, and under the score board
-    public const int MaxSlots = ShotAtomTuning.Count;
+    public const float IconUnits = 24f;        // a coin's size in quick-action canvas units
+    public const float MinSlotUnits = 26f;     // wide enough for "x10"
+    public const float LabelUnits = 11f;       // the level line under a coin
+    public const float GapUnits = 3f;          // between two slots, and under the score board
+    public const float MaxHeightShare = .34f;  // of the screen's height, the most the block may take (it shrinks to fit)
+    public const int Columns = 7;              // the drone glyph, Twin .. Arc, then the shared Rapid coin
+    public const int GlyphColumn = 0, RapidColumn = 6, MaxRows = ShotAtomTuning.MaxDrones;
     public const int SortOrder = 88;           // above the boss warning (85) and PORTAL DANGER (84), under the booster column (89)
+    public const int MaxSlots = Columns * MaxRows;
 
     public struct Geometry
     {
-        public float left, top, icon, pitch, slotWidth, slotHeight, label;
+        public float left, top, icon, pitch, slotWidth, slotHeight, label, rowPitch;
+        public int rows;
     }
 
-    // Every rect the row must stay clear of, in screen px: the Replay/Home pair. (The boss warning's banner and chip and PORTAL
-    // DANGER's chip are NOT obstacles: the row never moves for them; it is drawn above them, canvas sort order 88 over 85.
-    // The score read-out and the booster column are handled in Compute: the row starts under the first and is kept beside the second.)
+    // Every rect the block must stay clear of, in screen px: the Replay/Home pair. (The boss warning's banner and chip and PORTAL
+    // DANGER's chip are NOT obstacles: the block never moves for them; it is drawn above them, canvas sort order 88 over 85.
+    // The score read-out and the booster column are handled in Compute: the block starts under the first and is kept beside the second.)
     public static Rect[] Obstacles(TopBand.Frame band, Rect safe, Vector2 screen, Rect hud)
     {
         return new[] { PauseQuickActions.ScreenRectFor(band, screen) };
@@ -46,10 +53,16 @@ public class ShotAtomHud : MonoBehaviour
         return Compute(band, safe, screen, hud, -1);
     }
 
-    // `world`: whose board frame is on screen (-1 = the live world). The row hangs one gap under that frame's VISIBLE bottom edge.
+    // `world`: whose board frame is on screen (-1 = the live world). The block hangs one gap under that frame's VISIBLE bottom edge.
     public static Geometry Compute(TopBand.Frame band, Rect safe, Vector2 screen, Rect hud, int world)
     {
-        var g = new Geometry();
+        return Compute(band, safe, screen, hud, world, ShotAtoms.DroneCount);
+    }
+
+    public static Geometry Compute(TopBand.Frame band, Rect safe, Vector2 screen, Rect hud, int world, int rows)
+    {
+        rows = Mathf.Clamp(rows, 1, MaxRows);
+        var g = new Geometry { rows = rows };
         float s = PauseQuickActions.CanvasScaleFor(screen);
         float gap = Mathf.Max(1f, Mathf.Round(GapUnits * s));
         bool board = hud.height > 0f;
@@ -68,25 +81,35 @@ public class ShotAtomHud : MonoBehaviour
             right = Mathf.Min(right, Mathf.Max(g.left, b.xMin - gap));
         }
 
-        float avail = Mathf.Max(MaxSlots, right - g.left);
+        float avail = Mathf.Max(Columns, right - g.left);
         float slotWidth = Mathf.Max(want, Mathf.Round(MinSlotUnits * s));
         float pitch = slotWidth + gap;
-        if (pitch * MaxSlots - gap > avail)
+        if (pitch * Columns - gap > avail)
         {
-            pitch = Mathf.Floor((avail + gap) / MaxSlots);
+            pitch = Mathf.Floor((avail + gap) / Columns);
             slotWidth = Mathf.Max(1f, pitch - gap);
+        }
+        // the block's height: shrink the coins (never below 8 px) until all the rows fit the share of the screen
+        float icon = Mathf.Min(want, slotWidth);
+        float maxHeight = screen.y * MaxHeightShare;
+        if (rows * (icon + label + gap) > maxHeight)
+        {
+            float k = maxHeight / (rows * (icon + label + gap));
+            icon = Mathf.Max(8f, Mathf.Floor(icon * k));
+            label = Mathf.Max(6f, Mathf.Floor(label * k));
         }
         g.pitch = pitch;
         g.slotWidth = slotWidth;
-        g.icon = Mathf.Min(want, slotWidth);
+        g.icon = icon;
         g.label = label;
         g.slotHeight = g.icon + g.label;
-        float xMax = g.left + MaxSlots * pitch - gap;
+        g.rowPitch = g.slotHeight + gap;
+        float xMax = g.left + Columns * pitch - gap;
         g.top = BoosterHud.ColumnTop(Obstacles(band, safe, screen, hud), g.left, xMax, startTop, gap);
         return g;
     }
 
-    // Slot `index`'s screen-px rect (origin bottom-left): the coin on top, its level under it.
+    // Slot `index`'s screen-px rect (origin bottom-left): the coin on top, its level under it. index = row * Columns + column.
     public static Rect SlotRect(TopBand.Frame band, Rect safe, Vector2 screen, Rect hud, int index)
     {
         return SlotRect(Compute(band, safe, screen, hud), index);
@@ -94,8 +117,20 @@ public class ShotAtomHud : MonoBehaviour
 
     public static Rect SlotRect(Geometry g, int index)
     {
-        return new Rect(Mathf.Round(g.left + index * g.pitch), Mathf.Round(g.top - g.slotHeight), g.slotWidth, g.slotHeight);
+        int row = index / Columns, col = index % Columns;
+        return new Rect(Mathf.Round(g.left + col * g.pitch), Mathf.Round(g.top - g.slotHeight - row * g.rowPitch), g.slotWidth, g.slotHeight);
     }
+
+    // The whole block's rect (every reserved row).
+    public static Rect BlockRect(Geometry g)
+    {
+        float h = g.rows * g.rowPitch - (g.rowPitch - g.slotHeight);
+        return new Rect(g.left, g.top - h, Columns * g.pitch - (g.pitch - g.slotWidth), h);
+    }
+
+    // The slot index of drone `drone`'s atom (Twin .. Arc), the drone's glyph, and the shared Rapid coin.
+    public static int AtomSlot(int drone, ShotAtom atom) { return atom == ShotAtom.Rapid ? RapidColumn : drone * Columns + 1 + (int)atom; }
+    public static int GlyphSlot(int drone) { return drone * Columns + GlyphColumn; }
 
     // The coin's square inside a slot (top centre, whole px).
     public static Rect IconRect(Geometry g, Rect slot)
@@ -123,6 +158,8 @@ public class ShotAtomHud : MonoBehaviour
         public Image icon;
         public Text label;
         public ShotAtom atom;
+        public bool glyph;
+        public int drone;
         public int level = -1;
         public float pulse;      // 1 -> 0 after a level up: the coin swells a little
     }
@@ -141,6 +178,7 @@ public class ShotAtomHud : MonoBehaviour
     Rect appliedSafe, appliedHud;
     TopBand.Frame appliedBand;
     bool placed;
+    int placedRows;
 
     HudStyler styler;
     RectTransform hudRoot;
@@ -170,11 +208,12 @@ public class ShotAtomHud : MonoBehaviour
         var g = Compute(band, safe, screen, hud);
         float gap = Mathf.Max(1f, Mathf.Round(GapUnits * PauseQuickActions.CanvasScaleFor(screen)));
         float cx = hud.height > 0f ? hud.center.x : (band.left + band.right) * .5f;
-        topCentre = new Vector2(Mathf.Round(cx), Mathf.Round(g.top - g.slotHeight - gap));
+        topCentre = new Vector2(Mathf.Round(cx), Mathf.Round(g.top - g.rows * g.rowPitch - gap));
         return true;
     }
 
-    public int VisibleCount { get { return shownCount; } }
+    public int VisibleCount { get { return shownCount; } }   // atom coins showing (the drone glyphs are not counted)
+    public bool ActiveAt(int slot) { return slots[slot] != null && slots[slot].root.gameObject.activeSelf; }
     public Geometry CurrentGeometry { get { return geometry; } }
     public Rect CurrentHud { get { return liveHud; } }
     public float PulseAt(int slot) { return slots[slot].pulse; }
@@ -240,36 +279,67 @@ public class ShotAtomHud : MonoBehaviour
         }
     }
 
+    static bool DroneHasAny(int drone)
+    {
+        for (int a = 0; a < ShotAtomTuning.PerDroneAtoms; a++) if (ShotAtoms.Level(drone, (ShotAtom)a) > 0) return true;
+        return false;
+    }
+
+    Sprite GlyphSprite()
+    {
+        var b = FloatieBattery.Current;
+        return UltimateGun.CompanionSprite(b != null ? b.Ship : ShipId.Equipped());
+    }
+
+    void Refresh()
+    {
+        int drones = ShotAtoms.DroneCount, coins = 0;
+        for (int i = 0; i < MaxSlots; i++)
+        {
+            var slot = slots[i];
+            int row = i / Columns, col = i % Columns;
+            bool on = false;
+            slot.drone = row;
+            slot.glyph = col == GlyphColumn;
+            if (slot.glyph)
+            {
+                on = row < drones && DroneHasAny(row);
+                if (on) { slot.label.text = (row + 1).ToString(); slot.icon.sprite = GlyphSprite(); slot.level = 0; }
+            }
+            else
+            {
+                var atom = col == RapidColumn ? ShotAtom.Rapid : (ShotAtom)(col - 1);
+                int level = col == RapidColumn ? (row == 0 ? ShotAtoms.Level(ShotAtom.Rapid) : 0) : row < drones ? ShotAtoms.Level(row, atom) : 0;
+                on = level > 0;
+                if (on)
+                {
+                    if (atom != slot.atom || level != slot.level) slot.pulse = 1f;
+                    slot.atom = atom;
+                    slot.level = level;
+                    slot.label.text = LevelLabel(level);
+                    slot.icon.sprite = Frame(atom);
+                    coins++;
+                }
+                else slot.level = -1;
+            }
+            if (slot.root.gameObject.activeSelf != on) slot.root.gameObject.SetActive(on);
+        }
+        shownCount = coins;
+    }
+
     void Update()
     {
-        int n = ShotAtoms.OrderCount;
-        if (n > 0 && canvas == null) Build();
+        if (ShotAtoms.OrderCount > 0 && canvas == null) Build();
         if (canvas == null) return;
 
         if (shownVersion != ShotAtoms.Version)
         {
             shownVersion = ShotAtoms.Version;
-            shownCount = n;
-            for (int i = 0; i < MaxSlots; i++)
-            {
-                bool on = i < n;
-                var slot = slots[i];
-                if (on)
-                {
-                    var atom = ShotAtoms.OrderAt(i);
-                    int level = ShotAtoms.Level(atom);
-                    if (atom != slot.atom || level != slot.level) slot.pulse = 1f;
-                    slot.atom = atom;
-                    slot.level = level;
-                    slot.label.text = LevelLabel(slot.level);
-                    slot.icon.sprite = Frame(slot.atom);
-                }
-                if (slot.root.gameObject.activeSelf != on) slot.root.gameObject.SetActive(on);
-            }
+            Refresh();
         }
         if (shownCount == 0) return;
         float dt = Time.unscaledDeltaTime;
-        for (int i = 0; i < shownCount; i++)
+        for (int i = 0; i < MaxSlots; i++)
             if (slots[i].pulse > 0f)
             {
                 slots[i].pulse = Mathf.Max(0f, slots[i].pulse - dt / PulseSeconds);
@@ -287,7 +357,8 @@ public class ShotAtomHud : MonoBehaviour
             moved = true;
         }
         if (moved)
-            for (int i = 0; i < shownCount; i++) slots[i].icon.sprite = Frame(slots[i].atom);
+            for (int i = 0; i < MaxSlots; i++)
+                if (!slots[i].glyph && slots[i].root.gameObject.activeSelf) slots[i].icon.sprite = Frame(slots[i].atom);
         Place();
     }
 
@@ -305,15 +376,16 @@ public class ShotAtomHud : MonoBehaviour
         var band = TopBand.FrameFor(safe, screen);
         Rect hud = LiveHudRect(band, screen);
         int world = HudSkin.CurrentWorld;
-        // re-anchored whenever the screen, the read-out or the board's frame (the world) changes; never for a warning
-        if (placed && screen == appliedScreen && safe == appliedSafe && band.Same(appliedBand) && hud == appliedHud && world == appliedWorld) return;
+        // re-anchored whenever the screen, the read-out, the drone count or the board's frame (the world) changes; never for a warning
+        if (placed && placedRows == ShotAtoms.DroneCount && screen == appliedScreen && safe == appliedSafe && band.Same(appliedBand) && hud == appliedHud && world == appliedWorld) return;
         placed = true;
         appliedWorld = world;
         appliedScreen = screen; appliedSafe = safe; appliedBand = band; appliedHud = hud;
         liveHud = hud;
-        var g = Compute(band, safe, screen, hud, world);
+        var g = Compute(band, safe, screen, hud, world, ShotAtoms.DroneCount);
         geometry = g;
-        int fontSize = Mathf.Max(9, Mathf.RoundToInt(LabelUnits * PauseQuickActions.CanvasScaleFor(screen)));
+        placedRows = g.rows;
+        int fontSize = Mathf.Max(8, Mathf.RoundToInt(LabelUnits * PauseQuickActions.CanvasScaleFor(screen)));
         for (int i = 0; i < MaxSlots; i++)
         {
             Rect r = SlotRect(g, i);

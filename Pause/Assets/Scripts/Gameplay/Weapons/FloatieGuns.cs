@@ -7,9 +7,13 @@ using UnityEngine;
 //   level 2-3  2 floaties (+ a FloatieCompanion on the other side)      #2 fires up and angled left or right, every 2 s
 //   level 4    3 floaties (+ a seeker below the first), all 25% faster  #1/#2 every 1.5 s, the SEEKER every 3 s
 //
+// PARAGON (the premium cheat ship, id 16) is the exception: it flies with TWO floaties from the very first second and every skin it
+// owns adds one more, up to SIX (2, 3, 4, 5, 6 across its 5 tiers). Floaties 4-6 fan out (see FloatieTuning.Role).
+//
 // While a boss fight is on (BossEncounter.Running, the fly-in included) every floatie waits 5 s between shots. Fire holds (the
-// timers freeze, nothing is lost) while the ship's ultimate slides out / fires, the world is frozen (a pause), the pilot is dead,
-// a world transition (planetfall / lift-off) runs, the boss's scripted entrance plays, and in the tutorial.
+// timers freeze, nothing is lost) while the world is frozen (a pause), the pilot is dead, a world transition (planetfall / lift-off)
+// runs, the boss's scripted entrance plays, and in the tutorial. The ship's ULTIMATE does NOT hold the gun any more: the floaties keep
+// firing the whole time it slides out, fires and plays (their bullets draw above every ultimate effect).
 //
 // A bullet is small, thin and low-glow, in the ship's own weapon colour, from a fixed pool (no allocation per shot). It stops on the
 // FIRST thing it touches: a hostile projectile (popped, no score), a hazard (ShipAttackHits: score, dust, chain, codex like any
@@ -19,7 +23,9 @@ using UnityEngine;
 // Everything tunable is a constant in FloatieTuning.
 public static class FloatieTuning
 {
-    public const int MaxFloaties = 3;
+    public const int MaxFloaties = 6;
+    public const int ParagonBase = 2;              // Paragon's floaties at tier 0 (+1 a tier: 2, 3, 4, 5, 6)
+    public const float FanDegrees = 10f;           // floaties 4 and 5 fire this far off straight up (left, right)
     // The normal gun fires half as often (combat rework, 2026-11-22: x2 on every base cooldown; was 1 s / 2 s). The boss rate is unchanged.
     public const float NormalCooldown = 2f;        // floatie #1 and #2, seconds
     public const float SeekerCooldown = 4f;        // floatie #3 (it only exists at the final level, where the cut applies: 3 s)
@@ -38,6 +44,21 @@ public static class FloatieTuning
         return level >= ShipWeaponUpgrades.MaxLevel ? 3 : level >= 2 ? 2 : 1;
     }
 
+    // How many floaties `ship` flies with at weapon level `level`: the ordinary 1 / 2 / 3, or Paragon's 2 .. 6.
+    public static int CountAt(int ship, int level)
+    {
+        if (PremiumShips.IsPremium(ship)) return Mathf.Clamp(ParagonBase + Mathf.Clamp(level, 0, ShipWeaponUpgrades.MaxLevel), 1, MaxFloaties);
+        return CountAt(level);
+    }
+
+    public enum Role { Main, Spread, Seeker, FanLeft, FanRight, SeekerTwo }
+
+    // What floatie `index` (0-based) does: 0 straight up, 1 the random angle, 2 the seeker, 3 / 4 a fixed fan, 5 a second seeker.
+    public static Role RoleOf(int index) { return (Role)Mathf.Clamp(index, 0, MaxFloaties - 1); }
+    public static bool IsSeeker(int index) { return index == 2 || index == 5; }
+
+    // Floatie 4 fires FanDegrees to the left, floatie 5 the same to the right (+ is left, as a bullet's angle).
+    public static float FanAngle(int index) { return index == 3 ? FanDegrees : index == 4 ? -FanDegrees : 0f; }
     public static bool IsFinal(int level) { return level >= ShipWeaponUpgrades.MaxLevel; }
 
     // Seconds between floatie `index` (0-based) shots at `level`.
@@ -45,7 +66,7 @@ public static class FloatieTuning
     public static float Cooldown(int index, int level, bool bossActive)
     {
         if (bossActive) return ShotAtoms.Rapid(BossCooldown);
-        float baseSeconds = index >= 2 ? SeekerCooldown : NormalCooldown;
+        float baseSeconds = IsSeeker(index) ? SeekerCooldown : NormalCooldown;
         return ShotAtoms.Rapid(IsFinal(level) ? baseSeconds * (1f - FinalLevelCut) : baseSeconds);
     }
 
@@ -57,16 +78,27 @@ public static class FloatieTuning
     }
 
     // The same, as short as it can be (the dock's weapon row has two short lines).
-    public static string DockNote(int level)
+    public static string DockNote(int level) { return DockNote(0, level); }
+
+    public static string DockNote(int ship, int level)
     {
+        if (PremiumShips.IsPremium(ship))
+            return level >= ShipWeaponUpgrades.MaxLevel ? "+1 DRONE, -25% CD" : level >= 1 ? "+1 DRONE" : null;
         if (level == 2) return "+1 FLOATIE";
         if (level >= ShipWeaponUpgrades.MaxLevel) return "+SEEKER, -25% CD";
         return null;
     }
 
     // The word the dock, the shop's offer and the Codex add to a step: what the floaties gain at that level (null: nothing).
-    public static string StepNote(int level)
+    public static string StepNote(int level) { return StepNote(0, level); }
+
+    public static string StepNote(int ship, int level)
     {
+        if (PremiumShips.IsPremium(ship))
+        {
+            int drones = CountAt(ship, level);
+            return level >= ShipWeaponUpgrades.MaxLevel ? "+1 DRONE (" + drones + "), -25% DRONE CD" : level >= 1 ? "+1 DRONE (" + drones + ")" : null;
+        }
         if (level == 2) return "+1 FLOATIE";
         if (level >= ShipWeaponUpgrades.MaxLevel) return "+1 SEEKER FLOATIE, -25% FLOATIE CD";
         return null;
@@ -170,9 +202,11 @@ public static class FloatieBank
 // One small pooled bullet.
 public class FloatieBullet : MonoBehaviour
 {
-    public const float MaxAge = 2.4f, TurnDegreesPerSecond = 200f, ViewMargin = .5f;
-    // The size of the drawing in world units (a thin pill), and its alpha.
-    const float Width = .06f, Length = .2f, Alpha = .85f;
+    public const float MaxAge = 2.4f, ViewMargin = .5f;   // NOTHING HOMES: a bullet's heading never changes after it leaves (only a RICOCHET bounce turns it)
+    // The drawing (BulletSprite): a 5 x 28 pixel sprite at 80 px a unit, ~.06 wide, a head ~.18 long and a fading tail ~.17 behind it. Its
+    // pivot is the head's middle, so a bullet is placed by its head. Alpha stays high so it reads on every backdrop.
+    const float Alpha = 1f;
+    public const int HeadTop = 7;    // sprite rows above the pivot
 
     // Counters (tests, previews).
     public static int Launched, Landed, ShotDown, Wasted;
@@ -181,9 +215,8 @@ public class FloatieBullet : MonoBehaviour
     int ship;
     Vector3 dir;
     float age;
-    Transform lockOn;
-    ClearTarget lockTarget;
     FloatieBattery owner;
+    float pierceStreak;
 
     // The shot atoms on this bullet (ShotAtoms.cs). Plain: whole damage, nothing else.
     public struct Mods
@@ -196,6 +229,8 @@ public class FloatieBullet : MonoBehaviour
         public bool shard;       // a split shard: small, short, never splits or zaps again
         public float speed, life;
         public ClearTarget ignore;   // a shard's parent: it starts inside it
+        public int source;           // the floatie (0-based) that fired it: the battery's fair share counts bullets by it
+        public bool rapid;           // RAPID is active: a slightly longer tail
         public static Mods Plain { get { return new Mods { damage = 1f }; } }
     }
     Mods mods;
@@ -210,39 +245,56 @@ public class FloatieBullet : MonoBehaviour
     public int BouncesLeft => mods.bounces;
 
     public bool Active { get; private set; }
+    public int LaunchId { get; private set; }   // the global Launched count at this bullet's latest launch (a pooled bullet re-fired is a new shot)
     public Vector3 Heading => dir;
     public FloatieBattery Owner => owner;
+    public int Source => mods.source;
+    public Vector3 Velocity => dir * speed;
     public Color Tint => body != null ? body.color : Color.white;
     public SpriteRenderer Renderer => body;
 
     static Sprite pill;
-    static Sprite Pill()
+    // Pixel art, white / grey so the weapon colour multiplies it: row 0 is the bottom. Head (rows 14..27): a bright core column, a body
+    // column either side of it (70%), and a dark edge pixel outside that (the contrast on a light backdrop); behind it a 1-px tail that
+    // fades out (and a faint second one for the first rows). No glow, no soft edge.
+    public static Sprite BulletSprite()
     {
         if (pill != null) return pill;
-        // 3 x 8 pixels: a rounded pill, the middle column solid, the edges fainter (crisp, no filtering)
-        var tex = new Texture2D(3, 8, TextureFormat.RGBA32, false) { filterMode = FilterMode.Point, wrapMode = TextureWrapMode.Clamp };
+        const int W = 5, H = 28;
+        var tex = new Texture2D(W, H, TextureFormat.RGBA32, false) { filterMode = FilterMode.Point, wrapMode = TextureWrapMode.Clamp };
         tex.hideFlags = HideFlags.HideAndDontSave;
-        for (int y = 0; y < 8; y++)
-            for (int x = 0; x < 3; x++)
-            {
-                bool tip = y == 0 || y == 7;
-                float a = x == 1 ? 1f : tip ? 0f : .55f;
-                tex.SetPixel(x, y, new Color(1f, 1f, 1f, a));
-            }
-        tex.Apply(false, true);
-        pill = Sprite.Create(tex, new Rect(0, 0, 3, 8), new Vector2(.5f, .5f), 40f, 0, SpriteMeshType.FullRect);
+        var clear = new Color(1f, 1f, 1f, 0f);
+        for (int y = 0; y < H; y++) for (int x = 0; x < W; x++) tex.SetPixel(x, y, clear);
+        int top = H - 1;                       // the tip row
+        for (int y = 14; y <= top; y++)
+        {
+            int fromTip = top - y;
+            if (fromTip == 0) { tex.SetPixel(2, y, Color.white); continue; }                 // the tip: core only
+            tex.SetPixel(2, y, Color.white);                                                   // core
+            if (fromTip >= 1) { tex.SetPixel(1, y, new Color(.72f, .72f, .72f, 1f)); tex.SetPixel(3, y, new Color(.72f, .72f, .72f, 1f)); }
+            if (fromTip >= 2 && y >= 15) { tex.SetPixel(0, y, new Color(.08f, .08f, .1f, .8f)); tex.SetPixel(4, y, new Color(.08f, .08f, .1f, .8f)); }
+        }
+        for (int y = 0; y < 14; y++)
+        {
+            float k = y / 13f;                               // 0 at the very end of the tail, 1 at the head
+            tex.SetPixel(2, y, new Color(.85f, .85f, .85f, k * k * .75f));
+            if (y >= 9) { float a = (y - 8) / 5f * .3f; tex.SetPixel(1, y, new Color(.7f, .7f, .7f, a)); tex.SetPixel(3, y, new Color(.7f, .7f, .7f, a)); }
+        }
+        tex.Apply(false, false);
+        pill = Sprite.Create(tex, new Rect(0, 0, W, H), new Vector2(.5f, 21f / H), 80f, 0, SpriteMeshType.FullRect);
         pill.hideFlags = HideFlags.HideAndDontSave;
         return pill;
     }
 
     const float ShardScale = .7f;
+    public const int SortOrder = 74;   // above every ultimate effect (<= 72) and the hit bursts, under FloatieFx (75)
 
     public void Build()
     {
         body = gameObject.AddComponent<SpriteRenderer>();
-        body.sprite = Pill();
-        body.sortingOrder = 71;
-        transform.localScale = new Vector3(Width / (3f / 40f), Length / (8f / 40f), 1f);
+        body.sprite = BulletSprite();
+        body.sortingOrder = SortOrder;
+        transform.localScale = Vector3.one;
         gameObject.SetActive(false);
     }
 
@@ -260,19 +312,22 @@ public class FloatieBullet : MonoBehaviour
         passedCount = 0;
         if (mods.ignore != null) passed[passedCount++] = mods.ignore;
         float k = mods.shard ? ShardScale : 1f;
-        transform.localScale = new Vector3(Width / (3f / 40f) * k, Length / (8f / 40f) * k, 1f);
+        // PIERCE draws a longer streak behind the head, RAPID a slightly longer tail; shards are small
+        pierceStreak = mods.pierce > 0 ? 1.7f : mods.rapid ? 1.25f : 1f;
+        transform.localScale = new Vector3(k, k * pierceStreak, 1f);
         owner = by;
         ship = shipId;
         dir = heading.sqrMagnitude > 1e-6f ? heading.normalized : Vector3.up;
         age = 0f;
-        lockOn = lockOnPick.lockOn;
-        lockTarget = lockOnPick.target;
         transform.position = new Vector3(at.x, at.y, 0f);
         Face();
-        if (body.sprite == null) body.sprite = Pill();
-        body.color = new Color(tint.r, tint.g, tint.b, Alpha);
+        if (body.sprite == null) body.sprite = BulletSprite();
+        // a little lifted toward white so the core reads on dark and light backdrops alike (the dark edge pixel carries the light ones)
+        float lift = mods.pierce > 0 ? .3f : .12f;
+        body.color = new Color(Mathf.Lerp(tint.r, 1f, lift), Mathf.Lerp(tint.g, 1f, lift), Mathf.Lerp(tint.b, 1f, lift), Alpha);
         Active = true;
         Launched++;
+        LaunchId = Launched;
         gameObject.SetActive(true);
     }
 
@@ -284,24 +339,16 @@ public class FloatieBullet : MonoBehaviour
     public void Release()
     {
         Active = false;
-        lockOn = null;
-        lockTarget = null;
         gameObject.SetActive(false);
     }
 
-    // One step on the world's clock: steer on a seeker's lock, fly, then stop on the first thing along the step.
+    // One step on the world's clock: fly straight (no homing, ever), then stop on the first thing along the step.
     public void Tick(float dt)
     {
         if (!Active || dt <= 0f) return;
         age += dt;
         Vector3 from = transform.position;
 
-        if (lockOn != null)
-        {
-            bool alive = lockTarget != null ? Valid(lockTarget) : lockOn.gameObject.activeInHierarchy;
-            if (!alive) { lockOn = null; lockTarget = null; }
-            else dir = PowerFx.SteerHeading(dir, lockOn.position - from, TurnDegreesPerSecond, dt);
-        }
         Vector3 to = from + dir * (speed * dt);
         if (mods.bounces > 0) Ricochet(ref to);
         transform.position = to;
@@ -317,8 +364,8 @@ public class FloatieBullet : MonoBehaviour
     void Ricochet(ref Vector3 to)
     {
         Rect v = ShipTargets.View(0f);
-        if (to.x < v.xMin && dir.x < 0f) { to.x = v.xMin + (v.xMin - to.x); dir.x = -dir.x; mods.bounces--; Bounced++; }
-        else if (to.x > v.xMax && dir.x > 0f) { to.x = v.xMax - (to.x - v.xMax); dir.x = -dir.x; mods.bounces--; Bounced++; }
+        if (to.x < v.xMin && dir.x < 0f) { to.x = v.xMin + (v.xMin - to.x); dir.x = -dir.x; mods.bounces--; Bounced++; FloatieFx.Spark(FloatieFx.Kind.Bounce, new Vector3(v.xMin, to.y, 0f), dir, body.color); }
+        else if (to.x > v.xMax && dir.x > 0f) { to.x = v.xMax - (to.x - v.xMax); dir.x = -dir.x; mods.bounces--; Bounced++; FloatieFx.Spark(FloatieFx.Kind.Bounce, new Vector3(v.xMax, to.y, 0f), dir, body.color); }
     }
 
     bool HasPassed(ClearTarget t)
@@ -353,9 +400,10 @@ public class FloatieBullet : MonoBehaviour
 
         if (shot != null && shotAlong <= bestAlong)
         {
-            if (HostileShots.ShootDown(shot)) { ShotDown++; Release(); return true; }
+            if (HostileShots.ShootDown(shot)) { ShotDown++; FloatieFx.Spark(FloatieFx.Kind.Hit, transform.position, dir, body.color); Release(); return true; }
         }
         if (best == null) return false;
+        Vector3 struckAt = best.transform.position;   // read before the hit: a kill destroys the target
         Strike(best);
         // PIERCE: it goes on through the next enemy (never twice through the same one)
         if (mods.pierce > 0 && passedCount < passed.Length)
@@ -363,6 +411,7 @@ public class FloatieBullet : MonoBehaviour
             mods.pierce--;
             passed[passedCount++] = best;
             Pierced++;
+            FloatieFx.Spark(FloatieFx.Kind.Pierce, struckAt, dir, body.color);
             return false;
         }
         Release();
@@ -375,25 +424,31 @@ public class FloatieBullet : MonoBehaviour
     {
         Vector3 at = hit.transform.position;
         Landed++;
-        Damage(hit.gameObject, ship, mods.damage, transform.position);
+        Vector3 impact = transform.position;
+        bool nudge = hit.TryGetComponent(out EnemyHearts _);
+        bool dead = Damage(hit.gameObject, ship, mods.damage, impact);
+        FloatieFx.Spark(FloatieFx.Kind.Hit, impact, dir, body.color);
+        // a normal enemy that took the hit and lives on is pushed a hair along the shot
+        if (nudge && !dead && hit != null && hit.enabled) FloatieFx.Nudge(hit.transform, dir);
         if (mods.shard) return;
-        if (mods.shards > 0) Split(at, hit);
+        if (mods.shards > 0) { FloatieFx.Spark(FloatieFx.Kind.Split, at, dir, body.color); Split(at, hit); }
         if (mods.arc > 0) Zap(at, hit);
     }
 
     // One hit of `scale` of a whole shot on `target`.
-    static void Damage(GameObject target, int ship, float scale, Vector3 blowFrom)
+    static bool Damage(GameObject target, int ship, float scale, Vector3 blowFrom)
     {
         float budget = 1f, weight = scale;
         if (target.TryGetComponent(out EliteShip elite))
         {
             weight = 1f;
-            if (!FloatieBank.Add(elite, FloatieTuning.EliteWeight * scale)) return;   // banked: the heart follows with the fourth
+            if (!FloatieBank.Add(elite, FloatieTuning.EliteWeight * scale)) return false;   // banked: the heart follows with the fourth
         }
         else if (target.TryGetComponent(out BossTarget _)) weight = FloatieTuning.BossWeight * scale;
         ShipAttackHits.HitFrom = blowFrom;
-        ShipAttackHits.Hit(target, ship, weight, ref budget);
+        bool dead = ShipAttackHits.Hit(target, ship, weight, ref budget);
         ShipAttackHits.HitFrom = null;
+        return dead;
     }
 
     // SPLIT: small diagonal shards leave the struck enemy (a shard never splits, zaps or pierces).
@@ -403,10 +458,10 @@ public class FloatieBullet : MonoBehaviour
         float[] angles = ShotAtomTuning.SplitAngles[level];
         for (int i = 0; i < angles.Length; i++)
         {
-            var b = FloatieBullets.Take();
-            if (b == null) return;   // at the cap: the rest are not fired
+            var b = FloatieBullets.Take(false);
+            if (b == null) return;   // at the cap (shards leave the volleys' reserve alone): the rest are not fired
             Vector3 heading = Quaternion.Euler(0f, 0f, angles[i]) * dir;
-            var m = new Mods { damage = ShotAtomTuning.SplitDamage[level], shard = true, speed = ShotAtomTuning.ShardSpeed, life = ShotAtomTuning.ShardLife, ignore = parent };
+            var m = new Mods { damage = ShotAtomTuning.SplitDamage[level], shard = true, speed = ShotAtomTuning.ShardSpeed, life = ShotAtomTuning.ShardLife, ignore = parent, source = mods.source };
             b.Launch(owner, ship, at, heading, body.color, default(FloatieAim.Pick), m);
             ShardsLaunched++;
         }
@@ -486,12 +541,17 @@ public static class FloatieBullets
         }
     }
 
-    // A free bullet, or null at the cap (ours, or the attack pool's shared projectile cap).
-    public static FloatieBullet Take()
+    // Bullets a split's shards may never use: a drone's volley always finds room for at least this many (the fair-share rule).
+    public const int VolleyReserve = 8;
+
+    // A free bullet, or null at the cap (ours, or the attack pool's shared projectile cap). `primary` is a drone's volley bullet; the
+    // shards a split makes (primary false) stop VolleyReserve short of the cap so a busy field of shards never starves the guns.
+    public static FloatieBullet Take(bool primary = true)
     {
         var parent = Root;
         Purge();
         if (Active + AttackPool.ActiveProjectiles >= AttackPool.MaxProjectiles) return null;
+        if (!primary && Active >= FloatieTuning.PoolSize - VolleyReserve) return null;
         for (int i = 0; i < pool.Count; i++) if (!pool[i].Active) return pool[i];
         if (pool.Count >= FloatieTuning.PoolSize) return null;
         var go = new GameObject("~floatie");

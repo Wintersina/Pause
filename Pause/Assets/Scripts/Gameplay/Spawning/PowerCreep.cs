@@ -1,7 +1,7 @@
 using UnityEngine;
 
-// POWER CREEP: the shot atoms make the gun stronger, so the board pushes back. PowerLevel is the sum of every atom's level
-// (ShotAtoms.PowerLevel, 0 .. 60); two multipliers read it, and nothing else does:
+// POWER CREEP: the shot atoms make the gun stronger, so the board pushes back. PowerLevel is Rapid's level plus the per-drone atom levels
+// summed and divided by the drone count (ShotAtoms.PowerLevel, 0 .. 60: six drones are no harder to fill than one); two multipliers read it, and nothing else does:
 //
 //   SpawnScale     ordinary enemy / hazard spawn RATE (the spawn delays are divided by it, enmiesOnBoard.RollWith, next to
 //                  AdaptiveDifficulty): x1 at power 0, up to x1.7 at power 60

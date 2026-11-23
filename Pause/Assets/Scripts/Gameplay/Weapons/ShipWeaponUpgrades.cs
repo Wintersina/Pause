@@ -162,7 +162,7 @@ public static class ShipWeaponUpgrades
     public static string StepText(int shipId, int level)
     {
         string label = Step(shipId, level).label;
-        string floatie = FloatieTuning.StepNote(level);
+        string floatie = FloatieTuning.StepNote(shipId, level);
         return floatie == null ? label : label + ", " + floatie;
     }
 
@@ -179,7 +179,7 @@ public static class ShipWeaponUpgrades
     public static string DockStepText(int shipId, int level)
     {
         string label = Step(shipId, level).label;
-        string note = FloatieTuning.DockNote(level);
+        string note = FloatieTuning.DockNote(shipId, level);
         if (note == null || label.Length + 2 + note.Length > DockTextMax) return label;
         return label + ", " + note;
     }

@@ -201,13 +201,13 @@ public class collisionDetection : MonoBehaviour {
     }
 
     // A shot atom's "upgrade gained" popup, under the score board next to the HUD row (ScoreHud.ShowAtomUpgrade).
-    static void AtomUpgradePopup(string title, string hint, Color colour)
+    static void AtomUpgradePopup(string title, string hint, Color colour, string levelLine = null)
     {
         var hud = ScoreHud.Current;
         if (hud == null) return;
         Vector2 anchor;
         if (!ShotAtomHud.PopupAnchor(out anchor)) anchor = new Vector2(float.NaN, float.NaN);
-        hud.ShowAtomUpgrade(title, hint, colour, anchor);
+        hud.ShowAtomUpgrade(title, hint, colour, anchor, levelLine);
     }
 
     static void AtomCharged(Color colour)
@@ -582,7 +582,10 @@ public class collisionDetection : MonoBehaviour {
                 {
                     string word = ShotAtoms.Callout(got.atom, got.level);
                     if (hypeText != null) hypeText.text = word;
-                    AtomUpgradePopup(ShotAtoms.UpgradeTitle(got.atom, got.level), ShotAtoms.UpgradeHint(got.atom, got.level), coinColour);
+                    var battery = FloatieBattery.Current;
+                    string droneName = battery != null && got.drone >= 0 ? battery.DroneName(got.drone) : null;
+                    AtomUpgradePopup(ShotAtoms.UpgradeTitle(got.atom, got.drone, droneName), ShotAtoms.UpgradeHint(got.atom, got.level), coinColour,
+                                     ShotAtoms.UpgradeLevel(got.level));
                 }
                 Pooled.Destroy(hit.gameObject);
             }

@@ -238,7 +238,7 @@ public abstract class HeartOrbit : MonoBehaviour
     protected virtual Bounds GunRestBounds(UltimateGun g) { return default(Bounds); }
     // The extra floaties' resting spots (FloatieBattery), world space: the hearts hurry past them like the gun's own.
     protected virtual int ExtraGunRestBounds(Bounds[] into) { return 0; }
-    readonly Bounds[] extraGunBoxes = new Bounds[2];
+    readonly Bounds[] extraGunBoxes = new Bounds[FloatieTuning.MaxFloaties - 1];
     int extraGunCount;
     protected virtual int MaxHearts { get { return 8; } }
     // The hull drawing the hearts sort round (front over it, back under it).

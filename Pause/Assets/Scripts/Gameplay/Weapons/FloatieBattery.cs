@@ -7,11 +7,16 @@ using UnityEngine;
 //   main floatie (UltimateGun)  beside the hull on its own side (even ids left, odd right), a little above the middle
 //   slot 1  the OTHER side, up by the nose   (-side * SideReach hull-widths, +SlotOneRise hull-heights)
 //   slot 2  the main's side, low             (+side * SideReach,             -SlotTwoDrop)
+//   PARAGON's floaties 4 .. 6 (slots 2, 3, 4) fill in a balanced arc around the hull, never above the nose or under the exhaust:
+//   slot 2  the other side, low   (-side * SideReach, -SlotTwoDrop)   slot 3 the main's side, outer (+side * OuterReach, -OuterDrop)
+//   slot 4  the other side, outer (-side * OuterReach, +OuterRise)
 public class FloatieCompanion : MonoBehaviour
 {
     public const float SideReach = 1.22f;     // x the hull's half width (the main floatie sits at the same reach)
     public const float SlotOneRise = .85f;    // x the hull's half height, above the middle
     public const float SlotTwoDrop = 1f;      // x the hull's half height, below the middle
+    public const float OuterReach = 2.15f;    // x the hull's half width, the outer column (Paragon's floaties 5 and 6)
+    public const float OuterDrop = .35f, OuterRise = .2f;   // x the hull's half height
     public const float HoverShare = .6f;      // of the main floatie's hover drift: they keep to their own corner
 
     public const float TurnDegreesPerSecond = 420f;   // how fast it swings to face its aim
@@ -44,9 +49,14 @@ public class FloatieCompanion : MonoBehaviour
         var hr = hull.GetComponent<SpriteRenderer>();
         Vector2 e = hr != null && hr.sprite != null ? (Vector2)hr.sprite.bounds.extents : new Vector2(.4f, .5f);
         float side = ship % 2 == 0 ? -1f : 1f;   // the main floatie's side
-        rest = slot == 0
-            ? new Vector3(-side * e.x * SideReach, e.y * SlotOneRise, .02f)
-            : new Vector3(side * e.x * SideReach, -e.y * SlotTwoDrop, .02f);
+        switch (slot)
+        {
+            case 0: rest = new Vector3(-side * e.x * SideReach, e.y * SlotOneRise, .02f); break;
+            case 1: rest = new Vector3(side * e.x * SideReach, -e.y * SlotTwoDrop, .02f); break;
+            case 2: rest = new Vector3(-side * e.x * SideReach, -e.y * SlotTwoDrop, .02f); break;
+            case 3: rest = new Vector3(side * e.x * OuterReach, -e.y * OuterDrop, .02f); break;
+            default: rest = new Vector3(-side * e.x * OuterReach, e.y * OuterRise, .02f); break;
+        }
 
         var body = new GameObject("Body", typeof(SpriteRenderer));
         body.transform.SetParent(transform, false);
@@ -147,14 +157,14 @@ public class FloatieCompanion : MonoBehaviour
 // shots. Attached by ShipPowerController next to the UltimateGun. Public Step so edit-mode tests can drive it with a real dt.
 public class FloatieBattery : MonoBehaviour
 {
-    public enum Hold { None, Frozen, Dead, Transition, Entrance, Tutorial, Ultimate }
+    public enum Hold { None, Frozen, Dead, Transition, Entrance, Tutorial }   // (the ultimate no longer holds the gun)
 
     int ship;
     UltimateGun gun;
     ShipAttackRunner runner;
-    readonly FloatieCompanion[] extras = new FloatieCompanion[2];
+    readonly FloatieCompanion[] extras = new FloatieCompanion[FloatieTuning.MaxFloaties - 1];
     readonly float[] timer = new float[FloatieTuning.MaxFloaties];
-    int level = -1, count;
+    int level = -1, count, roundRobin;
     int levelOverride = -1;
     Color tint = Color.white;
     const float AimLead = .3f;   // floatie #2 tilts to its next angle this long before the shot
@@ -175,12 +185,28 @@ public class FloatieBattery : MonoBehaviour
     public bool BossActive => BossEncounter.Running;
     public float Cooldown(int index) { return FloatieTuning.Cooldown(index, level, BossActive); }
 
+    // The battery of the ship in play (the upgrade popup names a drone through it); null when there is none.
+    public static FloatieBattery Current { get; private set; }
+
+    // "LEFT DRONE": where drone `index` hovers. The main floatie is on the ship's own side (even ids left, odd right); with three or more
+    // drones the name also says its row (TOP / LOW / OUTER) so no two share a name.
+    public string DroneName(int index)
+    {
+        bool mainLeft = ship % 2 == 0;
+        string[] sides = { mainLeft ? "LEFT" : "RIGHT", mainLeft ? "RIGHT" : "LEFT" };
+        string side = sides[index % 2 == 0 ? 0 : 1];
+        if (count <= 2) return side + " DRONE";
+        string[] rows = { "TOP", "TOP", "LOW", "LOW", "OUTER", "OUTER" };
+        return side + " " + rows[Mathf.Clamp(index, 0, 5)] + " DRONE";
+    }
+
     public static FloatieBattery Attach(GameObject shipObject, int shipId, UltimateGun companion)
     {
         var existing = shipObject.GetComponent<FloatieBattery>();
         if (existing != null) return existing;
         var b = shipObject.AddComponent<FloatieBattery>();
         b.Build(shipId, companion);
+        Current = b;
         return b;
     }
 
@@ -190,6 +216,7 @@ public class FloatieBattery : MonoBehaviour
         gun = companion;
         tint = WeaponStyleTable.For(shipId).energy;
         FloatieBullets.Prebuild(8);
+        FloatieFx.Prebuild();
         Refresh();
     }
 
@@ -206,7 +233,8 @@ public class FloatieBattery : MonoBehaviour
         newLevel = Mathf.Clamp(newLevel, 0, ShipWeaponUpgrades.MaxLevel);
         int before = count;
         level = newLevel;
-        count = FloatieTuning.CountAt(level);
+        count = FloatieTuning.CountAt(ship, level);
+        ShotAtoms.SetDroneCount(count);
         for (int slot = 0; slot < extras.Length; slot++)
         {
             bool want = count > slot + 1;
@@ -222,7 +250,9 @@ public class FloatieBattery : MonoBehaviour
     float Stagger(int index)
     {
         float cd = FloatieTuning.Cooldown(index, level, BossActive);
-        return index == 1 ? cd * .5f : index == 2 ? cd * .25f : cd;
+        if (index == 0) return cd;
+        // spread the rest over the wait so they never all go off at once: index 1 at the half, then eighths
+        return index == 1 ? cd * .5f : cd * (.25f + .1f * ((index - 2) % 4));
     }
 
     public void ResetTimers()
@@ -234,6 +264,7 @@ public class FloatieBattery : MonoBehaviour
 
     void OnDestroy()
     {
+        if (Current == this) Current = null;
         FloatieBullets.ReleaseAll(this);
         for (int i = 0; i < extras.Length; i++)
             if (extras[i] != null)
@@ -253,11 +284,10 @@ public class FloatieBattery : MonoBehaviour
         if (BossEncounter.ScriptedEntrance) return Hold.Entrance;
         // the world is frozen (a pause: finger up with pauses left)
         if (dt <= 0f || Time.timeScale <= 0f || (!TouchInput.IsPressed && score.pauseCounter > 0)) return Hold.Frozen;
-        if (UltimateBusy) return Hold.Ultimate;
         return Hold.None;
     }
 
-    // The ultimate is sliding out, firing or its attack is still running: the floatie is busy with it.
+    // The ultimate is sliding out, firing or its attack is still running (information only: it no longer holds the gun).
     public bool UltimateBusy
     {
         get
@@ -285,6 +315,7 @@ public class FloatieBattery : MonoBehaviour
         }
         if (gone) { FloatieBullets.ReleaseAll(this); return; }
 
+        FloatieFx.Tick(dt);
         // bullets already in the air fly on (not while the world is frozen: dt is 0 then)
         var all = FloatieBullets.All;
         for (int i = 0; i < all.Count; i++)
@@ -300,8 +331,12 @@ public class FloatieBattery : MonoBehaviour
         }
 
         bool boss = BossActive;
-        for (int i = 0; i < count; i++)
+        // ROUND-ROBIN: the floatie that is looked at first rotates every step, so when several are due in the same step (and the bullet cap
+        // is close) the first one does not always get the room.
+        roundRobin = (roundRobin + 1) % Mathf.Max(1, count);
+        for (int j = 0; j < count; j++)
         {
+            int i = (roundRobin + j) % count;
             float cd = FloatieTuning.Cooldown(i, level, boss);
             if (timer[i] > cd) timer[i] = cd;   // a boss's 5 s never stretches a wait already running; leaving it never lengthens one
             timer[i] -= dt;
@@ -323,6 +358,7 @@ public class FloatieBattery : MonoBehaviour
             if (timeLeft <= AimLead) { RollPending(); e.AimAt(pendingAngle); }
             else e.AimAt(0f);
         }
+        else if (index == 3 || index == 4) e.AimAt(FloatieTuning.FanAngle(index));
         else
         {
             FloatieAim.Pick pick;
@@ -341,6 +377,15 @@ public class FloatieBattery : MonoBehaviour
         if (pendingSet) return;
         pendingAngle = FloatieTuning.SpreadAngle(Random.value, Random.value);
         pendingSet = true;
+    }
+
+    // The bullets of floatie `index` in the air now.
+    public int LiveBy(int index)
+    {
+        int n = 0;
+        var all = FloatieBullets.All;
+        for (int i = 0; i < all.Count; i++) if (all[i].Active && all[i].Owner == this && all[i].Source == index) n++;
+        return n;
     }
 
     Vector3 MuzzleOf(int index)
@@ -370,8 +415,15 @@ public class FloatieBattery : MonoBehaviour
             if (companion != null) { companion.AimAt(angle, true); from = companion.Muzzle; }
             heading = Quaternion.Euler(0f, 0f, angle) * Vector3.up;
         }
-        else if (index >= 2)
+        else if (index == 3 || index == 4)
         {
+            angle = FloatieTuning.FanAngle(index);
+            if (companion != null) { companion.AimAt(angle, true); from = companion.Muzzle; }
+            heading = Quaternion.Euler(0f, 0f, angle) * Vector3.up;
+        }
+        else if (FloatieTuning.IsSeeker(index))
+        {
+            // the seeker AIMS, then fires straight: its bullet never turns after it leaves
             bool locked = FloatieAim.Nearest(from, FloatieTuning.SeekerRange, out pick);
             LastSeekerLocked = locked;
             if (locked)
@@ -395,9 +447,10 @@ public class FloatieBattery : MonoBehaviour
         }
         // The volley (the shot atoms, ShotAtoms.cs): TWIN's bullets, each carrying PIERCE / RICOCHET / SPLIT / ARC. Level 0 of
         // every atom is the one plain bullet.
-        int twin = ShotAtoms.Level(ShotAtom.Twin);
-        int pierce = ShotAtoms.Level(ShotAtom.Pierce), split = ShotAtoms.Level(ShotAtom.Split);
-        int ricochet = ShotAtoms.Level(ShotAtom.Ricochet), arc = ShotAtoms.Level(ShotAtom.Arc);
+        // (PER DRONE: this floatie's own levels; only RAPID is shared by all of them)
+        int twin = ShotAtoms.Level(index, ShotAtom.Twin);
+        int pierce = ShotAtoms.Level(index, ShotAtom.Pierce), split = ShotAtoms.Level(index, ShotAtom.Split);
+        int ricochet = ShotAtoms.Level(index, ShotAtom.Ricochet), arc = ShotAtoms.Level(index, ShotAtom.Arc);
         int n = ShotAtomTuning.TwinShots[twin];
         float[] angles = ShotAtomTuning.TwinAngles[twin], offsets = ShotAtomTuning.TwinOffsets[twin];
         // a near-straight shot leans a little with RICOCHET, so it can reach a side edge at all (not a seeker's locked one)
@@ -405,10 +458,15 @@ public class FloatieBattery : MonoBehaviour
         if (ricochet > 0 && pick.lockOn == null && Mathf.Abs(angle) < ShotAtomTuning.RicochetStraightWithin)
             lean = Random.value < .5f ? ShotAtomTuning.RicochetLeanDegrees : -ShotAtomTuning.RicochetLeanDegrees;
         Vector3 side = new Vector3(heading.y, -heading.x, 0f).normalized;
+        // FAIR SHARE: the volley leaves room for every other floatie that has nothing in the air (they are about to fire), but always
+        // fires at least one bullet.
+        int roomLeft = FloatieTuning.PoolSize - FloatieBullets.Active, waiting = 0;
+        for (int d = 0; d < count; d++) if (d != index && LiveBy(d) == 0) waiting++;
+        n = Mathf.Min(n, Mathf.Max(1, roomLeft - waiting));
         int fired = 0;
         for (int k = 0; k < n; k++)
         {
-            var bullet = FloatieBullets.Take();
+            var bullet = FloatieBullets.Take(true);
             if (bullet == null) break;   // at the bullet cap: the rest of the volley is not fired
             var mods = FloatieBullet.Mods.Plain;
             mods.damage = ShotAtomTuning.TwinDamage[twin];
@@ -417,11 +475,14 @@ public class FloatieBattery : MonoBehaviour
             mods.life = ShotAtomTuning.RicochetLife[ricochet];   // 0: the plain lifetime
             mods.shards = split;
             mods.arc = arc;
+            mods.source = index;
+            mods.rapid = ShotAtoms.Level(index, ShotAtom.Rapid) > 0;
             Vector3 h = Quaternion.Euler(0f, 0f, angles[k] + lean) * heading;
             bullet.Launch(this, ship, from + side * offsets[k], h, tint, pick, mods);
             fired++;
         }
         if (fired == 0) return false;
+        FloatieFx.Spark(FloatieFx.Kind.Muzzle, from, heading, tint);
         LastAngle[index] = angle;
         Shots[index]++;
         return true;
