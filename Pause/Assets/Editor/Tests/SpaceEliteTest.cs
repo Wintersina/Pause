@@ -1041,7 +1041,7 @@ public static class SpaceEliteTest
         return false;
     }
 
-    // ---- the pause attack: ONE heart, PAUSE BLOCKED (elites are mini-bosses, user 2026-10-28) ---------------
+    // ---- the pause attack: TWO hearts, PAUSE BLOCKED (elites are mini-bosses, user 2026-10-28) ---------------
 
     static void PauseDamage()
     {
@@ -1055,8 +1055,8 @@ public static class SpaceEliteTest
             Step(.3f);
             int blocks = EliteShip.PauseBlocks;
             EliteShip.TeleportStrike(e.gameObject, e.Position);
-            Check(def.displayName + " (" + def.hearts + " hearts): a pause jump costs one heart and is PAUSE BLOCKED",
-                  Alive(e) && e.Hearts == def.hearts - 1 && e.LastHitCause == EliteDamage.Teleport && EliteShip.PauseBlocks == blocks + 1);
+            Check(def.displayName + " (" + def.hearts + " hearts): a pause jump costs two hearts and is PAUSE BLOCKED",
+                  def.hearts > EliteShip.TeleportHearts && Alive(e) && e.Hearts == def.hearts - EliteShip.TeleportHearts && e.LastHitCause == EliteDamage.Teleport && EliteShip.PauseBlocks == blocks + 1);
         }
     }
 

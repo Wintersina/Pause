@@ -44,6 +44,11 @@ public interface IBossAttackTarget : IShipAttackTargetUncapped
 // the Scenery flag, so a pooled / reset flag can never turn a backdrop body into a target.
 public interface ISceneryTarget { }
 
+// What a player hit comes from. An ULTIMATE hit (the ship's charged main attack and its red-atom free shot: everything the ShipAttackRunner
+// fires -- ion laser, frost nova, sentries, nuke, rail, spark, eye, heat wave, star, mines, abduct, gale, blowtorch, disc) kills an ordinary
+// enemy outright whatever hearts it has left. Every other hit (floatie bullets, secret powers, fusions) is Normal: one heart.
+public enum HitKind { Normal, Ultimate }
+
 public static class ShipAttackHits
 {
     // Counters for tests and previews.
@@ -60,7 +65,7 @@ public static class ShipAttackHits
     // the hit to an IShipAttackTarget. Returns true when the target was
     // destroyed. `budget` is what is left of this firing's allowance for capped
     // targets (elites); uncapped ones (the boss, backdrop rocks) ignore it.
-    public static bool Hit(GameObject target, int ship, float weight, ref float budget)
+    public static bool Hit(GameObject target, int ship, float weight, ref float budget, HitKind kind = HitKind.Normal)
     {
         if (target == null) return false;
         IShipAttackTarget special;
@@ -83,7 +88,8 @@ public static class ShipAttackHits
         }
         // A tough enemy (2 hearts) takes ONE heart per hit, whatever the hit's weight; only the hit that takes the last one falls through
         // to the ordinary kill. Hazards and plain bodies (and the tests' bare targets) die in one hit.
-        if (Toughness.Absorb(target)) return false;
+        // An ultimate hit skips the hearts: it kills the enemy outright (paid once, in Kill).
+        if (kind != HitKind.Ultimate && Toughness.Absorb(target)) return false;
         Kill(target, ship);
         return true;
     }
@@ -107,10 +113,10 @@ public static class ShipAttackHits
         return target.TryGetComponent(out t) && !t.enabled;
     }
 
-    public static bool Hit(GameObject target, int ship)
+    public static bool Hit(GameObject target, int ship, HitKind kind = HitKind.Normal)
     {
         float budget = 1f;
-        return Hit(target, ship, 1f, ref budget);
+        return Hit(target, ship, 1f, ref budget, kind);
     }
 
     static void Kill(GameObject target, int ship)

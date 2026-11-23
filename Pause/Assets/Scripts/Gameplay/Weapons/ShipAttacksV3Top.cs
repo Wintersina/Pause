@@ -26,7 +26,7 @@ public partial class ShipAttackRunner
         if (go == null || seen.Contains(go)) return false;
         seen.Add(go);
         float own = weight;
-        return ShipAttackHits.Hit(go, ship, weight, ref own);
+        return ShipAttackHits.Hit(go, ship, weight, ref own, HitKind.Ultimate);
     }
 
     static bool IsSpecial(GameObject go) { return go.TryGetComponent<IShipAttackTarget>(out _); }
@@ -462,7 +462,7 @@ public partial class ShipAttackRunner
         if (run != null && run.active) CrackThrough(shattered, at, IceLinkReach + splash);
         AttackPool.Sprite().Play(AttackSprite.Source.AttackBurst, ship, at, Vector3.one * Mathf.Max(.8f, radius * 2.6f), 0f,
             ShipFxArt.BurstTicks, false, 0f, null, Vector3.zero, 71);
-        ShipAttackHits.Hit(go, ship);
+        ShipAttackHits.Hit(go, ship, HitKind.Ultimate);
         if (run != null && run.active) ChainFrom(at, splash, run);
         if (splash > 0f)
         {
@@ -475,7 +475,7 @@ public partial class ShipAttackRunner
                 float reach = splash + t.Radius * .5f;
                 if (dv.sqrMagnitude > reach * reach) continue;
                 if (run != null) HitOnce(run.hit, t.gameObject, ShatterSplashWeight);
-                else ShipAttackHits.Hit(t.gameObject, ship);
+                else ShipAttackHits.Hit(t.gameObject, ship, HitKind.Ultimate);
             }
             // Jade Phantom's chill (level 2+): what stands just outside the splash stops for a moment
             ChillAround(at, splash, run != null ? run.loadout : loadout);
@@ -905,7 +905,7 @@ public partial class ShipAttackRunner
             int pierceLeft = b.pierce;
             bool special = IsSpecial(go);
             EndBolt(b);
-            ShipAttackHits.Hit(go, ship, w, ref run.budget);
+            ShipAttackHits.Hit(go, ship, w, ref run.budget, HitKind.Ultimate);
             if (pierceLeft > 0 && !special) ContinueBolt(run, to, go, pierceLeft, w);
         }
     }

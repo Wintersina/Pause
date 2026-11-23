@@ -279,7 +279,7 @@ public partial class ShipAttackRunner : MonoBehaviour
             if (InRailLine(t.transform.position, t.Radius, nose, l.width, nose.y + len))
             {
                 Vector3 at = t.transform.position;
-                if (ShipAttackHits.Hit(t.gameObject, ship, 1f, ref run.budget)) kills++;
+                if (ShipAttackHits.Hit(t.gameObject, ship, 1f, ref run.budget, HitKind.Ultimate)) kills++;
                 if (ShipSignatures.HaloPierces(l))   // signature: a spark at every target the slug passes through
                     AttackPool.Sprite().Play(AttackSprite.Source.AttackBurst, ship, at, Vector3.one * .45f, 0f,
                         ShipFxArt.BurstTicks, false, 0f, null, Vector3.zero, 71);
@@ -421,7 +421,7 @@ public partial class ShipAttackRunner : MonoBehaviour
                 ShipFxArt.BurstTicks, false, 0f, null, Vector3.zero, 71);
             var tgo = t.gameObject;   // read before the hit: a kill can destroy the object on the spot (edit-mode tests)
             run.hit.Add(tgo);
-            ShipAttackHits.Hit(tgo, ship, 1f, ref run.budget);
+            ShipAttackHits.Hit(tgo, ship, 1f, ref run.budget, HitKind.Ultimate);
             ViperJolt(run, to, tgo);   // signature: the jump stuns the enemies around it
             run.point = to;
             run.hops++;
@@ -549,10 +549,10 @@ public partial class ShipAttackRunner : MonoBehaviour
     {
         if (go.TryGetComponent<IShipAttackTarget>(out _))
         {
-            if (bossTick) ShipAttackHits.Hit(go, ship, weight, ref run.budget);
+            if (bossTick) ShipAttackHits.Hit(go, ship, weight, ref run.budget, HitKind.Ultimate);
             return;
         }
-        ShipAttackHits.Hit(go, ship, weight, ref run.budget);
+        ShipAttackHits.Hit(go, ship, weight, ref run.budget, HitKind.Ultimate);
     }
 
     // Shared by projectiles: hazards whose body crosses the segment a..b.
@@ -1204,7 +1204,7 @@ public class AttackProjectile : MonoBehaviour
     void Strike(GameObject go)
     {
         if (go.TryGetComponent<IShipAttackTarget>(out _)) lastSpecial = go;
-        ShipAttackHits.Hit(go, ship, weight, ref run.budget);
+        ShipAttackHits.Hit(go, ship, weight, ref run.budget, HitKind.Ultimate);
     }
 
     // Javelins pierce: everything in their lane between this step's two

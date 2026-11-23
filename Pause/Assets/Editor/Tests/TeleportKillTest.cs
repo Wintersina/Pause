@@ -44,6 +44,7 @@ public static class TeleportKillTest
             TeleportKillsChainAndScaleWithSpeed();
             TeleportKillPopsUpOnTheHud();
             BossBodySurvivesABlink();
+            PauseAttackOneShotsToughEnemiesAndHazards();
             NormalKillsKeepTheCelExplosion();
             UltimateKillsScore();
             BlastIsPooledAndFreezesWithTheWorld();
@@ -230,6 +231,23 @@ public static class TeleportKillTest
             hud.SendMessage("OnDisable");
             Object.DestroyImmediate(go);
         }
+    }
+
+    // The pause attack kills a 2-heart enemy in one blink and a hazard in one blink, each paid once (it never goes through the hearts).
+    static void PauseAttackOneShotsToughEnemiesAndHazards()
+    {
+        FreshRun();
+        var def = EnemyRoster.One(0, EnemyRole.Alien);
+        var tough = EnemyFactory.Create(def, new Vector3(.3f, 1f, 0f), Quaternion.identity, 1f, true);
+        ClearTarget.Ensure(tough);
+        bool hadHearts = tough.GetComponent<EnemyHearts>() != null && tough.GetComponent<EnemyHearts>().Hearts == 2;
+        var rock = Spawn(EnemyRole.Rock, new Vector3(-1.2f, 1f, 0f));
+        long before = RunScore.Total;
+        int kills = TeleportFx.Strike(new Vector3(-.4f, 1f, 0f));
+        Check("(setup: a 2-heart enemy)", hadHearts);
+        Check("a pause blink kills a fresh 2-heart enemy and a hazard in one go (kills " + kills + ")", kills == 2 && tough == null && rock == null);
+        int expect = Base(EnemyRole.Alien) + ScoreRules.TeleportKillBonus + Base(EnemyRole.Rock) + ScoreRules.TeleportKillBonus;
+        Check("... each paid once (" + (RunScore.Total - before) + " vs " + expect + ")", RunScore.Total - before == expect);
     }
 
     static void BossBodySurvivesABlink()
