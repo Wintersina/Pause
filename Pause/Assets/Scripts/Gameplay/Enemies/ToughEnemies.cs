@@ -8,6 +8,8 @@ using UnityEngine;
 //     codex: paid once, in ShipAttackHits.Kill). Two hearts orbit the enemy (EnemyHeartsView, the elites' own HeartOrbit engine, pooled and
 //     capped); a hit pops one in a small burst and the other keeps orbiting. A non-lethal hit also flashes the hull white (EnemyFlipbook.Flash) and
 //     throws a few white chips (RockHitFx.Chips). No outline, ring or bar is drawn on the enemy.
+//   * EXCEPT the ship's ULTIMATE (the charged main attack and its free shot, everything the ShipAttackRunner fires: HitKind.Ultimate): that kills
+//     an ordinary enemy outright, whatever hearts it has left (paid once). Elites still lose one heart per hit; bosses are unchanged.
 //   * Hazards (rocks and mines: EnemyDef.IsHazard) stay ONE-hit: any player hit destroys one (no deflect, no hearts).
 //   * Both ignore a repeat hit inside HitWindow (0.1 s), so one frame of a multi-hit attack counts once.
 //   * The tutorial's enemies stay one-hit (EnemyFactory.Create tough: false), so the first lesson is not harder.
