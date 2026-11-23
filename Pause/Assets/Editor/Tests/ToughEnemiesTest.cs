@@ -32,6 +32,7 @@ public static class ToughEnemiesTest
             HazardsDieInOneHit();
             FieldRockOneHit();
             EliteDoubleHearts();
+            UltimateOneShots();
         }
         finally
         {
@@ -263,5 +264,51 @@ public static class ToughEnemiesTest
         EliteSystem.Clear();
         EliteSystem.PlayerOverride = null;
         Object.DestroyImmediate(pilot.gameObject);
+    }
+
+    // An ultimate hit (HitKind.Ultimate) kills a 2-heart enemy outright, paid once; a normal hit takes one heart; an elite still loses one heart.
+    static void UltimateOneShots()
+    {
+        FreshScene();
+        var def = EnemyRoster.One(0, EnemyRole.Fighter);
+        var go = Make(def);
+        int kills = ShipAttackHits.Kills;
+        float budget = 1f;
+        bool dead = ShipAttackHits.Hit(go, 1, 1f, ref budget, HitKind.Ultimate);
+        Check("an ultimate hit kills a fresh 2-heart enemy in one hit, paid once (kills +" + (ShipAttackHits.Kills - kills) + ")",
+              dead && ShipAttackHits.Kills == kills + 1 && (go == null || !go.GetComponent<ClearTarget>().enabled));
+        Object.DestroyImmediate(go);
+
+        var wounded = Make(def);
+        HitOnce(wounded);   // one heart gone, one left
+        kills = ShipAttackHits.Kills;
+        budget = 1f;
+        dead = ShipAttackHits.Hit(wounded, 1, 1f, ref budget, HitKind.Ultimate);
+        Check("an ultimate finishes a wounded enemy too, once", dead && ShipAttackHits.Kills == kills + 1);
+        Object.DestroyImmediate(wounded);
+
+        var plain = Make(def);
+        kills = ShipAttackHits.Kills;
+        bool normalDead = HitOnce(plain);
+        var hearts = plain.GetComponent<EnemyHearts>();
+        Check("a normal special-attack hit still takes exactly one heart", !normalDead && hearts.Hearts == 1 && ShipAttackHits.Kills == kills);
+        Object.DestroyImmediate(plain);
+
+        EliteDef.ScaleOverride = 0;
+        EliteSystem.Clear();
+        var pilot = new GameObject("~Pilot").transform;
+        pilot.position = new Vector3(0f, -2.5f, 0f);
+        EliteSystem.PlayerOverride = pilot;
+        var edef = BaseEliteDefs.For("gunship");
+        var e = EliteShip.CreateInPlay(edef, new Vector2(0f, 1f));
+        e.AttackCooldown = 99f;
+        int before = e.Hearts;
+        budget = 1f;
+        ShipAttackHits.Hit(e.gameObject, 1, 1f, ref budget, HitKind.Ultimate);
+        Check("an elite still loses exactly one heart to an ultimate hit (" + before + " -> " + e.Hearts + ")", e.Hearts == before - 1);
+        EliteSystem.Clear();
+        EliteSystem.PlayerOverride = null;
+        Object.DestroyImmediate(pilot.gameObject);
+        EliteDef.ScaleOverride = 1;
     }
 }

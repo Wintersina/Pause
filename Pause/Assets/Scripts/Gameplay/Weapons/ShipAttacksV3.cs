@@ -331,10 +331,10 @@ public partial class ShipAttackRunner
                 // a boss or an elite keeps the level 0 reach: a bigger blast never stacks extra hits on them
                 float r = (Special(n.gameObject) ? EyeBlast : blast) + n.Radius * .5f;
                 if (d.sqrMagnitude > r * r) continue;
-                if (ShipAttackHits.Hit(n.gameObject, ship, w * EyeSplash, ref run.budget)) kills++;
+                if (ShipAttackHits.Hit(n.gameObject, ship, w * EyeSplash, ref run.budget, HitKind.Ultimate)) kills++;
             }
             var markedGo = t.gameObject;   // read before the hit: a kill can destroy it on the spot
-            if (ShipAttackHits.Hit(markedGo, ship, w, ref run.budget)) kills++;
+            if (ShipAttackHits.Hit(markedGo, ship, w, ref run.budget, HitKind.Ultimate)) kills++;
             run.hit.Add(markedGo);   // later blasts of this firing leave it alone
             Resolve(v, i);
         }
@@ -431,7 +431,7 @@ public partial class ShipAttackRunner
                 if (p.y - t.Radius > y + band * .5f || p.y + t.Radius < v.y0) continue;   // not reached yet / behind the ship
                 list.Add(t.gameObject);
                 Burst(run, new Vector3(p.x, Mathf.Min(p.y, y), 0f), .7f);
-                if (ShipAttackHits.Hit(t.gameObject, ship, w, ref run.budget)) kills++;
+                if (ShipAttackHits.Hit(t.gameObject, ship, w, ref run.budget, HitKind.Ultimate)) kills++;
             }
             if (y - band > top + .3f)
             {
@@ -523,7 +523,7 @@ public partial class ShipAttackRunner
                 if (!SegmentHits(prev, now, t.transform.position, StarRadius + t.Radius * .7f, out along)) continue;
                 list.Add(t.gameObject);
                 Burst(run, t.transform.position, .6f);
-                if (ShipAttackHits.Hit(t.gameObject, ship, .5f, ref run.budget)) kills++;
+                if (ShipAttackHits.Hit(t.gameObject, ship, .5f, ref run.budget, HitKind.Ultimate)) kills++;
             }
         }
         if (u >= 1f)
@@ -606,7 +606,7 @@ public partial class ShipAttackRunner
                 // a boss or an elite keeps the level 0 reach
                 float r = (Special(t.gameObject) ? MineBlast : blastR) + t.Radius * .5f;
                 if (d.sqrMagnitude > r * r) continue;
-                if (ShipAttackHits.Hit(t.gameObject, ship, w, ref run.budget)) kills++;
+                if (ShipAttackHits.Hit(t.gameObject, ship, w, ref run.budget, HitKind.Ultimate)) kills++;
             }
             CameraKick.Kick(.02f);
         }
@@ -738,7 +738,7 @@ public partial class ShipAttackRunner
                 new Vector3(.4f, Mathf.Max(.5f, d.magnitude), 1f), Mathf.Atan2(d.y, d.x) * Mathf.Rad2Deg - 90f,
                 ShipFxArt.LoopTicks, true, .3f, null, Vector3.zero, 69);
             Burst(run, p, .9f);
-            ShipAttackHits.Hit(special.gameObject, ship, 1f, ref run.budget);
+            ShipAttackHits.Hit(special.gameObject, ship, 1f, ref run.budget, HitKind.Ultimate);
         }
         run.active = false;
     }
@@ -789,7 +789,7 @@ public partial class ShipAttackRunner
                     bool boss = Special(t.gameObject);
                     Vector3 impact = t.transform.position;
                     Burst(run, impact, .9f);
-                    ShipAttackHits.Hit(t.gameObject, ship, 1f, ref run.budget);
+                    ShipAttackHits.Hit(t.gameObject, ship, 1f, ref run.budget, HitKind.Ultimate);
                     if (!boss) HurlBlast(v, impact);
                     if (boss || --v.n[g] <= 0) done = true;
                 }
@@ -863,7 +863,7 @@ public partial class ShipAttackRunner
         {
             Burst(v.owner, body.transform.position, .9f);
             float spare = 1f;
-            ShipAttackHits.Hit(body.gameObject, ship, 1f, ref spare);
+            ShipAttackHits.Hit(body.gameObject, ship, 1f, ref spare, HitKind.Ultimate);
         }
     }
 
@@ -887,7 +887,7 @@ public partial class ShipAttackRunner
             float reach = radius + t.Radius * .5f;
             if (d.sqrMagnitude > reach * reach) continue;
             float spare = 1f;
-            ShipAttackHits.Hit(go, ship, 1f, ref spare);
+            ShipAttackHits.Hit(go, ship, 1f, ref spare, HitKind.Ultimate);
         }
     }
 
@@ -1000,7 +1000,7 @@ public partial class ShipAttackRunner
                 crashed = true;
                 Burst(run, t.transform.position, .8f);
                 bool boss = t.TryGetComponent(out BossTarget _) || t.TryGetComponent(out BossActor _);
-                if (ShipAttackHits.Hit(t.gameObject, ship, boss ? ReturnBossWeight : ShipSignaturesG3.DoveReturnWeight(run.loadout.weaponLevel), ref run.budget)) kills++;
+                if (ShipAttackHits.Hit(t.gameObject, ship, boss ? ReturnBossWeight : ShipSignaturesG3.DoveReturnWeight(run.loadout.weaponLevel), ref run.budget, HitKind.Ultimate)) kills++;
             }
             bool gone = crashed || v.rAge[j] >= ReturnSeconds || (view.width < 100f && !view.Contains(now));
             if (!gone) continue;
@@ -1071,8 +1071,8 @@ public partial class ShipAttackRunner
                 if (d.sqrMagnitude > r * r) continue;
                 hitSomething = true;
                 Burst(run, (pa + (Vector2)b.transform.position) * .5f, .8f);
-                if (ShipAttackHits.Hit(b.gameObject, ship, .5f, ref run.budget)) kills++;
-                if (ShipAttackHits.Hit(a.gameObject, ship, .5f, ref run.budget)) kills++;
+                if (ShipAttackHits.Hit(b.gameObject, ship, .5f, ref run.budget, HitKind.Ultimate)) kills++;
+                if (ShipAttackHits.Hit(a.gameObject, ship, .5f, ref run.budget, HitKind.Ultimate)) kills++;
             }
             if (hitSomething) { v.phase[j] = 3; continue; }
             if (run.t >= v.at[j])
@@ -1080,7 +1080,7 @@ public partial class ShipAttackRunner
                 if (v.phase[j] == 2)
                 {
                     Burst(run, new Vector3(pa.x, Mathf.Min(top, pa.y + a.Radius), 0f), .8f);
-                    if (ShipAttackHits.Hit(a.gameObject, ship, .5f, ref run.budget)) kills++;
+                    if (ShipAttackHits.Hit(a.gameObject, ship, .5f, ref run.budget, HitKind.Ultimate)) kills++;
                 }
                 v.phase[j] = 3;
             }
@@ -1102,7 +1102,7 @@ public partial class ShipAttackRunner
         if (rock && EnemyIdentity.ScaleOf(go) <= .8f)
         {
             Burst(run, t.transform.position, .7f);
-            if (ShipAttackHits.Hit(go, ship, .5f, ref run.budget)) kills++;
+            if (ShipAttackHits.Hit(go, ship, .5f, ref run.budget, HitKind.Ultimate)) kills++;
             return;
         }
         EnemyBrain brain;

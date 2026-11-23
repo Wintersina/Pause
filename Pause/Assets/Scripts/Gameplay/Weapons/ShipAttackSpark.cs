@@ -262,7 +262,7 @@ public partial class ShipAttackRunner
             if (slot == -2) continue;
             if (slot >= 0) { run.arcHitId[slot] = id; run.arcHitUntil[slot] = run.t + VolleyArcCooldown; }
             Vector3 at = t.transform.position;
-            ShipAttackHits.Hit(go, ship, VolleyArcWeight, ref run.budget);
+            ShipAttackHits.Hit(go, ship, VolleyArcWeight, ref run.budget, HitKind.Ultimate);
             AttackPool.Sprite().Play(AttackSprite.Source.AttackBurst, ship, at, Vector3.one * .3f, 0f,
                 ShipFxArt.BurstTicks, false, 0f, null, Vector3.zero, 71);
         }
