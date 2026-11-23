@@ -62,6 +62,17 @@
       "description": "Teal protective shockwave around a cleared hazard shard and protected heart."
     },
     {
+      "file": "booster_atom_rush.png",
+      "palette": [
+        "#111735",
+        "#ffc308",
+        "#ff4a1e",
+        "#97e7ff",
+        "#fff4c7"
+      ],
+      "description": "Round shot-atom coin with a spinning ring, halo and x3 up-arrow cue."
+    },
+    {
       "file": "booster_homing_atoms.png",
       "palette": [
         "#111735",

@@ -18,7 +18,7 @@ public static class PickupArt
 {
     public const float Tick = 1f / 24f;
     public const string Root = "Pickups/Atoms/";
-    // The shot atoms' coins (shot_<atom>_idle_0..7, shot_<atom>_burst_0..5) live beside the pixel atoms, not in them: their art has
+    // The shot atoms' coins (shot_<atom>_idle_0..13, shot_<atom>_burst_0..5) live beside the pixel atoms, not in them: their art has
     // soft edges the pixel-atom palette check (ArtRestyleTest) would refuse.
     public const string ShotRoot = "Pickups/ShotAtoms/";
     public static bool IsShot(PickupKind kind) { return kind >= PickupKind.ShotTwin; }
@@ -96,12 +96,11 @@ public static class PickupArt
     public static readonly int[] HealIdleTicks = { 8, 2, 1, 2, 1, 2, 1, 2, 2, 2, 3 };
     // Pickup burst: 1-tick white impact, burst star, ring breaking into shards.
     public static readonly int[] BurstTicks = { 1, 2, 2, 2, 2, 3 };
-    // Shot atom coin: eight drawings of the spinning border (the symbol stays put), two ticks each.
-    // The eight drawings cover 0-45 degrees of the octagon, which repeats every 45: looping them is a continuous spin. At 36 drawings
-    // a second a 45 degree step takes 0.22 s, one apparent full turn about every 1.8 s. (The tick count is 1 each: the real clock
-    // is ShotFrameSeconds, see HoldSeconds.)
-    public static readonly int[] ShotIdleTicks = { 1, 1, 1, 1, 1, 1, 1, 1 };
-    public const float ShotFrameSeconds = 1f / 36f;
+    // Shot atom coin: fourteen drawings of the round coin's orbit ring turning once (the symbol and halo stay put), one tick each.
+    // The fourteen drawings are one full turn, so looping them is a continuous spin. At 8 drawings a second the turn takes
+    // 14 / 8 = 1.75 s. (The tick count is 1 each: the real clock is ShotFrameSeconds, see HoldSeconds.)
+    public static readonly int[] ShotIdleTicks = { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 };
+    public const float ShotFrameSeconds = 1f / 8f;
 
     // How long drawing `ticks` of `kind`'s idle loop is held.
     public static float HoldSeconds(PickupKind kind, int ticks)
