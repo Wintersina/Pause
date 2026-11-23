@@ -4,15 +4,15 @@ using UnityEngine;
 // SHOT ATOMS: six permanent, per-run upgrades to every ship's NORMAL gun only (the floaties' small bullets, FloatieGuns.cs).
 // Ultimates, special attacks, secret powers and the floaties themselves are untouched.
 //
-//   TWIN      more shots a volley: 2 parallel, then 3 in a narrow fan, then 4
-//   PIERCE    a shot passes through +1 enemy a level
-//   SPLIT     on a hit the shot breaks into 2 / 3 / 4 small diagonal shards
-//   RICOCHET  shots bounce off the screen's side edges 1 / 2 / 3 times
-//   ARC       a hit zaps a spark to the nearest other enemy in range (1 / 1 / 2 jumps)
-//   RAPID     the gun fires +20% / +45% / +75% faster
+//   TWIN      more shots a volley: 2 parallel, then a fan of 3 .. 7 (it widens a little with the level)
+//   PIERCE    a shot passes through +1 enemy a level (up to 10)
+//   SPLIT     on a hit the shot breaks into 2 .. 6 small diagonal shards (40% .. 65% damage each)
+//   RICOCHET  shots bounce off the screen's side edges 1 .. 10 times
+//   ARC       a hit zaps a spark to the nearest other enemies in range (1 .. 6 jumps, 2.0 .. 4.0 range, 50% .. 85% damage)
+//   RAPID     the gun fires +20% .. +160% faster (never under ShotAtomTuning.MinCooldown between shots)
 //
-// Each catch adds a level (max 3); a catch past the max pays star dust instead. They drop from bosses (one always, a second half the time),
-// elites (the first of a run always, later ones 80%) and, rarely, ordinary kills (1.5%, at most one per 20 s), one random atom that is not maxed yet (every atom can drop in every world and reach level 3 in any of them).
+// Each catch adds a level (max 10; PowerCreep scales the enemy spawns with the sum of the levels); a catch past the max pays star dust instead. They drop from bosses (one always, a second half the time),
+// elites (the first of a run always, later ones 80%) and, rarely, ordinary kills (1.5%, at most one per 20 s), one random atom that is not maxed yet (every atom can drop in every world and reach the top level in any of them).
 // All of it is state of the run: BeginRun (score.Awake) wipes it.
 //
 // EVERY number lives in ShotAtomTuning.
@@ -21,7 +21,7 @@ public enum ShotAtom { Twin = 0, Pierce = 1, Split = 2, Ricochet = 3, Arc = 4, R
 public static class ShotAtomTuning
 {
     public const int Count = 6;
-    public const int MaxLevel = 3;
+    public const int MaxLevel = 10;
 
     // ---- drops ----
     public const float EliteDropChance = .8f;     // a killed elite (was .5)
@@ -36,36 +36,74 @@ public static class ShotAtomTuning
     public const float MaxedDust = 2f;            // star dust a catch pays once the atom is at its level cap (the blue atom's)
     public const int MaxCoinsOnScreen = 3;        // coins waiting for the atom spacing at once, at most
 
-    // ---- TWIN: bullets in a volley by level (index = level), their angles (degrees off the gun's heading) and
-    // sideways offsets (world units), and the damage of each (the total is never a straight multiple: 1.5 / 1.8 / 2.0 of one shot) ----
-    public static readonly int[] TwinShots = { 1, 2, 3, 4 };
-    public static readonly float[] TwinDamage = { 1f, .75f, .6f, .5f };
+    // Every table below is indexed by LEVEL (0..MaxLevel); level 0 is "no atom" (the one plain bullet).
+
+    // ---- TWIN: bullets in a volley by level, the half-width of their fan (degrees off the gun's heading; the shots are spread evenly across
+    // it, so it widens a little with every level) and the damage of each. The volley's worth grows ~11-13% a level from level 3 on
+    // (shots x damage: 1.5 / 1.8 / 2.0 / 2.24 / 2.5 / 2.8 / 3.12 / 3.54 / 3.92 / 4.41 of one shot), never as fast as the shot count. ----
+    public static readonly int[] TwinShots = { 1, 2, 3, 4, 4, 5, 5, 6, 6, 7, 7 };
+    public static readonly float[] TwinDamage = { 1f, .75f, .6f, .5f, .56f, .5f, .56f, .52f, .59f, .56f, .63f };
     public const float TwinParallelGap = .16f;
-    public static readonly float[][] TwinAngles = { new[] { 0f }, new[] { 0f, 0f }, new[] { -8f, 0f, 8f }, new[] { -12f, -4f, 4f, 12f } };
-    public static readonly float[][] TwinOffsets = { new[] { 0f }, new[] { -TwinParallelGap * .5f, TwinParallelGap * .5f }, new[] { 0f, 0f, 0f }, new[] { 0f, 0f, 0f, 0f } };
+    public static readonly float[] TwinHalfFan = { 0f, 0f, 8f, 12f, 13f, 15f, 16f, 18f, 19f, 20f, 21f };
+    public static readonly float[][] TwinAngles = Fans(TwinShots, TwinHalfFan);
+    public static readonly float[][] TwinOffsets = TwinOffsetsFor(TwinShots);
 
     // ---- PIERCE: enemies a shot passes through, by level ----
-    public static readonly int[] PierceThrough = { 0, 1, 2, 3 };
+    public static readonly int[] PierceThrough = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 };
+    public const int MaxPierce = 10;
 
-    // ---- SPLIT: shards by level, their angles off the shot's heading, speed, life and damage (of a whole shot) ----
-    public static readonly int[] SplitShards = { 0, 2, 3, 4 };
-    public static readonly float[][] SplitAngles = { new float[0], new[] { -45f, 45f }, new[] { -60f, 0f, 60f }, new[] { -60f, -20f, 20f, 60f } };
-    public const float ShardSpeed = 7f, ShardLife = .5f, ShardDamage = .4f;
+    // ---- SPLIT: shards by level, the half-width of their spread off the shot's heading, speed, life and the damage of each (of a whole shot) ----
+    public static readonly int[] SplitShards = { 0, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6 };
+    public static readonly float[] SplitHalfFan = { 0f, 45f, 45f, 60f, 60f, 60f, 60f, 72f, 72f, 75f, 75f };
+    public static readonly float[][] SplitAngles = Fans(SplitShards, SplitHalfFan);
+    public static readonly float[] SplitDamage = { 0f, .40f, .42f, .44f, .47f, .50f, .53f, .56f, .59f, .62f, .65f };
+    public const float ShardSpeed = 7f, ShardLife = .5f;
 
-    // ---- RICOCHET: side-edge bounces by level; a near-straight shot leans a little so a bounce can happen at all ----
-    public static readonly int[] Bounces = { 0, 1, 2, 3 };
+    // ---- RICOCHET: side-edge bounces by level; a near-straight shot leans a little so a bounce can happen at all.
+    // The bullet's life grows a little with its bounces so they can be used, but never past RicochetLifeCap (0: the plain MaxAge). ----
+    public static readonly int[] Bounces = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 };
     public const float RicochetLeanDegrees = 14f, RicochetStraightWithin = 3f;
+    public const float RicochetLifeCap = 3.6f;
+    public static readonly float[] RicochetLife = { 0f, 2.52f, 2.64f, 2.76f, 2.88f, 3f, 3.12f, 3.24f, 3.36f, 3.48f, RicochetLifeCap };
 
     // ---- ARC: spark range (world units), damage (of a whole shot) and jumps by level ----
-    public static readonly float[] ArcRange = { 0f, 2f, 2.6f, 3.2f };
-    public static readonly float[] ArcDamage = { 0f, .5f, .6f, .7f };
-    public static readonly int[] ArcJumps = { 0, 1, 1, 2 };
+    public static readonly float[] ArcRange = { 0f, 2f, 2.22f, 2.44f, 2.67f, 2.89f, 3.11f, 3.33f, 3.56f, 3.78f, 4f };
+    public static readonly float[] ArcDamage = { 0f, .50f, .54f, .58f, .62f, .65f, .69f, .73f, .77f, .81f, .85f };
+    public static readonly int[] ArcJumps = { 0, 1, 1, 2, 2, 3, 3, 4, 4, 5, 6 };
+    public const int MaxArcJumps = 6;
 
-    // ---- RAPID: the gun's fire-rate bonus by level (cooldown = base / (1 + bonus)) ----
-    public static readonly float[] RapidBonus = { 0f, .20f, .45f, .75f };
+    // ---- RAPID: the gun's fire-rate bonus by level (cooldown = base / (1 + bonus), never under MinCooldown) ----
+    public static readonly float[] RapidBonus = { 0f, .20f, .35f, .50f, .65f, .80f, .95f, 1.10f, 1.25f, 1.40f, 1.60f };
+    public const float MinCooldown = .5f;   // s: the floor of any floatie's cooldown, so the gun never becomes a laser stream
 
-    // ---- the cap on the gun's bullets in the air (the floaties' own pool; AttackPool.MaxProjectiles still caps the total) ----
-    public const int MaxBullets = 24;
+    // ---- the cap on the gun's bullets in the air (the floaties' own pool; AttackPool.MaxProjectiles still caps the total).
+    // A 7-shot volley from three floaties (21 bullets) plus a few shards needs more than the old 24; 32 stays well under the shared 40. ----
+    public const int MaxBullets = 32;
+
+    // ---- the fan of n shots spread evenly over +-half degrees (n = 1: straight; the parallel pair has no fan) ----
+    static float[][] Fans(int[] counts, float[] half)
+    {
+        var all = new float[counts.Length][];
+        for (int l = 0; l < counts.Length; l++)
+        {
+            int n = counts[l];
+            all[l] = new float[n];
+            if (n < 2) continue;
+            for (int k = 0; k < n; k++) all[l][k] = -half[l] + 2f * half[l] * k / (n - 1);
+        }
+        return all;
+    }
+
+    static float[][] TwinOffsetsFor(int[] counts)
+    {
+        var all = new float[counts.Length][];
+        for (int l = 0; l < counts.Length; l++)
+        {
+            all[l] = new float[counts[l]];
+            if (l == 1) { all[l][0] = -TwinParallelGap * .5f; all[l][1] = TwinParallelGap * .5f; }
+        }
+        return all;
+    }
 
     // ---- look ----
     // ARC's own lightning: pale, cool, never pink (the Volt Viper arc is sodium white on teal).
@@ -107,7 +145,7 @@ public static class ShotAtoms
         Version++;
     }
 
-    // ---- drops: every atom can drop in every world, until it is at level 3 ----
+    // ---- drops: every atom can drop in every world, until it is at the top level ----
     public static bool CanDrop(ShotAtom atom)
     {
         return Level(atom) < ShotAtomTuning.MaxLevel;
@@ -120,7 +158,7 @@ public static class ShotAtoms
         return n;
     }
 
-    // A random atom that is not maxed yet (`roll01` in 0..1 picks which); false when all six are at level 3 (a drop pays dust then).
+    // A random atom that is not maxed yet (`roll01` in 0..1 picks which); false when all six are maxed (a drop pays dust then).
     public static bool TryPick(float roll01, out ShotAtom atom)
     {
         int n = EligibleCount();
@@ -143,7 +181,7 @@ public static class ShotAtoms
         public bool maxed;       // already at the cap: the catch pays dust, no level
     }
 
-    // A coin was caught. Already at level 3 (a second coin of the same atom was in the air when the first was caught): the catch
+    // A coin was caught. Already maxed (a second coin of the same atom was in the air when the first was caught): the catch
     // pays star dust, no level.
     public static Catch Collect(ShotAtom atom)
     {
@@ -158,7 +196,19 @@ public static class ShotAtoms
 
     public const string MaxedWord = "MAXED +DUST";
 
-    public static readonly string[] Roman = { "", "I", "II", "III" };
+    public static readonly string[] Roman = { "", "I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X" };
+
+    // PowerLevel: the sum of every atom's level (0 .. Count * MaxLevel = 60). PowerCreep turns it into spawn pressure.
+    public const int MaxPower = ShotAtomTuning.Count * ShotAtomTuning.MaxLevel;
+    public static int PowerLevel
+    {
+        get
+        {
+            int sum = 0;
+            for (int i = 0; i < levels.Length; i++) sum += levels[i];
+            return sum;
+        }
+    }
 
     public static string Name(ShotAtom atom) { return atom.ToString().ToUpperInvariant(); }
 
@@ -175,13 +225,22 @@ public static class ShotAtoms
     // "TWIN SHOT  LV 2", "RAPID FIRE  LV 3"
     public static string UpgradeTitle(ShotAtom atom, int level)
     {
-        return (atom == ShotAtom.Rapid ? "RAPID FIRE" : Name(atom) + " SHOT") + "  LV " + Mathf.Clamp(level, 1, ShotAtomTuning.MaxLevel);
+        level = Mathf.Clamp(level, 1, ShotAtomTuning.MaxLevel);
+        return (atom == ShotAtom.Rapid ? "RAPID FIRE" : Name(atom) + " SHOT") + "  LV " + level;
     }
 
-    // "2 shots at once", "+20% fire rate": what this level does
+    // "2 shots at once", "+20% fire rate": what this level does; the top level leads with "MAXED" (the title stays short: LV 10)
     public static string UpgradeHint(ShotAtom atom, int level)
     {
         level = Mathf.Clamp(level, 1, ShotAtomTuning.MaxLevel);
+        string effect = EffectHint(atom, level);
+        return level >= ShotAtomTuning.MaxLevel ? MaxedTag + effect : effect;
+    }
+
+    public const string MaxedTag = "MAXED  ";
+
+    static string EffectHint(ShotAtom atom, int level)
+    {
         switch (atom)
         {
             case ShotAtom.Twin:
@@ -193,7 +252,7 @@ public static class ShotAtoms
             case ShotAtom.Ricochet:
                 return "shots bounce " + ShotAtomTuning.Bounces[level] + (level == 1 ? " time" : " times") + " off the sides";
             case ShotAtom.Arc:
-                return level == 1 ? "hits zap a nearby enemy" : level == 2 ? "zaps reach farther, hit harder" : "zaps jump to 2 enemies";
+                return ShotAtomTuning.ArcJumps[level] == 1 ? "hits zap a nearby enemy" : "zaps jump to " + ShotAtomTuning.ArcJumps[level] + " enemies";
             default:
                 return "+" + Mathf.RoundToInt(ShotAtomTuning.RapidBonus[level] * 100f) + "% fire rate";
         }
@@ -222,8 +281,8 @@ public static class ShotAtoms
 
     // ---- what the gun reads (FloatieGuns) ----
     public static float RapidBonus() { return ShotAtomTuning.RapidBonus[Level(ShotAtom.Rapid)]; }
-    // A cooldown after RAPID.
-    public static float Rapid(float seconds) { return seconds / (1f + RapidBonus()); }
+    // A cooldown after RAPID (a cooldown already under the floor is left alone: the floor only stops RAPID from going below it).
+    public static float Rapid(float seconds) { return Mathf.Max(Mathf.Min(seconds, ShotAtomTuning.MinCooldown), seconds / (1f + RapidBonus())); }
 
     public static PickupKind KindOf(ShotAtom atom) { return (PickupKind)((int)PickupKind.ShotTwin + (int)atom); }
     public static bool TryAtomOf(PickupKind kind, out ShotAtom atom)

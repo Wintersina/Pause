@@ -41,7 +41,7 @@ public static class FloatieTuning
     public static bool IsFinal(int level) { return level >= ShipWeaponUpgrades.MaxLevel; }
 
     // Seconds between floatie `index` (0-based) shots at `level`.
-    // (the shot atom RAPID then shortens it: +20% / +45% / +75% fire rate, boss fights included)
+    // (the shot atom RAPID then shortens it: +20% .. +160% fire rate, never under ShotAtomTuning.MinCooldown, boss fights included)
     public static float Cooldown(int index, int level, bool bossActive)
     {
         if (bossActive) return ShotAtoms.Rapid(BossCooldown);
@@ -200,7 +200,7 @@ public class FloatieBullet : MonoBehaviour
     }
     Mods mods;
     float speed, maxAge;
-    readonly ClearTarget[] passed = new ClearTarget[6];
+    readonly ClearTarget[] passed = new ClearTarget[ShotAtomTuning.MaxPierce + 2];   // the parent a shard ignores + every enemy a PIERCE shot passes
     int passedCount;
 
     // Counters (tests, previews).
@@ -406,13 +406,13 @@ public class FloatieBullet : MonoBehaviour
             var b = FloatieBullets.Take();
             if (b == null) return;   // at the cap: the rest are not fired
             Vector3 heading = Quaternion.Euler(0f, 0f, angles[i]) * dir;
-            var m = new Mods { damage = ShotAtomTuning.ShardDamage, shard = true, speed = ShotAtomTuning.ShardSpeed, life = ShotAtomTuning.ShardLife, ignore = parent };
+            var m = new Mods { damage = ShotAtomTuning.SplitDamage[level], shard = true, speed = ShotAtomTuning.ShardSpeed, life = ShotAtomTuning.ShardLife, ignore = parent };
             b.Launch(owner, ship, at, heading, body.color, default(FloatieAim.Pick), m);
             ShardsLaunched++;
         }
     }
 
-    static readonly ClearTarget[] zapped = new ClearTarget[4];
+    static readonly ClearTarget[] zapped = new ClearTarget[ShotAtomTuning.MaxArcJumps + 2];
 
     // ARC: a spark to the nearest other enemy in range, then on (the level's jumps), each one hit for a share of a shot.
     void Zap(Vector3 at, ClearTarget first)

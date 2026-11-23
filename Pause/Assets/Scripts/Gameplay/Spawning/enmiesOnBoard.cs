@@ -708,6 +708,7 @@ public class enmiesOnBoard : MonoBehaviour {
                / Mathf.Max(0.1f, EnemyDensity.RateScale(EnemyDensity.Hud) * PortalPressure.DensityScale)
                / Mathf.Max(0.1f, RunFactor())
                / (adaptive ? AdaptiveDifficulty.EnemyScale : 1f)   // pilot's flow, x0.75..x1.25 (rails stay out: they are rides)
+               / (adaptive ? PowerCreep.SpawnScale : 1f)           // shot-atom power creep: up to x1.7 at power 60 (PowerCreep)
                / LaneMetrics.Density;                              // a wide lane: spawns in proportion to its width (1 on phones)
     }
 
