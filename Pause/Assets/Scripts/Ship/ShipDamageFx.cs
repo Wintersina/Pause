@@ -74,6 +74,8 @@ public class ShipDamageFx : MonoBehaviour
     // Retardant timing (seconds of gameplay time).
     public const float SprayFirst = .8f, SprayDuration = .7f, DouseSeconds = 1.6f;
     public const float SprayGapDamaged = 3f, SprayGapCritical = 1.0f;
+    // The green mini-drone's calm cadence: a spray burst about this often while the ship is damaged.
+    public const float HealGap = 6f;
     // A hit: the drone is startled, then flies in to spray this soon.
     public const float HitReact = UltimateGun.StartleSeconds + .35f;
     // It starts flying in this long before a spray is due.
@@ -123,7 +125,8 @@ public class ShipDamageFx : MonoBehaviour
 
     // retardant
     float clock, sprayNext = SprayFirst, sprayLeft, sprayAge, sprayEmit, foamEmit;
-    int sprayTarget = -1, aimTarget = -1, lastHits, gunAvoid = -1;
+    int sprayTarget = -1, aimTarget = -1, lastHits, gunAvoid = -1, lastRequests;
+    HealDrone drone;
     Vector3 sprayFrom;
 
     public int ShipIdShown { get { return id; } }
@@ -142,6 +145,8 @@ public class ShipDamageFx : MonoBehaviour
     public int AimTarget { get { return state > 0 ? aimTarget : -1; } }
     public Vector3 SprayFrom { get { return sprayFrom; } }
     public UltimateGun Firefighter { get { return gun; } }
+    // The green mini-drone (HealDrone): when the ship has one it is the firefighter instead of the gun drone.
+    public HealDrone Healer { get { return drone; } }
     public int HitsSeen { get; private set; }
     public float Doused(int i) { return emitters != null && i >= 0 && i < emitters.Length ? emitters[i].doused : 0f; }
 
@@ -299,6 +304,10 @@ public class ShipDamageFx : MonoBehaviour
         KeepWorldSize();
         if (dt <= 0f) return;
         clock += dt;
+
+        // a banked green atom's heart comes back RestoreDelay after the hit it was spent on (HealBank)
+        if (HealBank.Tick(dt)) collisionDetection.BankHealed(transform.position);
+        if (drone == null) drone = HealDrone.For(transform);
 
         // a hit (even one that leaves the state as it was) startles the drone
         int hits = collisionDetection.lifeCounter;
@@ -557,7 +566,7 @@ public class ShipDamageFx : MonoBehaviour
     void Hit()
     {
         HitsSeen++;
-        if (gun != null) gun.Startle();
+        if (gun != null && drone == null) gun.Startle();   // (the mini-drone is not startled: it is not a gun drone)
         if (sprayLeft > 0f) StopSpray();
         aimTarget = -1;
         sprayNext = HitReact;
@@ -570,18 +579,47 @@ public class ShipDamageFx : MonoBehaviour
         return power != null && power.isActiveAndEnabled && power.SecondsLeft <= power.extendLeadSeconds + UltimateYield;
     }
 
+    // The firefighter: the green mini-drone when the ship has one (HealDrone), else the gun drone (UltimateGun).
+    bool Droning { get { return drone != null && drone.isActiveAndEnabled; } }
+
+    void Duty(bool onDuty, Vector3 spot, bool spraying)
+    {
+        if (Droning) drone.Firefight(onDuty, spot, spraying);
+        else if (gun != null) gun.Firefight(onDuty, spot, spraying);
+    }
+
     void StepSpray(int column, float dt, int live)
     {
-        if (state == 0 || gun == null || !gun.isActiveAndEnabled)
+        bool droning = Droning;
+        if (state == 0 || (!droning && (gun == null || !gun.isActiveAndEnabled)))
         {
             StopSpray();
             aimTarget = -1;
             sprayNext = SprayFirst;
-            if (gun != null) gun.Firefight(false, transform.position, false);
+            Duty(false, transform.position, false);
             return;
         }
         bool critical = state >= ShipDamageTable.States - 1;
-        if (UltimateSoon())
+        if (droning)
+        {
+            // A banked atom was just spent: the drone comes out at once, whatever the hearts.
+            if (HealBank.SprayRequests != lastRequests)
+            {
+                lastRequests = HealBank.SprayRequests;
+                sprayNext = Mathf.Min(sprayNext, ApproachLead + .05f);
+                aimTarget = -1;
+            }
+            // Otherwise only with 2+ hearts left: at the last heart it stays tucked away (the low-health tension).
+            if (ShipLives.Left < 2 && !HealBank.NeedSpray)
+            {
+                StopSpray();
+                aimTarget = -1;
+                sprayNext = Mathf.Max(sprayNext, ApproachLead + .2f);
+                Duty(false, transform.position, false);
+                return;
+            }
+        }
+        else if (UltimateSoon())
         {
             StopSpray();
             aimTarget = -1;
@@ -595,11 +633,11 @@ public class ShipDamageFx : MonoBehaviour
             sprayNext -= dt;
             if (aimTarget >= live || (aimTarget >= 0 && emitters[aimTarget].doused > 0f)) aimTarget = -1;
             if (aimTarget < 0 && sprayNext <= ApproachLead) aimTarget = PickSprayTarget();
-            bool approach = aimTarget >= 0 && sprayNext <= ApproachLead && !gun.Startling;
-            gun.Firefight(approach, aimTarget >= 0 ? EmitterWorld(aimTarget, column) : transform.position, false);
+            bool approach = aimTarget >= 0 && sprayNext <= ApproachLead && (droning || !gun.Startling);
+            Duty(approach, aimTarget >= 0 ? EmitterWorld(aimTarget, column) : transform.position, false);
             if (sprayNext > 0f) return;
             if (aimTarget < 0) { sprayNext = .5f; return; }   // nothing to spray yet: look again soon
-            if (!gun.OnStation) return;                       // still flying in
+            if (!(droning ? drone.OnStation : gun.OnStation)) return;   // still flying in
             sprayTarget = aimTarget;
             sprayLeft = SprayDuration;
             sprayAge = 0f;
@@ -607,12 +645,13 @@ public class ShipDamageFx : MonoBehaviour
             foamEmit = 0f;
             emitters[sprayTarget].lastSprayed = clock;
             Sprays++;
+            if (droning) HealBank.SprayServed();
         }
 
         if (sprayTarget >= live) { StopSpray(); aimTarget = -1; sprayNext = .5f; return; }
         Vector3 to = EmitterWorld(sprayTarget, column);
-        gun.Firefight(true, to, true);
-        Vector3 src = gun.NozzlePosition;
+        Duty(true, to, true);
+        Vector3 src = droning ? drone.NozzlePosition : gun.NozzlePosition;
         sprayFrom = src;
 
         Vector3 d = to - src;
@@ -654,7 +693,7 @@ public class ShipDamageFx : MonoBehaviour
         {
             StopSpray();
             aimTarget = -1;
-            float gap = critical ? SprayGapCritical : SprayGapDamaged;
+            float gap = droning ? HealGap : critical ? SprayGapCritical : SprayGapDamaged;
             sprayNext = gap * Random.Range(.85f, 1.15f);
         }
     }

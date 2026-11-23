@@ -102,6 +102,9 @@ public class HealAtom : MonoBehaviour
         return new Rect(627f - side * 0.5f, 634.5f - side * 0.5f, side, side);
     }
 
+    // The green atom's drawing, for the banked-atom icon at the ship's tail (HealBankIcon).
+    public static Sprite IconSprite { get { return Art(); } }
+
     // A green nucleus with three orbiting lobes, echoing the existing atoms.
     static Sprite Art()
     {

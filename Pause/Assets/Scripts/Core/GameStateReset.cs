@@ -57,6 +57,7 @@ public static class GameStateReset
         // all of it -- in the dock, which is supposed to only ever show
         // healed, ready-to-fly ships.
         collisionDetection.lifeCounter = 0;
+        HealBank.Reset();   // the banked green atoms are a run's
         collisionDetection.atomCheck = false;
         collisionDetection.invTimer = 0f;
         collisionDetection.cloakTimer = 0f;
