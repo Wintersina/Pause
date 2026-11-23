@@ -905,6 +905,18 @@ public static class ScreenFitScreens
         for (int id = 1; id < dock.bays.Length; id++)
             if (dock.bays[id] != null && !reached[id]) rig.Fail("DOCKLOT", "bay " + id, "cannot be scrolled fully into the viewport");
 
+        // the planet behind the lot: present, behind the deck, and part of its disc shows in the lot's viewport
+        var planet = dock.planet;
+        if (planet == null || planet.Renderer == null || planet.Renderer.sprite == null) rig.Fail("DOCKLOT", "planet", "no planet behind the lot");
+        else
+        {
+            if (planet.Renderer.sortingOrder >= 0) rig.Fail("DOCKLOT", "planet", "is not behind the deck");
+            var pc = planet.transform.position;
+            var disc = new Rect(pc.x - planet.Diameter * .5f, pc.y - planet.Diameter * .5f, planet.Diameter, planet.Diameter);
+            if (!disc.Overlaps(viewport)) rig.Fail("DOCKLOT", "planet", "is not visible behind the lot");
+            if (disc.center.x > viewport.xMax + .001f || disc.center.x < viewport.xMin - .001f) rig.Fail("DOCKLOT", "planet", "its centre is outside the safe width");
+        }
+
         // the viewport sits between the header and the footer buttons' tap areas
         if (viewport.yMax > dock.HeaderBottomY + .001f) rig.Fail("DOCKLOT", "lot", "the lot's viewport runs up under the header");
         if (viewport.yMin < dock.FooterTopY - .001f) rig.Fail("DOCKLOT", "lot", "the lot's viewport runs down under Back / Lift-off");
