@@ -100,15 +100,24 @@ public static class ShipFxArt
             cells = new Sprite[StripCells];
             float c = tex.width / (float)StripCells;
             for (int i = 0; i < StripCells; i++)
-                cells[i] = Sprite.Create(tex, new Rect(i * c, 0, c, tex.height), new Vector2(.5f, .5f), c);
+                cells[i] = Sprite.Create(tex, new Rect(i * c, 0, c, tex.height), new Vector2(.5f, .5f), c, 0, SpriteMeshType.FullRect);
         }
         strips[key] = cells;
         return cells;
     }
 
-    // FirstUseWarm: the flown ship's attack strip, its secret power's strip and the shared badge atlas, each read
-    // off-thread and sliced in its own frame. (The Special skin's own _special strips and the ships' extra
-    // attack_* strips are not warmed: they are rare, 4096 x 256 each.)
+    // Every extra strip a ship may draw besides its attack and power strips: the ultimate's parts (UltimateStrip)
+    // and the per-ship ones the attacks ask for by name. A ship has only a few of them; asking for one it has not
+    // is a null remembered in `strips`, so the fight never looks for it on disk.
+    public static readonly string[] ExtraStrips =
+    {
+        "attack_shot", "attack_mark", "attack_shockwave", "attack_mushroom", "attack_ice", "stun", "flare", "feather", "pack",
+    };
+
+    // FirstUseWarm: the flown ship's attack strip, its secret power's strip, its extra strips and the shared badge
+    // atlas, each read off-thread and sliced in its own frame. The extras used to be left to their first use, in
+    // the middle of a fight: a file read and sixteen slices, 80-130 ms each. (With the Special skin shown the same
+    // steps warm its _special strips: Strip resolves the skin.)
     public static void QueueWarm(int ship)
     {
         int id = ShipId.IsValid(ship) ? ship : ShipId.Starter;
@@ -116,12 +125,13 @@ public static class ShipFxArt
         string power = PowerStripName(ShipLoadoutTable.PowerFor(id));
         if (power != null) QueueStrip(id, power);
         FirstUseWarm.Add("fxart:meter", "Weapons/SecretMeter", typeof(Texture2D), () => Meter());
+        foreach (string extra in ExtraStrips) QueueStrip(id, extra);
     }
 
     static void QueueStrip(int id, string suffix)
     {
         string key = Key(keys, id, suffix, "");
-        FirstUseWarm.Add("fxart:" + key, "Weapons/Powers2/" + key, typeof(Texture2D), () => Load(key));
+        FirstUseWarm.Add("fxart:" + key, "Weapons/Powers2/" + key, typeof(Texture2D), () => { Load(key); Strip(id, suffix); });
     }
 
     public static bool StripReady(int ship, string suffix)
@@ -142,7 +152,7 @@ public static class ShipFxArt
         for (int row = 0; row < Rows; row++)
             for (int col = 0; col < Columns; col++)
                 sheet[row * Columns + col] = Sprite.Create(tex, new Rect(col * w, (Rows - 1 - row) * h, w, h),
-                                                           new Vector2(.5f, .5f), w);
+                                                           new Vector2(.5f, .5f), w, 0, SpriteMeshType.FullRect);
         return sheet;
     }
 
@@ -279,7 +289,7 @@ public static class ShipFxArt
                 }
             tex.SetPixels32(px);
             tex.Apply();
-            hand = Sprite.Create(tex, new Rect(0, 0, W, H), new Vector2(.5f, .5f), H);
+            hand = Sprite.Create(tex, new Rect(0, 0, W, H), new Vector2(.5f, .5f), H, 0, SpriteMeshType.FullRect);
             return hand;
         }
     }

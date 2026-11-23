@@ -51,8 +51,10 @@ public static class ArtWarm
     public static void Begin(int world)
     {
         Forget();
+        WorldArtCaches.Enter(world);   // another world's sliced art is let go before this one's is made
         World = world;
         FirstUseWarm.QueueWorld(world);   // the death panel's frame for this world, measured in the calm start
+        BossArt.QueueWarm(BossCatalog.ForWorld(world));   // the boss's sprites and shot rims, made during the level
         var paths = new List<string>();
         Paths(world, paths);
         foreach (var p in paths) if (!string.IsNullOrEmpty(p) && queued.Add(p)) queue.Add(p);

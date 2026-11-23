@@ -25,7 +25,7 @@ public static class PowerFx
     {
         var tex = Resources.Load<Texture2D>("Vfx/Kenney/" + file);
         if (tex == null) return null;
-        return Sprite.Create(tex, new Rect(0, 0, tex.width, tex.height), new Vector2(0.5f, 0.5f), 100f);
+        return Sprite.Create(tex, new Rect(0, 0, tex.width, tex.height), new Vector2(0.5f, 0.5f), 100f, 0, SpriteMeshType.FullRect);
     }
 
     static GameObject Piece(string file, Vector3 at, Color tint, float scale, int order = 70)

@@ -104,15 +104,28 @@ public static class ShotOutline
         h = Mathf.RoundToInt(r.height);
         if (tex != null && tex.isReadable)
         {
-            var all = tex.GetPixels32();
-            var px = new Color32[w * h];
+            // only the drawing's own cell is copied (the whole sheet used to be: megabytes for one cell of an atlas)
             int x0 = Mathf.RoundToInt(r.x), y0 = Mathf.RoundToInt(r.y);
-            for (int y = 0; y < h; y++)
-                for (int x = 0; x < w; x++) px[y * w + x] = all[(y0 + y) * tex.width + x0 + x];
+            var px = new Color32[w * h];
+            if (tex.format == TextureFormat.RGBA32 && tex.mipmapCount >= 1)
+            {
+                var all = tex.GetPixelData<Color32>(0);   // a view of the texture's own memory: nothing is allocated
+                int tw = tex.width;
+                if (all.IsCreated && all.Length >= tw * tex.height && x0 >= 0 && y0 >= 0 && x0 + w <= tw && y0 + h <= tex.height)
+                {
+                    for (int y = 0; y < h; y++)
+                        for (int x = 0; x < w; x++) px[y * w + x] = all[(y0 + y) * tw + x0 + x];
+                    return px;
+                }
+            }
+            var part = tex.GetPixels(x0, y0, w, h);
+            for (int i = 0; i < px.Length && i < part.Length; i++) px[i] = part[i];
             return px;
         }
         return ShieldContour.ReadPixels(art, out w, out h);
     }
+
+    static int[] distScratch = new int[0];
 
     static Sprite Build(Sprite art, float drawnSize, bool bold)
     {
@@ -126,8 +139,11 @@ public static class ShotOutline
         int pad = Mathf.CeilToInt(reach) + 2;
         int W = w * s + 2 * pad, H = h * s + 2 * pad;
         const int Far = 1 << 20;
-        var dist = new int[W * H];
-        for (int i = 0; i < dist.Length; i++) dist[i] = Far;
+        // (scratch kept between builds: a 192 px drawing's outline is 768 x 768, megabytes of garbage a build otherwise)
+        int N = W * H;
+        if (distScratch.Length < N) distScratch = new int[N];
+        var dist = distScratch;
+        for (int i = 0; i < N; i++) dist[i] = Far;
         byte cut = (byte)Mathf.RoundToInt(Coverage * 255f);
         for (int y = 0; y < h; y++)
             for (int x = 0; x < w; x++)
@@ -141,12 +157,12 @@ public static class ShotOutline
             for (int x = 0; x < W; x++)
             {
                 int i = y * W + x, v = dist[i];
-                if (x > 0) v = Mathf.Min(v, dist[i - 1] + 3);
+                if (x > 0) { int c = dist[i - 1] + 3; if (c < v) v = c; }
                 if (y > 0)
                 {
-                    v = Mathf.Min(v, dist[i - W] + 3);
-                    if (x > 0) v = Mathf.Min(v, dist[i - W - 1] + 4);
-                    if (x < W - 1) v = Mathf.Min(v, dist[i - W + 1] + 4);
+                    { int c = dist[i - W] + 3; if (c < v) v = c; }
+                    if (x > 0) { int c = dist[i - W - 1] + 4; if (c < v) v = c; }
+                    if (x < W - 1) { int c = dist[i - W + 1] + 4; if (c < v) v = c; }
                 }
                 dist[i] = v;
             }
@@ -154,19 +170,20 @@ public static class ShotOutline
             for (int x = W - 1; x >= 0; x--)
             {
                 int i = y * W + x, v = dist[i];
-                if (x < W - 1) v = Mathf.Min(v, dist[i + 1] + 3);
+                if (x < W - 1) { int c = dist[i + 1] + 3; if (c < v) v = c; }
                 if (y < H - 1)
                 {
-                    v = Mathf.Min(v, dist[i + W] + 3);
-                    if (x < W - 1) v = Mathf.Min(v, dist[i + W + 1] + 4);
-                    if (x > 0) v = Mathf.Min(v, dist[i + W - 1] + 4);
+                    { int c = dist[i + W] + 3; if (c < v) v = c; }
+                    if (x < W - 1) { int c = dist[i + W + 1] + 4; if (c < v) v = c; }
+                    if (x > 0) { int c = dist[i + W - 1] + 4; if (c < v) v = c; }
                 }
                 dist[i] = v;
             }
-        var px = new Color32[W * H];
+        var tex = new Texture2D(W, H, TextureFormat.RGBA32, false);
+        var px = tex.GetRawTextureData<Color32>();   // written in place: no managed copy of the texels
         float lightEnd = bold ? Mathf.Max(1f, BoldLightTo * texelsPerUnit) : reach * (1f - DarkShare);
         float solidEnd = bold ? Mathf.Max(lightEnd + 2f, BoldSolidTo * texelsPerUnit) : reach;
-        for (int i = 0; i < px.Length; i++)
+        for (int i = 0; i < N; i++)
         {
             float d = dist[i] / 3f;
             if (d > reach) { px[i] = new Color32(255, 255, 255, 0); continue; }
@@ -185,12 +202,10 @@ public static class ShotOutline
             }
             else px[i] = new Color32(0, 0, 0, (byte)Mathf.RoundToInt(255f * DarkAlpha));   // the dark hairline
         }
-        var tex = new Texture2D(W, H, TextureFormat.RGBA32, false);
         tex.name = art.name + (bold ? "OutlineBold" : "Outline");
         tex.filterMode = FilterMode.Bilinear;
         tex.wrapMode = TextureWrapMode.Clamp;
         tex.hideFlags = HideFlags.HideAndDontSave;
-        tex.SetPixels32(px);
         tex.Apply(false, false);   // kept readable: small, and the tests read it back
         // the same pivot and pixels-per-unit as the art (x Upsample), so at
         // local scale 1 under the shot it sits exactly on the drawing

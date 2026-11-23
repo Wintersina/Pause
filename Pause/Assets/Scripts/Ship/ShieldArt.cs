@@ -65,7 +65,7 @@ public static class ShieldArt
         if (tex == null) tex = Texture2D.whiteTexture;
         float w = tex.width / (float)count;
         for (int i = 0; i < count; i++)
-            frames[i] = Sprite.Create(tex, new Rect(i * w, 0, w, tex.height), new Vector2(.5f, .5f), 100f);
+            frames[i] = Sprite.Create(tex, new Rect(i * w, 0, w, tex.height), new Vector2(.5f, .5f), 100f, 0, SpriteMeshType.FullRect);
         return frames;
     }
 }

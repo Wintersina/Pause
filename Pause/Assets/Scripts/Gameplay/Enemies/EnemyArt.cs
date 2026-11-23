@@ -12,6 +12,10 @@ public static class EnemyArt
 
     public static Sprite[] Frames(EnemyDef def) { return Frames(def, 0); }
 
+    // WorldArtCaches: the strips sliced so far are let go (enemies still flying keep their own drawings).
+    public static void Release() { cache.Clear(); }
+    public static int CachedStrips { get { return cache.Count; } }
+
     // `variant` > 0: a re-coloured copy of the strip (ObsidianShards); anything else has none and gets its own strip.
     public static Sprite[] Frames(EnemyDef def, int variant)
     {
@@ -39,7 +43,7 @@ public static class EnemyArt
         frames = new Sprite[n];
         for (int i = 0; i < n; i++)
         {
-            frames[i] = Sprite.Create(tex, new Rect(i * w, 0, w, tex.height), new Vector2(.5f, .5f), ppu);
+            frames[i] = Sprite.Create(tex, new Rect(i * w, 0, w, tex.height), new Vector2(.5f, .5f), ppu, 0, SpriteMeshType.FullRect);
             frames[i].name = id + "_" + i;
         }
         cache[id] = frames;

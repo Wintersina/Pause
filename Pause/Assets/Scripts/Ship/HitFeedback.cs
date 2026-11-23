@@ -143,7 +143,7 @@ public class HitFeedback : MonoBehaviour
             }
         tex.SetPixels32(px);
         tex.Apply(false, true);
-        return Sprite.Create(tex, new Rect(0, 0, TexW, TexH), new Vector2(.5f, .5f), TexW);
+        return Sprite.Create(tex, new Rect(0, 0, TexW, TexH), new Vector2(.5f, .5f), TexW, 0, SpriteMeshType.FullRect);
     }
 
     void OnDestroy()

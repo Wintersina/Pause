@@ -19,6 +19,7 @@
   "lore": "A spear of brass and heat that works the rails of the screen. A thin line draws its lane across the whole board, and then it rams the length of it and stops at the far rail, flinging heat needles back along the track. It turns up the rail and comes back the other way on a new lane: watch every lane.",
   "cellWorldSize": 1.8,
   "hullRadius": 0.36,
+  "silhouetteShare": 0.4611,
   "noseDeg": 90,
   "turnsToFace": true,
   "speed": 3.0,

@@ -11,6 +11,7 @@ public sealed class AttackLink
 
     GameObject root;
     SpriteRenderer sr;
+    bool broken;
     readonly int order;
     Color tint;
 
@@ -36,7 +37,7 @@ public sealed class AttackLink
         for (int i = 0; i < px.Length; i++) px[i] = new Color32(255, 255, 255, 255);
         tex.SetPixels32(px);
         tex.Apply(false, true);
-        cell = Sprite.Create(tex, new Rect(0, 0, Cell, Cell), new Vector2(.5f, .5f), Cell);   // one world unit across
+        cell = Sprite.Create(tex, new Rect(0, 0, Cell, Cell), new Vector2(.5f, .5f), Cell, 0, SpriteMeshType.FullRect);   // one world unit across
         return cell;
     }
 
@@ -54,7 +55,19 @@ public sealed class AttackLink
     // Draws the line from a to b, `thickness` units wide at `alpha` opacity.
     public void Set(Vector3 a, Vector3 b, float thickness, float alpha)
     {
-        if (root == null) Build();
+        if (broken) return;
+        if (root == null)
+        {
+            // One attempt: a Build that throws half way would otherwise leave an object behind on every frame's call.
+            try { Build(); }
+            catch (System.Exception e)
+            {
+                broken = true;
+                Debug.LogError("AttackLink: could not build the line, it stays off: " + e);
+                Destroy();
+                return;
+            }
+        }
         Vector3 d = b - a;
         float len = Mathf.Max(.01f, ((Vector2)d).magnitude);
         a.z = b.z = 0f;

@@ -633,6 +633,98 @@ public partial class DeathCrash
     static readonly Dictionary<long, FragmentSet> targetSets = new Dictionary<long, FragmentSet>();
     const int MaxCachedTargetSets = 64, MaxCutsPerDeath = 16;
 
+    // ---- cut without stalling the frame --------------------------------------------------------------------
+    //
+    // A cut needs the drawing's pixels, and the enemy sheets are not CPU-readable: reading them back at once
+    // (ReadableCopy) stalls the frame on the GPU, at the kill -- some sixty times in a first level. In play the
+    // pixels are asked for with AsyncGPUReadback instead: they arrive a frame or three later with no stall and no
+    // managed copy, the cut is made then and handed to `done` (HazardRuntime shatters the kill it was holding).
+    // Which row comes back first differs by graphics API, so the first request is preceded by a 2 x 2 probe
+    // through the very same path (RowsFlipped). Edit mode and devices without async readback keep the old path.
+    public static bool AsyncCuts => Application.isPlaying && SystemInfo.supportsAsyncGPUReadback && !ForceSyncCuts;
+    public static bool ForceSyncCuts;
+    public static int AsyncCutsMade { get; private set; }
+    static Color32[] asyncPixels = new Color32[0];
+    static int rowsFlipped = -1;   // -1 unknown, 0 bottom row first (GetPixels32 order), 1 top row first
+
+    public static bool FragmentsCached(Sprite sprite, int count, out Sprite[] sprites, out Vector2[] local, out float[] radius)
+    {
+        sprites = null; local = null; radius = null;
+        if (sprite == null) return false;
+        count = Mathf.Clamp(count, 1, MaxFragments);
+        if (!targetSets.TryGetValue(((long)sprite.GetInstanceID() << 4) ^ count, out var set) || !Alive(set)) return false;
+        sprites = set.sprites; local = set.local; radius = set.radius;
+        return true;
+    }
+
+    // Cuts `sprite` into `count` pieces off the main thread's critical path; `done` gets true once the set is
+    // cached (FragmentsCached then answers), false when it could not be cut. Returns false when nothing was started.
+    public static bool FragmentsAsync(Sprite sprite, int count, System.Action<bool> done)
+    {
+        if (sprite == null || sprite.texture == null) return false;
+        count = Mathf.Clamp(count, 1, MaxFragments);
+        long key = ((long)sprite.GetInstanceID() << 4) ^ count;
+        var src = sprite.texture;
+        Rect r = sprite.textureRect;
+        int w = Mathf.RoundToInt(r.width), h = Mathf.RoundToInt(r.height);
+        if (w < 1 || h < 1) return false;
+        if (rowsFlipped < 0) ProbeRowOrder();
+        var rt = RenderTexture.GetTemporary(w, h, 0, RenderTextureFormat.ARGB32, RenderTextureReadWrite.Default);
+        Graphics.Blit(src, rt, new Vector2(r.width / src.width, r.height / src.height), new Vector2(r.x / src.width, r.y / src.height));
+        UnityEngine.Rendering.AsyncGPUReadback.Request(rt, 0, TextureFormat.RGBA32, req =>
+        {
+            RenderTexture.ReleaseTemporary(rt);
+            bool ok = false;
+            try
+            {
+                if (!req.hasError && sprite != null && sprite.texture != null && rowsFlipped >= 0)
+                {
+                    var data = req.GetData<Color32>();
+                    if (data.Length >= w * h)
+                    {
+                        if (asyncPixels.Length < w * h) asyncPixels = new Color32[w * h];
+                        if (rowsFlipped == 0) Unity.Collections.NativeArray<Color32>.Copy(data, asyncPixels, w * h);
+                        else for (int y = 0; y < h; y++) Unity.Collections.NativeArray<Color32>.Copy(data, (h - 1 - y) * w, asyncPixels, y * w, w);
+                        if (targetSets.Count > MaxCachedTargetSets) targetSets.Clear();   // (let go, not destroyed: pieces may be tumbling)
+                        var set = CutPixels(sprite, asyncPixels, w, h, -1, 0, count);
+                        if (set != null) { targetSets[key] = set; AsyncCutsMade++; ok = true; }
+                    }
+                }
+            }
+            catch (System.Exception e) { Debug.LogException(e); }
+            if (done != null) done(ok);
+        });
+        return true;
+    }
+
+    // One 2 x 2 texture, bottom row white and top row black, sent through the same blit + async readback.
+    static void ProbeRowOrder()
+    {
+        rowsFlipped = -2;   // asked
+        var probe = new Texture2D(2, 2, TextureFormat.RGBA32, false) { filterMode = FilterMode.Point };
+        probe.SetPixels32(new[] { new Color32(255, 255, 255, 255), new Color32(255, 255, 255, 255), new Color32(0, 0, 0, 255), new Color32(0, 0, 0, 255) });
+        probe.Apply(false, false);
+        var rt = RenderTexture.GetTemporary(2, 2, 0, RenderTextureFormat.ARGB32, RenderTextureReadWrite.Default);
+        Graphics.Blit(probe, rt, Vector2.one, Vector2.zero);
+        BossUtil.Kill(probe);
+        UnityEngine.Rendering.AsyncGPUReadback.Request(rt, 0, TextureFormat.RGBA32, req =>
+        {
+            RenderTexture.ReleaseTemporary(rt);
+            if (req.hasError) { ForceSyncCuts = true; rowsFlipped = -1; return; }
+            var d = req.GetData<Color32>();
+            rowsFlipped = d.Length >= 4 && d[0].r > 127 ? 0 : 1;
+        });
+    }
+
+    // Tests: the readback's row order as probed (-1 not yet), and a way to wait for it.
+    public static int RowsFlipped => rowsFlipped;
+    public static void EnsureRowOrderProbed() { if (rowsFlipped == -1) ProbeRowOrder(); }
+
+    // The pieces cut so far are let go (a world left behind, the run's scene gone): the table is emptied and the
+    // next asset sweep frees the piece textures nothing draws any more. Pieces still tumbling keep theirs.
+    public static void ForgetTargetFragments() { targetSets.Clear(); }
+    public static int CachedTargetSets { get { return targetSets.Count; } }
+
     // How many pieces a target of this radius breaks into.
     public static int CountFor(float radius) => radius < .28f ? 2 : radius < .55f ? 3 : 4;
 

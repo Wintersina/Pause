@@ -51,6 +51,7 @@
   "attack": "hail_wall",
   "lore": "An armoured floating fortress that crawls along the top of the sky. It marks the gap of a hail wall with two thin lines, then lets the hail fall in staggered waves while the gap slides, and it is never where you stand. Only mines, rails and its own kind crack it.",
   "hullRadius": 0.385,
+  "silhouetteShare": 0.4595,
   "turnsToFace": false,
   "speed": 1.7,
   "accel": 3.5,

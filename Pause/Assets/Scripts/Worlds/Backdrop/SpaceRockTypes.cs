@@ -25,7 +25,7 @@ public sealed class SpaceRockType
             frames = new Sprite[n];
             for (int i = 0; i < n; i++)
             {
-                frames[i] = Sprite.Create(tex, new Rect(i * w, 0, w, tex.height), new Vector2(.5f, .5f), strip.pixelsPerUnit);
+                frames[i] = Sprite.Create(tex, new Rect(i * w, 0, w, tex.height), new Vector2(.5f, .5f), strip.pixelsPerUnit, 0, SpriteMeshType.FullRect);
                 frames[i].name = "space_rock_" + key + "_" + i;
             }
             return frames;

@@ -104,7 +104,7 @@ public static class BossTelegraphStyle
                 for (int dy = -1; dy <= 1; dy++) for (int dx = -1; dx <= 1; dx++) tex.SetPixel(cx + dx, cy + dy, Color.white);
             }
             tex.Apply(false, false);
-            ring = Sprite.Create(tex, new Rect(0, 0, S, S), new Vector2(.5f, .5f), S);
+            ring = Sprite.Create(tex, new Rect(0, 0, S, S), new Vector2(.5f, .5f), S, 0, SpriteMeshType.FullRect);
             ring.name = "TelegraphRing";
             return ring;
         }

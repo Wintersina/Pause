@@ -105,7 +105,7 @@ public class PausedLabel : MonoBehaviour
         halo.transform.SetParent(transform, false);
         var haloImage = halo.GetComponent<Image>();
         haloTex = BuildHaloTexture();
-        haloSprite = Sprite.Create(haloTex, new Rect(0, 0, haloTex.width, haloTex.height), new Vector2(.5f, .5f));
+        haloSprite = Sprite.Create(haloTex, new Rect(0, 0, haloTex.width, haloTex.height), new Vector2(.5f, .5f), 100f, 0, SpriteMeshType.FullRect);
         haloImage.sprite = haloSprite;
         haloImage.color = Halo;
         haloImage.raycastTarget = false;

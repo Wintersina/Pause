@@ -51,6 +51,7 @@
   "attack": "rod_strikes",
   "lore": "A rod-armed dancer that weaves a figure of eight across the top and calls the lightning down. A glyph blooms under every column at once, then the columns strike from the outside in, your own lane last. Hurt, it flees off the screen and returns.",
   "hullRadius": 0.377,
+  "silhouetteShare": 0.4671,
   "turnsToFace": true,
   "speed": 2.7,
   "accel": 8.0,

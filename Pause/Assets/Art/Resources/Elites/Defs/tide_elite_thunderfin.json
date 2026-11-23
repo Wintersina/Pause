@@ -53,6 +53,7 @@
   "launchFrom": "lighthouse,ventstack",
   "lore": "A storm ray that loiters high over the board and never chases. A glyph marks every column it calls, then the thunder strikes them one after another, sweeping the way it is flying. Hurt, it flees the sky and comes back.",
   "hullRadius": 0.34,
+  "silhouetteShare": 0.4318,
   "turnsToFace": false,
   "speed": 2.6,
   "accel": 5.5,

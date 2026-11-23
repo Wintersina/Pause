@@ -20,6 +20,7 @@
   "lore": "A slow armoured kiln that hangs over the board and never chases. It dumps slag blobs down lanes outlined on the board, more of them for every heart it loses, and in between it spills a lane of lava that cools after a few seconds. Keep to the gap.",
   "cellWorldSize": 1.747,
   "hullRadius": 0.318,
+  "silhouetteShare": 0.4853,
   "noseDeg": 90,
   "turnsToFace": false,
   "maxBank": 6,

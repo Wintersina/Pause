@@ -516,7 +516,18 @@ public static class EnemySplit
         if (sr == null) sr = target.GetComponentInChildren<SpriteRenderer>();
         if (sr == null || sr.sprite == null || !sr.enabled) return false;
         float radius = target.TryGetComponent(out ClearTarget ct) ? ct.Radius : ClearTarget.MeasureRadius(target);
-        if (!DeathCrash.FragmentsOf(sr.sprite, DeathCrash.CountFor(radius), out var sprites, out var local, out var rad))
+        int pieces = DeathCrash.CountFor(radius);
+        Sprite[] sprites; Vector2[] local; float[] rad;
+        if (DeathCrash.AsyncCuts && !DeathCrash.FragmentsCached(sr.sprite, pieces, out sprites, out local, out rad))
+        {
+            // a drawing not cut yet: its pixels are fetched without stalling the frame, and the pieces fly out
+            // when they arrive, a frame or three on, from where the target was
+            if (!HazardRuntime.Ensure().ShatterWhenCut(sr, pieces, Rand)) return false;
+            splitsThisStep++;
+            Splits++;
+            return true;
+        }
+        if (!DeathCrash.FragmentsOf(sr.sprite, pieces, out sprites, out local, out rad))
             return false;
         int n = HazardRuntime.Ensure().Shatter(sr, sprites, local, rad, Rand);
         if (n < 2) return false;
@@ -643,13 +654,48 @@ public class HazardRuntime : MonoBehaviour
 
     // The drawing on `from` breaks into its pieces, flung out from its
     // centre, spinning. Returns how many pieces flew.
+    // What Shatter reads off the dying target, kept so the pieces can be thrown after it is gone.
+    struct ShatterFrom
+    {
+        public Vector3 centre, scale;
+        public Quaternion rot;
+        public bool flipX, flipY;
+        public Color color;
+        public int layer, order;
+
+        public ShatterFrom(SpriteRenderer from)
+        {
+            var tf = from.transform;
+            centre = tf.position; scale = tf.lossyScale; rot = tf.rotation;
+            flipX = from.flipX; flipY = from.flipY; color = from.color;
+            layer = from.sortingLayerID; order = from.sortingOrder;
+        }
+    }
+
+    // The target's drawing has no pieces cut yet: its look is remembered, the cut is asked for
+    // (DeathCrash.FragmentsAsync) and the pieces are thrown when it is ready. False when nothing was started.
+    public bool ShatterWhenCut(SpriteRenderer from, int pieces, System.Func<float> rand)
+    {
+        var sprite = from.sprite;
+        var snap = new ShatterFrom(from);
+        return DeathCrash.FragmentsAsync(sprite, pieces, ok =>
+        {
+            if (!ok || this == null) return;
+            if (DeathCrash.FragmentsCached(sprite, pieces, out var sprites, out var local, out var radius)) Shatter(snap, sprites, local, rand);
+        });
+    }
+
     public int Shatter(SpriteRenderer from, Sprite[] sprites, Vector2[] local, float[] radius, System.Func<float> rand)
     {
-        var tf = from.transform;
-        Vector3 centre = tf.position;
-        Vector3 scale = tf.lossyScale;
+        return Shatter(new ShatterFrom(from), sprites, local, rand);
+    }
+
+    int Shatter(ShatterFrom from, Sprite[] sprites, Vector2[] local, System.Func<float> rand)
+    {
+        Vector3 centre = from.centre;
+        Vector3 scale = from.scale;
         float flipX = from.flipX ? -1f : 1f, flipY = from.flipY ? -1f : 1f;
-        Quaternion rot = tf.rotation;
+        Quaternion rot = from.rot;
         int n = 0;
         for (int k = 0; k < sprites.Length; k++)
         {
@@ -671,8 +717,8 @@ public class HazardRuntime : MonoBehaviour
             sr.flipX = from.flipX;
             sr.flipY = from.flipY;
             sr.color = from.color;
-            sr.sortingLayerID = from.sortingLayerID;
-            sr.sortingOrder = from.sortingOrder + 1;
+            sr.sortingLayerID = from.layer;
+            sr.sortingOrder = from.order + 1;
             sr.transform.SetPositionAndRotation(centre + off, rot);
             sr.transform.localScale = scale;
             sr.gameObject.SetActive(true);

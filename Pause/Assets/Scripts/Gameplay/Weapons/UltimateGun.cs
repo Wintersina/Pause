@@ -519,7 +519,7 @@ public class UltimateGun : MonoBehaviour
         int col = slot % 4;
         int row = 3 - slot / 4;
         gunSprites[slot] = Sprite.Create(tex, new Rect(col * Cell, row * Cell, Cell, Cell),
-            new Vector2(.5f, .12f), 100f);
+            new Vector2(.5f, .12f), 100f, 0, SpriteMeshType.FullRect);
         return gunSprites[slot];
     }
 
@@ -535,7 +535,7 @@ public class UltimateGun : MonoBehaviour
         tex.Apply();
         // pixelsPerUnit == texture size: the sprite is exactly 1x1 world unit
         // at scale 1, so a renderer's localScale directly is its world size.
-        solidCache = Sprite.Create(tex, new Rect(0, 0, S, S), new Vector2(0.5f, 0.5f), S);
+        solidCache = Sprite.Create(tex, new Rect(0, 0, S, S), new Vector2(0.5f, 0.5f), S, 0, SpriteMeshType.FullRect);
         return solidCache;
     }
 

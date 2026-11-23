@@ -143,7 +143,7 @@ public static class WeaponFx
             for (int i = 0; i < px.Length; i++) px[i] = Color.white;
             tex.SetPixels(px);
             tex.Apply();
-            solid = Sprite.Create(tex, new Rect(0, 0, S, S), new Vector2(.5f, .5f), S);
+            solid = Sprite.Create(tex, new Rect(0, 0, S, S), new Vector2(.5f, .5f), S, 0, SpriteMeshType.FullRect);
             return solid;
         }
     }

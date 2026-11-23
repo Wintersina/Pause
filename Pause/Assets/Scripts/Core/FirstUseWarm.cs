@@ -27,6 +27,7 @@ public static class FirstUseWarm
     static readonly Queue<Step> queue = new Queue<Step>(64);
     static readonly HashSet<string> asked = new HashSet<string>();
     static readonly List<UnityEngine.Object> held = new List<UnityEngine.Object>(128);
+    static readonly List<string> heldKey = new List<string>(128);   // the step each held asset came from (Release)
     static ResourceRequest inFlight;
     static Step flying;
     static bool flightLive;
@@ -58,8 +59,8 @@ public static class FirstUseWarm
         if (flightLive)
         {
             if (inFlight != null && !inFlight.isDone) return true;
-            if (inFlight != null && inFlight.asset != null) held.Add(inFlight.asset);
             var s = flying;
+            if (inFlight != null && inFlight.asset != null) Hold(inFlight.asset, s.key);
             flightLive = false;
             inFlight = null;
             Run(s);
@@ -73,7 +74,7 @@ public static class FirstUseWarm
             if (sync)
             {
                 var o = SyncLoader != null ? SyncLoader(step.type, step.path) : Resources.Load(step.path, step.type);
-                if (o != null) held.Add(o);
+                if (o != null) Hold(o, step.key);
             }
             else
             {
@@ -87,6 +88,12 @@ public static class FirstUseWarm
         return !Done;
     }
 
+    static void Hold(UnityEngine.Object o, string key)
+    {
+        held.Add(o);
+        heldKey.Add(key);
+    }
+
     static void Run(Step s)
     {
         Ran++;
@@ -95,12 +102,23 @@ public static class FirstUseWarm
         catch (Exception e) { Debug.LogWarning("[FirstUseWarm] " + s.key + ": " + e.Message); }
     }
 
+    // The art behind every key starting with `prefix` was let go (a world left behind): the steps may be asked for
+    // again, and what they held is released to the next asset sweep.
+    public static void Release(string prefix)
+    {
+        if (string.IsNullOrEmpty(prefix)) return;
+        asked.RemoveWhere(k => k.StartsWith(prefix, StringComparison.Ordinal));
+        for (int i = held.Count - 1; i >= 0; i--)
+            if (heldKey[i].StartsWith(prefix, StringComparison.Ordinal)) { held.RemoveAt(i); heldKey.RemoveAt(i); }
+    }
+
     // Tests: forget everything (the held assets are released to the next asset sweep).
     public static void Clear()
     {
         queue.Clear();
         asked.Clear();
         held.Clear();
+        heldKey.Clear();
         inFlight = null;
         flightLive = false;
         Ran = 0;

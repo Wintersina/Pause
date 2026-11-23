@@ -81,6 +81,9 @@ public class EnemyDeathFlipbook : MonoBehaviour
 
     public static Sprite[] Frames(EnemyDef def) { return Frames(def, 0); }
 
+    // WorldArtCaches: the death strips sliced so far are let go.
+    public static void ReleaseCache() { cache.Clear(); }
+
     // `variant` > 0: the obsidian shard's re-coloured burst (ObsidianShards), matching the body that died.
     public static Sprite[] Frames(EnemyDef def, int variant)
     {
@@ -96,7 +99,7 @@ public class EnemyDeathFlipbook : MonoBehaviour
         result = new Sprite[3];
         for (int i = 0; i < result.Length; i++)
         {
-            result[i] = Sprite.Create(texture, new Rect(i * side, 0f, side, side), new Vector2(.5f, .5f), ppu);
+            result[i] = Sprite.Create(texture, new Rect(i * side, 0f, side, side), new Vector2(.5f, .5f), ppu, 0, SpriteMeshType.FullRect);
             result[i].name = id + "_death_" + i;
         }
         cache[id] = result;

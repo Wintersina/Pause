@@ -129,8 +129,8 @@ public partial class ShipAttackRunner
             var t = targets[i];
             if (t == null || !t.isActiveAndEnabled || !ShipTargets.IsThreat(t) || t.IsShotHitbox) continue;
             if (ShipAttackHits.AlreadyHit(t.gameObject) || IsSpecial(t.gameObject)) continue;
-            var existing = t.GetComponent<FrozenState>();
-            if (existing != null && existing.IsFrozen) continue;   // already held (by the nova, or by a chill)
+            FrozenState existing;
+            if (t.TryGetComponent(out existing) && existing.IsFrozen) continue;   // already held (by the nova, or by a chill)
             Vector2 d = t.transform.position - at;
             float r = outer + t.Radius * .5f;
             if (d.sqrMagnitude > r * r) continue;

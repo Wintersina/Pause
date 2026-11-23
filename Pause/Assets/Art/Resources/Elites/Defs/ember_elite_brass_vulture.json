@@ -18,6 +18,7 @@
   "lore": "A salvage craft that circles high over the board. A ring marks a spot, and it comes down through it claw first, flinging scrap, then pulls straight back up to its circle. The rings walk from the pilot to either side of it, and once hurt it comes down twice in a row.",
   "cellWorldSize": 1.74,
   "hullRadius": 0.299,
+  "silhouetteShare": 0.4862,
   "noseDeg": 90,
   "turnsToFace": true,
   "speed": 3.2,

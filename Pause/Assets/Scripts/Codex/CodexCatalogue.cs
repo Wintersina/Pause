@@ -717,7 +717,7 @@ public static class CodexCatalogue
     {
         var tex = Resources.Load<Texture2D>(path);
         if (tex == null) return null;
-        return Sprite.Create(tex, new Rect(0, 0, tex.width, tex.height), new Vector2(.5f, .5f), 100f);
+        return Sprite.Create(tex, new Rect(0, 0, tex.width, tex.height), new Vector2(.5f, .5f), 100f, 0, SpriteMeshType.FullRect);
     }
 
     // A square from the middle of a world's tall scrolling sky tile (the far
@@ -745,6 +745,6 @@ public static class CodexCatalogue
         if (tex == null) return null;
         float side = Mathf.Min(tex.width, tex.height);
         var rect = new Rect((tex.width - side) * .5f, (tex.height - side) * .5f, side, side);
-        return Sprite.Create(tex, rect, new Vector2(.5f, .5f), 100f);
+        return Sprite.Create(tex, rect, new Vector2(.5f, .5f), 100f, 0, SpriteMeshType.FullRect);
     }
 }

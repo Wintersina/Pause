@@ -41,6 +41,7 @@
   },
   "cellWorldSize": 1.624,
   "hullRadius": 0.298,
+  "silhouetteShare": 0.525,
   "noseDeg": 90,
   "turnsToFace": false,
   "maxBank": 0,

@@ -107,7 +107,7 @@ public sealed class GateArt
         var wp = new Color32[16];
         for (int i = 0; i < 16; i++) wp[i] = new Color32(255, 255, 255, 255);
         whiteTex.SetPixels32(wp); whiteTex.Apply(false, true);
-        white = Sprite.Create(whiteTex, new Rect(0, 0, 4, 4), new Vector2(0.5f, 0.5f), 4f);
+        white = Sprite.Create(whiteTex, new Rect(0, 0, 4, 4), new Vector2(0.5f, 0.5f), 4f, 0, SpriteMeshType.FullRect);
         owned.Add(white);
 
         const int n = 64;
@@ -121,7 +121,7 @@ public sealed class GateArt
                 gp[y * n + x] = new Color32(255, 255, 255, (byte)(a * 255f));
             }
         glowTex.SetPixels32(gp); glowTex.Apply(false, true);
-        glow = Sprite.Create(glowTex, new Rect(0, 0, n, n), new Vector2(0.5f, 0.5f), n);
+        glow = Sprite.Create(glowTex, new Rect(0, 0, n, n), new Vector2(0.5f, 0.5f), n, 0, SpriteMeshType.FullRect);
         owned.Add(glow);
     }
 }

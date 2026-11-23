@@ -75,13 +75,22 @@ public class LeaderboardRunTracker : MonoBehaviour
         Sample();
     }
 
+    // PremiumShips.IsPremium(ShipId.Equipped()) without the ownership read (a prefs string per call) unless the
+    // saved selection is the premium ship, the only case where Equipped() can answer it.
+    static bool EquippedIsPremium()
+    {
+        if (ShipId.TutorialFlight) return PremiumShips.IsPremium(ShipId.TutorialShip);
+        if (!PremiumShips.IsPremium(ShipId.SavedSelection)) return false;
+        return PremiumShips.IsPremium(ShipId.Equipped());
+    }
+
     void Sample()
     {
         // Worlds cleared = portals / lift-offs flown (the world-cleared event).
         worldsCleared = Mathf.Max(worldsCleared, RunScore.Parts.worldCount);
         // A run that started on the premium ship stays premium whatever the
         // selection becomes; one that ever flies it is premium from then on.
-        if (RunScore.Unranked || PremiumShips.IsPremium(ShipId.Equipped())) premiumRun = true;
+        if (RunScore.Unranked || EquippedIsPremium()) premiumRun = true;
         // Cached rather than read at teardown: the next scene's run may
         // already have begun by then.
         endHearts = ShipLives.Left;

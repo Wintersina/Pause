@@ -471,7 +471,7 @@ public static class BossRicochetCue
                 }
             tex.SetPixels32(px);
             tex.Apply(false, true);
-            ring = Sprite.Create(tex, new Rect(0, 0, Px, Px), new Vector2(.5f, .5f), Px);   // 1 u across
+            ring = Sprite.Create(tex, new Rect(0, 0, Px, Px), new Vector2(.5f, .5f), Px, 0, SpriteMeshType.FullRect);   // 1 u across
             ring.name = "ricochet_cue";
             return ring;
         }

@@ -51,6 +51,7 @@
   "attack": "flare_drop",
   "lore": "An armoured refinery airship that crosses the whole top of the sky, leaves by the far side and comes back from the other. As it passes it rings a staircase of fused flares down its heading, and each bursts into an X of bolts. A shot defuses a flare; only mines, rails and its own kind crack the hull.",
   "hullRadius": 0.472,
+  "silhouetteShare": 0.462,
   "turnsToFace": false,
   "speed": 1.7,
   "accel": 3.0,

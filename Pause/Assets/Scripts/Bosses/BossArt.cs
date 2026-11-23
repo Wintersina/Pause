@@ -182,7 +182,8 @@ public static class BossArt
 
     static Sprite[] AttackDamageSheet(BossDef boss, int stage)
     {
-        string path = ImpactFolder + "attack/" + boss.damageKey;
+        Paths(boss);
+        string path = attackDamagePath;
         var names = HasExpandedCombat(boss) ? ExpandedPoseNames : PlainPoseNames;
         Sprite[] sheet;
         bool[] loaded;
@@ -200,7 +201,7 @@ public static class BossArt
         for (int c = 0; c < names.Length; c++)
         {
             var tex = Resources.Load<Texture2D>(ImpactFolder + "attack/" + boss.damageKey.ToLowerInvariant() + "_" + names[c] + "_stage" + (s + 1));
-            if (tex != null) sheet[s * names.Length + c] = Sprite.Create(tex, new Rect(0, 0, tex.width, tex.height), new Vector2(.5f, .5f), tex.width);
+            if (tex != null) sheet[s * names.Length + c] = Sprite.Create(tex, new Rect(0, 0, tex.width, tex.height), new Vector2(.5f, .5f), tex.width, 0, SpriteMeshType.FullRect);
         }
         return sheet;
     }
@@ -275,6 +276,20 @@ public static class BossArt
         return ticks.Length;
     }
 
+    // The sheet paths of the last boss asked about: a damaged boss asks for its damage, smoke and attack-pose
+    // sheets every frame of the fight, and building the path each time was ~150 B of strings a frame.
+    static BossDef pathBoss;
+    static string damagePath, damageFxPath, attackDamagePath, deathPath;
+    static void Paths(BossDef boss)
+    {
+        if (ReferenceEquals(boss, pathBoss)) return;
+        pathBoss = boss;
+        damagePath = Folder + boss.damageKey + "_damage";
+        damageFxPath = Folder + boss.damageKey + "_damage_fx";
+        attackDamagePath = ImpactFolder + "attack/" + boss.damageKey;
+        deathPath = Folder + boss.deathKey + "_death";
+    }
+
     static readonly Dictionary<string, Sprite[]> bodies = new Dictionary<string, Sprite[]>();
     static readonly Dictionary<string, Sprite[]> shots = new Dictionary<string, Sprite[]>();
     static readonly Dictionary<string, Sprite> singles = new Dictionary<string, Sprite>();
@@ -292,13 +307,13 @@ public static class BossArt
             for (int r = 0; r < rows; r++)
                 for (int c = 0; c < cols; c++)
                     result[r * cols + c] = Sprite.Create(tex, new Rect(c * w, tex.height - (r + 1) * h, w, h),
-                                                         new Vector2(.5f, .5f), w);
+                                                         new Vector2(.5f, .5f), w, 0, SpriteMeshType.FullRect);
             return result;
         }
         for (int r = 0; r < rows; r++)
             for (int c = 0; c < cols; c++)
                 result[r * cols + c] = Sprite.Create(tex, new Rect(c * w, (rows - 1 - r) * h, w, h),
-                                                     new Vector2(.5f, .5f), w);
+                                                     new Vector2(.5f, .5f), w, 0, SpriteMeshType.FullRect);
         return result;
     }
 
@@ -350,14 +365,16 @@ public static class BossArt
     public static Sprite DamageBody(BossDef boss, int cell)
     {
         if (!HasDamageArt(boss) || cell < 0) return null;
-        var sheet = Sheet(bodies, Folder + boss.damageKey + "_damage", DamageColumns, DamageStages);
+        Paths(boss);
+        var sheet = Sheet(bodies, damagePath, DamageColumns, DamageStages);
         return sheet[Mathf.Clamp(cell, 0, DamageCells - 1)];
     }
 
     public static Sprite DamageFx(BossDef boss, int cell)
     {
         if (!HasDamageArt(boss) || cell < 0) return null;
-        var sheet = Sheet(bodies, Folder + boss.damageKey + "_damage_fx", DamageFxColumns, DamageFxRows);
+        Paths(boss);
+        var sheet = Sheet(bodies, damageFxPath, DamageFxColumns, DamageFxRows);
         return sheet[Mathf.Clamp(cell, 0, DamageFxCells - 1)];
     }
 
@@ -379,7 +396,8 @@ public static class BossArt
     public static Sprite DeathStrip(BossDef boss, int cell)
     {
         if (boss == null || string.IsNullOrEmpty(boss.deathKey)) return null;
-        var sheet = Sheet(bodies, Folder + boss.deathKey + "_death", DeathStripCells, 1);
+        Paths(boss);
+        var sheet = Sheet(bodies, deathPath, DeathStripCells, 1);
         return sheet[Mathf.Clamp(cell, 0, DeathStripCells - 1)];
     }
 
@@ -524,10 +542,8 @@ public static class BossArt
         float reach = Mathf.Max(1f, (bold ? ShotRimBoldReach : ShotRimReach) * n * thin);   // texels
         float boldLight = ShotRimBoldLight * n * thin, boldSolid = ShotRimBoldSolid * n * thin;
 
-        // The cells' pixels, read back once as one strip. By each cell's own
-        // rect, never a shot sprite's textureRect: that is trimmed to the
-        // drawing (the sprites have tight meshes), and a rim built from it
-        // would be the drawing stretched over the whole cell.
+        // The cells' pixels, read back once as one strip, by each cell's own
+        // rect.
         var first = Shot(boss, 0);
         if (first == null) return false;
         Rect cellRect = first.rect;
@@ -653,12 +669,78 @@ public static class BossArt
         if (!string.IsNullOrEmpty(boss.deathKey)) into.Add(Folder + boss.deathKey + "_death");
     }
 
+    // FirstUseWarm: everything the fight slices or builds on first use, done during the level instead, one small
+    // step a frame, in the order the fight wants it: the body atlas, the shot sheets, the shots' rim (one read of
+    // the shot strip), the name card and warning slab, the damage and death art. The boss's entrance then finds
+    // every sprite made. Asked once per boss until ReleaseWarm (the world is left and its art let go).
+    public static void QueueWarm(BossDef boss)
+    {
+        if (boss == null || string.IsNullOrEmpty(boss.artKey)) return;
+        string k = WarmKey(boss);
+        FirstUseWarm.Add(k + "body", Folder + boss.artKey, typeof(Texture2D), () => BodySheet(boss));
+        FirstUseWarm.Add(k + "shots", Folder + boss.artKey + "_shots", typeof(Texture2D), () => Shot(boss, 0));
+        FirstUseWarm.Add(k + "attackshots", Folder + boss.artKey + AttackShotsSuffix, typeof(Texture2D), () => AttackShotSheet(boss));
+        // (both styles: the level may start under Space's dark sky and reach the boss over a bright backdrop)
+        FirstUseWarm.Add(k + "rim", () => ShotRim(boss, 0, false));
+        FirstUseWarm.Add(k + "rimbold", () => ShotRim(boss, 0, true));
+        FirstUseWarm.Add(k + "card", Folder + boss.artKey + "_card", typeof(Texture2D), () => Card(boss));
+        FirstUseWarm.Add(k + "warning", Folder + "warning", typeof(Texture2D), () => Warning());
+        if (HasDamageArt(boss))
+        {
+            FirstUseWarm.Add(k + "damage", Folder + boss.damageKey + "_damage", typeof(Texture2D), () => DamageBody(boss, 0));
+            FirstUseWarm.Add(k + "damagefx", Folder + boss.damageKey + "_damage_fx", typeof(Texture2D), () => DamageFx(boss, 0));
+            FirstUseWarm.Add(k + "attackdamage", () => AttackDamageSheet(boss, 1));
+        }
+        if (!string.IsNullOrEmpty(boss.deathKey))
+            FirstUseWarm.Add(k + "death", Folder + boss.deathKey + "_death", typeof(Texture2D), () => DeathStrip(boss, 0));
+    }
+
+    public static string WarmKey(BossDef boss) { return "boss:" + boss.artKey + ":"; }
+
+    // WorldArtCaches: the world is left (or the run's scene is going). Every sliced sheet is let go for the asset
+    // sweep, and the generated shot rims -- which the sweep cannot see -- are destroyed.
+    public static void Release()
+    {
+        bodies.Clear();
+        shots.Clear();
+        singles.Clear();
+        attackShots.Clear();
+        attackStagesLoaded.Clear();
+        lastBodyBoss = null; lastBodySheet = null;
+        lastShotBoss = null; lastShotSheet = null;
+        lastAttackBoss = null; lastAttackSheet = null;
+        lastRimBoss = null; lastRimSet = null;
+        foreach (var set in rims.Values)
+        {
+            if (set == null || set.sprites == null) continue;
+            Texture2D tex = null;
+            foreach (var s in set.sprites)
+            {
+                if (s == null) continue;
+                if (tex == null) tex = s.texture;
+                BossUtil.Kill(s);
+            }
+            if (tex != null) BossUtil.Kill(tex);
+        }
+        rims.Clear();
+    }
+    public static int CachedSheets { get { return bodies.Count + shots.Count + attackShots.Count + singles.Count + rims.Count; } }
+
+    // Is every sprite the fight opens with already made? (tests, the soak)
+    public static bool Warmed(BossDef boss)
+    {
+        if (boss == null) return false;
+        Sprite[] sheet;
+        return bodies.TryGetValue(Folder + boss.artKey, out sheet) && sheet != null && sheet.Length > 0 && sheet[0] != null &&
+               shots.TryGetValue(Folder + boss.artKey + "_shots", out sheet) && sheet != null && sheet.Length > 0 && sheet[0] != null;
+    }
+
     static Sprite Single(string path)
     {
         Sprite s;
         if (singles.TryGetValue(path, out s) && s != null) return s;
         var tex = Resources.Load<Texture2D>(path);
-        s = tex == null ? null : Sprite.Create(tex, new Rect(0, 0, tex.width, tex.height), new Vector2(.5f, .5f), 100f);
+        s = tex == null ? null : Sprite.Create(tex, new Rect(0, 0, tex.width, tex.height), new Vector2(.5f, .5f), 100f, 0, SpriteMeshType.FullRect);
         singles[path] = s;
         return s;
     }

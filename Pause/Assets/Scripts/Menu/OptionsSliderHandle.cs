@@ -65,7 +65,7 @@ public class OptionsSliderHandle : MonoBehaviour, IPointerDownHandler, IPointerU
         var tex = new Texture2D(RingW, RingH, TextureFormat.RGBA32, false) { filterMode = FilterMode.Point, wrapMode = TextureWrapMode.Clamp, name = "OptionsHandleRing" };
         tex.SetPixels32(px);
         tex.Apply(false, true);
-        ringSprite = Sprite.Create(tex, new Rect(0, 0, RingW, RingH), new Vector2(.5f, .5f), 50f);
+        ringSprite = Sprite.Create(tex, new Rect(0, 0, RingW, RingH), new Vector2(.5f, .5f), 50f, 0, SpriteMeshType.FullRect);
         return ringSprite;
     }
 }

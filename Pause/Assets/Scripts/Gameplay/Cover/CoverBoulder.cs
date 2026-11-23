@@ -39,6 +39,7 @@ public sealed class CoverBoulder
     float scale, t;
     GameObject go;
     SpriteRenderer body, wash;
+    bool stormFxBroken;
     CoverStormFx stormFx;   // the Storm landform's effects (built on first need, then pooled with the boulder)
     // The landform is PINNED to the ground tile of the backdrop it was spawned over (groundTile / groundGy:
     // y = gy - the tile's unwrapped travel, the same maths GroundPlanner uses for the pieces standing on that tile),
@@ -92,8 +93,17 @@ public sealed class CoverBoulder
         Bound = b / CoverBoulderArt.Ppu * scale;
         if (entry.stormFx)
         {
-            if (stormFx == null) stormFx = new CoverStormFx(go.transform);
-            stormFx.Begin(v, entry.folder, rng01, SortingOrder);
+            // built once per boulder: a constructor that throws is not retried on every spawn (each try would leave objects behind)
+            if (stormFx == null && !stormFxBroken)
+            {
+                try { stormFx = new CoverStormFx(go.transform); }
+                catch (System.Exception e)
+                {
+                    stormFxBroken = true;
+                    Debug.LogError("CoverBoulder: storm effects could not be built, left off for this boulder: " + e);
+                }
+            }
+            if (stormFx != null) stormFx.Begin(v, entry.folder, rng01, SortingOrder);
         }
         else if (stormFx != null) stormFx.Hide();
         go.SetActive(true);

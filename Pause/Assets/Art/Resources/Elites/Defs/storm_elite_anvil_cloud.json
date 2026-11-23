@@ -52,6 +52,7 @@
   "attack": "static_field",
   "lore": "A flat-topped thunderhead that drifts along the top of the sky and never comes down. It rings four charged patches in a diamond ahead of you and spits a cloud onto each; every cloud lies there crackling. Go round the diamond, not through it.",
   "hullRadius": 0.42,
+  "silhouetteShare": 0.4888,
   "turnsToFace": false,
   "speed": 1.7,
   "accel": 4.0,

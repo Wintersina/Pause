@@ -9,30 +9,39 @@ using UnityEngine;
 //
 // A circle, not an ellipse: most elites turn to face their heading, and a
 // circle about the centre is the same silhouette whatever the drawing's turn.
-// Measured once per def from the art itself (ShieldContour.ReadPixels: the
-// texture if readable, else one GPU read-back per drawing) and cached, so the
-// only cost is the elite's first appearance. EliteHeartsTest re-measures the
-// radius from the PNG on disk.
+//
+// BAKED. The reach is a share of the cell (EliteDef.silhouetteShare), measured from the strips' pixels at edit
+// time by EliteSilhouetteBaker and kept in the def's JSON, so a spawn reads no pixel. It used to be measured
+// on the elite's first appearance: one GPU read-back per drawing of the strip (15-20 of them, 9-12 MB of
+// managed arrays in the spawn's frame). A def with no bake still measures (the safety net, reported to
+// PerfProbe; PerfHitchTest and HeartsInArtTest fail on a missing or a stale bake).
 public static class EliteSilhouette
 {
     static readonly Dictionary<string, float> cache = new Dictionary<string, float>();
 
     public static void ClearCache() { cache.Clear(); }
 
+    // Defs measured at runtime because they had no bake (0 in a shipped build).
+    public static int Unbaked { get; private set; }
+
     // The silhouette's radius (world units, hull scale 1); a guess from the
     // collider radius when the strip is missing or unreadable.
     public static float Radius(EliteDef def)
     {
         if (def == null) return .5f;
+        if (def.silhouetteShare > 0f) return def.silhouetteShare * def.cellWorldSize;
         float r;
         if (cache.TryGetValue(def.key, out r)) return r;
-        r = Measure(def);
+        Unbaked++;
+        r = MeasureShare(def) * def.cellWorldSize;
         if (r <= 0f) return def.hullRadius * 1.3f;   // (not cached: the art may arrive)
         cache[def.key] = r;
         return r;
     }
 
-    static float Measure(EliteDef def)
+    // The reach as a share of the cell's height, read from every drawing of the strip (the baker and the
+    // unbaked fallback). 0 when the strip is missing or unreadable.
+    public static float MeasureShare(EliteDef def)
     {
         var frames = EliteArt.Frames(def);
         if (frames == null) return 0f;
@@ -43,7 +52,6 @@ public static class EliteSilhouette
             int w, h;
             var px = ShieldContour.ReadPixels(f, out w, out h);
             if (px == null) continue;
-            float pixelWorld = def.cellWorldSize / Mathf.Max(1, h);
             float cx = w * .5f, cy = h * .5f, far = 0f;
             for (int y = 0; y < h; y++)
                 for (int x = 0; x < w; x++)
@@ -52,7 +60,7 @@ public static class EliteSilhouette
                     float dx = x + .5f - cx, dy = y + .5f - cy;
                     far = Mathf.Max(far, dx * dx + dy * dy);
                 }
-            best = Mathf.Max(best, Mathf.Sqrt(far) * pixelWorld);
+            best = Mathf.Max(best, Mathf.Sqrt(far) / Mathf.Max(1, h));
         }
         return best;
     }

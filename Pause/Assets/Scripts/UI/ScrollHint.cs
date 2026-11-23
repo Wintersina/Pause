@@ -284,7 +284,7 @@ public sealed class ScrollHint : MonoBehaviour, IPointerClickHandler
             tex.SetPixel(0, y, new Color(1f, 1f, 1f, t * t * .92f));
         }
         tex.Apply(false, true);
-        fadeSprite = Sprite.Create(tex, new Rect(0, 0, 1, h), new Vector2(.5f, .5f), 100f);
+        fadeSprite = Sprite.Create(tex, new Rect(0, 0, 1, h), new Vector2(.5f, .5f), 100f, 0, SpriteMeshType.FullRect);
         return fadeSprite;
     }
 
@@ -305,7 +305,7 @@ public sealed class ScrollHint : MonoBehaviour, IPointerClickHandler
                 if (x >= 0 && x < w) tex.SetPixel(x, y, Color.white);
         }
         tex.Apply(false, true);
-        chevronSprite = Sprite.Create(tex, new Rect(0, 0, w, h), new Vector2(.5f, .5f), 100f);
+        chevronSprite = Sprite.Create(tex, new Rect(0, 0, w, h), new Vector2(.5f, .5f), 100f, 0, SpriteMeshType.FullRect);
         return chevronSprite;
     }
 }

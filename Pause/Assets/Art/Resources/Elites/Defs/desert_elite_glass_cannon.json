@@ -51,6 +51,7 @@
   "attack": "lens_beams",
   "lore": "A siege gun on a flying deck, its fused-glass sun lens perched on one column of the sky and then another. It draws thin beams either side of you and runs a stream of light down each, outside in. Stand between the beams, not on them.",
   "hullRadius": 0.391,
+  "silhouetteShare": 0.4704,
   "turnsToFace": false,
   "speed": 2.0,
   "accel": 4.0,

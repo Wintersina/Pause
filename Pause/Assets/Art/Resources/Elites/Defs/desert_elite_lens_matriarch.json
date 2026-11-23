@@ -51,6 +51,7 @@
   "attack": "glass_fan",
   "lore": "A slim heliograph of six mirror panels that signals across the dunes in a zig-zag, off one side and back from the other. It halts and fans glass shards down thin glints, leaving your own line empty. Hold the gap between the rays.",
   "hullRadius": 0.387,
+  "silhouetteShare": 0.4622,
   "turnsToFace": true,
   "speed": 2.2,
   "accel": 8.0,

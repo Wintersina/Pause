@@ -190,7 +190,7 @@ public class ShipDamageFx : MonoBehaviour
             {
                 // the flame hangs from its base (top of the cell)
                 var pivot = row == RowFlame ? new Vector2(.5f, .86f) : new Vector2(.5f, .5f);
-                var s = Sprite.Create(atlas, new Rect(col * w, (AtlasRows - 1 - row) * h, w, h), pivot, w);
+                var s = Sprite.Create(atlas, new Rect(col * w, (AtlasRows - 1 - row) * h, w, h), pivot, w, 0, SpriteMeshType.FullRect);
                 s.name = "damageFx_" + row + "_" + col;
                 result[row * AtlasColumns + col] = s;
             }

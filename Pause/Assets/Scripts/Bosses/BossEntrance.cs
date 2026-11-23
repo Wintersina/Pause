@@ -344,7 +344,7 @@ public sealed class BossShockwave
             }
         ringTex.SetPixels32(px);
         ringTex.Apply(false, false);
-        ringSprite = Sprite.Create(ringTex, new Rect(0, 0, TexSize, TexSize), new Vector2(.5f, .5f), TexSize);
+        ringSprite = Sprite.Create(ringTex, new Rect(0, 0, TexSize, TexSize), new Vector2(.5f, .5f), TexSize, 0, SpriteMeshType.FullRect);
         ringSprite.hideFlags = HideFlags.DontSave;
         return ringSprite;
     }

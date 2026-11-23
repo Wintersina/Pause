@@ -69,7 +69,7 @@ public sealed class FusionMotes : MonoBehaviour
                 }
             tex.SetPixels32(px);
             tex.Apply(false, true);
-            dotSprite = Sprite.Create(tex, new Rect(0, 0, n, n), new Vector2(.5f, .5f), n);
+            dotSprite = Sprite.Create(tex, new Rect(0, 0, n, n), new Vector2(.5f, .5f), n, 0, SpriteMeshType.FullRect);
             dotSprite.name = "FusionMote";
             return dotSprite;
         }

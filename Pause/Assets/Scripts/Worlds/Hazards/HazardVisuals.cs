@@ -93,7 +93,7 @@ public sealed class HazardVisuals
         var px = new Color32[16];
         for (int i = 0; i < 16; i++) px[i] = new Color32(255, 255, 255, 255);
         tex.SetPixels32(px); tex.Apply(false, true);
-        whiteSquare = Sprite.Create(tex, new Rect(0, 0, 4, 4), new Vector2(.5f, .5f), 4f);   // exactly 1 unit square
+        whiteSquare = Sprite.Create(tex, new Rect(0, 0, 4, 4), new Vector2(.5f, .5f), 4f, 0, SpriteMeshType.FullRect);   // exactly 1 unit square
         return whiteSquare;
     }
 

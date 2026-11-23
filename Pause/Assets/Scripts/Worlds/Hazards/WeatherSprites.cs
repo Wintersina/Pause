@@ -28,7 +28,7 @@ public static class WeatherSprites
             for (int y = 0; y < H; y++) px[y * W + x] = new Color32(255, 255, 255, (byte)Mathf.RoundToInt(a * 255f));
         }
         tex.SetPixels32(px); tex.Apply(false, true);
-        return Sprite.Create(tex, new Rect(0, 0, W, H), new Vector2(0f, .5f), W);   // pivot at the opaque end
+        return Sprite.Create(tex, new Rect(0, 0, W, H), new Vector2(0f, .5f), W, 0, SpriteMeshType.FullRect);   // pivot at the opaque end
     }
 
     static Sprite Build(AmbientShape s)
@@ -65,6 +65,6 @@ public static class WeatherSprites
                 px[y * w + x] = on ? new Color32(255, 255, 255, 255) : new Color32(255, 255, 255, 0);
             }
         tex.SetPixels32(px); tex.Apply(false, true);
-        return Sprite.Create(tex, new Rect(0, 0, w, h), new Vector2(.5f, .5f), Mathf.Max(w, h));
+        return Sprite.Create(tex, new Rect(0, 0, w, h), new Vector2(.5f, .5f), Mathf.Max(w, h), 0, SpriteMeshType.FullRect);
     }
 }

@@ -46,6 +46,10 @@ public class PerfSoakRunner : MonoBehaviour
         yield return null;
         pilot = gameObject.AddComponent<MarketingAutopilot>();
         gcRec = ProfilerRecorder.StartNew(ProfilerCategory.Memory, "GC Allocated In Frame");
+        // every pixel read (a GPU sync when it goes through the GPU), with who and when: none may land in a fight
+        PerfProbe.OnPixelRead = (site, what, pixels, gpu) =>
+            Debug.Log("[PERFSOAK] pixelread t=" + runT.ToString("F1") + " " + site + " '" + (what != null ? what.name : "?") + "' px=" + pixels +
+                      (gpu ? " GPU" : " cpu") + " boss=" + (BossEncounter.Running ? 1 : 0));
         string runs = Environment.GetEnvironmentVariable("PS_RUNS");
         if (string.IsNullOrEmpty(runs)) runs = "2:0";
         float seconds = EnvFloat("PS_SECONDS", 240f), every = EnvFloat("PS_SAMPLE", 10f);
@@ -58,6 +62,7 @@ public class PerfSoakRunner : MonoBehaviour
         DeveloperUnlocks.SetEnabled(false);   // puts the real progress snapshot back
         PlayerPrefs.Save();
         Debug.Log("[PERFSOAK] finished");
+        PerfProbe.OnPixelRead = null;
         gcRec.Dispose();
         EditorApplication.isPlaying = false;
     }
@@ -91,6 +96,14 @@ public class PerfSoakRunner : MonoBehaviour
         float fireEvery = EnvFloat("PS_FIRE", 0f), nextFire = 8f;
         Dictionary<string, int>[] baseline = null;
         float t = 0f, next = 0f;
+        // the run's own numbers (the summary line): the worst frame in the boss's first seconds and in the rest of
+        // its fight, the worst frame of the level, the biggest single-frame allocation, pixel reads, textures
+        double bossStartMs = 0, bossWorstMs = 0, levelWorstMs = 0;
+        long worstGc = 0;
+        float bossAt = -1f;
+        int reads0 = PerfProbe.PixelReads, gpu0 = PerfProbe.GpuReadbacks, readsAtCalm = -1, gpuAtCalm = -1;
+        int tex0 = Resources.FindObjectsOfTypeAll<Texture2D>().Length;
+        runT = 0f;
         bool baselined = false;
         wall.Restart();
         while (t < seconds)
@@ -106,8 +119,19 @@ public class PerfSoakRunner : MonoBehaviour
                 cpuMs += ms; if (ms > cpuMax) cpuMax = ms;
                 gcBytes += gc; gcFrames++; if (gc > gcMax) gcMax = gc;
             }
+            if (frames >= 0 && t > CalmSeconds)
+            {
+                bool boss = BossEncounter.Running;
+                if (boss && bossAt < 0f) bossAt = t;
+                if (boss && t - bossAt <= BossStartSeconds) { if (ms > bossStartMs) bossStartMs = ms; }
+                else if (boss) { if (ms > bossWorstMs) bossWorstMs = ms; }
+                else if (ms > levelWorstMs) levelWorstMs = ms;
+                if (gc > worstGc) worstGc = gc;
+            }
+            if (readsAtCalm < 0 && t > CalmSeconds) { readsAtCalm = PerfProbe.PixelReads; gpuAtCalm = PerfProbe.GpuReadbacks; }
             frames++;
             t += Time.deltaTime > 0f ? Time.deltaTime : 1f / 60f;
+            runT = t;
             if (!benched && t > 5f) { benched = true; Bench(); }
             RenderCameras();
             if (fireEvery > 0f && t >= nextFire)
@@ -119,6 +143,12 @@ public class PerfSoakRunner : MonoBehaviour
             if (t < next) continue;
             next += every;
             var hist = Sample(tag, t);
+            if (t < every)
+            {
+                // what this run starts with that the last one did not: whatever a run leaves behind for good
+                if (lastRunStart != null) Growers(tag + " (since the last run's start)", t, lastRunStart, hist);
+                lastRunStart = hist;
+            }
             if (!baselined && t >= 20f) { baseline = hist; baselined = true; }
             else if (baselined && (Mathf.RoundToInt(t / every) % 6 == 0 || t + every >= seconds)) Growers(tag, t, baseline, hist);
             frames = -2;   // the sample's own frame (and the one after) is not measured
@@ -126,8 +156,19 @@ public class PerfSoakRunner : MonoBehaviour
             wall.Restart();
         }
         pilot.Enabled = false;
+        if (readsAtCalm < 0) { readsAtCalm = PerfProbe.PixelReads; gpuAtCalm = PerfProbe.GpuReadbacks; }
+        Debug.Log(string.Format(System.Globalization.CultureInfo.InvariantCulture,
+            "[PERFSOAK] summary {0} | bossStartMs={1:F1} bossWorstMs={2:F1} levelWorstMs={3:F1} worstGcBytes={4} | pixelReadsAfterCalm={5} gpuReadbacksAfterCalm={6} (whole run {7}/{8}) | tex {9} -> {10} | unbakedElites={11} unbakedShields={12}",
+            tag, bossStartMs, bossWorstMs, levelWorstMs, worstGc, PerfProbe.PixelReads - readsAtCalm, PerfProbe.GpuReadbacks - gpuAtCalm,
+            PerfProbe.PixelReads - reads0, PerfProbe.GpuReadbacks - gpu0, tex0, Resources.FindObjectsOfTypeAll<Texture2D>().Length,
+            EliteSilhouette.Unbaked, ShieldContour.UnbakedCount));
     }
 
+    // The run's first seconds are its calm start (the warm-up's window): what is read or built there is not "in a fight".
+    public const float CalmSeconds = 12f, BossStartSeconds = 6f;
+    float runT;
+
+    Dictionary<string, int>[] lastRunStart;
     bool benched;
     int fired;
     RenderTexture target;

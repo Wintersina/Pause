@@ -19,6 +19,7 @@
   "lore": "A broadside gunship that races along the top of the sky from rail to rail and stops dead to fire. Its side cannons cross their bolts on lanes you can see before they fly. Hurt it and it starts dropping burning coal that bounces down the board.",
   "cellWorldSize": 1.895,
   "hullRadius": 0.345,
+  "silhouetteShare": 0.4663,
   "noseDeg": 90,
   "turnsToFace": false,
   "maxBank": 10,

@@ -261,7 +261,7 @@ public sealed class PauseSlam : MonoBehaviour
         halo = NewRect("Halo", typeof(Image));
         haloGroup = halo.gameObject.AddComponent<CanvasGroup>();
         haloTex = PausedLabel.BuildHaloTexture();
-        haloSprite = Sprite.Create(haloTex, new Rect(0, 0, haloTex.width, haloTex.height), new Vector2(.5f, .5f));
+        haloSprite = Sprite.Create(haloTex, new Rect(0, 0, haloTex.width, haloTex.height), new Vector2(.5f, .5f), 100f, 0, SpriteMeshType.FullRect);
         var haloImage = halo.GetComponent<Image>();
         haloImage.sprite = haloSprite;
         haloImage.color = PausedLabel.Halo;

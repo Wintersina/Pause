@@ -19,6 +19,7 @@
   "lore": "A black-armoured skiff that guards a flank and scuttles across the top after every throw. It hurls rolling boulders along a drawn path that glances off the far rail and out the bottom. Step off the lane; shoot the boulder if it is in your way.",
   "cellWorldSize": 1.617,
   "hullRadius": 0.327,
+  "silhouetteShare": 0.4888,
   "noseDeg": 90,
   "turnsToFace": true,
   "speed": 2.6,

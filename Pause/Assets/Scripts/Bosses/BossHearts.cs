@@ -158,10 +158,29 @@ public class BossHearts : HeartOrbit
         styleKey = 0;
     }
 
+    // Body() switches on the art key's text; the ring asks for it for every heart every frame, so the last answer is kept.
+    BossDef bodyFor;
+    string bodyKey;
+    Rect bodyRect;
+
+    Rect CachedBody()
+    {
+        var boss = actor != null ? actor.Boss : null;
+        if (!Application.isPlaying) return Body(boss);   // (edit-mode tests change the config the fallback reads)
+        string key = boss != null ? boss.artKey : null;
+        if (!ReferenceEquals(boss, bodyFor) || !ReferenceEquals(key, bodyKey) || bodyRect.width <= 0f)
+        {
+            bodyRect = Body(boss);
+            bodyFor = boss;
+            bodyKey = key;
+        }
+        return bodyRect;
+    }
+
     // A back heart over the body's ellipse would be hidden by it.
     protected override bool HidesBehindHull(Vector2 at)
     {
-        Rect b = Body(actor != null ? actor.Boss : null);
+        Rect b = CachedBody();
         Vector3 p = transform.position;
         float dx = (at.x - (p.x + b.center.x)) / (b.width * .5f), dy = (at.y - (p.y + b.center.y)) / (b.height * .5f);
         return dx * dx + dy * dy < 1f;
@@ -169,7 +188,7 @@ public class BossHearts : HeartOrbit
 
     protected override Bounds HullBounds()
     {
-        var b = Body(actor != null ? actor.Boss : null);
+        var b = CachedBody();
         Vector3 p = transform.position;
         return new Bounds(new Vector3(p.x + b.center.x, p.y + b.center.y, p.z), new Vector3(b.width, b.height, .1f));
     }

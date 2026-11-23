@@ -87,7 +87,7 @@ public static class AchievementArt
         };
         tex.SetPixels32(Paint(tier));
         tex.Apply(false, false);
-        var sprite = Sprite.Create(tex, new Rect(0, 0, Size, Size), new Vector2(.5f, .5f), 100f);
+        var sprite = Sprite.Create(tex, new Rect(0, 0, Size, Size), new Vector2(.5f, .5f), 100f, 0, SpriteMeshType.FullRect);
         sprite.name = tex.name;
         sprite.hideFlags = HideFlags.HideAndDontSave;
         return placeholders[i] = sprite;

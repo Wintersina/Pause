@@ -39,7 +39,7 @@ public sealed class SentryTurret
     static Sprite Cell(string name)
     {
         var tex = Resources.Load<Texture2D>("Weapons/Powers2/" + name);
-        return tex == null ? null : Sprite.Create(tex, new Rect(0, 0, tex.width, tex.height), new Vector2(.5f, .5f), CellPixels);
+        return tex == null ? null : Sprite.Create(tex, new Rect(0, 0, tex.width, tex.height), new Vector2(.5f, .5f), CellPixels, 0, SpriteMeshType.FullRect);
     }
 
     static void LoadSprites()

@@ -146,6 +146,9 @@ public class EliteDef
     // ---- body ----
     public float cellWorldSize = 1.4f;  // one strip cell, world units
     public float hullRadius = .42f;     // collider + crash radius (world)
+    // The drawn hull's reach from its centre as a share of the cell (EliteSilhouette): baked into the def by
+    // EliteSilhouetteBaker from the strips' own pixels, so no pixel is read when the elite spawns. 0: not baked.
+    public float silhouetteShare;
     public float noseDeg = 90f;         // where the nose points in the art (0 right, 90 up)
     public bool turnsToFace = true;     // rotate the drawing to face its heading; false: stays upright and banks
     public float maxBank = 10f;         // upright ships: degrees of bank into a sideways move
