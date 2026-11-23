@@ -230,7 +230,7 @@ public class FloatieBullet : MonoBehaviour
                 tex.SetPixel(x, y, new Color(1f, 1f, 1f, a));
             }
         tex.Apply(false, true);
-        pill = Sprite.Create(tex, new Rect(0, 0, 3, 8), new Vector2(.5f, .5f), 40f);
+        pill = Sprite.Create(tex, new Rect(0, 0, 3, 8), new Vector2(.5f, .5f), 40f, 0, SpriteMeshType.FullRect);
         pill.hideFlags = HideFlags.HideAndDontSave;
         return pill;
     }

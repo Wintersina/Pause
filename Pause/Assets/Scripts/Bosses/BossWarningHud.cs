@@ -217,7 +217,7 @@ public class BossWarningHud : MonoBehaviour
         vrt.offsetMin = vrt.offsetMax = Vector2.zero;
         var vimg = vg.GetComponent<Image>();
         vignetteTex = BuildEdgeTexture();
-        vignetteSprite = Sprite.Create(vignetteTex, new Rect(0, 0, vignetteTex.width, vignetteTex.height), new Vector2(.5f, .5f));
+        vignetteSprite = Sprite.Create(vignetteTex, new Rect(0, 0, vignetteTex.width, vignetteTex.height), new Vector2(.5f, .5f), 100f, 0, SpriteMeshType.FullRect);
         vimg.sprite = vignetteSprite;
         vimg.raycastTarget = false;
         vignette = vimg;

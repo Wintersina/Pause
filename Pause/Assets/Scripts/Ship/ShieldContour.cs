@@ -188,7 +188,12 @@ public sealed class ShieldContour
 
         if (tex.isReadable)
         {
-            try { return ToColor32(tex.GetPixels(x, y, w, h)); }
+            try
+            {
+                var read = ToColor32(tex.GetPixels(x, y, w, h));
+                PerfProbe.PixelRead("ShieldContour.ReadPixels", sprite, w * h, false);
+                return read;
+            }
             catch (Exception) { /* compressed formats: fall through to the GPU */ }
         }
 #if UNITY_EDITOR
@@ -198,6 +203,7 @@ public sealed class ShieldContour
         if (SystemInfo.graphicsDeviceType == GraphicsDeviceType.Null) return null;
 
         ReadbackCount++;
+        PerfProbe.PixelRead("ShieldContour.ReadPixels", sprite, w * h, true);
         var rt = RenderTexture.GetTemporary(tex.width, tex.height, 0,
             RenderTextureFormat.ARGB32, RenderTextureReadWrite.Linear);
         var previous = RenderTexture.active;

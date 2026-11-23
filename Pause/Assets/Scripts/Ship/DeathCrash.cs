@@ -921,6 +921,7 @@ public partial class DeathCrash : MonoBehaviour
         Rect r = hull.textureRect;
         int w = Mathf.RoundToInt(r.width), h = Mathf.RoundToInt(r.height);
         if (w < 1 || h < 1) return null;
+        PerfProbe.PixelRead("DeathCrash.ReadableCopy", hull, w * h, true);
         var rt = RenderTexture.GetTemporary(w, h, 0, RenderTextureFormat.ARGB32, RenderTextureReadWrite.Default);
         var previous = RenderTexture.active;
         Graphics.Blit(src, rt, new Vector2(r.width / src.width, r.height / src.height),
@@ -945,10 +946,16 @@ public partial class DeathCrash : MonoBehaviour
     {
         var copy = ReadableCopy(hull);
         if (copy == null) return null;
-        int w = copy.width, h = copy.height;
+        var set = CutPixels(hull, copy.GetPixels32(), copy.width, copy.height, id, variant, forceCount);
+        BossUtil.Kill(copy);
+        return set;
+    }
+
+    // The cut itself, from the drawing's pixels (row-major from the bottom row, w x h).
+    static FragmentSet CutPixels(Sprite hull, Color32[] pixels, int w, int h, int id, int variant, int forceCount)
+    {
         float ppu = hull.pixelsPerUnit;
         Vector2 pivot = hull.pivot;
-        var pixels = copy.GetPixels32();
 
         // The hull's body outline, in sprite pixels.
         int pn = 0;
@@ -1087,7 +1094,6 @@ public partial class DeathCrash : MonoBehaviour
             if (mass[k] > mass[mainK]) mainK = k;
         }
         set.main = mainK;
-        BossUtil.Kill(copy);
         return set;
     }
 

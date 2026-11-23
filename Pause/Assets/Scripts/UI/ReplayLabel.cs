@@ -39,7 +39,7 @@ public sealed class ReplayLabel
         haloGo.transform.SetParent(l.body, false);
         var haloImage = haloGo.GetComponent<Image>();
         l.haloTex = PausedLabel.BuildHaloTexture();
-        l.haloSprite = Sprite.Create(l.haloTex, new Rect(0, 0, l.haloTex.width, l.haloTex.height), new Vector2(.5f, .5f));
+        l.haloSprite = Sprite.Create(l.haloTex, new Rect(0, 0, l.haloTex.width, l.haloTex.height), new Vector2(.5f, .5f), 100f, 0, SpriteMeshType.FullRect);
         haloImage.sprite = l.haloSprite;
         haloImage.color = PausedLabel.Halo;
         haloImage.raycastTarget = false;

@@ -99,7 +99,7 @@ public class CodexHomeButton : MonoBehaviour
         Sprite sp;
         if (countSprites.TryGetValue(label, out sp) && sp != null) return sp;
         var tex = CountTexture(label);
-        sp = Sprite.Create(tex, new Rect(0, 0, DiscPx, DiscPx), new Vector2(.5f, .5f), DiscPx);
+        sp = Sprite.Create(tex, new Rect(0, 0, DiscPx, DiscPx), new Vector2(.5f, .5f), DiscPx, 0, SpriteMeshType.FullRect);
         sp.name = tex.name;
         countSprites[label] = sp;
         return sp;
@@ -123,7 +123,7 @@ public class CodexHomeButton : MonoBehaviour
                 tex.SetPixel(x, y, col);
             }
         tex.Apply(false, false);
-        procBadge = Sprite.Create(tex, new Rect(0, 0, n, n), new Vector2(.5f, .5f), n);
+        procBadge = Sprite.Create(tex, new Rect(0, 0, n, n), new Vector2(.5f, .5f), n, 0, SpriteMeshType.FullRect);
         procBadge.name = "cx_badge_proc";
         return procBadge;
     }

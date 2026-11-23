@@ -126,7 +126,7 @@ public static class SpaceHazardRockTypes
         var cut = new Sprite[BlinkFrames];
         for (int i = 0; i < BlinkFrames; i++)
         {
-            cut[i] = Sprite.Create(tex, new Rect(i * w, 0, w, tex.height), new Vector2(.5f, .5f), strip.pixelsPerUnit);
+            cut[i] = Sprite.Create(tex, new Rect(i * w, 0, w, tex.height), new Vector2(.5f, .5f), strip.pixelsPerUnit, 0, SpriteMeshType.FullRect);
             cut[i].name = namePrefix + i;
         }
         return cut;
@@ -185,7 +185,7 @@ public static class RockHitFx
             var tex = new Texture2D(2, 2, TextureFormat.RGBA32, false) { filterMode = FilterMode.Point, name = "rock_chip" };
             tex.SetPixels32(new[] { new Color32(255, 255, 255, 255), new Color32(255, 255, 255, 255), new Color32(255, 255, 255, 255), new Color32(255, 255, 255, 255) });
             tex.Apply(false, true);
-            chipSprite = Sprite.Create(tex, new Rect(0, 0, 2, 2), new Vector2(.5f, .5f), 2f);   // 1 u wide
+            chipSprite = Sprite.Create(tex, new Rect(0, 0, 2, 2), new Vector2(.5f, .5f), 2f, 0, SpriteMeshType.FullRect);   // 1 u wide
         }
         sr = new SpriteRenderer[ChipPool];
         vel = new Vector2[ChipPool]; age = new float[ChipPool]; tint = new Color[ChipPool]; size = new float[ChipPool];

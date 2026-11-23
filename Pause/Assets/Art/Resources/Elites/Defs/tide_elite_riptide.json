@@ -52,6 +52,7 @@
   "launchFrom": "carrierpad,trenchhatch",
   "lore": "A needle-nosed rider that sleeps in the trench hatches. It carves a wave line across the top of the board, rings the water behind it, then lobs banks of foam onto the rings: keep off them, a shot pops a bank. Hurt, it dives away and returns riding the other way.",
   "hullRadius": 0.343,
+  "silhouetteShare": 0.4405,
   "turnsToFace": true,
   "speed": 3.0,
   "accel": 6.5,

@@ -14,12 +14,21 @@ using UnityEngine;
 public static class BossEmitters
 {
     // Index of a boss in the generated table (by art key), or -1.
+    // The last answer is kept by the boss and its art key (this is asked for every muzzle, every frame of a fight).
+    static BossDef lastBoss;
+    static string lastKey;
+    static int lastWorld = -1;
+
     public static int World(BossDef boss)
     {
         if (boss == null) return -1;
+        string key = boss.artKey;
+        if (ReferenceEquals(boss, lastBoss) && ReferenceEquals(key, lastKey)) return lastWorld;
         var w = BossEmitterTable.Worlds;
-        for (int i = 0; i < w.Length; i++) if (w[i] == boss.artKey) return i;
-        return -1;
+        int found = -1;
+        for (int i = 0; i < w.Length; i++) if (w[i] == key) { found = i; break; }
+        lastBoss = boss; lastKey = key; lastWorld = found;
+        return found;
     }
 
     // Index of a named part, or -1.
@@ -67,6 +76,9 @@ public static class BossEmitters
         192, 308, 192, 232, 58, 299, 325, 299,
     };
 
+    static readonly Vector2Int[] BloomPetals = { new Vector2Int(121, 70), new Vector2Int(262, 67), new Vector2Int(71, 143),
+                                                 new Vector2Int(326, 145), new Vector2Int(71, 260), new Vector2Int(312, 258) };
+
     // The muzzle pixel (cell px, x right, y down) of `part` in `bodyFrame`.
     public static Vector2Int Pixel(BossDef boss, int part, int bodyFrame)
     {
@@ -95,9 +107,7 @@ public static class BossEmitters
         // release. These are the actual ink tips in its final release pose.
         if (w == 2 && part >= 1 && part <= 6 && bodyFrame == BossArt.SpaceTell0 + 7)
         {
-            Vector2Int[] petals = { new Vector2Int(121, 70), new Vector2Int(262, 67), new Vector2Int(71, 143),
-                                    new Vector2Int(326, 145), new Vector2Int(71, 260), new Vector2Int(312, 258) };
-            return petals[part - 1];
+            return BloomPetals[part - 1];
         }
         var pts = BossEmitterTable.Points[w][part];
         // A boss measured on its expanded cells (the Kraken: 35) has its own

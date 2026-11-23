@@ -51,6 +51,7 @@
   "attack": "quicksand_row",
   "lore": "A heavy-lift freighter that plods along the top of the sky with the last of its sand-pit canisters. At the end of each leg it stops and lobs a row of quicksand pools across the board with one slot left open. Go through the gap; the pools swallow shots.",
   "hullRadius": 0.379,
+  "silhouetteShare": 0.4679,
   "turnsToFace": false,
   "speed": 1.5,
   "accel": 3.0,

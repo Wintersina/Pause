@@ -84,7 +84,7 @@ public sealed class LaunchBanner : MonoBehaviour
         haloRect = (RectTransform)go.transform;
         halo = go.GetComponent<Image>();
         haloTex = PausedLabel.BuildHaloTexture();
-        haloSprite = Sprite.Create(haloTex, new Rect(0, 0, haloTex.width, haloTex.height), new Vector2(.5f, .5f));
+        haloSprite = Sprite.Create(haloTex, new Rect(0, 0, haloTex.width, haloTex.height), new Vector2(.5f, .5f), 100f, 0, SpriteMeshType.FullRect);
         halo.sprite = haloSprite;
         halo.raycastTarget = false;
     }

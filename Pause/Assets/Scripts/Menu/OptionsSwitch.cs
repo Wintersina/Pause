@@ -127,6 +127,6 @@ public class OptionsSwitch : MonoBehaviour
         tex.SetPixels32(px);
         tex.Apply(false, true);
         // 1 texture pixel = 2 canvas units (Width / TexW)
-        return Sprite.Create(tex, new Rect(0, 0, w, h), new Vector2(.5f, .5f), 50f);
+        return Sprite.Create(tex, new Rect(0, 0, w, h), new Vector2(.5f, .5f), 50f, 0, SpriteMeshType.FullRect);
     }
 }

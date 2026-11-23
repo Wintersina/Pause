@@ -264,7 +264,7 @@ public class FloatieBattery : MonoBehaviour
         {
             if (gun != null && gun.Busy) return true;
             if (ShipPowerController.CinematicClearActive) return true;
-            if (runner == null) runner = GetComponent<ShipAttackRunner>();
+            if (runner == null) TryGetComponent(out runner);
             return runner != null && runner.ActiveRuns > 0;
         }
     }

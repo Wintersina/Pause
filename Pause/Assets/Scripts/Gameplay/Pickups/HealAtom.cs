@@ -118,7 +118,7 @@ public class HealAtom : MonoBehaviour
             // Crop to a square around the art so the sprite bounds are the
             // visible atom and the fit scale matches what players see.
             cached = Sprite.Create(authored, ArtRect(authored.width, authored.height),
-                new Vector2(.5f, .5f), 180f);
+                new Vector2(.5f, .5f), 180f, 0, SpriteMeshType.FullRect);
             return cached;
         }
 
@@ -161,7 +161,7 @@ public class HealAtom : MonoBehaviour
 
         tex.SetPixels(pixels);
         tex.Apply();
-        cached = Sprite.Create(tex, new Rect(0, 0, S, S), new Vector2(0.5f, 0.5f), 100f);
+        cached = Sprite.Create(tex, new Rect(0, 0, S, S), new Vector2(0.5f, 0.5f), 100f, 0, SpriteMeshType.FullRect);
         return cached;
     }
 }

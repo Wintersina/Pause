@@ -44,7 +44,7 @@ public static class TeleportPortalSprites
             int index = row * Columns + column;
             frames[index] = Sprite.Create(atlas,
                 new Rect(column * width, (Rows - 1 - row) * height, width, height),
-                new Vector2(0.5f, 0.5f), 180f);
+                new Vector2(0.5f, 0.5f), 180f, 0, SpriteMeshType.FullRect);
         }
     }
 }

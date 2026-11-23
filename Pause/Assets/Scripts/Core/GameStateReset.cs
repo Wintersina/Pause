@@ -18,6 +18,15 @@ public static class GameStateReset
     {
         SceneManager.sceneLoaded -= OnSceneLoaded;
         SceneManager.sceneLoaded += OnSceneLoaded;
+        SceneManager.sceneUnloaded -= OnSceneUnloaded;
+        SceneManager.sceneUnloaded += OnSceneUnloaded;
+    }
+
+    // A scene is gone (the run's, the menu's): the world art its loaders sliced is let go before the load's own
+    // asset sweep, so one run's textures are not carried into the next.
+    static void OnSceneUnloaded(Scene scene)
+    {
+        WorldArtCaches.Leave();
     }
 
     static void OnSceneLoaded(Scene scene, LoadSceneMode mode)

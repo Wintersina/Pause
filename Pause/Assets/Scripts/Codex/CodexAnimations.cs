@@ -243,7 +243,7 @@ public static class CodexAnimations
         if (healBase != null) return healBase;
         var tex = Resources.Load<Texture2D>("Pickups/heal_atom_green");
         if (tex == null) return null;
-        healBase = Sprite.Create(tex, HealAtom.ArtRect(tex.width, tex.height), new Vector2(.5f, .5f), 180f);
+        healBase = Sprite.Create(tex, HealAtom.ArtRect(tex.width, tex.height), new Vector2(.5f, .5f), 180f, 0, SpriteMeshType.FullRect);
         healBase.name = "codex_heal_base";
         return healBase;
     }
@@ -320,7 +320,7 @@ public static class CodexAnimations
         {
             var tex = SkyTexture(index);
             if (tex == null) return null;
-            sky = Sprite.Create(tex, new Rect(0, 0, tex.width, tex.height), new Vector2(.5f, .5f), 100f);
+            sky = Sprite.Create(tex, new Rect(0, 0, tex.width, tex.height), new Vector2(.5f, .5f), 100f, 0, SpriteMeshType.FullRect);
             sky.name = "codex_sky_" + index;
             skies[index] = sky;
         }

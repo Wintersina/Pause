@@ -51,6 +51,7 @@
   "attack": "worm_churn",
   "lore": "A cobalt lance-fighter that hunts under the dunes and never stays to fight. It rises out of its worm-burrow, ripples across the top of the sky, and churns a trail of sand bursts toward you that erupt one after another. Read the rings and step off the trail.",
   "hullRadius": 0.321,
+  "silhouetteShare": 0.4674,
   "turnsToFace": true,
   "speed": 2.4,
   "accel": 6.5,

@@ -53,6 +53,7 @@
   "launchFrom": "wreckhull,reefdock",
   "lore": "A trawler that works one flank of the board. It stands against a rail and drags a row of nets in from it, one after another, across the row you are flying in; rings show where each net will land and the far side of the row is always left open. Then it leaves by its own side and comes back on the opposite one.",
   "hullRadius": 0.376,
+  "silhouetteShare": 0.4507,
   "turnsToFace": false,
   "speed": 1.9,
   "accel": 3.5,

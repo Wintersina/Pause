@@ -53,6 +53,7 @@
   "launchFrom": "subpen,rigdeck",
   "lore": "An armoured deep-sea platform that surfaces at the top of the board and rings a chain of sea mines running down toward your column. Each mine bursts into a cross of bolts when its fuse runs out; a shot defuses one. Then it dives off the screen and surfaces somewhere else.",
   "hullRadius": 0.446,
+  "silhouetteShare": 0.4135,
   "turnsToFace": false,
   "speed": 2.0,
   "accel": 4.0,

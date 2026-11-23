@@ -93,7 +93,7 @@ public static class PlatformMark
             }
         tex.SetPixels32(pixels);
         tex.Apply(false, false);
-        var sprite = Sprite.Create(tex, new Rect(0, 0, w, h), new Vector2(.5f, .5f), 100f);
+        var sprite = Sprite.Create(tex, new Rect(0, 0, w, h), new Vector2(.5f, .5f), 100f, 0, SpriteMeshType.FullRect);
         sprite.hideFlags = HideFlags.HideAndDontSave;
         return sprite;
     }

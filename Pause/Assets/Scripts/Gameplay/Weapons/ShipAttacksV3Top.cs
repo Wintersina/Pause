@@ -29,7 +29,7 @@ public partial class ShipAttackRunner
         return ShipAttackHits.Hit(go, ship, weight, ref own);
     }
 
-    static bool IsSpecial(GameObject go) { return go.GetComponent<IShipAttackTarget>() != null; }
+    static bool IsSpecial(GameObject go) { return go.TryGetComponent<IShipAttackTarget>(out _); }
 
     // How far from `from` the farthest corner of the view is (plus a margin): what an expanding ring has to cover.
     static float FarthestCorner(Vector3 from)
@@ -1282,15 +1282,15 @@ public class FrozenState : MonoBehaviour
 
     public static bool CanFreeze(GameObject go)
     {
-        return go != null && go.GetComponent<IShipAttackTarget>() == null;
+        return go != null && !go.TryGetComponent<IShipAttackTarget>(out _);
     }
 
     // Freezes `go` (null if it can't be). Freezing a frozen hazard just refreshes the failsafe.
     public static FrozenState Freeze(GameObject go, float failSafe = FailSafeSeconds)
     {
         if (!CanFreeze(go)) return null;
-        var st = go.GetComponent<FrozenState>();
-        if (st == null) st = go.AddComponent<FrozenState>();
+        FrozenState st;
+        if (!go.TryGetComponent(out st)) st = go.AddComponent<FrozenState>();
         st.Hold(failSafe);
         return st;
     }

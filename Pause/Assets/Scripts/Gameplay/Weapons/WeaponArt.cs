@@ -59,7 +59,7 @@ public static class WeaponArt
     static Sprite Cell(Texture2D tex, int col, int row)
     {
         float w = tex.width / (float)Columns, h = tex.height / (float)Rows;
-        return Sprite.Create(tex, new Rect(col * w, (Rows - 1 - row) * h, w, h), new Vector2(.5f, .5f), w);
+        return Sprite.Create(tex, new Rect(col * w, (Rows - 1 - row) * h, w, h), new Vector2(.5f, .5f), w, 0, SpriteMeshType.FullRect);
     }
 
     static void Put(Sprite[] dest, int at, Texture2D tex, int row, int col, int count)
@@ -135,7 +135,7 @@ public static class WeaponArt
     static Sprite ExplosionCell(Texture2D tex, int col, int row)
     {
         float w = tex.width / (float)Columns, h = tex.height / (float)ExplosionKinds;
-        return Sprite.Create(tex, new Rect(col * w, (ExplosionKinds - 1 - row) * h, w, h), new Vector2(.5f, .5f), w);
+        return Sprite.Create(tex, new Rect(col * w, (ExplosionKinds - 1 - row) * h, w, h), new Vector2(.5f, .5f), w, 0, SpriteMeshType.FullRect);
     }
 
     static Sprite[] Explosions()

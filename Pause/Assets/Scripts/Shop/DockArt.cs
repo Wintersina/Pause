@@ -76,7 +76,7 @@ public static class DockArt
                 foreach (int x in new[] { 5 - y, 6 - y, 5 + y - 1, 5 + y })
                     if (x >= 0 && x < w) tex.SetPixel(x, y, Color.white);
             tex.Apply(false, true);
-            chevron = Sprite.Create(tex, new Rect(0, 0, w, h), new Vector2(.5f, .5f), 100f);
+            chevron = Sprite.Create(tex, new Rect(0, 0, w, h), new Vector2(.5f, .5f), 100f, 0, SpriteMeshType.FullRect);
             return chevron;
         }
     }
@@ -91,7 +91,7 @@ public static class DockArt
             var tex = new Texture2D(1, 1, TextureFormat.RGBA32, false) { filterMode = FilterMode.Point, name = "DockSolid" };
             tex.SetPixel(0, 0, Color.white);
             tex.Apply(false, true);
-            solid = Sprite.Create(tex, new Rect(0, 0, 1, 1), new Vector2(.5f, .5f), 1f);
+            solid = Sprite.Create(tex, new Rect(0, 0, 1, 1), new Vector2(.5f, .5f), 1f, 0, SpriteMeshType.FullRect);
             return solid;
         }
     }

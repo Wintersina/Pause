@@ -75,7 +75,17 @@ public static class ShipId
 
     // ---------------------------------------------------------- ownership
 
-    public static string OwnedKey(int id) { return OwnedKeyPrefix + id; }
+    // Built once per id: the key is read on hot paths and a concatenation allocates every call.
+    static string[] ownedKeys;
+
+    public static string OwnedKey(int id)
+    {
+        if (id < 0 || id > 64) return OwnedKeyPrefix + id;
+        if (ownedKeys == null) ownedKeys = new string[65];
+        string key = ownedKeys[id];
+        if (key == null) { key = OwnedKeyPrefix + id; ownedKeys[id] = key; }
+        return key;
+    }
 
     // The one ownership gate. Every roster ship is owned by the saved
     // "boughtship<id>" key; star dust writes it for the 15 standard ships

@@ -30,7 +30,7 @@ public static class BossAttackFx
         for (int r = 0; r < Rows; r++)
             for (int c = 0; c < Columns; c++)
                 sheet[r * Columns + c] = Sprite.Create(tex, new Rect(c * w, (Rows - 1 - r) * h, w, h),
-                                                       new Vector2(.5f, .5f), w);
+                                                       new Vector2(.5f, .5f), w, 0, SpriteMeshType.FullRect);
         return sheet;
     }
 

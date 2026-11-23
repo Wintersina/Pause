@@ -172,7 +172,7 @@ public class PortalPressureHud : MonoBehaviour
             tex.SetPixel(x, 0, new Color(1f, 1f, 1f, k * k));
         }
         tex.Apply();
-        glowSprite = Sprite.Create(tex, new Rect(0, 0, w, 1), new Vector2(.5f, .5f), 100f);
+        glowSprite = Sprite.Create(tex, new Rect(0, 0, w, 1), new Vector2(.5f, .5f), 100f, 0, SpriteMeshType.FullRect);
         return glowSprite;
     }
 

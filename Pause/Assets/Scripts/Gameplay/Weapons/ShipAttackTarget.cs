@@ -63,8 +63,8 @@ public static class ShipAttackHits
     public static bool Hit(GameObject target, int ship, float weight, ref float budget)
     {
         if (target == null) return false;
-        var special = target.GetComponent<IShipAttackTarget>();
-        if (special != null)
+        IShipAttackTarget special;
+        if (target.TryGetComponent(out special))
         {
             if (special is IShipAttackTargetUncapped)
             {
@@ -103,8 +103,8 @@ public static class ShipAttackHits
     public static bool AlreadyHit(GameObject target)
     {
         if (target == null) return true;
-        var t = target.GetComponent<ClearTarget>();
-        return t != null && !t.enabled;
+        ClearTarget t;
+        return target.TryGetComponent(out t) && !t.enabled;
     }
 
     public static bool Hit(GameObject target, int ship)

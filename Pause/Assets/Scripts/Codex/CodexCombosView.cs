@@ -171,7 +171,7 @@ public sealed class CodexCombosView
                 {
                     if (healGlyph != null) return healGlyph;
                     var tex = Resources.Load<Texture2D>("Pickups/heal_atom_green");
-                    if (tex != null) return healGlyph = Sprite.Create(tex, new Rect(0, 0, tex.width, tex.height), new Vector2(.5f, .5f), 100f);
+                    if (tex != null) return healGlyph = Sprite.Create(tex, new Rect(0, 0, tex.width, tex.height), new Vector2(.5f, .5f), 100f, 0, SpriteMeshType.FullRect);
                     return PickupFrame(PickupKind.Heal);
                 }
             case AtomKind.Mending: return ShipIcon("Dove");

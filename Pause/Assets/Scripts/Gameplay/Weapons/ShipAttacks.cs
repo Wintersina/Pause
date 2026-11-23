@@ -33,7 +33,27 @@ public partial class ShipAttackRunner : MonoBehaviour
 
     // The thin lines between linked things (Arcane Eye tethers, mine wires, ice cracks): ShipLinkLines.cs.
     ShipLinkLines links;
-    public ShipLinkLines Links { get { return links ?? (links = new ShipLinkLines(transform)); } }
+    // Built at most once per runner: if the first attempt throws it is logged once and an unparented instance stands in,
+    // so a failing constructor is never re-run (and never re-builds objects) on every access.
+    bool linksBroken;
+    public ShipLinkLines Links
+    {
+        get
+        {
+            if (links != null) return links;
+            if (!linksBroken)
+            {
+                try { links = new ShipLinkLines(transform); }
+                catch (System.Exception e)
+                {
+                    linksBroken = true;
+                    Debug.LogError("ShipAttackRunner: could not build the link lines: " + e);
+                }
+            }
+            if (links == null) links = new ShipLinkLines(null);
+            return links;
+        }
+    }
     public ShipLoadout Loadout => loadout;
     public int FireCount { get; private set; }
 
@@ -490,7 +510,7 @@ public partial class ShipAttackRunner : MonoBehaviour
             Vector2 d = t.transform.position - p;
             float r = l.range + t.Radius;
             if (d.sqrMagnitude > r * r) continue;
-            bool special = t.GetComponent<IShipAttackTarget>() != null;
+            bool special = t.TryGetComponent<IShipAttackTarget>(out _);
             if (special && !bossTick) continue;
             if (special) ticked = true;
             // read what is needed before the touch: it may destroy the target
@@ -527,7 +547,7 @@ public partial class ShipAttackRunner : MonoBehaviour
     // flooding it; the boss's hit window does the limiting).
     void Touch(AttackRun run, GameObject go, bool bossTick, float weight)
     {
-        if (go.GetComponent<IShipAttackTarget>() != null)
+        if (go.TryGetComponent<IShipAttackTarget>(out _))
         {
             if (bossTick) ShipAttackHits.Hit(go, ship, weight, ref run.budget);
             return;
@@ -784,6 +804,7 @@ public class AttackSprite : MonoBehaviour
     bool renamed;
     float alphaMul = 1f;
     string suffix;   // an extra strip of the ship (ShipFxArt.Extra) instead of its main attack strip
+    string suffixKey;   // "attack_" + suffix, built once per Strip call (ShipFxArt.Extra would concatenate it on every frame swap)
     // a flight from the ship to where the effect acts (Travel)
     bool travelling;
     Vector3 travelFrom, travelTo;
@@ -827,6 +848,7 @@ public class AttackSprite : MonoBehaviour
         tint = Color.white;
         Run = null;
         suffix = null;
+        suffixKey = null;
         travelling = false;
         growFrom = 1f;
         extraSuffix = null;
@@ -849,7 +871,27 @@ public class AttackSprite : MonoBehaviour
     public AttackSprite Owned(AttackRun run) { Run = run; return this; }
 
     // Draws an extra strip of the ship ("mark" -> <Ship>_attack_mark.png); AttackLoop / AttackBurst sources only.
-    public AttackSprite Strip(string stripSuffix) { suffix = stripSuffix; Apply(); return this; }
+    public AttackSprite Strip(string stripSuffix)
+    {
+        suffix = stripSuffix;
+        suffixKey = stripSuffix == null ? null : "attack_" + stripSuffix;
+        Apply();
+        return this;
+    }
+
+    // The same cell ShipFxArt.Extra(ship, suffix, burst, i) picks (that overload builds "attack_" + suffix per call):
+    // the extra strip's cell, or the ship's own attack strip when the extra one is missing.
+    Sprite ExtraCell(bool burst, int i)
+    {
+        var strip = ShipFxArt.Strip(ship, suffixKey);
+        if (strip == null)
+        {
+            strip = ShipFxArt.Strip(ship, false);
+            if (strip == null) return null;
+        }
+        int n = ShipFxArt.LoopFrames;
+        return strip[burst ? n + Mathf.Clamp(i, 0, ShipFxArt.BurstFrames - 1) : ((i % n) + n) % n];
+    }
 
     // Draws from a ship's extra strip instead (Source.Extra): frame i shows cell firstCell + i.
     // Loops and bursts alike get the burst alpha unless `loopAlpha`.
@@ -958,11 +1000,11 @@ public class AttackSprite : MonoBehaviour
     {
         switch (source)
         {
-            case Source.AttackLoop:  sr.sprite = suffix != null ? ShipFxArt.Extra(ship, suffix, false, Frame) : ShipFxArt.AttackLoop(ship, Frame); break;
+            case Source.AttackLoop:  sr.sprite = suffix != null ? ExtraCell(false, Frame) : ShipFxArt.AttackLoop(ship, Frame); break;
             case Source.AttackBurst:
                 {
                     int bf = reversed ? ShipFxArt.BurstFrames - 1 - Frame : Frame;
-                    sr.sprite = suffix != null ? ShipFxArt.Extra(ship, suffix, true, bf) : ShipFxArt.AttackBurst(ship, bf);
+                    sr.sprite = suffix != null ? ExtraCell(true, bf) : ShipFxArt.AttackBurst(ship, bf);
                 }
                 break;
             case Source.Extra:       sr.sprite = ShipFxArt.Extra(ship, extraSuffix, extraCell + (reversed ? ShipFxArt.BurstFrames - 1 - Frame : Frame)); break;
@@ -1088,8 +1130,8 @@ public class AttackProjectile : MonoBehaviour
         if (kind == Kind.Homing && target != null)
         {
             // dropped when it dies, scrolls off the screen, or a boss is up and this isn't it
-            var ct = target.GetComponent<ClearTarget>();
-            if (ct == null || !ct.isActiveAndEnabled || !ShipTargets.CanHome(ct)) target = null;
+            ClearTarget ct;
+            if (!target.TryGetComponent(out ct) || !ct.isActiveAndEnabled || !ShipTargets.CanHome(ct)) target = null;
         }
         if (kind == Kind.Homing && target == null && age < 1.2f)
         {
@@ -1137,7 +1179,7 @@ public class AttackProjectile : MonoBehaviour
                     if (hit != null)
                     {
                         var struckGo = hit.gameObject;
-                        bool special = struckGo.GetComponent<IShipAttackTarget>() != null;
+                        bool special = struckGo.TryGetComponent<IShipAttackTarget>(out _);
                         Vector3 struckAt = struckGo.transform.position;   // before the hit: a kill can destroy it on the spot
                         Strike(struckGo);
                         if (kind == Kind.Straight && pierceLeft > 0 && !special)
@@ -1161,7 +1203,7 @@ public class AttackProjectile : MonoBehaviour
 
     void Strike(GameObject go)
     {
-        if (go.GetComponent<IShipAttackTarget>() != null) lastSpecial = go;
+        if (go.TryGetComponent<IShipAttackTarget>(out _)) lastSpecial = go;
         ShipAttackHits.Hit(go, ship, weight, ref run.budget);
     }
 

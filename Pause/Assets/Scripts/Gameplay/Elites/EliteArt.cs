@@ -64,6 +64,15 @@ public static class EliteArt
         return paths[i];
     }
 
+    // WorldArtCaches: every strip sliced so far is let go (an elite still on the board keeps its own drawings);
+    // the next elite's strips are sliced again from what ArtWarm holds.
+    public static void Release()
+    {
+        cache.Clear();
+        shards.Clear();
+    }
+    public static int CachedStrips { get { return cache.Count; } }
+
     public static Sprite[] Frames(EliteDef def)
     {
         if (def == null) return null;

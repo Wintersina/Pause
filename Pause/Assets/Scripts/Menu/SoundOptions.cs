@@ -52,7 +52,7 @@ public class SoundOptions : MonoBehaviour
             iconSprites = new Sprite[8];
             for (int k = 0; k < 2; k++)
                 for (int l = 0; l < 4; l++)
-                    iconSprites[k * 4 + l] = Sprite.Create(tex, new Rect(l * 48, (1 - k) * 48, 48, 48), new Vector2(.5f, .5f), 100f);
+                    iconSprites[k * 4 + l] = Sprite.Create(tex, new Rect(l * 48, (1 - k) * 48, 48, 48), new Vector2(.5f, .5f), 100f, 0, SpriteMeshType.FullRect);
         }
         return iconSprites[(music ? 4 : 0) + Mathf.Clamp(level, 0, 3)];
     }

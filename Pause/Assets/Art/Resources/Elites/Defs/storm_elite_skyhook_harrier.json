@@ -51,6 +51,7 @@
   "attack": "cable_rake",
   "lore": "A skyhook raider that swoops across the top on a dipping arc, off one side and back from the other. It hooks in, draws the cables it will drop as thin lines, then rakes them down one after another. Hurt, it flees off the screen and returns.",
   "hullRadius": 0.344,
+  "silhouetteShare": 0.4541,
   "turnsToFace": true,
   "speed": 2.6,
   "accel": 6.5,

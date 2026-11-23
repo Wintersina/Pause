@@ -410,6 +410,7 @@ public static class AllTests
         ("WorldLeakTest", WorldLeakTest.Execute),
         ("PerfSoakTest", PerfSoakTest.Execute),
         ("EngineModuleGuardTest", EngineModuleGuardTest.Execute),
+        ("PerfHitchTest", PerfHitchTest.Execute),
         ("SpaceLegSpawnTest", SpaceLegSpawnTest.Execute),
         ("WorldLogicTest", WorldLogicTest.Execute),
         ("WorldPaceTest", WorldPaceTest.Execute),

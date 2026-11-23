@@ -266,7 +266,7 @@ public partial class ShipAttackRunner
         if (strip != null) s.Strip(strip);
     }
 
-    static bool Special(GameObject go) { return go.GetComponent<IShipAttackTarget>() != null; }
+    static bool Special(GameObject go) { return go.TryGetComponent<IShipAttackTarget>(out _); }
 
     // ------------------------------------------------------- arcane eye
 

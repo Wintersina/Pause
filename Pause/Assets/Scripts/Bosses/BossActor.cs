@@ -175,15 +175,46 @@ public class BossActor : MonoBehaviour, IMusicPatternHost
         return sr;
     }
 
+    // The last body drawing picked, by what picked it. BossArt builds a path string for every damaged lookup, so asking it each
+    // frame for the same pose allocated; the answer for the same boss, drawing, damage cell and stage is the same sprite.
+    // Played builds only (edit-mode tests rebuild and drop BossArt's sheets between calls); a destroyed sprite asks again.
+    BossDef frameBoss;
+    int frameKey = -1, frameCell = -2, frameStage = -1;
+    Sprite frameSprite;
+
     void SetFrame(int frame)
     {
         BodyFrame = frame;
         if (body == null) return;
         int cell = BossArt.DamageIdleCell(boss, frame, damageStage, animClock);
+        bool cache = Application.isPlaying;
+        if (cache && frameSprite != null && ReferenceEquals(frameBoss, boss) && frameKey == frame && frameCell == cell && frameStage == damageStage)
+        {
+            body.sprite = frameSprite;
+            return;
+        }
         Sprite sprite = cell >= 0 ? BossArt.DamageBody(boss, cell) : null;
         // a tell / fire pose keeps the boss's damage too (BossArt.AttackDamageBody)
         if (sprite == null) sprite = BossArt.AttackDamageBody(boss, frame, damageStage);
         body.sprite = sprite != null ? sprite : BossArt.Body(boss, frame);
+        if (cache)
+        {
+            frameBoss = boss; frameKey = frame; frameCell = cell; frameStage = damageStage;
+            frameSprite = body.sprite;
+        }
+    }
+
+    // BossArt.DamageFx per cell, kept (it builds a path string per call): the smoke and arcs ask every frame.
+    readonly Sprite[] fxSprites = new Sprite[16];
+    BossDef fxBoss;
+
+    Sprite DamageFxCell(int cell)
+    {
+        if (!Application.isPlaying || cell < 0 || cell >= fxSprites.Length) return BossArt.DamageFx(boss, cell);
+        if (!ReferenceEquals(fxBoss, boss)) { System.Array.Clear(fxSprites, 0, fxSprites.Length); fxBoss = boss; }
+        Sprite sprite = fxSprites[cell];
+        if (sprite == null) { sprite = BossArt.DamageFx(boss, cell); fxSprites[cell] = sprite; }
+        return sprite;
     }
 
     // ---- battle damage -------------------------------------------------
@@ -205,12 +236,12 @@ public class BossActor : MonoBehaviour, IMusicPatternHost
         arcs.enabled = aa > 0f;
         if (smoke.enabled)
         {
-            smoke.sprite = BossArt.DamageFx(boss, BossArt.SmokeCell(animClock));
+            smoke.sprite = DamageFxCell(BossArt.SmokeCell(animClock));
             smoke.color = new Color(1f, 1f, 1f, sa);
         }
         if (arcs.enabled)
         {
-            arcs.sprite = BossArt.DamageFx(boss, BossArt.ArcCell(damageStage, animClock));
+            arcs.sprite = DamageFxCell(BossArt.ArcCell(damageStage, animClock));
             arcs.color = new Color(1f, 1f, 1f, aa);
         }
     }

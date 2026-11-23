@@ -51,6 +51,7 @@
   "attack": "dust_wall",
   "lore": "A shielded warship ringed in overlapping glass-mirror plates that crawls along the top of the sky. It sends walls of dust sweeping sideways across the board, each with a gap in it. Find the gap and slide into it.",
   "hullRadius": 0.376,
+  "silhouetteShare": 0.4428,
   "turnsToFace": false,
   "speed": 1.8,
   "accel": 3.5,
