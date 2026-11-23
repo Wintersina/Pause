@@ -76,7 +76,7 @@ using UnityEngine;
 //     HitBlockSeconds (0.1 s) -- the only window a weapon hit respects;
 //   * a pause jump landing on it (TeleportFx -> TeleportStrike) is NOT an instant kill: it costs exactly
 //     ONE heart (grace or not) with a "PAUSE BLOCKED" popup, and the elite then ignores further blinks for
-//     BlinkGuardSeconds (one blink = one heart, never a chain kill in an instant); at its last heart the blink
+//     BlinkGuardSeconds (one blink = one hit, never a chain kill in an instant); at its last heart the blink
 //     brings it down as an ordinary kill;
 //   * touching the pilot (collisionDetection -> Rammed; the pilot loses a heart too unless shielded), a crash,
 //     a rail, another elite, friendly fire: one heart, then GraceSeconds (half a second) in which none of
@@ -104,9 +104,11 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint, I
     // The player's weapons land back to back: a weapon hit (EliteDamage.PlayerWeapon) is refused only within this long of the
     // last heart lost, so a stream of hits costs at most one heart per 0.1 s (user, 2026-10-28; bosses keep their own 0.25 s window).
     public const float HitBlockSeconds = .1f;
-    // A pause jump onto an elite costs ONE heart, then the elite ignores blinks this long (world clock: a pause freezes it too),
+    // A pause jump onto an elite costs TeleportHearts (2) hearts, then the elite ignores blinks this long (world clock: a pause freezes it too),
     // so one blink -- or blinks repeated inside a pause -- can never take more than one heart at once.
     public const float BlinkGuardSeconds = .5f;
+    // A pause jump onto an elite costs this many hearts (owner, 2026-11-23: the pause attack hits harder than a weapon); with fewer left it kills.
+    public const int TeleportHearts = 2;
     public const string PauseBlockedWord = "PAUSE BLOCKED";
     // The same word for a shield bash the elite survives (a partial ram, or one the hit window refused), at most once per elite per this long.
     public const string ShieldBlockedWord = "SHIELD BLOCKED";
@@ -1639,7 +1641,7 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint, I
         {
             if (!elite.InPlay) return true;
             if (elite.blinkGuard > 1e-4f) { BlinksGuarded++; return true; }
-            bool hit = elite.TakeHit(EliteDamage.Teleport, at, 1);
+            bool hit = elite.TakeHit(EliteDamage.Teleport, at, TeleportHearts);
             if (hit) elite.blinkGuard = BlinkGuardSeconds;
             if (elite != null && elite.State != EliteState.Dead)
             {

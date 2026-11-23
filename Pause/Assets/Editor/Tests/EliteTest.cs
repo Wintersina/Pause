@@ -888,17 +888,22 @@ public static class EliteTest
         ShipAttackHits.Hit(e.gameObject, 3);
         Check("... and none in the same instant (its " + EliteShip.HitBlockSeconds + " s hit block)", e != null && e.Hearts == 1);
 
-        // ELITES ARE MINI-BOSSES (user, 2026-10-28): a pause jump costs ONE heart and says PAUSE BLOCKED, never an instant kill
+        // ELITES ARE MINI-BOSSES (user, 2026-10-28): a pause jump costs TWO hearts (owner, 2026-11-23) and says PAUSE BLOCKED, never an instant kill
         Fresh(.05f);
+        var tall = Def("gunship");
+        int authored = tall.hearts;
+        tall.hearts = 4;   // 4 hearts so the 2-heart jump leaves it alive
         e = InPlay("gunship", new Vector2(0f, 1f));
+        tall.hearts = authored;
+        int heartsStart = e.Hearts;
         int killsBefore = EliteShip.Kills, blocks = EliteShip.PauseBlocks;
         string word = null; Color wordColour = Color.clear;
         System.Action<string, Vector3, Color> hook = (w, at, c) => { word = w; wordColour = c; };
         EliteShip.PauseBlockedHook += hook;
         try { TeleportFx.Strike(new Vector3(.3f, 1f, 0f)); }
         finally { EliteShip.PauseBlockedHook -= hook; }
-        Check("a pause jump landing on it (TeleportFx.Strike) costs exactly one heart and it lives",
-              e != null && e.State != EliteState.Dead && e.Hearts == 1 && e.LastHitCause == EliteDamage.Teleport && EliteShip.Kills == killsBefore);
+        Check("a pause jump landing on it (TeleportFx.Strike) costs exactly two hearts and it lives",
+              e != null && e.State != EliteState.Dead && e.Hearts == heartsStart - 2 && e.LastHitCause == EliteDamage.Teleport && EliteShip.Kills == killsBefore);
         Check("... with a PAUSE BLOCKED popup", EliteShip.PauseBlocks == blocks + 1 && word == "PAUSE BLOCKED" && word == EliteShip.PauseBlockedWord);
         Check("... in the elite's world colour, no pink outside Space",
               wordColour == EliteShip.PauseBlockedColour(e.Def.WorldIndex) && (WorldCue.IsSpace(e.Def.WorldIndex) || !WorldCue.IsPink(wordColour)));
@@ -908,12 +913,23 @@ public static class EliteTest
         int guarded = EliteShip.BlinksGuarded;
         TeleportFx.Strike(e.Position);
         EliteShip.TeleportStrike(e.gameObject, e.Position);
-        Check("two more blinks inside the guard cost nothing (one blink = one heart)",
-              e != null && e.State != EliteState.Dead && e.Hearts == 1 && EliteShip.BlinksGuarded >= guarded + 2 && EliteShip.Kills == killsBefore);
+        Check("two more blinks inside the guard cost nothing (one blink = one hit)",
+              e != null && e.State != EliteState.Dead && e.Hearts == heartsStart - 2 && EliteShip.BlinksGuarded >= guarded + 2 && EliteShip.Kills == killsBefore);
         Step(EliteShip.BlinkGuardSeconds + .1f);
         TeleportFx.Strike(e.Position);
-        Check("past the guard, a blink on its LAST heart brings it down (Blink Strike)",
+        Check("past the guard, a blink with only its last two hearts left brings it down (Blink Strike)",
               (e == null || e.State == EliteState.Dead) && EliteShip.Kills == killsBefore + 1 && EliteShip.LastKillCause == EliteDamage.Teleport);
+
+        // an elite with ONE heart left: the 2-heart jump kills it, once (death and payout run once)
+        Fresh(.05f);
+        e = InPlay("gunship", new Vector2(0f, 1f));
+        ShipAttackHits.Hit(e.gameObject, 3);
+        Step(EliteShip.HitBlockSeconds + .05f);
+        int k1 = EliteShip.Kills, paid1 = EliteRewards.Paid;
+        Check("(setup: one heart left)", e != null && e.Hearts == 1);
+        TeleportFx.Strike(e.Position);
+        TeleportFx.Strike(e.Position);
+        Check("a pause jump on a 1-heart elite kills it, paid once", (e == null || e.State == EliteState.Dead) && EliteShip.Kills == k1 + 1 && EliteRewards.Paid == paid1 + 1);
 
         Fresh(.05f);
         e = InPlay("gunship", new Vector2(0f, 1f));
