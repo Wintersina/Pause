@@ -336,9 +336,9 @@ public class PauseQuickActions : MonoBehaviour
     // rails' inner edge (a world's rails being painted).
     void PlaceButtons()
     {
-        var screen = new Vector2(Screen.width, Screen.height);
+        var screen = ScreenInfo.Size;
         if (screen.x <= 0f || screen.y <= 0f) return;
-        Rect safe = Screen.safeArea;
+        Rect safe = ScreenInfo.SafeArea;
         var band = TopBand.FrameFor(safe, screen);
         float panelH = DrawnPanelHeightPx(band, screen);
         if (bandApplied && band.Same(appliedBand) && Mathf.Approximately(panelH, appliedPanelH) && appliedWorld == HudSkin.CurrentWorld) return;

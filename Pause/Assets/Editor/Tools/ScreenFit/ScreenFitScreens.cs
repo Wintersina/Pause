@@ -1062,7 +1062,7 @@ public static class ScreenFitScreens
 
     // What the runtime bootstraps do for gameS1 / tutorialS5 before the first
     // frame: rails to the view's height, spawn line above it, backdrop, HUD.
-    static HudStyler WorldBase(ScreenFitRig rig, int world, bool paused, bool tutorial)
+    static HudStyler WorldBase(ScreenFitRig rig, int world, bool paused, bool tutorial, bool settle = true)
     {
         buttonClicks.playerDied = false;
         score.pauseCounter = paused ? 3 : 0;
@@ -1109,7 +1109,8 @@ public static class ScreenFitScreens
         }
         rig.Sync();
         SafeAreaClamp.AttachAll(tutorial ? "tutorialS5" : "gameS1");
-        PlaceHudBand(rig, styler);
+        // settle: the rig re-places the read-out from a laid-out panel; the game does not (HudStyler placed it in Start, before any layout)
+        if (settle) PlaceHudBand(rig, styler);
         return styler;
     }
 
@@ -1372,6 +1373,54 @@ public static class ScreenFitScreens
         if (row != null) row.GetComponent<Text>().text = ScoreHud.Label(1234567);
         Canvas.ForceUpdateCanvases();
         VetLayers(rig, styler, world);
+    }
+
+    // The shot-atom row on its first visible frame: the run's HUD as the game builds it, then the first atom is caught and the row
+    // is built lazily (the ShotAtomHud host's own Update), with no layout pass in between. The row must hang one gap under the
+    // board frame's VISIBLE bottom, measured on the frame image as it is drawn (not through the layout maths the row uses).
+    public const float ShotRowTolerancePx = 3f;
+
+    public static FitScreen ShotRow(int world, FitDevice startedAs = null)
+    {
+        return new FitScreen { id = "shot-row-" + world, scene = "gameS1", title = "Shot-atom row, first frame, world " + world, gameplayView = true, fullBleed = false, stage = r => ShotRowStage(r, world, startedAs) };
+    }
+
+    // startedAs: the window the run was started in; the window is then resized to the rig's device before the first atom is caught.
+    static void ShotRowStage(ScreenFitRig rig, int world, FitDevice startedAs)
+    {
+        HudStyler styler;
+        if (startedAs == null) styler = WorldBase(rig, world, false, false, false);
+        else
+        {
+            using (ScreenInfo.Override(startedAs.w, startedAs.h, startedAs.Safe, startedAs.Cutouts, startedAs.ReportedDpi, startedAs.ios))
+            {
+                UiScaleFloor.ApplyAll();
+                styler = WorldBase(rig, world, false, false, false);
+            }
+            styler.SendMessage("Update");   // the frame the resize is seen: HudStyler runs before UiScaleFloor.LateUpdate / the canvas scaler
+            rig.Sync();                      // LateUpdate + the scaler: the canvas now has the new window's scale
+        }
+        ShotAtoms.BeginRun();
+        var host = new GameObject(ShotAtomHud.HostName);
+        var row = host.AddComponent<ShotAtomHud>();
+        row.SendMessage("OnEnable");
+        row.SendMessage("Update");               // nothing caught: no canvas yet
+        ShotAtoms.Collect(ShotAtom.Arc);
+        row.SendMessage("Update");               // the first atom: Build + Place in this one Update
+        rig.Sync();                              // only so world corners exist; the row is not re-placed
+        var frameT = styler.HudRoot.Find("SkinFrame") as RectTransform;
+        var slot = host.transform.Find("ShotAtomHudCanvas/ShotAtomSlot0") as RectTransform;
+        if (frameT == null || slot == null) { rig.Fail("SHOTROW", "row", "no board frame / no first slot"); return; }
+        Rect frame = rig.PixelRect(frameT), hudRect = rig.PixelRect(styler.HudRoot), s0 = rig.PixelRect(slot);
+        float k = hudRect.height / Mathf.Max(1f, styler.HudRoot.rect.size.y);   // screen px per HUD canvas unit, as drawn
+        float visibleBottom = frame.yMin + HudSkin.BoardVisibleBottomClear(world) * k;
+        float gap = Mathf.Max(1f, Mathf.Round(ShotAtomHud.GapUnits * PauseQuickActions.CanvasScaleFor(new Vector2(rig.W, rig.H))));
+        float want = visibleBottom - gap;
+        string detail = "slot top " + s0.yMax.ToString("F1") + " vs board visible bottom " + visibleBottom.ToString("F1") + " - gap " + gap + " = " + want.ToString("F1") +
+                        " (frame " + frame + ", read-out " + hudRect + ", geometry top " + row.CurrentGeometry.top.ToString("F1") + ", live hud " + row.CurrentHud + ")";
+        if (Mathf.Abs(s0.yMax - want) > ShotRowTolerancePx) rig.Fail("SHOTROW", "ShotAtomSlot0", detail, s0);
+        else Debug.Log("[SHOTROW] ok " + rig.device.id + " world " + world + ": " + detail);
+        UnityEngine.Object.DestroyImmediate(host);
     }
 
     // The NEW tag and a NEW RECORD popup in one world's HUD (RecordVetCapture).

@@ -141,6 +141,8 @@ public class HudStyler : MonoBehaviour
     Rect appliedSafeArea;
     Vector2Int appliedScreen;
     TopBand.Frame appliedBand;
+    float appliedHudScale;
+    Vector2 appliedHudSize;
 
     public RectTransform HudRoot { get { return hudRoot; } }
 
@@ -230,16 +232,29 @@ public class HudStyler : MonoBehaviour
     void PlaceHud(bool force)
     {
         if (hudRoot == null) return;
-        var screen = new Vector2Int(Screen.width, Screen.height);
-        Rect safe = Screen.safeArea;
+        var screen = new Vector2Int(ScreenInfo.Width, ScreenInfo.Height);
+        Rect safe = ScreenInfo.SafeArea;
         if (screen.x <= 0 || screen.y <= 0) return;
         var band = TopBand.FrameFor(safe, screen);
-        if (!force && safe == appliedSafeArea && screen == appliedScreen && band.Same(appliedBand)) return;
+        // The canvas's own scale (UiScaleFloor re-lowers its reference in LateUpdate, after this runs on the frame the window changes)
+        // and the panel's size (its layout settles after Start) are part of what the placement depends on: the band alone would leave
+        // the board at a stale scale / fit until the next band change, while everything that reads the read-out's rect predicts the new one.
+        float hudScale = HudCanvasScale(hudCanvas, hudScaler, screen);
+        Vector2 hudSize = hudRoot.rect.size;
+        if (!force && safe == appliedSafeArea && screen == appliedScreen && band.Same(appliedBand) &&
+            Mathf.Approximately(hudScale, appliedHudScale) && hudSize == appliedHudSize) return;
         appliedSafeArea = safe;
         appliedScreen = screen;
         appliedBand = band;
+        appliedHudScale = hudScale;
+        appliedHudSize = hudSize;
+        if (hudScaler != null && hudScaler.uiScaleMode == CanvasScaler.ScaleMode.ScaleWithScreenSize)
+        {
+            authoredHeight = hudSize.y;   // BoardVisibleBottomPx / ReadoutHeightFor read these: keep them the settled panel's
+            authoredWidth = hudSize.x;
+            authoredReference = hudScaler.referenceResolution;
+        }
 
-        float hudScale = HudCanvasScale(hudCanvas, hudScaler, screen);
         Vector2 position;
         float fit;
         bool narrow;

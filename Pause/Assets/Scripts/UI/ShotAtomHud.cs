@@ -201,8 +201,8 @@ public class ShotAtomHud : MonoBehaviour
         topCentre = Vector2.zero;
         var row = Instance;
         if (row == null || !row.isActiveAndEnabled) return false;
-        var screen = new Vector2(Screen.width, Screen.height);
-        Rect safe = Screen.safeArea;
+        var screen = ScreenInfo.Size;
+        Rect safe = ScreenInfo.SafeArea;
         var band = TopBand.FrameFor(safe, screen);
         Rect hud = row.LiveHudRect(band, screen);
         var g = Compute(band, safe, screen, hud);
@@ -371,8 +371,8 @@ public class ShotAtomHud : MonoBehaviour
     // Re-laid only when the screen, safe area, band or read-out changes.
     void Place()
     {
-        var screen = new Vector2(Screen.width, Screen.height);
-        Rect safe = Screen.safeArea;
+        var screen = ScreenInfo.Size;
+        Rect safe = ScreenInfo.SafeArea;
         var band = TopBand.FrameFor(safe, screen);
         Rect hud = LiveHudRect(band, screen);
         int world = HudSkin.CurrentWorld;
@@ -419,7 +419,30 @@ public class ShotAtomHud : MonoBehaviour
             }
         }
         if (hudRoot == null || !hudRoot.gameObject.activeInHierarchy) return new Rect(band.left, band.top, 0f, 0f);
+        // The read-out where it is DRAWN, not where the layout maths say it should be: the board is placed by HudStyler from the
+        // scale / size it saw when it last re-placed itself, so anything the row predicted from the formulas (a stale scale after a
+        // window change, a panel whose layout settled late) would hang the row away from the board. The corners are screen px on an
+        // overlay canvas. The formula is only the fallback (a canvas that has no size yet).
+        Rect drawn = DrawnRect(hudRoot, hudCanvas);
+        if (drawn.width > 1f && drawn.height > 1f) return drawn;
         return HudStyler.HudScreenRect(band, screen, HudStyler.HudCanvasScale(hudCanvas, hudScaler, screen), hudRoot.rect.size);
+    }
+
+    static readonly Vector3[] corners = new Vector3[4];
+
+    // `rt`'s screen-px rect as drawn (quarter-pixel steps, so a float wobble never re-places the row).
+    public static Rect DrawnRect(RectTransform rt, Canvas canvas)
+    {
+        Camera cam = canvas != null && canvas.renderMode != RenderMode.ScreenSpaceOverlay ? canvas.worldCamera : null;
+        rt.GetWorldCorners(corners);
+        float x0 = float.MaxValue, y0 = float.MaxValue, x1 = float.MinValue, y1 = float.MinValue;
+        for (int i = 0; i < 4; i++)
+        {
+            Vector2 p = RectTransformUtility.WorldToScreenPoint(cam, corners[i]);
+            x0 = Mathf.Min(x0, p.x); y0 = Mathf.Min(y0, p.y); x1 = Mathf.Max(x1, p.x); y1 = Mathf.Max(y1, p.y);
+        }
+        x0 = Mathf.Round(x0 * 4f) * .25f; y0 = Mathf.Round(y0 * 4f) * .25f; x1 = Mathf.Round(x1 * 4f) * .25f; y1 = Mathf.Round(y1 * 4f) * .25f;
+        return Rect.MinMaxRect(x0, y0, x1, y1);
     }
 }
 

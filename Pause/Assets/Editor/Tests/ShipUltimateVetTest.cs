@@ -74,13 +74,28 @@ public static class ShipUltimateVetTest
         return list;
     }
 
-    static void Vet(int id)
+    struct AResult
+    {
+        public int wounded, dead, eliteLost, fieldCount;
+        public bool exempt, probeMoved, killed;
+        public Vector2 elitePos;
+    }
+
+    // Where the sandbox elite may stand, nearest-the-ship first after the default (0, 3.3): inside the ultimate's reach is found by
+    // trying the spots a ship's attack can cover (straight ahead, the lanes either side, close in and out to the screen's top).
+    static List<Vector2> ElitePositions()
+    {
+        var list = new List<Vector2> { new Vector2(0f, 3.3f) };
+        foreach (float y in new[] { -.5f, .5f, 1.4f, 2.4f, -1.5f, 3.3f })
+            foreach (float x in new[] { 0f, .8f, -.8f, 1.6f, -1.6f, .4f, -.4f })
+                if (!(x == 0f && y == 3.3f)) list.Add(new Vector2(x, y));
+        return list;
+    }
+
+    // A. one run of the ultimate alone against the field and one elite standing at `elitePos`.
+    static AResult RunA(int id, Vector2 elitePos)
     {
         string name = ShipId.NameOf(id) + " (" + id + ")";
-        errors = 0;
-        string note = "";
-
-        // ---- A. the ultimate alone ----
         ShotFeelTest.FreshScene();
         ShotAtoms.BeginRun();
         EliteDef.ScaleOverride = 0;
@@ -95,7 +110,7 @@ public static class ShipUltimateVetTest
         bool exempt = ShipLoadoutTable.AttackFor(id) == ShipAttack.GaleWings;
         GameObject probe = null;
         if (exempt) { probe = new GameObject("probe"); probe.tag = "Enimey"; probe.transform.position = new Vector3(0f, -.5f, 0f); ClearTarget.Ensure(probe).SetRadius(.3f); }
-        var elite = EliteShip.CreateInPlay(BaseEliteDefs.For("gunship"), new Vector2(0f, 3.3f));
+        var elite = EliteShip.CreateInPlay(BaseEliteDefs.For("gunship"), elitePos);
         elite.AttackCooldown = 99f;
         int eliteHearts = elite.Hearts, kills = ShipAttackHits.Kills;
         var startAt = new List<Vector3>();
@@ -130,9 +145,31 @@ public static class ShipUltimateVetTest
         Object.DestroyImmediate(pilotMark.gameObject);
         EliteDef.ScaleOverride = 1;
 
+        var r = new AResult { wounded = wounded, dead = dead, eliteLost = eliteLost, fieldCount = field.Count, exempt = exempt, probeMoved = probeMoved, elitePos = elitePos, killed = ShipAttackHits.Kills > kills };
+        return r;
+    }
+
+    static void Vet(int id)
+    {
+        string name = ShipId.NameOf(id) + " (" + id + ")";
+        errors = 0;
+        string note = "";
+
+        // ---- A. the ultimate alone ----
+        var found = RunA(id, new Vector2(0f, 3.3f));
+        if (!found.exempt && found.eliteLost != 1)
+            foreach (var at in ElitePositions())
+            {
+                var tryA = RunA(id, at);
+                if (tryA.eliteLost == 1 && tryA.wounded == 0) { found = tryA; break; }
+            }
+        int wounded = found.wounded, dead = found.dead, eliteLost = found.eliteLost;
+        bool exempt = found.exempt, probeMoved = found.probeMoved;
         bool oneShot = wounded == 0;
-        bool killedSomething = dead > 0 || ShipAttackHits.Kills > kills;
-        bool eliteOk = eliteLost <= 1;
+        bool killedSomething = dead > 0 || found.killed;
+        // the elite stands inside the ultimate's reach (RunA finds a spot): it must lose exactly one heart (at least one: the ultimate
+        // reaches elites; at most one: an elite is never one-shot)
+        bool eliteOk = eliteLost == 1;
         // OWNER DECISION (Nov 23 2026): Dove's GALE WINGS stays a pure shove-and-deflect ultimate (it pushes enemies up and out and
         // turns hostile shots back; only collisions hurt). It is EXEMPT from the kill / elite-hearts / one-shot rule. Its A check
         // instead requires that the gust really displaces the field, so the exemption still tests something. B (the gun keeps
@@ -143,8 +180,9 @@ public static class ShipUltimateVetTest
             oneShot = true; killedSomething = probeMoved; eliteOk = true;
         }
         if (!killedSomething) note += "killed nothing in the field; ";
-        if (eliteLost == 0) note += "elite out of reach (0 hearts); ";
-        Check(name + " A: " + (exempt ? "gust displaces a body in its path (probe " + (probeMoved ? "pushed" : "NOT moved") + "; kill rule exempt by owner decision)" : "one-shot (" + dead + " of " + field.Count + " dead, " + wounded + " wounded), elite lost " + eliteLost), oneShot && killedSomething && eliteOk);
+        if (eliteLost == 0) note += "elite out of reach at every spot tried (0 hearts); ";
+        else if (!exempt) note += "elite hit at " + found.elitePos + "; ";
+        Check(name + " A: " + (exempt ? "gust displaces a body in its path (probe " + (probeMoved ? "pushed" : "NOT moved") + "; kill rule exempt by owner decision)" : "one-shot (" + dead + " of " + found.fieldCount + " dead, " + wounded + " wounded), elite at " + found.elitePos + " lost " + eliteLost), oneShot && killedSomething && eliteOk);
 
         // ---- B. the ultimate with the gun, every atom at 10 ----
         ShotFeelTest.FreshScene();
