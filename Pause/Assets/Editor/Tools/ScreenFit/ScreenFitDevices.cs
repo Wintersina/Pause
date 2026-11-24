@@ -144,6 +144,13 @@ public class FitDevice
 
     public static readonly FitDevice[] Desktops =
     {
+        // the Mac build's default window (PlayerSettings 1100x800) and the same window on a Retina display
+        Desktop("desk-1100x800", 1100, 800),
+        // the same windows when macOS does report a density (Screen.dpi 144 / 220: plausible, so the phone rules apply)
+        new FitDevice { id = "mac-1100x800-dpi144", name = "Mac window 1100x800, dpi 144", w = 1100, h = 800, pxPerPt = .9f, cutoutKind = "desktop window" },
+        new FitDevice { id = "mac-2200x1600-dpi144", name = "Mac window 2200x1600, dpi 144", w = 2200, h = 1600, pxPerPt = .9f, cutoutKind = "desktop window" },
+        new FitDevice { id = "mac-2200x1600-dpi220", name = "Mac window 2200x1600, dpi 220", w = 2200, h = 1600, pxPerPt = 1.375f, cutoutKind = "desktop window" },
+        Desktop("desk-2200x1600", 2200, 1600),
         Desktop("desk-1280x720", 1280, 720),
         Desktop("desk-1440x900", 1440, 900),
         Desktop("desk-1920x1080", 1920, 1080),

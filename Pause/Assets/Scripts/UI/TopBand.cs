@@ -44,10 +44,10 @@ public static class TopBand
     // hypothetical screen.
     public static Rect[] CutoutsFor(Rect safe, Vector2 screen)
     {
-        if (screen.x != Screen.width || screen.y != Screen.height || safe != Screen.safeArea) return NoCutouts;
+        if (screen.x != ScreenInfo.Width || screen.y != ScreenInfo.Height || safe != ScreenInfo.SafeArea) return NoCutouts;
         if (!liveRead || liveSafe != safe || liveScreen != screen)
         {
-            liveCutouts = Screen.cutouts ?? NoCutouts;
+            liveCutouts = ScreenInfo.Cutouts ?? NoCutouts;
             liveSafe = safe;
             liveScreen = screen;
             liveRead = true;
