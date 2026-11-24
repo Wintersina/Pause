@@ -283,16 +283,14 @@ public static class FloatieGunTest
         int base0 = r.battery.Shots[0];
         Check("(it fires in normal play)", base0 >= 1 && r.battery.CurrentHold == FloatieBattery.Hold.None);
 
-        // the ultimate sliding out / firing: the small bullets pause, then resume
+        // the ultimate sliding out / firing: the small bullets KEEP FIRING (the gun never holds for an ultimate)
         r.battery.ResetTimers();
         for (int i = 0; i < 40; i++) r.gun.Step(1f, Dt, Dt);
         int before = r.battery.Shots[0] + r.battery.Shots[1];
         for (float t = 0f; t < 3f; t += Dt) { r.gun.Step(1f, Dt, Dt); r.battery.Step(Dt); }
-        Check("while the ultimate is out nothing is fired and the wait is kept (hold " + r.battery.CurrentHold + ")",
-              r.battery.Shots[0] + r.battery.Shots[1] == before && r.battery.CurrentHold == FloatieBattery.Hold.Ultimate);
+        Check("while the ultimate is out the floaties keep firing (" + (r.battery.Shots[0] + r.battery.Shots[1] - before) + " shots, hold " + r.battery.CurrentHold + ")",
+              r.battery.Shots[0] + r.battery.Shots[1] > before && r.battery.CurrentHold == FloatieBattery.Hold.None);
         for (int i = 0; i < 100; i++) r.gun.Step(0f, Dt, Dt);
-        Steps(r, 2.6f);
-        Check("... it resumes when the ultimate is back", r.battery.Shots[0] + r.battery.Shots[1] > before && r.battery.CurrentHold == FloatieBattery.Hold.None);
 
         // a paused world: Step(0) and the pause rule
         r.battery.ResetTimers();
@@ -521,7 +519,7 @@ public static class FloatieGunTest
         bool ok = true, none = true;
         for (int ship = 1; ship <= 16; ship++)
         {
-            if (!ShipWeaponUpgrades.Has(ship)) continue;
+            if (!ShipWeaponUpgrades.Has(ship) || PremiumShips.IsPremium(ship)) continue;   // (Paragon's drones: ShotFeelTest)
             string two = ShipWeaponUpgrades.StepText(ship, 2), four = ShipWeaponUpgrades.StepText(ship, 4);
             ok &= two.Contains("+1 FLOATIE") && two.StartsWith(ShipWeaponUpgrades.Step(ship, 2).label) &&
                   four.Contains("+1 SEEKER FLOATIE") && four.Contains("-25%") && four.StartsWith(ShipWeaponUpgrades.Step(ship, 4).label);

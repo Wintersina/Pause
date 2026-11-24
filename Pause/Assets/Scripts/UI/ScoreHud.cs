@@ -696,26 +696,63 @@ public class ScoreHud : MonoBehaviour
     // ShotAtoms.UpgradeSeconds, in the popups' pool, pop and fade. One slot: a second catch while it shows replaces it in place.
     int atomSlot = -1;
     string atomText;
-    public Text ShowAtomUpgrade(string title, string hint, Color colour, Vector2 screenAnchor)
+
+    // Pickups that come while a popup is still up wait here (a short queue, oldest first) and play as the one before leaves; the one
+    // showing is cut short (to AtomQueueMinSeconds) so a run of coins reads as a quick stack, and none is lost (past the queue's
+    // size the oldest waiting one is dropped).
+    public const int AtomQueueSize = 4;
+    public const float AtomQueueMinSeconds = .7f;
+    struct AtomPopup { public string title, hint, level; public Color colour; public Vector2 anchor; }
+    readonly AtomPopup[] atomQueue = new AtomPopup[AtomQueueSize];
+    int atomQueued;
+    public int AtomQueued => atomQueued;
+
+    public Text ShowAtomUpgrade(string title, string hint, Color colour, Vector2 screenAnchor, string levelLine = null)
     {
         if (canvasRect == null || string.IsNullOrEmpty(title)) return null;
         if (popups == null) BuildPopups();
-        int index;
-        if (AtomUpgradeShowing) index = atomSlot;
-        else
+        if (AtomUpgradeShowing)
         {
-            index = nextPopup;
-            nextPopup = (nextPopup + 1) % popups.Length;
+            if (atomQueued == AtomQueueSize)
+            {
+                for (int i = 1; i < AtomQueueSize; i++) atomQueue[i - 1] = atomQueue[i];
+                atomQueued--;
+            }
+            atomQueue[atomQueued++] = new AtomPopup { title = title, hint = hint, level = levelLine, colour = colour, anchor = screenAnchor };
+            var cur = popups[atomSlot];
+            cur.seconds = Mathf.Min(cur.seconds, Mathf.Max(cur.age + .25f, AtomQueueMinSeconds));
+            popups[atomSlot] = cur;
+            return popups[atomSlot].text;
         }
+        return PlayAtomUpgrade(title, hint, colour, screenAnchor, levelLine);
+    }
+
+    // A popup just ended: the next waiting one takes the slot.
+    void PlayNextAtomUpgrade()
+    {
+        if (atomQueued == 0) return;
+        var n = atomQueue[0];
+        for (int i = 1; i < AtomQueueSize; i++) atomQueue[i - 1] = atomQueue[i];
+        atomQueued--;
+        PlayAtomUpgrade(n.title, n.hint, n.colour, n.anchor, n.level);
+    }
+
+    Text PlayAtomUpgrade(string title, string hint, Color colour, Vector2 screenAnchor, string levelLine)
+    {
+        int index = nextPopup;
+        nextPopup = (nextPopup + 1) % popups.Length;
         atomSlot = index;
         var p = popups[index];
         if (p.glow != null && p.glow.enabled) p.glow.enabled = false;
         int size = PopupSize(ShotAtoms.UpgradeTitleSize);
         int hintSize = Mathf.Max(12, Mathf.RoundToInt(size * .62f));
+        int bigSize = Mathf.RoundToInt(size * 1.9f);
         p.text.supportRichText = true;
-        p.text.fontSize = size;
-        p.text.text = string.IsNullOrEmpty(hint) ? title
-            : title + "\n<size=" + hintSize + "><color=#" + ColorUtility.ToHtmlStringRGB(AkiraPalette.Bone) + ">" + hint + "</color></size>";
+        p.text.fontSize = Mathf.RoundToInt(size * .78f);   // the title line is long ("TWIN SHOT -> RIGHT OUTER DRONE")
+        string body = title;
+        if (!string.IsNullOrEmpty(levelLine)) body += "\n<size=" + bigSize + ">" + levelLine + "</size>";
+        if (!string.IsNullOrEmpty(hint)) body += "\n<size=" + hintSize + "><color=#" + ColorUtility.ToHtmlStringRGB(AkiraPalette.Bone) + ">" + hint + "</color></size>";
+        p.text.text = body;
         atomText = p.text.text;
         p.text.color = colour;
         p.seconds = ShotAtoms.UpgradeSeconds;
@@ -729,7 +766,7 @@ public class ScoreHud : MonoBehaviour
             Camera uiCam = canvas != null && canvas.renderMode != RenderMode.ScreenSpaceOverlay ? canvas.worldCamera : null;
             if (!RectTransformUtility.ScreenPointToLocalPointInRectangle(canvasRect, screenAnchor, uiCam, out at)) at = Vector2.zero;
         }
-        at.y -= (size + hintSize) * .6f;   // the anchor is the text block's top; the pivot is its middle
+        at.y -= (size + bigSize + hintSize) * .6f;   // the anchor is the text block's top; the pivot is its middle
         p.from = KeepInSafeArea(p.text, at, 0f);
         p.age = 0f;
         p.text.gameObject.SetActive(true);
@@ -996,10 +1033,12 @@ public class ScoreHud : MonoBehaviour
     public void StepPopups(float dt)
     {
         if (popups == null) return;
+        if (dt < 0f) atomQueued = 0;
+        int fresh = -1;   // a queued popup that took over a slot this step: it starts at age 0, the step that ended its predecessor is not its own
         for (int i = 0; i < popups.Length; i++)
         {
             var p = popups[i];
-            if (p.age < 0f) continue;
+            if (p.age < 0f || i == fresh) continue;
             if (dt < 0f) p.age = p.seconds;
             else p.age += dt;
             if (p.age >= p.seconds)
@@ -1008,6 +1047,7 @@ public class ScoreHud : MonoBehaviour
                 if (p.glow != null && p.glow.enabled) p.glow.enabled = false;
                 p.age = -1f;
                 popups[i] = p;
+                if (i == atomSlot) { PlayNextAtomUpgrade(); fresh = atomSlot; }
                 continue;
             }
             popups[i] = p;

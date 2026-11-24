@@ -307,6 +307,8 @@ public static class AllTests
         ("ShipSignaturesG3Test", ShipSignaturesG3Test.Execute),
         ("HomingTargetTest", HomingTargetTest.Execute),
         ("FloatieGunTest", FloatieGunTest.Execute),
+        ("ShotFeelTest", ShotFeelTest.Execute),
+        ("ShipUltimateVetTest", ShipUltimateVetTest.Execute),
         ("ToughEnemiesTest", ToughEnemiesTest.Execute),
         ("ShotAtomsTest", ShotAtomsTest.Execute),
         ("PowerCreepTest", PowerCreepTest.Execute),

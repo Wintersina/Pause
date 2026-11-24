@@ -11,8 +11,13 @@ using UnityEngine;
 //   ARC       a hit zaps a spark to the nearest other enemies in range (1 .. 6 jumps, 2.0 .. 4.0 range, 50% .. 85% damage)
 //   RAPID     the gun fires +20% .. +160% faster (never under ShotAtomTuning.MinCooldown between shots)
 //
-// Each catch adds a level (max 10; PowerCreep scales the enemy spawns with the sum of the levels); a catch past the max pays star dust instead. They drop from bosses (one always, a second half the time),
-// elites (the first of a run always, later ones 80%) and, rarely, ordinary kills (1.5%, at most one per 20 s), one random atom that is not maxed yet (every atom can drop in every world and reach the top level in any of them).
+// PER DRONE (owner decision, 2026-11-23): the ship flies with 1 .. 6 drones (FloatieTuning.CountAt) and a caught coin upgrades ONE drone,
+// picked at random among the drones that are not maxed for that atom. Each drone keeps its own level (max 10) of TWIN / PIERCE / SPLIT /
+// RICOCHET / ARC and its own firing style (straight / random left-right / aims then fires straight: nothing homes). RAPID is the exception:
+// one shared level that speeds up EVERY drone. Past the max (the atom is maxed on EVERY drone) a catch pays star dust instead.
+// PowerCreep scales the enemy spawns with PowerLevel = the per-drone levels summed and divided by the drone count, plus Rapid, so six
+// drones are not harder to fill than three. Coins drop from bosses (two always, a third half the time), elites (every one) and ordinary
+// kills (3%, at most one per 12 s): one random atom that is not maxed yet (every atom can drop in every world).
 // All of it is state of the run: BeginRun (score.Awake) wipes it.
 //
 // EVERY number lives in ShotAtomTuning.
@@ -21,14 +26,17 @@ public enum ShotAtom { Twin = 0, Pierce = 1, Split = 2, Ricochet = 3, Arc = 4, R
 public static class ShotAtomTuning
 {
     public const int Count = 6;
+    public const int PerDroneAtoms = 5;           // Twin .. Arc are per drone; Rapid (index 5) is one shared level
+    public const int MaxDrones = FloatieTuning.MaxFloaties;
     public const int MaxLevel = 10;
 
     // ---- drops ----
-    public const float EliteDropChance = .8f;     // a killed elite (was .5)
+    public const float EliteDropChance = 1f;      // a killed elite: every one drops (there are up to 6 drones x 5 atoms to fill)
     public const float BossDropChance = 1f;       // a destroyed boss: the first drop
-    public const float BossSecondDropChance = .5f; // ...and a second one this often
-    public const float EnemyDropChance = .015f;   // an ordinary enemy kill (not a hazard, elite or boss)
-    public const float EnemyDropCooldown = 20f;   // s: at most one drop from ordinary enemies per this (the atom spacing still applies)
+    public const float BossSecondDropChance = 1f;  // ...a second one always
+    public const float BossThirdDropChance = .5f;  // ...and a third this often
+    public const float EnemyDropChance = .03f;    // an ordinary enemy kill (not a hazard, elite or boss)
+    public const float EnemyDropCooldown = 12f;   // s: at most one drop from ordinary enemies per this (the atom spacing still applies)
     // ATOM RUSH booster (one run): every chance x RushMultiplier (capped at 1), the ordinary-enemy cooldown x RushCooldownScale.
     public const float RushMultiplier = 3f;       // +200%
     public const float RushCooldownScale = .5f;
@@ -114,7 +122,10 @@ public static class ShotAtomTuning
 
 public static class ShotAtoms
 {
-    static readonly int[] levels = new int[ShotAtomTuning.Count];
+    static readonly int[] droneLevels = new int[ShotAtomTuning.MaxDrones * ShotAtomTuning.PerDroneAtoms];
+    static int DL(int drone, int atom) { return drone * ShotAtomTuning.PerDroneAtoms + atom; }
+    static int rapidLevel;
+    static int droneCount = 1;
     static readonly List<ShotAtom> order = new List<ShotAtom>(ShotAtomTuning.Count);
 
     // Bumped on every change (the HUD row redraws on it).
@@ -124,7 +135,9 @@ public static class ShotAtoms
 
     public static void BeginRun()
     {
-        for (int i = 0; i < levels.Length; i++) levels[i] = 0;
+        for (int d = 0; d < ShotAtomTuning.MaxDrones; d++)
+            for (int a = 0; a < ShotAtomTuning.PerDroneAtoms; a++) droneLevels[DL(d, a)] = 0;
+        rapidLevel = 0;
         order.Clear();
         Catches = 0;
         MaxedCatches = 0;
@@ -133,22 +146,82 @@ public static class ShotAtoms
         Version++;
     }
 
-    public static int Level(ShotAtom atom) { return levels[(int)atom]; }
+    // How many drones this run's ship flies with (FloatieBattery sets it): a coin is dealt among them.
+    public static int DroneCount { get { return droneCount; } }
+    public static void SetDroneCount(int n)
+    {
+        n = Mathf.Clamp(n, 1, ShotAtomTuning.MaxDrones);
+        if (n == droneCount) return;
+        droneCount = n;
+        Version++;
+    }
+
+    public static bool IsShared(ShotAtom atom) { return atom == ShotAtom.Rapid; }
+
+    // Drone `drone`'s level of a per-drone atom (Rapid: the shared level, whatever the drone).
+    public static int Level(int drone, ShotAtom atom)
+    {
+        if (IsShared(atom)) return rapidLevel;
+        if (drone < 0 || drone >= ShotAtomTuning.MaxDrones) return 0;
+        return droneLevels[DL(drone, (int)atom)];
+    }
+
+    // The atom's level overall: Rapid's shared level, or the highest any drone has (the old single-gun reading).
+    public static int Level(ShotAtom atom)
+    {
+        if (IsShared(atom)) return rapidLevel;
+        int best = 0;
+        for (int d = 0; d < droneCount; d++) best = Mathf.Max(best, droneLevels[DL(d, (int)atom)]);
+        return best;
+    }
+
     public static int OrderCount { get { return order.Count; } }
     public static ShotAtom OrderAt(int i) { return order[i]; }
-    public static void SetLevel(ShotAtom atom, int level)   // tests and previews
+
+    // Tests and previews: every drone to `level` (Rapid: the shared level).
+    public static void SetLevel(ShotAtom atom, int level)
     {
         level = Mathf.Clamp(level, 0, ShotAtomTuning.MaxLevel);
-        levels[(int)atom] = level;
-        if (level > 0 && !order.Contains(atom)) order.Add(atom);
-        if (level == 0) order.Remove(atom);
+        if (IsShared(atom)) rapidLevel = level;
+        else for (int d = 0; d < ShotAtomTuning.MaxDrones; d++) droneLevels[DL(d, (int)atom)] = level;
+        Touch(atom);
+    }
+
+    // Tests and previews: one drone's level.
+    public static void SetLevel(int drone, ShotAtom atom, int level)
+    {
+        level = Mathf.Clamp(level, 0, ShotAtomTuning.MaxLevel);
+        if (IsShared(atom)) rapidLevel = level;
+        else if (drone >= 0 && drone < ShotAtomTuning.MaxDrones) droneLevels[DL(drone, (int)atom)] = level;
+        Touch(atom);
+    }
+
+    static void Touch(ShotAtom atom)
+    {
+        bool any = rapidLevel > 0 && IsShared(atom) || Level(atom) > 0;
+        if (any && !order.Contains(atom)) order.Add(atom);
+        if (!any) order.Remove(atom);
         Version++;
+    }
+
+    // Is drone `drone` below the cap for this atom (Rapid: the shared level below the cap)?
+    public static bool DroneCanTake(int drone, ShotAtom atom)
+    {
+        return Level(drone, atom) < ShotAtomTuning.MaxLevel;
+    }
+
+    public static int EligibleDrones(ShotAtom atom)
+    {
+        if (IsShared(atom)) return rapidLevel < ShotAtomTuning.MaxLevel ? droneCount : 0;
+        int n = 0;
+        for (int d = 0; d < droneCount; d++) if (droneLevels[DL(d, (int)atom)] < ShotAtomTuning.MaxLevel) n++;
+        return n;
     }
 
     // ---- drops: every atom can drop in every world, until it is at the top level ----
     public static bool CanDrop(ShotAtom atom)
     {
-        return Level(atom) < ShotAtomTuning.MaxLevel;
+        return EligibleDrones(atom) > 0;   // not maxed on EVERY drone (Rapid: its one shared level)
     }
 
     public static int EligibleCount()
@@ -177,18 +250,37 @@ public static class ShotAtoms
     public struct Catch
     {
         public ShotAtom atom;
+        public int drone;        // the drone that got the level (-1: Rapid, which every drone shares; also when maxed)
         public int level;        // the level after the catch (the cap when it was already there)
-        public bool maxed;       // already at the cap: the catch pays dust, no level
+        public bool maxed;       // maxed on every drone: the catch pays dust, no level
     }
 
-    // A coin was caught. Already maxed (a second coin of the same atom was in the air when the first was caught): the catch
-    // pays star dust, no level.
-    public static Catch Collect(ShotAtom atom)
+    // A coin was caught: ONE drone, picked at random among those not maxed for the atom (`roll01` 0..1 picks which; -1 rolls it), goes up a
+    // level. Rapid levels the one shared value. Maxed on every drone (a second coin of the atom was in the air when the last level
+    // landed): the catch pays star dust, no level.
+    public static Catch Collect(ShotAtom atom, float roll01 = -1f)
     {
         Catches++;
-        var c = new Catch { atom = atom, level = levels[(int)atom] };
-        if (c.level >= ShotAtomTuning.MaxLevel) { c.maxed = true; MaxedCatches++; Version++; return c; }
-        c.level = ++levels[(int)atom];
+        var c = new Catch { atom = atom, drone = -1, level = Level(atom) };
+        int eligible = EligibleDrones(atom);
+        if (eligible == 0) { c.maxed = true; MaxedCatches++; Version++; return c; }
+        if (IsShared(atom))
+        {
+            c.level = ++rapidLevel;
+        }
+        else
+        {
+            if (roll01 < 0f) roll01 = Random.value;
+            int pick = Mathf.Min(eligible - 1, Mathf.FloorToInt(Mathf.Clamp01(roll01) * eligible));
+            for (int d = 0; d < droneCount; d++)
+            {
+                if (droneLevels[DL(d, (int)atom)] >= ShotAtomTuning.MaxLevel) continue;
+                if (pick-- != 0) continue;
+                c.drone = d;
+                c.level = ++droneLevels[DL(d, (int)atom)];
+                break;
+            }
+        }
         if (!order.Contains(atom)) order.Add(atom);
         Version++;
         return c;
@@ -198,15 +290,17 @@ public static class ShotAtoms
 
     public static readonly string[] Roman = { "", "I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X" };
 
-    // PowerLevel: the sum of every atom's level (0 .. Count * MaxLevel = 60). PowerCreep turns it into spawn pressure.
+    // PowerLevel: Rapid's shared level plus the per-drone levels summed and divided by the drone count (rounded), so it spans 0 .. MaxPower (60)
+    // whether the ship flies one drone or six. PowerCreep turns it into spawn pressure.
     public const int MaxPower = ShotAtomTuning.Count * ShotAtomTuning.MaxLevel;
     public static int PowerLevel
     {
         get
         {
             int sum = 0;
-            for (int i = 0; i < levels.Length; i++) sum += levels[i];
-            return sum;
+            for (int d = 0; d < droneCount; d++)
+                for (int a = 0; a < ShotAtomTuning.PerDroneAtoms; a++) sum += droneLevels[DL(d, a)];
+            return rapidLevel + Mathf.RoundToInt(sum / (float)droneCount);
         }
     }
 
@@ -222,11 +316,17 @@ public static class ShotAtoms
     public const float UpgradeSeconds = 1.8f;
     public const int UpgradeTitleSize = 40;
 
-    // "TWIN SHOT  LV 2", "RAPID FIRE  LV 3"
-    public static string UpgradeTitle(ShotAtom atom, int level)
+    // "TWIN SHOT -> LEFT DRONE", "RAPID FIRE  ALL DRONES" (the big level line is UpgradeLevel; the hint is UpgradeHint)
+    public static string UpgradeTitle(ShotAtom atom, int drone, string droneName)
     {
-        level = Mathf.Clamp(level, 1, ShotAtomTuning.MaxLevel);
-        return (atom == ShotAtom.Rapid ? "RAPID FIRE" : Name(atom) + " SHOT") + "  LV " + level;
+        if (atom == ShotAtom.Rapid) return "RAPID FIRE  ALL DRONES";
+        return Name(atom) + " SHOT -> " + (string.IsNullOrEmpty(droneName) ? "DRONE" : droneName);
+    }
+
+    // The big line: "LV 4"
+    public static string UpgradeLevel(int level)
+    {
+        return "LV " + Mathf.Clamp(level, 1, ShotAtomTuning.MaxLevel);
     }
 
     // "2 shots at once", "+20% fire rate": what this level does; the top level leads with "MAXED" (the title stays short: LV 10)
@@ -264,7 +364,7 @@ public static class ShotAtoms
         return Name(atom) + " MAXED  +" + ShotAtomTuning.MaxedDust.ToString("0.##") + " DUST";
     }
 
-    public static string MaxedHint() { return "already at level " + ShotAtomTuning.MaxLevel; }
+    public static string MaxedHint() { return "maxed on every drone"; }
 
     public static Color Colour(ShotAtom atom)
     {
@@ -336,7 +436,7 @@ public static class ShotAtomDrops
     public static float EnemyChance { get { return Rushed(ShotAtomTuning.EnemyDropChance); } }
     public static float EnemyCooldown { get { return Boosters.RunRushActive ? ShotAtomTuning.EnemyDropCooldown * ShotAtomTuning.RushCooldownScale : ShotAtomTuning.EnemyDropCooldown; } }
 
-    // A killed elite: a coin 80% of the time, the run's first always (`roll` 0..1: below the chance drops; -1 rolls it).
+    // A killed elite: a coin every time (EliteDropChance; Atom Rush keeps it certain) (`roll` 0..1: below the chance drops; -1 rolls it).
     public static bool OnEliteKilled(Vector3 at, float roll = -1f)
     {
         if (!Counts()) return false;
@@ -348,20 +448,18 @@ public static class ShotAtomDrops
         return Offer(at);
     }
 
-    // A destroyed boss: always one, and a second half the time (`roll2`: -1 rolls it).
-    public static bool OnBossDestroyed(Vector3 at, float roll = -1f, float roll2 = -1f)
+    // A destroyed boss: two coins always, and a third half the time (`roll`, `roll2`, `roll3`: -1 rolls it).
+    public static bool OnBossDestroyed(Vector3 at, float roll = -1f, float roll2 = -1f, float roll3 = -1f)
     {
         if (!Counts()) return false;
         if (roll < 0f) roll = Random.value;
         if (roll2 < 0f) roll2 = Random.value;
+        if (roll3 < 0f) roll3 = Random.value;
         if (!Wins(roll, ShotAtomTuning.BossDropChance)) return false;
         Bosses++;
         bool ok = Offer(at);
-        if (Wins(roll2, Rushed(ShotAtomTuning.BossSecondDropChance)))
-        {
-            Bosses++;
-            Offer(at);
-        }
+        if (Wins(roll2, ShotAtomTuning.BossSecondDropChance)) { Bosses++; Offer(at); }
+        if (Wins(roll3, Rushed(ShotAtomTuning.BossThirdDropChance))) { Bosses++; Offer(at); }
         return ok;
     }
 
