@@ -177,7 +177,7 @@ public class Planetfall : MonoBehaviour
 
     // renderers
     Transform stage, group;
-    SpriteRenderer planet, rim, limb, reticle, dark, deck, streakL, streakR, tint, vignette, flash, shroud, shroudGlow, burst;
+    SpriteRenderer planet, planetNext, rim, limb, reticle, dark, deck, streakL, streakR, tint, vignette, flash, shroud, shroudGlow, burst;
     Material planetMat, limbMat, darkMat, deckMat, streakLMat, streakRMat, glowMat;
     // The hull at the commit: its width and its middle's offset from the
     // ship's position, world units (the shroud is fitted to it).
@@ -259,9 +259,12 @@ public class Planetfall : MonoBehaviour
     static Planetfall Create(PlanetfallDef def, bool asEntry)
     {
         if (def == null) return null;
-        var art = PlanetfallArt.Load(def);
+        // a landfall draws the world's NEW rotating planet, never the old static art (which is not even loaded)
+        bool turns = def.world >= 1 && def.world < PlanetFlipbooks.PlanetfallRotates.Length && PlanetFlipbooks.PlanetfallRotates[def.world];
+        var art = PlanetfallArt.Load(def, turns);
         var shader = WorldArtPreload.Load<Shader>(ShaderPath);
-        if (!art.Complete || shader == null)
+        if (art.Complete && turns) art.AttachRotation();   // the planet turns (the same art the Space backdrop showed on its way in)
+        if (!art.Complete || shader == null || (turns && !art.Rotating))
         {
             Debug.LogWarning("[Planetfall] art or shader missing for world " + def.world + "; opening a portal instead");
             art.Release();
@@ -298,7 +301,8 @@ public class Planetfall : MonoBehaviour
         group.SetParent(stage, false);
 
         planetMat = Layer(shader, false);
-        planet = Part("Planet", group, art.Planet, PlanetOrder, planetMat);
+        planet = Part("Planet", group, art.Rotating ? art.Rotation[0] : art.Planet, PlanetOrder, planetMat);
+        if (art.Rotating) planetNext = Part("PlanetNext", planet.transform, art.Rotation[1], PlanetOrder + 1, planetMat);
         rim = Part("Rim", group, art.Ring, RimOrder, null);
         limbMat = Layer(shader, false);
         limb = Part("Limb", group, art.Limb, LimbOrder, limbMat);
@@ -432,7 +436,7 @@ public class Planetfall : MonoBehaviour
         float rate = 1.1f * Mathf.Min(4f, 1f + .25f * PortalPressure.Level);
         float beat = .5f + .5f * Mathf.Sin(clock * rate * 2f * Mathf.PI);
         float appear = Mathf.Clamp01(clock / .6f);
-        Show(planet, appear);
+        ShowPlanet(appear, clock);
         Color cue = def.cue;
         cue.a = appear * (.45f + .35f * beat);
         rim.color = cue;
@@ -572,7 +576,7 @@ public class Planetfall : MonoBehaviour
             Vector3 pivot = new Vector3(centre.x, centre.y + DivePivotShare * halfH, 0f);
             SetGroup(pivot + (apexView - pivot) * s, s);
         }
-        Show(planet, PlanetfallTimeline.PlanetAlpha(tl));
+        ShowPlanet(PlanetfallTimeline.PlanetAlpha(tl), clock + tl);
         {
             float k = PlanetfallTimeline.Ramp(tl, PlanetfallTimeline.LimbInFrom - .25f, PlanetfallTimeline.LimbInFrom + .1f);
             float ra = ArcRadius();
@@ -584,7 +588,7 @@ public class Planetfall : MonoBehaviour
         rc.a = Mathf.Max(.8f * (1f - PlanetfallTimeline.Ramp(tl, 0f, .5f)), PlanetfallTimeline.RimGlow(tl));
         rim.color = rc;
         rim.enabled = rc.a > .002f;
-        Show(limb, PlanetfallTimeline.LimbAlpha(tl));
+        Show(limb, PlanetfallTimeline.LimbAlpha(tl), art.Rotating ? def.limbTint : Color.white);
 
         // the reticle snaps shut on the ship
         float lockOn = 1f - PlanetfallTimeline.Ramp(tl, 0f, .35f);
@@ -678,6 +682,19 @@ public class Planetfall : MonoBehaviour
         return Mathf.Max(LimbWidthShare, need);
     }
 
+    // The planet at `alpha`; a rotating planet shows its turn at `seconds` (this frame, the next faded over it).
+    void ShowPlanet(float alpha, float seconds)
+    {
+        Show(planet, alpha);
+        if (planetNext == null) return;
+        int next; float blend;
+        int i = PlanetFlipbooks.FrameAt(seconds, out next, out blend);
+        planet.sprite = art.Rotation[i];
+        planetNext.sprite = art.Rotation[next];
+        planetNext.enabled = planet.enabled;
+        planetNext.color = new Color(1f, 1f, 1f, alpha * blend);
+    }
+
     // The planet's horizon radius at the horizon view, world units.
     float ArcRadius() { return ArcRadius(def, art, halfW, halfH); }
 
@@ -700,7 +717,7 @@ public class Planetfall : MonoBehaviour
         group.position = apex;
         group.localScale = Vector3.one * scale;
         planet.transform.localPosition = new Vector3(0f, -ra, 0f);
-        planet.transform.localScale = Vector3.one * (ra / def.planetDiscPx * art.PlanetTex.width);
+        planet.transform.localScale = Vector3.one * art.PlanetScale(ra);
         rim.transform.localPosition = new Vector3(0f, -ra, 0f);
         float rimW = 2f * ra * 1.015f / PlanetfallArt.RingRadius;
         rim.transform.localScale = Vector3.one * rimW;
@@ -708,10 +725,12 @@ public class Planetfall : MonoBehaviour
         limb.transform.localScale = Vector3.one * limbW;
     }
 
-    internal static void Show(SpriteRenderer sr, float alpha)
+    internal static void Show(SpriteRenderer sr, float alpha) { Show(sr, alpha, Color.white); }
+
+    internal static void Show(SpriteRenderer sr, float alpha, Color tint)
     {
         sr.enabled = alpha > .002f;
-        if (sr.enabled) sr.color = new Color(1f, 1f, 1f, alpha);
+        if (sr.enabled) sr.color = new Color(tint.r, tint.g, tint.b, alpha);
     }
 
     internal static void Quad(SpriteRenderer sr, Vector3 centre, float w, float h, Color c)

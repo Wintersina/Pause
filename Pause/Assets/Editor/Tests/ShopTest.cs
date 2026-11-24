@@ -740,29 +740,27 @@ public static class ShopTest
               planet.Renderer.sortingOrder < lowest && planet.Renderer.sortingOrder > BackdropCatalog.BaseOrder + 100);
         Check("the planet is dimmed and large", planet.Renderer.color.r < 1f && planet.Diameter > 1f);
 
-        // it shows the DESTINATION of the start-world picker: each world its own planet, Space an asteroid, a crossfade on change
-        string[] expected = { null, "giant_04", "giant_03", "giant_02", "giant_01", "giant_00", "giant_05" };   // DockPlanet.WorldCell
-        var seen = new System.Collections.Generic.HashSet<Sprite>();
+        // it shows the DESTINATION of the start-world picker: each world its own rotating planet, Space the sun with
+        // its asteroids, a warp on change (DockPlanetTest covers the warp, the memory cap and the placement)
+        string[] stems = { null, "frost", "verdant", "ember", "tide", "storm", "desert" };
+        var seen = new System.Collections.Generic.HashSet<string>();
         bool each = true;
-        for (int w = 1; w < expected.Length; w++)
+        for (int w = 1; w < stems.Length; w++)
         {
             planet.Show(w, false);
-            each &= planet.World == w && !planet.IsAsteroid && planet.ShownSprite != null && planet.ShownSprite.name == expected[w] && planet.Renderer.sprite == planet.ShownSprite;
-            seen.Add(planet.ShownSprite);
+            each &= planet.World == w && !planet.IsSpace && planet.CellName != null && planet.CellName.StartsWith(stems[w] + "_rot") && planet.Renderer.sprite != null;
+            seen.Add(stems[w]);
         }
-        Check("each of the six worlds shows its own planet cell (" + seen.Count + " distinct)", each && seen.Count == 6);
+        Check("each of the six worlds shows its own rotating planet (" + seen.Count + " distinct)", each && seen.Count == 6);
         planet.Show(0, false);
-        Check("Space (no landfall) shows an asteroid, a Space hazard rock", planet.World == 0 && planet.IsAsteroid && planet.ShownSprite != null && planet.ShownSprite.name == DockPlanet.RockName);
+        Check("Space (no landfall) shows the sun with its asteroids", planet.World == 0 && planet.IsSpace && planet.Renderer.sprite != null && planet.Front.ShownRocks >= 4);
         planet.Show(3, false);
-        Sprite before = planet.ShownSprite;
         planet.Show(4);
-        bool started = planet.Fading && planet.FrontAlpha < .05f && planet.ShownSprite != before && planet.World == 4;
-        planet.Tick(DockPlanet.FadeSeconds * .5f);
-        bool mid = planet.Fading && planet.FrontAlpha > .3f && planet.FrontAlpha < .7f;
-        planet.Tick(DockPlanet.FadeSeconds);
-        Check("a change of selection swaps the planet with a 0.25 s crossfade", started && mid && !planet.Fading && Mathf.Approximately(planet.FrontAlpha, 1f));
+        Check("a change of selection starts a warp to the new planet", planet.Warping && planet.World == 4 && planet.OutWorld == 3);
+        for (int i = 0; i < 120 && planet.Warping; i++) planet.Tick(1f / 60f);
+        Check("... which lands on it, at rest", !planet.Warping && planet.World == 4 && Mathf.Approximately(planet.FrontAlpha, 1f) && planet.Renderer.sortingOrder == DockPlanet.Order);
         planet.Show(0);
-        planet.Tick(1f);
-        Check("... and from a planet to Space the rock fades in the same spot", planet.IsAsteroid && planet.Renderer.sortingOrder == DockPlanet.Order);
+        for (int i = 0; i < 120 && planet.Warping; i++) planet.Tick(1f / 60f);
+        Check("... and from a planet to Space the sun warps in the same spot", !planet.Warping && planet.IsSpace && planet.Renderer.sortingOrder == DockPlanet.Order);
     }
 }

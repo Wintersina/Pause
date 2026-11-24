@@ -239,14 +239,14 @@ public static class PerfPassTest
         finally { set.Destroy(); Object.DestroyImmediate(root); WorldArtPreload.Clear(); }
         Check("clearing lets go of the hold", WorldArtPreload.HeldCount == 0 && WorldArtPreload.Key == null);
 
-        // planetfall: the seven textures are held and read from the cache
+        // planetfall: the six textures (the old planet art is no longer queued) are held and read from the cache
         var def = PlanetfallCatalog.For(0, 1, false);
         WorldArtPreload.ResetCounters();
         WorldArtPreload.Begin("pf-test", () => WorldArtPreload.QueuePlanetfall(def));
         WorldArtPreload.ResetCounters();
-        var art = PlanetfallArt.Load(def);
-        Check("the planetfall art's seven textures come from the cache (" + WorldArtPreload.Hits + " hits, " + WorldArtPreload.SyncLoads + " sync)",
-              art.Complete && WorldArtPreload.Hits == 7 && WorldArtPreload.SyncLoads == 0);
+        var art = PlanetfallArt.Load(def, true);
+        Check("the planetfall art's six textures come from the cache (" + WorldArtPreload.Hits + " hits, " + WorldArtPreload.SyncLoads + " sync)",
+              art.Complete && WorldArtPreload.Hits == 6 && WorldArtPreload.SyncLoads == 0);
         art.Release();
         WorldArtPreload.Clear();
     }

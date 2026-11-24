@@ -915,6 +915,21 @@ public static class ScreenFitScreens
             var disc = new Rect(pc.x - planet.Diameter * .5f, pc.y - planet.Diameter * .5f, planet.Diameter, planet.Diameter);
             if (!disc.Overlaps(viewport)) rig.Fail("DOCKLOT", "planet", "is not visible behind the lot");
             if (disc.center.x > viewport.xMax + .001f || disc.center.x < viewport.xMin - .001f) rig.Fail("DOCKLOT", "planet", "its centre is outside the safe width");
+            // the placement tunables (DockPlanet.Fit): the WHOLE sphere on screen, about 60% of the pane's width, its centre
+            // about 25% of that width right of the middle (the height of the lot's space is the only thing that may shrink it)
+            Vector2 wantCentre; float wantD;
+            var pane = dock.PlanetPane;
+            DockPlanet.Fit(pane, dock.PlanetSpaceBottom, dock.PlanetSpaceTop, out wantCentre, out wantD);
+            if (Mathf.Abs(planet.Diameter - wantD) > .01f) rig.Fail("DOCKLOT", "planet", "size " + planet.Diameter.ToString("F2") + " is not the tunables' " + wantD.ToString("F2"));
+            if (((Vector2)pc - wantCentre).magnitude > .01f) rig.Fail("DOCKLOT", "planet", "centre " + pc + " is not the tunables' " + wantCentre);
+            // the sphere may crop at the RIGHT edge only (about 5% of the width at the owner's .25 offset): whole top, bottom, left
+            if (disc.xMin < pane.xMin - .01f || disc.xMax > pane.xMax + .10f * pane.width || disc.yMin < dock.PlanetSpaceBottom - .01f || disc.yMax > dock.PlanetSpaceTop + .01f)
+                rig.Fail("DOCKLOT", "planet", "the sphere is not whole on the left / top / bottom (or crops more than the right-edge allowance)");
+            float share = planet.Diameter / pane.width;
+            bool heightLimited = wantD < pane.width * DockPlanet.DiameterShare - .01f;
+            if (!heightLimited && (share < .55f || share > .65f)) rig.Fail("DOCKLOT", "planet", "diameter is " + (share * 100f).ToString("F0") + "% of the width (want 55-65%)");
+            float offset = (disc.center.x - pane.center.x) / pane.width;
+            if (offset < -.001f || offset > DockPlanet.OffsetShare + .001f) rig.Fail("DOCKLOT", "planet", "centre is " + (offset * 100f).ToString("F0") + "% of the width off the middle (want about 25%)");
         }
 
         // the viewport sits between the header and the footer buttons' tap areas

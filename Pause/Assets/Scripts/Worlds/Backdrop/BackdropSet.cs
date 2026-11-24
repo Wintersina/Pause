@@ -71,6 +71,8 @@ public class BackdropSet
         // The codex backdrop viewer: the chosen variant WITH its atlases and director (set pieces,
         // ambient loops, weather, lightning under the director's own safety caps), as in a run.
         public bool withDirector;
+        // The Space Dock's Space: no backdrop sun (the dock draws its own, in front of the planet slot).
+        public bool noSun;
     }
 
     public BackdropSet(string world, Transform parent, float halfWidth, float halfHeight, MenuOptions menu = null)
@@ -139,7 +141,7 @@ public class BackdropSet
         if (Director != null && Complete) Director.Init(this);
         if (!tilesOnly && Complete) CloudShadows = CloudShadowLayer.TryCreate(this);
         // Space's sun: a backdrop piece the run's palette pick owns (SpaceSunPick); the menu's Space shows it too, dimmed like its tiles.
-        if (Spec.world == "Space" && Complete)
+        if (Spec.world == "Space" && Complete && !(menu != null && menu.noSun))
         {
             SunDim = menu != null ? menu.dim : 1f;
             Sun = new SpaceSunLayer(this);

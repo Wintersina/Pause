@@ -114,6 +114,7 @@ public class SpaceDock : MonoBehaviour
         SupportPurchase.Rewarded -= OnSupportRewarded;
         BackNavigator.Unregister(this);
         if (Instance == this) Instance = null;
+        MenuBackdrop.RequestDock(false);   // the menu's own backdrop again (never re-rolled)
     }
 
     // A pack paid while the dock is open (a pending payment completing) refreshes the dust read-out.
@@ -239,6 +240,8 @@ public class SpaceDock : MonoBehaviour
         rack = new GameObject("~DockRack").transform;
         rack.SetParent(transform, false);
 
+        // the menu's backdrop becomes Space for as long as the dock is open (MenuBackdrop.EnterDock), the real in-game tiles
+        MenuBackdrop.RequestDock(true);
         planet = DockPlanet.Create(transform, DockStartWorld.ShownWorld);
         edgeLeft = Piece("EdgeLeft", DockArt.Lot("lot_edge_left"), SpriteDrawMode.Tiled, 1);
         edgeRight = Piece("EdgeRight", DockArt.Lot("lot_edge_right"), SpriteDrawMode.Tiled, 1);
@@ -432,7 +435,7 @@ public class SpaceDock : MonoBehaviour
         nudge = 0f;
         PlaceRack();
         PlaceBands(camPos, halfW, halfH);
-        PlacePlanet(wide ? rackPane : new Rect(left, bottom, right - left, top - bottom));
+        PlacePlanet(wide ? rackPane : new Rect(left, bottom, right - left, top - bottom), new Rect(camPos.x - halfW, camPos.y - halfH, halfW * 2f, halfH * 2f));
 
         if (wide)
         {
@@ -460,16 +463,23 @@ public class SpaceDock : MonoBehaviour
 
     public DockPlanet planet;
 
-    // The planet behind the lot: as wide as the lot's pane (or the lot space's height, whichever is smaller), its
-    // centre low and on the right so a good part of the disc is cropped by the pane edge and the lot covers the rest.
-    // Always inside the safe pane; the bands over the header / footer hide whatever pokes under them.
-    void PlacePlanet(Rect pane)
+    // The pane the destination was last fitted to (tests / screen-fit checks read it with the lot space's extent).
+    public Rect PlanetPane { get; private set; }
+    public float PlanetSpaceBottom { get { return spaceBottom; } }
+    public float PlanetSpaceTop { get { return spaceTop; } }
+
+    // The destination behind the lot (DockPlanet.Fit): the whole sphere on screen, about 60% of the pane's width,
+    // its centre about 10% of that width right of the middle, always inside the safe pane and the lot's space; the
+    // bands over the header / footer hide nothing of it. `view` is the whole screen, for the warp's streaks.
+    void PlacePlanet(Rect pane, Rect view)
     {
         if (planet == null) return;
-        float space = spaceTop - spaceBottom;
-        float d = Mathf.Min(pane.width * 1.15f, space * .8f);
-        d = Mathf.Max(d, .5f);
-        planet.Place(new Vector2(pane.xMax - d * .2f, Mathf.Lerp(spaceBottom, spaceTop, .28f)), d);
+        PlanetPane = pane;
+        Vector2 centre;
+        float d;
+        DockPlanet.Fit(pane, spaceBottom, spaceTop, out centre, out d);
+        planet.Place(centre, d);
+        planet.SetView(view);
     }
 
     // Lays every lot piece out for `layout`: bays, runway tiles, seams, edge rails. Pieces are pooled (built

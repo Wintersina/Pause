@@ -467,7 +467,7 @@ public static class LiftoffTest
               WorldManager.CurrentIndex == from && wm.Stage == WorldManager.LevelStage.Portal);
         if (p == null) { Gone(); Object.DestroyImmediate(ship.gameObject); Object.DestroyImmediate(wm.gameObject); return; }
         Check("... in the interlude's quiet Space sky, with " + next + "'s own art loaded",
-              SpaceDirector.Quiet && p.Art.Complete && p.Art.PlanetTex.name == fall.planet && p.Art.EntryTex.name == fall.entryFx);
+              SpaceDirector.Quiet && p.Art.Complete && p.Art.Rotating && p.Art.PlanetTex == null && p.Art.Rotation[0].name.StartsWith(Stem(fall.world)) && p.Art.EntryTex.name == fall.entryFx);
 
         // the approach: the planet drifts in and holds station; the pilot flies
         int frames = 0;
@@ -609,4 +609,5 @@ public static class LiftoffTest
         for (int i = 0; i < frames; i++) Fly(wm, l);
         return 0;
     }
+    static string Stem(int world) { return new[] { null, "frost", "verdant", "ember", "tide", "storm", "desert" }[world] + "_rot"; }
 }

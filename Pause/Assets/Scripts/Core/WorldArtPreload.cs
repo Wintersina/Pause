@@ -306,9 +306,13 @@ public static class WorldArtPreload
     {
         warmProc = true;   // the ring / reticle / vignette / plume textures, drawn in slices alongside the loads
         string f = def.folder;
-        foreach (var n in new[] { def.planet, def.limb, def.deck, def.deckDark, def.entryFx, def.burst, def.streaks })
-            Request<Texture2D>(f + n);
+        bool turns = def.world >= 1 && def.world < PlanetFlipbooks.PlanetfallRotates.Length && PlanetFlipbooks.PlanetfallRotates[def.world];
+        foreach (var n in new[] { turns ? null : def.planet, def.limb, def.deck, def.deckDark, def.entryFx, def.burst, def.streaks })
+            if (n != null) Request<Texture2D>(f + n);
         Request<Shader>(Planetfall.ShaderPath);
+        // the planet's rotation sheet (every planetfall turns it; PlanetFlipbooks takes it from the hold)
+        if (def.world >= 1 && def.world < PlanetFlipbooks.PlanetfallRotates.Length && PlanetFlipbooks.PlanetfallRotates[def.world])
+            Request<Texture2D>(PlanetFlipbooks.PathOf(def.world));
     }
 
     // WorldManager.OpenPortal: leaving `from` for `to` (loop: the way round to Space).
@@ -322,6 +326,9 @@ public static class WorldArtPreload
             var spec = BackdropCatalog.For(toDisplayName);
             Target = spec.world;
             if (def != null) QueuePlanetfall(def);
+            // the Space sky's next-world planet (SpaceDirector: after a boss the planet turning there is the next
+            // world's): its sheet is held before the director asks for it, so the first spawn is not a load
+            if (!loop && to >= 1) Request<Texture2D>(PlanetFlipbooks.PathOf(to));
             QueueBackdrop(spec);
         });
     }

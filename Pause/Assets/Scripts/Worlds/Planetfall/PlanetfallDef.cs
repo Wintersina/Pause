@@ -42,6 +42,9 @@ public class PlanetfallDef
     public Color cold;              // the deep-cloud tint
     public Color flash;             // the breakthrough flash
     public Color shade;             // the vignette
+    // The painted limb was drawn to match the OLD planet art; the new bare rotation sheets are darker, so the limb is
+    // multiplied by this (new disc colour over old, softened) as it takes over: no brightness pop at the hand-over.
+    public Color limbTint = Color.white;
 
     // ---- words ----
     public string openBanner;       // when the planet appears (the portal says PORTAL OPEN)
@@ -68,6 +71,7 @@ public static class PlanetfallCatalog
 
     public static readonly PlanetfallDef Frost = new PlanetfallDef
     {
+        limbTint = new Color(0.52f, 0.7f, 0.78f),
         world = 1,
         folder = "Worlds/Frost/Planetfall/",
         planet = "frost_planet",
@@ -108,6 +112,7 @@ public static class PlanetfallCatalog
     // re-measured on the pixels).
     public static readonly PlanetfallDef Verdant = new PlanetfallDef
     {
+        limbTint = new Color(0.57f, 0.74f, 0.7f),
         world = 2,
         folder = "Worlds/Verdant/Planetfall/",
         planet = "verdant_planet",
@@ -150,6 +155,7 @@ public static class PlanetfallCatalog
     // (Art/Worlds/Ember/descent~/manifest.json, re-measured on the pixels).
     public static readonly PlanetfallDef Ember = new PlanetfallDef
     {
+        limbTint = new Color(0.78f, 0.67f, 0.64f),
         world = 3,
         folder = "Worlds/Ember/Planetfall/",
         planet = "ember_planet",
@@ -194,6 +200,7 @@ public static class PlanetfallCatalog
     // re-measured on the pixels with verify_planetfall_art.py).
     public static readonly PlanetfallDef Tide = new PlanetfallDef
     {
+        limbTint = new Color(0.82f, 1f, 1f),
         world = 4,
         folder = "Worlds/Tide/Planetfall/",
         planet = "tide_planet",
@@ -245,6 +252,7 @@ public static class PlanetfallCatalog
     // opening is 147 px wide, 167 tall at y 338, centre x wandering 254 .. 259.
     public static readonly PlanetfallDef Storm = new PlanetfallDef
     {
+        limbTint = new Color(0.8f, 0.8f, 0.82f),
         world = 5,
         folder = "Worlds/Storm/Planetfall/",
         planet = "storm_planet",
@@ -283,6 +291,7 @@ public static class PlanetfallCatalog
     // wide, 165 tall at y 338, centre x wandering 253 .. 260.
     public static readonly PlanetfallDef Desert = new PlanetfallDef
     {
+        limbTint = new Color(0.83f, 0.76f, 0.74f),
         world = 6,
         folder = "Worlds/Desert/Planetfall/",
         planet = "desert_planet",

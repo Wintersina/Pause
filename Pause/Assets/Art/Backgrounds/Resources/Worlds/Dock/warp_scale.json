@@ -1,0 +1,128 @@
+[
+  {
+    "frame": 1,
+    "outScale": 1.0,
+    "inScale": 0.05,
+    "outAlpha": 1.0,
+    "inAlpha": 0.0
+  },
+  {
+    "frame": 2,
+    "outScale": 0.84,
+    "inScale": 0.05,
+    "outAlpha": 0.84,
+    "inAlpha": 0.0
+  },
+  {
+    "frame": 3,
+    "outScale": 0.68,
+    "inScale": 0.05,
+    "outAlpha": 0.68,
+    "inAlpha": 0.0
+  },
+  {
+    "frame": 4,
+    "outScale": 0.53,
+    "inScale": 0.05,
+    "outAlpha": 0.52,
+    "inAlpha": 0.0
+  },
+  {
+    "frame": 5,
+    "outScale": 0.39,
+    "inScale": 0.05,
+    "outAlpha": 0.37,
+    "inAlpha": 0.0
+  },
+  {
+    "frame": 6,
+    "outScale": 0.27,
+    "inScale": 0.05,
+    "outAlpha": 0.23,
+    "inAlpha": 0.0
+  },
+  {
+    "frame": 7,
+    "outScale": 0.15,
+    "inScale": 0.05,
+    "outAlpha": 0.1,
+    "inAlpha": 0.0
+  },
+  {
+    "frame": 8,
+    "outScale": 0.05,
+    "inScale": 0.05,
+    "outAlpha": 0.0,
+    "inAlpha": 0.0
+  },
+  {
+    "frame": 9,
+    "outScale": 0.05,
+    "inScale": 0.16,
+    "outAlpha": 0.0,
+    "inAlpha": 0.08
+  },
+  {
+    "frame": 10,
+    "outScale": 0.05,
+    "inScale": 0.31,
+    "outAlpha": 0.0,
+    "inAlpha": 0.2
+  },
+  {
+    "frame": 11,
+    "outScale": 0.05,
+    "inScale": 0.49,
+    "outAlpha": 0.0,
+    "inAlpha": 0.36
+  },
+  {
+    "frame": 12,
+    "outScale": 0.05,
+    "inScale": 0.68,
+    "outAlpha": 0.0,
+    "inAlpha": 0.54
+  },
+  {
+    "frame": 13,
+    "outScale": 0.05,
+    "inScale": 0.84,
+    "outAlpha": 0.0,
+    "inAlpha": 0.7
+  },
+  {
+    "frame": 14,
+    "outScale": 0.05,
+    "inScale": 0.96,
+    "outAlpha": 0.0,
+    "inAlpha": 0.84
+  },
+  {
+    "frame": 15,
+    "outScale": 0.05,
+    "inScale": 1.04,
+    "outAlpha": 0.0,
+    "inAlpha": 0.93
+  },
+  {
+    "frame": 16,
+    "outScale": 0.05,
+    "inScale": 1.02,
+    "outAlpha": 0.0,
+    "inAlpha": 0.98
+  },
+  {
+    "frame": 17,
+    "outScale": 0.05,
+    "inScale": 1.0,
+    "outAlpha": 0.0,
+    "inAlpha": 1.0
+  },
+  {
+    "frame": 18,
+    "outScale": 0.05,
+    "inScale": 1.0,
+    "outAlpha": 0.0,
+    "inAlpha": 1.0
+  }
+]

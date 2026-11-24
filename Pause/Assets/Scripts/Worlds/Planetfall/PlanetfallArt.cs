@@ -27,11 +27,39 @@ public class PlanetfallArt
     // Every file loaded at the expected layout.
     public bool Complete { get; private set; }
 
+    // The planet's ROTATION (PlanetFlipbooks: 16 frames of one turn, the same art the Space dock and the Space
+    // backdrop's next-world planet show), in place of the static `Planet` sprite: only a planetfall approach attaches
+    // it (AttachRotation), so a lift-off keeps drawing the planet it leaves. Frames are one world unit wide with
+    // the disc centred, DiscShare of the width across.
+    public Sprite[] Rotation;
+    int rotationWorld;
+    public bool Rotating { get { return Rotation != null; } }
+
+    public void AttachRotation()
+    {
+        int w = Def != null ? Def.world : 0;
+        if (!Complete || Rotation != null || w < 1 || w >= PlanetFlipbooks.PlanetfallRotates.Length || !PlanetFlipbooks.PlanetfallRotates[w]) return;
+        Rotation = PlanetFlipbooks.Acquire(w);
+        rotationWorld = Rotation != null ? w : 0;
+    }
+
+    // The scale a planet sprite needs so its disc is `radius` world units: the classic art by its measured disc, the
+    // rotation's frames by DiscShare.
+    public float PlanetScale(float radius)
+    {
+        return Rotating ? radius / (PlanetFlipbooks.DiscShare * .5f) : radius / Def.planetDiscPx * (PlanetTex != null ? PlanetTex.width : 1024f);
+    }
+
+    bool skipPlanet;
+
     PlanetfallArt(PlanetfallDef def) { Def = def; }
 
-    public static PlanetfallArt Load(PlanetfallDef def)
+    // `rotating`: a planetfall approach, which draws the world's rotation sheet (AttachRotation) and never the old
+    // static planet art, so that texture is not even loaded. A lift-off loads it (it draws the planet it leaves).
+    public static PlanetfallArt Load(PlanetfallDef def, bool rotating = false)
     {
         var a = new PlanetfallArt(def);
+        a.skipPlanet = rotating;
         a.LoadAll();
         return a;
     }
@@ -39,19 +67,19 @@ public class PlanetfallArt
     void LoadAll()
     {
         string f = Def.folder;
-        PlanetTex = WorldArtPreload.Load<Texture2D>(f + Def.planet);
+        if (!skipPlanet) PlanetTex = WorldArtPreload.Load<Texture2D>(f + Def.planet);
         LimbTex = WorldArtPreload.Load<Texture2D>(f + Def.limb);
         DeckTex = WorldArtPreload.Load<Texture2D>(f + Def.deck);
         DeckDarkTex = WorldArtPreload.Load<Texture2D>(f + Def.deckDark);
         EntryTex = WorldArtPreload.Load<Texture2D>(f + Def.entryFx);
         BurstTex = WorldArtPreload.Load<Texture2D>(f + Def.burst);
         StreaksTex = WorldArtPreload.Load<Texture2D>(f + Def.streaks);
-        Complete = PlanetTex != null && LimbTex != null && DeckTex != null && DeckDarkTex != null &&
+        Complete = (PlanetTex != null || skipPlanet) && LimbTex != null && DeckTex != null && DeckDarkTex != null &&
                    EntryTex != null && BurstTex != null && StreaksTex != null &&
                    Def.entryFrames > 0 && Def.burstFrames > 0;
         if (!Complete) return;
 
-        Planet = Whole(PlanetTex, new Vector2(Def.planetCentrePx.x / PlanetTex.width, 1f - Def.planetCentrePx.y / PlanetTex.height));
+        if (PlanetTex != null) Planet = Whole(PlanetTex, new Vector2(Def.planetCentrePx.x / PlanetTex.width, 1f - Def.planetCentrePx.y / PlanetTex.height));
         Limb = Whole(LimbTex, new Vector2(.5f, 1f - Def.limbApexPx / LimbTex.height));
         Deck = Whole(DeckTex, new Vector2(.5f, .5f));
         DeckDark = Whole(DeckDarkTex, new Vector2(.5f, .5f));
@@ -94,6 +122,7 @@ public class PlanetfallArt
     // unloaded (they are only needed for one descent).
     public void Release()
     {
+        if (Rotation != null) { PlanetFlipbooks.Release(rotationWorld); Rotation = null; rotationWorld = 0; }
         Kill(Planet); Kill(Limb); Kill(Deck); Kill(DeckDark); Kill(Streaks);
         if (Entry != null) foreach (var s in Entry) Kill(s);
         if (Burst != null) foreach (var s in Burst) Kill(s);
