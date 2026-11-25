@@ -54,7 +54,6 @@ public static class ShotFeelTest
         buttonClicks.playerDied = false;
         score.pauseCounter = 0;
         Time.timeScale = 1f;
-        FloatieBank.Clear();
         FloatieBullets.ReleaseAll();
         FloatieFx.Clear();
         AttackPool.StopAll();

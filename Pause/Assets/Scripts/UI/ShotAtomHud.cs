@@ -29,6 +29,7 @@ public class ShotAtomHud : MonoBehaviour
     public const float LabelUnits = 11f;       // the level line under a coin
     public const float GapUnits = 3f;          // between two slots, and under the score board
     public const float MaxHeightShare = .34f;  // of the screen's height, the most the block may take (it shrinks to fit)
+    public const float CoinTopClearShare = 10f / 196f; // the installed idle flipbooks' transparent top strip
     public const int Columns = 7;              // the drone glyph, Twin .. Arc, then the shared Rapid coin
     public const int GlyphColumn = 0, RapidColumn = 6, MaxRows = ShotAtomTuning.MaxDrones;
     public const int SortOrder = 88;           // above the boss warning (85) and PORTAL DANGER (84), under the booster column (89)
@@ -37,6 +38,7 @@ public class ShotAtomHud : MonoBehaviour
     public struct Geometry
     {
         public float left, top, icon, pitch, slotWidth, slotHeight, label, rowPitch;
+        public float originalVisibleGap; // before moving the visible coins halfway toward the board
         public int rows;
     }
 
@@ -53,7 +55,7 @@ public class ShotAtomHud : MonoBehaviour
         return Compute(band, safe, screen, hud, -1);
     }
 
-    // `world`: whose board frame is on screen (-1 = the live world). The block hangs one gap under that frame's VISIBLE bottom edge.
+    // `world`: whose board frame is on screen (-1 = the live world). Visible coin art moves halfway closer to its painted bottom edge.
     public static Geometry Compute(TopBand.Frame band, Rect safe, Vector2 screen, Rect hud, int world)
     {
         return Compute(band, safe, screen, hud, world, ShotAtoms.DroneCount);
@@ -81,20 +83,59 @@ public class ShotAtomHud : MonoBehaviour
             right = Mathf.Min(right, Mathf.Max(g.left, b.xMin - gap));
         }
 
+        Fit(ref g, right, want, label, gap, screen);
+        var obstacles = Obstacles(band, safe, screen, hud);
+        float xMax = g.left + Columns * g.pitch - gap;
+        g.top = BoosterHud.ColumnTop(obstacles, g.left, xMax, startTop, gap);
+        if (board)
+        {
+            float boardBottom = hud.yMin - HudStyler.BoardVisibleBottomPx(hud, world);
+            g.originalVisibleGap = boardBottom - VisibleIconTop(g);
+            float visibleGap = g.originalVisibleGap * .5f;
+            float targetTop = boardBottom - visibleGap + g.icon * CoinTopClearShare;
+            // A right-hand control used to push the ENTIRE reserved row below it. Use the available
+            // width beside it first; account for the coin's transparent pixels when moving the art.
+            foreach (var obstacle in obstacles)
+            {
+                float bottom = targetTop - (g.rows * g.rowPitch - gap);
+                if (obstacle.width <= 0f || obstacle.xMin >= xMax || obstacle.xMax <= g.left ||
+                    obstacle.yMax <= bottom || obstacle.yMin >= targetTop) continue;
+                float narrowedRight = Mathf.Min(right, obstacle.xMin - gap);
+                if (narrowedRight - g.left < Columns * (8f + gap) - gap) continue;
+                right = narrowedRight;
+                Fit(ref g, right, want, label, gap, screen);
+                xMax = g.left + Columns * g.pitch - gap;
+                targetTop = boardBottom - visibleGap + g.icon * CoinTopClearShare;
+            }
+            g.top = targetTop;
+            foreach (var obstacle in obstacles)
+            {
+                float bottom = g.top - (g.rows * g.rowPitch - gap);
+                if (obstacle.width > 0f && obstacle.xMax > g.left && obstacle.xMin < xMax &&
+                    obstacle.yMax > bottom && obstacle.yMin < g.top)
+                    g.top = Mathf.Min(g.top, obstacle.yMin - gap);
+            }
+        }
+        return g;
+    }
+
+    public static float VisibleIconTop(Geometry g) { return g.top - g.icon * CoinTopClearShare; }
+
+    static void Fit(ref Geometry g, float right, float want, float label, float gap, Vector2 screen)
+    {
         float avail = Mathf.Max(Columns, right - g.left);
-        float slotWidth = Mathf.Max(want, Mathf.Round(MinSlotUnits * s));
+        float slotWidth = Mathf.Max(want, Mathf.Round(MinSlotUnits * PauseQuickActions.CanvasScaleFor(screen)));
         float pitch = slotWidth + gap;
         if (pitch * Columns - gap > avail)
         {
             pitch = Mathf.Floor((avail + gap) / Columns);
             slotWidth = Mathf.Max(1f, pitch - gap);
         }
-        // the block's height: shrink the coins (never below 8 px) until all the rows fit the share of the screen
         float icon = Mathf.Min(want, slotWidth);
         float maxHeight = screen.y * MaxHeightShare;
-        if (rows * (icon + label + gap) > maxHeight)
+        if (g.rows * (icon + label + gap) > maxHeight)
         {
-            float k = maxHeight / (rows * (icon + label + gap));
+            float k = maxHeight / (g.rows * (icon + label + gap));
             icon = Mathf.Max(8f, Mathf.Floor(icon * k));
             label = Mathf.Max(6f, Mathf.Floor(label * k));
         }
@@ -102,11 +143,8 @@ public class ShotAtomHud : MonoBehaviour
         g.slotWidth = slotWidth;
         g.icon = icon;
         g.label = label;
-        g.slotHeight = g.icon + g.label;
+        g.slotHeight = icon + label;
         g.rowPitch = g.slotHeight + gap;
-        float xMax = g.left + Columns * pitch - gap;
-        g.top = BoosterHud.ColumnTop(Obstacles(band, safe, screen, hud), g.left, xMax, startTop, gap);
-        return g;
     }
 
     // Slot `index`'s screen-px rect (origin bottom-left): the coin on top, its level under it. index = row * Columns + column.
@@ -255,7 +293,7 @@ public class ShotAtomHud : MonoBehaviour
             slot.icon.preserveAspect = true;
             var ir = (RectTransform)ig.transform;
             ir.anchorMin = ir.anchorMax = Vector2.zero;
-            ir.pivot = new Vector2(.5f, .5f);   // swells about its middle on a level up
+            ir.pivot = new Vector2(.5f, 1f);   // level-up swell grows down, keeping the board clear
 
             var tg = new GameObject("Label", typeof(RectTransform), typeof(Text), typeof(Outline));
             tg.transform.SetParent(go.transform, false);
@@ -394,7 +432,7 @@ public class ShotAtomHud : MonoBehaviour
             slot.root.anchoredPosition = r.position;
             slot.root.sizeDelta = r.size;
             var ir = slot.icon.rectTransform;
-            ir.anchoredPosition = ic.position - r.position + ic.size * .5f;
+            ir.anchoredPosition = new Vector2(ic.center.x - r.xMin, ic.yMax - r.yMin);
             ir.sizeDelta = ic.size;
             var tr = slot.label.rectTransform;
             tr.anchoredPosition = Vector2.zero;

@@ -1,14 +1,14 @@
 using UnityEngine;
 
 // The shot-atom row, on the first frame it is ever visible. The run's HUD is built the way the game builds it, then the first atom
-// is caught: ShotAtomHud builds lazily in that same Update. The row must hang one gap under the score board's VISIBLE bottom edge
+// is caught: ShotAtomHud builds lazily in that same Update. The visible coin art must move halfway toward the score board's VISIBLE bottom edge
 // (measured on the drawn board frame, not through the row's own maths), for every world, on phones and on desktop / Mac windows.
 //   Unity -batchmode -quit -projectPath Pause -executeMethod ShotRowFirstFrameTest.Run
 public static class ShotRowFirstFrameTest
 {
     public static void Run() { TestHarness.Exit(Execute()); }
 
-    // Pure sweep over desktop-style window sizes (not just the ScreenFit list): the row's top is the board's visible bottom - a gap.
+    // Pure sweep over desktop windows: compare the visible art gap with half its former gap.
     static int Sweep()
     {
         int bad = 0, n = 0;
@@ -26,9 +26,9 @@ public static class ShotRowFirstFrameTest
                     {
                         var g = ShotAtomHud.Compute(band, safe, screen, hud, world);
                         float gap = Mathf.Max(1f, Mathf.Round(ShotAtomHud.GapUnits * PauseQuickActions.CanvasScaleFor(screen)));
-                        float want = hud.yMin - HudStyler.BoardVisibleBottomPx(hud, world) - gap;
+                        float want = hud.yMin - HudStyler.BoardVisibleBottomPx(hud, world) - g.originalVisibleGap * .5f;
                         n++;
-                        if (Mathf.Abs(g.top - want) > 2f)
+                        if (Mathf.Abs(ShotAtomHud.VisibleIconTop(g) - want) > 2f)
                         {
                             bad++;
                             if (first == null) first = w + "x" + h + " rail " + rail + " world " + world + ": top " + g.top + " vs " + want + " hud " + hud + " band " + band.left + "," + band.right + "," + band.top;

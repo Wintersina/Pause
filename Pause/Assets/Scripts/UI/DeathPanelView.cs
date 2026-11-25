@@ -386,6 +386,8 @@ public class DeathPanelView : MonoBehaviour, IPointerDownHandler
     // Building
     // ---------------------------------------------------------------------
 
+    public bool PresentationReady { get; private set; }
+
     public static DeathPanelView Build(Transform canvasRoot, Text bestText, Text runText, Text dustText,
                                        Button replay, Button menu, Results results)
     {
@@ -428,6 +430,7 @@ public class DeathPanelView : MonoBehaviour, IPointerDownHandler
 
         DoubleDustOffer.Attach(view);   // nothing while ads are off (AdsConfig.Enabled)
         view.ApplyAt(0f);
+        view.PresentationReady = true;
         return view;
     }
 

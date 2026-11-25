@@ -193,12 +193,8 @@ public static class ToughEnemiesTest
         var h = go.GetComponent<EnemyHearts>();
         HitOnce(go);
         int ignored = Toughness.Ignored;
-        clock += .05f;
         bool dead = HitOnce(go);
-        Check("a second hit 0.05 s after the first is ignored (hearts " + h.Hearts + ", ignored +" + (Toughness.Ignored - ignored) + ")", !dead && h.Hearts == 1 && Toughness.Ignored == ignored + 1);
-        clock += .06f;
-        dead = HitOnce(go);
-        Check("a hit past the 0.1 s window counts and kills", dead && go == null);
+        Check("a second hit in the same instant counts and kills", dead && go == null && Toughness.Ignored == ignored);
 
         var rock = Make(EnemyRoster.One(0, EnemyRole.Rock));
         Check("a hazard ignores no hit: the first one destroys it, window or not", HitOnce(rock) && rock == null);

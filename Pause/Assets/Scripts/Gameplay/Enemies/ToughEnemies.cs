@@ -2,16 +2,13 @@ using UnityEngine;
 
 // TOUGH ENEMIES (combat rework, 2026-11-22). The player's specials are stronger and clearer, so the things they hit take more than one touch.
 //
-//   * Every ordinary enemy (fighter, alien, big, chaser: any world) carries EnemyHearts: 2 hearts. Each hit that lands -- a floatie bullet or
-//     any ship attack / ultimate / secret-power hit (ShipAttackHits.Hit) -- takes exactly ONE heart, whatever its weight, so an enemy needs two
-//     hits (two bullets, two attack hits, or one of each). The hit that takes the last heart is an ordinary kill (explosion, sound, score, dust,
-//     codex: paid once, in ShipAttackHits.Kill). Two hearts orbit the enemy (EnemyHeartsView, the elites' own HeartOrbit engine, pooled and
-//     capped); a hit pops one in a small burst and the other keeps orbiting. A non-lethal hit also flashes the hull white (EnemyFlipbook.Flash) and
-//     throws a few white chips (RockHitFx.Chips). No outline, ring or bar is drawn on the enemy.
+//   * Every ordinary enemy carries two hearts. Drone bullets and their coin shards/sparks remove their authored
+//     quarter-heart damage. Other ship attacks remove a whole heart. The last heart pays the ordinary kill once.
+//     Orbiting hearts display each missing quarter; non-lethal hits flash the hull and throw white chips.
 //   * EXCEPT the ship's ULTIMATE (the charged main attack and its free shot, everything the ShipAttackRunner fires: HitKind.Ultimate): that kills
 //     an ordinary enemy outright, whatever hearts it has left (paid once). Elites still lose one heart per hit; bosses are unchanged.
 //   * Hazards (rocks and mines: EnemyDef.IsHazard) stay ONE-hit: any player hit destroys one (no deflect, no hearts).
-//   * Both ignore a repeat hit inside HitWindow (0.1 s), so one frame of a multi-hit attack counts once.
+//   * Weapon hits apply continuously, including multiple quarter-heart hits in one frame.
 //   * The tutorial's enemies stay one-hit (EnemyFactory.Create tough: false), so the first lesson is not harder.
 //
 // Only the hits that go through ShipAttackHits.Hit are softened. Ramming under the shield, the pause-teleport blink, the death combos, shoves
@@ -19,7 +16,7 @@ using UnityEngine;
 public static class Toughness
 {
     public const int HeartsPerEnemy = 2;          // a normal enemy
-    public const float HitWindow = .1f;        // s: a second hit this soon after the last one is ignored
+    public const float HitWindow = 0f;        // no repeat-hit cooldown
     public const int MaxHeartViews = 10;       // enemies wearing orbiting hearts at once; past it the hearts still count, only the drawing is skipped
     public const int HitChips = 4;
 
@@ -27,9 +24,9 @@ public static class Toughness
     public static System.Func<float> ClockOverride;
     public static float Now { get { return ClockOverride != null ? ClockOverride() : Time.time; } }
 
-    // Edit-mode tests (no frame clock): the ignore window is off unless a test turns it on (with ClockOverride).
+    // Legacy test hook retained for callers; repeat-hit windows are always disabled.
     public static float EditModeWindow = 0f;
-    public static float Window { get { return Application.isPlaying ? HitWindow : EditModeWindow; } }
+    public static float Window { get { return 0f; } }
 
     public enum Result { None, Ignored, Hurt, Lethal }
 
@@ -61,11 +58,11 @@ public static class Toughness
 
     // One hit from a weapon on `target`. True when the hit was absorbed (the enemy lives on, or the hit was ignored) so the caller must not
     // destroy it; false when the target is not tough, or this hit takes its last heart (the caller kills it).
-    public static bool Absorb(GameObject target)
+    public static bool Absorb(GameObject target, float damage = 1f)
     {
         if (target == null) return false;
         Result r = Result.None;
-        if (target.TryGetComponent(out EnemyHearts hearts)) r = hearts.Strike(Origin(target));
+        if (target.TryGetComponent(out EnemyHearts hearts)) r = hearts.Strike(Origin(target), damage);
         return r == Result.Hurt || r == Result.Ignored;
     }
 
@@ -85,7 +82,10 @@ public static class Toughness
 public class EnemyHearts : MonoBehaviour
 {
     public int Max { get; private set; }
-    public int Hearts { get; private set; }
+    int quarters;
+    public int Hearts => HeartDamage.WholeHearts(quarters);
+    public int QuartersLeft => quarters;
+    public float Health => HeartDamage.Hearts(quarters);
     public int Strikes { get; private set; }
     public int IgnoredHits { get; private set; }
     public EnemyHeartsView View { get; private set; }
@@ -97,7 +97,7 @@ public class EnemyHearts : MonoBehaviour
     public void Init(int hearts)
     {
         Max = Mathf.Max(1, hearts);
-        Hearts = Max;
+        quarters = Max * HeartDamage.PerHeart;
         lastHit = -999f;
         if (EnemyHeartsView.Live < Toughness.MaxHeartViews && GetComponent<SpriteRenderer>() != null)
         {
@@ -106,15 +106,14 @@ public class EnemyHearts : MonoBehaviour
         }
     }
 
-    // One heart off, unless this hit is too soon after the last (or it is already dead).
-    public Toughness.Result Strike(Vector3 from, int amount = 1)
+    // Every positive hit applies immediately, in quarter-heart units.
+    public Toughness.Result Strike(Vector3 from, float amount = 1f)
     {
-        if (Hearts <= 0) return Toughness.Result.Ignored;
+        if (Hearts <= 0 || amount <= 0f) return Toughness.Result.Ignored;
         float now = Toughness.Now;
-        if (now - lastHit < Toughness.Window) { IgnoredHits++; Toughness.Ignored++; return Toughness.Result.Ignored; }
         lastHit = now;
         Strikes++;
-        Hearts = Mathf.Max(0, Hearts - Mathf.Max(1, amount));
+        quarters = Mathf.Max(0, quarters - HeartDamage.Units(amount));
         if (Hearts <= 0) return Toughness.Result.Lethal;
         Toughness.Hurts++;
         impactPending = true;
@@ -195,6 +194,8 @@ public class EnemyHeartsView : HeartOrbit
     public void Refresh() { Update(); }
 
     protected override int RemainingHearts() { return owner != null ? owner.Hearts : 0; }
+    protected override bool UsesQuarterHearts => true;
+    protected override int RemainingQuarterUnits() => owner != null ? owner.QuartersLeft : 0;
 
     protected override bool TakeImpact(out Vector3 at)
     {

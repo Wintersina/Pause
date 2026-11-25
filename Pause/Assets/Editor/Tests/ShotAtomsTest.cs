@@ -209,7 +209,7 @@ public static class ShotAtomsTest
         Check("every atom can drop in every one of the " + WorldManager.Worlds.Length + " worlds from the start of a run", every);
         Check("every atom reaches level 10 in any world, and a catch past it pays dust", reach);
         string src = File.ReadAllText("Assets/Scripts/Gameplay/Pickups/ShotAtoms.cs");
-        Check("no world unlock or level-cap tables are left", !src.Contains("UnlockWorld") && !src.Contains("MaxLevelOfWorld") && !src.Contains("CurrentIndex"));
+        Check("no world unlock or level-cap tables are left", !src.Contains("UnlockWorld") && !src.Contains("MaxLevelOfWorld"));
     }
 
     static void DropPicking()
@@ -240,9 +240,9 @@ public static class ShotAtomsTest
     static void DropRates()
     {
         FreshScene();
-        Check("the tuning: boss two always + a 50% third, every elite, ordinary kill 3% / one per 12 s, Atom Rush x3 (cooldown halved)",
+        Check("the tuning: boss two always + a 50% third, every elite, ordinary kills 8% or 18% / one per 12 s, Atom Rush x3 (cooldown halved)",
               ShotAtomTuning.BossDropChance == 1f && ShotAtomTuning.BossSecondDropChance == 1f && ShotAtomTuning.BossThirdDropChance == .5f && ShotAtomTuning.EliteDropChance == 1f &&
-              ShotAtomTuning.EnemyDropChance == .03f && ShotAtomTuning.EnemyDropCooldown == 12f && ShotAtomTuning.RushMultiplier == 3f && ShotAtomTuning.RushCooldownScale == .5f);
+              ShotAtomTuning.EnemyDropChance == .08f && ShotAtomTuning.StartingLevelDropChance == .18f && ShotAtomTuning.EnemyDropCooldown == 12f && ShotAtomTuning.RushMultiplier == 3f && ShotAtomTuning.RushCooldownScale == .5f);
         int before = ShotAtomDrops.Elites;
         // the first elite of a run always drops, whatever the roll
         ShotAtoms.BeginRun();
@@ -342,7 +342,7 @@ public static class ShotAtomsTest
         }
         Check("an unrelated edit-mode kill never rolls a coin by itself (no override, no roll)", ShotAtomDrops.Released == released && ShotAtomDrops.Pending == 0);
 
-        // ---- ordinary kills: 3%, at most one per 12 s, spacing respected ----
+        // ---- ordinary kills: level-specific chance, at most one per 12 s, spacing respected ----
         float clock = 100f;
         ShotAtomDrops.ClockOverride = () => clock;
         ShotAtoms.BeginRun();
@@ -351,7 +351,7 @@ public static class ShotAtomsTest
         var plain = Hazard(0f, 1f);
         int enemies = ShotAtomDrops.Enemies;
         Check("an ordinary kill on a bad roll drops nothing", !ShotAtomDrops.OnEnemyKilled(plain, .5f) && ShotAtomDrops.Enemies == enemies);
-        Check("... a roll under 3% drops one", ShotAtomDrops.OnEnemyKilled(plain, .01f) && ShotAtomDrops.Enemies == enemies + 1);
+        Check("... a roll under 8% drops one", ShotAtomDrops.OnEnemyKilled(plain, .01f) && ShotAtomDrops.Enemies == enemies + 1);
         ShotAtomDrops.Clear();
         AtomSpacing.Reset();
         clock += 11f;
@@ -368,7 +368,7 @@ public static class ShotAtomsTest
             AtomSpacing.Reset();
             if (ShotAtomDrops.OnEnemyKilled(plain, i / 1000f)) hit++;
         }
-        Check("evenly spread rolls give 3% (30 of 1000: " + hit + ")", hit == 30);
+        Check("evenly spread rolls match the current level chance (of 1000: " + hit + ")", hit == Mathf.RoundToInt(ShotAtomDrops.EnemyChance * 1000f));
         // a boss body or a hazard that happens to carry an identity never rolls
         var rock = Hazard(0f, 1f);
         rock.tag = "Astr";
@@ -389,7 +389,7 @@ public static class ShotAtomsTest
         // ---- ATOM RUSH: every chance x3 for the run it was spent in ----
         Boosters.SetRunRushForTest(true);
         Check("rush: ordinary chance 9%, cooldown 6 s, elite 100%, boss second 100%",
-              Mathf.Approximately(ShotAtomDrops.EnemyChance, .09f) && Mathf.Approximately(ShotAtomDrops.EnemyCooldown, 6f) &&
+              Mathf.Approximately(ShotAtomDrops.EnemyChance, (WorldManager.CurrentIndex == WorldManager.RunStart ? .54f : .24f)) && Mathf.Approximately(ShotAtomDrops.EnemyCooldown, 6f) &&
               ShotAtomDrops.Rushed(ShotAtomTuning.EliteDropChance) == 1f && ShotAtomDrops.Rushed(ShotAtomTuning.BossSecondDropChance) == 1f);
         ShotAtoms.BeginRun();
         ShotAtomDrops.Clear();
@@ -417,7 +417,7 @@ public static class ShotAtomsTest
         ShotAtomDrops.Clear();
         AtomSpacing.Reset();
         clock += 100f;
-        Check("rush off: back to 3%", !ShotAtomDrops.OnEnemyKilled(plain, .04f));
+        Check("rush off: back to the normal level chance", !ShotAtomDrops.OnEnemyKilled(plain, .20f));
         ShotAtomDrops.ResetSeams();
         ShotAtomDrops.Clear();
         ClearCoins();
@@ -457,15 +457,15 @@ public static class ShotAtomsTest
             {
                 float prev = ShotAtomTuning.TwinShots[level - 1] * ShotAtomTuning.TwinDamage[level - 1];
                 float now = ShotAtomTuning.TwinShots[level] * ShotAtomTuning.TwinDamage[level];
-                growth &= now / prev >= 1.08f && now / prev <= 1.16f;
+                growth &= now >= prev && Mathf.Approximately(ShotAtomTuning.TwinDamage[level], .75f);
                 widening &= ShotAtomTuning.TwinHalfFan[level] > ShotAtomTuning.TwinHalfFan[level - 1];
             }
         }
         Check("TWIN: 1, 2, 3, 4, 4, 5, 5, 6, 6, 7, 7 bullets a volley at levels 0-10", counts);
         Check("... L1 two parallel, L2+ a fan whose angles are the tuning's (it widens with the level, at most +-" + ShotAtomTuning.TwinHalfFan[10] + " degrees)", angles && widening && ShotAtomTuning.TwinHalfFan[10] <= 22f);
-        Check("... the volley's worth grows 8-16% a level from level 4 on, never as fast as the shot count (L10 = " +
+        Check("... the volley never loses damage on an upgrade and each bullet uses three quarters (L10 = " +
               (ShotAtomTuning.TwinShots[10] * ShotAtomTuning.TwinDamage[10]).ToString("0.00") + "x of one shot)", damage && growth &&
-              ShotAtomTuning.TwinShots[10] * ShotAtomTuning.TwinDamage[10] < 5f && ShotAtomTuning.TwinDamage[1] < 1f);
+              Mathf.Approximately(ShotAtomTuning.TwinShots[10] * ShotAtomTuning.TwinDamage[10], 5.25f) && ShotAtomTuning.TwinDamage[1] < 1f);
         ShotAtoms.SetLevel(ShotAtom.Twin, 1);
         FloatieBullets.ReleaseAll();
         r.battery.Fire(0);
@@ -485,14 +485,13 @@ public static class ShotAtomsTest
         EliteSystem.PlayerOverride = pilot;
         var e = EliteShip.CreateInPlay(BaseEliteDefs.For("gunship"), new Vector2(0f, 1f));
         e.AttackCooldown = 99f;
-        FloatieBank.Clear();
+        float initialHealth = e.Health;
         var bullet = Launch(e.transform.position + Vector3.down * .08f, Vector3.up, ModsFor(damage: ShotAtomTuning.TwinDamage[2]));
         bullet.Tick(Dt);
-        Check("a TWIN bullet is a share of the quarter heart on an elite (" + FloatieBank.Of(e).ToString("0.000") + ")",
-              Mathf.Abs(FloatieBank.Of(e) - FloatieTuning.EliteWeight * ShotAtomTuning.TwinDamage[2]) < 1e-4f && !bullet.Active);
+        Check("a TWIN bullet removes three quarters of an elite heart, with no extra scaling",
+              Mathf.Approximately(initialHealth - e.Health, .75f) && !bullet.Active);
         Object.DestroyImmediate(pilot.gameObject);
         EliteSystem.PlayerOverride = null;
-        FloatieBank.Clear();
     }
 
     static void Pierce()
@@ -549,15 +548,15 @@ public static class ShotAtomsTest
             counts &= shards == ShotAtomTuning.SplitShards[level];
             if (target != null) Object.DestroyImmediate(target);
         }
-        Check("SPLIT: a hit breaks the shot into 2, 2, 3, 3, 4, 4, 5, 5, 6, 6 shards at levels 1-10 (and the shot itself ends), shard damage 40% -> 65%", counts &&
-              ShotAtomTuning.SplitDamage[1] == .40f && ShotAtomTuning.SplitDamage[10] == .65f);
+        Check("SPLIT: a hit breaks the shot into 2, 2, 3, 3, 4, 4, 5, 5, 6, 6 shards at levels 1-10 (and the shot itself ends), shard damage 50% -> 75%", counts &&
+              ShotAtomTuning.SplitDamage[1] == .50f && ShotAtomTuning.SplitDamage[10] == .75f);
         Check("... small partial-damage shards that never split, zap or pierce again, flying diagonally", shardsOk);
 
         // a shard really hits: level 1 sends shards at +-45 degrees; an enemy on that line dies
         FloatieBullets.ReleaseAll();
         var first = Hazard(0f, 1f);
         float d = 1.2f;
-        var side = Hazard(Mathf.Sin(45f * Mathf.Deg2Rad) * d, 1f + Mathf.Cos(45f * Mathf.Deg2Rad) * d);
+        var side = Hazard(Mathf.Sin(ShotAtomTuning.SplitHalfFan[1] * Mathf.Deg2Rad) * d, 1f + Mathf.Cos(ShotAtomTuning.SplitHalfFan[1] * Mathf.Deg2Rad) * d);
         var b2 = Launch(new Vector3(0f, .92f, 0f), Vector3.up, ModsFor(shards: 1));
         var pool = FloatieBullets.All;
         for (int i = 0; i < 60; i++)
@@ -663,11 +662,11 @@ public static class ShotAtomsTest
             FloatieBullets.ReleaseAll();
         }
         Check("... a target just inside a level's range is reached, just past it is not", rangeOk);
-        bool grows = ShotAtomTuning.ArcRange[1] == 2f && ShotAtomTuning.ArcRange[10] == 4f && ShotAtomTuning.ArcDamage[1] == .5f && ShotAtomTuning.ArcDamage[10] == .85f &&
+        bool grows = ShotAtomTuning.ArcRange[1] == 2f && ShotAtomTuning.ArcRange[10] == 4.25f && ShotAtomTuning.ArcDamage[1] == .5f && ShotAtomTuning.ArcDamage[10] == 1f &&
                      ShotAtomTuning.ArcJumps[10] == 6 && ShotAtomTuning.ArcJumps[10] + 2 <= 8;
         for (int l = 2; l <= ShotAtomTuning.MaxLevel; l++)
-            grows &= ShotAtomTuning.ArcRange[l] > ShotAtomTuning.ArcRange[l - 1] && ShotAtomTuning.ArcDamage[l] > ShotAtomTuning.ArcDamage[l - 1] && ShotAtomTuning.ArcJumps[l] >= ShotAtomTuning.ArcJumps[l - 1];
-        Check("... range 2.0 -> 4.0 and damage 50% -> 85% go up every level, the jumps never go down (1 .. 6)", grows);
+            grows &= ShotAtomTuning.ArcRange[l] > ShotAtomTuning.ArcRange[l - 1] && ShotAtomTuning.ArcDamage[l] >= ShotAtomTuning.ArcDamage[l - 1] && ShotAtomTuning.ArcJumps[l] >= ShotAtomTuning.ArcJumps[l - 1];
+        Check("... range 2.0 -> 4.25 grows every level and quarter damage 50% -> 100% never drops, the jumps never go down (1 .. 6)", grows);
         VoltArcs.StopAll();
         var a1 = Hazard(0f, 1f);
         var b1 = Hazard(1f, 1f);
@@ -695,8 +694,8 @@ public static class ShotAtomsTest
             ok &= Mathf.Abs(FloatieTuning.Cooldown(2, 4, false) - Mathf.Max(ShotAtomTuning.MinCooldown, baseSeeker / (1f + bonus[level]))) < 1e-4f;
             ok &= Mathf.Abs(FloatieTuning.Cooldown(0, 0, true) - Mathf.Max(ShotAtomTuning.MinCooldown, baseBoss / (1f + bonus[level]))) < 1e-4f;
         }
-        Check("RAPID: the gun's cooldown is base / (1 + 20% .. 160%), the seeker's and a boss fight's too (base " + baseCd + " s on this build)", ok &&
-              bonus[1] == .20f && bonus[2] == .35f && bonus[9] == 1.40f && bonus[10] == 1.60f);
+        Check("RAPID: the gun's cooldown is base / (1 + 25% .. 250%), the seeker's and a boss fight's too (base " + baseCd + " s on this build)", ok &&
+              bonus[1] == .25f && bonus[2] == .50f && bonus[9] == 2.25f && bonus[10] == 2.50f);
         ShotAtoms.SetLevel(ShotAtom.Rapid, ShotAtomTuning.MaxLevel);
         Check("... and never under the floor (" + ShotAtomTuning.MinCooldown + " s): a 1 s cooldown at level 10 is " + ShotAtoms.Rapid(1f).ToString("0.00") + " s, a cooldown already lower is left alone",
               Mathf.Abs(ShotAtoms.Rapid(1f) - ShotAtomTuning.MinCooldown) < 1e-5f && Mathf.Abs(ShotAtoms.Rapid(.3f) - .3f) < 1e-5f && FloatieTuning.Cooldown(0, 0, false) >= ShotAtomTuning.MinCooldown);
@@ -707,7 +706,7 @@ public static class ShotAtomsTest
         float expected = 12f / (baseCd / (1f + ShotAtomTuning.RapidBonus[ShotAtomTuning.MaxLevel]));
         Check("... and it fires that much faster in play (" + r.battery.Shots[0] + " shots in 12 s, about " + expected.ToString("0") + ")",
               Mathf.Abs(r.battery.Shots[0] - expected) <= 2f);
-        Check("the pure rule: Rapid(seconds) = seconds / (1 + bonus), floored", Mathf.Abs(ShotAtoms.Rapid(2f) - 2f / 2.6f) < 1e-4f && Mathf.Abs(ShotAtoms.RapidBonus() - 1.6f) < 1e-5f);
+        Check("the pure rule: Rapid(seconds) = seconds / (1 + bonus), floored", Mathf.Abs(ShotAtoms.Rapid(2f) - 2f / 3.5f) < 1e-4f && Mathf.Abs(ShotAtoms.RapidBonus() - 2.5f) < 1e-5f);
         Teardown(r);
     }
 
@@ -821,8 +820,8 @@ public static class ShotAtomsTest
               PickupArt.BurstName(PickupKind.ShotRapid) == "shot_rapid_burst" && PickupArt.Frames("shot_rapid_burst", 6)[0] != null);
         {
             var shown = popupHud != null ? popupHud.AtomUpgradeText : null;
-            Check("catching a coin shows the upgrade popup: 'RAPID FIRE  ALL DRONES', the big 'LV 1' and the hint '+20% fire rate', in the atom's own colour",
-                  shown != null && shown.text.Contains("RAPID FIRE  ALL DRONES") && shown.text.Contains("LV 1") && shown.text.Contains("+20% fire rate") && shown.color == ShotAtoms.Colour(ShotAtom.Rapid));
+            Check("catching a coin shows the upgrade popup: 'RAPID FIRE  ALL DRONES', the big 'LV 1' and the hint '+25% fire rate', in the atom's own colour",
+                  shown != null && shown.text.Contains("RAPID FIRE  ALL DRONES") && shown.text.Contains("LV 1") && shown.text.Contains("+25% fire rate") && shown.color == ShotAtoms.Colour(ShotAtom.Rapid));
         }
         var third = ShotAtomPickup.Build(ShotAtom.Arc, Vector3.zero);
         var firstPopup = popupHud != null ? popupHud.AtomUpgradeText : null;
@@ -861,7 +860,7 @@ public static class ShotAtomsTest
                   ShotAtoms.UpgradeHint(ShotAtom.Twin, 2) == "3 shots in a fan" && ShotAtoms.MaxedTitle(ShotAtom.Twin) == "TWIN MAXED  +2 DUST");
             Check("the popup reads 'LV 10' at the top, with MAXED on the hint line (two digits, the title stays short)",
                   ShotAtoms.UpgradeLevel(10) == "LV 10" && ShotAtoms.UpgradeTitle(ShotAtom.Ricochet, 0, "RIGHT LOW DRONE") == "RICOCHET SHOT -> RIGHT LOW DRONE" &&
-                  ShotAtoms.UpgradeHint(ShotAtom.Twin, 10) == "MAXED  7 shots in a fan" && ShotAtoms.UpgradeHint(ShotAtom.Rapid, 10) == "MAXED  +160% fire rate" &&
+                  ShotAtoms.UpgradeHint(ShotAtom.Twin, 10) == "MAXED  7 shots in a fan" && ShotAtoms.UpgradeHint(ShotAtom.Rapid, 10) == "MAXED  +250% fire rate" &&
                   !ShotAtoms.UpgradeHint(ShotAtom.Twin, 9).StartsWith("MAXED") && ShotAtoms.UpgradeLevel(1) == "LV 1");
         }
         Check("an ARC past level 10 pays dust (\"" + rig.cd.hypeText.text + "\") and the level stays 10",
@@ -928,7 +927,7 @@ public static class ShotAtomsTest
                     inBoard &= hud.height <= 0f || (r.xMin >= hud.xMin - .5f && r.xMax <= hud.xMax + .5f);
                     railsClear &= r.xMin >= band.left - .5f && r.xMax <= band.right + .5f;
                     // with nothing else under the board the row sits right under the board's bottom frame (a gap, no more)
-                    if (i == 0) snug &= hud.height <= 0f || Mathf.Abs(r.yMax - (frameBottom - gapPx)) <= 2f;
+                    if (i == 0) snug &= hud.height <= 0f || Mathf.Abs(frameBottom - ShotAtomHud.VisibleIconTop(geo) - geo.originalVisibleGap * .5f) <= 2f;
                     if ((!inside || clash || !below || !low) && firstBad == null) firstBad = d.id + " rail " + rail + " world " + world + " rows " + rows + " slot " + i + " " + r + " hud " + hud;
                 }
                 }
@@ -939,7 +938,7 @@ public static class ShotAtomsTest
         Check("... clear of the score board, the Replay/Home pair, the boss chip and banner, PORTAL DANGER's chip and the booster column" + bad, clear);
         Check("... under the score board" + bad, under);
         Check("... horizontally inside the score board's width (so never beside the rails)" + bad, inBoard && railsClear);
-        Check("... the row's top is the board's VISIBLE bottom edge minus one gap (+-2 px) for every world's frame on every ScreenFit device" + bad, snug);
+        Check("... the visible coin art is halfway closer to the board (+-2 px) for every world's frame on every ScreenFit device" + bad, snug);
         Check("... never in the bottom " + BoosterHud.LowestShare.ToString("0%") + " of the screen" + bad, high);
         Check("... with 1, 3 and 6 drones (one row each) no slot overlaps another, and all stay in the safe area" + bad, apart);
         Check("... coins are whole-pixel squares inside their slots", whole);
@@ -1099,6 +1098,9 @@ public static class ShotAtomsTest
 
     static void CodexEntries()
     {
+        PlayerPrefs.DeleteKey(Codex.PrefsKey);
+        PlayerPrefs.SetInt(DeveloperUnlocks.EnabledKey, 0);
+        Codex.Reload();
         var wanted = new[]
         {
             (ShotAtom.Twin, "Twin Atom", ""), (ShotAtom.Pierce, "Pierce Atom", ""), (ShotAtom.Split, "Split Atom", ""),
@@ -1119,14 +1121,14 @@ public static class ShotAtomsTest
             var coin = ShotAtomPickup.Build(atom, Vector3.zero);
             match &= Codex.IdFor(coin) == e.id;
             Object.DestroyImmediate(coin);
-            locked &= atom == ShotAtom.Rapid || atom == ShotAtom.Arc || !Codex.IsDiscovered(e.id) || DeveloperUnlocks.Enabled;
+            locked &= !Codex.IsDiscovered(e.id);
         }
         Check("the Codex lists the six shot atoms with their names in the Atoms tab", all);
         Check("... each with its level effects, 'dropped by every elite and boss', no world unlock line, and the level cap", lore);
         Check("... each with its coin as the icon and its idle flipbook", art);
         Check("... the lore is a bullet list (one line each)", bulleted);
         Check("... catching a coin (its name) resolves to its own entry, so the first catch discovers it like every atom", match);
-        Check("... and a new profile has not discovered them (they stay locked until the first catch; RAPID and ARC were caught earlier in this suite)", locked);
+        Check("... and a fresh profile keeps every coin locked until discovery", locked);
         var twin = Codex.Find("atom_shot_twin");
         Check("the TWIN lore quotes the tuning range (2 parallel shots at level 1, 7 in a fan at level 10) and the max level", twin != null && twin.lore.Contains("2 parallel shots") && twin.lore.Contains("7 shots in a narrow fan") && twin.lore.Contains("MAX LEVEL  10"));
         Check("the old atoms are untouched (blue, red, green, violet, magnetic still there)", Codex.Find("atom_blue") != null && Codex.Find("atom_red") != null && Codex.Find("atom_green") != null &&

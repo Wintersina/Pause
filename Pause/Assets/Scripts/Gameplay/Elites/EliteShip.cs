@@ -70,10 +70,10 @@ using UnityEngine;
 // clamped to the view, it plans no evasions (the reflex still pushes it off what is about to hit it) and the rails do not crash it;
 // while it is outside the board it is untouchable, like a hiding elite (no collider, no hazard tag, not a target).
 //
-// DAMAGE (one heart each). ELITES ARE MINI-BOSSES (user, 2026-10-28):
+// DAMAGE. ELITES ARE MINI-BOSSES:
 //   * the pilot's weapons -- a player weapon, the ultimate, the red atom's free shot or a secret power
-//     (ShipAttackHits -> TakeShipAttack) -- land back to back: one heart per hit, at most one heart per
-//     HitBlockSeconds (0.1 s) -- the only window a weapon hit respects;
+//     land back to back with no repeat-hit delay. Coin bullets use direct quarter-heart values;
+//     other attacks remove one heart per hit;
 //   * a pause jump landing on it (TeleportFx -> TeleportStrike) is NOT an instant kill: it costs exactly
 //     ONE heart (grace or not) with a "PAUSE BLOCKED" popup, and the elite then ignores further blinks for
 //     BlinkGuardSeconds (one blink = one hit, never a chain kill in an instant); at its last heart the blink
@@ -101,9 +101,8 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint, I
     public const int RailOrder = 0;            // the side rails (gameS1 leftPipe / rightPipe)
     public const int PlayOrder = -3;           // UNDER the rails: hull, plumes, lights, glows and hearts (PlayOrder + 2 at most) all sort below RailOrder, so a hull flying off and back passes beneath them; over the backdrop, docks and weather (<= -7)
     public const float GraceSeconds = .5f;     // after losing a heart: no further crash / rail / contact / friendly-fire heart (NOT the weapons' window)
-    // The player's weapons land back to back: a weapon hit (EliteDamage.PlayerWeapon) is refused only within this long of the
-    // last heart lost, so a stream of hits costs at most one heart per 0.1 s (user, 2026-10-28; bosses keep their own 0.25 s window).
-    public const float HitBlockSeconds = .1f;
+    // Player weapons can land continuously.
+    public const float HitBlockSeconds = 0f;
     // A pause jump onto an elite costs TeleportHearts (2) hearts, then the elite ignores blinks this long (world clock: a pause freezes it too),
     // so one blink -- or blinks repeated inside a pause -- can never take more than one heart at once.
     public const float BlinkGuardSeconds = .5f;
@@ -149,7 +148,10 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint, I
     public EliteBrain Brain { get; private set; }
     public EliteAttack Attack { get; private set; }
     public EliteState State { get; private set; }
-    public int Hearts { get; private set; }
+    int heartQuarters;
+    public int Hearts { get { return HeartDamage.WholeHearts(heartQuarters); } private set { heartQuarters = Mathf.Max(0, value) * HeartDamage.PerHeart; } }
+    public int QuartersLeft => heartQuarters;
+    public float Health => HeartDamage.Hearts(heartQuarters);
     // The hearts the fight script thinks in: the authored count (EliteDef.hearts), a lost authored heart being EliteDef.Scale real ones.
     public int ScriptHearts { get { int s = EliteDef.Scale; return (Hearts + s - 1) / s; } }
     public Vector2 Velocity { get { return velocity; } set { velocity = value; } }
@@ -1465,19 +1467,22 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint, I
     // ---- damage -------------------------------------------------------------
 
     // `amount` hearts; false if refused (its window, a soaking shield / plate).
-    // A weapon hit respects only HitBlockSeconds; Teleport (TeleportStrike: one heart, its own BlinkGuardSeconds), ShieldRam and
+    // Weapon hits have no cooldown; Teleport (its own BlinkGuardSeconds), ShieldRam and
     // Domino ignore every window; the rest (contact, crashes, rails, friendly fire, combo links) respect GraceSeconds.
-    public bool TakeHit(EliteDamage cause, Vector3 at, int amount = 1)
+    public bool TakeHit(EliteDamage cause, Vector3 at, int amount = 1) => TakeHeartDamage(cause, at, Mathf.Max(1, amount));
+
+    // Coin damage arrives as actual quarter-heart amounts, with no second drone multiplier or hidden bank.
+    public bool TakeHeartDamage(EliteDamage cause, Vector3 at, float amount)
     {
         string by = HitBy;
         HitBy = null;
-        if (State == EliteState.Dead || !InPlay) return false;
-        if (cause == EliteDamage.PlayerWeapon) { if (hitBlock > 1e-4f) return false; }
-        // (Domino: the death crash's wreckage, DeathCrash; Teleport: a pause jump aimed at it always connects)
-        else if (grace > 0f && cause != EliteDamage.ShieldRam && cause != EliteDamage.Domino && cause != EliteDamage.Teleport) return false;
+        if (State == EliteState.Dead || !InPlay || amount <= 0f) return false;
+        // Weapon hits can land continuously. Physical collisions retain their existing contact guard.
+        if (cause != EliteDamage.PlayerWeapon && grace > 0f && cause != EliteDamage.ShieldRam && cause != EliteDamage.Domino && cause != EliteDamage.Teleport) return false;
         // (a shield link or an armour plate soaks it: no heart)
         if (Attack != null && Attack.Absorbs(cause, at)) return false;
-        Hearts = Mathf.Max(0, Hearts - Mathf.Max(1, amount));
+        int before = Hearts;
+        heartQuarters = Mathf.Max(0, heartQuarters - HeartDamage.Units(amount));
         LastHitCause = cause;
         LastHitBy = by;
         impactPending = true;
@@ -1490,7 +1495,7 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint, I
         if (heartsView != null) heartsView.Refresh();
         EliteSystem.Fx.Sparks(at, Def.HeartColor, 6);
         if (Hearts <= 0) Die(cause);
-        else HeartLost(at);
+        else if (Hearts < before) HeartLost(at);
         return true;
     }
 
@@ -1617,6 +1622,14 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint, I
         if (!InPlay || weight <= 0f) return;
         Vector3 blast = Vector3.Lerp(transform.position, at, .5f);
         if (TakeHit(EliteDamage.PlayerWeapon, at))
+            TargetExplosion.Spawn(blast, TargetExplosion.KindForWorld(Def != null ? Def.world : null), TargetExplosion.Size.Small, ship);
+    }
+
+    public void TakeDroneAttack(int ship, float damage, Vector3 at)
+    {
+        if (!InPlay || damage <= 0f) return;
+        Vector3 blast = Vector3.Lerp(transform.position, at, .5f);
+        if (TakeHeartDamage(EliteDamage.PlayerWeapon, at, damage))
             TargetExplosion.Spawn(blast, TargetExplosion.KindForWorld(Def != null ? Def.world : null), TargetExplosion.Size.Small, ship);
     }
 

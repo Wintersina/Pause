@@ -1430,10 +1430,12 @@ public static class ScreenFitScreens
         float k = hudRect.height / Mathf.Max(1f, styler.HudRoot.rect.size.y);   // screen px per HUD canvas unit, as drawn
         float visibleBottom = frame.yMin + HudSkin.BoardVisibleBottomClear(world) * k;
         float gap = Mathf.Max(1f, Mathf.Round(ShotAtomHud.GapUnits * PauseQuickActions.CanvasScaleFor(new Vector2(rig.W, rig.H))));
-        float want = visibleBottom - gap;
-        string detail = "slot top " + s0.yMax.ToString("F1") + " vs board visible bottom " + visibleBottom.ToString("F1") + " - gap " + gap + " = " + want.ToString("F1") +
+        var geo = row.CurrentGeometry;
+        float visibleTop = s0.yMax - geo.icon * (10f / 196f);
+        float want = visibleBottom - geo.originalVisibleGap * .5f;
+        string detail = "visible icon top " + visibleTop.ToString("F1") + " vs halfway toward board " + visibleBottom.ToString("F1") + " = " + want.ToString("F1") +
                         " (frame " + frame + ", read-out " + hudRect + ", geometry top " + row.CurrentGeometry.top.ToString("F1") + ", live hud " + row.CurrentHud + ")";
-        if (Mathf.Abs(s0.yMax - want) > ShotRowTolerancePx) rig.Fail("SHOTROW", "ShotAtomSlot0", detail, s0);
+        if (Mathf.Abs(visibleTop - want) > ShotRowTolerancePx) rig.Fail("SHOTROW", "ShotAtomSlot0", detail, s0);
         else Debug.Log("[SHOTROW] ok " + rig.device.id + " world " + world + ": " + detail);
         UnityEngine.Object.DestroyImmediate(host);
     }

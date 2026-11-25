@@ -25,7 +25,7 @@ public static class NukeBossDamageTest
             NukeTakesThreeInOneHit();
             OtherShipsStayOneHit();
             LowHealthKillsCleanlyOnce();
-            WindowBlocksThenLetsItThrough();
+            ConsecutiveNukesApplyImmediately();
         }
         finally
         {
@@ -89,7 +89,7 @@ public static class NukeBossDamageTest
         int hp = e.HitPointsLeft, hearts = e.HeartsLeft;
         Check("one nuke lands", ShipAttackHits.HitBoss(t, 16, ShipSignaturesG3.NukeBossWeight(0), t.transform.position));
         Check("... and takes exactly 3 boss health (" + e.HitPointsLeft + " left of " + hp + ")", e.HitPointsLeft == hp - 3);
-        Check("... as a single hit that opens the hit window once", e.Hits == 1 && e.Invulnerable);
+        Check("... as a single hit with no repeat-hit cooldown", e.Hits == 1 && !e.Invulnerable);
         Check("... and the hearts follow (3 of " + hearts + " gone)", e.HeartsLeft == hearts - 3);
         Check("the fight goes on", e.State == BossEncounter.Phase.Fight && !e.Destroyed);
     }
@@ -114,7 +114,7 @@ public static class NukeBossDamageTest
         {
             var e = StartFight();
             var t = Target(e);
-            // spend health down to `left` (whole hits, stepping past each hit window)
+            // Spend health down to `left`; settling also advances the visual feedback.
             while (e.HitPointsLeft > left)
             {
                 e.OnShipAttackHit(1f);
@@ -134,18 +134,18 @@ public static class NukeBossDamageTest
         }
     }
 
-    static void WindowBlocksThenLetsItThrough()
+    static void ConsecutiveNukesApplyImmediately()
     {
         var e = StartFight();
         var t = Target(e);
-        e.OnShipAttackHit(1f);   // raw bookkeeping, no window
-        t.Strike(1, 1f, t.transform.position);   // a landed hit opens the 0.25 s window
-        Check("a hit opened the window", e.Invulnerable);
+        e.OnShipAttackHit(1f);
+        t.Strike(1, 1f, t.transform.position);
         int hp = e.HitPointsLeft;
-        Check("a nuke inside the window is blocked and asks to retry",
-              !ShipAttackHits.HitBoss(t, 16, 3f, t.transform.position) && e.HitPointsLeft == hp);
-        e.Step(BossConfig.HitInvulnerableSeconds + .02f, 1f);
-        Check("the window closes", !e.Invulnerable);
-        Check("the retried nuke lands in full", ShipAttackHits.HitBoss(t, 16, 3f, t.transform.position) && e.HitPointsLeft == hp - 3);
+        int hits = e.Hits;
+        Check("a weapon hit leaves no boss repeat-hit cooldown", !e.Invulnerable && BossConfig.HitInvulnerableSeconds == 0f);
+        Check("a nuke immediately after another weapon lands in full",
+              ShipAttackHits.HitBoss(t, 16, 3f, t.transform.position) && e.HitPointsLeft == hp - 3 && e.Hits == hits + 1);
+        Check("a second nuke in the same frame also lands in full",
+              ShipAttackHits.HitBoss(t, 16, 3f, t.transform.position) && e.HitPointsLeft == hp - 6 && e.Hits == hits + 2);
     }
 }

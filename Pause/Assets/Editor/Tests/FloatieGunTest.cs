@@ -54,7 +54,6 @@ public static class FloatieGunTest
         buttonClicks.playerDied = false;
         score.pauseCounter = 0;
         Time.timeScale = 1f;
-        FloatieBank.Clear();
         FloatieBullets.ReleaseAll();
         AttackPool.StopAll();
         EliteSystem.Clear();
@@ -167,10 +166,11 @@ public static class FloatieGunTest
     }
 
     // A bullet launched just below `at`, flying up, stepped once.
-    static FloatieBullet BulletAt(Vector3 at, int ship = 1)
+    static FloatieBullet BulletAt(Vector3 at, int ship = 1, float damage = 1f)
     {
         var b = FloatieBullets.Take();
-        b.Launch(null, ship, at + Vector3.down * .08f, Vector3.up, Color.white, default(FloatieAim.Pick));
+        var mods = FloatieBullet.Mods.Plain; mods.damage = damage;
+        b.Launch(null, ship, at + Vector3.down * .08f, Vector3.up, Color.white, default(FloatieAim.Pick), mods);
         b.Tick(Dt);
         return b;
     }
@@ -484,13 +484,12 @@ public static class FloatieGunTest
         var e = EliteShip.CreateInPlay(BaseEliteDefs.For("gunship"), new Vector2(0f, 1f));
         e.AttackCooldown = 99f;
         int hearts = e.Hearts;
-        FloatieBank.Clear();
-        var b = BulletAt(e.transform.position);
-        Check("a bullet costs an elite a QUARTER heart: banked, no heart lost yet",
-              !b.Active && e.Hearts == hearts && Mathf.Approximately(FloatieBank.Of(e), FloatieTuning.EliteWeight));
-        for (int i = 0; i < 3; i++) BulletAt(e.transform.position);
-        Check("... the fourth bullet takes the heart (" + hearts + " -> " + e.Hearts + "), through the elite's own hit rules",
-              e.Hearts == hearts - 1 && FloatieBank.Of(e) < .01f);
+        float initialHealth = e.Health;
+        var b = BulletAt(e.transform.position, damage: .25f);
+        Check("25% damage removes exactly one elite quarter immediately",
+              !b.Active && e.Hearts == hearts && Mathf.Approximately(e.Health, initialHealth - .25f));
+        for (int i = 0; i < 3; i++) BulletAt(e.transform.position, damage: .25f);
+        Check("four same-frame quarter hits remove one full heart without a bank or cooldown", e.Hearts == hearts - 1 && Mathf.Approximately(e.Health, initialHealth - 1f));
         Object.DestroyImmediate(pilot.gameObject);
         EliteSystem.PlayerOverride = null;
     }
@@ -509,7 +508,7 @@ public static class FloatieGunTest
         float damage = e.Damage;
         int hits = e.Hits;
         var b = BulletAt(body.transform.position);
-        Check("a bullet is a quarter hit on the boss, through its own hit rules (damage +" + (e.Damage - damage) + ")",
+        Check("a plain bullet removes one boss heart immediately (damage +" + (e.Damage - damage) + ")",
               !b.Active && e.Hits == hits + 1 && Mathf.Abs(e.Damage - damage - FloatieTuning.BossWeight) < .001f);
         BossEncounter.ResetRun();
     }
