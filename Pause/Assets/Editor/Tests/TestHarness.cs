@@ -54,10 +54,11 @@ public static class TestHarness
     // this Unity's Mono, so an "allocates nothing" check built on it can
     // never fail; EnemyBehaviourTest found the recorder to be the meter that
     // works here.) Warm `work` up first: a first call JITs and fills caches.
-    static long AllocatedBytesOnce(Action work)
+    static long AllocatedBytesOnce(Action work, bool currentThreadOnly)
     {
-        using (var rec = Unity.Profiling.ProfilerRecorder.StartNew(Unity.Profiling.ProfilerCategory.Memory, "GC.Alloc", 1,
-                   Unity.Profiling.ProfilerRecorderOptions.SumAllSamplesInFrame | Unity.Profiling.ProfilerRecorderOptions.StartImmediately))
+        var options = Unity.Profiling.ProfilerRecorderOptions.SumAllSamplesInFrame | Unity.Profiling.ProfilerRecorderOptions.StartImmediately;
+        if (currentThreadOnly) options |= Unity.Profiling.ProfilerRecorderOptions.CollectOnlyOnCurrentThread;
+        using (var rec = Unity.Profiling.ProfilerRecorder.StartNew(Unity.Profiling.ProfilerCategory.Memory, "GC.Alloc", 1, options))
         {
             if (!rec.Valid) return -1;
             long before = rec.CurrentValue;
@@ -73,13 +74,15 @@ public static class TestHarness
     // allocation in `work` shows up in every repeat, a stray one does not. Zero readings are returned at
     // once (nothing to filter), so no check gets stricter. `work` must therefore be repeatable (every
     // caller steps a warmed-up sim, which is).
+    // Synchronous helpers can opt into thread-local samples to exclude editor worker allocations.
+    // Simulations keep the process-wide default so allocations in their own worker jobs remain visible.
     const int NoiseRepeats = 4;
-    public static long AllocatedBytes(Action work)
+    public static long AllocatedBytes(Action work, bool currentThreadOnly = false)
     {
-        long best = AllocatedBytesOnce(work);
+        long best = AllocatedBytesOnce(work, currentThreadOnly);
         for (int i = 0; i < NoiseRepeats && best > 0; i++)
         {
-            long again = AllocatedBytesOnce(work);
+            long again = AllocatedBytesOnce(work, currentThreadOnly);
             if (again < best) best = again;
         }
         return best;
@@ -101,7 +104,7 @@ public static class TestHarness
     const int ControlRepeat = 4, ControlAttempts = 5;
     static object allocSink;
 
-    public static bool AllocMeterWorks(out long controlBytes)
+    public static bool AllocMeterWorks(out long controlBytes, bool currentThreadOnly = false)
     {
         Action control = () => { for (int i = 0; i < AllocControlCount * ControlRepeat; i++) allocSink = new byte[32]; };
         control();   // JIT + caches
@@ -109,7 +112,7 @@ public static class TestHarness
         controlBytes = 0;
         for (int attempt = 0; attempt < ControlAttempts; attempt++)
         {
-            long b = AllocatedBytes(control);
+            long b = AllocatedBytes(control, currentThreadOnly);
             if (b > controlBytes) controlBytes = b;
             if (controlBytes >= AllocControlCount * 8) break;
         }
@@ -121,7 +124,7 @@ public static class TestHarness
         Action leak = () => { for (int i = 0; i < 64; i++) allocSink = new byte[64]; };
         Action clean = () => { };
         leak(); clean();
-        return AllocatedBytes(leak) > 0 && AllocatedBytes(clean) == 0;
+        return AllocatedBytes(leak, currentThreadOnly) > 0 && AllocatedBytes(clean, currentThreadOnly) == 0;
     }
 
     // ---- GPU memory --------------------------------------------------------

@@ -116,17 +116,56 @@ public static class PerfSafeWinsTest
 
         // 1,234,567 (steady) and a rolling figure: the writer itself allocates nothing.
         long control;
-        if (!TestHarness.AllocMeterWorks(out control)) { Check("allocation meter works (control " + control + " B)", false); return; }
+        if (!TestHarness.AllocMeterWorks(out control, currentThreadOnly: true)) { Check("allocation meter works (control " + control + " B)", false); return; }
         long rolling = 1234567;
         Action write = () => { for (int i = 0; i < 64; i++) RunScore.FormatInto(buf, 0, rolling + i); };
         write();
-        long bytes = TestHarness.AllocatedBytes(write);
+        long bytes = TestHarness.AllocatedBytes(write, currentThreadOnly: true);
         Check("FormatInto allocates nothing (64 figures)", bytes == 0, bytes + " B");
+        BackgroundAllocations(write);
         for (int i = 0; i < 8; i++) ScoreHud.Label(rolling + i);   // JIT and the buffer
         string made = null;
-        long one = TestHarness.AllocatedBytes(() => made = ScoreHud.Label(rolling));
-        long two = TestHarness.AllocatedBytes(() => made = ScoreHud.LabelPrefix + RunScore.Format(rolling));
-        Check("ScoreHud.Label allocates no more than the one string it returns (" + one + " B; prefix + N0 " + two + " B)", one <= two);
+        long one = TestHarness.AllocatedBytes(() => { for (int i = 0; i < 64; i++) made = ScoreHud.Label(rolling + i); }, currentThreadOnly: true);
+        long two = TestHarness.AllocatedBytes(() => { for (int i = 0; i < 64; i++) made = ScoreHud.LabelPrefix + RunScore.Format(rolling + i); }, currentThreadOnly: true);
+        Check("ScoreHud.Label allocates no more than the one string it returns (" + one + " B for 64 labels; prefix + N0 " + two + " B)", one > 0 && one <= two);
+    }
+
+    // A worker allocating inside the measurement must be visible to the default meter, while a
+    // synchronous score formatter still measures zero on its own thread. The meter's positive control
+    // above independently checks that real allocations on the calling thread are caught.
+    static void BackgroundAllocations(Action write)
+    {
+        using var start = new System.Threading.AutoResetEvent(false);
+        using var done = new System.Threading.AutoResetEvent(false);
+        bool stop = false;
+        object sink = null;
+        var worker = new System.Threading.Thread(() =>
+        {
+            while (true)
+            {
+                start.WaitOne();
+                if (stop) break;
+                for (int i = 0; i < 256; i++) sink = new byte[64];
+                done.Set();
+            }
+        });
+        worker.Start();
+        try
+        {
+            Action concurrent = () => { start.Set(); done.WaitOne(); write(); };
+            concurrent(); // warm the event waits and the worker before recording
+            long allThreads = TestHarness.AllocatedBytes(concurrent);
+            long formatterThread = TestHarness.AllocatedBytes(concurrent, currentThreadOnly: true);
+            Check("the process-wide meter sees concurrent worker allocations", allThreads > 0, allThreads + " B");
+            Check("score formatting stays allocation-free with a concurrent allocating worker", formatterThread == 0, formatterThread + " B");
+        }
+        finally
+        {
+            stop = true;
+            start.Set();
+            worker.Join();
+            GC.KeepAlive(sink);
+        }
     }
 
     // ---- the menu's music streams: no decompressed copy of a song in memory ----
