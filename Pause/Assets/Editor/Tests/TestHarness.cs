@@ -67,17 +67,13 @@ public static class TestHarness
         }
     }
 
-    // The recorder is process-wide: a background thread (profiler, asset import, the other editor
-    // services) allocating during `work` adds a stray 80-250 bytes to a reading, which made "allocates
-    // nothing" checks flake under load (125 / 208 / 249 B seen for code that allocates 0). So a reading
-    // above zero is re-measured, up to NoiseRepeats more times, and the SMALLEST is reported: a real
-    // allocation in `work` shows up in every repeat, a stray one does not. Zero readings are returned at
-    // once (nothing to filter), so no check gets stricter. `work` must therefore be repeatable (every
-    // caller steps a warmed-up sim, which is).
-    // Synchronous helpers can opt into thread-local samples to exclude editor worker allocations.
-    // Simulations keep the process-wide default so allocations in their own worker jobs remain visible.
+    // A callback executes on this thread, so measure that thread by default. Process-wide GC.Alloc
+    // also counts unrelated editor import/profiler workers, which can dominate a cold CI run.
+    // Callers intentionally measuring worker jobs can opt into currentThreadOnly: false and join
+    // those jobs inside the callback. Retries still filter editor activity on the measured thread;
+    // repeatable real allocations must be visible in every sample.
     const int NoiseRepeats = 4;
-    public static long AllocatedBytes(Action work, bool currentThreadOnly = false)
+    public static long AllocatedBytes(Action work, bool currentThreadOnly = true)
     {
         long best = AllocatedBytesOnce(work, currentThreadOnly);
         for (int i = 0; i < NoiseRepeats && best > 0; i++)
@@ -98,13 +94,12 @@ public static class TestHarness
     // floor stays 8 bytes per array of AllocControlCount (i.e. a 4x margin
     // against the bytes actually allocated), and "0" is still the only
     // reading that means "nothing": a real per-frame allocation in the code
-    // under test is measured by AllocatedBytes exactly as before (a single,
-    // unfiltered reading), so it is still caught.
+    // under test is measured by the same AllocatedBytes scope and retries, so it is still caught.
     public const int AllocControlCount = 100;
     const int ControlRepeat = 4, ControlAttempts = 5;
     static object allocSink;
 
-    public static bool AllocMeterWorks(out long controlBytes, bool currentThreadOnly = false)
+    public static bool AllocMeterWorks(out long controlBytes, bool currentThreadOnly = true)
     {
         Action control = () => { for (int i = 0; i < AllocControlCount * ControlRepeat; i++) allocSink = new byte[32]; };
         control();   // JIT + caches

@@ -154,10 +154,14 @@ public static class PerfSafeWinsTest
         {
             Action concurrent = () => { start.Set(); done.WaitOne(); write(); };
             concurrent(); // warm the event waits and the worker before recording
-            long allThreads = TestHarness.AllocatedBytes(concurrent);
-            long formatterThread = TestHarness.AllocatedBytes(concurrent, currentThreadOnly: true);
-            Check("the process-wide meter sees concurrent worker allocations", allThreads > 0, allThreads + " B");
-            Check("score formatting stays allocation-free with a concurrent allocating worker", formatterThread == 0, formatterThread + " B");
+            long allThreads = TestHarness.AllocatedBytes(concurrent, currentThreadOnly: false);
+            long formatterThread = TestHarness.AllocatedBytes(concurrent);
+            Check("the explicit process-wide meter sees concurrent worker allocations", allThreads > 0, allThreads + " B");
+            long control;
+            Check("the default meter still catches calling-thread allocations", TestHarness.AllocMeterWorks(out control), control + " B");
+            long globalControl = TestHarness.AllocatedBytes(() => { for (int i = 0; i < 256; i++) sink = new byte[64]; }, currentThreadOnly: false);
+            Check("the explicit process-wide meter still catches calling-thread allocations", globalControl > 0, globalControl + " B");
+            Check("the default meter excludes a concurrent worker while score formatting stays allocation-free", formatterThread == 0, formatterThread + " B");
         }
         finally
         {
