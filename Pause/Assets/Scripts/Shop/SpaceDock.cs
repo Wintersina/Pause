@@ -435,7 +435,7 @@ public class SpaceDock : MonoBehaviour
         nudge = 0f;
         PlaceRack();
         PlaceBands(camPos, halfW, halfH);
-        PlacePlanet(wide ? rackPane : new Rect(left, bottom, right - left, top - bottom), new Rect(camPos.x - halfW, camPos.y - halfH, halfW * 2f, halfH * 2f));
+        PlacePlanet(new Rect(left, bottom, right - left, top - bottom), new Rect(camPos.x - halfW, camPos.y - halfH, halfW * 2f, halfH * 2f));
 
         if (wide)
         {
@@ -468,9 +468,9 @@ public class SpaceDock : MonoBehaviour
     public float PlanetSpaceBottom { get { return spaceBottom; } }
     public float PlanetSpaceTop { get { return spaceTop; } }
 
-    // The destination behind the lot (DockPlanet.Fit): the whole sphere on screen, about 60% of the pane's width,
-    // its centre about 10% of that width right of the middle, always inside the safe pane and the lot's space; the
-    // bands over the header / footer hide nothing of it. `view` is the whole screen, for the warp's streaks.
+    // The destination uses the full dock width even when the rack occupies a narrower pane. The disc sits
+    // slightly beyond the right edge, with its top and bottom inside the lot space. The full camera view
+    // also places the shared asteroid field and the warp streaks.
     void PlacePlanet(Rect pane, Rect view)
     {
         if (planet == null) return;

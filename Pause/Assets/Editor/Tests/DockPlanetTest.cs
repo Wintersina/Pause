@@ -37,6 +37,7 @@ public static class DockPlanetTest
         {
             Art();
             Selections(root.transform);
+            Asteroids(root.transform);
             Warp(root.transform);
             Interrupt(root.transform);
             Memory(root.transform);
@@ -110,12 +111,12 @@ public static class DockPlanetTest
         var seenKinds = new HashSet<int>();
         var widths = new HashSet<float>();
         var periods = new HashSet<float>();
-        foreach (var r in DockBody.Rocks) { seenKinds.Add(r.kind); widths.Add(r.width); periods.Add(r.period); }
+        foreach (var r in DockAsteroids.Rocks) { seenKinds.Add(r.kind); widths.Add(r.width); periods.Add(r.period); }
         kinds = seenKinds.Count;
-        Check("... with at least 4 asteroids (" + p.Front.ShownRocks + ") of several kinds (" + kinds + "), sizes (" + widths.Count + ") and speeds (" + periods.Count + ")",
-              p.Front.ShownRocks >= 4 && kinds >= 4 && widths.Count >= 4 && periods.Count >= 4);
+        Check("... with at least 4 asteroids (" + p.Asteroids.Renderers.Length + ") of several kinds (" + kinds + "), sizes (" + widths.Count + ") and speeds (" + periods.Count + ")",
+              p.Asteroids.Renderers.Length >= 4 && kinds >= 4 && widths.Count >= 4 && periods.Count >= 4);
         float rockMin = float.MaxValue;
-        foreach (var r in DockBody.Rocks) rockMin = Mathf.Min(rockMin, r.width);
+        foreach (var r in DockAsteroids.Rocks) rockMin = Mathf.Min(rockMin, r.width);
         Check("the asteroids are bigger than the old hazard-rock pebbles (>= 10% of the disc)", rockMin >= .1f);
         bool distinct = true;
         var names = new HashSet<string>();
@@ -159,6 +160,56 @@ public static class DockPlanetTest
         p.Dispose();
         Object.DestroyImmediate(p.gameObject);
         Check("a destroyed dock lets every sheet go", PlanetFlipbooks.LoadedCount == 0);
+    }
+
+    // The same roaming field survives all world selections and their warps, on the menu's unscaled clock.
+    static void Asteroids(Transform root)
+    {
+        var p = NewPlanet(root, 0);
+        var rocks = p.Asteroids.Renderers;
+        var first = rocks[0];
+        Vector3 start = first.transform.position;
+        float size = first.transform.lossyScale.x;
+        float sunWidth = p.Renderer.bounds.size.x;
+        Vector3 sunCentre = p.Renderer.bounds.center;
+        p.Show(1, false);
+        Check("sun and planet share a centre and sprite scale", Vector3.Distance(sunCentre, p.Renderer.bounds.center) < .001f && Mathf.Abs(sunWidth - p.Renderer.bounds.size.x) < .001f);
+        bool present = true, independent = true, behind = true;
+        float originalTimeScale = Time.timeScale;
+        try
+        {
+            Time.timeScale = 0f;
+            for (int w = 0; w < DockPlanet.Worlds; w++)
+            {
+                p.Show(w);
+                for (int frame = 0; frame < 60; frame++)
+                {
+                    p.Tick(Dt);
+                    foreach (var r in rocks)
+                    {
+                        present &= r != null && r.enabled && r.gameObject.activeInHierarchy && r.color.a > .99f;
+                        behind &= r.sortingOrder < DockPlanet.Order;
+                    }
+                    independent &= Mathf.Abs(first.transform.lossyScale.x - size) < .001f;
+                }
+            }
+        }
+        finally { Time.timeScale = originalTimeScale; }
+        Check("all seven dock destinations keep the same eight visible asteroid renderers through every warp", present && rocks.Length == 8 && p.Asteroids.Renderers[0] == first);
+        Check("asteroids drift with timeScale zero and stay behind the destinations", behind && Vector3.Distance(start, first.transform.position) > .1f);
+        Check("planet and sun warps never shrink or fade the asteroid field", independent);
+        p.SetView(new Rect(-7f, -3f, 14f, 6f));
+        p.Tick(600f);
+        bool inRange = true;
+        foreach (var r in rocks)
+        {
+            Vector3 c = r.transform.position;
+            float pad = r.bounds.size.magnitude;
+            inRange &= c.x >= -7f - pad && c.x <= 7f + pad && c.y >= -3f - pad && c.y <= 3f + pad;
+        }
+        Check("the drift field adapts to a resized view and keeps recycling inside its padded bounds", inRange);
+        p.Dispose();
+        Object.DestroyImmediate(p.gameObject);
     }
 
     // ---- 3 ----
@@ -286,7 +337,7 @@ public static class DockPlanetTest
         float d0 = DockPlanet.DiameterShare, o0 = DockPlanet.OffsetShare;
         try
         {
-            var panes = new[] { new Rect(-3f, -5f, 6f, 10f), new Rect(-2.5f, -6f, 5f, 12f), new Rect(-1f, -2f, 8f, 6f) };
+            var panes = new[] { new Rect(-3f, -5f, 6f, 10f), new Rect(-2.5f, -6f, 5f, 12f), new Rect(-1f, -2f, 8f, 6f), new Rect(-8f, -2f, 16f, 4f) };
             foreach (var pane in panes)
             {
                 Vector2 c; float d;
@@ -295,14 +346,14 @@ public static class DockPlanetTest
                 float share = d / pane.width, off = (c.x - pane.center.x) / pane.width;
                 bool tall = (top - bottom) * DockPlanet.MaxHeightShare >= pane.width * DockPlanet.DiameterShare;
                 Check("pane " + pane.width.ToString("F1") + "x" + pane.height.ToString("F1") + ": size " + (share * 100f).ToString("F0") + "% of the width, centre " + (off * 100f).ToString("F0") + "% right of the middle",
-                      (!tall || (share >= .55f && share <= .65f)) && off > -.001f && off <= .251f &&
+                      (!tall || (share >= .55f && share <= .65f)) && off >= DockPlanet.OffsetShare - .001f && off < .5f && c.x + d * .5f > pane.xMax &&
                       c.x - d * .5f >= pane.xMin - .001f && c.x + d * .5f <= pane.xMax + .1f * pane.width && c.y - d * .5f >= bottom - .001f && c.y + d * .5f <= top + .001f);
             }
             DockPlanet.DiameterShare = .5f;
-            DockPlanet.OffsetShare = .05f;
+            DockPlanet.OffsetShare = .4f;
             Vector2 c2; float dd;
             DockPlanet.Fit(panes[0], panes[0].yMin, panes[0].yMax, out c2, out dd);
-            Check("the numbers are tunables: size follows DiameterShare, offset OffsetShare", Mathf.Abs(dd - 3f) < .001f && Mathf.Abs(c2.x - .3f) < .001f);
+            Check("the numbers are tunables: size follows DiameterShare, offset OffsetShare", Mathf.Abs(dd - 3f) < .001f && Mathf.Abs(c2.x - 2.4f) < .001f);
             DockPlanet.DiameterShare = d0;
             DockPlanet.OffsetShare = o0;
             Check("the offset is .25 of the width right of the middle", Mathf.Abs(DockPlanet.OffsetShare - .25f) < .001f);
@@ -374,7 +425,7 @@ public static class DockPlanetTest
         mb = go.AddComponent<MenuBackdrop>();
         mb.Build(space);
         mb.EnterDock();
-        Check("a menu already on Space keeps its own Space for the dock", space.world == "Space" && mb.DockActive && mb.ShownSet == mb.Set && mb.ShownPick.Same(space));
+        Check("a menu already on Space parks its sun and shows the same sky without a second sun", space.world == "Space" && mb.DockActive && mb.ShownSet != mb.Set && mb.ShownSet.Sun == null && !mb.Set.Root.gameObject.activeSelf && mb.ShownPick.Same(space));
         mb.ExitDock();
         Check("... and leaving restores it", !mb.DockActive && mb.ShownSet == mb.Set);
         Object.DestroyImmediate(go);

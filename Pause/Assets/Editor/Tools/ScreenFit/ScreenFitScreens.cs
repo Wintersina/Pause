@@ -929,7 +929,7 @@ public static class ScreenFitScreens
             bool heightLimited = wantD < pane.width * DockPlanet.DiameterShare - .01f;
             if (!heightLimited && (share < .55f || share > .65f)) rig.Fail("DOCKLOT", "planet", "diameter is " + (share * 100f).ToString("F0") + "% of the width (want 55-65%)");
             float offset = (disc.center.x - pane.center.x) / pane.width;
-            if (offset < -.001f || offset > DockPlanet.OffsetShare + .001f) rig.Fail("DOCKLOT", "planet", "centre is " + (offset * 100f).ToString("F0") + "% of the width off the middle (want about 25%)");
+            if (offset < DockPlanet.OffsetShare - .001f || offset > .5f) rig.Fail("DOCKLOT", "planet", "centre is " + (offset * 100f).ToString("F0") + "% of the width off the middle (want rightward with a slight right-edge crop)");
         }
 
         // the viewport sits between the header and the footer buttons' tap areas

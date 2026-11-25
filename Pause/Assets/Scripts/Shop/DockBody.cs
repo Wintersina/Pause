@@ -1,6 +1,6 @@
 using UnityEngine;
 
-// The art of the Space selection, loaded once for the dock's life: the orange sun's flipbook (4096x3072, a 4x3 grid
+// Shared dock art, loaded once for the dock's life: the orange sun's flipbook (4096x3072, a 4x3 grid
 // of 1024 px frames, row-major from the top-left; the layout is read from the texture) and the drifting asteroids,
 // which are the game's EXISTING Space rocks (nothing is copied): the decorative drift field's iron / ice / molten /
 // geode (SpaceRockTypes) and the hazard field's ore / crystal / ember / shard (SpaceHazardRockTypes), each a
@@ -10,8 +10,8 @@ public sealed class DockSpaceArt
     public const string SunPath = "Worlds/Dock/space_sun_anim";
     public const int SunFrames = 12;
     public const int Kinds = 8;
-    // Seconds each of the sun's 12 frames shows (was 1/8 s, which read as boiling; now a calm 6 s loop).
-    public static float SunFrameSeconds = .5f;
+    // Seconds each of the sun's 12 frames shows (was 1/8 s, which read as boiling; now a calm 4.5 s loop).
+    public static float SunFrameSeconds = .375f;
 
     public Sprite[] sun;
     public Sprite[][] rocks;
@@ -53,37 +53,17 @@ public sealed class DockSpaceArt
     }
 }
 
-// One destination on show in the dock: a planet (its rotation, two cross-faded frames) or Space's sun with its
-// asteroids. Everything is drawn in unit space (the destination's diameter is 1) under `root`, whose scale is the
-// diameter times the warp's scale, so the warp just scales / fades the whole thing. Renderers are built once
-// (Space's lazily) and reused; a Tick allocates nothing.
+// One destination on show: a turning planet or the animated Space sun. Background asteroids live in
+// DockAsteroids, independently of these bodies, so changing worlds never removes or scales the drift field.
 public sealed class DockBody
 {
-    // A planet's frames are the whole sprite: the disc is DiscShare of it, so it is drawn this much bigger.
     static readonly float PlanetScale = 1f / PlanetFlipbooks.DiscShare;
-    // Space: the sun's width and the asteroids (width, orbit half-width, orbit period s, kind, start angle, tumble s/turn),
-    // all in shares of the destination's diameter. Eight kinds (the game's own Space rocks), several sizes and speeds,
-    // bigger than in-game but not huge; the ellipses are tilted away from the screen so rocks pass behind and in
-    // front of the sun. A negative tumble turns the other way.
-    public const float SunWidth = .46f, OrbitFlatten = .42f;
-    public struct Rock { public float width, orbit, period, start, tumble; public int kind; }
-    public static readonly Rock[] Rocks =
-    {
-        new Rock { width = .14f, orbit = .33f, period = 23f, start = 0.4f, tumble = 41f,  kind = 0 },
-        new Rock { width = .17f, orbit = .37f, period = 37f, start = 2.1f, tumble = -53f, kind = 1 },
-        new Rock { width = .11f, orbit = .30f, period = 17f, start = 3.7f, tumble = 29f,  kind = 2 },
-        new Rock { width = .16f, orbit = .40f, period = 44f, start = 5.0f, tumble = -47f, kind = 3 },
-        new Rock { width = .19f, orbit = .35f, period = 31f, start = 1.2f, tumble = 61f,  kind = 4 },
-        new Rock { width = .12f, orbit = .28f, period = 27f, start = 4.4f, tumble = -35f, kind = 5 },
-        new Rock { width = .15f, orbit = .42f, period = 52f, start = 2.9f, tumble = 57f,  kind = 6 },
-        new Rock { width = .13f, orbit = .31f, period = 20f, start = 5.7f, tumble = -43f, kind = 7 },
-    };
-    Rock[] rocks;
+    // The sun uses the same destination diameter and centre as every planet (including the right-edge crop).
+    public static readonly float SunWidth = PlanetScale;
 
     public readonly Transform root;
     readonly SpriteRenderer pa, pb;            // the planet: this frame and the next, faded in over it
     SpriteRenderer sun;
-    SpriteRenderer[] rockA;
     readonly DockSpaceArt art;
     readonly int order;
 
@@ -124,7 +104,6 @@ public sealed class DockBody
     public bool Showing { get { return root.gameObject.activeSelf; } }
     public float Alpha { get { return alpha; } }
     public float ScaleMul { get { return scaleMul; } }
-    public int ShownRocks { get { int n = 0; if (World == 0 && rockA != null) foreach (var r in rockA) if (r.enabled) n++; return n; } }
     public SpriteRenderer Sun { get { return sun; } }
     public SpriteRenderer Pb { get { return pb; } }
 
@@ -137,11 +116,11 @@ public sealed class DockBody
         World = -1;
         lastA = -1;
         pa.enabled = pb.enabled = false;
-        if (sun != null) { sun.enabled = false; foreach (var r in rockA) r.enabled = false; }
+        if (sun != null) sun.enabled = false;
         root.gameObject.SetActive(false);
     }
 
-    // Space: the sun and the asteroids (needs the Space art).
+    // Space: the sun. The shared asteroid field stays visible for every world.
     public bool ShowSpace()
     {
         Clear();
@@ -150,7 +129,6 @@ public sealed class DockBody
         World = 0;
         pa.enabled = pb.enabled = false;
         sun.enabled = true;
-        foreach (var r in rockA) r.enabled = true;
         root.gameObject.SetActive(true);
         Apply();
         return true;
@@ -209,16 +187,6 @@ public sealed class DockBody
         sun.sprite = art.sun[0];
         float k = SunWidth;
         sun.transform.localScale = new Vector3(k, k, 1f);
-        rocks = Rocks;
-        rockA = new SpriteRenderer[rocks.Length];
-        for (int i = 0; i < rocks.Length; i++)
-        {
-            rockA[i] = NewRenderer("Rock" + i, order + 2);
-            var sp = art.rocks[rocks[i].kind][0];
-            float rs = rocks[i].width / Mathf.Max(.0001f, sp.bounds.size.x);
-            rockA[i].transform.localScale = new Vector3(rs, rs, 1f);
-            rockA[i].sprite = sp;
-        }
     }
 
     public void SetLook(float scaleMul, float alpha, float diameter)
@@ -249,21 +217,6 @@ public sealed class DockBody
             int sf = Mathf.FloorToInt(clock / Mathf.Max(.01f, DockSpaceArt.SunFrameSeconds)) % art.sun.Length;
             sun.sprite = art.sun[sf];
             sun.color = new Color(d, d, d, a);
-            for (int i = 0; i < rocks.Length; i++)
-            {
-                var rk = rocks[i];
-                float ang = rk.start + clock * 6.2832f / rk.period;
-                float sx = Mathf.Cos(ang), sy = Mathf.Sin(ang);
-                var p = new Vector3(sx * rk.orbit, sy * rk.orbit * OrbitFlatten, 0f);
-                rockA[i].transform.localPosition = p;
-                // the far half of the ellipse passes behind the sun
-                int o = order + (sy > 0f ? -1 : 2);
-                rockA[i].sortingOrder = o;
-                rockA[i].transform.localRotation = Quaternion.Euler(0f, 0f, 360f * (clock / rk.tumble + rk.start));
-                var sprites = art.rocks[rk.kind];
-                rockA[i].sprite = sprites[Mathf.FloorToInt(clock * SpaceRockTypes.BlinkFps + rk.start * 3f) % sprites.Length];
-                rockA[i].color = new Color(d, d, d, a);
-            }
         }
     }
 
@@ -279,5 +232,77 @@ public sealed class DockBody
     {
         Clear();
         if (root != null) Object.Destroy(root.gameObject);
+    }
+}
+
+// A persistent field across the entire dock view, behind both the destination and deck. Rocks drift across
+// the screen and wrap only once fully outside it; each has its own blink, tumble, size and travel time.
+// Its root never inherits a destination body's warp scale. All sprites are borrowed from the game's rock cache.
+public sealed class DockAsteroids
+{
+    public struct Rock { public float width, period, start, tumble; public int kind; }
+    public static readonly Rock[] Rocks =
+    {
+        new Rock { width = .14f, period = 63f, start = .04f, tumble = 41f, kind = 0 },
+        new Rock { width = .17f, period = 87f, start = .21f, tumble = -53f, kind = 1 },
+        new Rock { width = .11f, period = 57f, start = .37f, tumble = 29f, kind = 2 },
+        new Rock { width = .16f, period = 94f, start = .50f, tumble = -47f, kind = 3 },
+        new Rock { width = .19f, period = 71f, start = .62f, tumble = 61f, kind = 4 },
+        new Rock { width = .12f, period = 77f, start = .74f, tumble = -35f, kind = 5 },
+        new Rock { width = .15f, period = 102f, start = .89f, tumble = 57f, kind = 6 },
+        new Rock { width = .13f, period = 60f, start = .97f, tumble = -43f, kind = 7 },
+    };
+    public readonly SpriteRenderer[] Renderers;
+    readonly DockSpaceArt art;
+    Rect view;
+    float clock, diameter = 1f;
+
+    public DockAsteroids(Transform parent, DockSpaceArt art)
+    {
+        this.art = art;
+        Renderers = new SpriteRenderer[art.rocks != null ? Rocks.Length : 0];
+        for (int i = 0; i < Renderers.Length; i++)
+        {
+            var go = new GameObject("DriftRock" + i);
+            go.transform.SetParent(parent, false);
+            var r = go.AddComponent<SpriteRenderer>();
+            r.sortingOrder = DockPlanet.Order - 2;
+            r.sprite = art.rocks[Rocks[i].kind][0];
+            r.color = new Color(DockPlanet.Dim, DockPlanet.Dim, DockPlanet.Dim, 1f);
+            r.enabled = false;
+            Renderers[i] = r;
+        }
+    }
+
+    public void Place(Rect view, float diameter)
+    {
+        this.view = view;
+        this.diameter = diameter;
+        Tick(0f);
+    }
+
+    public void Tick(float dt)
+    {
+        clock += dt;
+        for (int i = 0; i < Renderers.Length; i++)
+        {
+            var r = Renderers[i];
+            r.enabled = view.width > 0f && view.height > 0f;
+            if (!r.enabled) continue;
+            var rock = Rocks[i];
+            var frames = art.rocks[rock.kind];
+            r.sprite = frames[Mathf.FloorToInt(clock * SpaceRockTypes.BlinkFps + i) % frames.Length];
+            float width = diameter * rock.width;
+            float scale = width / Mathf.Max(.0001f, r.sprite.bounds.size.x);
+            r.transform.localScale = new Vector3(scale, scale, 1f);
+            // Padding covers even a rotated sprite: recycling is entirely beyond the visible camera edges.
+            float pad = width;
+            float direction = (i % 2 == 0) ? 1f : -1f;
+            float x = Mathf.Repeat(rock.start + direction * clock / rock.period, 1f);
+            float y = Mathf.Repeat(.13f + i * .381966f + clock / (rock.period * 3f), 1f);
+            r.transform.position = new Vector3(Mathf.Lerp(view.xMin - pad, view.xMax + pad, x),
+                                                Mathf.Lerp(view.yMin - pad, view.yMax + pad, y), 0f);
+            r.transform.localRotation = Quaternion.Euler(0f, 0f, 360f * (clock / rock.tumble + rock.start));
+        }
     }
 }

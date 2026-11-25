@@ -16,6 +16,96 @@ using UnityEngine.UI;
 // [-owned|-unbought].png, idle and with a bought / an unbought ship selected.
 public static class DockPreview
 {
+    // Render actual dock layouts through the same device/canvas rig used by ScreenFit.
+    public static void RunDestinations()
+    {
+        const string dir = "/private/tmp/pause-dock-finish/previews";
+        Directory.CreateDirectory(dir);
+        using (new TestHarness.Sandbox())
+        {
+            PrepareDestinations();
+            for (int world = 0; world < DockPlanet.Worlds; world++)
+            {
+                int w = world;
+                WithDock(720, 1280, (dock, mb, rig) =>
+                {
+                    SelectDestination(dock, w, false);
+                    dock.planet.Tick(4f);
+                    SaveFrame(rig, Path.Combine(dir, "world-" + w + ".png"));
+                });
+            }
+            WithDock(1100, 800, (dock, mb, rig) =>
+            {
+                SelectDestination(dock, 0, false);
+                SaveFrame(rig, Path.Combine(dir, "wide-space.png"));
+            });
+        }
+        EditorApplication.Exit(0);
+    }
+
+    public static void RunDestinationWarps()
+    {
+        const string dir = "/private/tmp/pause-dock-finish/warp";
+        Directory.CreateDirectory(dir);
+        using (new TestHarness.Sandbox())
+        {
+            PrepareDestinations();
+            WithDock(540, 960, (dock, mb, rig) =>
+            {
+                SelectDestination(dock, 0, false);
+                for (int f = 0; f < 210; f++)
+                {
+                    if (f % 30 == 15) SelectDestination(dock, (f / 30 + 1) % DockPlanet.Worlds, true);
+                    dock.planet.Tick(1f / 20f);
+                    mb.Step(1f / 20f);
+                    SaveFrame(rig, Path.Combine(dir, "frame-" + f.ToString("D3") + ".png"));
+                }
+            });
+        }
+        EditorApplication.Exit(0);
+    }
+
+    static void SelectDestination(SpaceDock dock, int world, bool animate)
+    {
+        PlayerStartWorld.Select(world);
+        Object.FindFirstObjectByType<DockStartWorld>().Refresh();
+        dock.planet.Show(world, animate);
+    }
+
+    static void PrepareDestinations()
+    {
+        DeveloperUnlocks.SetEnabled(false);
+        PlayerPrefs.SetInt(WorldManager.PrefsHighestWorld, 6);
+        MenuBackdropSelection.Roll(new System.Random(3));
+    }
+
+    static void WithDock(int w, int h, System.Action<SpaceDock, MenuBackdrop, ScreenFitRig> render)
+    {
+        EditorSceneLoader.Open("shopS6");
+        var device = new FitDevice { id = "dock-preview", w = w, h = h, pxPerPt = w > h ? 1f : w / 360f, noDpi = w > h };
+        using var rig = new ScreenFitRig(device, 2.85f);
+        ShopSceneExtender.Build();
+        MenuStyler.StyleScene();
+        Object.FindFirstObjectByType<shopingShips>().SendMessage("Start");
+        var dock = SpaceDock.Instance;
+        rig.Sync();
+        dock.Relayout();
+        rig.Sync();
+        dock.Relayout();
+        var mb = Object.FindFirstObjectByType<MenuBackdrop>();
+        if (mb == null) mb = new GameObject("~DockPreviewBackdrop").AddComponent<MenuBackdrop>();
+        mb.Build(MenuBackdropSelection.Current);
+        mb.EnterDock();
+        render(dock, mb, rig);
+    }
+
+    static void SaveFrame(ScreenFitRig rig, string path)
+    {
+        var png = rig.Capture(0, false);
+        File.WriteAllBytes(path, png.EncodeToPNG());
+        Object.DestroyImmediate(png);
+    }
+
     public static void Run()
     {
         foreach (var size in new[] { new Vector2Int(1080, 1920), new Vector2Int(1080, 2400), new Vector2Int(1100, 800) })

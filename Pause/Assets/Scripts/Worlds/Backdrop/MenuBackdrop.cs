@@ -177,13 +177,8 @@ public class MenuBackdrop : MonoBehaviour
         if (Set == null) return false;   // no menu backdrop here: the scene keeps its own
         var pick = MenuBackdropSelection.DockPick(Pick);
         if (!pick.Valid) return false;
-        if (Pick.world == "Space")
-        {
-            // the menu already shows Space: nothing to swap
-            DockPick = Pick;
-            DockActive = true;
-            return true;
-        }
+        // Even a Space menu has its own sun. Build a sun-free dock set and park the menu's set so that
+        // only the selected destination is visible, and leaving the dock restores the menu exactly.
         float hw, hh;
         ViewExtents(out hw, out hh);
         var set = new BackdropSet(pick.world, transform, hw, hh,

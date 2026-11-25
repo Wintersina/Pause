@@ -753,7 +753,7 @@ public static class ShopTest
         }
         Check("each of the six worlds shows its own rotating planet (" + seen.Count + " distinct)", each && seen.Count == 6);
         planet.Show(0, false);
-        Check("Space (no landfall) shows the sun with its asteroids", planet.World == 0 && planet.IsSpace && planet.Renderer.sprite != null && planet.Front.ShownRocks >= 4);
+        Check("Space (no landfall) shows the sun with its asteroids", planet.World == 0 && planet.IsSpace && planet.Renderer.sprite != null && planet.Asteroids.Renderers.Length >= 4);
         planet.Show(3, false);
         planet.Show(4);
         Check("a change of selection starts a warp to the new planet", planet.Warping && planet.World == 4 && planet.OutWorld == 3);

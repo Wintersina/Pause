@@ -2,8 +2,8 @@ using UnityEngine;
 
 // The destination behind the Space Dock: where the start world the pilot has picked in the picker at the top of the
 // dock (DockStartWorld / PlayerStartWorld) takes them. Each world shows its own rotating planet (a 16-frame turn in a
-// 4x4 atlas, PlanetFlipbooks); plain Space shows an orange sun with several bigger asteroids drifting round it
-// (DockBody). Drawn BEHIND the translucent deck (Order), above the menu backdrop's tile layers, below every lot
+// 4x4 atlas, PlanetFlipbooks); plain Space shows an orange sun (DockBody). The shared asteroid field roams behind every selection
+// (DockAsteroids). Drawn BEHIND the translucent deck (Order), above the menu backdrop's tile layers, below every lot
 // piece, dimmed so the deck lines and labels stay readable.
 //
 // PLACEMENT (owner: "not too close", then "another 15% to the right": 25% off centre): the sphere is whole on screen but for its right edge, its diameter
@@ -29,6 +29,7 @@ public class DockPlanet : MonoBehaviour
     // The centre's height in the lot's space (0 bottom, 1 top) and the most of that space's height the disc may take.
     public static float CentreYShare = .5f, MaxHeightShare = .94f;
     public const float MinDiameter = .5f;
+    public static float MinRightCropShare = .08f; // minimum share of the disc beyond the right edge, including wide windows
 
     public SpriteRenderer Renderer { get { return front != null ? front.Main : null; } }
     public string CellName { get { return front != null ? front.SpriteName : null; } }
@@ -45,6 +46,8 @@ public class DockPlanet : MonoBehaviour
     public int StreakFrame { get { return streakFrame; } }
     // Warps begun (tests).
     public int WarpsStarted { get; private set; }
+
+    public DockAsteroids Asteroids { get; private set; }
 
     DockBody front, back;
     SpriteRenderer streak;
@@ -79,7 +82,8 @@ public class DockPlanet : MonoBehaviour
         diameter = Mathf.Max(MinDiameter, Mathf.Min(pane.width * DiameterShare, room));
         // the owner wants it far right: the sphere may run off the RIGHT edge (about 5% of the width at .25 / .60) but never
         // the left; top and bottom stay whole through the height cap and the clamp below
-        float cx = Mathf.Max(pane.center.x + pane.width * OffsetShare, pane.xMin + diameter * .5f);
+        float cx = Mathf.Max(pane.center.x + pane.width * OffsetShare, pane.xMax - diameter * (.5f - MinRightCropShare));
+        cx = Mathf.Max(cx, pane.xMin + diameter * .5f);
         float cy = Mathf.Lerp(spaceBottom, spaceTop, CentreYShare);
         if (spaceTop - spaceBottom > diameter) cy = Mathf.Clamp(cy, spaceBottom + diameter * .5f, spaceTop - diameter * .5f);
         centre = new Vector2(cx, cy);
@@ -93,6 +97,7 @@ public class DockPlanet : MonoBehaviour
         transform.position = new Vector3(centre.x, centre.y, 0f);
         LookAll();
         FitStreaks();
+        if (Asteroids != null) Asteroids.Place(view, Diameter);
     }
 
     // The view the streaks must cover (world units): SpaceDock gives it with the placement.
@@ -100,6 +105,7 @@ public class DockPlanet : MonoBehaviour
     {
         view = worldView;
         FitStreaks();
+        if (Asteroids != null) Asteroids.Place(view, Diameter);
     }
 
     // ---- build ----
@@ -107,6 +113,7 @@ public class DockPlanet : MonoBehaviour
     void Build()
     {
         spaceArt = DockSpaceArt.Load();
+        Asteroids = new DockAsteroids(transform, spaceArt);
         warp = DockWarp.Load();
         front = new DockBody(transform, "Destination", Order, spaceArt);
         back = new DockBody(transform, "DestinationOut", Order, spaceArt);
@@ -224,6 +231,7 @@ public class DockPlanet : MonoBehaviour
     public void Tick(float dt)
     {
         if (front == null) return;
+        Asteroids.Tick(dt);
         PlanetFlipbooks.Pump();
         if (warping) StepWarp(dt);
         front.Tick(dt);
