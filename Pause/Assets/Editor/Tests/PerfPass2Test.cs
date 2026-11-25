@@ -236,9 +236,9 @@ public static class PerfPass2Test
 
         WorldArtPreload.ResetCounters();
         PlanetfallProc.ResetCounters();
-        var art = PlanetfallArt.Load(def);
+        var art = PlanetfallArt.Load(def, true);   // a landfall draws the new rotation: the old planet texture is neither queued nor loaded
         Check("the entry planetfall loads with zero synchronous loads (" + WorldArtPreload.SyncLoads + " sync, " + WorldArtPreload.Hits + " hits, " + PlanetfallProc.Builds + " drawn)",
-              art.Complete && WorldArtPreload.SyncLoads == 0 && WorldArtPreload.Hits == 7 && PlanetfallProc.Builds == 0);
+              art.Complete && WorldArtPreload.SyncLoads == 0 && WorldArtPreload.Hits == 6 && PlanetfallProc.Builds == 0);
         var shader = WorldArtPreload.Load<Shader>(Planetfall.ShaderPath);
         Check("its shader too", shader != null && WorldArtPreload.SyncLoads == 0);
         art.Release();

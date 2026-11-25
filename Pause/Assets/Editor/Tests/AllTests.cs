@@ -331,6 +331,7 @@ public static class AllTests
         ("UpgradeHeartsSizeTest", UpgradeHeartsSizeTest.Execute),
         ("ShopHealthCarryoverTest", ShopHealthCarryoverTest.Execute),
         ("ShopTest", ShopTest.Execute),
+        ("DockPlanetTest", DockPlanetTest.Execute),
         ("SpaceEliteTest", SpaceEliteTest.Execute),
         ("SpaceDockTest", SpaceDockTest.Execute),
         ("FrostDockTest", FrostDockTest.Execute),

@@ -8,6 +8,7 @@ using UnityEngine;
 public static class DockArt
 {
     public const float PixelsPerUnit = 300f;
+    public const float DeckOpacity = .85f; // 15% more transparent deck; ships and labels retain their opacity
 
     // SVG units per world unit; borders are given in SVG units.
     const float SvgUnitsPerWorld = 100f;

@@ -95,7 +95,7 @@ public static class MenuNavTest
         int sweeps = 0, at = 0;
         while ((at = bd.IndexOf("Resources.UnloadUnusedAssets()", at)) >= 0) { sweeps++; at++; }
         Check("MenuBackdrop has exactly one sweep, gated by SweepDue (no sweep in Awake's success path)",
-              sweeps == 1 && bd.Contains("if (Build(pick)) { SweepIfProbed(); return; }"));
+              sweeps == 1 && bd.Contains("if (Build(pick)) { if (DockWanted) EnterDock(); SweepIfProbed(); return; }"));
     }
 
     static void Sweep()

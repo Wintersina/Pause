@@ -34,6 +34,21 @@ public static class MenuBackdropSelection
 
     public static Pick Current { get; private set; }
     public static int Rolls { get; private set; }
+
+    // The Space Dock's backdrop: ALWAYS a Space variant (the real in-game Space tiles), whatever the menu rolled. It
+    // never touches Current or Rolls (leaving the dock shows the menu's own pick again, un-rolled). Kept for the
+    // session so reopening the dock shows the same Space sky; `last` is the menu's pick (Space already: that very one).
+    static Pick dockPick;
+    public static Pick DockPick(Pick menu, System.Random rng = null)
+    {
+        if (menu.world == "Space") return menu;
+        if (dockPick.Valid && dockPick.world == "Space") return dockPick;
+        var list = new List<Pick>();
+        Candidates(0, list);   // Space only
+        if (list.Count == 0) return new Pick();
+        dockPick = WithTurn(list[(rng ?? new System.Random()).Next(list.Count)], rng ?? new System.Random());
+        return dockPick;
+    }
     static string lastScene;
 
     public static bool IsMenuScene(string name) { return System.Array.IndexOf(Scenes, name) >= 0; }
@@ -120,7 +135,7 @@ public static class MenuBackdropSelection
     // A non-menu scene (a run, the tutorial) loaded.
     public static void Leave(string scene) { lastScene = scene; }
 
-    public static void ResetForTests() { Current = new Pick(); Rolls = 0; lastScene = null; }
+    public static void ResetForTests() { Current = new Pick(); Rolls = 0; lastScene = null; dockPick = new Pick(); }
 }
 
 public class MenuBackdrop : MonoBehaviour
@@ -132,8 +147,66 @@ public class MenuBackdrop : MonoBehaviour
 
     public static MenuBackdrop Instance { get; private set; }
 
+    // The menu's own backdrop (the rolled pick). While the dock is open it stays built, hidden and still, so
+    // leaving the dock is a re-show, not a reload.
     public BackdropSet Set { get; private set; }
     public MenuBackdropSelection.Pick Pick { get; private set; }
+    // The Space Dock's backdrop (a Space variant) while the dock is open; null otherwise (or when the menu pick IS Space).
+    public BackdropSet DockSet { get; private set; }
+    public MenuBackdropSelection.Pick DockPick { get; private set; }
+    public bool DockActive { get; private set; }
+    // What is on screen: the dock's Space while the dock is open, else the menu's pick.
+    public BackdropSet ShownSet { get { return DockActive && DockSet != null ? DockSet : Set; } }
+    public MenuBackdropSelection.Pick ShownPick { get { return DockActive && DockSet != null ? DockPick : Pick; } }
+
+    // The dock (SpaceDock) asks for / lets go of its Space backdrop. Remembered, so a dock built before the menu
+    // backdrop exists (scene load order) is served when it does.
+    public static bool DockWanted { get; private set; }
+    public static void RequestDock(bool on)
+    {
+        DockWanted = on && Application.isPlaying;   // edit-mode suites build docks without a scene backdrop
+        if (Instance == null) return;
+        if (on) Instance.EnterDock(); else Instance.ExitDock();
+    }
+
+    // Swaps the screen to a Space backdrop (built now, from preloaded art when it is held, in the same frame as
+    // the hide, so nothing flashes). Idempotent.
+    public bool EnterDock()
+    {
+        if (DockActive) return true;
+        if (Set == null) return false;   // no menu backdrop here: the scene keeps its own
+        var pick = MenuBackdropSelection.DockPick(Pick);
+        if (!pick.Valid) return false;
+        // Even a Space menu has its own sun. Build a sun-free dock set and park the menu's set so that
+        // only the selected destination is visible, and leaving the dock restores the menu exactly.
+        float hw, hh;
+        ViewExtents(out hw, out hh);
+        var set = new BackdropSet(pick.world, transform, hw, hh,
+            new BackdropSet.MenuOptions { variant = pick.variant, halfTurn = pick.halfTurn, dim = Dim, noSun = true });
+        if (!set.Complete) { set.Destroy(); return false; }
+        DockSet = set;
+        DockPick = pick;
+        Set.Root.gameObject.SetActive(false);
+        DockActive = true;
+        FollowCamera();
+        DockSet.Tick(0f, Velocity);
+        return true;
+    }
+
+    // Back to the menu's own pick (never re-rolled): the Space set goes, the hidden one is shown again.
+    public void ExitDock()
+    {
+        if (!DockActive) return;
+        DockActive = false;
+        if (DockSet != null)
+        {
+            DockSet.Destroy();
+            DockSet = null;
+            if (Set != null) Set.Root.gameObject.SetActive(true);
+        }
+        DockPick = new MenuBackdropSelection.Pick();
+        FollowCamera();
+    }
     Camera cam;
     Renderer[] hidden;
 
@@ -160,7 +233,7 @@ public class MenuBackdrop : MonoBehaviour
         Instance = this;
         var pick = MenuBackdropSelection.Current;
         if (!pick.Valid) return;
-        if (Build(pick)) { SweepIfProbed(); return; }
+        if (Build(pick)) { if (DockWanted) EnterDock(); SweepIfProbed(); return; }
         // incomplete art: try the other candidates once before giving up
         var list = new List<MenuBackdropSelection.Pick>();
         MenuBackdropSelection.Candidates(MenuBackdropSelection.HighestWorld(), list);
@@ -194,6 +267,8 @@ public class MenuBackdrop : MonoBehaviour
     void OnDestroy()
     {
         if (Instance == this) Instance = null;
+        if (DockSet != null) DockSet.Destroy();
+        DockSet = null;
         if (Set != null) Set.Destroy();
         Set = null;
     }
@@ -204,7 +279,8 @@ public class MenuBackdrop : MonoBehaviour
     {
         if (Set == null) return;
         FollowCamera();
-        Set.Tick(Mathf.Min(unscaledDt, Time.maximumDeltaTime), Velocity);
+        // only what is on screen moves (the hidden menu pick is parked)
+        ShownSet.Tick(Mathf.Min(unscaledDt, Time.maximumDeltaTime), Velocity);
     }
 
     void FollowCamera()
@@ -218,6 +294,7 @@ public class MenuBackdrop : MonoBehaviour
         float hw, hh;
         ViewExtents(out hw, out hh);
         if (Set != null) Set.Layout(hw, hh);
+        if (DockSet != null) DockSet.Layout(hw, hh);
     }
 
     void ViewExtents(out float halfW, out float halfH)

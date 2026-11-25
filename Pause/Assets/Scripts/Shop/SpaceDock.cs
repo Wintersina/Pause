@@ -114,6 +114,7 @@ public class SpaceDock : MonoBehaviour
         SupportPurchase.Rewarded -= OnSupportRewarded;
         BackNavigator.Unregister(this);
         if (Instance == this) Instance = null;
+        MenuBackdrop.RequestDock(false);   // the menu's own backdrop again (never re-rolled)
     }
 
     // A pack paid while the dock is open (a pending payment completing) refreshes the dust read-out.
@@ -239,6 +240,8 @@ public class SpaceDock : MonoBehaviour
         rack = new GameObject("~DockRack").transform;
         rack.SetParent(transform, false);
 
+        // the menu's backdrop becomes Space for as long as the dock is open (MenuBackdrop.EnterDock), the real in-game tiles
+        MenuBackdrop.RequestDock(true);
         planet = DockPlanet.Create(transform, DockStartWorld.ShownWorld);
         edgeLeft = Piece("EdgeLeft", DockArt.Lot("lot_edge_left"), SpriteDrawMode.Tiled, 1);
         edgeRight = Piece("EdgeRight", DockArt.Lot("lot_edge_right"), SpriteDrawMode.Tiled, 1);
@@ -314,6 +317,7 @@ public class SpaceDock : MonoBehaviour
         sr.drawMode = mode;
         if (mode == SpriteDrawMode.Tiled) sr.tileMode = SpriteTileMode.Continuous;
         sr.sortingOrder = order;
+        sr.color = new Color(1f, 1f, 1f, DockArt.DeckOpacity);
         return sr;
     }
 
@@ -432,7 +436,7 @@ public class SpaceDock : MonoBehaviour
         nudge = 0f;
         PlaceRack();
         PlaceBands(camPos, halfW, halfH);
-        PlacePlanet(wide ? rackPane : new Rect(left, bottom, right - left, top - bottom));
+        PlacePlanet(new Rect(left, bottom, right - left, top - bottom), new Rect(camPos.x - halfW, camPos.y - halfH, halfW * 2f, halfH * 2f));
 
         if (wide)
         {
@@ -460,16 +464,23 @@ public class SpaceDock : MonoBehaviour
 
     public DockPlanet planet;
 
-    // The planet behind the lot: as wide as the lot's pane (or the lot space's height, whichever is smaller), its
-    // centre low and on the right so a good part of the disc is cropped by the pane edge and the lot covers the rest.
-    // Always inside the safe pane; the bands over the header / footer hide whatever pokes under them.
-    void PlacePlanet(Rect pane)
+    // The pane the destination was last fitted to (tests / screen-fit checks read it with the lot space's extent).
+    public Rect PlanetPane { get; private set; }
+    public float PlanetSpaceBottom { get { return spaceBottom; } }
+    public float PlanetSpaceTop { get { return spaceTop; } }
+
+    // The destination uses the full dock width even when the rack occupies a narrower pane. The disc sits
+    // slightly beyond the right edge, with its top and bottom inside the lot space. The full camera view
+    // also places the shared asteroid field and the warp streaks.
+    void PlacePlanet(Rect pane, Rect view)
     {
         if (planet == null) return;
-        float space = spaceTop - spaceBottom;
-        float d = Mathf.Min(pane.width * 1.15f, space * .8f);
-        d = Mathf.Max(d, .5f);
-        planet.Place(new Vector2(pane.xMax - d * .2f, Mathf.Lerp(spaceBottom, spaceTop, .28f)), d);
+        PlanetPane = pane;
+        Vector2 centre;
+        float d;
+        DockPlanet.Fit(pane, spaceBottom, spaceTop, out centre, out d);
+        planet.Place(centre, d);
+        planet.SetView(view);
     }
 
     // Lays every lot piece out for `layout`: bays, runway tiles, seams, edge rails. Pieces are pooled (built
@@ -514,7 +525,7 @@ public class SpaceDock : MonoBehaviour
             Vector2 c = layout.BayCenter(slot);
             s.sprite = DockArt.Lot("bay_divider_h");
             s.transform.localPosition = new Vector3(c.x, c.y + DockLayout.BayW * .5f + DockLayout.BayGap * .5f, 0f);
-            s.color = new Color(1f, 1f, 1f, .7f);
+            s.color = new Color(1f, 1f, 1f, .7f * DockArt.DeckOpacity);
         }
         for (int s = seamCount; s < dividers.Count; s++) dividers[s].gameObject.SetActive(false);
     }

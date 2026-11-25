@@ -134,6 +134,49 @@ public partial class SpaceDirector : BackdropDirector
         if (runCells == null) runCells = new System.Random(System.Environment.TickCount ^ GetHashCode());
         return art[runCells.Next(art.Length)];
     }
+    // AFTER A BOSS the planet turning in Space is the NEXT world's (the one the way on leads to), never a random giant:
+    // Space's boss -> Frost, and through each world's lift-off interlude (which flies Space's sky) the planet its
+    // planetfall comes in on. It is that world's rotation (PlanetFlipbooks), the same art the planetfall approach
+    // draws, so the planet in the sky and the one that grows into the approach are one planet. -1: none (random).
+    // Tests set ForcedWorldOverride (>= -1) to stand in for the open gateway.
+    public static int ForcedWorldOverride = -2;
+    public static int NextWorldPlanet { get { return ForcedWorldOverride > -2 ? ForcedWorldOverride : WorldManager.OpenGatewayWorld; } }
+    Sprite[] forcedFrames;
+    int forcedWorld = -1;
+    bool forcedRequested;
+
+    // The frames the next planet is drawn with, or null (not forced, or no art). `wait`: forced, but the sheet has
+    // not arrived (it was preloaded when the gateway opened): spawn nothing yet rather than a wrong planet.
+    Sprite[] ForcedFrames(out bool wait)
+    {
+        wait = false;
+        int fw = NextWorldPlanet;
+        if (fw != forcedWorld) { ReleaseForced(); forcedWorld = fw >= 1 ? fw : -1; }
+        if (forcedWorld < 1 || PlanetFlipbooks.Missing(forcedWorld)) return null;
+        if (forcedFrames == null)
+        {
+            if (!forcedRequested) forcedRequested = PlanetFlipbooks.Request(forcedWorld);
+            forcedFrames = PlanetFlipbooks.Frames(forcedWorld);
+            if (forcedFrames == null) { wait = forcedRequested && !PlanetFlipbooks.Missing(forcedWorld); return null; }
+        }
+        return forcedFrames;
+    }
+
+    void ReleaseForced()
+    {
+        if (forcedRequested && forcedWorld >= 1) PlanetFlipbooks.Release(forcedWorld);
+        forcedRequested = false;
+        forcedFrames = null;
+        forcedWorld = -1;
+    }
+
+    // The spawned planet's own turn: one cell-sprite flipbook, one full turn in PlanetFlipbooks.TurnSeconds.
+    public bool IsForcedPlanet(Sprite s)
+    {
+        return forcedFrames != null && s != null && System.Array.IndexOf(forcedFrames, s) >= 0;
+    }
+    public int ForcedWorld { get { return forcedFrames != null ? forcedWorld : -1; } }
+
     Sprite[] planetPool, planetPoolFar;     // EvenPlanetPool without / with the outposts
     Sprite lastPlanetSprite, lastRockSprite;
     void EnsurePlanetPools()
@@ -252,7 +295,7 @@ public partial class SpaceDirector : BackdropDirector
         shooters = Pool("stars", 2, false, 1);
         // Bodies take their tier's sorting order when they spawn.
         string deep = Tiers[0].layer, planetDeep = Tiers[0].planetLayer;
-        planets = Pool(planetDeep, 3);
+        planets = Pool(planetDeep, 3, true);   // blend: a rotating planet (NextWorldPlanet) fades each frame into the next
         stations = Pool(deep, 4);
         planetoids = Pool(deep, 2);
         moons = Pool(planetDeep, 3);
@@ -577,6 +620,10 @@ public partial class SpaceDirector : BackdropDirector
             if (!Fits(x, y, n.reach, rate, planetClass)) return false;
         }
 
+        // after a boss the planet is the next world's turning planet (ForcedFrames)
+        bool waitForced = false;
+        Sprite[] flip = n.kind == Planet ? ForcedFrames(out waitForced) : null;
+        if (waitForced) { if (!opening) return false; flip = null; }
         var pool = n.kind == Planet ? planets : n.kind == Station ? stations : planetoids;
         var p = pool.Spawn();
         if (p == null) return false;
@@ -594,7 +641,16 @@ public partial class SpaceDirector : BackdropDirector
         if (n.kind == Planet) selected = RunPlanetCell(art, selected);
         if (n.kind == Planet) { selected = NoRepeat(art, selected, lastPlanetSprite); lastPlanetSprite = selected; }
         else if (n.kind == Planetoid) { selected = NoRepeat(art, selected, lastRockSprite); lastRockSprite = selected; }
+        if (flip != null) { selected = flip[Random.Range(0, flip.Length)]; lastPlanetSprite = null; }
         Dress(p, selected, n.kind, n.tier, n.size, 0, planetClass);
+        if (flip != null)
+        {
+            p.frames = flip;
+            p.fps = PlanetFlipbooks.FrameCount / Mathf.Max(1f, PlanetFlipbooks.TurnSeconds);
+            p.age = System.Array.IndexOf(flip, selected) / p.fps;   // starts on the frame it was dressed with
+            p.loop = true;
+            p.smoothBlend = true;
+        }
         p.edge = n.edge;
         if (p.smoke != null)
         {
@@ -613,7 +669,7 @@ public partial class SpaceDirector : BackdropDirector
         // reference planet is the one body that turns slowly in the picture.
         p.phase = n.kind == Station ? 0f : Rand(-14f, 14f);
         if (n.kind == Planet && System.Array.IndexOf(referencePlanet, selected) >= 0) p.spin = Rand(0.35f, 0.55f) * (Chance(0.5) ? 1f : -1f);
-        bool worldArt = n.kind == Planet && IsWorldPlanet(selected);
+        bool worldArt = n.kind == Planet && (flip != null || IsWorldPlanet(selected));
         Color[] tints = worldArt ? WorldPlanetTints : PlanetTints;
         Color body = n.kind == Planet ? Pick(tints) : n.kind == Station ? StationTint : RockTint;
         if (opening && openingTinted) body = worldArt ? tints[System.Math.Max(0, System.Array.IndexOf(PlanetTints, openingTint))] : openingTint;
@@ -730,6 +786,7 @@ public partial class SpaceDirector : BackdropDirector
         TeardownExtras();
         BackdropAtlas.Kill(planetMat);
         planetMat = null;
+        ReleaseForced();
     }
 
     // Small on screen, the full-size cells would shimmer (no mipmaps): the

@@ -99,6 +99,7 @@ public class DockBay : MonoBehaviour
         floor = MakeSprite("Bay", DockArt.Lot("bay_floor"), Vector3.zero, OrderBay, orient);
         // the service wall / clamp is the bottom 24 px of the nose-up frame
         back = MakeSprite("Wall", DockArt.Lot("bay_back"), new Vector3(0f, -(64f - 12f) * DockLayout.Px, 0f), OrderBack, orient);
+        floor.color = back.color = new Color(1f, 1f, 1f, DockArt.DeckOpacity);
         highlight = MakeSprite("Highlight", DockArt.Lot("bay_highlight"), Vector3.zero, OrderHighlight, orient);
         shadow = MakeSprite("Shadow", DockArt.Get("shadow"), ShipRest + new Vector3(.05f, -.06f), OrderShadow, orient);
         for (int k = 0; k < 2; k++) digits[k] = MakeSprite("Digit" + k, null, Vector3.zero, OrderLabel, transform);

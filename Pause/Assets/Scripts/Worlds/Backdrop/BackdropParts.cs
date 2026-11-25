@@ -225,6 +225,7 @@ public class BackdropPiece
     public Color dockTint = Color.white;   // an elite dock's own per-backdrop colour (DockGrade), multiplied into its draw colour
     public Sprite[] frames;
     public float fps;
+    public bool smoothBlend;             // a rotating planet: the next frame fades in continuously, not in six steps
     public bool loop = true;
     public int kind, tier;               // tier: depth tier, where a director has them
     // Pinned to the ground (GroundPlanner): `gy` is the piece's ground
@@ -267,7 +268,8 @@ public class BackdropPiece
             // Five visible in-between states between each pair of authored
             // frames, followed by the next frame. Quantizing the dissolve
             // avoids a sharp jump without allocating extra sprite textures.
-            c.a *= loop ? Mathf.Floor((f - Mathf.Floor(f)) * 6f) / 6f : 0f;
+            float fr = f - Mathf.Floor(f);
+            c.a *= loop ? (smoothBlend ? fr : Mathf.Floor(fr * 6f) / 6f) : 0f;
             blend.color = c;
         }
     }
@@ -335,6 +337,7 @@ public class BackdropPool
             p.edge = false;
             if (p.smoke != null) p.smoke.enabled = false;
             p.loop = true;
+            p.smoothBlend = false;
             p.children = null;
             p.parent = null;
             p.planet = false;

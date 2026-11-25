@@ -205,6 +205,13 @@ public class WorldManager : MonoBehaviour
         get { return HasNext ? CurrentIndex + 1 : LoopWorld; }
     }
 
+    // The world whose planet the Space sky must show now: the gateway is open after a boss and leads on to a planet
+    // (SpaceDirector.NextWorldPlanet). -1 otherwise (and on the way round to Space again: no planet).
+    public static int OpenGatewayWorld
+    {
+        get { var run = Instance; return run != null && run.portalOpen && HasNext ? CurrentIndex + 1 : -1; }
+    }
+
     // Distance still to fly before the level ends (moveBackGround.speed x
     // seconds). <= 0: the level is over (boss, then portal).
     float distanceLeft;
