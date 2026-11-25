@@ -207,8 +207,10 @@ public static class PerfPassTest
         Check("a disabled / destroyed sprite leaves the next capture (" + rec.LastFrameEntries + ")", rec.LastFrameEntries == 39 || rec.Gathers != g2);
 
         long control;
-        bool meter = TestHarness.AllocMeterWorks(out control);
-        long used = TestHarness.AllocatedBytes(() => { for (int i = 0; i < 240; i++) rec.Flight(dt); });
+        // Flight and its renderer-cache walk run synchronously on this thread. Exclude editor
+        // import workers while still measuring every gather/capture in the 240-frame window.
+        bool meter = TestHarness.AllocMeterWorks(out control, currentThreadOnly: true);
+        long used = TestHarness.AllocatedBytes(() => { for (int i = 0; i < 240; i++) rec.Flight(dt); }, currentThreadOnly: true);
         Check("flight taping allocates nothing per frame: " + used + " bytes (meter control " + control + ")", meter && used == 0);
     }
 
