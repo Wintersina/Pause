@@ -218,14 +218,6 @@ public static class HeartQuarterFrames
         var sprite = Sprite.Create(set.Atlas,
             new Rect(column * set.Width, (AtlasRows - 1 - row) * set.Height, set.Width, set.Height),
             set.Pivot, set.PixelsPerUnit, 0, SpriteMeshType.FullRect);
-        // Unity may derive bounds from the cell's alpha even for an empty FullRect cell.
-        // Explicit geometry fixes the shared coordinate system for every partial/animation state.
-        float left = -set.Pivot.x * set.Width / set.PixelsPerUnit;
-        float bottom = -set.Pivot.y * set.Height / set.PixelsPerUnit;
-        float right = left + set.Width / set.PixelsPerUnit;
-        float top = bottom + set.Height / set.PixelsPerUnit;
-        sprite.OverrideGeometry(new[] { new Vector2(left, bottom), new Vector2(left, top),
-            new Vector2(right, top), new Vector2(right, bottom) }, new ushort[] { 0, 1, 2, 0, 2, 3 });
         sprite.name = name;
         sprite.hideFlags = HideFlags.HideAndDontSave;
         return sprite;

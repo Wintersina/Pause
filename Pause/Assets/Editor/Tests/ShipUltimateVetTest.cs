@@ -3,7 +3,7 @@ using System.Reflection;
 using UnityEngine;
 
 // VETS EVERY SHIP'S ULTIMATE against the current rules: for each player ship (every roster id) in a sandbox of 2-heart enemies,
-//   A. the ultimate alone: every normal enemy it touches dies in ONE hit (none is left wounded), an elite loses at most one heart,
+//   A. the ultimate alone: every normal enemy it touches dies in ONE hit (none is left wounded), elite hits stay within the authored attack budget,
 //      and it kills something in front of the ship;
 //   B. the ultimate with the gun: with the ultimate out the floaties keep firing (bullets leave during it), with every shot atom at 10;
 //   C. no exception / error log, and the pools stay bounded (floatie bullets, attack projectiles and sprites, the feel pixels).
@@ -76,7 +76,8 @@ public static class ShipUltimateVetTest
 
     struct AResult
     {
-        public int wounded, dead, eliteLost, fieldCount;
+        public int wounded, dead, eliteLost, fieldCount, eliteStart, eliteHits;
+        public float eliteWeight, eliteBudget;
         public bool exempt, probeMoved, killed;
         public Vector2 elitePos;
     }
@@ -113,11 +114,15 @@ public static class ShipUltimateVetTest
         var elite = EliteShip.CreateInPlay(BaseEliteDefs.For("gunship"), elitePos);
         elite.AttackCooldown = 99f;
         int eliteHearts = elite.Hearts, kills = ShipAttackHits.Kills;
+        int beforeHits = ShipAttackHits.AttackTargetHits;
+        float beforeWeight = ShipAttackHits.AttackTargetWeight, eliteBudget = 1f;
         var startAt = new List<Vector3>();
         foreach (var go in field) startAt.Add(go.transform.position);
         try
         {
             typeof(ShipPowerController).GetMethod("Fire", Inst).Invoke(rig.power, null);
+            var fired = rig.power.Runner.Loadout;
+            if (fired.attack == ShipAttack.WardenSentries) eliteBudget = Mathf.Clamp(fired.shots, 1, 4);
             for (float t = 0f; t < 7f; t += Dt)
             {
                 rig.power.Runner.Step(Dt);                EnemyShove.Step(Dt);   // the world clock runs the shoves in the game (ShieldShockwaveFx.Update); a sandbox must step them itself
@@ -145,7 +150,7 @@ public static class ShipUltimateVetTest
         Object.DestroyImmediate(pilotMark.gameObject);
         EliteDef.ScaleOverride = 1;
 
-        var r = new AResult { wounded = wounded, dead = dead, eliteLost = eliteLost, fieldCount = field.Count, exempt = exempt, probeMoved = probeMoved, elitePos = elitePos, killed = ShipAttackHits.Kills > kills };
+        var r = new AResult { eliteStart = eliteHearts, eliteHits = ShipAttackHits.AttackTargetHits - beforeHits, eliteWeight = ShipAttackHits.AttackTargetWeight - beforeWeight, eliteBudget = eliteBudget, wounded = wounded, dead = dead, eliteLost = eliteLost, fieldCount = field.Count, exempt = exempt, probeMoved = probeMoved, elitePos = elitePos, killed = ShipAttackHits.Kills > kills };
         return r;
     }
 
@@ -157,19 +162,20 @@ public static class ShipUltimateVetTest
 
         // ---- A. the ultimate alone ----
         var found = RunA(id, new Vector2(0f, 3.3f));
-        if (!found.exempt && found.eliteLost != 1)
+        if (!found.exempt && found.eliteLost == 0)
             foreach (var at in ElitePositions())
             {
                 var tryA = RunA(id, at);
-                if (tryA.eliteLost == 1 && tryA.wounded == 0) { found = tryA; break; }
+                if (tryA.eliteLost > 0 && tryA.wounded == 0) { found = tryA; break; }
             }
         int wounded = found.wounded, dead = found.dead, eliteLost = found.eliteLost;
         bool exempt = found.exempt, probeMoved = found.probeMoved;
         bool oneShot = wounded == 0;
         bool killedSomething = dead > 0 || found.killed;
-        // the elite stands inside the ultimate's reach (RunA finds a spot): it must lose exactly one heart (at least one: the ultimate
-        // reaches elites; at most one: an elite is never one-shot)
-        bool eliteOk = eliteLost == 1;
+        // Distinct weapon contacts now land continuously. Each removes one elite heart,
+        // capped by its remaining health; fractional ticks still spend the authored firing budget.
+        bool eliteOk = eliteLost > 0 && eliteLost == Mathf.Min(found.eliteStart, found.eliteHits) &&
+                       found.eliteWeight <= found.eliteBudget + .001f;
         // OWNER DECISION (Nov 23 2026): Dove's GALE WINGS stays a pure shove-and-deflect ultimate (it pushes enemies up and out and
         // turns hostile shots back; only collisions hurt). It is EXEMPT from the kill / elite-hearts / one-shot rule. Its A check
         // instead requires that the gust really displaces the field, so the exemption still tests something. B (the gun keeps
@@ -182,7 +188,7 @@ public static class ShipUltimateVetTest
         if (!killedSomething) note += "killed nothing in the field; ";
         if (eliteLost == 0) note += "elite out of reach at every spot tried (0 hearts); ";
         else if (!exempt) note += "elite hit at " + found.elitePos + "; ";
-        Check(name + " A: " + (exempt ? "gust displaces a body in its path (probe " + (probeMoved ? "pushed" : "NOT moved") + "; kill rule exempt by owner decision)" : "one-shot (" + dead + " of " + found.fieldCount + " dead, " + wounded + " wounded), elite at " + found.elitePos + " lost " + eliteLost), oneShot && killedSomething && eliteOk);
+        Check(name + " A: " + (exempt ? "gust displaces a body in its path (probe " + (probeMoved ? "pushed" : "NOT moved") + "; kill rule exempt by owner decision)" : "one-shot (" + dead + " of " + found.fieldCount + " dead, " + wounded + " wounded), elite at " + found.elitePos + " lost " + eliteLost + " across " + found.eliteHits + " hits (weight " + found.eliteWeight + "/" + found.eliteBudget + ")"), oneShot && killedSomething && eliteOk);
 
         // ---- B. the ultimate with the gun, every atom at 10 ----
         ShotFeelTest.FreshScene();
