@@ -1,33 +1,16 @@
 using UnityEngine;
 
-// Shared dock art, loaded once for the dock's life: the orange sun's flipbook (4096x3072, a 4x3 grid
-// of 1024 px frames, row-major from the top-left; the layout is read from the texture) and the drifting asteroids,
-// which are the game's EXISTING Space rocks (nothing is copied): the decorative drift field's iron / ice / molten /
-// geode (SpaceRockTypes) and the hazard field's ore / crystal / ember / shard (SpaceHazardRockTypes), each a
-// 4-frame blink strip whose accent pulses. The dock tumbles them by rotating the sprite.
+// Shared asteroid art for every dock destination. Space has no sun or planet of its own.
 public sealed class DockSpaceArt
 {
-    public const string SunPath = "Worlds/Dock/space_sun_anim";
-    public const int SunFrames = 12;
     public const int Kinds = 8;
-    // Seconds each of the sun's 12 frames shows (was 1/8 s, which read as boiling; now a calm 4.5 s loop).
-    public static float SunFrameSeconds = .375f;
-
-    public Sprite[] sun;
     public Sprite[][] rocks;
-    Texture2D sunTex;
 
-    public bool Ready { get { return sun != null && rocks != null; } }
+    public bool Ready { get { return rocks != null; } }
 
     public static DockSpaceArt Load()
     {
         var a = new DockSpaceArt();
-        a.sunTex = Resources.Load<Texture2D>(SunPath);
-        if (a.sunTex != null)
-        {
-            var l = FlipbookGrid.Find(a.sunTex.width, a.sunTex.height, SunFrames);
-            if (l.Valid) a.sun = FlipbookGrid.Cut(a.sunTex, l, "dock_sun");
-        }
         var rocks = new Sprite[Kinds][];
         int n = 0;
         string[] drift = { "iron", "ice", "molten", "geode" };
@@ -43,27 +26,20 @@ public sealed class DockSpaceArt
         return a;
     }
 
-    // The rock sprites belong to the game's rock types (shared with the drift and hazard fields): only the sun is ours.
-    public void Destroy()
-    {
-        if (sun != null) foreach (var s in sun) if (s != null) BossUtil.Kill(s);
-        sun = null; rocks = null;
-        if (sunTex != null) Resources.UnloadAsset(sunTex);
-        sunTex = null;
-    }
+    // Borrowed from the game's shared rock caches; no textures belong to the dock.
+    public void Destroy() { rocks = null; }
+
 }
 
-// One destination on show: a turning planet or the animated Space sun. Background asteroids live in
+// One destination on show: a turning planet, or empty Space. Background asteroids live in
 // DockAsteroids, independently of these bodies, so changing worlds never removes or scales the drift field.
 public sealed class DockBody
 {
     static readonly float PlanetScale = 1f / PlanetFlipbooks.DiscShare;
-    // The sun uses the same destination diameter and centre as every planet (including the right-edge crop).
-    public static readonly float SunWidth = PlanetScale;
 
     public readonly Transform root;
     readonly SpriteRenderer pa, pb;            // the planet: this frame and the next, faded in over it
-    SpriteRenderer sun;
+    readonly MaterialPropertyBlock sphereBlock = new MaterialPropertyBlock();
     readonly DockSpaceArt art;
     readonly int order;
 
@@ -98,13 +74,12 @@ public sealed class DockBody
     }
 
     // The renderer a test / a fit check reads: the planet's sprite, or the sun.
-    public SpriteRenderer Main { get { return World == 0 ? sun : pa; } }
-    public bool Ready { get { return World == 0 ? (sun != null && sun.sprite != null) : (frames != null); } }
+    public SpriteRenderer Main { get { return World == 0 ? null : pa; } }
+    public bool Ready { get { return World == 0 ? (art != null && art.Ready) : (frames != null); } }
     public string SpriteName { get { var m = Main; return m != null && m.sprite != null ? m.sprite.name : null; } }
     public bool Showing { get { return root.gameObject.activeSelf; } }
     public float Alpha { get { return alpha; } }
     public float ScaleMul { get { return scaleMul; } }
-    public SpriteRenderer Sun { get { return sun; } }
     public SpriteRenderer Pb { get { return pb; } }
 
     // Empties the body, giving its planet reference back.
@@ -116,19 +91,16 @@ public sealed class DockBody
         World = -1;
         lastA = -1;
         pa.enabled = pb.enabled = false;
-        if (sun != null) sun.enabled = false;
         root.gameObject.SetActive(false);
     }
 
-    // Space: the sun. The shared asteroid field stays visible for every world.
+    // Space: only the shared starfield and asteroid field, no central body.
     public bool ShowSpace()
     {
         Clear();
         if (art == null || !art.Ready) return false;
-        BuildSpace();
         World = 0;
         pa.enabled = pb.enabled = false;
-        sun.enabled = true;
         root.gameObject.SetActive(true);
         Apply();
         return true;
@@ -158,7 +130,8 @@ public sealed class DockBody
         var f = PlanetFlipbooks.Frames(World);
         if (f == null) return false;
         frames = f;
-        pa.enabled = pb.enabled = true;
+        pa.enabled = true;
+        pb.enabled = false;
         root.gameObject.SetActive(true);
         lastA = -1;
         Apply();
@@ -173,20 +146,12 @@ public sealed class DockBody
         if (f == null) { World = -1; return false; }
         HeldWorld = world;
         frames = f;
-        pa.enabled = pb.enabled = true;
+        pa.enabled = true;
+        pb.enabled = false;
         root.gameObject.SetActive(true);
         lastA = -1;
         Apply();
         return true;
-    }
-
-    void BuildSpace()
-    {
-        if (sun != null) return;
-        sun = NewRenderer("Sun", order);
-        sun.sprite = art.sun[0];
-        float k = SunWidth;
-        sun.transform.localScale = new Vector3(k, k, 1f);
     }
 
     public void SetLook(float scaleMul, float alpha, float diameter)
@@ -209,15 +174,10 @@ public sealed class DockBody
             if (i != lastA) { pa.sprite = frames[i]; pb.sprite = frames[next]; lastA = i; }
             float d = DockPlanet.Dim;
             pa.color = new Color(d, d, d, a);
-            pb.color = new Color(d, d, d, a * b);
+            DockSphereMotion.Apply(pa, sphereBlock, i, b);
+            pb.enabled = false;
         }
-        else if (World == 0 && sun != null)
-        {
-            float d = DockPlanet.Dim;
-            int sf = Mathf.FloorToInt(clock / Mathf.Max(.01f, DockSpaceArt.SunFrameSeconds)) % art.sun.Length;
-            sun.sprite = art.sun[sf];
-            sun.color = new Color(d, d, d, a);
-        }
+
     }
 
     // dt in unscaled seconds.
@@ -304,5 +264,31 @@ public sealed class DockAsteroids
                                                 Mathf.Lerp(view.yMin - pad, view.yMax + pad, y), 0f);
             r.transform.localRotation = Quaternion.Euler(0f, 0f, 360f * (clock / rock.tumble + rock.start));
         }
+    }
+}
+
+// Shared shader/material; each destination supplies its clock through a reused property block.
+public static class DockSphereMotion
+{
+    static Material material;
+    static readonly int FrameId = Shader.PropertyToID("_Frame"), PhaseId = Shader.PropertyToID("_Phase");
+    public static Material Material
+    {
+        get
+        {
+            if (material == null)
+            {
+                var shader = Resources.Load<Shader>("Dock/DockSphereMotion");
+                if (shader != null) material = new Material(shader) { name = "DockSphereMotion" };
+            }
+            return material;
+        }
+    }
+    public static void Apply(SpriteRenderer renderer, MaterialPropertyBlock block, int frame, float phase)
+    {
+        renderer.sharedMaterial = Material;
+        block.SetFloat(FrameId, frame);
+        block.SetFloat(PhaseId, phase);
+        renderer.SetPropertyBlock(block);
     }
 }

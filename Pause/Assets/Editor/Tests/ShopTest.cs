@@ -730,7 +730,11 @@ public static class ShopTest
         }
 
         var planet = dock.planet;
-        Check("the dock has a planet behind it", planet != null && planet.Renderer != null && planet.Renderer.sprite != null &&
+        Check("the dock builds its destination controller", planet != null);
+        if (planet == null) return;
+        if (planet.IsSpace) Check("Space starts with no central body", planet.Renderer == null);
+        planet.Show(1, false); // choose a planet for the draw-order and size checks below
+        Check("selecting Frost draws its planet behind the dock", planet != null && planet.Renderer != null && planet.Renderer.sprite != null &&
               planet.CellName != null);
         if (planet == null || planet.Renderer == null) return;
         int lowest = int.MaxValue;
@@ -753,7 +757,7 @@ public static class ShopTest
         }
         Check("each of the six worlds shows its own rotating planet (" + seen.Count + " distinct)", each && seen.Count == 6);
         planet.Show(0, false);
-        Check("Space (no landfall) shows the sun with its asteroids", planet.World == 0 && planet.IsSpace && planet.Renderer.sprite != null && planet.Asteroids.Renderers.Length >= 4);
+        Check("Space shows drifting asteroids without a sun or planet", planet.World == 0 && planet.IsSpace && planet.Renderer == null && planet.Asteroids.Renderers.Length >= 4);
         planet.Show(3, false);
         planet.Show(4);
         Check("a change of selection starts a warp to the new planet", planet.Warping && planet.World == 4 && planet.OutWorld == 3);
@@ -761,6 +765,6 @@ public static class ShopTest
         Check("... which lands on it, at rest", !planet.Warping && planet.World == 4 && Mathf.Approximately(planet.FrontAlpha, 1f) && planet.Renderer.sortingOrder == DockPlanet.Order);
         planet.Show(0);
         for (int i = 0; i < 120 && planet.Warping; i++) planet.Tick(1f / 60f);
-        Check("... and from a planet to Space the sun warps in the same spot", !planet.Warping && planet.IsSpace && planet.Renderer.sortingOrder == DockPlanet.Order);
+        Check("... and a warp to Space leaves no central body", !planet.Warping && planet.IsSpace && planet.Renderer == null);
     }
 }

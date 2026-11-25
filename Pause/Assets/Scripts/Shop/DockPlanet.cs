@@ -2,7 +2,7 @@ using UnityEngine;
 
 // The destination behind the Space Dock: where the start world the pilot has picked in the picker at the top of the
 // dock (DockStartWorld / PlayerStartWorld) takes them. Each world shows its own rotating planet (a 16-frame turn in a
-// 4x4 atlas, PlanetFlipbooks); plain Space shows an orange sun (DockBody). The shared asteroid field roams behind every selection
+// 4x4 atlas, PlanetFlipbooks); plain Space has no central body (DockBody). The shared asteroid field roams behind every selection
 // (DockAsteroids). Drawn BEHIND the translucent deck (Order), above the menu backdrop's tile layers, below every lot
 // piece, dimmed so the deck lines and labels stay readable.
 //
@@ -61,7 +61,7 @@ public class DockPlanet : MonoBehaviour
     Vector2 centre;
     Rect view;
 
-    // `world`: the start-world selection to show first (0 = Space: the sun).
+    // `world`: the start-world selection to show first (0 = empty Space).
     public static DockPlanet Create(Transform parent, int world)
     {
         var go = new GameObject("~DockPlanet");

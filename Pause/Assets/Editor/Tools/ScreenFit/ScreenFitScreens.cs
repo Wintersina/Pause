@@ -907,8 +907,8 @@ public static class ScreenFitScreens
 
         // the planet behind the lot: present, behind the deck, and part of its disc shows in the lot's viewport
         var planet = dock.planet;
-        if (planet == null || planet.Renderer == null || planet.Renderer.sprite == null) rig.Fail("DOCKLOT", "planet", "no planet behind the lot");
-        else
+        if (planet == null || (!planet.IsSpace && (planet.Renderer == null || planet.Renderer.sprite == null))) rig.Fail("DOCKLOT", "planet", "no planet behind the lot");
+        else if (!planet.IsSpace)
         {
             if (planet.Renderer.sortingOrder >= 0) rig.Fail("DOCKLOT", "planet", "is not behind the deck");
             var pc = planet.transform.position;

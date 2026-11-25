@@ -38,6 +38,7 @@ public static class DockPlanetTest
             Art();
             Selections(root.transform);
             Asteroids(root.transform);
+            RotationMotion(root.transform);
             Warp(root.transform);
             Interrupt(root.transform);
             Memory(root.transform);
@@ -95,7 +96,7 @@ public static class DockPlanetTest
         var warp = DockWarp.Load();
         Check("the warp's per-frame curves come from warp_scale.json", warp.FromFile && warp.outScale[0] == 1f && warp.inScale[17] == 1f && warp.outAlpha[7] == 0f && warp.inAlpha[0] == 0f && warp.inScale[14] > 1f);
         var art = DockSpaceArt.Load();
-        Check("the sun (12 frames) and the game's eight existing Space rock kinds (4 blink frames each) are installed", art.Ready && art.sun.Length == 12 && art.rocks.Length == 8 && art.rocks[0].Length == 4 && art.rocks[7].Length == 4);
+        Check("the game's eight existing Space rock kinds (4 blink frames each) are installed", art.Ready && art.rocks.Length == 8 && art.rocks[0].Length == 4 && art.rocks[7].Length == 4);
         Check("the old Codex asteroid sheet is gone", Resources.Load<Texture2D>("Worlds/Dock/space_asteroids") == null);
         art.Destroy();
         var tex2 = Resources.Load<Texture2D>(DockWarp.StreaksPath);
@@ -106,7 +107,7 @@ public static class DockPlanetTest
     static void Selections(Transform root)
     {
         var p = NewPlanet(root, 0);
-        Check("Space shows the sun", p.IsSpace && p.World == 0 && p.Renderer != null && p.Renderer.sprite != null && p.Renderer.sprite.name.StartsWith("dock_sun"));
+        Check("Space has no sun or central planet", p.IsSpace && p.World == 0 && p.Renderer == null && p.Front.Ready);
         int kinds = 0;
         var seenKinds = new HashSet<int>();
         var widths = new HashSet<float>();
@@ -135,28 +136,9 @@ public static class DockPlanetTest
         string first = p.Front.Main.sprite.name;
         for (int i = 0; i < Mathf.RoundToInt(PlanetFlipbooks.TurnSeconds / 16f / Dt) + 5; i++) p.Tick(Dt);
         Check("the planet turns (a frame every " + (PlanetFlipbooks.TurnSeconds / 16f).ToString("F1") + " s), a full turn in about 20 s", p.Front.Main.sprite.name != first && Mathf.Abs(PlanetFlipbooks.TurnSeconds - 20f) < 2f);
-        // on UNSCALED time with the menu's timeScale 0, and the second layer fades smoothly in (no pulse)
-        float ts0 = Time.timeScale;
-        try
-        {
-            Time.timeScale = 0f;
-            p.Show(1, false);
-            p.Tick(0f);
-            string f0 = p.Front.Main.sprite.name;
-            float prevA = p.Front.Pb.color.a; bool smooth = true, wrapped = false, rose = false;
-            for (int i = 0; i < Mathf.RoundToInt(PlanetFlipbooks.TurnSeconds / 16f / Dt) + 5 && !wrapped; i++)
-            {
-                p.Tick(Dt);   // unscaled dt, as Update passes it
-                if (p.Front.Main.sprite.name != f0) { wrapped = true; break; }
-                float a = p.Front.Pb.color.a;
-                if (a < prevA - .001f || a - prevA > .03f) smooth = false;
-                if (a > prevA) rose = true;
-                prevA = a;
-            }
-            Check("with timeScale 0 the planet still advances (unscaled clock): the next frame arrives and the fade up to it was smooth (alpha " + prevA.ToString("F2") + ")", wrapped && smooth);
-        }
-        finally { Time.timeScale = ts0; }
-        Check("the sun's frame time is the slower " + DockSpaceArt.SunFrameSeconds.ToString("F2") + " s (was .125 s)", DockSpaceArt.SunFrameSeconds >= .375f);
+        // The renderer must use the surface-motion shader, with no second dissolving picture.
+        Check("planets use continuous sphere reprojection without a second fading layer",
+              p.Renderer.sharedMaterial == DockSphereMotion.Material && !p.Front.Pb.enabled);
         p.Dispose();
         Object.DestroyImmediate(p.gameObject);
         Check("a destroyed dock lets every sheet go", PlanetFlipbooks.LoadedCount == 0);
@@ -170,10 +152,7 @@ public static class DockPlanetTest
         var first = rocks[0];
         Vector3 start = first.transform.position;
         float size = first.transform.lossyScale.x;
-        float sunWidth = p.Renderer.bounds.size.x;
-        Vector3 sunCentre = p.Renderer.bounds.center;
-        p.Show(1, false);
-        Check("sun and planet share a centre and sprite scale", Vector3.Distance(sunCentre, p.Renderer.bounds.center) < .001f && Mathf.Abs(sunWidth - p.Renderer.bounds.size.x) < .001f);
+        Check("Space contains no central-body renderer", p.Renderer == null);
         bool present = true, independent = true, behind = true;
         float originalTimeScale = Time.timeScale;
         try
@@ -197,7 +176,7 @@ public static class DockPlanetTest
         finally { Time.timeScale = originalTimeScale; }
         Check("all seven dock destinations keep the same eight visible asteroid renderers through every warp", present && rocks.Length == 8 && p.Asteroids.Renderers[0] == first);
         Check("asteroids drift with timeScale zero and stay behind the destinations", behind && Vector3.Distance(start, first.transform.position) > .1f);
-        Check("planet and sun warps never shrink or fade the asteroid field", independent);
+        Check("destination warps never shrink or fade the asteroid field", independent);
         p.SetView(new Rect(-7f, -3f, 14f, 6f));
         p.Tick(600f);
         bool inRange = true;
@@ -210,6 +189,95 @@ public static class DockPlanetTest
         Check("the drift field adapts to a resized view and keeps recycling inside its padded bounds", inRange);
         p.Dispose();
         Object.DestroyImmediate(p.gameObject);
+    }
+
+    // Render an identifiable meridian in adjacent views. A dissolve produces two stationary stripes;
+    // actual rotation produces ONE stripe that moves on every intermediate sample, including the loop seam.
+    static void RotationMotion(Transform parent)
+    {
+        var p = NewPlanet(parent, 1);
+        var phase = new MaterialPropertyBlock();
+        p.Renderer.GetPropertyBlock(phase);
+        float before = phase.GetFloat("_Phase");
+        float originalScale = Time.timeScale;
+        try { Time.timeScale = 0f; p.Tick(Dt); }
+        finally { Time.timeScale = originalScale; }
+        p.Renderer.GetPropertyBlock(phase);
+        Check("surface motion advances on the paused menu's unscaled clock", phase.GetFloat("_Phase") > before);
+        p.Dispose();
+        Object.DestroyImmediate(p.gameObject);
+
+        const int cell = 128, width = 256;
+        var atlas = new Texture2D(cell * 4, cell * 4, TextureFormat.RGBA32, false, true);
+        atlas.filterMode = FilterMode.Point;
+        var pixels = new Color[cell * cell * 16];
+        for (int frame = 0; frame < 16; frame++)
+            for (int y = 0; y < cell; y++)
+                for (int x = 0; x < cell; x++)
+                {
+                    float nx = ((x + .5f) / cell - .5f) / (PlanetFlipbooks.DiscShare * .5f);
+                    float ny = ((y + .5f) / cell - .5f) / (PlanetFlipbooks.DiscShare * .5f);
+                    float rr = nx * nx + ny * ny;
+                    if (rr >= 1f) continue;
+                    float lon = Mathf.Atan2(nx, Mathf.Sqrt(1f - rr)) + frame * Mathf.PI * 2f / 16f;
+                    float fromMeridian = Mathf.DeltaAngle(0f, lon * Mathf.Rad2Deg) * Mathf.Deg2Rad;
+                    var c = Mathf.Abs(fromMeridian) < .09f ? Color.white : new Color(.03f, .03f, .03f, 1f);
+                    int ax = (frame % 4) * cell + x, ay = (3 - frame / 4) * cell + y;
+                    pixels[ay * cell * 4 + ax] = c;
+                }
+        atlas.SetPixels(pixels); atlas.Apply();
+        var sprite = Sprite.Create(atlas, new Rect(0, cell * 3, cell, cell), new Vector2(.5f, .5f), cell, 0, SpriteMeshType.FullRect);
+        var body = new GameObject("~MotionProbe"); body.transform.SetParent(parent, false); body.layer = 30;
+        var r = body.AddComponent<SpriteRenderer>(); r.sprite = sprite;
+        var go = new GameObject("~MotionCamera"); go.transform.SetParent(parent, false);
+        var camera = go.AddComponent<Camera>(); camera.enabled = false;
+        camera.orthographic = true; camera.orthographicSize = .6f; camera.aspect = 1f;
+        camera.transform.localPosition = new Vector3(0f, 0f, -10f);
+        camera.clearFlags = CameraClearFlags.SolidColor; camera.backgroundColor = Color.clear;
+        camera.cullingMask = 1 << 30;
+        var target = new RenderTexture(width, width, 24, RenderTextureFormat.ARGB32);
+        camera.targetTexture = target;
+        var read = new Texture2D(width, width, TextureFormat.RGBA32, false, true);
+        var block = new MaterialPropertyBlock(); block.SetFloat("_Relight", 0f);
+        var previous = RenderTexture.active;
+        try
+        {
+            float last = float.MaxValue;
+            bool moves = true, single = true, seam = true;
+            float seamCentre = 0f;
+            for (int sample = 1; sample <= 11; sample++)
+            {
+                DockSphereMotion.Apply(r, block, sample == 10 ? 15 : 0, sample <= 9 ? sample * .1f : sample == 10 ? 1f : 0f);
+                camera.Render(); RenderTexture.active = target;
+                read.ReadPixels(new Rect(0, 0, width, width), 0, 0); read.Apply();
+                int count = 0, islands = 0; float sum = 0f; bool inStripe = false;
+                for (int x = 0; x < width; x++)
+                {
+                    var c = read.GetPixel(x, width / 2);
+                    bool bright = c.a > .9f && c.r > .6f;
+                    if (bright) { count++; sum += x; if (!inStripe) islands++; }
+                    inStripe = bright;
+                }
+                float centre = count > 0 ? sum / count : float.MaxValue;
+                single &= islands == 1 && count >= 8 && count <= 30;
+                if (sample > 1 && sample <= 9) moves &= centre < last - 1f;
+                if (sample == 10) seamCentre = centre;
+                if (sample == 11) seam = Mathf.Abs(centre - seamCentre) < 1f;
+                last = centre;
+            }
+            Check("rendered surface landmark moves on every intermediate sample", moves);
+            Check("rotation shows one solid landmark, never two dissolving copies", single);
+            Check("the full-turn seam returns to the same surface position without a jump", seam);
+            Check("rotation keeps the outside of the disc transparent", read.GetPixel(0, 0).a < .01f);
+        }
+        finally
+        {
+            RenderTexture.active = previous;
+            camera.targetTexture = null;
+            Object.DestroyImmediate(go); Object.DestroyImmediate(body);
+            Object.DestroyImmediate(read); Object.DestroyImmediate(target);
+            Object.DestroyImmediate(sprite); Object.DestroyImmediate(atlas);
+        }
     }
 
     // ---- 3 ----

@@ -72,6 +72,27 @@ public static class DockPreview
         dock.planet.Show(world, animate);
     }
 
+    public static void RunMotionReview()
+    {
+        const string dir = "/private/tmp/pause-dock-motion/rotation";
+        Directory.CreateDirectory(dir);
+        using (new TestHarness.Sandbox())
+        {
+            PrepareDestinations();
+            WithDock(540, 960, (dock, mb, rig) =>
+            {
+                SelectDestination(dock, 1, false);
+                for (int f = 0; f <= 240; f++)
+                {
+                    SaveFrame(rig, Path.Combine(dir, "frame-" + f.ToString("D3") + ".png"));
+                    dock.planet.Tick(1f / 12f);
+                    mb.Step(1f / 12f);
+                }
+            });
+        }
+        EditorApplication.Exit(0);
+    }
+
     static void PrepareDestinations()
     {
         DeveloperUnlocks.SetEnabled(false);

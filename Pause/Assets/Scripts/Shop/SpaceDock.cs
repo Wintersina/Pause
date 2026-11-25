@@ -317,6 +317,7 @@ public class SpaceDock : MonoBehaviour
         sr.drawMode = mode;
         if (mode == SpriteDrawMode.Tiled) sr.tileMode = SpriteTileMode.Continuous;
         sr.sortingOrder = order;
+        sr.color = new Color(1f, 1f, 1f, DockArt.DeckOpacity);
         return sr;
     }
 
@@ -524,7 +525,7 @@ public class SpaceDock : MonoBehaviour
             Vector2 c = layout.BayCenter(slot);
             s.sprite = DockArt.Lot("bay_divider_h");
             s.transform.localPosition = new Vector3(c.x, c.y + DockLayout.BayW * .5f + DockLayout.BayGap * .5f, 0f);
-            s.color = new Color(1f, 1f, 1f, .7f);
+            s.color = new Color(1f, 1f, 1f, .7f * DockArt.DeckOpacity);
         }
         for (int s = seamCount; s < dividers.Count; s++) dividers[s].gameObject.SetActive(false);
     }
