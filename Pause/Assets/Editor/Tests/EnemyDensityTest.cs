@@ -130,8 +130,8 @@ public static class EnemyDensityTest
             Check("a fast start gets the make-up early (x" + early + "), tapering as it nears the cap (x" + late + "), never under x1",
                   Mathf.Approximately(early, EnemyDensity.MaxRunBoost) && late < early && late > 1f);
             Check("a longer fast-ish start gets a smaller make-up than a shorter one",
-                  EnemyDensity.RunLengthFactor(95f, .1f, .1f) < EnemyDensity.RunLengthFactor(79f, .2f, .2f) &&
-                  EnemyDensity.RunLengthFactor(79f, .2f, .2f) <= EnemyDensity.MaxRunBoost + 1e-4f);
+                  EnemyDensity.RunLengthFactor(stock * 95f / 120f, .1f, .1f) < EnemyDensity.RunLengthFactor(stock * 79f / 120f, .2f, .2f) &&
+                  EnemyDensity.RunLengthFactor(stock * 79f / 120f, .2f, .2f) <= EnemyDensity.MaxRunBoost + 1e-4f);
             bool steady = true;
             for (float v = 0f; v <= cap + .1f; v += .05f)
                 steady &= Mathf.Approximately(EnemyDensity.RunLengthFactor(62f, cap, Mathf.Min(v, cap)), EnemyDensity.RunLengthFactor(62f, cap, cap));

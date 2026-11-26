@@ -6,7 +6,7 @@ using UnityEngine.SceneManagement;
 // A world is a fixed DISTANCE (speed x seconds of running flight), sized so
 // the baseline flight -- a regular ship in its stock colour, starting at
 // gameS1's speed 0 on the world's normal ramp -- reaches the boss after
-// BaselineWorldSeconds (120s). Faster flight gets there sooner: a high-end
+// BaselineWorldSeconds (180s). Faster flight gets there sooner: a high-end
 // ship or a pricier colour starts faster (ShipStartSpeed), a blue atom's
 // boost covers extra distance, and later loops arrive faster. Speed is capped
 // at SpeedRamp.Cap in every world, so the start speed is the lasting
@@ -52,7 +52,7 @@ public class WorldManager : MonoBehaviour
 
     // Seconds of unpaused flight a world takes at the baseline pace (see
     // above); each world's distance is what that flight covers.
-    public const float BaselineWorldSeconds = 120f;
+    public const float BaselineWorldSeconds = 180f;
 
     [Tooltip("On: a run begins at the furthest planet reached, so a planet you " +
              "have unlocked stays unlocked. Off: every run starts at Space and " +
@@ -270,7 +270,7 @@ public class WorldManager : MonoBehaviour
     public bool PortalIsOpen { get { return portalOpen; } }
 
     // How far through this visit's level the flight is, on the baseline
-    // world's clock: 0 on arrival, BaselineWorldSeconds (120) at the boss.
+    // world's clock: 0 on arrival, BaselineWorldSeconds (180) at the boss.
     // It is the share of this visit's flight time already flown (flown /
     // (flown + SecondsLeftInWorld)), so a stock start reads its real seconds
     // and a faster start (ShipStartSpeed, loops) runs through the same

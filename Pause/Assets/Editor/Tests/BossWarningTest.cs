@@ -377,7 +377,7 @@ public static class BossWarningTest
                 else never &= !rig.hud.Visible && !rig.hud.ChipVisible && !rig.hud.BannerVisible;
             }
             float bossAt = rig.flown;
-            Check(name + ": boss after ~120 s of flight (" + bossAt.ToString("F1") + ")", BossEncounter.Running && Mathf.Abs(bossAt - 120f) < 1f);
+            Check(name + ": boss after the 180 s baseline flight (" + bossAt.ToString("F1") + ")", BossEncounter.Running && Mathf.Abs(bossAt - WorldManager.BaselineWorldSeconds) < 1f);
             Check(name + ": nothing on screen for the first " + firedAt.ToString("F1") + " s", never && firedAt > 60f);
             Check(name + ": the warning starts 30 s of flight before the boss (" + (bossAt - firedAt).ToString("F2") + " s), once",
                   Mathf.Abs(bossAt - firedAt - 30f) < .25f && c.Triggers == 1);
@@ -542,7 +542,7 @@ public static class BossWarningTest
             if (firedAt < 0f && fc.Active) firedAt = fast.flown;
         }
         Check("a start at HUD 30 (boss after " + fast.flown.ToString("F1") + " s): still warned 30 s out (" + (fast.flown - firedAt).ToString("F2") + ")",
-              fast.flown < 110f && Mathf.Abs(fast.flown - firedAt - 30f) < .25f && fc.Triggers == 1);
+              fast.flown < WorldManager.BaselineWorldSeconds && Mathf.Abs(fast.flown - firedAt - 30f) < .25f && fc.Triggers == 1);
         Drop(fast);
     }
 

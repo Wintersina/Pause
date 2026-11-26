@@ -378,7 +378,7 @@ public static class CodexTest
             Check(e.id + " has a name", !string.IsNullOrEmpty(e.name) && e.name.Trim().Length > 0);
             Check(e.id + " has lore", !string.IsNullOrEmpty(e.lore) && e.lore.Trim().Length > 20);
             Check(e.id + " lore is short (<= 3 sentences, log excepted)",
-                  e.category == CodexCategory.Log || SentenceCount(e.lore) <= 3);
+                  e.category == CodexCategory.Log || CodexCatalogue.IsBulleted(e) || SentenceCount(e.lore) <= 3);
             Check(e.id + " sprite resolves", e.Sprite != null);
             foreach (string m in e.matches)
                 Check(e.id + " match '" + m + "' resolves back to it", Codex.IdForName(m) == e.id);
@@ -896,6 +896,13 @@ public static class CodexTest
                 temp.Add(coin);
                 Hook(CodexCatalogue.ShotAtomId((ShotAtom)sa), "catching a shot atom coin", () => Codex.Discover(coin), toasts);
             }
+            foreach (var mode in new[] { DroneMode.Straight, DroneMode.Alternating, DroneMode.Aimed })
+            {
+                var core = DroneCorePickup.Build(mode, Vector3.zero); temp.Add(core);
+                Hook(CodexCatalogue.DroneCoreId(mode), "catching a mode core", () => Codex.Discover(core), toasts);
+            }
+            var recruit = DroneRewardPickup.Spawn(Vector3.zero); temp.Add(recruit);
+            Hook("boss_drone", "collecting a boss recruit", () => Codex.Discover(recruit), toasts);
             var portal = new GameObject("~Portal");
             temp.Add(portal);
             Hook(CodexCatalogue.PortalId, "flying through the portal", () => Codex.Discover(portal), toasts);

@@ -132,6 +132,10 @@ public static class FirstUseWarm
     {
         FirstUseWarm.Add("heart:quarters", ShipLivesIndicator.HeartSpritePath, typeof(Sprite),
             () => HeartQuarterFrames.For(Resources.Load<Sprite>(ShipLivesIndicator.HeartSpritePath)));
+        FirstUseWarm.Add("drone:icons", DronePickupArt.Prewarm);
+        FirstUseWarm.Add("drone:bolts", GunBoltArt.Prewarm);
+        FirstUseWarm.Add("drone:impacts", GunImpactFeedback.Prewarm);
+        FirstUseWarm.Add("enemy:armour", EnemyArmour.Prewarm);
         PewSound.QueueWarm();
         WeaponArt.QueueWarmExplosions();
         FirstUseWarmSteps.Pause();

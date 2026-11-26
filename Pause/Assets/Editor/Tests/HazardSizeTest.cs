@@ -66,6 +66,7 @@ public static class HazardSizeTest
             MineBlastReachesBigSooner();
             ScoreAndBlast();
             PilotColumnsStayClear();
+            NeighbourRowGap();
             NoAllocation();
             if (TestHarness.Slow("long mixed-size spawner runs (overlap, row gap, rails)")) LongRuns();
             if (TestHarness.FullLane && TestHarness.Slow("threat table, sizes off vs on")) ThreatTable();
@@ -85,6 +86,27 @@ public static class HazardSizeTest
         }
         Debug.Log("[HAZARD-SIZE] failures: " + fails);
         return fails;
+    }
+
+    // A small rock may leave its own row open while closing a taller neighbour's wider window.
+    static void NeighbourRowGap()
+    {
+        ClearAll();
+        var tall = new GameObject("tall row anchor");
+        tall.transform.position = new Vector3(-1.3f, 0f, 0f);
+        SpawnFootprint.Attach(tall, new Vector2(1.1f, 2f), SpawnLayer.Enemy);
+        var far = new GameObject("lower row blocker");
+        float rightEdge = SpawnLane.LaneHalf - SpawnLane.GuaranteedGap - .1f;
+        far.transform.position = new Vector3((rightEdge - SpawnLane.LaneHalf) * .5f, -2.3f, 0f);
+        SpawnFootprint.Attach(far, new Vector2((rightEdge + SpawnLane.LaneHalf) * .5f, .1f), SpawnLayer.Enemy);
+        var def = Rocks()[0];
+        Vector2 half = SpawnLane.HalfExtents(def, .7f);
+        float x = SpawnLane.LaneHalf - half.x - .1f, y = 1.6f;
+        var own = SpawnLane.RowSpans(y - half.y - SpawnLane.ShipGap, y + half.y + SpawnLane.ShipGap);
+        own.Add(new Vector2(x - half.x, x + half.x));
+        Check("a small rock cannot close a taller neighbour's row even when its own row fits",
+            SpawnLane.WidestGap(own) >= SpawnLane.GuaranteedGap && !SpawnLane.Fits(def, x, y, .7f));
+        Object.DestroyImmediate(tall); Object.DestroyImmediate(far);
     }
 
     // ---- fixtures ----------------------------------------------------------
@@ -722,34 +744,38 @@ public static class HazardSizeTest
                         {
                             frames++;
                             EnemyDensityProbe.Elapsed.SetValue(board, Mathf.Min(119f, 30f + t));
-                            EnemyDensityProbe.StepBoard(board, target, t, v);
-
-                            var live = SpawnSpace.Live(SpawnLayer.Enemy);
-                            fresh.Clear();
-                            for (int i = 0; i < live.Count; i++)
-                                if (live[i] != null && seen.Add(live[i])) fresh.Add(live[i]);
-                            // every rock entered its row with a ship-wide gap left
-                            foreach (var f in fresh)
+                            // Inspect admission before movement: a brain can move on its first frame.
+                            // The row guarantee is a spawn-placement rule, not a frozen corridor.
+                            EnemyDensityProbe.StepBoard(board, target, t, v, onSpawn: () =>
                             {
-                                EnemyIdentity id;
-                                if (!f.TryGetComponent(out id) || id.Def == null || id.Def.role != EnemyRole.Rock) continue;
-                                rocks++;
-                                tiers[Tier(id.Def.Behaviour, id.Scale)]++;
-                                area += id.Scale * id.Scale;
-                                biggest = Mathf.Max(biggest, id.Scale);
-                                smallest = Mathf.Min(smallest, id.Scale);
-                                Vector2 half = SpawnLane.HalfExtents(id.Def, id.Scale);
-                                float y = f.transform.position.y, band = half.y + SpawnLane.ShipGap;
-                                var spans = SpawnLane.RowSpans(y - band, y + band);
-                                float gap = SpawnLane.WidestGap(spans);
-                                rowsChecked++;
-                                worstGap = Mathf.Min(worstGap, gap);
-                                if (gap < SpawnLane.GuaranteedGap - .03f)
+                                var admitted = SpawnSpace.Live(SpawnLayer.Enemy);
+                                fresh.Clear();
+                                for (int i = 0; i < admitted.Count; i++)
+                                    if (admitted[i] != null && seen.Add(admitted[i])) fresh.Add(admitted[i]);
+                                // every rock entered its row with a ship-wide gap left
+                                foreach (var f in fresh)
                                 {
-                                    rowsShort++;
-                                    if (firstRow == null) firstRow = string.Format("world {0} t={1:F1}: {2} at {3:F2}x, widest gap {4:F2}", w, t, id.Def.key, id.Scale, gap);
+                                    EnemyIdentity id;
+                                    if (!f.TryGetComponent(out id) || id.Def == null || id.Def.role != EnemyRole.Rock) continue;
+                                    rocks++;
+                                    tiers[Tier(id.Def.Behaviour, id.Scale)]++;
+                                    area += id.Scale * id.Scale;
+                                    biggest = Mathf.Max(biggest, id.Scale);
+                                    smallest = Mathf.Min(smallest, id.Scale);
+                                    Vector2 half = SpawnLane.HalfExtents(id.Def, id.Scale);
+                                    float y = f.transform.position.y, band = half.y + SpawnLane.ShipGap;
+                                    var spans = SpawnLane.RowSpans(y - band, y + band);
+                                    float gap = SpawnLane.WidestGap(spans);
+                                    rowsChecked++;
+                                    worstGap = Mathf.Min(worstGap, gap);
+                                    if (gap < SpawnLane.GuaranteedGap - .03f)
+                                    {
+                                        rowsShort++;
+                                        if (firstRow == null) firstRow = string.Format("world {0} t={1:F1}: {2} at {3:F2}x, widest gap {4:F2}", w, t, id.Def.key, id.Scale, gap);
+                                    }
                                 }
-                            }
+                            });
+                            var live = SpawnSpace.Live(SpawnLayer.Enemy);
                             // no rock's collider crosses the lane edge into the rails
                             for (int i = 0; i < live.Count; i++)
                             {

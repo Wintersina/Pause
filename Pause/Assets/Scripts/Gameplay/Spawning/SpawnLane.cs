@@ -66,7 +66,29 @@ public static class SpawnLane
         float band = half.y + ShipGap;
         FillRowSpans(y - band, y + band, buffer);
         buffer.Add(new Vector2(x - half.x, x + half.x));
-        return WidestGap(buffer) >= GuaranteedGap;
+        if (WidestGap(buffer) < GuaranteedGap) return false;
+        // A small candidate's row can be narrower than a neighbouring large rock's row.
+        // Protect every existing row it enters as well, including hazards just beyond
+        // the candidate's own vertical window. Otherwise a valid new row can close an old one.
+        var live = SpawnSpace.Live(SpawnLayer.Enemy);
+        for (int i = 0; i < live.Count; i++)
+        {
+            var f = live[i];
+            if (f == null) continue;
+            Vector2 other;
+            if (f.TryGetComponent(out EnemyIdentity id))
+            {
+                if (id.Def != null && id.Def.role == EnemyRole.Chaser) continue;
+                other = HalfExtents(id);
+            }
+            else other = f.half;
+            float center = f.transform.position.y, window = other.y + ShipGap;
+            if (y + half.y < center - window || y - half.y > center + window) continue;
+            FillRowSpans(center - window, center + window, buffer);
+            buffer.Add(new Vector2(x - half.x, x + half.x));
+            if (WidestGap(buffer) < GuaranteedGap) return false;
+        }
+        return true;
     }
 
     // The gap every row is promised: a ship's width -- shrinking to nothing

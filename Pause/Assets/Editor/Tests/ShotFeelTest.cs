@@ -94,8 +94,27 @@ public static class ShotFeelTest
         public FloatieBattery battery;
     }
 
-    public static Rig MakeShip(int id, int level)
+    public static void ArmSquad(int slots = 3)
     {
+        ShotAtoms.SetDroneCount(slots);
+        for (int i = 0; i < slots; i++)
+        {
+            int empty = DroneSquad.EmptySlot(); if (empty < 0) break;
+            DroneSquad.CollectCore(empty % 3 == 0 ? DroneMode.Straight : empty % 3 == 1 ? DroneMode.Alternating : DroneMode.Aimed);
+        }
+        if (FloatieBattery.Current != null) FloatieBattery.Current.Refresh();
+    }
+
+    public static Rig MakeShip(int id, int level, int slots = 3, bool activate = true)
+    {
+        ShotAtoms.SetDroneCount(slots);
+        if (activate)
+            for (int i = 0; i < slots; i++)
+            {
+                int empty = DroneSquad.EmptySlot();
+                if (empty < 0) break;
+                DroneSquad.CollectCore(empty % 3 == 0 ? DroneMode.Straight : empty % 3 == 1 ? DroneMode.Alternating : DroneMode.Aimed);
+            }
         PlayerPrefs.SetInt("spawnShip", id);
         var r = new Rig();
         r.ship = new GameObject("ship" + id, typeof(SpriteRenderer));
@@ -143,14 +162,14 @@ public static class ShotFeelTest
     {
         FreshScene();
         bool pure = true;
-        int[] want = { 2, 3, 4, 5, 6 };
+        int[] want = { 3, 3, 3, 3, 3 };
         for (int level = 0; level <= ShipWeaponUpgrades.MaxLevel; level++) pure &= FloatieTuning.CountAt(Paragon, level) == want[level];
-        Check("Paragon's drone curve is 2, 3, 4, 5, 6 across its five tiers", pure && ShipWeaponUpgrades.MaxLevel == 4);
+        Check("Paragon starts with three slots at every purchased tier", pure && ShipWeaponUpgrades.MaxLevel == 4);
 
         bool others = true;
         for (int ship = 1; ship <= 15; ship++)
             for (int level = 0; level <= 4; level++) others &= FloatieTuning.CountAt(ship, level) == FloatieTuning.CountAt(level);
-        Check("every other ship keeps its 1 / 1 / 2 / 2 / 3 floaties", others);
+        Check("every ship shares the same earned-drone slot system", others);
 
         var r = MakeShip(Paragon, 0);
         bool live = true;
@@ -158,17 +177,17 @@ public static class ShotFeelTest
         {
             r.battery.SetLevel(level);
             int shown = 1;
-            for (int s = 0; s < 5; s++) if (r.battery.Extra(s) != null && r.battery.Extra(s).gameObject.activeSelf) shown++;
+            for (int s = 0; s < FloatieTuning.MaxFloaties - 1; s++) if (r.battery.Extra(s) != null && r.battery.Extra(s).gameObject.activeSelf) shown++;
             live &= r.battery.Count == want[level] && shown == want[level];
         }
-        Check("the battery shows exactly that many drones at every tier (2 from a fresh run)", live);
+        Check("the battery shows three slots at every colour tier", live);
         Teardown(r);
     }
 
     static void ParagonFormation()
     {
         FreshScene();
-        var r = MakeShip(Paragon, 4);
+        var r = MakeShip(Paragon, 4, slots: 6);
         var hull = r.ship.GetComponent<SpriteRenderer>();
         Vector2 e = hull.sprite != null ? (Vector2)hull.sprite.bounds.extents : new Vector2(.4f, .5f);
         var rests = new List<Vector3>();
@@ -193,12 +212,12 @@ public static class ShotFeelTest
         for (int level = 1; level <= 4; level++)
         {
             string t = ShipWeaponUpgrades.StepText(Paragon, level);
-            ok &= t.Contains("+1 DRONE (" + (2 + level) + ")") && t.StartsWith(ShipWeaponUpgrades.Step(Paragon, level).label);
+            ok &= !t.Contains("+1 DRONE") && t.StartsWith(ShipWeaponUpgrades.Step(Paragon, level).label);
         }
-        Check("Paragon's shop / codex step text names each extra drone and the new total", ok && ShipWeaponUpgrades.StepText(Paragon, 4).Contains("-25%"));
+        Check("Paragon colour text preserves weapon benefits and does not sell earned drone slots", ok && ShipWeaponUpgrades.StepText(Paragon, 4).Contains("-25%"));
     }
 
-    // Owner rule: RAPID speeds up ALL the turrets: the straight one, the random-angle one, the aimed one (SeekerCooldown), Paragon's extras.
+    // Owner rule: RAPID speeds up ALL the turrets: straight, alternating and aimed cores, including boss recruits.
     static void RapidShortensEveryDrone()
     {
         FreshScene();
@@ -228,7 +247,7 @@ public static class ShotFeelTest
         ShotAtoms.SetLevel(ShotAtom.Rapid, 0);
 
         // the battery really waits that long: a Paragon at tier 4 fires each drone again after its own rapid cooldown
-        var r = MakeShip(Paragon, 4);
+        var r = MakeShip(Paragon, 4, slots: 6);
         ShotAtoms.SetLevel(ShotAtom.Rapid, 10);
         r.battery.ResetTimers();
         bool timers = true;
@@ -244,7 +263,7 @@ public static class ShotFeelTest
         FreshScene();
         AllAtoms(10);
         ShotAtoms.SetLevel(ShotAtom.Pierce, 0);   // (so the bullets do not stop at the first target and stay long enough to watch)
-        var r = MakeShip(Paragon, 4);
+        var r = MakeShip(Paragon, 4, slots: 6);
         for (int i = 0; i < 6; i++) Hazard(-2f + i * .8f, 3.2f + (i % 2) * .6f);
         var dirs = new Dictionary<FloatieBullet, Vector3>();
         var bounced = new Dictionary<FloatieBullet, int>();
@@ -276,7 +295,7 @@ public static class ShotFeelTest
         FreshScene();
         AllAtoms(10);
         ShotAtoms.SetLevel(ShotAtom.Rapid, 10);
-        var r = MakeShip(Paragon, 4);
+        var r = MakeShip(Paragon, 4, slots: 6);
         for (int i = 0; i < 8; i++) Hazard(-2.4f + i * .7f, 3f);
         int peak = 0, spread = 0;
         r.battery.ResetTimers();
@@ -297,7 +316,7 @@ public static class ShotFeelTest
         // a full field: with the pool packed, shards (a split's) cannot take the volleys' reserve
         FloatieBullets.ReleaseAll();
         int taken = 0;
-        while (FloatieBullets.Take(false) != null && taken < 64)
+        while (FloatieBullets.Take(false) != null && taken < FloatieTuning.PoolSize)
         {
             var b = FloatieBullets.Take(false);
             b.Launch(null, Paragon, new Vector3(0f, 0f, 0f), Vector3.up, Color.white, default(FloatieAim.Pick));
@@ -332,7 +351,7 @@ public static class ShotFeelTest
     static void PerDroneAtoms()
     {
         FreshScene();
-        var r = MakeShip(Paragon, 4);   // six drones
+        var r = MakeShip(Paragon, 4, slots: 6);   // six drones
         Check("the battery tells the atoms how many drones there are (6)", ShotAtoms.DroneCount == 6);
         bool one = true;
         for (int n = 0; n < 40; n++)
@@ -352,7 +371,7 @@ public static class ShotFeelTest
         for (int d = 0; d < 6; d++) noOver &= ShotAtoms.Level(d, ShotAtom.Pierce) <= ShotAtomTuning.MaxLevel;
         Check("a drone never passes level 10, and a maxed drone is skipped while another is not (" + capped + " maxed)", noOver);
 
-        ShotAtoms.BeginRun();
+        ShotAtoms.BeginRun(); ArmSquad(6);
         for (int d = 0; d < 5; d++) ShotAtoms.SetLevel(d, ShotAtom.Twin, ShotAtomTuning.MaxLevel);
         ShotAtoms.SetLevel(5, ShotAtom.Twin, 9);
         Check("five drones maxed, one not: the atom can still drop", ShotAtoms.CanDrop(ShotAtom.Twin) && ShotAtoms.EligibleDrones(ShotAtom.Twin) == 1);
@@ -361,14 +380,14 @@ public static class ShotFeelTest
         var dust = ShotAtoms.Collect(ShotAtom.Twin);
         Check("maxed on EVERY drone: the atom no longer drops and a catch pays dust", dust.maxed && !ShotAtoms.CanDrop(ShotAtom.Twin) && ShotAtoms.MaxedCatches == 1);
 
-        ShotAtoms.BeginRun();
+        ShotAtoms.BeginRun(); ArmSquad(6);
         var rap = ShotAtoms.Collect(ShotAtom.Rapid);
         bool shared = rap.drone == -1 && rap.level == 1;
         for (int d = 0; d < 6; d++) shared &= ShotAtoms.Level(d, ShotAtom.Rapid) == 1;
         Check("RAPID is one shared level: one coin speeds up all six drones", shared && ShotAtoms.RapidBonus() == ShotAtomTuning.RapidBonus[1]);
 
         // each drone fires its own atoms
-        ShotAtoms.BeginRun();
+        ShotAtoms.BeginRun(); ArmSquad(6);
         ShotAtoms.SetLevel(0, ShotAtom.Twin, 4);   // 4 bullets from drone 0
         FloatieBullets.ReleaseAll();
         r.battery.Fire(0);
@@ -380,19 +399,19 @@ public static class ShotFeelTest
               fromZero == ShotAtomTuning.TwinShots[4] && fromOne == 1);
 
         // PowerCreep is normalised by the drone count
-        ShotAtoms.BeginRun();
+        ShotAtoms.BeginRun(); ArmSquad(6);
         for (int a = 0; a < ShotAtomTuning.PerDroneAtoms; a++) for (int d = 0; d < 6; d++) ShotAtoms.SetLevel(d, (ShotAtom)a, 10);
         ShotAtoms.SetLevel(ShotAtom.Rapid, 10);
         bool full6 = ShotAtoms.PowerLevel == 60;
         ShotAtoms.SetDroneCount(3);
         bool full3 = ShotAtoms.PowerLevel == 60;
         ShotAtoms.SetDroneCount(6);
-        ShotAtoms.BeginRun();
+        ShotAtoms.BeginRun(); ArmSquad(6);
         for (int a = 0; a < ShotAtomTuning.PerDroneAtoms; a++) ShotAtoms.SetLevel(0, (ShotAtom)a, 10);
-        Check("PowerLevel is normalised by the drone count: all maxed is 60 at 6 drones and at 3; one maxed drone of six is " + ShotAtoms.PowerLevel,
-              full6 && full3 && ShotAtoms.PowerLevel == 8);
+        Check("power pressure is capped and counts earned drone strength; one maxed drone of six is " + ShotAtoms.PowerLevel,
+              full6 && full3 && ShotAtoms.PowerLevel == 22);
         Teardown(r);
-        ShotAtoms.BeginRun();
+        ShotAtoms.BeginRun(); ArmSquad(6);
     }
 
     static void Feel()

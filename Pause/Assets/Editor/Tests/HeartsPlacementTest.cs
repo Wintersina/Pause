@@ -500,6 +500,12 @@ public static class HeartsPlacementTest
     // (and the playful styles turn back).
     static void FlourishesHappen()
     {
+        FlourishesHappen(DroneSquad.StartingSlots);
+        FlourishesHappen(DroneSquad.MaxSlots);
+    }
+
+    static void FlourishesHappen(int slots)
+    {
         ShipUiSlots.ScreenOverride = () => Everywhere;
         var seen = new HashSet<HeartStyle>();
         foreach (int id in ShipId.All)
@@ -507,6 +513,8 @@ public static class HeartsPlacementTest
             var style = ShipHeartStyles.For(id);
             if (!seen.Add(style)) continue;
             FreshScene();
+            ShotAtoms.BeginRun();
+            ShotAtoms.SetDroneCount(slots);
             var rig = Build(id, Vector3.zero, true, 4);
             Pose(rig, 20f, 0f, 1.3f, 1f);
             bool looped = false, turned = false, bothWays = false;
@@ -527,7 +535,7 @@ public static class HeartsPlacementTest
                 if (cw && ccw) bothWays = true;
             }
             var o = rig.hearts.OrbitParams;
-            string name = Name(rig);
+            string name = Name(rig) + " / " + slots + " drone slots";
             Check(name + ": throws loop-de-loops now and then (" + rig.hearts.Loops + " in 40s)", looped && rig.hearts.Loops >= 2);
             if (o.turnBackChance > 0f) Check(name + ": and turns back now and then (" + rig.hearts.TurnBacks + " in 40s)", turned && rig.hearts.TurnBacks >= 1);
             if (o.alternate) Check(name + ": neighbours go opposite ways round", bothWays);

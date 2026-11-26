@@ -49,29 +49,30 @@ public static class TestHarness
 
     // ---- allocation meter -------------------------------------------------
     //
-    // Managed bytes allocated while `work` runs, from the profiler's GC.Alloc
-    // recorder. (GC.GetAllocatedBytesForCurrentThread always reads 0 under
-    // this Unity's Mono, so an "allocates nothing" check built on it can
-    // never fail; EnemyBehaviourTest found the recorder to be the meter that
-    // works here.) Warm `work` up first: a first call JITs and fills caches.
+    // GC.Alloc's Value is elapsed nanoseconds, not bytes: short allocations can time as zero.
+    // Stop the recorder to flush its final sample, then use the allocation EVENT COUNT to
+    // distinguish a clean calling thread from unrelated worker traffic. The byte counter is
+    // process-wide; nonzero readings can include concurrent allocations, so retries keep the
+    // quietest sample. A zero requires zero allocation events on the measured thread.
     static long AllocatedBytesOnce(Action work, bool currentThreadOnly)
     {
         var options = Unity.Profiling.ProfilerRecorderOptions.SumAllSamplesInFrame | Unity.Profiling.ProfilerRecorderOptions.StartImmediately;
         if (currentThreadOnly) options |= Unity.Profiling.ProfilerRecorderOptions.CollectOnlyOnCurrentThread;
-        using (var rec = Unity.Profiling.ProfilerRecorder.StartNew(Unity.Profiling.ProfilerCategory.Memory, "GC.Alloc", 1, options))
-        {
-            if (!rec.Valid) return -1;
-            long before = rec.CurrentValue;
-            work();
-            return rec.CurrentValue - before;
-        }
+        using var bytes = Unity.Profiling.ProfilerRecorder.StartNew(Unity.Profiling.ProfilerCategory.Memory, "GC Allocated In Frame", 1);
+        using var events = Unity.Profiling.ProfilerRecorder.StartNew(Unity.Profiling.ProfilerCategory.Memory, "GC.Alloc", 1, options);
+        if (!bytes.Valid || !events.Valid) return -1;
+        long before = bytes.CurrentValue;
+        work();
+        long allocated = bytes.CurrentValue - before;
+        events.Stop();
+        long count = events.Count > 0 ? events.GetSample(events.Count - 1).Count : -1;
+        if (count < 0) return -1;
+        return count == 0 ? 0 : Math.Max(1L, allocated);
     }
 
-    // A callback executes on this thread, so measure that thread by default. Process-wide GC.Alloc
-    // also counts unrelated editor import/profiler workers, which can dominate a cold CI run.
-    // Callers intentionally measuring worker jobs can opt into currentThreadOnly: false and join
-    // those jobs inside the callback. Retries still filter editor activity on the measured thread;
-    // repeatable real allocations must be visible in every sample.
+    // A callback is measured on its own thread by default; joined worker jobs can opt into
+    // process-wide collection. Repeated samples filter concurrent byte-counter noise without
+    // hiding real allocation events: any nonzero event count produces a nonzero result.
     const int NoiseRepeats = 4;
     public static long AllocatedBytes(Action work, bool currentThreadOnly = true)
     {
@@ -84,20 +85,12 @@ public static class TestHarness
         return best;
     }
 
-    // The positive control every allocation check runs first: the meter must
-    // see allocations, or it is blind and the check must fail rather than
-    // pass on a zero. The recorder's reading is a LOWER bound that wobbles
-    // with load (~17 bytes per 32-byte array on a quiet editor, but 584 and
-    // 791 for 100 arrays on a busy machine, below the old 800 floor): so the
-    // control allocates ControlRepeat x AllocControlCount arrays per attempt,
-    // warms up, collects first, and takes the best of several attempts. The
-    // floor stays 8 bytes per array of AllocControlCount (i.e. a 4x margin
-    // against the bytes actually allocated), and "0" is still the only
-    // reading that means "nothing": a real per-frame allocation in the code
-    // under test is measured by the same AllocatedBytes scope and retries, so it is still caught.
+    // Fail closed if either real allocations go unseen or a clean callback appears to allocate.
+    // Both the large control and smaller leak use the same scopes/retries as the runtime checks.
     public const int AllocControlCount = 100;
     const int ControlRepeat = 4, ControlAttempts = 5;
-    static object allocSink;
+    // Publish every probe allocation so overwritten stores cannot be optimized away.
+    static volatile object allocSink;
 
     public static bool AllocMeterWorks(out long controlBytes, bool currentThreadOnly = true)
     {
@@ -112,14 +105,15 @@ public static class TestHarness
             if (controlBytes >= AllocControlCount * 8) break;
         }
         if (controlBytes < AllocControlCount * 8) return false;
-        // Unit check that a REAL allocation in code under test is still caught, through the very
-        // AllocatedBytes() the checks use (noise filter included): 64 small arrays per call -- a per-frame
-        // leak of a few KB, far below any sim's total -- must read > 0 every time, and a call that
-        // allocates nothing must read 0. (A single array can read 0: the recorder is a lower bound.)
+        // A small real leak must remain visible through the same retry filter, even when its
+        // GC.Alloc timing rounds to zero. The flushed event count makes that distinction.
         Action leak = () => { for (int i = 0; i < 64; i++) allocSink = new byte[64]; };
         Action clean = () => { };
         leak(); clean();
-        return AllocatedBytes(leak, currentThreadOnly) > 0 && AllocatedBytes(clean, currentThreadOnly) == 0;
+        long leakBytes = AllocatedBytes(leak, currentThreadOnly), cleanBytes = AllocatedBytes(clean, currentThreadOnly);
+        if (leakBytes <= 0 || cleanBytes != 0)
+            Debug.LogWarning("[ALLOC-CONTROL] leak=" + leakBytes + " clean=" + cleanBytes + " currentThread=" + currentThreadOnly);
+        return leakBytes > 0 && cleanBytes == 0;
     }
 
     // ---- GPU memory --------------------------------------------------------

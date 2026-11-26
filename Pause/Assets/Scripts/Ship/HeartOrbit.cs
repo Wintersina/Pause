@@ -168,7 +168,7 @@ public abstract class HeartOrbit : MonoBehaviour
     Sprite[] quarterOutlines;
     int[] quarterShown;
     const int QuarterBreakPool = 8;
-    struct QuarterBreak { public bool live; public float age; public int part; public Vector3 at, scale; public Quaternion rotation; }
+    struct QuarterBreak { public bool live; public float age; public int part; public Vector3 at, scale, worldScale; public Quaternion rotation; }
     QuarterBreak[] quarterBreaks;
     SpriteRenderer[] quarterPieces;
 
@@ -844,6 +844,7 @@ public abstract class HeartOrbit : MonoBehaviour
             quarterShown[i] = q;
         }
         lastShown = count;
+        if (units == 0) ReleaseQuarterBreaks();
     }
 
     void StartQuarterBreak(int heart, int part)
@@ -855,14 +856,28 @@ public abstract class HeartOrbit : MonoBehaviour
             if (quarterBreaks[i].age > quarterBreaks[slot].age) slot = i;
         }
         quarterBreaks[slot] = new QuarterBreak { live = true, part = part, at = hearts[heart].position,
-            rotation = hearts[heart].rotation, scale = hearts[heart].localScale };
+            rotation = hearts[heart].rotation, scale = hearts[heart].localScale, worldScale = hearts[heart].lossyScale };
         var piece = quarterPieces[slot];
         piece.sprite = quarterFrames.LossFrames[part][0];
-        piece.color = renderers[heart].color;
+        Color tint = HeartTint;
+        piece.color = new Color(tint.r, tint.g, tint.b, 1f);
         piece.transform.position = hearts[heart].position;
         piece.transform.rotation = hearts[heart].rotation;
         piece.transform.localScale = hearts[heart].localScale;
         piece.enabled = true;
+    }
+
+    void ReleaseQuarterBreaks()
+    {
+        if (quarterBreaks == null || RemainingQuarterUnits() > 0 || ActiveQuarterBreaks == 0) return;
+        var remnant = new GameObject("~HeartQuarterRemnant").AddComponent<HeartQuarterRemnant>();
+        for (int i = 0; i < quarterBreaks.Length; i++)
+        {
+            var b = quarterBreaks[i];
+            if (!b.live) continue;
+            remnant.Adopt(quarterPieces[i], quarterFrames, b.part, b.age, b.at);
+            b.live = false; quarterBreaks[i] = b;
+        }
     }
 
     void StepQuarterBreaks(float dt)
@@ -878,7 +893,7 @@ public abstract class HeartOrbit : MonoBehaviour
             else
             {
                 piece.sprite = quarterFrames.LossFrames[b.part][HeartQuarterFrames.FrameAt(b.age)];
-                piece.transform.position = b.at;
+                piece.transform.position = b.at + quarterFrames.Drift(b.part, b.age, b.worldScale, b.rotation);
                 piece.transform.rotation = b.rotation;
                 piece.transform.localScale = b.scale;
             }

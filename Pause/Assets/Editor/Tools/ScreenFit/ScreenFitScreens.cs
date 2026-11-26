@@ -1077,7 +1077,7 @@ public static class ScreenFitScreens
 
     // What the runtime bootstraps do for gameS1 / tutorialS5 before the first
     // frame: rails to the view's height, spawn line above it, backdrop, HUD.
-    static HudStyler WorldBase(ScreenFitRig rig, int world, bool paused, bool tutorial, bool settle = true)
+    internal static HudStyler WorldBase(ScreenFitRig rig, int world, bool paused, bool tutorial, bool settle = true)
     {
         buttonClicks.playerDied = false;
         score.pauseCounter = paused ? 3 : 0;

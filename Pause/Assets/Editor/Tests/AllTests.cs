@@ -311,6 +311,7 @@ public static class AllTests
         ("ShipUltimateVetTest", ShipUltimateVetTest.Execute),
         ("ToughEnemiesTest", ToughEnemiesTest.Execute),
         ("ShotAtomsTest", ShotAtomsTest.Execute),
+        ("DroneSquadTest", DroneSquadTest.Execute),
         ("HeartQuarterFramesTest", HeartQuarterFramesTest.Execute),
         ("QuarterHeartsTest", QuarterHeartsTest.Execute),
         ("RunUiPresentationTest", RunUiPresentationTest.Execute),

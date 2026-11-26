@@ -212,6 +212,7 @@ public class enmiesOnBoard : MonoBehaviour {
     // level: the last ~1/8 of Space, earlier in each later world
     // (enemyRampScale; Ember ~78s) and earlier again on loops -- always
     // before the boss, at any start speed.
+    public const float AuthoredLevelSeconds = 120f;
     public const float ChaosStartSeconds = 105f;
 
     public static SpawnPhase[] DefaultPhases()
@@ -300,14 +301,14 @@ public class enmiesOnBoard : MonoBehaviour {
     }
 
     // The clock the phases run on. In gameS1 it is the world's level clock
-    // (WorldManager.LevelClockSeconds): 0 on arrival, 120 at the boss, so
+    // (WorldManager.LevelClockSeconds), normalized to the authored 120-second phase clock, so
     // every world -- and every visit -- goes through the phases again, a
     // faster start just as a stock one, proportionally sooner. Without a
     // WorldManager (tutorial, headless tests) it is the seconds flown.
     float PhaseClockSeconds()
     {
         var world = WorldManager.Instance;
-        return world != null && world.HasLevelClock ? world.LevelClockSeconds : elapsedFlightSeconds;
+        return world != null && world.HasLevelClock ? world.LevelClockSeconds * AuthoredLevelSeconds / world.WorldLength : elapsedFlightSeconds;
     }
 
     void SelectPhase()
@@ -524,9 +525,11 @@ public class enmiesOnBoard : MonoBehaviour {
         // a spot on the board, and waits above the view until it may come in.
         if (EnemyBrain.PilotsEnabled && behaviour != null && behaviour.IsPilot && def.role != EnemyRole.Chaser)
         {
-            int wing = def.role == EnemyRole.Fighter && def.tier == 1 ? 2 : 1;   // scouts fly in pairs when there is room
+            int wing = def.role == EnemyRole.Fighter && def.tier == 1
+                ? Mathf.Clamp(2 + DroneSquad.ActiveCount / 4, 2, 4) : 1; // larger squads face small scout wings before tougher hulls
             for (int k = 0; k < wing; k++)
             {
+                if (k > 0 && !EnemyDensity.RoomFor(EnemyDensity.Hud)) break;
                 float stationX;
                 if (!PilotAirspace.TryAdmit(def, behaviour, k == 0 ? preferredX : float.NaN, out stationX))
                 {
@@ -682,9 +685,9 @@ public class enmiesOnBoard : MonoBehaviour {
         // The ramp runs on the level clock (0..120 across the level, however
         // fast the start), so a fast start climbs through the same ramp
         // sooner instead of sitting at its first steps; a stock start's clock
-        // is its seconds flown. (Past the level: seconds flown.)
+        // is stretched across the longer flight. (Past the level: seconds flown.)
         float rampClock = elapsedFlightSeconds;
-        if (world != null && world.HasLevelClock && world.DistanceLeft > 0f) rampClock = world.LevelClockSeconds;
+        if (world != null && world.HasLevelClock && world.DistanceLeft > 0f) rampClock = world.LevelClockSeconds * AuthoredLevelSeconds / world.WorldLength;
         int tick = Mathf.FloorToInt(rampClock / DensityTickSeconds);
 
         if (rampClock <= DensityFirstMinute)
@@ -694,7 +697,9 @@ public class enmiesOnBoard : MonoBehaviour {
         }
 
         int firstMinuteTickCount = Mathf.RoundToInt(DensityFirstMinute / DensityTickSeconds);
-        int midTicks = Mathf.Max(1, Mathf.FloorToInt((finalStart - DensityFirstMinute) / DensityTickSeconds));
+        float midEnd = world != null && world.HasLevelClock && world.DistanceLeft > 0f
+            ? finalStart * AuthoredLevelSeconds / world.WorldLength : finalStart;
+        int midTicks = Mathf.Max(1, Mathf.FloorToInt((midEnd - DensityFirstMinute) / DensityTickSeconds));
         int tickInMid = tick - firstMinuteTickCount;
         return Mathf.Lerp(DensityFirstMinuteCeiling, DensityMidCeiling, (float)tickInMid / midTicks);
     }

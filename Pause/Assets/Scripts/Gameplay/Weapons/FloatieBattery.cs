@@ -1,21 +1,15 @@
 using UnityEngine;
 
-// An extra floatie (FloatieGuns.cs): the ship's own companion art (UltimateGun's roster sheet), hovering the same way, in a slot of
-// its own so it never covers the hull, the hearts' orbit (HeartOrbit asks the battery for these spots), the charge indicator in
-// front of the nose, the exhaust or the thumb's pad below. Slot 1 is the second floatie, slot 2 the seeker.
-//
-//   main floatie (UltimateGun)  beside the hull on its own side (even ids left, odd right), a little above the middle
-//   slot 1  the OTHER side, up by the nose   (-side * SideReach hull-widths, +SlotOneRise hull-heights)
-//   slot 2  the main's side, low             (+side * SideReach,             -SlotTwoDrop)
-//   PARAGON's floaties 4 .. 6 (slots 2, 3, 4) fill in a balanced arc around the hull, never above the nose or under the exhaust:
-//   slot 2  the other side, low   (-side * SideReach, -SlotTwoDrop)   slot 3 the main's side, outer (+side * OuterReach, -OuterDrop)
-//   slot 4  the other side, outer (-side * OuterReach, +OuterRise)
+// Extra companions use the ship's own gun art in wings outside the central heart orbit.
+// Both the resting bodies and their full hover ranges need that clearance: otherwise
+// several heart styles can never find room for a loop or turn-back. Recruits occupy
+// outer columns; DroneFormation folds them inside the view near screen edges.
 public class FloatieCompanion : MonoBehaviour
 {
-    public const float SideReach = 1.22f;     // x the hull's half width (the main floatie sits at the same reach)
+    public const float SideReach = 4.2f;     // leave the hearts' orbit clear inside the extra wings
     public const float SlotOneRise = .85f;    // x the hull's half height, above the middle
     public const float SlotTwoDrop = 1f;      // x the hull's half height, below the middle
-    public const float OuterReach = 2.15f;    // x the hull's half width, the outer column (Paragon's floaties 5 and 6)
+    public const float OuterReach = 5.1f;     // recruits sit outside the opening wings
     public const float OuterDrop = .35f, OuterRise = .2f;   // x the hull's half height
     public const float HoverShare = .6f;      // of the main floatie's hover drift: they keep to their own corner
 
@@ -24,7 +18,9 @@ public class FloatieCompanion : MonoBehaviour
     Transform hull;
     SpriteRenderer sr;
     float aim, aimTarget;     // degrees off straight up (+ is to the left), as the bullet's angle
-    float bodyScale;
+    float bodyScale, kick, arrivalAge = 1f;
+    Vector3 arrivalFrom;
+    bool folded;
     Vector3 rest;
 
     public int Slot => slot;
@@ -55,7 +51,12 @@ public class FloatieCompanion : MonoBehaviour
             case 1: rest = new Vector3(side * e.x * SideReach, -e.y * SlotTwoDrop, .02f); break;
             case 2: rest = new Vector3(-side * e.x * SideReach, -e.y * SlotTwoDrop, .02f); break;
             case 3: rest = new Vector3(side * e.x * OuterReach, -e.y * OuterDrop, .02f); break;
-            default: rest = new Vector3(-side * e.x * OuterReach, e.y * OuterRise, .02f); break;
+            default:
+                float wing = slot % 2 == 0 ? -side : side;
+                int row = (slot - 4) / 2;
+                float height = row % 2 == 0 ? (row / 2 + 1) * .75f : -(row / 2 + 1) * .75f;
+                rest = new Vector3(wing * e.x * (OuterReach + .7f), e.y * height, .02f);
+                break;
         }
 
         var body = new GameObject("Body", typeof(SpriteRenderer));
@@ -97,7 +98,7 @@ public class FloatieCompanion : MonoBehaviour
         return new Bounds(center, size);
     }
 
-    public Bounds WorldRestEnvelope() { return ShipUiSlots.GunToWorld(hull, ship, LocalRestEnvelope()); }
+    public Bounds WorldRestEnvelope() { return folded && sr != null ? sr.bounds : ShipUiSlots.GunToWorld(hull, ship, LocalRestEnvelope()); }
 
     // Where a bullet leaves it: the top of the drawing (the nose of the barrel, turned with it).
     public Vector3 Muzzle
@@ -124,15 +125,23 @@ public class FloatieCompanion : MonoBehaviour
         if (snap) { aim = degrees; Apply(); }
     }
 
+    public void Kick() { kick = .12f; Apply(); }
+    public void JoinFrom(Vector3 from) { arrivalFrom = from; arrivalAge = 0f; }
+
     public void StepAim(float dt)
     {
+        kick = Mathf.Max(0f, kick - dt);
         if (dt > 0f) aim = Mathf.MoveTowardsAngle(aim, aimTarget, TurnDegreesPerSecond * dt);
         Apply();
     }
 
     void Apply()
     {
-        if (sr != null) sr.transform.localRotation = Quaternion.Euler(0f, 0f, aim);
+        if (sr != null)
+        {
+            sr.transform.localRotation = Quaternion.Euler(0f, 0f, aim);
+            sr.transform.localPosition = Vector3.down * bodyScale * .08f * (kick / .12f);
+        }
     }
 
     public void Place()
@@ -146,6 +155,14 @@ public class FloatieCompanion : MonoBehaviour
             transform.rotation = Quaternion.identity;
         }
         else transform.localPosition = target;
+        if (sr != null) transform.position = DroneFormation.KeepVisible(hull, transform.position, sr.bounds, out folded);
+        if (arrivalAge < .7f)
+        {
+            arrivalAge += Time.deltaTime;
+            float u = Mathf.SmoothStep(0f, 1f, Mathf.Clamp01(arrivalAge / .7f));
+            transform.position = Vector3.Lerp(arrivalFrom, transform.position, u);
+            transform.localScale = Vector3.one * Mathf.Lerp(.4f, 1f, u);
+        }
     }
 
     void LateUpdate() { Place(); }
@@ -164,9 +181,14 @@ public class FloatieBattery : MonoBehaviour
     ShipAttackRunner runner;
     readonly FloatieCompanion[] extras = new FloatieCompanion[FloatieTuning.MaxFloaties - 1];
     readonly float[] timer = new float[FloatieTuning.MaxFloaties];
-    int level = -1, count, roundRobin;
+    int level = -1, count, roundRobin, squadVersion = -1;
+    readonly float[] upgradeGlow = new float[FloatieTuning.MaxFloaties];
+    readonly int[] celebrationShots = new int[FloatieTuning.MaxFloaties];
+    readonly bool[] sweepLeft = new bool[FloatieTuning.MaxFloaties];
     int levelOverride = -1;
     Color tint = Color.white;
+    int previewSlot = -1;
+    float previewUntil;
     const float AimLead = .3f;   // floatie #2 tilts to its next angle this long before the shot
     float pendingAngle;
     bool pendingSet;
@@ -215,7 +237,7 @@ public class FloatieBattery : MonoBehaviour
         ship = shipId;
         gun = companion;
         tint = WeaponStyleTable.For(shipId).energy;
-        FloatieBullets.Prebuild(8);
+        FloatieBullets.Prebuild(FloatieTuning.PoolSize);
         FloatieFx.Prebuild();
         Refresh();
     }
@@ -233,6 +255,7 @@ public class FloatieBattery : MonoBehaviour
         newLevel = Mathf.Clamp(newLevel, 0, ShipWeaponUpgrades.MaxLevel);
         int before = count;
         level = newLevel;
+        squadVersion = DroneSquad.Version;
         count = FloatieTuning.CountAt(ship, level);
         ShotAtoms.SetDroneCount(count);
         for (int slot = 0; slot < extras.Length; slot++)
@@ -305,7 +328,7 @@ public class FloatieBattery : MonoBehaviour
     {
         var hold = ComputeHold(dt);
         CurrentHold = hold;
-        if (level < 0) Refresh();
+        if (level < 0 || squadVersion != DroneSquad.Version) Refresh();
 
         bool gone = hold == Hold.Dead || hold == Hold.Transition || hold == Hold.Tutorial;
         for (int slot = 0; slot < extras.Length; slot++)
@@ -337,10 +360,19 @@ public class FloatieBattery : MonoBehaviour
         for (int j = 0; j < count; j++)
         {
             int i = (roundRobin + j) % count;
+            if (!DroneSquad.IsActive(i)) continue;
             float cd = FloatieTuning.Cooldown(i, level, boss);
             if (timer[i] > cd) timer[i] = cd;   // a boss's 5 s never stretches a wait already running; leaving it never lengthens one
             timer[i] -= dt;
             if (i > 0) AimExtra(i, timer[i], dt);
+            else if (gun != null)
+            {
+                float look = 0f;
+                if (DroneSquad.Mode(0) == DroneMode.Aimed && FloatieAim.Nearest(gun.DroneMuzzle, FloatieTuning.SeekerRange, out var primaryPick))
+                { var d = primaryPick.at - gun.DroneMuzzle; look = Mathf.Atan2(-d.x, d.y) * Mathf.Rad2Deg; }
+                else if (DroneSquad.Mode(0) == DroneMode.Alternating) look = sweepLeft[0] ? -25f : 25f;
+                gun.AimDrone(look);
+            }
             if (timer[i] > 0f) continue;
             if (Fire(i)) timer[i] = cd;
             else timer[i] = .15f;   // no bullet free right now: try again in a moment
@@ -353,13 +385,10 @@ public class FloatieBattery : MonoBehaviour
     {
         var e = extras[index - 1];
         if (e == null) return;
-        if (index == 1)
-        {
-            if (timeLeft <= AimLead) { RollPending(); e.AimAt(pendingAngle); }
-            else e.AimAt(0f);
-        }
-        else if (index == 3 || index == 4) e.AimAt(FloatieTuning.FanAngle(index));
-        else
+        var mode = DroneSquad.Mode(index);
+        if (mode == DroneMode.Alternating)
+            e.AimAt(timeLeft <= AimLead ? (sweepLeft[index] ? -25f : 25f) : 0f);
+        else if (mode == DroneMode.Aimed)
         {
             FloatieAim.Pick pick;
             if (FloatieAim.Nearest(e.Muzzle, FloatieTuning.SeekerRange, out pick))
@@ -369,6 +398,7 @@ public class FloatieBattery : MonoBehaviour
             }
             else e.AimAt(0f);
         }
+        else e.AimAt(0f);
         e.StepAim(dt);
     }
 
@@ -388,13 +418,15 @@ public class FloatieBattery : MonoBehaviour
         return n;
     }
 
+    public Vector3 MuzzleFor(int index) => MuzzleOf(index);
+    public void PreviewDrone(int index) { previewSlot = index; previewUntil = Time.unscaledTime + .15f; }
+
     Vector3 MuzzleOf(int index)
     {
         if (index > 0 && extras[index - 1] != null) return extras[index - 1].Muzzle;
         if (gun != null && gun.BarrelRenderer != null)
         {
-            Bounds b = gun.BarrelRenderer.bounds;
-            return new Vector3(b.center.x, b.max.y, 0f);
+            return gun.DroneMuzzle;
         }
         return transform.position + Vector3.up * .5f;
     }
@@ -402,22 +434,16 @@ public class FloatieBattery : MonoBehaviour
     // One shot from floatie `index` (0-based). False when no bullet was free.
     public bool Fire(int index)
     {
+        if (index < 0 || index >= count || !DroneSquad.IsActive(index)) return false;
         Vector3 from = MuzzleOf(index);
         Vector3 heading = Vector3.up;
         var pick = default(FloatieAim.Pick);
         float angle = 0f;
         var companion = index > 0 ? extras[index - 1] : null;
-        if (index == 1)
+        if (DroneSquad.Mode(index) == DroneMode.Alternating)
         {
-            RollPending();
-            angle = pendingAngle;
-            pendingSet = false;
-            if (companion != null) { companion.AimAt(angle, true); from = companion.Muzzle; }
-            heading = Quaternion.Euler(0f, 0f, angle) * Vector3.up;
-        }
-        else if (index == 3 || index == 4)
-        {
-            angle = FloatieTuning.FanAngle(index);
+            angle = sweepLeft[index] ? -25f : 25f;
+            sweepLeft[index] = !sweepLeft[index];
             if (companion != null) { companion.AimAt(angle, true); from = companion.Muzzle; }
             heading = Quaternion.Euler(0f, 0f, angle) * Vector3.up;
         }
@@ -433,7 +459,11 @@ public class FloatieBattery : MonoBehaviour
                 {
                     heading = pick.at - from;
                     angle = Mathf.Atan2(-heading.x, heading.y) * Mathf.Rad2Deg;
-                    if (companion == null) break;
+                    if (companion == null)
+                    {
+                        if (gun != null) { gun.AimDrone(angle); from = gun.DroneMuzzle; }
+                        continue;
+                    }
                     companion.AimAt(angle, true);
                     from = companion.Muzzle;
                 }
@@ -461,7 +491,7 @@ public class FloatieBattery : MonoBehaviour
         // FAIR SHARE: the volley leaves room for every other floatie that has nothing in the air (they are about to fire), but always
         // fires at least one bullet.
         int roomLeft = FloatieTuning.PoolSize - FloatieBullets.Active, waiting = 0;
-        for (int d = 0; d < count; d++) if (d != index && LiveBy(d) == 0) waiting++;
+        for (int d = 0; d < count; d++) if (d != index && DroneSquad.IsActive(d) && LiveBy(d) == 0) waiting++;
         n = Mathf.Min(n, Mathf.Max(1, roomLeft - waiting));
         int fired = 0;
         for (int k = 0; k < n; k++)
@@ -476,16 +506,48 @@ public class FloatieBattery : MonoBehaviour
             mods.shards = split;
             mods.arc = arc;
             mods.source = index;
+            mods.tier = GunBoltArt.Tier(index);
+            mods.celebrated = celebrationShots[index] > 0;
             mods.rapid = ShotAtoms.Level(index, ShotAtom.Rapid) > 0;
             Vector3 h = Quaternion.Euler(0f, 0f, angles[k] + lean) * heading;
             bullet.Launch(this, ship, from + side * offsets[k], h, tint, pick, mods);
+            if (twin > 0 && k < 2) FloatieFx.Spark(FloatieFx.Kind.Muzzle, from + side * offsets[k], h, tint);
             fired++;
         }
         if (fired == 0) return false;
-        FloatieFx.Spark(FloatieFx.Kind.Muzzle, from, heading, tint);
+        FloatieFx.Spark(celebrationShots[index] > 0 ? FloatieFx.Kind.UpgradeMuzzle : FloatieFx.Kind.Muzzle, from, heading, tint);
+        if (companion != null) companion.Kick();
         LastAngle[index] = angle;
         Shots[index]++;
+        if (celebrationShots[index] > 0) celebrationShots[index]--;
         return true;
+    }
+
+    public void JoinDrone(int index, Vector3 from)
+    {
+        Refresh();
+        if (index > 0 && extras[index - 1] != null) extras[index - 1].JoinFrom(from);
+        NotifyUpgrade(index);
+    }
+
+    public void NotifyUpgrade(int index)
+    {
+        if (index < 0 || index >= count) return;
+        upgradeGlow[index] = 1.2f; celebrationShots[index] = 3; timer[index] = 0f;
+    }
+
+    void LateUpdate()
+    {
+        for (int i = 0; i < count; i++)
+        {
+            upgradeGlow[i] = Mathf.Max(0f, upgradeGlow[i] - Time.unscaledDeltaTime);
+            var sr = i == 0 ? (gun != null ? gun.BarrelRenderer : null) : (extras[i - 1] != null ? extras[i - 1].Renderer : null);
+            if (sr == null || (i == 0 && gun.Busy)) continue;
+            Color colour = DroneSquad.IsActive(i) ? Color.Lerp(tint, DroneSquad.Colour(DroneSquad.Mode(i)), .35f) : new Color(.24f, .3f, .36f, .45f);
+            float highlight = upgradeGlow[i] > 0f ? .5f + .5f * Mathf.Sin(upgradeGlow[i] * 32f) : (previewSlot == i && Time.unscaledTime < previewUntil ? .35f : 0f);
+            sr.color = Color.Lerp(colour, Color.white, highlight);
+            if (i == 0 && gun != null) gun.DroneTint = sr.color;
+        }
     }
 
     // World boxes of the extra floaties' resting places (HeartOrbit hurries past them like the main floatie's); the count.

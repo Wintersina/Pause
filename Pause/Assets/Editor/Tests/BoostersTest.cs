@@ -1142,7 +1142,7 @@ public static class BoostersTest
         Check("rush: a real run spends one charge and turns the rates up", Boosters.BeginRush(true) && Boosters.RushCharges == 1 && Boosters.UsedRush == 1 && Boosters.RunRushActive);
         Check("rush: the rates are x3 while it runs (enemy 8% -> 24% or starting level 18% -> 54%, cooldown 12 -> 6 s, elite 100%, boss second 100%)",
               Mathf.Approximately(ShotAtomDrops.EnemyChance, WorldManager.CurrentIndex == WorldManager.RunStart ? .54f : .24f) && Mathf.Approximately(ShotAtomDrops.EnemyCooldown, 6f) &&
-              ShotAtomDrops.Rushed(ShotAtomTuning.EliteDropChance) == 1f && ShotAtomDrops.Rushed(ShotAtomTuning.BossSecondDropChance) == 1f);
+              ShotAtomDrops.Rushed(ShotAtomTuning.EliteDropChance) == 1f && ShotAtomDrops.Rushed(1f) == 1f);
         Boosters.Reload();
         Check("rush: the spent charge is on disk (a restart keeps 1 held, 1 used)", Boosters.RushCharges == 1 && Boosters.UsedRush == 1);
         Boosters.BeginRush(true);

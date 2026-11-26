@@ -2,25 +2,11 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
-// The run's SHOT ATOM block (PER DRONE): right under the score board, one compact ROW per drone (up to six): a small drone glyph, then
-// that drone's atom coins (Twin, Pierce, Split, Ricochet, Arc in fixed columns, so a coin never moves), each with its level under it
-// ("x1".."x10"); RAPID, which every drone shares, shows once as one coin at the end of the first row. The block is as tall as the
-// ship has drones (reserved from the start, so a coin joining never moves anything) and is shrunk to fit a short screen.
-// (It used to be one row of the atoms in the order caught.) Only the permanent shot atoms (ShotAtoms): never the
-// boosters (BoosterHud keeps the right-hand column) and never the timed atoms. A coin is the atom's own idle flipbook, small, with
-// the border spinning and the symbol still.
-//
-// NOT a control: no Button, no GraphicRaycaster, every graphic has raycastTarget off and the canvas group blocks nothing, so a
-// finger on it is an ordinary press. Built on gameS1 only (never the tutorial).
-//
-// PLACEMENT (pure, Geometry / SlotRect, ShotAtomsTest): the row starts at the score board's inner left edge, a gap under the
-// board's bottom FRAME (the art reaches below the layout rect), and stays inside the board's width, so it never meets the rails.
-// The block is ALWAYS pinned there: it never slides for the boss warning's banner / chip or PORTAL DANGER's chip (its canvas
-// is drawn above theirs instead). It hangs under the frame's VISIBLE bottom (HudStyler.BoardVisibleBottomPx: the art's
-// transparent bottom strip and the live read-out scale taken out, per world) and re-anchors when the world's frame changes.
-// The Replay/Home pair is always an obstacle; the booster column only narrows the block. All the drone rows
-// are always reserved, so a coin joining the row never moves anything. It follows ScreenFit's top band (rails, notches,
-// cutouts, safe area), so tall phones, the Flip cover screen, foldables and tablets all get it; on a narrow board the coins shrink.
+// Read-only squad HUD under the scoreboard: one fixed modifier row for the selected drone,
+// shared RAPID in the last column, then compact mode pips for all twelve possible slots.
+// Nearby pickup previews select their recipient; dormant slots remain visible from run start.
+// All graphics ignore raycasts so the pilot can press anywhere to pause. Geometry follows
+// the scoreboard's painted bottom edge, rails, quick actions and safe-area bounds.
 public class ShotAtomHud : MonoBehaviour
 {
     public const string HostName = "~ShotAtomHud";
@@ -31,9 +17,11 @@ public class ShotAtomHud : MonoBehaviour
     public const float MaxHeightShare = .34f;  // of the screen's height, the most the block may take (it shrinks to fit)
     public const float CoinTopClearShare = 10f / 196f; // the installed idle flipbooks' transparent top strip
     public const int Columns = 7;              // the drone glyph, Twin .. Arc, then the shared Rapid coin
+    public static int SelectedAtomSlot(ShotAtom atom) => atom == ShotAtom.Rapid ? RapidColumn : (int)atom + 1;
+    public static int PipSlot(int drone) => Columns + drone;
     public const int GlyphColumn = 0, RapidColumn = 6, MaxRows = ShotAtomTuning.MaxDrones;
     public const int SortOrder = 88;           // above the boss warning (85) and PORTAL DANGER (84), under the booster column (89)
-    public const int MaxSlots = Columns * MaxRows;
+    public const int MaxSlots = Columns + DroneSquad.MaxSlots;
 
     public struct Geometry
     {
@@ -208,7 +196,7 @@ public class ShotAtomHud : MonoBehaviour
     Canvas canvas;
     CanvasGroup group;
     Font font;
-    int shownVersion = -1, shownCount;
+    int shownVersion = -1, shownSquadVersion = -1, shownCount;
     int frame;
     float clock;
 
@@ -243,10 +231,10 @@ public class ShotAtomHud : MonoBehaviour
         Rect safe = ScreenInfo.SafeArea;
         var band = TopBand.FrameFor(safe, screen);
         Rect hud = row.LiveHudRect(band, screen);
-        var g = Compute(band, safe, screen, hud);
+        var g = Compute(band, safe, screen, hud, -1, 1);
         float gap = Mathf.Max(1f, Mathf.Round(GapUnits * PauseQuickActions.CanvasScaleFor(screen)));
         float cx = hud.height > 0f ? hud.center.x : (band.left + band.right) * .5f;
-        topCentre = new Vector2(Mathf.Round(cx), Mathf.Round(g.top - g.rows * g.rowPitch - gap));
+        topCentre = new Vector2(Mathf.Round(cx), Mathf.Round(g.top - g.rows * g.rowPitch - gap - 28f * PauseQuickActions.CanvasScaleFor(screen)));
         return true;
     }
 
@@ -331,51 +319,57 @@ public class ShotAtomHud : MonoBehaviour
 
     void Refresh()
     {
-        int drones = ShotAtoms.DroneCount, coins = 0;
+        int coins = 0, selected = Mathf.Clamp(DroneSquad.Selected, 0, ShotAtoms.DroneCount - 1);
         for (int i = 0; i < MaxSlots; i++)
         {
             var slot = slots[i];
-            int row = i / Columns, col = i % Columns;
+            bool pip = i >= Columns;
+            slot.drone = pip ? i - Columns : selected;
+            slot.glyph = pip || i == GlyphColumn;
             bool on = false;
-            slot.drone = row;
-            slot.glyph = col == GlyphColumn;
             if (slot.glyph)
             {
-                on = row < drones && DroneHasAny(row);
-                if (on) { slot.label.text = (row + 1).ToString(); slot.icon.sprite = GlyphSprite(); slot.level = 0; }
+                on = slot.drone < DroneSquad.Slots;
+                slot.label.text = (slot.drone + 1).ToString();
+                slot.icon.sprite = DronePickupArt.For(DroneSquad.Mode(slot.drone));
+                slot.icon.color = DroneSquad.IsActive(slot.drone) ? Color.white : new Color(.55f, .6f, .65f, .65f);
+                if (pip && DroneSquad.IsActive(slot.drone) && slot.drone != selected) slot.icon.color = new Color(.7f, .76f, .82f, .8f);
+                slot.label.color = slot.drone == selected ? Color.white : new Color(.65f, .72f, .8f, .85f);
+                slot.level = 0;
             }
             else
             {
-                var atom = col == RapidColumn ? ShotAtom.Rapid : (ShotAtom)(col - 1);
-                int level = col == RapidColumn ? (row == 0 ? ShotAtoms.Level(ShotAtom.Rapid) : 0) : row < drones ? ShotAtoms.Level(row, atom) : 0;
+                var atom = i == RapidColumn ? ShotAtom.Rapid : (ShotAtom)(i - 1);
+                int level = ShotAtoms.Level(selected, atom);
                 on = level > 0;
                 if (on)
                 {
                     if (atom != slot.atom || level != slot.level) slot.pulse = 1f;
-                    slot.atom = atom;
-                    slot.level = level;
-                    slot.label.text = LevelLabel(level);
-                    slot.icon.sprite = Frame(atom);
+                    slot.atom = atom; slot.level = level;
+                    slot.label.text = LevelLabel(level); slot.icon.sprite = Frame(atom); slot.icon.color = Color.white;
                     coins++;
                 }
                 else slot.level = -1;
             }
-            if (slot.root.gameObject.activeSelf != on) slot.root.gameObject.SetActive(on);
+            slot.root.gameObject.SetActive(on);
         }
+        placed = false;
         shownCount = coins;
     }
 
     void Update()
     {
-        if (ShotAtoms.OrderCount > 0 && canvas == null) Build();
+        if (startMenu.youAreInTutorial || ShipId.TutorialFlight) { if (group != null) group.alpha = 0f; return; }
+        if (group != null) group.alpha = buttonClicks.playerDied ? 0f : 1f;
+        if ((FloatieBattery.Current != null || ShotAtoms.OrderCount > 0) && canvas == null) Build();
         if (canvas == null) return;
 
-        if (shownVersion != ShotAtoms.Version)
+        if (shownVersion != ShotAtoms.Version || shownSquadVersion != DroneSquad.Version)
         {
-            shownVersion = ShotAtoms.Version;
+            shownVersion = ShotAtoms.Version; shownSquadVersion = DroneSquad.Version;
             Refresh();
         }
-        if (shownCount == 0) return;
+
         float dt = Time.unscaledDeltaTime;
         for (int i = 0; i < MaxSlots; i++)
             if (slots[i].pulse > 0f)
@@ -415,12 +409,12 @@ public class ShotAtomHud : MonoBehaviour
         Rect hud = LiveHudRect(band, screen);
         int world = HudSkin.CurrentWorld;
         // re-anchored whenever the screen, the read-out, the drone count or the board's frame (the world) changes; never for a warning
-        if (placed && placedRows == ShotAtoms.DroneCount && screen == appliedScreen && safe == appliedSafe && band.Same(appliedBand) && hud == appliedHud && world == appliedWorld) return;
+        if (placed && placedRows == 1 && screen == appliedScreen && safe == appliedSafe && band.Same(appliedBand) && hud == appliedHud && world == appliedWorld) return;
         placed = true;
         appliedWorld = world;
         appliedScreen = screen; appliedSafe = safe; appliedBand = band; appliedHud = hud;
         liveHud = hud;
-        var g = Compute(band, safe, screen, hud, world, ShotAtoms.DroneCount);
+        var g = Compute(band, safe, screen, hud, world, 1);
         geometry = g;
         placedRows = g.rows;
         int fontSize = Mathf.Max(8, Mathf.RoundToInt(LabelUnits * PauseQuickActions.CanvasScaleFor(screen)));
@@ -428,6 +422,14 @@ public class ShotAtomHud : MonoBehaviour
         {
             Rect r = SlotRect(g, i);
             Rect ic = IconRect(g, r);
+            if (i >= Columns)
+            {
+                float width = (Columns * g.pitch - Mathf.Max(1f, GapUnits * PauseQuickActions.CanvasScaleFor(screen))) / DroneSquad.MaxSlots;
+                float icon = Mathf.Clamp(width - 2f, 8f, 22f), label = Mathf.Max(8f, icon * .45f);
+                float top = g.top - g.slotHeight - g.label - 4f;
+                r = new Rect(g.left + (i - Columns) * width, top - icon - label, width, icon + label);
+                ic = new Rect(r.center.x - icon * .5f, r.yMin + label, icon, icon);
+            }
             var slot = slots[i];
             slot.root.anchoredPosition = r.position;
             slot.root.sizeDelta = r.size;

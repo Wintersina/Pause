@@ -9,7 +9,7 @@ using UnityEngine;
 public static class HeartQuarterFrames
 {
     public const int Quarters = 4, Frames = 8;
-    public const float FrameSeconds = .045f;
+    public const float FrameSeconds = .07f;
     public const float BreakSeconds = FrameSeconds * Frames;
     public const int AtlasColumns = 8, AtlasRows = 10;
 
@@ -29,6 +29,13 @@ public static class HeartQuarterFrames
         public int Height { get; internal set; }
         public float PixelsPerUnit { get; internal set; }
         public Vector2 Pivot { get; internal set; }
+        // Additional world-space separation avoids clipping fragments against the source-sized atlas cell.
+        public Vector3 Drift(int part, float age, Vector3 worldScale, Quaternion rotation)
+        {
+            float t = Mathf.Clamp01(age / BreakSeconds);
+            return rotation * new Vector3((part < 2 ? 1f : -1f) * Width / PixelsPerUnit * Mathf.Abs(worldScale.x) * .30f * t,
+                -Height / PixelsPerUnit * Mathf.Abs(worldScale.y) * .12f * t * t, 0f);
+        }
     }
 
     static readonly Dictionary<Sprite, Set> cache = new Dictionary<Sprite, Set>();

@@ -688,6 +688,7 @@ public class AttackRun
 public static class AttackPool
 {
     public const int MaxProjectiles = 40;
+    public const int MaxCombinedProjectiles = MaxProjectiles + ShotAtomTuning.MaxBullets;
     public const int MaxSprites = 40;
 
     static readonly List<AttackProjectile> projectiles = new List<AttackProjectile>();

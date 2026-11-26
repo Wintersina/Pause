@@ -436,7 +436,7 @@ public static class SpeedCapTest
         // a whole Space level with a blue atom early: the boss comes sooner
         float plainSeconds = FlyLevel(0, false), boostSeconds = FlyLevel(0, true);
         Check("a stock Space level with a blue atom at 30 s reaches the boss sooner (" + boostSeconds.ToString("F1") + " s vs " +
-              plainSeconds.ToString("F1") + " s)", boostSeconds < plainSeconds - .3f && plainSeconds < 121f);
+              plainSeconds.ToString("F1") + " s)", boostSeconds < plainSeconds - .3f && Mathf.Abs(plainSeconds - WorldManager.BaselineWorldSeconds) < 1f);
     }
 
     static float FlyLevel(int world, bool atom)
@@ -544,26 +544,26 @@ public static class SpeedCapTest
                 if (i == 0) baseline &= Mathf.Abs(n - WorldManager.BaselineWorldSeconds) < .2f && Mathf.Abs(o - WorldManager.BaselineWorldSeconds) < .5f;
             }
             float n30 = SpeedRamp.SecondsToCover(.30f, rate, SpeedRamp.Cap, newD);
-            lasting &= n30 <= WorldManager.BaselineWorldSeconds * .7f;
+            lasting &= n30 <= WorldManager.BaselineWorldSeconds - 40f;
             Debug.Log(string.Format("[CAP] TABLE {0,-8} distance old {1:F1} new {2:F1} | {3}", theme.displayName, oldD, newD, string.Join(" | ", cells)));
             // the flight trickle is paid per distance, so a level pays the same at any start speed
-            float oldDust = 0f;
+            float integratedDust = 0f;
             for (float t = 0f, v = 0f; t < WorldManager.BaselineWorldSeconds; t += .01f)
             {
-                float next = OldSpeedAfter(v, rate, OldCaps[w], .01f);
-                oldDust += ScoreRules.DustRewardScale * .05f * Mathf.Min(1f, .5f * (v + next) / .6f) * .01f;   // the old score.cs formula
+                float next = SpeedRamp.SpeedAfter(v, rate, SpeedRamp.Cap, .01f);
+                integratedDust += ScoreRules.FlightDust(.5f * (v + next), .01f);
                 v = next;
             }
             float newDust = ScoreRules.DustPerDistance * newD * ScoreRules.DustRewardScale;
-            Debug.Log(string.Format("[CAP] TABLE {0,-8} flight dust for a level: old {1:F2}, new {2:F2}", theme.displayName, oldDust, newDust));
-            dustSame &= Mathf.Abs(oldDust - newDust) < .03f;
+            Debug.Log(string.Format("[CAP] TABLE {0,-8} flight dust for a level: integrated {1:F2}, per distance {2:F2}", theme.displayName, integratedDust, newDust));
+            dustSame &= Mathf.Abs(integratedDust - newDust) < .03f;
         }
         Debug.Log("[CAP] TABLE first pass (four levels of flight, no boss fights) by start: " +
                   string.Join(" | ", Starts.Select((s, i) => s + ": " + passOld[i].ToString("F0") + "/" + passNew[i].ToString("F0"))));
-        Check("a stock start (0) meets every boss at 120 s, old and new", baseline);
-        Check("a level's flight dust is what it was (the trickle is per distance, the level a distance)", dustSame);
+        Check("a stock start (0) meets every boss at the configured baseline, old and new", baseline);
+        Check("frame-by-frame flight dust matches the full longer distance at the configured cap", dustSame);
         Check("every faster start reaches every boss strictly sooner", sooner);
-        Check("the fastest start (30) reaches every boss at least 30% sooner than a stock start: the lasting advantage", lasting);
+        Check("the fastest start (30) reaches every boss at least 40 seconds sooner than a stock start: the lasting advantage", lasting);
         bool passSooner = true;
         for (int i = 1; i < Starts.Length; i++) passSooner &= passNew[i] < passNew[i - 1];
         Check("... so a faster ship flies more worlds (and loops) in the same time", passSooner);

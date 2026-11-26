@@ -150,12 +150,13 @@ public static class EnemyDensityProbe
 
     // One frame of the whole board at scroll `v` (u/s), `t` on the weave clock.
     // (`pilot`: where the stand-in ship flies this frame; null: the slow weave.)
-    internal static void StepBoard(enmiesOnBoard board, Transform ship, float t, float v, System.Func<float, Vector3> pilot = null)
+    internal static void StepBoard(enmiesOnBoard board, Transform ship, float t, float v, System.Func<float, Vector3> pilot = null, System.Action onSpawn = null)
     {
         SpawnSpace.ClockOverride = t;
         ship.position = pilot != null ? pilot(t) : new Vector3(Mathf.Sin(t * .7f) * 1.8f, -3f, 0f);
         Select.Invoke(board, null);
         SpawnStep.Invoke(board, new object[] { Dt });
+        onSpawn?.Invoke(); // admission checks run before the first movement/brain step
 
         buffer.Clear();
         buffer.AddRange(SpawnSpace.Live(SpawnLayer.Enemy));
