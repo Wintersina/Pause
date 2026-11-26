@@ -621,7 +621,10 @@ public static class RailMineLaserTest
         if (Mathf.Abs(e0.x - faceX) > tol || Mathf.Abs(e1.x - faceX) > tol)
             why.Add("end corners x " + F(e0.x) + "/" + F(e1.x) + " not on the rail face " + F(faceX));
         if (((e0 + e1) * .5f - l.To).magnitude > tol) why.Add("end centred " + ((e0 + e1) * .5f).ToString("F3") + " not on To " + l.To.ToString("F3"));
-        float w = Mathf.Abs(s0.y - s1.y) * cos / Mathf.Max(1e-4f, sr.sprite.bounds.size.x);   // per unit of the cell's own width
+        // Painted mine strips are normalized by Span, including trimmed Desert cells.
+        // Legacy cells and tiled kits retain their original per-cell scale convention.
+        float cellWidth = l.Flame != null ? 1f : Mathf.Max(1e-4f, sr.sprite.bounds.size.x);
+        float w = Mathf.Abs(s0.y - s1.y) * cos / cellWidth;
         if (w < wLo - 1e-3f || w > wHi + 1e-3f) why.Add("width " + F(w) + " not " + F(wLo) + ".." + F(wHi));
         // the long edges run along the beam
         Vector2 a = s0.y < s1.y ? s0 : s1, b = e0.y < e1.y ? e0 : e1;

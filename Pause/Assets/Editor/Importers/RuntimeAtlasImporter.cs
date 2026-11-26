@@ -21,6 +21,7 @@ public class RuntimeAtlasImporter : AssetPostprocessor
         ("BossImpact/", FilterMode.Point, TextureImporterCompression.CompressedHQ, 4096),
         // Zero leaves the existing size cap untouched, as the boss FX importer did.
         ("BossAttackFx/", FilterMode.Point, TextureImporterCompression.Uncompressed, 0),
+        ("Attacks/Desert/desert_attack_minebeam.png", FilterMode.Point, TextureImporterCompression.Uncompressed, 256),
         ("Attacks/", FilterMode.Point, TextureImporterCompression.Uncompressed, 2048),
     };
 
@@ -41,6 +42,15 @@ public class RuntimeAtlasImporter : AssetPostprocessor
             importer.npotScale = TextureImporterNPOTScale.None;
             importer.isReadable = false;
             if (rule.maxSize > 0) importer.maxTextureSize = rule.maxSize;
+            if (assetPath == Root + "Attacks/Desert/desert_attack_minebeam.png")
+            {
+                var defaults = importer.GetDefaultPlatformTextureSettings(); defaults.maxTextureSize = 256; importer.SetPlatformTextureSettings(defaults);
+                foreach (string platform in new[] { "Standalone", "Android", "iPhone" })
+                {
+                    var settings = importer.GetPlatformTextureSettings(platform); settings.maxTextureSize = 256;
+                    importer.SetPlatformTextureSettings(settings);
+                }
+            }
             importer.textureCompression = rule.compression;
             return;
         }

@@ -29,7 +29,7 @@ public static class RailMineThemedTest
 
     const float Dt = 1f / 60f;
     const int W = 540, H = 960;
-    static readonly string[] Keys = { "Space", "Frost", "Verdant", "Ember", "Tide", "Storm" };
+    static readonly string[] Keys = { "Space", "Frost", "Verdant", "Ember", "Tide", "Storm", "Desert" };
     const float MaxPinkShare = .01f;   // NO PINK on a rail mine (user, 2026-10-11)
     const float MinCueShare = .03f;    // ... and the world's own cue colours are there instead
 
@@ -42,10 +42,10 @@ public static class RailMineThemedTest
             {
                 AttackArt.Clear(); MineFlameArt.Reset(); MineLaserArt.ResetCache();
                 Kit(0);
-                Fallback();
-                for (int w = 1; w <= 5; w++) BeamAtlas(w);
-                for (int w = 0; w <= 5; w++) Firing(w);
-                for (int w = 0; w <= 5; w++)
+
+                for (int w = 1; w <= 6; w++) BeamAtlas(w);
+                for (int w = 0; w <= 6; w++) Firing(w);
+                for (int w = 0; w <= 6; w++)
                     Check(Keys[w] + ": friendly fire still works through the themed beam (rock + fighter on the row burn once; off in the tutorial)", RailMineLaserTest.FriendlyFireOfWorld(w) == 0);
             }
             finally
@@ -140,16 +140,6 @@ public static class RailMineThemedTest
         return Mathf.Abs(Mathf.DeltaAngle(MineCue.Hue[5], 258f)) < 1f && MineCue.SatCap[5] <= .4f;
     }
 
-    // a world without its own atlas (Desert): the boss's laser cells, their hot pink remapped to the sun-white cue
-    static void Fallback()
-    {
-        var a = MineLaserArt.For(6);
-        float worst = 0f;
-        foreach (var s in new[] { a.sight, a.beam0, a.beam1, a.flash[0], a.flash[1], a.spark[0], a.spark[1] })
-            worst = Mathf.Max(worst, s == null ? 1f : PinkShare(s, out int r, out int o));
-        Check("Desert (no mine atlas yet): the boss-cell beam carries no pink either (worst " + (worst * 100f).ToString("F1") + "%) and has its own cache slot", worst <= MaxPinkShare && a.flame == null && a.kit == null && !ReferenceEquals(a, MineLaserArt.For(5)));
-    }
-
     const int PilotCells = 4, BeamCells = 6;
 
     // The painted mine beam of Ember (flame) and of Frost / Verdant / Tide / Storm: slots, file, cue, loops.
@@ -160,14 +150,14 @@ public static class RailMineThemedTest
         var a = MineLaserArt.For(w);
         var f = MineFlameArt.ForWorld(w);
         var tex = AttackArt.Atlas(w, file);
-        Check(t + "the atlas " + AttackArt.PathOf(w, file) + " exists, 768 x 768", tex != null && tex.width == 768 && tex.height == 768);
+        Check(t + "the atlas " + AttackArt.PathOf(w, file) + " exists, 768 x 768", tex != null && tex.width == (w == 6 ? 256 : 768) && tex.height == tex.width);
         Check(t + "the mine's art IS that atlas (flame slot, no laser kit), every cell painted and Alive",
               f != null && f.painted && f.Alive && f.Complete && a.flame == f && a.kit == null && f.beam[0].texture == tex && f.pilot[0].texture == tex &&
               f.sight.texture == tex && f.flash[3].texture == tex && f.spark[2].texture == tex && f.haze[1].texture == tex);
         if (f == null) return;
         Check(t + "built once: a second look-up is the same object", ReferenceEquals(MineFlameArt.ForWorld(w), f) && ReferenceEquals(MineLaserArt.For(w), a));
         Check(t + BeamCells + " beam bodies of 1 u x 3 u (128 x 384), " + PilotCells + " pilot, 4 burst, 3 impact, 2 haze", f.beam.Length == BeamCells && f.pilot.Length == PilotCells && f.flash.Length == 4 && f.spark.Length == 3 && f.haze.Length == 2 &&
-              System.Array.TrueForAll(f.beam, s => s != null && Mathf.Approximately(s.bounds.size.x, 1f) && Mathf.Approximately(s.bounds.size.y, 3f)));
+              System.Array.TrueForAll(f.beam, s => s != null && Mathf.Abs(s.bounds.size.x - (w == 6 ? .34f : 1f)) < .01f && Mathf.Approximately(s.bounds.size.y, 3f)));
         string line = "";
         bool cue = true;
         var cells = new List<(string, Sprite, bool)>();
@@ -190,7 +180,7 @@ public static class RailMineThemedTest
         Check(t + "the world's cue colour (hue " + MineCue.Hue[MineCue.Slot(w)] + ") is in the beam (" + (CueShare(f.beam[0], w) * 100f).ToString("F0") + "%) and the burst (" + (CueShare(f.flash[2], w) * 100f).ToString("F0") + "%)",
               CueShare(f.beam[0], w) >= MinCueShare && CueShare(f.flash[2], w) >= MinCueShare);
         long bytes = tex != null ? tex.width * tex.height * 4L : 0;
-        Check(t + "one 2.25 MB sheet (" + bytes / 1024 + " KB), no other texture of its own", bytes == 768L * 768 * 4);
+        Check(t + "one shared native-resolution sheet (" + bytes / 1024 + " KB), no other texture of its own", bytes == (w == 6 ? 256L * 256 : 768L * 768) * 4);
     }
 
     // ---- a firing mine in the real backdrop ----
