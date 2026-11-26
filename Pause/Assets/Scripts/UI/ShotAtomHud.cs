@@ -2,8 +2,8 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
-// Read-only squad HUD under the scoreboard: one fixed modifier row for the selected drone,
-// shared RAPID in the last column, then compact mode pips for all twelve possible slots.
+// Read-only squad HUD under the scoreboard: collected modifiers for the selected drone in first-catch order,
+// including shared RAPID, then compact mode pips for all twelve possible slots. Paused rows use the same ordering.
 // Nearby pickup previews select their recipient; dormant slots remain visible from run start.
 // All graphics ignore raycasts so the pilot can press anywhere to pause. Geometry follows
 // the scoreboard's painted bottom edge, rails, quick actions and safe-area bounds.
@@ -422,7 +422,8 @@ public partial class ShotAtomHud : MonoBehaviour
         int fontSize = Mathf.Max(8, Mathf.RoundToInt(LabelUnits * PauseQuickActions.CanvasScaleFor(screen)));
         for (int i = 0; i < MaxSlots; i++)
         {
-            Rect r = SlotRect(g, i);
+            int column = i > 0 && i < Columns ? CollectedColumn(DroneSquad.Selected, slots[i].atom) : i;
+            Rect r = SlotRect(g, column);
             Rect ic = IconRect(g, r);
             if (i >= Columns)
             {

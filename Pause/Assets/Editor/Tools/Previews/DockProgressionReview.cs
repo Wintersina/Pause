@@ -49,13 +49,23 @@ public static class DockProgressionReview
         while (DroneSquad.Slots < slots) DroneSquad.AddBossDrone();
         var battery = ship.GetComponent<FloatieBattery>(); battery.Refresh();
         for (int drone = 0; drone < DroneSquad.Slots; drone++)
-        for (int atom = 0; atom < ShotAtomTuning.PerDroneAtoms; atom++) ShotAtoms.SetLevel(drone, (ShotAtom)atom, (drone + atom) % 10 + 1);
+        for (int atom = 0; atom < ShotAtomTuning.PerDroneAtoms; atom++) if ((drone + atom) % 3 == 0) ShotAtoms.SetLevel(drone, (ShotAtom)atom, (drone + atom) % 10 + 1);
         ShotAtoms.SetLevel(ShotAtom.Rapid, 3);
         battery.SendMessage("LateUpdate");
         HealBank.Reset(); HealBank.OnCatch(false, false); HealBank.OnCatch(false, false);
         HealBankIcon.Attach(ship).Refresh();
         score.pauseCounter = 3; TouchInput.PressedOverride = () => false;
-        var hud = new GameObject(ShotAtomHud.HostName).AddComponent<ShotAtomHud>(); hud.SendMessage("Update"); hud.AdvancePausedReview(2f);
+        var hud = new GameObject(ShotAtomHud.HostName).AddComponent<ShotAtomHud>(); hud.SendMessage("OnEnable"); hud.SendMessage("Update"); hud.AdvancePausedReview(2f);
+        if (slots == 3 && !upgradeCard)
+        {
+            var scoreHud = UnityEngine.Object.FindFirstObjectByType<ScoreHud>();
+            scoreHud.ShowAtomUpgrade("TWIN SHOT -> DRONE 1", "2 SHOTS → 3 SHOTS", ShotAtoms.Colour(ShotAtom.Twin), new Vector2(float.NaN, float.NaN), "LV 2");
+            scoreHud.StepPopups(.2f);
+            if (scoreHud.AtomUpgradeText.enabled || scoreHud.AtomUpgradeCard.gameObject.activeSelf) throw new Exception("Upgrade card obscures paused review");
+            score.pauseCounter = 0; TouchInput.PressedOverride = () => true; hud.SendMessage("Update"); scoreHud.StepPopups(0f);
+            if (!scoreHud.AtomUpgradeText.enabled || !scoreHud.AtomUpgradeCard.gameObject.activeSelf) throw new Exception("Upgrade card did not return after resume");
+            score.pauseCounter = 3; TouchInput.PressedOverride = () => false; hud.SendMessage("Update"); hud.AdvancePausedReview(2f); scoreHud.StepPopups(0f);
+        }
         if (upgradeCard)
         {
             score.pauseCounter = 0; TouchInput.PressedOverride = () => true; hud.SendMessage("Update");

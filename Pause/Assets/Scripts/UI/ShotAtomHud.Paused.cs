@@ -19,7 +19,28 @@ public partial class ShotAtomHud
         return new Rect(rt.anchoredPosition, rt.sizeDelta);
     }
     public int ExpandedRowsVisible => expanded ? Mathf.Min(DroneSquad.Slots, 1 + Mathf.FloorToInt(expandAge / .08f)) : 0;
-    public string PausedLevelLabel(int drone, ShotAtom atom) => pausedSlots[drone * Columns + SelectedAtomSlot(atom)]?.label.text;
+    public string PausedLevelLabel(int drone, ShotAtom atom) => pausedSlots[drone * Columns + SelectedAtomSlot(atom)]?.root.gameObject.activeSelf == true ? pausedSlots[drone * Columns + SelectedAtomSlot(atom)].label.text : null;
+
+    // Use the run's first-catch order consistently across drones, filtering each drone's own loadout.
+    static int CollectedColumn(int drone, ShotAtom atom)
+    {
+        int column = 1;
+        for (int i = 0; i < ShotAtoms.OrderCount; i++)
+        {
+            ShotAtom candidate = ShotAtoms.OrderAt(i);
+            if (ShotAtoms.Level(drone, candidate) <= 0) continue;
+            if (candidate == atom) return column;
+            column++;
+        }
+        return column;
+    }
+    public int PausedUpgradeCount(int drone)
+    {
+        int count = 0;
+        for (int col = 1; col < Columns; col++) if (pausedSlots[drone * Columns + col].root.gameObject.activeSelf) count++;
+        return count;
+    }
+    public int PausedColumn(int drone, ShotAtom atom) => CollectedColumn(drone, atom);
 
     void BuildPausedRows(Transform parent)
     {
@@ -56,6 +77,7 @@ public partial class ShotAtomHud
     }
     void RefreshPausedRows()
     {
+        pausePlaced = false;
         pauseVersion = ShotAtoms.Version; pauseSquadVersion = DroneSquad.Version;
         for (int drone = 0; drone < DroneSquad.MaxSlots; drone++)
         {
@@ -64,9 +86,11 @@ public partial class ShotAtomHud
             {
                 var slot = pausedSlots[drone * Columns + col];
                 int level = slot.glyph ? DroneSquad.CoreLevel(drone) : ShotAtoms.Level(drone, slot.atom);
+                bool visible = slot.glyph || level > 0;
+                slot.root.gameObject.SetActive(visible);
                 slot.icon.sprite = slot.glyph ? DronePickupArt.For(DroneSquad.Mode(drone)) : Frame(slot.atom);
                 slot.icon.color = level > 0 ? Color.white : new Color(.45f, .5f, .58f, .6f);
-                slot.label.text = slot.glyph ? (drone + 1) + (level > 0 ? ":L" + level : ":OFF") : LevelLabel(level);
+                slot.label.text = slot.glyph ? (drone + 1) + (level > 0 ? ":L" + level : ":OFF") : level > 0 ? LevelLabel(level) : "";
             }
         }
     }
@@ -85,11 +109,12 @@ public partial class ShotAtomHud
         {
             var row = (RectTransform)pausedRows[drone].transform;
             row.anchoredPosition = new Vector2(g.left, g.top - (drone + 1) * rowHeight);
-            row.sizeDelta = new Vector2(width, rowHeight - 2f);
+            row.sizeDelta = new Vector2((1 + PausedUpgradeCount(drone)) * cell, rowHeight - 2f);
             for (int col = 0; col < Columns; col++)
             {
                 var slot = pausedSlots[drone * Columns + col];
-                slot.root.anchoredPosition = new Vector2(col * cell, 0f); slot.root.sizeDelta = new Vector2(cell, rowHeight);
+                int displayColumn = col == 0 ? 0 : CollectedColumn(drone, slot.atom);
+                slot.root.anchoredPosition = new Vector2(displayColumn * cell, 0f); slot.root.sizeDelta = new Vector2(cell, rowHeight);
                 slot.icon.rectTransform.anchoredPosition = new Vector2(cell * .5f, labelHeight);
                 slot.icon.rectTransform.sizeDelta = Vector2.one * icon;
                 slot.label.fontSize = Mathf.Max(10, Mathf.FloorToInt(labelHeight - 1f));

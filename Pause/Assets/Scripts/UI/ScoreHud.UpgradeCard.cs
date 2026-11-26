@@ -58,6 +58,7 @@ public partial class ScoreHud
     {
         if (upgradeCards != null) upgradeCards[index].root.gameObject.SetActive(false);
         var text = popups[index].text;
+        text.enabled = true;
         text.rectTransform.sizeDelta = new Vector2(360f, 60f);
         text.alignment = TextAnchor.MiddleCenter;
     }
@@ -103,6 +104,10 @@ public partial class ScoreHud
             var card = upgradeCards[i]; bool on = i == atomSlot && AtomUpgradeShowing;
             if (!on) { if (card.root.gameObject.activeSelf) card.root.gameObject.SetActive(false); continue; }
             var text = popups[i].text;
+            bool reviewing = ShotAtomHud.Instance != null && ShotAtomHud.Instance.PauseExpanded;
+            text.enabled = !reviewing;
+            if (reviewing) { card.root.gameObject.SetActive(false); continue; }
+            card.root.gameObject.SetActive(true);
             card.root.anchoredPosition = text.rectTransform.anchoredPosition + Vector2.up * 10f;
             card.root.localScale = text.rectTransform.localScale;
             card.group.alpha = text.color.a;

@@ -1052,7 +1052,7 @@ public static class ShotAtomsTest
         var next = ShotAtoms.Collect(ShotAtom.Twin, 0f); hud.SendMessage("Update");
         Check("a pickup switches the detail row to its predictable recipient", next.drone == 1 && DroneSquad.Selected == 1 && hud.LabelAt(twin) == "x1" && hud.LabelAt(pierce) == "x4" && hud.VisibleCount == 3);
         var split = ShotAtoms.Collect(ShotAtom.Split, .99f); hud.SendMessage("Update");
-        Check("switching recipients keeps fixed coin columns and shows new levels", split.drone == 0 && hud.LabelAt(ShotAtomHud.SelectedAtomSlot(ShotAtom.Split)) == "x1" && hud.LabelAt(twin) == "x2" && hud.VisibleCount == 4);
+        Check("switching recipients keeps the collected modifiers and shows their levels", split.drone == 0 && hud.LabelAt(ShotAtomHud.SelectedAtomSlot(ShotAtom.Split)) == "x1" && hud.LabelAt(twin) == "x2" && hud.VisibleCount == 4);
         Check("compact row has four modifiers, one selected glyph, three mode pips", host.GetComponentsInChildren<Image>(false).Length == 8);
         Check("read-only drone HUD never intercepts flight input", host.GetComponentsInChildren<GraphicRaycaster>(true).Length == 0 && host.GetComponentsInChildren<Button>(true).Length == 0);
         ShotAtoms.BeginRun(3); hud.SendMessage("Update");

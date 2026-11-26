@@ -70,6 +70,16 @@ public static class DockDroneProgressionTest
         for (int drone = 1; drone < 12; drone++) separated &= hud.PausedRowRect(drone).yMax <= hud.PausedRowRect(drone - 1).yMin;
         Check("all expanded rows remain distinct and inside the screen", separated && hud.PausedRowRect(11).yMin >= ScreenInfo.SafeArea.yMin);
         foreach (var image in hud.GetComponentsInChildren<Image>(true)) levels &= !image.raycastTarget;
+        ShotAtoms.SetLevel(0, ShotAtom.Twin, 0);
+        ShotAtoms.SetLevel(1, ShotAtom.Arc, 2);
+        hud.SendMessage("Update");
+        Check("each paused row omits uncollected modifiers and all zero labels",
+            hud.PausedLevelLabel(0, ShotAtom.Twin) == null && hud.PausedUpgradeCount(0) == 0 &&
+            hud.PausedUpgradeCount(1) == 2 && hud.PausedLevelLabel(1, ShotAtom.Arc) == "x2");
+        ShotAtoms.SetLevel(0, ShotAtom.Arc, 1); ShotAtoms.SetLevel(0, ShotAtom.Twin, 1);
+        hud.SendMessage("Update");
+        Check("newly collected modifiers insert in first-catch order without empty columns",
+            hud.PausedUpgradeCount(0) == 2 && hud.PausedColumn(0, ShotAtom.Twin) == 1 && hud.PausedColumn(0, ShotAtom.Arc) == 2);
         Check("expanded rows never intercept the resume press", levels);
         TouchInput.PressedOverride = () => true; hud.SendMessage("Update");
         Check("flight collapses back to the selected drone", !hud.PauseExpanded);
