@@ -171,7 +171,7 @@ public static class SkinHeartsTest
         Check("the last skin's gain: the set's +2 (" + gain + ")", set && gain == 2);
         Check("  Gold Warden reads 7 before it (" + ShipLives.Max(gw) + ")", ShipLives.Max(gw) == 7);
         PlayerPrefs.SetString(ShipId.OwnedKey(gw), "True");
-        PlayerPrefs.SetFloat(StarDustLedger.CurrencyKey, 5000f);
+        PlayerPrefs.SetFloat(StarDustLedger.CurrencyKey, ShipSkins.PriceOf(gw, ShipSkins.Special));
         var r = ShipSkins.TryPurchase(gw, ShipSkins.Special);
         Check("buying it (" + r + ") makes 9", r == ShipSkins.PurchaseResult.Bought && ShipLives.Max(gw) == 9);
         PlayerPrefs.SetInt(ShipSkins.OwnedKey(gw, ShipSkins.Special), 1);
@@ -424,7 +424,9 @@ public static class SkinHeartsTest
         dock.Relayout();
         var popup = dock.popup;
 
-        PlayerPrefs.SetFloat(StarDustLedger.CurrencyKey, 5000f);
+        float purchaseBudget = 0f;
+        for (int skin = 1; skin < ShipSkins.CountFor(fang); skin++) purchaseBudget += ShipSkins.PriceOf(fang, skin);
+        PlayerPrefs.SetFloat(StarDustLedger.CurrencyKey, purchaseBudget);
         dock.Select(fang);
         popup.TapSwatch(1);
         popup.Press();
@@ -436,7 +438,7 @@ public static class SkinHeartsTest
         popup.TapSwatch(3);
         popup.Press();
         Check("dock: its third: " + dock.LastPurchaseMessage + ", hearts " + popup.LivesShown,
-              dock.LastPurchaseMessage == "ACQUIRED  +1 HEART" && popup.LivesShown == 4);
+              dock.LastPurchaseMessage == "ACQUIRED  +1 HEART +1 DRONE" && popup.LivesShown == 4 && DroneSquad.StartingFor(fang) == 2);
 
         // Everything else owned: Solar Fang's special is the last skin.
         foreach (int id in PremiumShips.StandardIds) if (id != fang) Own(id, ShipSkins.PerShip - 1);
@@ -448,7 +450,7 @@ public static class SkinHeartsTest
         popup.Press();
         var toast = CodexToast.Current;
         Check("dock: the last skin: " + dock.LastPurchaseMessage + ", hearts " + popup.LivesShown,
-              dock.LastPurchaseMessage == "ACQUIRED  +2 HEARTS" && popup.LivesShown == 6 && SkinHearts.AllSkinsOwned);
+              dock.LastPurchaseMessage == "ACQUIRED  +2 HEARTS +1 DRONE" && DroneSquad.StartingFor(fang) == 3 && popup.LivesShown == 6 && SkinHearts.AllSkinsOwned);
         Check("dock: and the one-time ALL SKINS: +2 HEARTS toast",
               toast != null && toast.Showing && toast.ShowingName == SkinHearts.AllSkinsTitle);
         if (toast != null) Object.DestroyImmediate(toast.gameObject);
