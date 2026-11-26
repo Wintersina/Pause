@@ -12,11 +12,11 @@ public static class DockProgressionReview
         foreach (string id in new[] { "and-480x854", "flip7-cover-948x1048", "and-1080x2400-gesture" })
         {
             var device = Array.Find(FitDevice.All, d => d.id == id);
-            for (int scene = 0; scene < 5; scene++)
+            for (int scene = 0; scene < 6; scene++)
             {
                 int state = scene;
                 var screen = new FitScreen { id = "progression-" + state, scene = state < 2 ? "shopS6" : "gameS1", gameplayView = state >= 2,
-                    stage = rig => { if (state < 2) Dock(rig, state); else Flight(rig, state == 2 ? 1 : state == 3 ? 3 : 12); } };
+                    stage = rig => { if (state < 2) Dock(rig, state); else Flight(rig, state == 2 ? 1 : state == 3 || state == 5 ? 3 : 12, state == 5); } };
                 var shot = ScreenFitRunner.Run(screen, device, folder + "/" + id + "-" + state + ".png", 1200);
                 if (shot.error != null) throw new Exception(shot.error);
             }
@@ -37,7 +37,7 @@ public static class DockProgressionReview
         if (state == 1) { dock.Select(8); dock.popup.SkipAppear(); dock.SendMessage("LateUpdate"); }
         rig.Sync();
     }
-    static void Flight(ScreenFitRig rig, int slots)
+    static void Flight(ScreenFitRig rig, int slots, bool upgradeCard = false)
     {
         ScreenFitScreens.WorldBase(rig, 0, false, false);
         ShotAtoms.BeginRun(Mathf.Min(3, slots));
@@ -56,6 +56,16 @@ public static class DockProgressionReview
         HealBankIcon.Attach(ship).Refresh();
         score.pauseCounter = 3; TouchInput.PressedOverride = () => false;
         var hud = new GameObject(ShotAtomHud.HostName).AddComponent<ShotAtomHud>(); hud.SendMessage("Update"); hud.AdvancePausedReview(2f);
+        if (upgradeCard)
+        {
+            score.pauseCounter = 0; TouchInput.PressedOverride = () => true; hud.SendMessage("Update");
+            hud.SendMessage("OnEnable"); rig.Sync();
+            if (!ShotAtomHud.PopupAnchor(out Vector2 at)) throw new Exception("Missing upgrade anchor");
+            var scoreHud = ScoreHud.Current ?? UnityEngine.Object.FindFirstObjectByType<ScoreHud>();
+            if (scoreHud == null) throw new Exception("Missing score HUD");
+            scoreHud.ShowAtomUpgrade("TWIN SHOT -> DRONE 1", "2 SHOTS → 3 SHOTS", ShotAtoms.Colour(ShotAtom.Twin), at, "LV 2");
+            scoreHud.StepPopups(.2f);
+        }
         rig.Sync();
     }
 }

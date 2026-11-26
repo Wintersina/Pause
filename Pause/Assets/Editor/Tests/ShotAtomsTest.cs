@@ -856,8 +856,8 @@ public static class ShotAtomsTest
               PickupArt.BurstName(PickupKind.ShotRapid) == "shot_rapid_burst" && PickupArt.Frames("shot_rapid_burst", 6)[0] != null);
         {
             var shown = popupHud != null ? popupHud.AtomUpgradeText : null;
-            Check("catching a coin shows the upgrade popup: 'RAPID FIRE  ALL DRONES', the big 'LV 1' and the hint '+25% fire rate', in the atom's own colour",
-                  shown != null && shown.text.Contains("RAPID FIRE  ALL DRONES") && shown.text.Contains("LV 1") && shown.text.Contains("+25% FIRE RATE") && shown.color == ShotAtoms.Colour(ShotAtom.Rapid));
+            Check("a compact RAPID card names all drones and LV 1, with the benefit emphasized",
+                  shown != null && popupHud.AtomUpgradeHeader.Contains("ALL DRONES") && popupHud.AtomUpgradeHeader.Contains("RAPID · LV 1") && popupHud.AtomUpgradeBenefit.Contains("+25% FIRE RATE") && popupHud.AtomUpgradeIcon.sprite != null && shown.fontSize <= ScoreHud.UpgradeBenefitSize);
         }
         var third = ShotAtomPickup.Build(ShotAtom.Arc, Vector3.zero);
         var firstPopup = popupHud != null ? popupHud.AtomUpgradeText : null;
@@ -867,11 +867,12 @@ public static class ShotAtomsTest
         {
             var shown = popupHud != null ? popupHud.AtomUpgradeText : null;
             Check("a second catch while a popup shows WAITS in the queue (the first stays, nothing lost, no new popup object)",
-                  shown != null && ReferenceEquals(shown, firstPopup) && shown.text.Contains("RAPID FIRE") && popupHud.AtomQueued == 1 && popupHud.PopupPoolSize == pool0);
+                  shown != null && ReferenceEquals(shown, firstPopup) && popupHud.AtomUpgradeHeader.Contains("RAPID") && popupHud.AtomQueued == 1 && popupHud.PopupPoolSize == pool0);
             popupHud.StepPopups(ShotAtoms.UpgradeSeconds);
             shown = popupHud.AtomUpgradeText;
             Check("... and plays the moment the first leaves (ARC SHOT, LV 1)",
-                  shown != null && popupHud.AtomQueued == 0 && shown.text.Contains("ARC SHOT -> ") && shown.text.Contains("DRONE") && shown.text.Contains("LV 1") && shown.text.Contains("0 → 1 CHAIN JUMPS"));
+                  shown != null && popupHud.AtomQueued == 0 && popupHud.AtomUpgradeHeader.Contains("ARC · LV 1") && popupHud.AtomUpgradeHeader.Contains("DRONE") && popupHud.AtomUpgradeBenefit.Contains("0 → 1 CHAIN JUMPS"));
+            Check("the new value is highlighted separately from the previous value", shown != null && shown.text.Contains("<color=#FFB43C> 1 CHAIN JUMPS</color>"));
             popupHud.StepPopups(ShotAtoms.UpgradeSeconds);
         }
         ShotAtoms.SetLevel(ShotAtom.Arc, ShotAtomTuning.MaxLevel);
@@ -880,12 +881,12 @@ public static class ShotAtomsTest
         if (PickupBurst.LastPlayed != null) PickupBurst.LastPlayed.Finish();
         {
             var shown = popupHud != null ? popupHud.AtomUpgradeText : null;
-            Check("at the cap the popup says 'ARC MAXED  +2 DUST'", shown != null && shown.text.Contains("ARC MAXED  +2 DUST") && shown.text.Contains("maxed on every drone"));
+            Check("at the cap the popup says 'ARC MAXED  +2 DUST'", shown != null && popupHud.AtomUpgradeHeader.Contains("ARC MAXED") && popupHud.AtomUpgradeBenefit.Contains("maxed on every drone"));
             popupHud.StepPopups(ShotAtoms.UpgradeSeconds * .5f);
             bool half = popupHud.AtomUpgradeShowing;
             popupHud.StepPopups(ShotAtoms.UpgradeSeconds);
-            Check("the popup holds 1.5 to 2 s, then it is gone and back in the pool (no object made or destroyed)",
-                  ShotAtoms.UpgradeSeconds >= 1.5f && ShotAtoms.UpgradeSeconds <= 2f && half && !popupHud.AtomUpgradeShowing && popupHud.PopupPoolSize == pool0);
+            Check("the compact popup holds about one second, then it is gone and back in the pool (no object made or destroyed)",
+                  ShotAtoms.UpgradeSeconds >= 1f && ShotAtoms.UpgradeSeconds <= 1.2f && half && !popupHud.AtomUpgradeShowing && popupHud.PopupPoolSize == pool0);
             bool texts = true;
             foreach (ShotAtom a in System.Enum.GetValues(typeof(ShotAtom)))
                 for (int lv = 1; lv <= ShotAtomTuning.MaxLevel; lv++)

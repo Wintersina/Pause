@@ -320,17 +320,16 @@ public static class ShotAtoms
     }
 
     // ---- the catch popup (ScoreHud.ShowAtomUpgrade): a title and a one-line effect hint ----
-    public const float UpgradeSeconds = 1.8f;
-    public const int UpgradeTitleSize = 40;
+    public const float UpgradeSeconds = 1.1f;
 
-    // "TWIN SHOT -> LEFT DRONE", "RAPID FIRE  ALL DRONES" (the big level line is UpgradeLevel; the hint is UpgradeHint)
+    // Recipient and atom metadata for the compact upgrade card; UpgradeHint supplies its benefit line.
     public static string UpgradeTitle(ShotAtom atom, int drone, string droneName)
     {
         if (atom == ShotAtom.Rapid) return "RAPID FIRE  ALL DRONES";
         return Name(atom) + " SHOT -> " + (string.IsNullOrEmpty(droneName) ? "DRONE" : droneName);
     }
 
-    // The big line: "LV 4"
+    // Small header metadata: "LV 4"
     public static string UpgradeLevel(int level)
     {
         return "LV " + Mathf.Clamp(level, 1, ShotAtomTuning.MaxLevel);
