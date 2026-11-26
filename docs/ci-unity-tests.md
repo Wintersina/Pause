@@ -65,6 +65,8 @@ Jobs: `plan` (a few seconds) -> `test` matrix (shards in parallel) -> `AllTests`
 
 `WorldHazardsTest` uses one empty scene per suite and destroys its scene roots between cases, including untracked effect roots. Shard 1 of PR #592 timed out after two hours with no failed assertions, immediately after the 2,000-shot pool checks at the next scene's native asset-unload step. Explicit teardown keeps hazard `OnDestroy` and texture releases outside that scene-unload pass. The allocation, ambient, geometry and art checks still run; the normal sandbox restores state and unloads assets at suite end.
 
+The exact-total Codex reward fixtures also clear inherited fusion discoveries and point replay lookup at a unique empty temporary path inside their sandbox. A local playtest save with discovered combos or a Last Stand replay must not add pending rewards or an extra log payout to those fixtures. The sandbox restores the original preferences and replay path afterward; the player's replay file is never removed.
+
 ## One-time setup (repo admin)
 
 Unity removed manual (.ulf) activation for Personal accounts, so CI activates the Personal seat

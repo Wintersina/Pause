@@ -26,6 +26,11 @@ public static class CodexNewDotsTest
     {
         fails = 0;
         using var sandbox = new TestHarness.Sandbox();
+        // Exact reward totals describe a fresh fixture, independent of a local playtest save.
+        PlayerPrefs.DeleteKey(FusionDiscoveryStore.PrefsKey);
+        PlayerPrefs.DeleteKey(FusionDiscoveryStore.UnseenKey);
+        FusionDiscoveryStore.Reload();
+        KillCamArchive.DirectoryOverride = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "pause-codex-rewards-" + System.Guid.NewGuid().ToString("N"));
         PlayerPrefs.SetInt(DeveloperUnlocks.EnabledKey, 0);
         PlayerPrefs.SetString("HasDoneTut", "true");
         AchievementStore.ResetAll();
