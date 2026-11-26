@@ -93,15 +93,17 @@ public static class FloatieAim
         pick = default(Pick);
         float bestSq = range * range;
         bool found = false;
+        // The view is read once and the cheap range test comes first: this runs every frame for every AIMED drone, and the filters
+        // (view, tag, enabled) are native calls that most of the board fails on distance alone.
+        Rect view = ShipTargets.View(0f);
         var live = ClearTarget.Live;
         for (int i = 0; i < live.Count; i++)
         {
             var t = live[i];
-            if (!Valid(t)) continue;
+            if (t == null) continue;
             Vector3 p = t.transform.position;
-            if (!InView(p, 0f)) continue;
             float sq = ((Vector2)(p - from)).sqrMagnitude;
-            if (sq >= bestSq) continue;
+            if (sq >= bestSq || !view.Contains(p) || !Valid(t)) continue;
             bestSq = sq;
             found = true;
             pick.at = p; pick.lockOn = t.transform; pick.target = t;
@@ -112,9 +114,8 @@ public static class FloatieAim
             var s = shots[i];
             if (s == null || (Object)s == null || !s.ShotCollidable || s.ShotMass == HostileShots.Fixed) continue;
             Vector2 sp = s.ShotPosition;
-            if (!InView(sp, 0f)) continue;
             float sq = (sp - (Vector2)from).sqrMagnitude;
-            if (sq >= bestSq) continue;
+            if (sq >= bestSq || !view.Contains(sp)) continue;
             var c = s as Component;
             bestSq = sq;
             found = true;
@@ -317,10 +318,17 @@ public class FloatieBullet : MonoBehaviour
         for (int i = 0; i < live.Count; i++)
         {
             var t = live[i];
-            if (!Valid(t) || HasPassed(t)) continue;
+            if (t == null) continue;
+            // the cheap geometric reject first: Valid is several native lookups (enabled, two tag compares), and most of the board is
+            // nowhere near a bullet's step (every bullet walks every live body, every frame)
+            // a body whose radius is not measured yet (measuring is a one-off GetComponent + physics sync) must be a valid target first
+            bool valid = false;
+            if (!t.HasRadius) { if (!Valid(t)) continue; valid = true; }
             Vector3 p = t.transform.position;
             float reach = r + t.Radius;
             if (HostileShots.SegmentDistanceSq(a, b, p) > reach * reach) continue;
+            if (!valid && !Valid(t)) continue;
+            if (HasPassed(t)) continue;
             float along = len > 1e-8f ? Mathf.Clamp01(Vector2.Dot((Vector2)p - a, ab) / len) : 0f;
             if (along < bestAlong) { bestAlong = along; best = t; }
         }

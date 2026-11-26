@@ -80,6 +80,8 @@ public class ClearTarget : MonoBehaviour, IPoolReset
 
     // Rough hit radius in world units, from the collider (or renderer) the
     // first time it's asked, so per-frame hit tests never call GetComponent.
+    public bool HasRadius => radius >= 0f;
+
     public float Radius
     {
         get

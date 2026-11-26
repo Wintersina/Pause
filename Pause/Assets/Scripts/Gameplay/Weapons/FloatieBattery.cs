@@ -239,6 +239,7 @@ public class FloatieBattery : MonoBehaviour
         tint = WeaponStyleTable.For(shipId).energy;
         FloatieBullets.Prebuild(FloatieTuning.PoolSize);
         FloatieFx.Prebuild();
+        GunImpactFeedback.Prewarm();   // the three hit clips and their voices, built now, not on the first hit of a fight
         Refresh();
     }
 

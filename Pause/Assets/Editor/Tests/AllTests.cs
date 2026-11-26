@@ -50,6 +50,7 @@ public static class AllTests
         ("WeatherArtTest", WeatherArtTest.Execute),
         ("SpaceSunTest", SpaceSunTest.Execute),
         ("PerfSafeWinsTest", PerfSafeWinsTest.Execute),
+        ("PerfDenseCombatTest", PerfDenseCombatTest.Execute),
         ("PerfWarmupTest", PerfWarmupTest.Execute),
         ("FirstUseHitchTest", FirstUseHitchTest.Execute),
         ("FirstUseWarmTest", FirstUseWarmTest.Execute),

@@ -1007,7 +1007,8 @@ public class EliteShot : MonoBehaviour, IHostileShot
         for (int i = 0; i < live.Count; i++)
         {
             var t = live[i];
-            if (t == null || !t.isActiveAndEnabled) continue;
+            if (t == null) continue;
+            // the geometric reject first: every live shot walks every live body each frame, and isActiveAndEnabled is a native call
             float R = radius + t.Radius * FriendlyFire.HostileFireReach;
             if (slashShape)
             {
@@ -1016,6 +1017,7 @@ public class EliteShot : MonoBehaviour, IHostileShot
                 if (HostileShots.SegmentDistanceSq(at - ax, at + ax, t.transform.position) > R * R) continue;
             }
             else if (((Vector2)t.transform.position - at).sqrMagnitude > R * R) continue;
+            if (!t.isActiveAndEnabled) continue;
             if (!FriendlyFire.HostileFireCanHit(t, shooter, rosterShot ? FriendlyFire.RosterShotGraceSeconds : 0f)) continue;   // its shooter, the boss, a target just come in
             string by = Kind == EliteShots.Kind.Glob ? (rolling ? "rolling log" : "resin pool") : Kind == EliteShots.Kind.Slab ? "ice slab" : rosterShot ? "enemy shot" : "elite shot";
             if (!FriendlyFire.HostileHit(t, p, by)) continue;   // the frame's kill cap: not spent, next frame
