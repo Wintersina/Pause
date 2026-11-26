@@ -58,6 +58,7 @@ public partial class ScoreHud : MonoBehaviour
     float nextRecordPoll;
     readonly NewRecordTracker records = new NewRecordTracker();
     float lastSpeedMultiplier = 1f;
+    bool speedBaselineRead;
     float speedPunchAt = -1f;
     int lastLoop;
     float loopPunchAt = -1f;
@@ -169,6 +170,7 @@ public partial class ScoreHud : MonoBehaviour
         hud.newTag = BuildNewTag(hud.scoreText.transform, hud.font);
         ScoreX2Cue.Attach(hud.scoreText);   // the max-speed streak's bar and x2 plate, on the SCORE row
         hud.lastSpeedMultiplier = 1f;
+        hud.speedBaselineRead = false;
         hud.lastLoop = 0;
 
         var c = rows.GetComponentInParent<Canvas>();
@@ -555,7 +557,7 @@ public partial class ScoreHud : MonoBehaviour
             float m = RunScore.SpeedMultiplier;
             if (!Mathf.Approximately(m, lastSpeedMultiplier))
             {
-                if (m > lastSpeedMultiplier && m > 1f)
+                if (speedBaselineRead && !WorldEntry.Active && !WorldTransition.InProgress && m > lastSpeedMultiplier && m > 1f)
                 {
                     speedPunchAt = now;
                     // past the cap on the boost shield: the callout says so
@@ -565,6 +567,7 @@ public partial class ScoreHud : MonoBehaviour
                 speedBadge.text = SpeedBadgeLabel(m);
                 lastSpeedMultiplier = m;
             }
+            speedBaselineRead = true;
             if (m > 1f)
             {
                 float since = now - speedPunchAt;
@@ -695,7 +698,7 @@ public partial class ScoreHud : MonoBehaviour
         return p.text;
     }
 
-    // A shot atom's "upgrade gained" popup (ShotAtoms.UpgradeTitle / UpgradeHint): a big title line over a smaller effect hint, centred
+    // A shot atom's compact "upgrade gained" card (ShotAtoms.UpgradeTitle / UpgradeHint), centred
     // on `screenAnchor` (screen px, its TOP: the point just under the shot-atom HUD row; NaN = under the score board's middle), held
     // ShotAtoms.UpgradeSeconds, in the popups' pool, pop and fade. One slot: a second catch while it shows replaces it in place.
     int atomSlot = -1;
