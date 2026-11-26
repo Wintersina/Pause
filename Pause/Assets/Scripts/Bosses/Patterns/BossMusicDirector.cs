@@ -176,7 +176,7 @@ public sealed class BossMusicDirector
         // a wave the boss is already telling (its part charging on the beat before: Forecast, from the last sixteenth's
         // intensity) fires even if this beat's new energy dropped its sixteenth from the rhythm: a tell is a promise
         bool told = Telling && !double.IsNaN(nextWaveBeat) && Math.Abs(scheduled - nextWaveBeat) < 1e-6;
-        bool waveHere = told || ((WaveRhythm.Mask(moment.kind, Intensity) >> bar) & 1) != 0;
+        bool waveHere = told || ((WaveRhythm.MaskFor(world, moment.kind, Intensity) >> bar) & 1) != 0;
         if (held && waveHere) HeldWaves++;
         // (a wave leaving on this sixteenth arrives k beats on: it must be down before the special lands, a quarter beat clear)
         waves.MaxTravelBeats = double.IsNaN(ArriveBeforeBeat) ? int.MaxValue : (int)Math.Floor(ArriveBeforeBeat - scheduled - .25 + 1e-9);
@@ -184,7 +184,7 @@ public sealed class BossMusicDirector
         {
             bool telegraph = Intensity < .75f || waves.Waves % 4 == 0;
             // a held breath never runs into the next wave's drawing
-            int mask = WaveRhythm.Mask(moment.kind, Intensity), gapTicks = 1;
+            int mask = WaveRhythm.MaskFor(world, moment.kind, Intensity), gapTicks = 1;
             while (gapTicks < WaveRhythm.TicksPerBar && ((mask >> ((bar + gapTicks) % WaveRhythm.TicksPerBar)) & 1) == 0) gapTicks++;
             float holdCap = (float)(gapTicks * .25 * music.SecondsPerBeat * .85);
             if (waves.Emit(Intensity, music.SecondsPerBeat, gameClock, telegraph, (float)(Math.Max(0, late) * music.SecondsPerBeat), holdCap) > 0)
@@ -249,14 +249,14 @@ public sealed class BossMusicDirector
         if (Telling && !double.IsNaN(nextWaveBeat) && now < nextWaveBeat && !HeldAt(nextWaveBeat)) { UpdateTell(now); return; }
         var moment = music is IMusicBeatSource arranged ? arranged.MusicNow : new MusicMoment { energy = .5f, bass = .5f, accent = .5f, kind = "drive" };
         float intensity = Preparing ? BossDifficulty.Shape(world, Mathf.Clamp01(moment.energy * .75f + moment.bass * .15f), rampClock) : Intensity;
-        int mask = WaveRhythm.Mask(moment.kind, intensity);
+        int mask = WaveRhythm.MaskFor(world, moment.kind, intensity);
         nextWaveBeat = double.NaN;
         long from = Preparing ? (long)Math.Ceiling(startBeat * 4 - 1e-8) : tick + 1;
         for (long t = from; t < from + WaveRhythm.TicksPerBar; t++)
         {
             if (HeldAt(t * .25)) break;   // a special's hold: no wave is coming (so none is told)
             int bar = (int)(((t - 4L * music.DownbeatBeat) % WaveRhythm.TicksPerBar + WaveRhythm.TicksPerBar) % WaveRhythm.TicksPerBar);
-            if (((mask >> bar) & 1) == 0) continue;
+            if (!(Preparing && t == from) && ((mask >> bar) & 1) == 0) continue;
             nextWaveBeat = t * .25;
             break;
         }

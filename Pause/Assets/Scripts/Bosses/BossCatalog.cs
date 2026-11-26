@@ -286,7 +286,7 @@ public static class BossCatalog
                     // freezing beams cross there, then drift apart.
                     new BossAttack { name = "glare beams", kind = BossAttackKind.Beam, tell = 1, tellSeconds = .8f,
                                      emitters = new[] { "EyeL", "EyeR" },
-                                     aim = BossBeamAim.AtShip, sweepDeg = 10f, beamWidth = .26f, hold = .6f,
+                                     aim = BossBeamAim.AtShip, sweepDeg = 10f, beamWidth = .22f, hold = .5f,
                                      cooldown = 1.2f },
                     // The blowhole crown spouts: hail crystals arc up out of it
                     // and rain down on four of five columns.

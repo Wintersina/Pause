@@ -20,6 +20,7 @@ public static class BossWaveTest
         {
             GapChains();
             Rhythm();
+            Identities();
             Ramp();
             ClockLoopSnap();
             Sources();
@@ -104,6 +105,32 @@ public static class BossWaveTest
             ordered &= c2 >= c1;
         }
         Check("rhythm masks are never empty and only grow with intensity", grid && ordered && last >= 4);
+    }
+
+    static void Identities()
+    {
+        var rhythms = new System.Collections.Generic.HashSet<int>();
+        for (int world = 0; world < 7; world++)
+        {
+            int mask = WaveRhythm.MaskFor(world, "drive", .7f);
+            rhythms.Add(mask);
+            bool ramp = true;
+            foreach (string kind in new[] { "breakdown", "drive", "build", "peak", "drop" })
+                for (float x = 0f; x <= 1f; x += .1f)
+                    ramp &= Bits(WaveRhythm.MaskFor(world, kind, x)) == Bits(WaveRhythm.Mask(kind, x));
+            Check(Names[world] + ": individual beat phrase preserves the intensity ramp's firing density", ramp);
+        }
+        Check("all seven bosses have distinct four-hit beat phrases", rhythms.Count == 7);
+        // Exercise the live emission geometry, not the dormant legacy pattern tables.
+        var expected = new[] { WaveKind.Fan, WaveKind.Ring, WaveKind.Petals, WaveKind.Fan, WaveKind.Wall, WaveKind.Rain, WaveKind.Pincer };
+        for (int world = 0; world < 7; world++)
+        {
+            var sim = new PatternSim();
+            var boss = BossCatalog.ForWorld(world);
+            var voice = new BossWaveVoice(world, sim, BossWaveSources.For(world, boss, 0));
+            int fired = voice.Emit(.7f, .4, 0f, false);
+            Check(Names[world] + ": its first musical volley uses its own signature geometry", fired > 0 && voice.LastKind == expected[world]);
+        }
     }
 
     static int Bits(int m) { int c = 0; for (int i = 0; i < 16; i++) c += (m >> i) & 1; return c; }
