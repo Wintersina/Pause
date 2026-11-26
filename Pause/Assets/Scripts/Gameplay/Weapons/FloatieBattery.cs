@@ -1,21 +1,15 @@
 using UnityEngine;
 
-// An extra floatie (FloatieGuns.cs): the ship's own companion art (UltimateGun's roster sheet), hovering the same way, in a slot of
-// its own so it never covers the hull, the hearts' orbit (HeartOrbit asks the battery for these spots), the charge indicator in
-// front of the nose, the exhaust or the thumb's pad below. Slot 1 is the second floatie, slot 2 the seeker.
-//
-//   main floatie (UltimateGun)  beside the hull on its own side (even ids left, odd right), a little above the middle
-//   slot 1  the OTHER side, up by the nose   (-side * SideReach hull-widths, +SlotOneRise hull-heights)
-//   slot 2  the main's side, low             (+side * SideReach,             -SlotTwoDrop)
-//   PARAGON's floaties 4 .. 6 (slots 2, 3, 4) fill in a balanced arc around the hull, never above the nose or under the exhaust:
-//   slot 2  the other side, low   (-side * SideReach, -SlotTwoDrop)   slot 3 the main's side, outer (+side * OuterReach, -OuterDrop)
-//   slot 4  the other side, outer (-side * OuterReach, +OuterRise)
+// Extra companions use the ship's own gun art in wings outside the central heart orbit.
+// Both the resting bodies and their full hover ranges need that clearance: otherwise
+// several heart styles can never find room for a loop or turn-back. Recruits occupy
+// outer columns; DroneFormation folds them inside the view near screen edges.
 public class FloatieCompanion : MonoBehaviour
 {
-    public const float SideReach = 1.22f;     // x the hull's half width (the main floatie sits at the same reach)
+    public const float SideReach = 4.2f;     // leave the hearts' orbit clear inside the extra wings
     public const float SlotOneRise = .85f;    // x the hull's half height, above the middle
     public const float SlotTwoDrop = 1f;      // x the hull's half height, below the middle
-    public const float OuterReach = 2.15f;    // x the hull's half width, the outer column (Paragon's floaties 5 and 6)
+    public const float OuterReach = 5.1f;     // recruits sit outside the opening wings
     public const float OuterDrop = .35f, OuterRise = .2f;   // x the hull's half height
     public const float HoverShare = .6f;      // of the main floatie's hover drift: they keep to their own corner
 
