@@ -339,19 +339,18 @@ public static class DifficultyRebalanceTest
 
         // No live WorldManager.Instance in this test, so DensityMultiplier()
         // goes by elapsed time against WorldManager.BaselineWorldSeconds
-        // (120s; cut from 180s, from 300s before that) -- the last 30s of
-        // that window is t >= 90.
-        Check("final 30 seconds of the level (120s baseline) hits a flat 3x",
-              Mathf.Approximately(DensityAt(100f), 3f));
+        // (180s) -- the last 30 seconds start at t >= 150.
+        Check("final 30 seconds of the longer level hits a flat 3x",
+              Mathf.Approximately(DensityAt(WorldManager.BaselineWorldSeconds - 20f), 3f));
         Check("one moment before the final stretch is still below 3x",
-              DensityAt(89f) < 3f);
+              DensityAt(WorldManager.BaselineWorldSeconds - 31f) < 3f);
 
         // Roll() divides by the multiplier -- higher density means shorter
         // delays, i.e. more spawns per minute.
         var range = new Vector2(10f, 10f); // fixed, so any spread is purely from the multiplier
         elapsedField.SetValue(comp, 0f);
         float delayAtStart = (float)rollMethod.Invoke(comp, new object[] { range });
-        elapsedField.SetValue(comp, 100f);
+        elapsedField.SetValue(comp, WorldManager.BaselineWorldSeconds - 20f);
         float delayAtEnd = (float)rollMethod.Invoke(comp, new object[] { range });
         Check("Roll() actually shortens delays as density climbs (3x density -> 1/3 the delay)",
               Mathf.Approximately(delayAtEnd, delayAtStart / 3f));

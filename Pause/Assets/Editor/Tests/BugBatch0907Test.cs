@@ -233,8 +233,8 @@ public static class BugBatch0907Test
     {
         var go = new GameObject("~WorldManagerTest");
         var wm = go.AddComponent<WorldManager>();
-        Check("a planet runs about 2 minutes (120s) at the baseline pace, not 8 (480s)",
-              Mathf.Approximately(WorldManager.BaselineWorldSeconds, 120f) && Mathf.Approximately(wm.WorldLength, 120f));
+        Check("a planet runs 3 minutes (180s) at the baseline pace",
+              Mathf.Approximately(WorldManager.BaselineWorldSeconds, 180f) && Mathf.Approximately(wm.WorldLength, 180f));
         Object.DestroyImmediate(go);
     }
 }

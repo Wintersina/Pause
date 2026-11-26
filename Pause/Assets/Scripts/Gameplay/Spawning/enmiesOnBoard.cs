@@ -695,7 +695,9 @@ public class enmiesOnBoard : MonoBehaviour {
         }
 
         int firstMinuteTickCount = Mathf.RoundToInt(DensityFirstMinute / DensityTickSeconds);
-        int midTicks = Mathf.Max(1, Mathf.FloorToInt((finalStart - DensityFirstMinute) / DensityTickSeconds));
+        float midEnd = world != null && world.HasLevelClock && world.DistanceLeft > 0f
+            ? finalStart * AuthoredLevelSeconds / world.WorldLength : finalStart;
+        int midTicks = Mathf.Max(1, Mathf.FloorToInt((midEnd - DensityFirstMinute) / DensityTickSeconds));
         int tickInMid = tick - firstMinuteTickCount;
         return Mathf.Lerp(DensityFirstMinuteCeiling, DensityMidCeiling, (float)tickInMid / midTicks);
     }

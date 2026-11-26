@@ -66,6 +66,7 @@ public static class WorldLeakTest
     internal static void Prefs(int highest)
     {
         WorldManager.ClearReplayWorld();
+        PlayerPrefs.DeleteKey(PlayerStartWorld.Key); // this fixture tests the furthest-world default, not a saved hangar pick
         PlayerPrefs.SetString("HasDoneTut", "true");
         PlayerPrefs.SetInt(DeveloperUnlocks.EnabledKey, 0);
         PlayerPrefs.DeleteKey(DeveloperUnlocks.SelectedWorldKey);
