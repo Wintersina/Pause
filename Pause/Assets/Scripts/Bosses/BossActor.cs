@@ -221,7 +221,7 @@ public class BossActor : MonoBehaviour, IMusicPatternHost
 
     void SetDamage(int heartsLeft)
     {
-        damageStage = BossArt.DamageStage(Mathf.Max(1, BossConfig.Hearts), heartsLeft);
+        damageStage = BossArt.DamageStage(BossConfig.HeartsForWorld(World), heartsLeft);
     }
 
     // Smoke and arcs on the world clock (they freeze with the fight); only
@@ -431,8 +431,8 @@ public class BossActor : MonoBehaviour, IMusicPatternHost
             parts = musicDirector.Parts, emitters = boss.DefaultAttacks[0].emitters,
             tellSeconds = .9f, fireFrame = true };
         // Its hearts pop in round it now it has landed.
-        if (hearts == null) hearts = BossHearts.Attach(this, Mathf.Max(1, BossConfig.Hearts));
-        SetDamage(hearts != null ? hearts.Left : BossConfig.Hearts);   // a fresh fight starts pristine
+        if (hearts == null) hearts = BossHearts.Attach(this, BossConfig.HeartsForWorld(World));
+        SetDamage(hearts != null ? hearts.Left : BossConfig.HeartsForWorld(World));   // a fresh fight starts pristine
     }
 
     // BossEncounter: `left` hearts are left after a hit at `at`.

@@ -156,10 +156,11 @@ public class BossEncounter : MonoBehaviour
     public float Remaining => remaining;
     public int Hits => hits;
     public int HitPointsLeft => hp;
+    public int MaxHearts { get; private set; }
     // Hearts left (BossConfig.Hearts at the start; 0 exactly when destroyed).
     public int HeartsLeft => heartsLeft;
     public float Damage => damage;
-    public int QuartersLeft => Mathf.Max(0, Mathf.CeilToInt((BossConfig.HitPoints - damage) * HeartDamage.PerHeart - .0001f));
+    public int QuartersLeft => Mathf.Max(0, Mathf.CeilToInt((MaxHearts - damage) * HeartDamage.PerHeart - .0001f));
     // The boss's hit points ran out (DESTROYED), as opposed to the fight
     // clock (SURVIVED). Meaningful from the outro on.
     public bool Destroyed => hp <= 0;
@@ -168,8 +169,8 @@ public class BossEncounter : MonoBehaviour
     public float Progress01 => BossConfig.FightSeconds <= 0f ? 1f
         : Mathf.Clamp01(1f - remaining / BossConfig.FightSeconds);
     // The hearts' share of the fight: the share of them lost.
-    public float HeartProgress01 => BossConfig.Hearts <= 0 ? 0f
-        : Mathf.Clamp01((BossConfig.Hearts - heartsLeft) / (float)BossConfig.Hearts);
+    public float HeartProgress01 => MaxHearts <= 0 ? 0f
+        : Mathf.Clamp01((MaxHearts - heartsLeft) / (float)MaxHearts);
     // What the attack phases go by (BossCatalog.UnlockedAttacks, FinalPhase:
     // thirds): the clock or the hearts, whichever is further on. 5-4 hearts
     // phase 1, 3-2 phase 2, the last one phase 3 -- or later, by the clock.
@@ -218,11 +219,12 @@ public class BossEncounter : MonoBehaviour
         introClock = 0f;
         warned = arrived = carded = landed = false;
         hits = 0;
-        hp = BossConfig.HitPoints;
+        MaxHearts = BossConfig.HeartsForWorld(world);
+        hp = MaxHearts;
         hitBank = 0f;
         hitWindow = 0f;
         damage = 0f;
-        heartsLeft = Mathf.Max(1, BossConfig.Hearts);
+        heartsLeft = MaxHearts;
         remaining = BossConfig.FightSeconds;
         fightClock = 0f;
         freeAtomCount = freeAtomNext = 0;
@@ -440,7 +442,7 @@ public class BossEncounter : MonoBehaviour
         damage += weight;
         while (payHitPoints && hitBank >= 1f - 1e-4f && hp > 0) { hitBank -= 1f; hp--; }
         int was = heartsLeft;
-        heartsLeft = HeartsFor(damage, hp);
+        heartsLeft = HeartsFor(damage, hp, MaxHearts);
         bool heartLost = heartsLeft != was, kill = hp <= 0;
         if (actor != null)
         {
@@ -471,9 +473,9 @@ public class BossEncounter : MonoBehaviour
 
     // The hearts left after `damage` (weighted hits) with `hpLeft` hit
     // points: none once the hit points are gone, else at least one.
-    public static int HeartsFor(float damage, int hpLeft)
+    public static int HeartsFor(float damage, int hpLeft, int maximum = -1)
     {
-        int n = Mathf.Max(1, BossConfig.Hearts);
+        int n = maximum > 0 ? maximum : Mathf.Max(1, BossConfig.Hearts);
         if (hpLeft <= 0) return 0;
         int lost = Mathf.FloorToInt(damage / Mathf.Max(1e-4f, BossConfig.HeartWeight) + 1e-4f);
         return Mathf.Clamp(n - lost, 1, n);

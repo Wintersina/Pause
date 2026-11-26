@@ -212,9 +212,10 @@ public static class ScoringTest
         t = RunScore.Total;
         RunScore.OnBoss(true, 0f, false, Vector3.zero);
         Check("a destroyed boss pays 300", RunScore.Total - t == 300);
+        RunScore.OnElite(Vector3.zero, 12000);
         t = RunScore.Total;
         RunScore.OnBossEscaped(Vector3.zero);
-        Check("an escaped boss costs 150", RunScore.Total - t == -ScoreRules.BossEscapePenalty && ScoreRules.BossEscapePenalty == 150);
+        Check("an escaped boss costs 10000", RunScore.Total - t == -ScoreRules.BossEscapePenalty && ScoreRules.BossEscapePenalty == 10000);
         Check("... and never takes the score below 0", RunScore.OnBossEscaped(Vector3.zero) + RunScore.OnBossEscaped(Vector3.zero) + RunScore.OnBossEscaped(Vector3.zero) >= 0 && RunScore.Total >= 0);
         t = RunScore.Total;
         RunScore.OnBoss(true, 10f, true, Vector3.zero);

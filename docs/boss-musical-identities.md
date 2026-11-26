@@ -17,3 +17,5 @@ The live fight uses `BossMusicDirector`, not the fallback `BossPatternTables` ro
 The shared `WaveGaps` planner still limits how far the opening can move and accounts for wave depth, rain stagger and the early arrival of pincer edges. Shots still leave measured boss muzzles. Escape corridors, special-attack holds, certified ricochets, shot budgets, pause/resume and the audio clock remain active. Frost's glare narrows from 0.26 to 0.22 units and holds for 0.5 rather than 0.6 seconds to leave room after its new ring sequence.
 
 The native Unity preview `BossIdentityReview.Export` captures real musical boss actors and then exports the dock review. Whole-song solver tests, live actors at 60/120 FPS, stepped audio clocks and the dodge bot exercise these changes. Manual playtesting is still needed to judge how the rhythm feels.
+
+Boss health begins at **13 hearts on the Space Dock-selected starting world**, then increases by one each world, continuing across world wraps and complete loops. Escaping costs 10,000 points for a boss or 1,000 for an elite, floored at zero. The fight clock remains 120 seconds.

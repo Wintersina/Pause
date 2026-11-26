@@ -439,7 +439,7 @@ public static class CodexCatalogue
         lines.Add("RINGED SHOTS  " + Mathf.RoundToInt(BossBounce.FractionFor(boss.WorldIndex) * 10f) + " in 10 bounce off the rails");
         int first = BossCatalog.UnlockedAttacks(boss, 0f), second = BossCatalog.UnlockedAttacks(boss, .5f);
         lines.Add("PHASES  " + first + " attacks, then " + second + ", then all " + boss.attacks.Length + " faster, and it enrages at the end");
-        lines.Add("HEARTS  " + BossConfig.Hearts + " spin round it, all gone in " + BossConfig.HitPoints + " weapon hits");
+        lines.Add("HEARTS  " + BossConfig.HeartsForWorld(boss.WorldIndex) + " spin round it, all gone in " + BossConfig.HeartsForWorld(boss.WorldIndex) + " weapon hits");
         lines.Add("ENDS  break every heart (+" + ScoreRules.BossDestroyed +
                   ") or let it flee at " + Mathf.RoundToInt(BossConfig.FightSeconds) + " s (-" + ScoreRules.BossEscapePenalty + ")");
         return string.Join("\n", lines);

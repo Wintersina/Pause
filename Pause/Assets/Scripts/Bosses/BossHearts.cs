@@ -1,6 +1,6 @@
 using UnityEngine;
 
-// A boss's hearts (BossConfig.Hearts, 10): its health, spinning round it.
+// A boss's hearts (thirteen on the starting world, increasing each world): its health, spinning round it.
 //
 // The shared HeartOrbit engine (the player's lives, the elites' hearts) on
 // a boss's terms: the player's own 3D spin (the Halo style: one tilted ring
@@ -122,9 +122,9 @@ public class BossHearts : HeartOrbit
     protected override void Update() { }       // stepped by BossActor
     protected override void LateUpdate() { }
 
-    public override void BuildHearts() { BuildHearts(Mathf.Max(1, BossConfig.Hearts)); }
+    public override void BuildHearts() { BuildHearts(MaxHearts); }
 
-    protected override int MaxHearts { get { return Mathf.Max(BossConfig.Hearts, 1); } }
+    protected override int MaxHearts { get { return actor != null ? BossConfig.HeartsForWorld(actor.World) : BossConfig.Hearts; } }
     protected override int RemainingHearts() { return left; }
     protected override bool UsesQuarterHearts => true;
     protected override int RemainingQuarterUnits() => quartersLeft;

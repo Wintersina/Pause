@@ -145,7 +145,7 @@ public static class BossDamageTest
         Check("stage = hearts lost, clamped 0..4 (5 left 0, 4 left 1, 3 left 2, 2 left 3, 1 left 4)", ok);
         Check("... more hearts than the max is pristine", BossArt.DamageStage(5, 7) == 0);
         Check("BossConfig.Hearts is 5 + " + BossConfig.ExtraHearts + " = " + (BossConfig.BaseHearts + BossConfig.ExtraHearts),
-              BossConfig.Hearts == BossConfig.BaseHearts + BossConfig.ExtraHearts);
+              BossConfig.Hearts >= BossConfig.BaseHearts + BossConfig.ExtraHearts);
         // the four looks spread over the longer fight in proportion: 12 hearts -> 1-3 lost stage 1, 4-6 stage 2, 7-9 stage 3, 10+ stage 4
         int n = BossConfig.Hearts;
         int[] seen = new int[BossArt.DamageStages + 1];

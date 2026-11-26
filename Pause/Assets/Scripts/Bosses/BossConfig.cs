@@ -82,12 +82,7 @@ public static class BossConfig
     // Phase 3 (the last third) shortens every pattern's cooldown by this.
     public static float FinalPhaseCooldownScale = 0.75f;
 
-    // Full-weight ship-attack hits needed to destroy the boss before the
-    // fight clock runs out (weighted hits add up). One hit point per heart,
-    // always: it IS Hearts, so the two can never diverge (each heart is
-    // exactly one full hit, HeartWeight 1). History: 3 hits / 5 hearts, then
-    // 5 / 9, then 7 / 12 (a heart ~0.58 of a hit), then 12 / 12; now 10 / 10 on the user's ask
-    // (2026-10-18: "boss elites hearts to be 10 instead of twelve").
+    // One heart is one hit point; all damage remains in quarter-heart units.
     public static int HitPoints => Hearts;
 
     // ---- the boss's hit window (BossEncounter.TakePlayerHit) ----
@@ -106,20 +101,23 @@ public static class BossConfig
     public static float HitBankMaxWeight = .5f;
 
     // ---- hearts (BossHearts) ----
-    // The boss wears its health as Hearts hearts spinning round it. They
-    // split the same HitPoints pool into equal segments: each heart is
-    // HeartWeight full hits (HitPoints / Hearts = 10 / 10 = 1), and goes the moment its segment
-    // is spent -- so the fight is exactly as long and as hard as before,
-    // the last heart going with the last hit point. (A full-weight hit
-    // takes one heart, sometimes two: 5 -> 4 -> 2 -> 0 under three of them.)
-    // The attack phases follow the hearts as well as the clock: the fight's
-    // progress is the further on of the two (BossEncounter.PhaseProgress01),
-    // so 5-4 hearts is phase 1, 3-2 phase 2 and the last heart phase 3, at
-    // the same thirds as the clock's.
+    // Start at thirteen hearts on the actual run's starting world. Each subsequent
+    // world adds one, including across Desert -> Space and later complete loops.
     public const int BaseHearts = 5;
-    public const int ExtraHearts = 5;   // added to every boss on the user's ask (4, then 7, now 5: 5 + 5 = 10 hearts; HeartOrbit's ceiling is 12)
-    public static int Hearts = BaseHearts + ExtraHearts;
-    public static float HeartWeight => HitPoints / (float)Mathf.Max(1, Hearts);
+    public const int ExtraHearts = 8;
+    public static int HeartsAt(int world, int startingWorld, int loop = 0)
+    {
+        int count = WorldManager.Worlds.Length;
+        world = Mathf.Clamp(world, 0, count - 1);
+        startingWorld = Mathf.Clamp(startingWorld, 0, count - 1);
+        return BaseHearts + ExtraHearts + (world - startingWorld + count) % count + Mathf.Max(0, loop) * count;
+    }
+    public static int HeartsForWorld(int world) => HeartsAt(world,
+        WorldManager.Instance != null ? WorldManager.RunStart : WorldManager.RunStartWorld(true), RunLoop.Index);
+    // Compatibility shorthand for the current encounter / current world. Off-world previews use HeartsForWorld.
+    public static int Hearts => HeartsForWorld(BossEncounter.Instance != null && BossEncounter.Instance.Boss != null
+        ? BossEncounter.Instance.Boss.WorldIndex : WorldManager.CurrentIndex);
+    public static float HeartWeight => 1f;
     // Each heart's world size: the player's (ShipLivesIndicator, 0.22) x 1.3.
     public static float HeartSize = .29f;
     // One revolution of the ring, in seconds of world time.

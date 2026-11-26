@@ -156,7 +156,7 @@ public static class BossHeartsTest
     {
         Check("a boss has " + N + " hearts (BossConfig.Hearts = base " + BossConfig.BaseHearts + " + " + BossConfig.ExtraHearts + "), splitting its " + BossConfig.HitPoints + " hit points (" +
               BossConfig.HeartWeight.ToString("F2") + " hits a heart)",
-              BossConfig.Hearts == BossConfig.BaseHearts + BossConfig.ExtraHearts && Mathf.Abs(BossConfig.HeartWeight * BossConfig.Hearts - BossConfig.HitPoints) < 1e-4f && BossConfig.HitPoints == BossConfig.Hearts && BossConfig.HitPoints == 10);
+              BossConfig.Hearts == BossConfig.HeartsForWorld(WorldManager.CurrentIndex) && Mathf.Abs(BossConfig.HeartWeight * BossConfig.Hearts - BossConfig.HitPoints) < 1e-4f && BossConfig.HitPoints == BossConfig.Hearts && BossConfig.HeartsAt(0, 0) == 13);
         for (int w = 0; w < BossCatalog.All.Length; w++)
         {
             FreshScene(w);
@@ -780,7 +780,7 @@ public static class BossHeartsTest
         {
             string lore = CodexCatalogue.BossAttackLore(boss);
             Check("codex " + boss.id + " says it wears " + BossConfig.Hearts + " hearts",
-                  lore.Contains("HEARTS  " + BossConfig.Hearts) && lore.Contains(BossConfig.HitPoints + " weapon hits"));
+                  lore.Contains("HEARTS  " + BossConfig.HeartsForWorld(boss.WorldIndex)) && lore.Contains(BossConfig.HeartsForWorld(boss.WorldIndex) + " weapon hits"));
         }
         string docs = File.Exists("../docs/enemy-behaviours.md") ? File.ReadAllText("../docs/enemy-behaviours.md") : "";
         Check("docs/enemy-behaviours.md has the boss hearts section", docs.Contains("## Boss hearts"));
