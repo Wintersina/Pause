@@ -203,6 +203,10 @@ public static class CodexAnimations
     {
         switch (id)
         {
+            case "drone_core_straight": kind = PickupKind.CoreStraight; return true;
+            case "drone_core_alternating": kind = PickupKind.CoreAlternating; return true;
+            case "drone_core_aimed": kind = PickupKind.CoreAimed; return true;
+            case "boss_drone": kind = PickupKind.DroneRecruit; return true;
             case "atom_stardust": kind = PickupKind.DustSmall; return true;
             case "atom_bigstar": kind = PickupKind.Dust; return true;
             case "atom_blue": kind = PickupKind.Shield; return true;

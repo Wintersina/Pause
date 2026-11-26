@@ -72,6 +72,7 @@ public static class FloatieGunTest
         cam.aspect = .5625f;
         camGo.transform.position = new Vector3(0f, 0f, -10f);
         Reset();
+        ShotAtoms.BeginRun();
         score.pauseCounter = 0;
         moveBackGround.speed = .2f;
         RunScore.EndRun(RunScore.RunId);
@@ -93,8 +94,16 @@ public static class FloatieGunTest
         public FloatieBattery battery;
     }
 
-    static Rig MakeShip(int id, int level)
+    static Rig MakeShip(int id, int level, int slots = 3, bool activate = true)
     {
+        ShotAtoms.SetDroneCount(slots);
+        if (activate)
+            for (int i = 0; i < slots; i++)
+            {
+                int empty = DroneSquad.EmptySlot();
+                if (empty < 0) break;
+                DroneSquad.CollectCore(empty % 3 == 0 ? DroneMode.Straight : empty % 3 == 1 ? DroneMode.Alternating : DroneMode.Aimed);
+            }
         PlayerPrefs.SetInt("spawnShip", id);
         var r = new Rig();
         r.ship = new GameObject("ship" + id, typeof(SpriteRenderer));
@@ -189,7 +198,7 @@ public static class FloatieGunTest
         FreshScene();
         var r = MakeShip(1, 0);
         Check("the ship carries a floatie battery", r.battery != null);
-        int[] want = { 1, 1, 2, 2, 3 };
+        int[] want = { 3, 3, 3, 3, 3 };
         bool ok = true;
         for (int level = 0; level <= ShipWeaponUpgrades.MaxLevel; level++)
         {
@@ -200,7 +209,7 @@ public static class FloatieGunTest
                           (r.battery.Extra(1) != null && r.battery.Extra(1).gameObject.activeSelf) == (want[level] >= 3);
             ok &= pure && live && extras;
         }
-        Check("floaties by level 0..4: 1, 1, 2, 2, 3 (the extras appear with the level)", ok);
+        Check("three starting slots are independent of purchased weapon level", ok);
 
         // slots: #2 on the other side up by the nose, #3 on the gun's own side low; both registered, none on the hearts' spot list wrongly
         r.battery.SetLevel(4);
@@ -216,7 +225,7 @@ public static class FloatieGunTest
         var boxes = new Bounds[2];
         Check("the hearts are told about both extras' resting places", r.battery.ExtraRestBounds(boxes) == 2);
         r.battery.SetLevel(2);
-        Check("... and one at level 2", r.battery.ExtraRestBounds(boxes) == 1);
+        Check("... both remain at level 2", r.battery.ExtraRestBounds(boxes) == 2);
         Teardown(r);
     }
 
@@ -225,11 +234,11 @@ public static class FloatieGunTest
         Check("level 0-3: #1 and #2 every 2 s, normal play (the base gun fires half as often: x2)",
               Mathf.Approximately(FloatieTuning.Cooldown(0, 0, false), 2f) && Mathf.Approximately(FloatieTuning.Cooldown(1, 2, false), 2f) &&
               Mathf.Approximately(FloatieTuning.Cooldown(0, 3, false), 2f));
-        Check("level 4: #1 and #2 every 1.5 s, the seeker every 3 s (x2, the final -25% still applies)",
+        Check("level 4: #1 and #2 every 1.5 s, every firing mode uses 1.5 s before core rate upgrades",
               Mathf.Approximately(FloatieTuning.Cooldown(0, 4, false), 1.5f) && Mathf.Approximately(FloatieTuning.Cooldown(1, 4, false), 1.5f) &&
-              Mathf.Approximately(FloatieTuning.Cooldown(2, 4, false), 3f));
-        Check("the base constants doubled (1 s -> 2 s, seeker 2 s -> 4 s), the boss rate untouched at 5 s",
-              Mathf.Approximately(FloatieTuning.NormalCooldown, 2f) && Mathf.Approximately(FloatieTuning.SeekerCooldown, 4f) && Mathf.Approximately(FloatieTuning.BossCooldown, 5f));
+              Mathf.Approximately(FloatieTuning.Cooldown(2, 4, false), 1.5f));
+        Check("all modes share the 2 s base cadence, boss rate is 5 s",
+              Mathf.Approximately(FloatieTuning.NormalCooldown, 2f) && Mathf.Approximately(FloatieTuning.BossCooldown, 5f));
         bool five = true;
         for (int level = 0; level <= 4; level++)
             for (int i = 0; i < FloatieTuning.CountAt(level); i++) five &= Mathf.Approximately(FloatieTuning.Cooldown(i, level, true), 5f);
@@ -249,9 +258,9 @@ public static class FloatieGunTest
         r.battery.ResetTimers();
         for (int i = 0; i < 3; i++) r.battery.Shots[i] = 0;
         for (float t = 0f; t < 12f; t += Dt) { r.battery.Step(Dt); if (Mathf.Approximately(t % 1f, 0f)) FloatieBullets.ReleaseAll(); }
-        Check("level 4: #1 and #2 every 1.5 s (" + r.battery.Shots[0] + " / " + r.battery.Shots[1] + " in 12 s), the seeker every 3 s (" + r.battery.Shots[2] + ")",
+        Check("level 4: #1 and #2 every 1.5 s (" + r.battery.Shots[0] + " / " + r.battery.Shots[1] + " in 12 s), the aimed drone at the same base rate (" + r.battery.Shots[2] + ")",
               r.battery.Shots[0] >= 7 && r.battery.Shots[0] <= 8 && r.battery.Shots[1] >= 7 && r.battery.Shots[1] <= 8 &&
-              r.battery.Shots[2] >= 3 && r.battery.Shots[2] <= 4);
+              r.battery.Shots[2] >= 7 && r.battery.Shots[2] <= 8);
         Teardown(r);
 
         // a boss fight (its fly-in is the scripted entrance, which holds fire; the fight is 5 s)
@@ -520,12 +529,12 @@ public static class FloatieGunTest
         {
             if (!ShipWeaponUpgrades.Has(ship) || PremiumShips.IsPremium(ship)) continue;   // (Paragon's drones: ShotFeelTest)
             string two = ShipWeaponUpgrades.StepText(ship, 2), four = ShipWeaponUpgrades.StepText(ship, 4);
-            ok &= two.Contains("+1 FLOATIE") && two.StartsWith(ShipWeaponUpgrades.Step(ship, 2).label) &&
-                  four.Contains("+1 SEEKER FLOATIE") && four.Contains("-25%") && four.StartsWith(ShipWeaponUpgrades.Step(ship, 4).label);
+            ok &= !two.Contains("+1 FLOATIE") && two.StartsWith(ShipWeaponUpgrades.Step(ship, 2).label) &&
+                  four.Contains("DRONE COOLDOWN") && four.Contains("-25%") && four.StartsWith(ShipWeaponUpgrades.Step(ship, 4).label);
             none &= ShipWeaponUpgrades.StepText(ship, 1) == ShipWeaponUpgrades.Step(ship, 1).label &&
                     ShipWeaponUpgrades.StepText(ship, 3) == ShipWeaponUpgrades.Step(ship, 3).label;
         }
-        Check("every ship's step 2 says +1 FLOATIE and step 4 +1 SEEKER FLOATIE, -25% (its own label kept first)", ok);
+        Check("colour steps retain their weapon benefits; final colour cuts drone cooldown without granting slots", ok);
         Check("steps 1 and 3 are unchanged", none);
         // the dock's two-line row: floatie words only when everything fits in DockTextMax, and never past it
         bool dockOk = true, anyFloatie = false;

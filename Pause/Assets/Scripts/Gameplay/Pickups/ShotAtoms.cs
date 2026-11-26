@@ -1,26 +1,12 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-// SHOT ATOMS: six permanent, per-run upgrades to every ship's NORMAL gun only (the floaties' small bullets, FloatieGuns.cs).
-// Ultimates, special attacks, secret powers and the floaties themselves are untouched.
-//
-//   TWIN      more shots a volley: 2 parallel, then a fan of 3 .. 7 (it widens a little with the level)
-//   PIERCE    a shot passes through +1 enemy a level (up to 10)
-//   SPLIT     on a hit the shot breaks into 2 .. 6 small diagonal shards (50% .. 75% damage each)
-//   RICOCHET  shots bounce off the screen's side edges 1 .. 10 times
-//   ARC       a hit zaps a spark to the nearest other enemies in range (1 .. 6 jumps, 2.0 .. 4.25 range, 50% .. 100% damage)
-//   RAPID     the gun fires +25% .. +250% faster (never under ShotAtomTuning.MinCooldown between shots)
-//
-// PER DRONE (owner decision, 2026-11-23): the ship flies with 1 .. 6 drones (FloatieTuning.CountAt) and a caught coin upgrades ONE drone,
-// picked at random among the drones that are not maxed for that atom. Each drone keeps its own level (max 10) of TWIN / PIERCE / SPLIT /
-// RICOCHET / ARC and its own firing style (straight / random left-right / aims then fires straight: nothing homes). RAPID is the exception:
-// one shared level that speeds up EVERY drone. Past the max (the atom is maxed on EVERY drone) a catch pays star dust instead.
-// PowerCreep scales the enemy spawns with PowerLevel = the per-drone levels summed and divided by the drone count, plus Rapid, so six
-// drones are not harder to fill than three. Coins drop from bosses (two always, a third half the time), elites (every one) and ordinary
-// kills (18% on the starting world, 8% elsewhere, at most one per 12 s): one random atom that is not maxed yet (every atom can drop in every world).
-// All of it is state of the run: BeginRun (score.Awake) wipes it.
-//
-// EVERY number lives in ShotAtomTuning.
+// Six run-long modifiers for companion guns. TWIN, PIERCE, SPLIT, RICOCHET and ARC
+// activate dormant slots first, then upgrade the weakest eligible drone deterministically.
+// RAPID is shared. Directional cores set firing mode independently of these modifiers.
+// BeginRun clears the squad and modifiers. The starter core precedes TWIN / TWIN / ARC;
+// later drops can offer a three-way mode choice. Bosses recruit drones instead of coins.
+// PowerLevel uses a fixed starting-squad divisor so recruiting never reduces spawn pressure.
 public enum ShotAtom { Twin = 0, Pierce = 1, Split = 2, Ricochet = 3, Arc = 4, Rapid = 5 }
 
 public static class ShotAtomTuning
@@ -31,10 +17,7 @@ public static class ShotAtomTuning
     public const int MaxLevel = 10;
 
     // ---- drops ----
-    public const float EliteDropChance = 1f;      // a killed elite: every one drops (there are up to 6 drones x 5 atoms to fill)
-    public const float BossDropChance = 1f;       // a destroyed boss: the first drop
-    public const float BossSecondDropChance = 1f;  // ...a second one always
-    public const float BossThirdDropChance = .5f;  // ...and a third this often
+    public const float EliteDropChance = 1f;      // a killed elite: every one drops (there are up to 12 drones x 5 atoms to fill)
     public const float EnemyDropChance = .08f;    // an ordinary enemy kill (not a hazard, elite or boss)
     public const float StartingLevelDropChance = .18f; // the world the run began on, not hard-coded to Space
     public const float EnemyDropCooldown = 12f;   // s: at most one drop from ordinary enemies per this (the atom spacing still applies)
@@ -84,9 +67,8 @@ public static class ShotAtomTuning
     public static readonly float[] RapidBonus = { 0f, .25f, .50f, .75f, 1f, 1.25f, 1.50f, 1.75f, 2f, 2.25f, 2.50f };
     public const float MinCooldown = .5f;   // s: the floor of any floatie's cooldown, so the gun never becomes a laser stream
 
-    // ---- the cap on the gun's bullets in the air (the floaties' own pool; AttackPool.MaxProjectiles still caps the total).
-    // A 7-shot volley from three floaties (21 bullets) plus a few shards needs more than the old 24; 32 stays well under the shared 40. ----
-    public const int MaxBullets = 32;
+    // Separate drone budget; AttackPool reserves another 40 ultimate projectiles.
+    public const int MaxBullets = 128;
 
     // ---- the fan of n shots spread evenly over +-half degrees (n = 1: straight; the parallel pair has no fan) ----
     static float[][] Fans(int[] counts, float[] half)
@@ -125,7 +107,7 @@ public static class ShotAtoms
     static readonly int[] droneLevels = new int[ShotAtomTuning.MaxDrones * ShotAtomTuning.PerDroneAtoms];
     static int DL(int drone, int atom) { return drone * ShotAtomTuning.PerDroneAtoms + atom; }
     static int rapidLevel;
-    static int droneCount = 1;
+    static int droneCount = DroneSquad.StartingSlots;
     static readonly List<ShotAtom> order = new List<ShotAtom>(ShotAtomTuning.Count);
 
     // Bumped on every change (the HUD row redraws on it).
@@ -135,6 +117,8 @@ public static class ShotAtoms
 
     public static void BeginRun()
     {
+        DroneSquad.BeginRun();
+        droneCount = DroneSquad.StartingSlots;
         for (int d = 0; d < ShotAtomTuning.MaxDrones; d++)
             for (int a = 0; a < ShotAtomTuning.PerDroneAtoms; a++) droneLevels[DL(d, a)] = 0;
         rapidLevel = 0;
@@ -151,6 +135,7 @@ public static class ShotAtoms
     public static void SetDroneCount(int n)
     {
         n = Mathf.Clamp(n, 1, ShotAtomTuning.MaxDrones);
+        DroneSquad.SetSlots(n);
         if (n == droneCount) return;
         droneCount = n;
         Version++;
@@ -251,6 +236,8 @@ public static class ShotAtoms
     {
         public ShotAtom atom;
         public int drone;        // the drone that got the level (-1: Rapid, which every drone shares; also when maxed)
+        public int beforeLevel;
+        public bool activated;
         public int level;        // the level after the catch (the cap when it was already there)
         public bool maxed;       // maxed on every drone: the catch pays dust, no level
     }
@@ -266,32 +253,52 @@ public static class ShotAtoms
         if (eligible == 0) { c.maxed = true; MaxedCatches++; Version++; return c; }
         if (IsShared(atom))
         {
+            c.beforeLevel = rapidLevel;
             c.level = ++rapidLevel;
+            if (DroneSquad.ActiveCount == 0) c.activated = DroneSquad.Activate(0);
         }
         else
         {
-            if (roll01 < 0f) roll01 = Random.value;
-            int pick = Mathf.Min(eligible - 1, Mathf.FloorToInt(Mathf.Clamp01(roll01) * eligible));
-            for (int d = 0; d < droneCount; d++)
-            {
-                if (droneLevels[DL(d, (int)atom)] >= ShotAtomTuning.MaxLevel) continue;
-                if (pick-- != 0) continue;
-                c.drone = d;
-                c.level = ++droneLevels[DL(d, (int)atom)];
-                break;
-            }
+            int target = DroneSquad.ModifierRecipient(atom);
+            if (target < 0) { c.maxed = true; MaxedCatches++; Version++; return c; }
+            c.beforeLevel = Level(target, atom);
+            c.activated = DroneSquad.Activate(target);
+            c.drone = target;
+            c.level = ++droneLevels[DL(target, (int)atom)];
+            DroneSquad.Select(target);
         }
         if (!order.Contains(atom)) order.Add(atom);
         Version++;
         return c;
     }
 
+    public static string BenefitChange(ShotAtom atom, int before, int after)
+    {
+        switch (atom)
+        {
+            case ShotAtom.Twin:
+                if (ShotAtomTuning.TwinShots[before] == ShotAtomTuning.TwinShots[after]) return "FAN " + (ShotAtomTuning.TwinHalfFan[before] * 2f) + " → " + (ShotAtomTuning.TwinHalfFan[after] * 2f) + " DEGREES";
+                return ShotAtomTuning.TwinShots[before] + " SHOT" + (ShotAtomTuning.TwinShots[before] == 1 ? "" : "S") + " → " + ShotAtomTuning.TwinShots[after] + " SHOTS";
+            case ShotAtom.Pierce: return "PASSES THROUGH " + ShotAtomTuning.PierceThrough[before] + " → " + ShotAtomTuning.PierceThrough[after] + " ENEMIES";
+            case ShotAtom.Split:
+                if (ShotAtomTuning.SplitShards[before] == ShotAtomTuning.SplitShards[after])
+                    return ShotAtomTuning.SplitDamage[before] != ShotAtomTuning.SplitDamage[after] ? "SHARD DAMAGE " + Mathf.RoundToInt(ShotAtomTuning.SplitDamage[before] * 100f) + "% → " + Mathf.RoundToInt(ShotAtomTuning.SplitDamage[after] * 100f) + "%" : "SHARD FAN " + (ShotAtomTuning.SplitHalfFan[before] * 2f) + " → " + (ShotAtomTuning.SplitHalfFan[after] * 2f) + " DEGREES";
+                return ShotAtomTuning.SplitShards[before] + " → " + ShotAtomTuning.SplitShards[after] + " SHARDS, " + Mathf.RoundToInt(ShotAtomTuning.SplitDamage[after] * 100f) + "% EACH";
+            case ShotAtom.Arc:
+                if (ShotAtomTuning.ArcJumps[before] == ShotAtomTuning.ArcJumps[after])
+                    return ShotAtomTuning.ArcDamage[before] != ShotAtomTuning.ArcDamage[after] ? "ARC DAMAGE " + Mathf.RoundToInt(ShotAtomTuning.ArcDamage[before] * 100f) + "% → " + Mathf.RoundToInt(ShotAtomTuning.ArcDamage[after] * 100f) + "%" : "ARC REACH " + ShotAtomTuning.ArcRange[before] + " → " + ShotAtomTuning.ArcRange[after];
+                return ShotAtomTuning.ArcJumps[before] + " → " + ShotAtomTuning.ArcJumps[after] + " CHAIN JUMPS";
+            case ShotAtom.Ricochet: return ShotAtomTuning.Bounces[before] + " → " + ShotAtomTuning.Bounces[after] + " BOUNCES";
+            default: return "+" + Mathf.RoundToInt(ShotAtomTuning.RapidBonus[before] * 100f) + "% → +" + Mathf.RoundToInt(ShotAtomTuning.RapidBonus[after] * 100f) + "% FIRE RATE";
+        }
+    }
+
     public const string MaxedWord = "MAXED +DUST";
 
     public static readonly string[] Roman = { "", "I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X" };
 
-    // PowerLevel: Rapid's shared level plus the per-drone levels summed and divided by the drone count (rounded), so it spans 0 .. MaxPower (60)
-    // whether the ship flies one drone or six. PowerCreep turns it into spawn pressure.
+    // Shared Rapid + modifier levels normalized to the initial three slots + active-drone bonus.
+    // Recruitment never dilutes existing power; spawn pressure is capped at MaxPower.
     public const int MaxPower = ShotAtomTuning.Count * ShotAtomTuning.MaxLevel;
     public static int PowerLevel
     {
@@ -300,7 +307,7 @@ public static class ShotAtoms
             int sum = 0;
             for (int d = 0; d < droneCount; d++)
                 for (int a = 0; a < ShotAtomTuning.PerDroneAtoms; a++) sum += droneLevels[DL(d, a)];
-            return rapidLevel + Mathf.RoundToInt(sum / (float)droneCount);
+            return Mathf.Min(MaxPower, rapidLevel + Mathf.RoundToInt(sum / (float)DroneSquad.StartingSlots) + Mathf.Max(0, DroneSquad.ActiveCount - 1));
         }
     }
 
@@ -476,15 +483,9 @@ public static class ShotAtomDrops
     public static bool OnBossDestroyed(Vector3 at, float roll = -1f, float roll2 = -1f, float roll3 = -1f)
     {
         if (!Counts()) return false;
-        if (roll < 0f) roll = Random.value;
-        if (roll2 < 0f) roll2 = Random.value;
-        if (roll3 < 0f) roll3 = Random.value;
-        if (!Wins(roll, ShotAtomTuning.BossDropChance)) return false;
         Bosses++;
-        bool ok = Offer(at);
-        if (Wins(roll2, ShotAtomTuning.BossSecondDropChance)) { Bosses++; Offer(at); }
-        if (Wins(roll3, Rushed(ShotAtomTuning.BossThirdDropChance))) { Bosses++; Offer(at); }
-        return ok;
+        DroneRewardPickup.Spawn(at);
+        return true;
     }
 
     // An ordinary enemy kill (collisionDetection.AwardDestroyedTarget): a small chance, at most one per EnemyDropCooldown.
@@ -535,6 +536,17 @@ public static class ShotAtomDrops
 
     static void ReleaseOne(Vector3 at, float roll)
     {
+        if (RunCoinsReleased >= 3)
+        {
+            float choice = roll >= 0f ? roll : Random.value;
+            if (choice >= .8f)
+            {
+                DroneCorePickup.SpawnChoice(at);
+                RunCoinsReleased++; Released++; LastWasDust = false; AtomSpacing.Released();
+                return;
+            }
+            roll = Mathf.Clamp01(choice / .8f);
+        }
         ShotAtom atom = RunCoinsReleased < 2 ? ShotAtom.Twin : ShotAtom.Arc;
         bool opening = RunCoinsReleased < 3 && ShotAtoms.CanDrop(atom);
         if (!opening && !ShotAtoms.TryPick(roll >= 0f ? roll : Random.value, out atom))
@@ -593,6 +605,7 @@ public class ShotAtomPickup : MonoBehaviour
         rb.gravityScale = 0f;
         go.AddComponent<moveItemEnmInStrightLine>();
         go.AddComponent<ShotAtomPickup>().atom = atom;
+        go.AddComponent<DronePickupPreview>();
         var spin = go.AddComponent<AtomSpin>();
         spin.degreesPerSecond = 0f;   // the border spins (the flipbook); the symbol stays still
         PickupFlipbook.AddTo(go, ShotAtoms.KindOf(atom));

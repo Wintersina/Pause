@@ -525,9 +525,11 @@ public class enmiesOnBoard : MonoBehaviour {
         // a spot on the board, and waits above the view until it may come in.
         if (EnemyBrain.PilotsEnabled && behaviour != null && behaviour.IsPilot && def.role != EnemyRole.Chaser)
         {
-            int wing = def.role == EnemyRole.Fighter && def.tier == 1 ? 2 : 1;   // scouts fly in pairs when there is room
+            int wing = def.role == EnemyRole.Fighter && def.tier == 1
+                ? Mathf.Clamp(2 + DroneSquad.ActiveCount / 4, 2, 4) : 1; // larger squads face small scout wings before tougher hulls
             for (int k = 0; k < wing; k++)
             {
+                if (k > 0 && !EnemyDensity.RoomFor(EnemyDensity.Hud)) break;
                 float stationX;
                 if (!PilotAirspace.TryAdmit(def, behaviour, k == 0 ? preferredX : float.NaN, out stationX))
                 {

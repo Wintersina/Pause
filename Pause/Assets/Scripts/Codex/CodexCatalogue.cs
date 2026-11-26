@@ -194,6 +194,14 @@ public static class CodexCatalogue
             ShotAtomEntry(ShotAtom.Ricochet),
             ShotAtomEntry(ShotAtom.Arc),
             ShotAtomEntry(ShotAtom.Rapid),
+            DroneCoreEntry(DroneMode.Straight),
+            DroneCoreEntry(DroneMode.Alternating),
+            DroneCoreEntry(DroneMode.Aimed),
+            new CodexEntry("boss_drone", "Drone Recruit", CodexCategory.Atoms, () => DronePickupArt.Reward,
+                "BOSS REWARD  Every destroyed boss drops one drone recruit instead of upgrade coins.\n" +
+                "SQUAD  Starts with three dormant slots; the immediate directional core activates the first.\n" +
+                "RECRUIT  Joins active in your latest chosen firing mode, with half the squad's average modifier levels.\n" +
+                "CAP  Twelve drones; an extra recruit pays five dust.", new[] { Codex.Normalise("bossDroneReward") }),
 
             // ------------------------------------------------------------- Worlds
             new CodexEntry(PortalId, "Wormhole Portal", CodexCategory.Worlds, () => TeleportPortalSprites.FrameAt(0),
@@ -273,6 +281,21 @@ public static class CodexCatalogue
         return false;
     }
 
+    public static string DroneCoreId(DroneMode mode) => "drone_core_" + mode.ToString().ToLowerInvariant();
+    static CodexEntry DroneCoreEntry(DroneMode mode)
+    {
+        string behavior = mode == DroneMode.Aimed ? "Chooses an enemy's direction when firing; the bullet travels straight afterward and never homes." :
+            mode == DroneMode.Alternating ? "Alternates left and right by 25 degrees, covering both sides predictably." : "Fires straight ahead.";
+        return new CodexEntry(DroneCoreId(mode), DroneSquad.Name(mode) + " Core", CodexCategory.Atoms,
+            () => DronePickupArt.For(mode),
+            "FIRING MODE  " + behavior + "\n" +
+            "RECIPIENT  An empty slot first, then the weakest matching drone. A different mode can reprogram the labelled recipient; preview it before collecting.\n" +
+            "CORE LEVEL  1 to 4; each extra level adds 25% firing rate, up to +75%.\n" +
+            "CHOICE  Later core drops offer three modes; collecting one removes the other two. The centre choice matches your latest mode.\n" +
+            "MAXED  A matching duplicate pays dust when every drone already has that mode at its cap.",
+            new[] { Codex.Normalise("droneCore_" + DroneSquad.Name(mode)) });
+    }
+
     static CodexEntry ShotAtomEntry(ShotAtom atom)
     {
         var kind = ShotAtoms.KindOf(atom);
@@ -291,13 +314,13 @@ public static class CodexCatalogue
         lines.Add(name + "  " + ShotAtomEffect(atom) + " Permanent for the run, for your drones' small guns only.");
         lines.Add(atom == ShotAtom.Rapid
             ? "EACH COIN  speeds up ALL your drones at once (one shared level)"
-            : "EACH COIN  upgrades one random drone that is not maxed yet; every drone keeps its own level");
+            : "EACH COIN  activates an empty drone in the current mode, or upgrades the weakest eligible drone; preview the labelled recipient");
         lines.Add("HEART DAMAGE  25% = one quarter, 50% = half, 75% = three quarters, 100% = one heart; same for enemies, elites and bosses");
         // the range of the effect: the first level and the last (ten levels would be a wall of text)
         lines.Add("LEVEL 1  " + ShotAtomLevelText(atom, 1));
         lines.Add("LEVEL " + ShotAtomTuning.MaxLevel + "  " + ShotAtomLevelText(atom, ShotAtomTuning.MaxLevel));
-        lines.Add("RUN OPENING  TWIN, TWIN, ARC, starting after 2 seconds of flight with pickup spacing; later coins are random");
-        lines.Add("DROPPED BY  every elite, a boss (two always, a third half the time) ordinary kills (18% on the run's starting level, 8% elsewhere; drop spacing applies)");
+        lines.Add("RUN OPENING  An immediate AIMED core, then TWIN, TWIN, ARC; the two TWIN coins activate the remaining dormant drones; pickup spacing applies");
+        lines.Add("DROPPED BY  every elite and ordinary kills (18% on the starting level, 8% elsewhere; spacing applies). Later drops are 80% modifiers, 20% mode choices; bosses drop drone recruits");
         lines.Add("MAX LEVEL  " + ShotAtomTuning.MaxLevel + "; once it is maxed on every drone a catch pays star dust");
         return string.Join("\n", lines);
     }
@@ -360,7 +383,7 @@ public static class CodexCatalogue
     // Whether an entry's lore is shown as a bullet list.
     public static bool IsBulleted(CodexEntry e)
     {
-        return BulletsEnabled && e != null && (e.category == CodexCategory.Ships || IsShotAtomId(e.id));
+        return BulletsEnabled && e != null && (e.category == CodexCategory.Ships || IsShotAtomId(e.id) || e.id.StartsWith("drone_core_") || e.id == "boss_drone");
     }
 
     // What the ship fights with, from ShipLoadoutTable: its attack (fires when

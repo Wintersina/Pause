@@ -314,7 +314,7 @@ public class collisionDetection : MonoBehaviour {
         // A pickup already collected this step (ShipHitbox's pickup radius got
         // there first, or a second contact before Destroy lands) is spent.
         if (!hit.enabled) return;
-        Codex.Discover(hit.gameObject);   // first touch unlocks its codex entry (enemy, rock, atom, portal)
+        if (!hit.TryGetComponent<DroneCorePickup>(out _)) Codex.Discover(hit.gameObject);   // choice cores are discovered only after their claim succeeds
 
         #region
         //------------------------- Colliding with Enimies ---------------------------------------------
@@ -584,6 +584,40 @@ public class collisionDetection : MonoBehaviour {
                 AtomFusions.OnAtom(AtomKind.Magnet, hit.transform.position);
                 Pooled.Destroy(hit.gameObject);   // (pooled pickups go back to their pool: PrefabPool)
             }
+            else if (hit.gameObject.TryGetComponent(out DroneCorePickup coreCoin))
+            {
+                if (!coreCoin.TryClaim()) return;
+                Codex.Discover(hit.gameObject);
+                var got = DroneSquad.CollectCore(coreCoin.mode);
+                var colour = DroneSquad.Colour(coreCoin.mode);
+                if (got.maxed)
+                {
+                    awardDust(ShotAtomTuning.MaxedDust);
+                    AtomUpgradePopup(DroneSquad.Name(coreCoin.mode) + " CORE MAXED", "+2 DUST", colour);
+                }
+                else
+                {
+                    var battery = FloatieBattery.Current;
+                    if (battery != null) { battery.Refresh(); battery.NotifyUpgrade(got.slot); }
+                    string title = "DRONE " + (got.slot + 1) + (got.activated ? " ONLINE" : " " + DroneSquad.Name(got.mode));
+                    string hint = got.beforeMode != got.mode ? DroneSquad.Name(got.beforeMode) + " → " + DroneSquad.Name(got.mode) :
+                        "+" + ((got.beforeLevel - 1) * 25) + "% → +" + ((got.level - 1) * 25) + "% FIRE RATE";
+                    AtomUpgradePopup(title, hint, colour, "CORE LV " + got.level);
+                }
+                coreCoin.Consume();
+            }
+            else if (hit.gameObject.TryGetComponent(out DroneRewardPickup droneReward))
+            {
+                int slot = DroneSquad.AddBossDrone();
+                if (slot < 0) { awardDust(DroneRewardPickup.MaxedDust); AtomUpgradePopup("SQUAD COMPLETE", "+5 DUST", Color.yellow); }
+                else
+                {
+                    var battery = FloatieBattery.Current;
+                    if (battery != null) battery.JoinDrone(slot, hit.transform.position);
+                    AtomUpgradePopup("DRONE " + (slot + 1) + " JOINED", DroneSquad.Name(DroneSquad.Mode(slot)) + " • " + DroneSquad.ActiveCount + " ACTIVE", Color.yellow);
+                }
+                droneReward.Consume();
+            }
             else if (hit.gameObject.TryGetComponent(out ShotAtomPickup shotCoin))
             {
                 // A shot atom (ShotAtoms): a permanent level of one gun upgrade, or dust once that atom is at the world's cap.
@@ -601,8 +635,15 @@ public class collisionDetection : MonoBehaviour {
                     string word = ShotAtoms.Callout(got.atom, got.level);
                     if (hypeText != null) hypeText.text = word;
                     var battery = FloatieBattery.Current;
-                    string droneName = battery != null && got.drone >= 0 ? battery.DroneName(got.drone) : null;
-                    AtomUpgradePopup(ShotAtoms.UpgradeTitle(got.atom, got.drone, droneName), ShotAtoms.UpgradeHint(got.atom, got.level), coinColour,
+                    if (battery != null)
+                    {
+                        battery.Refresh();
+                        if (got.drone >= 0) battery.NotifyUpgrade(got.drone);
+                        else for (int slot = 0; slot < DroneSquad.Slots; slot++)
+                            if (DroneSquad.IsActive(slot)) battery.NotifyUpgrade(slot);
+                    }
+                    string droneName = got.drone >= 0 ? "DRONE " + (got.drone + 1) + (got.activated ? " ONLINE" : "") : null;
+                    AtomUpgradePopup(ShotAtoms.UpgradeTitle(got.atom, got.drone, droneName), ShotAtoms.BenefitChange(got.atom, got.beforeLevel, got.level), coinColour,
                                      ShotAtoms.UpgradeLevel(got.level));
                 }
                 Pooled.Destroy(hit.gameObject);

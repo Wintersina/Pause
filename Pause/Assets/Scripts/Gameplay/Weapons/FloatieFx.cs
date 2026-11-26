@@ -9,18 +9,17 @@ using UnityEngine;
 //   * MUZZLE FLASH  two tiny pixels at the drone's tip when it fires (subtle on purpose)
 //   * NUDGE         a normal enemy that took a non-lethal hit is pushed a hair along the shot (a few hundredths of a unit, decaying)
 //
-// Everything is thin and low-glow: opaque 2x2-pixel squares, no glow sprite, no additive blending, never wider than a few pixels, in the ship's
-// weapon colour mixed with white. Pooled: a fixed table of particles and nudges and one SpriteRenderer each, built once (Prebuild), reused,
-// nothing allocated per frame. The one screen shake of the game's kill-cam era is NOT used here: the game has no shake setting, and a
-// shake on every kill would fight the pause-aware camera, so kills get the spark and the enemy's own explosion instead.
+// Pixel particles, hull nudges and muzzle flashes use fixed pools with no per-frame allocation.
+// Heart breaks and kills have stronger bursts; upgrade volleys emphasize their muzzle flash.
+// GunImpactFeedback supplies distinct rate-limited audio and a small bounded kill kick.
 public static class FloatieFx
 {
-    public const int MaxParticles = 56, MaxNudges = 16;
+    public const int MaxParticles = 96, MaxNudges = 16;
     public const int SortOrder = 75;               // above the bullets (74) and every ultimate effect (<= 72), under the HUD
-    public const float HitLife = .16f, MuzzleLife = .07f;
+    public const float HitLife = .22f, MuzzleLife = .1f;
     public const float NudgeSpeed = 1.4f, NudgeDrag = 14f, NudgeMaxSeconds = .25f;   // ~0.1 world units in all
 
-    public enum Kind { Hit, Pierce, Split, Bounce, Muzzle }
+    public enum Kind { Hit, Pierce, Split, Bounce, Muzzle, HeartBreak, Kill, UpgradeMuzzle }
 
     struct Particle
     {
@@ -116,6 +115,18 @@ public static class FloatieFx
                     Vector2 d = (back + side * f).normalized;
                     Emit(at, d * (2.4f + (k % 2) * 1.1f), HitLife, 7f, k % 2 == 0 ? white : mid);
                 }
+                break;
+            case Kind.HeartBreak:
+            case Kind.Kill:
+                int count = kind == Kind.Kill ? 10 : 7;
+                for (int k = 0; k < count; k++)
+                {
+                    Vector2 d = (back + side * (k - (count - 1) * .5f) * .45f).normalized;
+                    Emit(at, d * (3f + k % 3), kind == Kind.Kill ? .3f : .24f, 6f, k % 2 == 0 ? white : mid);
+                }
+                break;
+            case Kind.UpgradeMuzzle:
+                for (int k = 0; k < 6; k++) Emit(at, (h + side * (k - 2.5f) * .14f).normalized * 2.4f, .14f, 8f, white);
                 break;
             case Kind.Pierce:
                 for (int k = 0; k < 3; k++)

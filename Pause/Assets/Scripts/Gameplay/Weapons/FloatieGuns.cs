@@ -1,34 +1,17 @@
 using UnityEngine;
 
-// THE FLOATIES' SMALL GUN. Every ship's companion (UltimateGun, the "floatie" hovering beside the hull) also fires a small bullet
-// by itself, and the ship's weapon level (ShipWeaponUpgrades.Level, 0..MaxLevel = colours bought) adds floaties:
-//
-//   level 0-1  1 floatie  (the UltimateGun itself)                      straight up the screen, every 2 s
-//   level 2-3  2 floaties (+ a FloatieCompanion on the other side)      #2 fires up and angled left or right, every 2 s
-//   level 4    3 floaties (+ a seeker below the first), all 25% faster  #1/#2 every 1.5 s, the SEEKER every 3 s
-//
-// PARAGON (the premium cheat ship, id 16) is the exception: it flies with TWO floaties from the very first second and every skin it
-// owns adds one more, up to SIX (2, 3, 4, 5, 6 across its 5 tiers). Floaties 4-6 fan out (see FloatieTuning.Role).
-//
-// While a boss fight is on (BossEncounter.Running, the fly-in included) every floatie waits 5 s between shots. Fire holds (the
-// timers freeze, nothing is lost) while the world is frozen (a pause), the pilot is dead, a world transition (planetfall / lift-off)
-// runs, the boss's scripted entrance plays, and in the tutorial. The ship's ULTIMATE does NOT hold the gun any more: the floaties keep
-// firing the whole time it slides out, fires and plays (their bullets draw above every ultimate effect).
-//
-// A bullet is small, thin and low-glow, in the ship's own weapon colour, from a fixed pool (no allocation per shot). It stops on the
-// FIRST thing it touches: a hostile projectile (popped, no score), a hazard (ShipAttackHits: score, dust, chain, codex like any
-// weapon kill), an ordinary enemy, an elite or the boss. Damage is measured directly in quarter hearts
-// for all three: a plain bullet costs one heart; coin damage is 25%, 50%, 75% or 100%, with no repeat-hit delay.
-//
-// Everything tunable is a constant in FloatieTuning.
+// Every ship starts with three dormant companions. Directional cores activate them and set
+// straight, alternating or aimed fire; bosses recruit additional drones up to twelve.
+// Aimed shots choose a heading at launch and never track afterward. Weapon skins retain
+// their colour and final-tier cooldown cut. Core levels and shared RAPID increase fire rate.
+// Firing holds during pauses, entry, transitions, death and tutorial, but not ultimates.
+// Pooled bullets deal direct quarter-heart damage to ordinary enemies, elites and bosses.
 public static class FloatieTuning
 {
-    public const int MaxFloaties = 6;
-    public const int ParagonBase = 2;              // Paragon's floaties at tier 0 (+1 a tier: 2, 3, 4, 5, 6)
+    public const int MaxFloaties = DroneSquad.MaxSlots;
     public const float FanDegrees = 10f;           // floaties 4 and 5 fire this far off straight up (left, right)
     // The normal gun fires half as often (combat rework, 2026-11-22: x2 on every base cooldown; was 1 s / 2 s). The boss rate is unchanged.
     public const float NormalCooldown = 2f;        // floatie #1 and #2, seconds
-    public const float SeekerCooldown = 4f;        // floatie #3 (it only exists at the final level, where the cut applies: 3 s)
     public const float BossCooldown = 5f;          // every floatie while a boss is active
     public const float FinalLevelCut = .25f;       // the final level's cooldown cut
     public const float SpreadMinDegrees = 15f, SpreadMaxDegrees = 30f;   // floatie #2's random angle off straight up, left or right
@@ -39,23 +22,14 @@ public static class FloatieTuning
     public const float BossWeight = 1f;          // one plain bullet, in hearts
     public const int PoolSize = ShotAtomTuning.MaxBullets;   // bullets alive at once, at most (the shot atoms' cap; twin and split need the room)
 
-    public static int CountAt(int level)
-    {
-        return level >= ShipWeaponUpgrades.MaxLevel ? 3 : level >= 2 ? 2 : 1;
-    }
-
-    // How many floaties `ship` flies with at weapon level `level`: the ordinary 1 / 2 / 3, or Paragon's 2 .. 6.
-    public static int CountAt(int ship, int level)
-    {
-        if (PremiumShips.IsPremium(ship)) return Mathf.Clamp(ParagonBase + Mathf.Clamp(level, 0, ShipWeaponUpgrades.MaxLevel), 1, MaxFloaties);
-        return CountAt(level);
-    }
+    public static int CountAt(int level) => DroneSquad.Slots;
+    public static int CountAt(int ship, int level) => DroneSquad.Slots;
 
     public enum Role { Main, Spread, Seeker, FanLeft, FanRight, SeekerTwo }
 
-    // What floatie `index` (0-based) does: 0 straight up, 1 the random angle, 2 the seeker, 3 / 4 a fixed fan, 5 a second seeker.
-    public static Role RoleOf(int index) { return (Role)Mathf.Clamp(index, 0, MaxFloaties - 1); }
-    public static bool IsSeeker(int index) { return index == 2 || index == 5; }
+    // The slot's collected core determines its firing mode.
+    public static Role RoleOf(int index) { return DroneSquad.Mode(index) == DroneMode.Aimed ? Role.Seeker : DroneSquad.Mode(index) == DroneMode.Alternating ? Role.Spread : Role.Main; }
+    public static bool IsSeeker(int index) { return DroneSquad.Mode(index) == DroneMode.Aimed; }
 
     // Floatie 4 fires FanDegrees to the left, floatie 5 the same to the right (+ is left, as a bullet's angle).
     public static float FanAngle(int index) { return index == 3 ? FanDegrees : index == 4 ? -FanDegrees : 0f; }
@@ -65,9 +39,8 @@ public static class FloatieTuning
     // (the shot atom RAPID then shortens it: +20% .. +160% fire rate, never under ShotAtomTuning.MinCooldown, boss fights included)
     public static float Cooldown(int index, int level, bool bossActive)
     {
-        if (bossActive) return ShotAtoms.Rapid(BossCooldown);
-        float baseSeconds = IsSeeker(index) ? SeekerCooldown : NormalCooldown;
-        return ShotAtoms.Rapid(IsFinal(level) ? baseSeconds * (1f - FinalLevelCut) : baseSeconds);
+        float seconds = bossActive ? BossCooldown : NormalCooldown * (IsFinal(level) ? 1f - FinalLevelCut : 1f);
+        return Mathf.Max(ShotAtomTuning.MinCooldown, ShotAtoms.Rapid(seconds) / (1f + DroneSquad.RateBonus(index)));
     }
 
     // Floatie #2's angle off straight up (degrees, + is to the left): `side01` < .5 left, otherwise right; `spread01` 0..1 picks the size.
@@ -82,11 +55,7 @@ public static class FloatieTuning
 
     public static string DockNote(int ship, int level)
     {
-        if (PremiumShips.IsPremium(ship))
-            return level >= ShipWeaponUpgrades.MaxLevel ? "+1 DRONE, -25% CD" : level >= 1 ? "+1 DRONE" : null;
-        if (level == 2) return "+1 FLOATIE";
-        if (level >= ShipWeaponUpgrades.MaxLevel) return "+SEEKER, -25% CD";
-        return null;
+        return level >= ShipWeaponUpgrades.MaxLevel ? "-25% DRONE CD" : null;
     }
 
     // The word the dock, the shop's offer and the Codex add to a step: what the floaties gain at that level (null: nothing).
@@ -94,14 +63,7 @@ public static class FloatieTuning
 
     public static string StepNote(int ship, int level)
     {
-        if (PremiumShips.IsPremium(ship))
-        {
-            int drones = CountAt(ship, level);
-            return level >= ShipWeaponUpgrades.MaxLevel ? "+1 DRONE (" + drones + "), -25% DRONE CD" : level >= 1 ? "+1 DRONE (" + drones + ")" : null;
-        }
-        if (level == 2) return "+1 FLOATIE";
-        if (level >= ShipWeaponUpgrades.MaxLevel) return "+1 SEEKER FLOATIE, -25% FLOATIE CD";
-        return null;
+        return level >= ShipWeaponUpgrades.MaxLevel ? "-25% DRONE COOLDOWN" : null;
     }
 }
 
@@ -193,6 +155,8 @@ public class FloatieBullet : MonoBehaviour
         public float speed, life;
         public ClearTarget ignore;   // a shard's parent: it starts inside it
         public int source;           // the floatie (0-based) that fired it: the battery's fair share counts bullets by it
+        public int tier;
+        public bool celebrated;
         public bool rapid;           // RAPID is active: a slightly longer tail
         public static Mods Plain { get { return new Mods { damage = 1f }; } }
     }
@@ -274,7 +238,7 @@ public class FloatieBullet : MonoBehaviour
         maxAge = mods.life > 0f ? mods.life : MaxAge;
         passedCount = 0;
         if (mods.ignore != null) passed[passedCount++] = mods.ignore;
-        float k = mods.shard ? ShardScale : 1f;
+        float k = (mods.shard ? ShardScale : 1f) * (1f + .1f * mods.tier) * (mods.celebrated ? 1.15f : 1f);
         // PIERCE draws a longer streak behind the head, RAPID a slightly longer tail; shards are small
         pierceStreak = mods.pierce > 0 ? 1.7f : mods.rapid ? 1.25f : 1f;
         transform.localScale = new Vector3(k, k * pierceStreak, 1f);
@@ -284,9 +248,9 @@ public class FloatieBullet : MonoBehaviour
         age = 0f;
         transform.position = new Vector3(at.x, at.y, 0f);
         Face();
-        if (body.sprite == null) body.sprite = BulletSprite();
+        body.sprite = GunBoltArt.For(mods.tier);
         // a little lifted toward white so the core reads on dark and light backdrops alike (the dark edge pixel carries the light ones)
-        float lift = mods.pierce > 0 ? .3f : .12f;
+        float lift = mods.celebrated ? .5f : mods.pierce > 0 ? .3f : .12f;
         body.color = new Color(Mathf.Lerp(tint.r, 1f, lift), Mathf.Lerp(tint.g, 1f, lift), Mathf.Lerp(tint.b, 1f, lift), Alpha);
         Active = true;
         Launched++;
@@ -388,8 +352,14 @@ public class FloatieBullet : MonoBehaviour
         Landed++;
         Vector3 impact = transform.position;
         bool nudge = hit.TryGetComponent(out EnemyHearts _);
-        bool dead = Damage(hit.gameObject, ship, mods.damage, impact);
-        FloatieFx.Spark(FloatieFx.Kind.Hit, impact, dir, body.color);
+        var struck = hit.gameObject;
+        int before = GunImpactFeedback.Quarters(struck);
+        bool dead = Damage(struck, ship, mods.damage, impact);
+        int after = GunImpactFeedback.Quarters(struck);
+        bool fullHeart = HeartDamage.WholeHearts(before) > HeartDamage.WholeHearts(after);
+        bool killed = before > 0 && after == 0;
+        FloatieFx.Spark(killed ? FloatieFx.Kind.Kill : fullHeart ? FloatieFx.Kind.HeartBreak : FloatieFx.Kind.Hit, impact, dir, body.color);
+        GunImpactFeedback.Hit(fullHeart, killed);
         // a normal enemy that took the hit and lives on is pushed a hair along the shot
         if (nudge && !dead && hit != null && hit.enabled) FloatieFx.Nudge(hit.transform, dir);
         if (mods.shard) return;
@@ -417,7 +387,7 @@ public class FloatieBullet : MonoBehaviour
             var b = FloatieBullets.Take(false);
             if (b == null) return;   // at the cap (shards leave the volleys' reserve alone): the rest are not fired
             Vector3 heading = Quaternion.Euler(0f, 0f, angles[i]) * dir;
-            var m = new Mods { damage = ShotAtomTuning.SplitDamage[level], shard = true, speed = ShotAtomTuning.ShardSpeed, life = ShotAtomTuning.ShardLife, ignore = parent, source = mods.source };
+            var m = new Mods { damage = ShotAtomTuning.SplitDamage[level], shard = true, speed = ShotAtomTuning.ShardSpeed, life = ShotAtomTuning.ShardLife, tier = mods.tier, ignore = parent, source = mods.source };
             b.Launch(owner, ship, at, heading, body.color, default(FloatieAim.Pick), m);
             ShardsLaunched++;
         }
@@ -452,7 +422,7 @@ public class FloatieBullet : MonoBehaviour
             }
             if (next == null) break;
             Vector3 to = next.transform.position;
-            VoltArcs.Begin(from, to, VoltArcs.LinkLife, ShotAtomTuning.ArcCore, ShotAtomTuning.ArcOuter, ShotAtomTuning.ArcStar);
+            VoltArcs.Begin(from, to, VoltArcs.LinkLife * 1.4f, ShotAtomTuning.ArcCore, ShotAtomTuning.ArcOuter, ShotAtomTuning.ArcStar);
             zapped[count++] = next;
             ArcZaps++;
             Damage(next.gameObject, ship, scale, from);
@@ -498,7 +468,7 @@ public static class FloatieBullets
     }
 
     // Bullets a split's shards may never use: a drone's volley always finds room for at least this many (the fair-share rule).
-    public const int VolleyReserve = 8;
+    public const int VolleyReserve = DroneSquad.MaxSlots * 2;
 
     // A free bullet, or null at the cap (ours, or the attack pool's shared projectile cap). `primary` is a drone's volley bullet; the
     // shards a split makes (primary false) stop VolleyReserve short of the cap so a busy field of shards never starves the guns.
@@ -506,7 +476,7 @@ public static class FloatieBullets
     {
         var parent = Root;
         Purge();
-        if (Active + AttackPool.ActiveProjectiles >= AttackPool.MaxProjectiles) return null;
+        if (Active + AttackPool.ActiveProjectiles >= AttackPool.MaxCombinedProjectiles) return null;
         if (!primary && Active >= FloatieTuning.PoolSize - VolleyReserve) return null;
         for (int i = 0; i < pool.Count; i++) if (!pool[i].Active) return pool[i];
         if (pool.Count >= FloatieTuning.PoolSize) return null;

@@ -12,6 +12,7 @@ public enum PickupKind
     Shield = 0, Pause = 1, Dust = 2, DustSmall = 3, Heal = 4, Cooldown = 5, Magnet = 6,
     // the permanent shot atoms (ShotAtoms.cs), in ShotAtom order
     ShotTwin = 7, ShotPierce = 8, ShotSplit = 9, ShotRicochet = 10, ShotArc = 11, ShotRapid = 12,
+    CoreStraight = 13, CoreAlternating = 14, CoreAimed = 15, DroneRecruit = 16,
 }
 
 public static class PickupArt
@@ -21,7 +22,9 @@ public static class PickupArt
     // The shot atoms' coins (shot_<atom>_idle_0..13, shot_<atom>_burst_0..5) live beside the pixel atoms, not in them: their art has
     // soft edges the pixel-atom palette check (ArtRestyleTest) would refuse.
     public const string ShotRoot = "Pickups/ShotAtoms/";
-    public static bool IsShot(PickupKind kind) { return kind >= PickupKind.ShotTwin; }
+    public static bool IsShot(PickupKind kind) { return kind >= PickupKind.ShotTwin && kind <= PickupKind.ShotRapid; }
+
+    public static bool IsDrone(PickupKind kind) => kind >= PickupKind.CoreStraight && kind <= PickupKind.DroneRecruit;
 
     // Star dust in the main game (the small Star Dust, smStar_1, and the
     // large Bright Star, LargeStar_1) is drawn this much bigger than its
@@ -105,11 +108,12 @@ public static class PickupArt
     // How long drawing `ticks` of `kind`'s idle loop is held.
     public static float HoldSeconds(PickupKind kind, int ticks)
     {
-        return IsShot(kind) ? ShotFrameSeconds * ticks : ticks * Tick;
+        return IsShot(kind) || IsDrone(kind) ? ShotFrameSeconds * ticks : ticks * Tick;
     }
 
     public static string IdleName(PickupKind kind)
     {
+        if (IsDrone(kind)) return "drone_" + ((int)kind - 12) + "_idle";
         ShotAtom shot;
         if (ShotAtoms.TryAtomOf(kind, out shot)) return "shot_" + ShotAtoms.Key(shot) + "_idle";
         switch (kind)
@@ -126,6 +130,7 @@ public static class PickupArt
 
     public static string BurstName(PickupKind kind)
     {
+        if (IsDrone(kind)) return "drone_" + ((int)kind - 12) + "_burst";
         ShotAtom shot;
         if (ShotAtoms.TryAtomOf(kind, out shot)) return "shot_" + ShotAtoms.Key(shot) + "_burst";
         switch (kind)
@@ -141,7 +146,7 @@ public static class PickupArt
 
     public static int[] IdleTicks(PickupKind kind)
     {
-        if (IsShot(kind)) return ShotIdleTicks;
+        if (IsShot(kind) || IsDrone(kind)) return ShotIdleTicks;
         switch (kind)
         {
             case PickupKind.Dust:
@@ -160,6 +165,12 @@ public static class PickupArt
         if (cache.TryGetValue(name, out frames) && frames != null && frames.Length == count && frames[0] != null)
             return frames;
         frames = new Sprite[count];
+        if (name.StartsWith("drone_", System.StringComparison.Ordinal))
+        {
+            int icon = name[6] - '0';
+            for (int i = 0; i < count; i++) frames[i] = DronePickupArt.Frame(icon, i);
+            cache[name] = frames; return frames;
+        }
         string root = name.StartsWith("shot_", System.StringComparison.Ordinal) ? ShotRoot : Root;
         for (int i = 0; i < count; i++) frames[i] = Resources.Load<Sprite>(root + name + "_" + i);
         cache[name] = frames;
@@ -169,6 +180,8 @@ public static class PickupArt
     // Which pickup a spawned object is, from its flipbook or its prefab name.
     public static bool TryKindOf(GameObject go, out PickupKind kind)
     {
+        if (go != null && go.TryGetComponent(out DroneCorePickup core)) { kind = (PickupKind)(12 + (int)core.mode); return true; }
+        if (go != null && go.TryGetComponent(out DroneRewardPickup _)) { kind = PickupKind.DroneRecruit; return true; }
         kind = PickupKind.Shield;
         if (go == null) return false;
         PickupFlipbook book;

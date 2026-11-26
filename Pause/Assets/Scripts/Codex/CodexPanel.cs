@@ -1500,7 +1500,7 @@ public class CodexPanel : MonoBehaviour
     }
 
     // The detail art never gives up more than this (units) for the lore.
-    public const float MinDetailArt = 140f;
+    public const float MinDetailArt = 112f;
 
     // Height the sub-tab row takes off the top of the detail (0 when it is not shown).
     float SubRowHeight { get { return subTabsShown ? SubTabHeight + SubTabGap : 0f; } }
@@ -1516,7 +1516,7 @@ public class CodexPanel : MonoBehaviour
         float start = art;
         SetTallySide(false, art);
         float loreTop = PlaceDetail(art);
-        while (art > minArt && !LoreFits(loreTop + d.height * .5f))
+        while (art > minArt && !LoreReadable(loreTop + d.height * .5f))
         {
             art = Mathf.Max(minArt, art - 16f);
             loreTop = PlaceDetail(art);

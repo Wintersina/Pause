@@ -42,9 +42,22 @@ public static class Toughness
         if (def.IsHazard) return;   // hazards (rocks, mines) die in one player hit
         if (go.GetComponent<EnemyHearts>() == null)
         {
-            go.AddComponent<EnemyHearts>().Init(HeartsPerEnemy);
+            int health = HeartsFor(def);
+            go.AddComponent<EnemyHearts>().Init(health);
+            EnemyArmour.Mark(go, health);
             if (go.TryGetComponent(out ChaserEnemy chaser)) chaser.RecacheBurrow();
         }
+    }
+
+    public static int HeartsFor(EnemyDef def)
+    {
+        var world = WorldManager.Instance;
+        if (def == null || world == null || !world.HasLevelClock || world.Stage != WorldManager.LevelStage.Level ||
+            world.Progress01 < .45f || startMenu.youAreInTutorial) return HeartsPerEnemy;
+        bool loop = RunLoop.Index > 0;
+        if ((WorldManager.CurrentIndex >= 3 || loop) && def.tier >= 4) return 4;
+        if ((WorldManager.CurrentIndex >= 1 || loop) && def.tier >= 3) return 3;
+        return HeartsPerEnemy;
     }
 
     // The attacker's place for "away from the hit": ShipAttackHits.HitFrom if the caller set it, else the player's ship, else straight below.

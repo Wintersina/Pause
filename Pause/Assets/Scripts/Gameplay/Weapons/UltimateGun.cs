@@ -259,6 +259,16 @@ public class UltimateGun : MonoBehaviour
     public bool NozzleShown => nozzleRenderer != null && nozzleRenderer.enabled;
     public SpriteRenderer NozzleRenderer => nozzleRenderer;
     public SpriteRenderer BarrelRenderer => barrelRenderer;
+    float droneAim;
+    public Color DroneTint { get; set; } = Color.white;
+    public Vector3 DroneMuzzle => barrelRenderer != null && barrelRenderer.sprite != null
+        ? barrelRenderer.transform.TransformPoint(new Vector3(barrelRenderer.sprite.bounds.center.x, barrelRenderer.sprite.bounds.max.y, 0f))
+        : transform.position;
+    public void AimDrone(float angle)
+    {
+        droneAim = angle;
+        if (!Busy && barrel != null) barrel.localRotation = Quaternion.Euler(0f, 0f, barrelAngle + droneAim);
+    }
     public float Lean => barrelAngle;
     public float Shake => shake;
     public Vector3 Station => stationNow;
@@ -323,9 +333,9 @@ public class UltimateGun : MonoBehaviour
             blink = u < .8f && Mathf.FloorToInt(u * 10f) % 2 == 0;
         }
         if (busy) barrelAngle = 0f;
-        float angle = barrelAngle + shake;
+        float angle = barrelAngle + shake + (busy ? 0f : droneAim);
         if (barrel != null) barrel.localRotation = angle != 0f ? Quaternion.Euler(0f, 0f, angle) : Quaternion.identity;
-        if (barrelRenderer != null) barrelRenderer.color = blink ? Alarm : Color.white;
+        if (barrelRenderer != null) barrelRenderer.color = blink ? Alarm : busy || duty > .01f ? Color.white : DroneTint;
 
         if (nozzleRenderer != null)
         {
