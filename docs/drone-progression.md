@@ -10,8 +10,12 @@ Each boss drops one recruit. It joins with the preferred mode and half the squad
 
 Upgrades highlight their recipient, reset its firing timer, show the actual before/after benefit, and emphasize its next three volleys. Four projectile silhouettes mark accumulated modifier milestones (4, 12, 25 levels), alongside recoil, dual TWIN muzzle flashes and stronger hit/heart-break/kill bursts. Quarter-heart damage uses the same direct math for ordinary enemies, elites and bosses; enemies have no weapon-hit cooldown.
 
-The HUD shows the selected drone's modifier row and a compact mode pip per slot. Nearby pickups select their recipient. Extra wings fold inside camera edges. Projectile pools reserve 128 drone bullets plus 40 ultimate projectiles; twelve-drone stress checks cover firing, reuse and corner visibility.
+The HUD shows the selected drone's modifier row and a compact mode pip per slot. Nearby pickups select their recipient. Extra wings hover closer with a smaller drift range and fold inside camera edges. Heart turn-backs use a staggered cadence, retaining an owed turn until a safe gap is available. Projectile pools reserve 128 drone bullets plus 40 ultimate projectiles; twelve-drone stress checks cover firing, reuse and corner visibility.
 
 Basic enemies retain two hearts. After 45% of the flight, authored tier-three hulls can gain three hearts from Frost onward; tier-four hulls can gain four in Ember. Loops unlock those tiers across worlds. Gold/blue plates distinguish these enemies. Scout wings expand from two to three/four members at four/eight active drones, subject to density and pilot caps. Health does not increase on individual coin pickups.
 
 Review: `DroneSquadReview.Export` renders dormant/active/mode-choice/recruit/twelve-drone frames on a 480×854 phone and a Flip cover. `HeartQuarterPreview.ExportCombat` renders real quarter-heart hits and killing hits. Automated fixtures supplement these exports; they do not replace human playtesting.
+
+Spending a pause opens five seconds of double enemy/elite kill points, including the arrival kill. The flight clock holds that window while paused; another pause refreshes it without stacking above ×2. Pickups, passive flight points, boss bonuses and escape penalties keep their normal values. Cooldown-only blinks with no pauses do not grant the bonus.
+
+Fusion notices use the actual contributing atom icons with a small combo name below (for example OVERCLOCK), replacing the large recipe/discovery text. Re-triggering replaces the same compact notice; it freezes with the world and clears on death.

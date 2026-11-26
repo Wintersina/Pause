@@ -21,6 +21,14 @@ public static class HeartsPlacementTest
         if (!ok) fails++;
     }
 
+    public static void RunFlourishes()
+    {
+        fails = 0;
+        using var sandbox = new TestHarness.Sandbox();
+        FlourishesHappen();
+        TestHarness.Exit(fails);
+    }
+
     public static void Run()
     {
         TestHarness.Exit(Execute());

@@ -219,6 +219,11 @@ public class movePlayer : MonoBehaviour
                 returning = true;
                 MarkTeleport();
                 AtomHoming.OnTeleport();   // homing atoms locked on the old spot miss
+                // Arm before arrival damage, regardless of whether score.Update has spent
+                // this press's pause yet. Cooldown-only jumps with no pauses earn no window.
+                bool pauseAvailable = (score.pauseCounter > 0 || AtomFusions.StasisFreeLeft > 0) &&
+                    !BossEncounter.FreePress && !Planetfall.FreePress && !Liftoff.FreePress && !PortalArrival.FreePress;
+                if (pauseAvailable || RunScore.PauseUsedThisFrame) RunScore.OnPauseUsed();
                 TeleportFx.Play(before, land);
                 // scored by the jump to the perch, as before the slide-back
                 RunScore.OnTeleport(before, rest);

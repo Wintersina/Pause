@@ -6,12 +6,12 @@ using UnityEngine;
 // outer columns; DroneFormation folds them inside the view near screen edges.
 public class FloatieCompanion : MonoBehaviour
 {
-    public const float SideReach = 4.2f;     // leave the hearts' orbit clear inside the extra wings
+    public const float SideReach = 3.2f;     // leave the hearts' orbit clear inside the extra wings
     public const float SlotOneRise = .85f;    // x the hull's half height, above the middle
     public const float SlotTwoDrop = 1f;      // x the hull's half height, below the middle
-    public const float OuterReach = 5.1f;     // recruits sit outside the opening wings
+    public const float OuterReach = 4.4f;     // recruits sit outside the opening wings
     public const float OuterDrop = .35f, OuterRise = .2f;   // x the hull's half height
-    public const float HoverShare = .6f;      // of the main floatie's hover drift: they keep to their own corner
+    public const float HoverShare = .15f;      // of the main floatie's hover drift: they keep to their own corner
 
     public const float TurnDegreesPerSecond = 420f;   // how fast it swings to face its aim
     int ship, slot;

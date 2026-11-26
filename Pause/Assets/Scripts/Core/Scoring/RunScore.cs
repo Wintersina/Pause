@@ -73,6 +73,20 @@ public static class RunScore
     static Breakdown parts;
     static int chain;
     static float chainLeft;
+    // Only enemy/elite kill points are doubled, after the existing multipliers.
+    // This uses Tick's flight clock, so holding a pause does not waste the window.
+    public const float PauseBonusSeconds = 5f;
+    static float pauseBonusLeft;
+    static int pauseUsedFrame = -1;
+    public static float PauseBonusLeft => Live ? pauseBonusLeft : 0f;
+    public static int PauseKillMultiplier => PauseBonusLeft > 0f ? 2 : 1;
+    public static bool PauseUsedThisFrame => Live && pauseUsedFrame == Time.frameCount;
+    public static void OnPauseUsed()
+    {
+        if (!Live) return;
+        pauseBonusLeft = PauseBonusSeconds;
+        pauseUsedFrame = Time.frameCount;
+    }
     static int teleportsThisWorld;
     static int shieldedShotsThisShield;
 
@@ -152,6 +166,7 @@ public static class RunScore
         parts = new Breakdown();
         chain = 0;
         chainLeft = 0f;
+        pauseBonusLeft = 0f; pauseUsedFrame = -1;
         teleportsThisWorld = 0;
         shieldedShotsThisShield = 0;
         ScoreMultiplier.Reset();
@@ -211,6 +226,7 @@ public static class RunScore
         // The max-speed streak runs on every live running frame, even while a
         // waiting portal has closed earnings (the pilot is still flying).
         ScoreMultiplier.Tick(dt, speed);
+        pauseBonusLeft = Mathf.Max(0f, pauseBonusLeft - dt);
         if (Earning)
         {
             float m = ScoreRules.SpeedMultiplierFor(speed);
@@ -251,8 +267,8 @@ public static class RunScore
         AchievementTracker.OnChain(chain);
         float m = ScoreRules.Combined(ScoreRules.MultiplierFor(chain),
                                       ScoreRules.SpeedMultiplierFor(moveBackGround.speed));
-        NoteMultiplier(m);
-        int points = ScoreMultiplier.Gain(Mathf.RoundToInt(basePoints * m * LoopRules.ScoreScale(RunLoop.Index)));
+        NoteMultiplier(m * PauseKillMultiplier);
+        int points = ScoreMultiplier.Gain(Mathf.RoundToInt(basePoints * m * LoopRules.ScoreScale(RunLoop.Index))) * PauseKillMultiplier;
         parts.kills += points;
         parts.killCount++;
         Raise(points, target.transform.position, Source.Kill);
@@ -272,7 +288,7 @@ public static class RunScore
     {
         LastEliteMultiplier = 1;
         if (!Earning || points <= 0) return 0;
-        int m = chained ? ScoreRules.EliteMultiplier(Chain) : 1;
+        int m = (chained ? ScoreRules.EliteMultiplier(Chain) : 1) * PauseKillMultiplier;
         LastEliteMultiplier = m;
         if (m > 1) NoteMultiplier(m);
         points = ScoreMultiplier.Gain(points * m);
@@ -282,7 +298,7 @@ public static class RunScore
         return points;
     }
 
-    // The chain multiplier the last elite reward was paid at (the ELITE DOWN popup's "x2").
+    // The chain and pause multiplier on the last elite reward (the ELITE DOWN popup's xN).
     public static int LastEliteMultiplier { get; private set; } = 1;
 
     // An elite got away (EliteShip.Escaped): the pilot LOSES `points` (half of

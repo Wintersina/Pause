@@ -122,6 +122,7 @@ public abstract class HeartOrbit : MonoBehaviour
     float[] tiltOwn;     // its own tilt offset (degrees)
     float[] rollOwn;     // its own heading offset (degrees)
     float[] loopT;       // seconds into a loop-de-loop (-1: none)
+    float[] turnCredit; // staggered fair cadence, independent of when a drone lets a flourish start
     float[] flourishIn;  // seconds to its next flourish
     float[] popLeft;
     float[] depth;       // -1 back .. 1 front
@@ -357,6 +358,7 @@ public abstract class HeartOrbit : MonoBehaviour
         rollOwn = new float[count];
         loopT = new float[count];
         flourishIn = new float[count];
+        turnCredit = new float[count];
         popLeft = new float[count];
         depth = new float[count];
         ghostAmt = new float[count];
@@ -394,6 +396,7 @@ public abstract class HeartOrbit : MonoBehaviour
             float way = orbit.alternate && i % 2 == 1 ? -1f : 1f;
             dir[i] = dirTarget[i] = way;
             loopT[i] = -1f;
+            turnCredit[i] = (i + .5f) / count;
             flourishIn[i] = orbit.flourishEvery > 0f ? orbit.flourishEvery * (.4f + 1.2f * Hash01(key + i * 17 + 9)) : -1f;
             shrink[i] = 1f;
             slotOf[i] = i;
@@ -923,7 +926,7 @@ public abstract class HeartOrbit : MonoBehaviour
     void Swap(int a, int b)
     {
         Sw(hearts, a, b); Sw(renderers, a, b); Sw(theta, a, b); Sw(dir, a, b); Sw(dirTarget, a, b);
-        Sw(rollBase, a, b); Sw(tiltOwn, a, b); Sw(rollOwn, a, b); Sw(loopT, a, b); Sw(flourishIn, a, b);
+        Sw(rollBase, a, b); Sw(tiltOwn, a, b); Sw(rollOwn, a, b); Sw(loopT, a, b); Sw(flourishIn, a, b); Sw(turnCredit, a, b);
         Sw(popLeft, a, b); Sw(depth, a, b); Sw(ghostAmt, a, b); Sw(ghostNow, a, b); Sw(shrink, a, b); Sw(lean, a, b); Sw(push, a, b);
         Sw(pos, a, b); Sw(tangent, a, b);
         if (outlines != null) Sw(outlines, a, b);
@@ -1186,7 +1189,12 @@ public abstract class HeartOrbit : MonoBehaviour
                     int key = i * 101 + Mathf.FloorToInt((clock + seed) * 7f);
                     // a turn-back stalls a moment: only where it can't drift onto the gun
                     bool away = !hasGun || GunGapAny(at, gunBox) > heartSize * 1.2f;
-                    if (Hash01(key) < orbit.turnBackChance && away) { dirTarget[i] = -dirTarget[i]; TurnBacks++; }
+                    // Don't let changes in drone clearance repeatedly sample the same
+                    // unlucky clock phases. Accumulate the style's turn share, retaining
+                    // an owed turn until a safe spot is available.
+                    turnCredit[i] = Mathf.Min(1f, turnCredit[i] + orbit.turnBackChance);
+                    if (orbit.turnBackChance > 0f && turnCredit[i] >= 1f && away)
+                    { dirTarget[i] = -dirTarget[i]; turnCredit[i] -= 1f; TurnBacks++; }
                     else { loopT[i] = 0f; Loops++; }
                     flourishIn[i] = orbit.flourishEvery * (.6f + .8f * Hash01(key + 3));
                 }
