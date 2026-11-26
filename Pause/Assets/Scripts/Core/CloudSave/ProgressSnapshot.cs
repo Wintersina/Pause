@@ -47,6 +47,10 @@ public class ProgressSnapshot
     public float highestSpeed;
     // Best run score (RunScore). Older saves lack it (= 0); merged as max.
     public int bestScore;
+    // Additive format markers: preserve modern score saves across reinstalls/cloud restores.
+    // Absent in legacy snapshots; independent of the app version and general save schema.
+    public int scoreSystemVersion;
+    public int leaderboardSeason;
     public int currentWorld;
     public int highestWorld;
     // The player's START WORLD choice (PlayerStartWorld), stored as world + 1
@@ -154,6 +158,8 @@ public class ProgressSnapshot
         s.highestSpeed = PlayerPrefs.GetFloat(HighestSpeedKey, 0f);
         // Never written by a developer run, so it is always the real best.
         s.bestScore = PlayerPrefs.GetInt(BestScoreKey, 0);
+        s.scoreSystemVersion = NewBestReset.UsesCurrentScoreSystem ? NewBestReset.CurrentScoreSystem : 0;
+        s.leaderboardSeason = PlayerPrefs.GetInt(LeaderboardService.SeasonKey, 0);
         s.spawnShip = PlayerPrefs.GetInt(SpawnShipKey, 0);
         s.currentWorld = RealInt(CurrentWorldKey);
         s.highestWorld = RealInt(HighestWorldKey);
@@ -224,6 +230,10 @@ public class ProgressSnapshot
         PlayerPrefs.SetFloat(CurrencyKey, currency);
         PlayerPrefs.SetFloat(HighestSpeedKey, highestSpeed);
         SetOrDelete(BestScoreKey, bestScore);
+        if (scoreSystemVersion >= NewBestReset.CurrentScoreSystem)
+            PlayerPrefs.SetInt(NewBestReset.FlagKey, scoreSystemVersion);
+        if (leaderboardSeason > PlayerPrefs.GetInt(LeaderboardService.SeasonKey, 0))
+            PlayerPrefs.SetInt(LeaderboardService.SeasonKey, leaderboardSeason);
         SetOrDelete(SpawnShipKey, spawnShip);
         WriteRealInt(CurrentWorldKey, currentWorld, currentWorld != 0);
         WriteRealInt(HighestWorldKey, highestWorld, highestWorld != 0);

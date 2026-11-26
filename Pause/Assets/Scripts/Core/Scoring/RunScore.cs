@@ -206,6 +206,7 @@ public static class RunScore
         long total = Total;
         if (total <= SavedBest) return;
         PlayerPrefs.SetInt(BestScoreKey, (int)Math.Min(total, int.MaxValue));
+        PlayerPrefs.SetInt(NewBestReset.FlagKey, NewBestReset.CurrentScoreSystem);
         if (flush) PrefsSaver.SaveNow();
         else PrefsSaver.MarkDirty();
     }

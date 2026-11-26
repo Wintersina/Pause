@@ -89,7 +89,11 @@ public static class ProgressMerge
             startWorld = newer.startWorld,
             boughtShips = new List<int>(ships).ToArray(),
             highestSpeed = Math.Max(local.highestSpeed, cloud.highestSpeed),
-            bestScore = Math.Max(local.bestScore, cloud.bestScore),
+            // A legacy score cannot resurrect a record reset for the new scoring system.
+            bestScore = local.scoreSystemVersion == cloud.scoreSystemVersion ? Math.Max(local.bestScore, cloud.bestScore)
+                : local.scoreSystemVersion > cloud.scoreSystemVersion ? local.bestScore : cloud.bestScore,
+            scoreSystemVersion = Math.Max(local.scoreSystemVersion, cloud.scoreSystemVersion),
+            leaderboardSeason = Math.Max(local.leaderboardSeason, cloud.leaderboardSeason),
             highestWorld = highestWorld,
             hasDoneTut = local.hasDoneTut || cloud.hasDoneTut,
             counters = mergedCounters.ToArray(),
