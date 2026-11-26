@@ -271,6 +271,7 @@ public static class AllTests
         ("RedAtomFreeShotTest", RedAtomFreeShotTest.Execute),
         ("ReleaseReadinessTest", ReleaseReadinessTest.Execute),
         ("ReplayTest", ReplayTest.Execute),
+        ("RenderCostTest", RenderCostTest.Execute),
         ("ResumeFxTest", ResumeFxTest.Execute),
         ("ResumeSlowMoTest", ResumeSlowMoTest.Execute),
         ("RosterCleanupTest", RosterCleanupTest.Execute),
