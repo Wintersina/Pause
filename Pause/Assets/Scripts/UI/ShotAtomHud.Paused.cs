@@ -51,7 +51,7 @@ public partial class ShotAtomHud
         {
             var row = new GameObject("Drone" + (drone + 1), typeof(RectTransform), typeof(CanvasGroup), typeof(Image));
             row.transform.SetParent(pausedRoot, false);
-            var background = row.GetComponent<Image>(); background.color = new Color(.015f, .025f, .05f, .78f); background.raycastTarget = false;
+            var background = row.GetComponent<Image>(); background.color = new Color(.015f, .025f, .05f, .12f); background.raycastTarget = false;
             pausedRows[drone] = row.GetComponent<CanvasGroup>(); pausedRows[drone].blocksRaycasts = false;
             var rowRect = (RectTransform)row.transform; rowRect.anchorMin = rowRect.anchorMax = rowRect.pivot = Vector2.zero;
             for (int col = 0; col < Columns; col++)
