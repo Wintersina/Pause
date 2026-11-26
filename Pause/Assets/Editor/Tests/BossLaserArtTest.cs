@@ -36,7 +36,7 @@ public static class BossLaserArtTest
     static readonly Kit[] Kits =
     {
         new Kit { world = 0, name = "Space",   attack = "pod lasers",   tell = .95f, hold = .9f, width = .32f, parts = 2 },
-        new Kit { world = 1, name = "Frost",   attack = "glare beams",  tell = .8f,  hold = .6f, width = .26f, parts = 2 },
+        new Kit { world = 1, name = "Frost",   attack = "glare beams",  tell = .8f,  hold = .5f, width = .22f, parts = 2 },
         new Kit { world = 2, name = "Verdant", attack = "acid cannons", tell = 1f,   hold = .8f, width = .3f,  parts = 2 },
         new Kit { world = 3, name = "Ember",   attack = "jaw flamethrower",   tell = .8f,  hold = .8f, width = .34f, parts = 1 },
         new Kit { world = 4, name = "Tide",    attack = "beak jet",     tell = .9f,  hold = .8f, width = .34f, parts = 1 },
@@ -258,7 +258,7 @@ public static class BossLaserArtTest
         Check("no wrapper glow / border along a painted beam (the sheath is off)", !b.Sheath.enabled);
         var seen = new System.Collections.Generic.HashSet<Sprite>();
         var muz = new System.Collections.Generic.HashSet<Sprite>();
-        for (int i = 0; i < 22 && b.Live; i++) { b.Step(Dt); seen.Add(beam.sprite); if (flash.enabled) muz.Add(flash.sprite); }   // (inside the shortest hold, Frost's .6 s)
+        for (int i = 0; i < 22 && b.Live; i++) { b.Step(Dt); seen.Add(beam.sprite); if (flash.enabled) muz.Add(flash.sprite); }   // (inside the shortest hold, Frost's .5 s)
         Check("the body animates through its 4 frames and the muzzle through its 4 (" + seen.Count + ", " + muz.Count + ")",
               seen.Count == 4 && muz.Count == 4 && muz.SetEquals(art.muzzle));
         bool onRail = b.EndsOnRail && b.Length >= b.Reach - 1e-3f;
