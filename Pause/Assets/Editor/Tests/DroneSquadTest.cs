@@ -184,6 +184,16 @@ public static class DroneSquadTest
         Check("early enemies keep two hearts even when the player is strong", Toughness.HeartsFor(tier3) == 2 && Toughness.HeartsFor(tier4) == 2);
         typeof(WorldManager).GetField("distanceLeft", flags).SetValue(manager, manager.WorldDistance * .4f);
         Check("later authored tiers introduce three-heart veterans and four-heart armour", Toughness.HeartsFor(tier3) == 3 && Toughness.HeartsFor(tier4) == 4);
+        WorldManager.CurrentIndex = 0;
+        typeof(WorldManager).GetField("distanceLeft", flags).SetValue(manager, manager.WorldDistance * .75f);
+        PowerCreep.PowerOverride = 0;
+        Check("unupgraded opening ships keep ordinary two-heart enemies", Toughness.HeartsFor(tier3) == 2 && Toughness.HeartsFor(tier4) == 2);
+        PowerCreep.PowerOverride = 12;
+        Check("earned drone power brings veterans into the first world after its opening", Toughness.HeartsFor(tier3) == 3 && Toughness.HeartsFor(tier4) == 3);
+        PowerCreep.PowerOverride = 24;
+        Check("strong drone builds meet four-heart armoured hulls", Toughness.HeartsFor(tier4) == 4);
+        PowerCreep.PowerOverride = -1;
+        WorldManager.CurrentIndex = 3;
         var enemy = EnemyFactory.Create(tier4, Vector3.zero, Quaternion.identity, 1f, true);
         Check("extra health has a visible armoured-hull marker", enemy.GetComponent<EnemyHearts>().Max == 4 && enemy.transform.Find("ArmouredPlates") != null);
     }

@@ -125,8 +125,8 @@ public sealed class BossMusicDirector
         if (!ReferenceEquals(source, music))
         {
             source = music;
-            // the initial musical warning: two beats of calm after the song is first heard, or (the last bosses, hard from
-            // the first bar) only the one-beat tell: the first wave leaves on the first beat at least TellBeats away
+            // Beat-synced rows leave on the first beat at least TellBeats away.
+            // The comparison mode retains the old two-beat opening.
             startBeat = BossDifficulty.SyncFromStart(world) ? Math.Ceiling(now + TellBeats - 1e-6) : Math.Ceiling(now) + 2;
             lastTick = (long)Math.Floor(now * 4);
             pendingAccent = double.NaN;
@@ -254,6 +254,9 @@ public sealed class BossMusicDirector
         long from = Preparing ? (long)Math.Ceiling(startBeat * 4 - 1e-8) : tick + 1;
         for (long t = from; t < from + WaveRhythm.TicksPerBar; t++)
         {
+            // A newly unlocked syncopation can sit one sixteenth after the last wave.
+            // The firing guard will suppress that overlap; do not promise it in a tell.
+            if (!Preparing && (t * .25 - lastWaveBeat) * music.SecondsPerBeat < MinWaveSpacing + .02f) continue;
             if (HeldAt(t * .25)) break;   // a special's hold: no wave is coming (so none is told)
             int bar = (int)(((t - 4L * music.DownbeatBeat) % WaveRhythm.TicksPerBar + WaveRhythm.TicksPerBar) % WaveRhythm.TicksPerBar);
             if (!(Preparing && t == from) && ((mask >> bar) & 1) == 0) continue;

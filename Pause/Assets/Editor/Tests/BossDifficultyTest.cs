@@ -5,8 +5,8 @@ using UnityEngine;
 //
 //   1 table      seven rows in world order; every knob non-decreasing in difficulty from boss 1 to boss 7 (ramp seconds
 //                non-increasing, the start level, floor, wave speed and beat-sync non-decreasing);
-//                boss 1 is today's fight (the song alone: Shape is the identity, speed x1, the old start);
-//                the last two have no ramp and sync from the start; every floor stays under the gap-telegraph line (.75)
+//                boss 1 has an eight-second ramp and an opening floor, even when its song is quiet;
+//                every boss syncs from the start and the last two have no ramp; every floor stays under the gap-telegraph line (.75)
 //   2 ramp       the ramp level at the fight's first frame is under 1 for bosses 1..5 and rises smoothly (no step over
 //                a quarter second bigger than .08) to 1 at rampSeconds; it is 1 from the first frame for the last two
 //   3 shape      the shaped intensity stays in 0..1, never exceeds the ramp level, never drops under the floor's share
@@ -76,21 +76,15 @@ public static class BossDifficultyTest
         for (int w = 5; w < 7; w++) last &= rows[w].rampSeconds == 0f && rows[w].startIntensity == 1f && rows[w].beatSyncFromStart && !rows[w].songRamp;
         Check("the last two bosses (" + rows[5].boss + ", " + rows[6].boss + "): no ramp, full from the start, on the beat from the first wave", last);
         bool middle = true;
-        for (int w = 1; w < 5; w++) middle &= !rows[w].songRamp && rows[w].rampSeconds > 0f && rows[w].startIntensity < 1f && !rows[w].beatSyncFromStart && rows[w].intensityFloor > 0f;
+        for (int w = 1; w < 5; w++) middle &= !rows[w].songRamp && rows[w].rampSeconds > 0f && rows[w].startIntensity < 1f && rows[w].beatSyncFromStart && rows[w].intensityFloor > 0f;
         Check("bosses 2..5 have an imposed, shortening ramp and a floor", middle);
         bool telegraph = true;
         foreach (var r in rows) telegraph &= r.intensityFloor < .75f && r.intensityFloor >= 0f && r.startIntensity >= 0f && r.startIntensity <= 1f;
         Check("every floor stays under .75: a floor-driven wave always shows its gap telegraph", telegraph);
-        // boss 1 is today's fight
         var a = rows[0];
-        bool identity = true;
-        for (float t = 0f; t <= 130f; t += 2.5f)
-            for (float raw = 0f; raw <= 1.001f; raw += .05f) identity &= BossDifficulty.Shape(0, raw, t) == raw;
-        Check("boss 1 (" + a.boss + ") is unchanged: the song alone (Shape is the identity), speed x1, the old start",
-              a.songRamp && identity && BossDifficulty.ShotSpeed(0) == 1f && !BossDifficulty.SyncFromStart(0));
-        bool onlyFirst = true;
-        for (int w = 1; w < 7; w++) onlyFirst &= !rows[w].songRamp;
-        Check("only boss 1 keeps the song's own ramp", onlyFirst);
+        Check("first boss ramps in eight seconds, with two waves per bar even in a silent intro",
+              !a.songRamp && a.rampSeconds <= 8f && BossDifficulty.Shape(0, 0f, 0f) >= .25f &&
+              BossDifficulty.Shape(0, 0f, 8f) >= .45f && BossDifficulty.SyncFromStart(0));
     }
 
     static string Join(Func<BossDifficultyRow, float> f)
@@ -125,7 +119,7 @@ public static class BossDifficultyTest
     // ---- 3 the shaped intensity
     static void Shape()
     {
-        for (int w = 1; w < 7; w++)
+        for (int w = 0; w < 7; w++)
         {
             var r = BossDifficulty.For(w);
             bool bounded = true, capped = true, floored = true, rising = true;
@@ -259,20 +253,16 @@ public static class BossDifficultyTest
         Check(Names[w] + ": every wave of the first ten seconds on a sixteenth, within a frame of it (late " + (neu.maxLate * 1000).ToString("0") + " ms)",
               neu.offGrid == 0 && neu.maxLate <= 1.0 / 60 + .001);
         Check(Names[w] + ": old start: two beats of calm before the first wave (" + (old.startBeat - old.startNow).ToString("0.00") + ")", old.startBeat - old.startNow >= 2 - 1e-6);
-        if (w == 0)
-        {
-            Check("Space: the first ten seconds are exactly today's (" + old.waves + " waves, hash " + (old.hash == neu.hash) + ")",
-                  old.waves == neu.waves && old.hash == neu.hash && old.startBeat == neu.startBeat);
-            return;
-        }
         Check(Names[w] + ": no wave under the floor's share of the ramp level", neu.lowIntensity == 0);
+        double expected = Math.Ceiling(neu.startNow + BossMusicDirector.TellBeats - 1e-6);
+        Check(Names[w] + ": first told wave starts on the next eligible beat", neu.startBeat == expected && neu.firstBeat == expected);
         if (w < 5)
         {
-            Check(Names[w] + ": the opening is capped by its ramp (intensity never over the level, worst " + neu.maxOverLevel.ToString("0.000") + "), the old two-beat start kept",
-                  neu.maxOverLevel <= 1e-4f && neu.startBeat - neu.startNow >= 2 - 1e-6);
+            Check(Names[w] + ": opening follows its short ramp and fires sooner than the old start",
+                  neu.maxOverLevel <= 1e-4f && neu.firstGame <= old.firstGame + 1e-4f);
+            if (w == 0) Check("Space: quiet opening now fires more waves than its raw song", neu.waves > old.waves && neu.minIntensity >= .25f);
             return;
         }
-        double expected = Math.Ceiling(neu.startNow + BossMusicDirector.TellBeats - 1e-6);
         Check(Names[w] + ": the director starts on the first beat that leaves its one-beat tell (" + neu.startBeat + " = " + expected + ", " + (neu.startBeat - neu.startNow).ToString("0.00") + " beats in)",
               neu.startBeat == expected && neu.startBeat - neu.startNow >= BossMusicDirector.TellBeats - 1e-6 && neu.startBeat - neu.startNow < BossMusicDirector.TellBeats + 1);
         Check(Names[w] + ": the first wave leaves ON that beat (" + neu.firstBeat + ") at full intensity (" + neu.firstIntensity.ToString("0.00") + " >= floor " + row.intensityFloor + ")",

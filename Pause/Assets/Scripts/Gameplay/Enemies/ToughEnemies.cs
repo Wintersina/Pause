@@ -49,14 +49,16 @@ public static class Toughness
         }
     }
 
+    // Preserve the opening fifth. Later, authored veterans/armour respond to world or earned drone power.
+    // Snapshot only on spawn: collecting an upgrade never heals an enemy already being attacked.
     public static int HeartsFor(EnemyDef def)
     {
         var world = WorldManager.Instance;
         if (def == null || world == null || !world.HasLevelClock || world.Stage != WorldManager.LevelStage.Level ||
-            world.Progress01 < .45f || startMenu.youAreInTutorial) return HeartsPerEnemy;
+            world.Progress01 < .20f || startMenu.youAreInTutorial) return HeartsPerEnemy;
         bool loop = RunLoop.Index > 0;
-        if ((WorldManager.CurrentIndex >= 3 || loop) && def.tier >= 4) return 4;
-        if ((WorldManager.CurrentIndex >= 1 || loop) && def.tier >= 3) return 3;
+        if ((WorldManager.CurrentIndex >= 3 || loop || PowerCreep.PowerLevel >= 24) && def.tier >= 4) return 4;
+        if ((WorldManager.CurrentIndex >= 1 || loop || PowerCreep.PowerLevel >= 12) && def.tier >= 3) return 3;
         return HeartsPerEnemy;
     }
 

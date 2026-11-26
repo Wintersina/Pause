@@ -18,9 +18,9 @@ using UnityEngine;
 // rhythm mask -- never moves inside a bar and every told wave fires.)
 // so during the ramp the song is capped at `level` (a readable opening, however hot the song starts) and lifted to
 // the floor's share of it; once the ramp is over the song plays in full on top of the floor. A boss with
-// `songRamp` keeps the song's raw intensity untouched (boss 1: exactly today's fight).
+// `songRamp` keeps the song's raw intensity untouched (comparison/testing only).
 //
-//   songRamp          true: no imposed shape, the song's own arrangement is the ramp (only boss 1). Its rampSeconds and
+//   songRamp          true: no imposed shape, the song's own arrangement is the ramp (comparison/testing). Its rampSeconds and
 //                     startIntensity then DESCRIBE that ramp (measured on its song) and are not applied.
 //   rampSeconds       how long the ramp-up lasts (game seconds after the entrance); 0 = none, full from the first wave
 //   startIntensity    the ramp's ceiling at the fight's first frame (0..1); 1 = no ramp
@@ -55,23 +55,13 @@ public static class BossDifficulty
     // index = world (WorldManager.Worlds): Space, Frost, Verdant, Ember, Tide, Storm, Desert
     public static readonly BossDifficultyRow[] Rows =
     {
-        // 1 Void Archon: the easiest, unchanged. Its song's sparse intro is the ramp: one or two waves a bar for ~40 s
-        //   (mean intensity .17 over the first 10 s), the drop ~40 s in; no floor, no imposed cap.
-        new BossDifficultyRow { boss = "Void Archon", songRamp = true, rampSeconds = 40f, startIntensity = .17f },
-        // 2 Hoarfrost Leviathan: a 20 s ramp from .45, then never below two waves a bar.
-        new BossDifficultyRow { boss = "Hoarfrost Leviathan", rampSeconds = 20f, startIntensity = .45f, intensityFloor = .30f },
-        // 3 Bloom Queen: its song opens hot (intensity ~.9: six waves a bar in its peaks from the first second): the 14 s
-        //   ramp caps that opening at .55 (a wave a beat in its builds, never the doubled six) and lets the song in by
-        //   14 s; the floor holds it busy in the breaks.
-        new BossDifficultyRow { boss = "Bloom Queen", rampSeconds = 14f, startIntensity = .55f, intensityFloor = .40f, shotSpeedScale = 1.02f },
-        // 4 Cinder Drake: 9 s ramp from .65 (a wave on every beat by ~3 s), three waves a bar at the least; bombs early.
-        new BossDifficultyRow { boss = "Cinder Drake", rampSeconds = 9f, startIntensity = .65f, intensityFloor = .50f, shotSpeedScale = 1.04f },
-        // 5 Iron Kraken: a 5 s breath from .8, then three waves a bar at the least, the tighter gaps.
-        new BossDifficultyRow { boss = "Iron Kraken", rampSeconds = 5f, startIntensity = .80f, intensityFloor = .58f, shotSpeedScale = 1.06f },
-        // 6 Tempest Engine: no ramp. A wave on every beat from the first one, on the beat.
+        // Short, beat-aligned openings keep quiet song intros from stalling combat.
+        new BossDifficultyRow { boss = "Void Archon", rampSeconds = 8f, startIntensity = .60f, intensityFloor = .45f, beatSyncFromStart = true },
+        new BossDifficultyRow { boss = "Hoarfrost Leviathan", rampSeconds = 7f, startIntensity = .60f, intensityFloor = .45f, beatSyncFromStart = true },
+        new BossDifficultyRow { boss = "Bloom Queen", rampSeconds = 6f, startIntensity = .60f, intensityFloor = .45f, shotSpeedScale = 1.02f, beatSyncFromStart = true },
+        new BossDifficultyRow { boss = "Cinder Drake", rampSeconds = 5f, startIntensity = .70f, intensityFloor = .50f, shotSpeedScale = 1.04f, beatSyncFromStart = true },
+        new BossDifficultyRow { boss = "Iron Kraken", rampSeconds = 3f, startIntensity = .85f, intensityFloor = .58f, shotSpeedScale = 1.06f, beatSyncFromStart = true },
         new BossDifficultyRow { boss = "Tempest Engine", rampSeconds = 0f, startIntensity = 1f, intensityFloor = .66f, shotSpeedScale = 1.08f, beatSyncFromStart = true },
-        // 7 Dune-Eater (the final boss): no ramp, hard from the first beat: its quiet song can never drop it below a
-        //   wave a beat, the tightest gap squeeze, the fastest waves.
         new BossDifficultyRow { boss = "Dune-Eater", rampSeconds = 0f, startIntensity = 1f, intensityFloor = .72f, shotSpeedScale = 1.10f, beatSyncFromStart = true },
     };
 

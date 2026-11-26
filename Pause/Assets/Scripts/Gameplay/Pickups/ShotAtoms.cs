@@ -298,7 +298,7 @@ public static class ShotAtoms
     public static readonly string[] Roman = { "", "I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X" };
 
     // Shared Rapid + modifier levels normalized to this run's dock-unlocked starting slots + active-drone bonus.
-    // Recruitment never dilutes existing power; spawn pressure is capped at MaxPower.
+    // Each additional active drone contributes four points; recruitment never dilutes existing power.
     public const int MaxPower = ShotAtomTuning.Count * ShotAtomTuning.MaxLevel;
     public static int PowerLevel
     {
@@ -307,7 +307,7 @@ public static class ShotAtoms
             int sum = 0;
             for (int d = 0; d < droneCount; d++)
                 for (int a = 0; a < ShotAtomTuning.PerDroneAtoms; a++) sum += droneLevels[DL(d, a)];
-            return Mathf.Min(MaxPower, rapidLevel + Mathf.RoundToInt(sum / (float)DroneSquad.StartingSlots) + Mathf.Max(0, DroneSquad.ActiveCount - 1));
+            return Mathf.Min(MaxPower, rapidLevel + Mathf.RoundToInt(sum / (float)DroneSquad.StartingSlots) + 4 * Mathf.Max(0, DroneSquad.ActiveCount - 1));
         }
     }
 
