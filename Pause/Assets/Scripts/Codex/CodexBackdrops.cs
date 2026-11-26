@@ -24,7 +24,7 @@ public sealed class CodexBackdrop
         {
             string folder = BackdropCatalog.TileFolder(world, variant);
             if (world == "Space") return BackdropCatalog.Folder("Space") + SpaceSkySelection.TextureFor(variant);
-            return folder + "mid";
+            return folder + BackdropCatalog.For(world).Find("mid").texture;
         }
     }
 }

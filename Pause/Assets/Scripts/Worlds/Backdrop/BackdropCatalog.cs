@@ -385,7 +385,7 @@ public static class BackdropCatalog
                    ceilingClearSeconds = () => DesertTuning.CeilingClearSeconds, layers = new[] {
             Layer.Tile("sky", 0.006f, W).Graded(.6f),
             Layer.Tile("far", 0.014f, W).Graded(.8f),
-            Layer.Tile("mid", 0.024f, W).Graded(1f),
+            Layer.Tile("mid", 0.024f, W).WithTexture("sky").Graded(1f),
             // landmarks, pipes, ground features, the worms and the elite sites: one
             // ground plane pinned to the mid tile
             Layer.Pieces("ground", 0.024f, Role.Landmark).PinnedTo("mid", 0.024f).Graded(1f),

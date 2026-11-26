@@ -124,6 +124,7 @@ public static class DesertBackdropTest
         var spec = BackdropCatalog.For("Desert");
         Check("Desert has its own v3 folder and four variant sets, not a stand-in",
               spec.world == "Desert" && spec.folder == "Worlds/Desert/Backdrop3/" && spec.variantSets == BackdropVariants.MaxVariants);
+        Check("duplicate Desert ground pixels share the sky texture, retaining separate layer motion", spec.Find("mid").texture == "sky" && spec.Rate("mid") != spec.Rate("sky"));
         string[] want = { "sky", "far", "mid", "ground", "flow", "palls", "mist", "wisps", "ceiling", "gusts", "grit" };
         bool all = true;
         foreach (string n in want) all &= spec.Has(n);
