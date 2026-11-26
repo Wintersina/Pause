@@ -34,7 +34,7 @@ using UnityEngine.UI;
 // the stack and the panel both grow by one row + gap, so every row keeps its
 // height and the panel keeps its padding. The read-out itself animates on
 // unscaled time -- the HUD lives on through the freeze.
-public class ScoreHud : MonoBehaviour
+public partial class ScoreHud : MonoBehaviour
 {
     public const string RowName = "ScoreText";
     public const string ChainName = "Chain";
@@ -187,7 +187,7 @@ public class ScoreHud : MonoBehaviour
     // size) into the font atlas -- "SHIELD" at 28, "NEW COMBO DISCOVERED" and the fusion names at 40 / 46 -- on
     // the frame the word first shows. Now the pool is built as the HUD attaches and the glyphs are requested one
     // size per frame (a handful of ms spread over ~a dozen frames, inside the run's calm start).
-    public static readonly int[] PrewarmSizes = { 22, 26, 28, 30, 32, 34, 36, 38, 40, 44, 46 };
+    public static readonly int[] PrewarmSizes = { 18, 22, 26, 28, 30, 32, 34, 36, 38, 40, 44, 46 };
     const string PrewarmBase = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789+-x!.,:%/'&()";
     static string prewarmChars;
     int prewarmStep;
@@ -900,6 +900,7 @@ public class ScoreHud : MonoBehaviour
 
     void BuildPopups()
     {
+        BuildFusionPopup();
         popups = new Popup[PopupPool];
         for (int i = 0; i < popups.Length; i++)
         {
@@ -1032,6 +1033,7 @@ public class ScoreHud : MonoBehaviour
     // hold still). A negative dt (the run is over) clears them all.
     public void StepPopups(float dt)
     {
+        StepFusionPopup(dt);
         if (popups == null) return;
         if (dt < 0f) atomQueued = 0;
         int fresh = -1;   // a queued popup that took over a slot this step: it starts at age 0, the step that ended its predecessor is not its own

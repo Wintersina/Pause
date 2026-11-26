@@ -13,7 +13,7 @@ public static class DroneSquadReview
         foreach (string device in new[] { "and-480x854", "flip7-cover-948x1048" })
         {
             var size = System.Array.Find(FitDevice.All, d => d.id == device);
-            for (int state = 0; state < 6; state++)
+            for (int state = 0; state < 8; state++)
             {
                 int snapshot = state;
                 var screen = new FitScreen { id = "drone-review-" + state, scene = "gameS1", gameplayView = true,
@@ -84,6 +84,13 @@ public static class DroneSquadReview
         }
         var hud = new GameObject(ShotAtomHud.HostName).AddComponent<ShotAtomHud>();
         hud.SendMessage("Start", SendMessageOptions.DontRequireReceiver); hud.SendMessage("Update");
+        if (state >= 6)
+        {
+            var scoreHud = Object.FindFirstObjectByType<ScoreHud>();
+            if (scoreHud == null) throw new System.InvalidOperationException("Missing gameplay score HUD");
+            scoreHud.ShowFusion(AtomFusionTable.Get(state == 6 ? FusionId.Overclock : FusionId.Singularity), ship.ship.transform.position + Vector3.up * .65f);
+            scoreHud.StepPopups(.2f);
+        }
         rig.Sync();
     }
 }

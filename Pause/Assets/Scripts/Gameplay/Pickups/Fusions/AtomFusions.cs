@@ -11,12 +11,10 @@ using UnityEngine;
 //   (OnExternal: MagnetCombo owns its effect and callout). Dove's Mending and
 //   Turtle's Hard Shell report themselves as ship "atoms" (SecretPowers).
 //
-//   When a fusion fires: its effect (Apply), the record in the codex's COMBOS
-//   page (FusionDiscoveryStore), and a big callout lifted above the ship
-//   (ScoreHud.ShowCallout, one slot: replaced, never stacked) -- the two-line
-//   "SHIELD + HEAL / BLOOM!", "CHAIN xN" on a re-trigger, or on the very
-//   first time "NEW COMBO DISCOVERED / BLOOM!", bigger, plus the fusion's
-//   own flipbook around the ship (FusionFx). No sounds.
+//   When a fusion fires: Apply its effect, record it in the Codex, and show its
+//   atom icons above a small combo name (ScoreHud.ShowFusion). One reusable
+//   notice replaces the previous one; chains keep the name and add xN.
+//   FusionFx supplies the separate flipbook around the ship.
 //
 //   Never in the tutorial, never in the kill cam's replay, never once the
 //   pilot is dead. Bosses and elites are never insta-killed: the effects only
@@ -170,24 +168,11 @@ public static class AtomFusions
             Discoveries++;
             Codex.NoteFusion(f);   // the combo's Codex star dust (CodexPayout) is left pending: the player collects it in the Codex
         }
-        string word = first ? discoveryWords[(int)f.id]
-                    : f.external ? null   // VACUUM's own callout (MagnetCombo) is already up
-                    : r.chain > 1 ? MagnetCombo.WordFor(MagnetCombo.Callout.Chain, r.chain)
-                    : comboWords[(int)f.id];
-        LastCallout = word;
-        if (word == null) return;
+        LastCallout = f.name;
         var hud = ScoreHud.Current;
         if (hud == null) return;
         Vector3 at = ship != null ? ship.position : Vector3.zero;
-        Color text = Color.Lerp(f.glow, Color.white, .35f);
-        Color glow = f.glow;
-        glow.a = FusionTuning.CalloutGlowAlpha;
-        if (first)
-            hud.ShowCallout(word, at + Vector3.up * FusionTuning.CalloutLift, text, FusionTuning.DiscoverySize,
-                            FusionTuning.DiscoverySeconds, FusionTuning.DiscoveryRise, glow);
-        else
-            hud.ShowCallout(word, at + Vector3.up * FusionTuning.CalloutLift, text, FusionTuning.CalloutSize,
-                            FusionTuning.CalloutSeconds, FusionTuning.CalloutRise, glow);
+        hud.ShowFusion(f, at + Vector3.up * .65f, r.chain);
     }
 
     // ---------------------------------------------------------------- effects

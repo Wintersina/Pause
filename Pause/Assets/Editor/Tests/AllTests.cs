@@ -276,6 +276,7 @@ public static class AllTests
         ("OptionsScreenTest", OptionsScreenTest.Execute),
         ("ShipUnlocksTest", ShipUnlocksTest.Execute),
         ("ScoringTest", ScoringTest.Execute),
+        ("PauseEnhancementsTest", PauseEnhancementsTest.Execute),
         ("ScoreBonusTest", ScoreBonusTest.Execute),
         ("ScoreMultiplierTest", ScoreMultiplierTest.Execute),
         ("NewRecordTest", NewRecordTest.Execute),

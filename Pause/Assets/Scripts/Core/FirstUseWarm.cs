@@ -136,6 +136,7 @@ public static class FirstUseWarm
         FirstUseWarm.Add("drone:bolts", GunBoltArt.Prewarm);
         FirstUseWarm.Add("drone:impacts", GunImpactFeedback.Prewarm);
         FirstUseWarm.Add("enemy:armour", EnemyArmour.Prewarm);
+        FirstUseWarm.Add("fusion:popup-glyphs", ScoreHud.PrewarmFusionGlyphs);
         PewSound.QueueWarm();
         WeaponArt.QueueWarmExplosions();
         FirstUseWarmSteps.Pause();

@@ -177,8 +177,7 @@ public class collisionDetection : MonoBehaviour {
         var callout = MagnetCombo.CalloutFor(comboBefore, true, hud != null, startMenu.youAreInTutorial, KillCam.Playing);
         string word = MagnetCombo.WordFor(callout, MagnetPull.Chain);
         if (word != null)
-            hud.ShowCallout(word, at + Vector3.up * MagnetCombo.CalloutLift, MagnetCombo.CalloutColour,
-                            MagnetCombo.CalloutSize, MagnetCombo.CalloutSeconds, MagnetCombo.CalloutRise);
+            hud.ShowFusion(AtomFusionTable.Get(FusionId.Vacuum), at + Vector3.up * .65f, MagnetPull.Chain);
         // the vacuum is fusion #1 of the ATOMIC FUSIONS: recorded in the codex's
         // COMBOS page (and a SINGULARITY if a heal is in play)
         AtomFusions.OnExternal(FusionId.Vacuum, MagnetPull.Chain);
@@ -191,7 +190,7 @@ public class collisionDetection : MonoBehaviour {
         var callout = SyncMagnetShield(comboBefore, at);
         if (callout == MagnetCombo.Callout.None) { PickupWord(ownWord, at, ownColour); return; }
         if (hypeText != null)
-            hypeText.text = callout == MagnetCombo.Callout.Combo ? MagnetCombo.ComboWordShort : MagnetCombo.WordFor(callout, MagnetPull.Chain);
+            hypeText.text = string.Empty;   // the compact icon/name popup owns combo feedback
     }
 
     // The healing drone's banked atom does its work: one heart comes back (HealBank.Tick, ShipDamageFx). Never past full.

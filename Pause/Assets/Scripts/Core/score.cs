@@ -251,10 +251,12 @@ public class score : MonoBehaviour {
             // the per-world pause achievements see it (refund and the out-of-pauses
             // flash are about spent pauses and stay out).
             pauseCounterBool = true;
+            RunScore.OnPauseUsed();
             AchievementTracker.OnPauseSpent();
             return;
         }
         int before = pauseCounter;
+        if (before > 0) RunScore.OnPauseUsed();
         pauseCounter = pauseCounter - 1;
         OutOfPausesFlash.OnPauseSpent(before, pauseCounter);
         pauseCounterBool = true;
