@@ -13,6 +13,7 @@ public sealed class DroneCorePickup : MonoBehaviour
     }
     public static GameObject Spawn(DroneMode mode, Vector3 at)
     {
+        at = SpawnAboveCamera.PickupEntry(at, .4f);
         at = SpawnSpace.PickupSpot(at, Vector2.one * .20f, -RailInset.PickupLaneHalf, RailInset.PickupLaneHalf);
         var go = Build(mode, at);
         SpawnFootprint.Attach(go, Vector2.one * .20f, SpawnLayer.Pickup);

@@ -199,7 +199,7 @@ public static class CodexCatalogue
             DroneCoreEntry(DroneMode.Aimed),
             new CodexEntry("boss_drone", "Drone Recruit", CodexCategory.Atoms, () => DronePickupArt.Reward,
                 "BOSS REWARD  Every destroyed boss drops one drone recruit instead of upgrade coins.\n" +
-                "SQUAD  Starts with three dormant slots; the immediate directional core activates the first.\n" +
+                "SQUAD  Dock colours unlock 1 / 1 / 1 / 2 / 3 starting slots; the opening directional core activates the first.\n" +
                 "RECRUIT  Joins active in your latest chosen firing mode, with half the squad's average modifier levels.\n" +
                 "CAP  Twelve drones; an extra recruit pays five dust.", new[] { Codex.Normalise("bossDroneReward") }),
 
@@ -319,7 +319,7 @@ public static class CodexCatalogue
         // the range of the effect: the first level and the last (ten levels would be a wall of text)
         lines.Add("LEVEL 1  " + ShotAtomLevelText(atom, 1));
         lines.Add("LEVEL " + ShotAtomTuning.MaxLevel + "  " + ShotAtomLevelText(atom, ShotAtomTuning.MaxLevel));
-        lines.Add("RUN OPENING  An immediate AIMED core, then TWIN, TWIN, ARC; the two TWIN coins activate the remaining dormant drones; pickup spacing applies");
+        lines.Add("RUN OPENING  An AIMED core enters first, then TWIN, TWIN, ARC; coins activate only dock-unlocked slots; pickup spacing applies");
         lines.Add("DROPPED BY  every elite and ordinary kills (18% on the starting level, 8% elsewhere; spacing applies). Later drops are 80% modifiers, 20% mode choices; bosses drop drone recruits");
         lines.Add("MAX LEVEL  " + ShotAtomTuning.MaxLevel + "; once it is maxed on every drone a catch pays star dust");
         return string.Join("\n", lines);

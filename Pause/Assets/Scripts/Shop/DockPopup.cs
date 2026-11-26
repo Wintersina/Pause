@@ -22,7 +22,7 @@ using UnityEngine.UI;
 //   slot 53 x 50 with ~15 between the drawn chips, the close button 48 x 48.
 // The card is PanelWidth (300) units wide; on a screen too narrow or short
 // for that (none of the supported phones) the unit shrinks to fit.
-public class DockPopup : MonoBehaviour
+public partial class DockPopup : MonoBehaviour
 {
     // ---- layout, canvas units (= points / dp) ----
     public const float PanelWidth = 300f;
@@ -264,6 +264,7 @@ public class DockPopup : MonoBehaviour
         heartImage.raycastTarget = false;
         livesLabel = Label("Count", livesBadge, font, StatusSize, TextAnchor.MiddleLeft, AkiraPalette.Bone);
         Place(livesLabel.rectTransform, new Vector2(0f, .5f), new Vector2(LivesIconSize + 3f, 0f), new Vector2(14f, 18f), new Vector2(0f, .5f));
+        BuildDroneBadge();
         // NEED n MORE / ACQUIRED: over the header while it is up.
         message = Label("Message", body, font, 15, TextAnchor.MiddleCenter, DockArt.Warn);
         message.fontStyle = FontStyle.Bold;
@@ -848,6 +849,7 @@ public class DockPopup : MonoBehaviour
 
     void ShowLives(int index)
     {
+        ShowDrones(index);
         LivesShown = ShipLives.Max(index);
         LivesGainShown = SkinRowVisible && index == ShipIndex && !ShipSkins.IsOwned(index, SkinShown)
             ? SkinHearts.GainIfBought(index, SkinShown) : 0;
@@ -874,6 +876,7 @@ public class DockPopup : MonoBehaviour
         livesBadge.sizeDelta = new Vector2(livesWidth, 18f);
         livesBadge.anchoredPosition = new Vector2(-x, -Pad - 34f);
         x += livesWidth + 10f;
+        FitDroneBadge(ref x);
         skinName.rectTransform.sizeDelta = new Vector2(Mathf.Max(0f, PanelWidth - Pad - x), 20f);
     }
 
@@ -992,6 +995,7 @@ public class DockPopup : MonoBehaviour
         skinName.enabled = row;
         status.enabled = row;
         livesBadge.gameObject.SetActive(row);
+        droneBadge.gameObject.SetActive(row);
         dustIcon.gameObject.SetActive(row && (CurrentMode == Mode.Buy || CurrentMode == Mode.BuySkin));
         message.enabled = !row;
     }

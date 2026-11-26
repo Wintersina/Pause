@@ -7,7 +7,7 @@ using UnityEngine.UI;
 // Nearby pickup previews select their recipient; dormant slots remain visible from run start.
 // All graphics ignore raycasts so the pilot can press anywhere to pause. Geometry follows
 // the scoreboard's painted bottom edge, rails, quick actions and safe-area bounds.
-public class ShotAtomHud : MonoBehaviour
+public partial class ShotAtomHud : MonoBehaviour
 {
     public const string HostName = "~ShotAtomHud";
     public const float IconUnits = 24f;        // a coin's size in quick-action canvas units
@@ -265,6 +265,7 @@ public class ShotAtomHud : MonoBehaviour
         group.interactable = false;
         font = CodexUi.FindFont();
 
+        BuildPausedRows(holder.transform);
         for (int i = 0; i < MaxSlots; i++)
         {
             var slot = new Slot();
@@ -392,6 +393,7 @@ public class ShotAtomHud : MonoBehaviour
             for (int i = 0; i < MaxSlots; i++)
                 if (!slots[i].glyph && slots[i].root.gameObject.activeSelf) slots[i].icon.sprite = Frame(slots[i].atom);
         Place();
+        TickPausedRows(Time.unscaledDeltaTime);
     }
 
     Sprite Frame(ShotAtom atom)

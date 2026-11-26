@@ -115,9 +115,9 @@ public static class ShotAtoms
     public static int Catches { get; private set; }       // coins collected this run
     public static int MaxedCatches { get; private set; }  // ...that paid dust
 
-    public static void BeginRun()
+    public static void BeginRun(int startingSlots = -1)
     {
-        DroneSquad.BeginRun();
+        DroneSquad.BeginRun(startingSlots);
         droneCount = DroneSquad.StartingSlots;
         for (int d = 0; d < ShotAtomTuning.MaxDrones; d++)
             for (int a = 0; a < ShotAtomTuning.PerDroneAtoms; a++) droneLevels[DL(d, a)] = 0;
@@ -297,7 +297,7 @@ public static class ShotAtoms
 
     public static readonly string[] Roman = { "", "I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X" };
 
-    // Shared Rapid + modifier levels normalized to the initial three slots + active-drone bonus.
+    // Shared Rapid + modifier levels normalized to this run's dock-unlocked starting slots + active-drone bonus.
     // Recruitment never dilutes existing power; spawn pressure is capped at MaxPower.
     public const int MaxPower = ShotAtomTuning.Count * ShotAtomTuning.MaxLevel;
     public static int PowerLevel
@@ -584,6 +584,7 @@ public class ShotAtomPickup : MonoBehaviour
     public static GameObject Spawn(ShotAtom atom, Vector3 at)
     {
         Vector2 half = Vector2.one * Diameter * .5f * PickupArt.AtomVisualScale;
+        at = SpawnAboveCamera.PickupEntry(at, half.y);
         at = SpawnSpace.PickupSpot(at, half, -RailInset.PickupLaneHalf, RailInset.PickupLaneHalf);
         var go = Build(atom, at);
         SpawnFootprint.Attach(go, half, SpawnLayer.Pickup);

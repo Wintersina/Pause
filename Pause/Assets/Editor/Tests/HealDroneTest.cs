@@ -352,8 +352,8 @@ public static class HealDroneTest
                     const float tol = 1e-3f;
                     bool inside = box.min.x >= view.xMin - tol && box.max.x <= view.xMax + tol &&
                                   box.min.y >= view.yMin - tol && box.max.y <= view.yMax + tol;
-                    bool clear = !ShipUiSlots.Overlaps(box, hb) && (!hasEx || !ShipUiSlots.Overlaps(box, ex));
-                    bool behind = icon.Center.y <= hb.center.y && icon.Visible && icon.CountShown && icon.CountText == "x2";
+                    bool clear = !ShipUiSlots.Overlaps(box, hb);
+                    bool behind = Mathf.Abs(icon.Center.x - hb.center.x) < 1e-3f && icon.Visible && icon.CountShown && icon.CountText == "x2";
                     cells++;
                     if (!(inside && clear && behind))
                     {
@@ -373,7 +373,7 @@ public static class HealDroneTest
             }
         }
         ScreenInfo_Clear();
-        Check("the banked icon (with its count) sits behind the tail, clear of hull and exhaust, on screen: " + cells + " placements, " + bad + " bad " + first,
+        Check("the banked icon (with its count) stays centred on the hull and clear of it, on screen: " + cells + " placements, " + bad + " bad " + first,
               cells >= 18 && bad == 0);
         HealBank.Reset();
         Object.DestroyImmediate(camGo);

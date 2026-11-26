@@ -17,7 +17,7 @@ using UnityEngine;
 // berth lights answer the tap, and its name and price tag stay readable.
 // Buying it reveals it: the shape fills with white, then the white fades
 // into the hull's own colours.
-public class DockBay : MonoBehaviour
+public partial class DockBay : MonoBehaviour
 {
     // Sorting orders, back to front.
     public const int OrderBay = 2, OrderBack = 3, OrderShadow = 5, OrderHighlight = 10,
@@ -165,6 +165,7 @@ public class DockBay : MonoBehaviour
         chipText.color = DockArt.Gold;
 
         SetNumber(i);
+        BuildLoadout(font);
         SetFacing(Facing.Up);
         SetLabelScale(1f);
         ApplyPower(0f);
@@ -232,6 +233,7 @@ public class DockBay : MonoBehaviour
     {
         Owned = owned;
         Equipped = equipped;
+        RefreshLoadout();
         nameText.color = equipped ? DockArt.Cyan : owned ? NameOwned : NameLocked;
         statusIcon.enabled = owned;
         statusIcon.sprite = DockArt.Get(equipped ? "icon_active" : "icon_owned");
@@ -322,6 +324,7 @@ public class DockBay : MonoBehaviour
         digits[1].transform.localPosition = numberAt + new Vector3(6f * px * DigitK, 0f, 0f);
         statusIcon.transform.localPosition = iconAt;
         PlaceChip();
+        PlaceLoadout();
     }
 
     int number;
@@ -361,6 +364,7 @@ public class DockBay : MonoBehaviour
     public void SetLabelScale(float k)
     {
         labelK = k;
+        PlaceLoadout();
         nameText.transform.localScale = new Vector3(E, E, 1f);
         statusIcon.transform.localScale = Vector3.one * .62f * E;
         for (int d = 0; d < 2; d++) digits[d].transform.localScale = new Vector3(k * DigitK, k * DigitK, 1f);

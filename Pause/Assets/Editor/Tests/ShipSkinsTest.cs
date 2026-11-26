@@ -297,8 +297,8 @@ public static class ShipSkinsTest
     {
         int gold = ShipId.FromKey("GoldWarden");
         Check("Gold Warden: later colours 1700, the Special 4300",
-              gold > 0 && ShipSkins.PriceOf(gold, 2) == 1700f && ShipSkins.PriceOf(gold, 3) == 1700f &&
-              ShipSkins.PriceOf(gold, ShipSkins.Special) == 4300f);
+              gold > 0 && ShipSkins.PriceOf(gold, 2) == shopingShips.UpgradePriceFor(gold, 1700f) && ShipSkins.PriceOf(gold, 3) == shopingShips.UpgradePriceFor(gold, 1700f) &&
+              ShipSkins.PriceOf(gold, ShipSkins.Special) == shopingShips.UpgradePriceFor(gold, 4300f));
         Check("stock is free for every kind and row",
               ShipSkins.PriceOf(ShipSkinKind.Stock, 1) == 0f && ShipSkins.PriceOf(ShipSkinKind.Stock, 5) == 0f);
         var order = StandardInDockOrder();
@@ -309,9 +309,9 @@ public static class ShipSkinsTest
             int row = SpaceDock.RowOf(id);
             float pal = ShipSkins.PriceOf(ShipSkinKind.Palette, row), sp = ShipSkins.PriceOf(ShipSkinKind.Special, row);
             monoPalette &= pal >= prevPalette; monoSpecial &= sp >= prevSpecial;
-            positive &= pal > 0f && sp > 0f && ShipSkins.PriceOf(id, 2) == pal && ShipSkins.PriceOf(id, ShipSkins.Special) == sp;
+            positive &= pal > 0f && sp > 0f && ShipSkins.PriceOf(id, 2) == shopingShips.UpgradePriceFor(id, pal) && ShipSkins.PriceOf(id, ShipSkins.Special) == shopingShips.UpgradePriceFor(id, sp);
             specialOver &= sp >= pal;
-            firstOk &= ShipSkins.PriceOf(id, 1) == (ShipSkins.FirstColourDiscounted(id) ? ShipSkins.FirstColourPrice : pal);
+            firstOk &= ShipSkins.PriceOf(id, 1) == shopingShips.UpgradePriceFor(id, ShipSkins.FirstColourDiscounted(id) ? ShipSkins.FirstColourPrice : pal);
             prevPalette = pal; prevSpecial = sp;
         }
         Check("palette prices never fall along the dock order", monoPalette);

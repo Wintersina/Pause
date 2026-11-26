@@ -198,10 +198,11 @@ public static class FloatieGunTest
         FreshScene();
         var r = MakeShip(1, 0);
         Check("the ship carries a floatie battery", r.battery != null);
-        int[] want = { 3, 3, 3, 3, 3 };
+        int[] want = { 1, 1, 1, 2, 3 };
         bool ok = true;
         for (int level = 0; level <= ShipWeaponUpgrades.MaxLevel; level++)
         {
+            ShotAtoms.SetDroneCount(want[level]);
             r.battery.SetLevel(level);
             bool pure = FloatieTuning.CountAt(level) == want[level];
             bool live = r.battery.Count == want[level];
@@ -209,7 +210,7 @@ public static class FloatieGunTest
                           (r.battery.Extra(1) != null && r.battery.Extra(1).gameObject.activeSelf) == (want[level] >= 3);
             ok &= pure && live && extras;
         }
-        Check("three starting slots are independent of purchased weapon level", ok);
+        Check("starting slots unlock at the third and final purchased upgrades", ok);
 
         // slots: #2 on the other side up by the nose, #3 on the gun's own side low; both registered, none on the hearts' spot list wrongly
         r.battery.SetLevel(4);
@@ -532,10 +533,10 @@ public static class FloatieGunTest
             ok &= !two.Contains("+1 FLOATIE") && two.StartsWith(ShipWeaponUpgrades.Step(ship, 2).label) &&
                   four.Contains("DRONE COOLDOWN") && four.Contains("-25%") && four.StartsWith(ShipWeaponUpgrades.Step(ship, 4).label);
             none &= ShipWeaponUpgrades.StepText(ship, 1) == ShipWeaponUpgrades.Step(ship, 1).label &&
-                    ShipWeaponUpgrades.StepText(ship, 3) == ShipWeaponUpgrades.Step(ship, 3).label;
+                    ShipWeaponUpgrades.StepText(ship, 3).StartsWith(ShipWeaponUpgrades.Step(ship, 3).label) && ShipWeaponUpgrades.StepText(ship, 3).Contains("+1 DRONE");
         }
         Check("colour steps retain their weapon benefits; final colour cuts drone cooldown without granting slots", ok);
-        Check("steps 1 and 3 are unchanged", none);
+        Check("step 1 keeps its weapon benefit and step 3 unlocks a second drone", none);
         // the dock's two-line row: floatie words only when everything fits in DockTextMax, and never past it
         bool dockOk = true, anyFloatie = false;
         for (int ship = 1; ship <= 16; ship++)

@@ -16,19 +16,19 @@ public static class DroneSquadTest
         fails = 0;
         using var sandbox = new TestHarness.Sandbox();
         try { Opening(); PickupRoute(); Modes(); Bosses(); Armour(); Stress(); }
-        finally { FloatieBullets.ReleaseAll(); EliteSystem.Clear(); ShotAtoms.BeginRun(); }
+        finally { FloatieBullets.ReleaseAll(); EliteSystem.Clear(); ShotAtoms.BeginRun(3); }
         Debug.Log("[SQUAD] failures: " + fails); return fails;
     }
     static void Fresh()
     {
-        ShotFeelTest.FreshScene(); ShotAtoms.BeginRun();
+        ShotFeelTest.FreshScene(); ShotAtoms.BeginRun(3);
         WorldManager.ClearReplayWorld();
     }
     static void Opening()
     {
         Fresh();
         var rig = ShotFeelTest.MakeShip(1, 0, activate: false);
-        Check("all ships begin with three visible dormant slots and no bullets", rig.battery.Count == 3 && DroneSquad.ActiveCount == 0 && !rig.battery.Fire(0) && !rig.battery.Fire(1) && !rig.battery.Fire(2));
+        Check("a fully upgraded ship begins with three visible dormant slots and no bullets", rig.battery.Count == 3 && DroneSquad.ActiveCount == 0 && !rig.battery.Fire(0) && !rig.battery.Fire(1) && !rig.battery.Fire(2));
         DroneSquad.OfferStarter(); DroneSquad.OfferStarter();
         var starters = Object.FindObjectsByType<DroneCorePickup>(FindObjectsSortMode.None);
         Check("the immediate starter is exactly one aimed directional coin", starters.Length == 1 && starters[0].mode == DroneMode.Aimed);
@@ -45,7 +45,7 @@ public static class DroneSquadTest
             ShotAtoms.BenefitChange(ShotAtom.Split, 1, 2).Contains("FAN") &&
             ShotAtoms.BenefitChange(ShotAtom.Arc, 1, 2).Contains("DAMAGE"));
         ShotFeelTest.Teardown(rig);
-        ShotAtoms.BeginRun();
+        ShotAtoms.BeginRun(3);
         Check("new run clears activation and restores three dormant slots", DroneSquad.Slots == 3 && DroneSquad.ActiveCount == 0 && !DroneSquad.StarterOffered);
     }
     static void PickupRoute()
@@ -116,7 +116,7 @@ public static class DroneSquadTest
         Check("new drone joins active with the preferred mode and useful inherited upgrades", first == 3 && DroneSquad.ActiveCount == 4 && DroneSquad.Mode(3) == DroneMode.Aimed && ShotAtoms.Level(3, ShotAtom.Twin) == 2 && ShotAtoms.PowerLevel >= power);
         while (DroneSquad.Slots < 12) DroneSquad.AddBossDrone();
         Check("boss recruitment caps at twelve without overwriting any drone", DroneSquad.Slots == 12 && DroneSquad.ActiveCount == 12 && DroneSquad.AddBossDrone() == -1 && ShotAtoms.Level(0, ShotAtom.Twin) == 4);
-        ShotAtoms.BeginRun(); Check("a new run clears boss recruits", DroneSquad.Slots == 3 && DroneSquad.ActiveCount == 0);
+        ShotAtoms.BeginRun(3); Check("a new run clears boss recruits", DroneSquad.Slots == 3 && DroneSquad.ActiveCount == 0);
     }
     public sealed class Target : MonoBehaviour, IShipAttackTargetUncapped
     {

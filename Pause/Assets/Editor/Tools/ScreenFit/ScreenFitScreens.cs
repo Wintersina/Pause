@@ -805,7 +805,7 @@ public static class ScreenFitScreens
 
     // ---- space dock -------------------------------------------------------------------
 
-    static void Dock(ScreenFitRig rig, int selected, bool unused)
+    internal static void Dock(ScreenFitRig rig, int selected, bool unused)
     {
         DeveloperUnlocks.SetEnabled(false);
         for (int i = 0; i <= shopingShips.RosterTotal; i++) PlayerPrefs.DeleteKey(ShipId.OwnedKey(i));

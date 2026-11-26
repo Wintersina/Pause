@@ -133,6 +133,12 @@ public static class FirstUseWarm
         FirstUseWarm.Add("heart:quarters", ShipLivesIndicator.HeartSpritePath, typeof(Sprite),
             () => HeartQuarterFrames.For(Resources.Load<Sprite>(ShipLivesIndicator.HeartSpritePath)));
         FirstUseWarm.Add("drone:icons", DronePickupArt.Prewarm);
+        FirstUseWarm.Add("dock:loadout", () => { var glyph = DockLoadoutArt.Drone; });
+        for (int atom = 0; atom < ShotAtomTuning.Count; atom++)
+        {
+            var kind = ShotAtoms.KindOf((ShotAtom)atom);
+            FirstUseWarm.Add("drone:modifier:" + atom, () => PickupArt.Frames(PickupArt.IdleName(kind), PickupArt.ShotIdleTicks.Length));
+        }
         FirstUseWarm.Add("drone:bolts", GunBoltArt.Prewarm);
         FirstUseWarm.Add("drone:impacts", GunImpactFeedback.Prewarm);
         FirstUseWarm.Add("enemy:armour", EnemyArmour.Prewarm);

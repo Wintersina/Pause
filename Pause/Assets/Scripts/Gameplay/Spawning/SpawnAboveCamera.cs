@@ -19,6 +19,15 @@ public class SpawnAboveCamera : MonoBehaviour
     [Tooltip("Clearance above the camera's actual visible top edge.")]
     public float margin = 0.5f;
 
+    // Upgrade coins enter from beyond the actual camera edge, including kill-earned drops.
+    public static Vector3 PickupEntry(Vector3 at, float halfHeight)
+    {
+        var cam = CameraFit.Main;
+        if (cam != null && cam.orthographic)
+            at.y = Mathf.Max(at.y, cam.transform.position.y + cam.orthographicSize + Mathf.Max(.05f, halfHeight) + .15f);
+        return at;
+    }
+
     int lastScreenW = -1, lastScreenH = -1;
     // CameraFit may settle the camera's size after this object's own Start /
     // Update in the same frame; follow the size itself, not only the screen.

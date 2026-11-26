@@ -431,7 +431,9 @@ public partial class ShipAttackRunner
                 if (p.y - t.Radius > y + band * .5f || p.y + t.Radius < v.y0) continue;   // not reached yet / behind the ship
                 list.Add(t.gameObject);
                 Burst(run, new Vector3(p.x, Mathf.Min(p.y, y), 0f), .7f);
-                if (ShipAttackHits.Hit(t.gameObject, ship, w, ref run.budget, HitKind.Ultimate)) kills++;
+                float damage = ShipTargets.IsBossTarget(t)
+                    ? ShipWeaponUpgrades.SolarWaveBossHearts[Mathf.Clamp(l.weaponLevel, 0, ShipWeaponUpgrades.MaxLevel)] / waves : w;
+                if (ShipAttackHits.Hit(t.gameObject, ship, damage, ref run.budget, HitKind.Ultimate)) kills++;
             }
             if (y - band > top + .3f)
             {

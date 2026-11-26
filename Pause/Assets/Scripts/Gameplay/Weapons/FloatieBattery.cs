@@ -256,7 +256,7 @@ public class FloatieBattery : MonoBehaviour
         int before = count;
         level = newLevel;
         squadVersion = DroneSquad.Version;
-        count = FloatieTuning.CountAt(ship, level);
+        count = DroneSquad.Slots;
         ShotAtoms.SetDroneCount(count);
         for (int slot = 0; slot < extras.Length; slot++)
         {

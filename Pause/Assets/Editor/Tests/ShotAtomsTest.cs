@@ -63,7 +63,7 @@ public static class ShotAtomsTest
 
     static void Cleanup()
     {
-        ShotAtoms.BeginRun();
+        ShotAtoms.BeginRun(3);
         FloatieBullets.ReleaseAll();
         AttackPool.StopAll();
         VoltArcs.StopAll();
@@ -183,13 +183,13 @@ public static class ShotAtomsTest
 
     static void Schedule()
     {
-        ShotAtoms.BeginRun(); ShotAtoms.SetDroneCount(1);
+        ShotAtoms.BeginRun(3); ShotAtoms.SetDroneCount(1);
         bool every = true, reach = true;
         for (int w = 0; w < WorldManager.Worlds.Length; w++)
         {
             PlayerPrefs.SetInt(WorldManager.PrefsCurrentWorld, w);
             // every atom can drop in each world (a fresh run: all six eligible)...
-            ShotAtoms.BeginRun(); ShotAtoms.SetDroneCount(1);
+            ShotAtoms.BeginRun(3); ShotAtoms.SetDroneCount(1);
             every &= ShotAtoms.EligibleCount() == 6;
             var seen = new HashSet<ShotAtom>();
             ShotAtom a;
@@ -216,7 +216,7 @@ public static class ShotAtomsTest
 
     static void DropPicking()
     {
-        ShotAtoms.BeginRun();
+        ShotAtoms.BeginRun(3);
         ShotAtom a;
         Check("a fresh run: all six atoms are eligible, the roll picks across them (0 -> TWIN, 0.99 -> RAPID)",
               ShotAtoms.EligibleCount() == 6 && ShotAtoms.TryPick(0f, out a) && a == ShotAtom.Twin && ShotAtoms.TryPick(.99f, out a) && a == ShotAtom.Rapid && ShotAtoms.TryPick(1f, out a));
@@ -234,7 +234,7 @@ public static class ShotAtomsTest
         Check("all six at level 10: no atom can drop (a drop pays dust instead)", !ShotAtoms.TryPick(.5f, out a) && ShotAtoms.EligibleCount() == 0);
         Check("the callouts read TWIN II / ARC X", ShotAtoms.Callout(ShotAtom.Twin, 2) == "TWIN II" && ShotAtoms.Callout(ShotAtom.Arc, 10) == "ARC X");
         Check("PowerLevel is Rapid plus the per-drone levels over the drone count (60 with all six maxed)", ShotAtoms.PowerLevel == 60 && ShotAtoms.MaxPower == 60);
-        ShotAtoms.BeginRun();
+        ShotAtoms.BeginRun(3);
     }
 
     // ---- drops --------------------------------------------------------------------
@@ -242,7 +242,7 @@ public static class ShotAtomsTest
     static void OpeningDrops()
     {
         FreshScene();
-        ShotAtoms.BeginRun(); AtomSpacing.Reset();
+        ShotAtoms.BeginRun(3); AtomSpacing.Reset();
         var seen = new List<ShotAtom>();
         ShotAtomDrops.Spawned = (atom, at) => seen.Add(atom);
         try
@@ -263,7 +263,7 @@ public static class ShotAtomsTest
             ShotAtomDrops.OnEliteKilled(pos);
             AtomSpacing.Tick(4f); ShotAtomDrops.Pump(.79f);
             Check("ordinary random selection resumes after the opener (a high roll gives RAPID)", seen.Count == 4 && seen[3] == ShotAtom.Rapid);
-            ShotAtoms.BeginRun(); AtomSpacing.Reset(); seen.Clear();
+            ShotAtoms.BeginRun(3); AtomSpacing.Reset(); seen.Clear();
             ShotAtomDrops.OnEliteKilled(pos);
             Check("a kill before the schedule still gives the first TWIN", seen.Count == 1 && seen[0] == ShotAtom.Twin);
             AtomSpacing.Reset(); ShotAtomDrops.TickOpening(2.1f, pos);
@@ -271,19 +271,19 @@ public static class ShotAtomsTest
             ShotAtomDrops.Clear(); AtomSpacing.Reset();
             ShotAtomDrops.TickOpening(6f, pos);
             Check("clearing a queue does not restart the opening order", seen.Count == 2 && seen[1] == ShotAtom.Twin);
-            ShotAtoms.BeginRun(); seen.Clear(); AtomSpacing.Released();
+            ShotAtoms.BeginRun(3); seen.Clear(); AtomSpacing.Released();
             ShotAtomDrops.TickOpening(3f, pos);
             ShotAtomDrops.TickOpening(1f, pos);
             Check("a blocked opening coin queues once until pickup spacing is free", seen.Count == 0 && ShotAtomDrops.Pending == 1);
             AtomSpacing.Tick(4f); ShotAtomDrops.Pump(.99f);
             Check("the spacing queue preserves TWIN regardless of random roll", seen.Count == 1 && seen[0] == ShotAtom.Twin);
-            ShotAtoms.BeginRun(); seen.Clear(); AtomSpacing.Reset();
+            ShotAtoms.BeginRun(3); seen.Clear(); AtomSpacing.Reset();
             buttonClicks.playerDied = true; ShotAtomDrops.TickOpening(100f, pos);
             buttonClicks.playerDied = false; startMenu.youAreInTutorial = true; ShotAtomDrops.TickOpening(100f, pos);
             startMenu.youAreInTutorial = false; ShotAtomDrops.TickOpening(1f, pos);
             Check("death/tutorial time never advances the opening clock", seen.Count == 0);
         }
-        finally { ShotAtomDrops.Spawned = null; buttonClicks.playerDied = false; startMenu.youAreInTutorial = false; ShotAtoms.BeginRun(); }
+        finally { ShotAtomDrops.Spawned = null; buttonClicks.playerDied = false; startMenu.youAreInTutorial = false; ShotAtoms.BeginRun(3); }
     }
 
     static void DropRates()
@@ -294,7 +294,7 @@ public static class ShotAtomsTest
               ShotAtomTuning.EnemyDropChance == .08f && ShotAtomTuning.StartingLevelDropChance == .18f && ShotAtomTuning.EnemyDropCooldown == 12f && ShotAtomTuning.RushMultiplier == 3f && ShotAtomTuning.RushCooldownScale == .5f);
         int before = ShotAtomDrops.Elites;
         // the first elite of a run always drops, whatever the roll
-        ShotAtoms.BeginRun();
+        ShotAtoms.BeginRun(3);
         Check("a new run has not had its first elite kill", !ShotAtomDrops.FirstEliteDone);
         int offered = 0;
         for (int i = 0; i <= 1000; i++)
@@ -316,7 +316,7 @@ public static class ShotAtomsTest
         ShotAtomDrops.Clear();
 
         // a drop appears as a coin of an eligible atom; with the atom spacing busy it waits, then comes
-        ShotAtoms.BeginRun();
+        ShotAtoms.BeginRun(3);
         AtomSpacing.Reset();
         ShotAtomDrops.Clear();
         var spawned = new List<ShotAtom>();
@@ -338,7 +338,7 @@ public static class ShotAtomsTest
         ClearCoins();
 
         // everything maxed: dust, no coin
-        ShotAtoms.BeginRun();
+        ShotAtoms.BeginRun(3);
         for (int atom = 0; atom < ShotAtomTuning.Count; atom++) ShotAtoms.SetLevel((ShotAtom)atom, ShotAtomTuning.MaxLevel);
         AtomSpacing.Reset();
         ShotAtomDrops.Clear();
@@ -347,7 +347,7 @@ public static class ShotAtomsTest
         Check("a drop with everything maxed pays dust instead of a coin", ShotAtomDrops.DustDrops >= dust + 1 && ShotAtomDrops.LastWasDust &&
               Object.FindObjectsByType<ShotAtomPickup>(FindObjectsSortMode.None).Length == 0);
         ShotAtomDrops.Spawned = null;
-        ShotAtoms.BeginRun();
+        ShotAtoms.BeginRun(3);
     }
 
     static void DropHooks()
@@ -381,7 +381,7 @@ public static class ShotAtomsTest
         // ---- ordinary kills: level-specific chance, at most one per 12 s, spacing respected ----
         float clock = 100f;
         ShotAtomDrops.ClockOverride = () => clock;
-        ShotAtoms.BeginRun();
+        ShotAtoms.BeginRun(3);
         AtomSpacing.Reset();
         ShotAtomDrops.Clear();
         var plain = Hazard(0f, 1f);
@@ -427,7 +427,7 @@ public static class ShotAtomsTest
         Check("rush: ordinary chance 9%, cooldown 6 s, elite 100%, boss second 100%",
               Mathf.Approximately(ShotAtomDrops.EnemyChance, (WorldManager.CurrentIndex == WorldManager.RunStart ? .54f : .24f)) && Mathf.Approximately(ShotAtomDrops.EnemyCooldown, 6f) &&
               ShotAtomDrops.Rushed(ShotAtomTuning.EliteDropChance) == 1f && ShotAtomDrops.Rushed(1f) == 1f);
-        ShotAtoms.BeginRun();
+        ShotAtoms.BeginRun(3);
         ShotAtomDrops.Clear();
         AtomSpacing.Reset();
         clock += 100f;
@@ -833,7 +833,7 @@ public static class ShotAtomsTest
     static void Catching()
     {
         FreshScene();
-        ShotAtoms.BeginRun();
+        ShotAtoms.BeginRun(3);
         var rig = SpawnShip();
         var canvasGo = new GameObject("~AtomPopupCanvas", typeof(Canvas));
         canvasGo.GetComponent<Canvas>().renderMode = RenderMode.ScreenSpaceOverlay;
@@ -907,7 +907,7 @@ public static class ShotAtomsTest
         Object.DestroyImmediate(rig.ship);
         Object.DestroyImmediate(rig.cd.explosionAnimation);
         collisionDetection.atomCheck = false;
-        ShotAtoms.BeginRun();
+        ShotAtoms.BeginRun(3);
         PlayerPrefs.SetInt(WorldManager.PrefsCurrentWorld, 0);
     }
 
@@ -1039,7 +1039,7 @@ public static class ShotAtomsTest
 
     static void HudLive()
     {
-        ShotAtoms.BeginRun(); ShotFeelTest.ArmSquad(); DroneSquad.Select(0);
+        ShotAtoms.BeginRun(3); ShotFeelTest.ArmSquad(); DroneSquad.Select(0);
         ShotAtoms.SetLevel(0, ShotAtom.Arc, 1); ShotAtoms.SetLevel(0, ShotAtom.Twin, 2);
         ShotAtoms.SetLevel(1, ShotAtom.Pierce, 4); ShotAtoms.SetLevel(ShotAtom.Rapid, 1);
         var host = new GameObject(ShotAtomHud.HostName);
@@ -1054,7 +1054,7 @@ public static class ShotAtomsTest
         Check("switching recipients keeps fixed coin columns and shows new levels", split.drone == 0 && hud.LabelAt(ShotAtomHud.SelectedAtomSlot(ShotAtom.Split)) == "x1" && hud.LabelAt(twin) == "x2" && hud.VisibleCount == 4);
         Check("compact row has four modifiers, one selected glyph, three mode pips", host.GetComponentsInChildren<Image>(false).Length == 8);
         Check("read-only drone HUD never intercepts flight input", host.GetComponentsInChildren<GraphicRaycaster>(true).Length == 0 && host.GetComponentsInChildren<Button>(true).Length == 0);
-        ShotAtoms.BeginRun(); hud.SendMessage("Update");
+        ShotAtoms.BeginRun(3); hud.SendMessage("Update");
         Check("new run clears modifiers while showing its dormant slots", hud.VisibleCount == 0 && hud.ActiveAt(ShotAtomHud.PipSlot(0)) && hud.ActiveAt(ShotAtomHud.PipSlot(2)));
         Object.DestroyImmediate(host);
     }
@@ -1088,7 +1088,7 @@ public static class ShotAtomsTest
         Object.DestroyImmediate(coin);
 
         // the HUD row's coins spin too
-        ShotAtoms.BeginRun();
+        ShotAtoms.BeginRun(3);
         ShotAtoms.Collect(ShotAtom.Rapid);
         var host = new GameObject(ShotAtomHud.HostName);
         var hud = host.AddComponent<ShotAtomHud>();
@@ -1102,7 +1102,7 @@ public static class ShotAtomsTest
         var icon = host.GetComponentInChildren<Image>(false);
         Check("the HUD coin's border advances over time (frame " + f0 + " -> " + hud.FrameIndex + ") while its icon is never rotated", moved && icon != null && icon.rectTransform.localRotation == Quaternion.identity);
         Object.DestroyImmediate(host);
-        ShotAtoms.BeginRun();
+        ShotAtoms.BeginRun(3);
 
         // the Codex entry loops the same drawings at the same pace
         var anim = CodexAnimations.For(Codex.Find("atom_shot_arc"));
@@ -1170,13 +1170,13 @@ public static class ShotAtomsTest
 
     static void Reset()
     {
-        ShotAtoms.BeginRun();
+        ShotAtoms.BeginRun(3);
         for (int i = 0; i < ShotAtomTuning.Count; i++) ShotAtoms.SetLevel((ShotAtom)i, 2);
         ShotAtomDrops.Spawned = null;
         AtomSpacing.Released();
         ShotAtomDrops.OnBossDestroyed(Vector3.zero, 0f, 0f, .999f);
         int version = ShotAtoms.Version;
-        ShotAtoms.BeginRun();
+        ShotAtoms.BeginRun(3);
         bool zero = true;
         for (int i = 0; i < ShotAtomTuning.Count; i++) zero &= ShotAtoms.Level((ShotAtom)i) == 0;
         Check("a new run wipes every level, the HUD order, the catch counters and the waiting drops",

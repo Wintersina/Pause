@@ -105,8 +105,8 @@ public static class ShipSkins
         if (!Has(id, skin) || skin == Stock) return 0f;
         // a premium ship's skins are all one (high) price
         if (PremiumShips.IsPremium(id)) return PremiumShips.SkinPrice;
-        if (skin == 1 && FirstColourDiscounted(id)) return FirstColourPrice;
-        return PriceOf(Get(id, skin).kind, SpaceDock.RowOf(id));
+        float price = skin == 1 && FirstColourDiscounted(id) ? FirstColourPrice : PriceOf(Get(id, skin).kind, SpaceDock.RowOf(id));
+        return shopingShips.UpgradePriceFor(id, price);
     }
 
     // Raised with the ship id when its equipped or previewed skin changes.

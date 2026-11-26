@@ -313,6 +313,7 @@ public static class AllTests
         ("ToughEnemiesTest", ToughEnemiesTest.Execute),
         ("ShotAtomsTest", ShotAtomsTest.Execute),
         ("DroneSquadTest", DroneSquadTest.Execute),
+        ("DockDroneProgressionTest", DockDroneProgressionTest.Execute),
         ("HeartQuarterFramesTest", HeartQuarterFramesTest.Execute),
         ("QuarterHeartsTest", QuarterHeartsTest.Execute),
         ("RunUiPresentationTest", RunUiPresentationTest.Execute),
