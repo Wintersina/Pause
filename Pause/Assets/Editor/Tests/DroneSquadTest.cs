@@ -98,11 +98,30 @@ public static class DroneSquadTest
         var match = DroneSquad.CollectCore(DroneMode.Aimed);
         Check("matching core upgrades the matching drone instead of randomly replacing another mode", match.slot == 2 && !match.activated && match.beforeMode == DroneMode.Aimed && match.level == 2);
         ShotFeelTest.Teardown(rig);
-        Fresh(); DroneCorePickup.SpawnChoice(Vector3.up);
-        var choices = Object.FindObjectsByType<DroneCorePickup>(FindObjectsSortMode.None);
-        bool first = choices[0].TryClaim(), second = choices[1].TryClaim();
-        Check("one mode choice can be claimed; sibling pickups cannot pay twice", choices.Length == 3 && first && !second);
-        choices[0].Consume();
+        // Exercise the elite reward path after the scripted TWIN / TWIN / ARC opener.
+        for (int mode = 1; mode <= 3; mode++)
+        {
+            Fresh(); AtomSpacing.Reset();
+            for (int opening = 0; opening < 3; opening++)
+            {
+                AtomSpacing.Reset(); ShotAtomDrops.OnEliteKilled(Vector3.up, 0f);
+            }
+            foreach (var coin in Object.FindObjectsByType<ShotAtomPickup>(FindObjectsSortMode.None)) Object.DestroyImmediate(coin.gameObject);
+            AtomSpacing.Released();
+            ShotAtomDrops.OnEliteKilled(Vector3.up, 0f);
+            Check("elite reward waits for pickup spacing", ShotAtomDrops.Pending == 1);
+            AtomSpacing.Reset();
+            ShotAtomDrops.Pump(.8f + .2f * ((mode - .5f) / 3f));
+            var cores = Object.FindObjectsByType<DroneCorePickup>(FindObjectsSortMode.None);
+            Check("elite directional roll releases exactly one " + (DroneMode)mode + " coin",
+                  cores.Length == 1 && cores[0].mode == (DroneMode)mode && ShotAtomDrops.Pending == 0 &&
+                  Object.FindObjectsByType<ShotAtomPickup>(FindObjectsSortMode.None).Length == 0);
+            if (cores.Length != 1) continue;
+            var other = DroneCorePickup.SpawnRandom(Vector3.up, 1f).GetComponent<DroneCorePickup>();
+            Check("one coin can be claimed only once", cores[0].TryClaim() && !cores[0].TryClaim());
+            cores[0].Consume();
+            Check("collecting a core leaves another independent drop in place", other != null && other.gameObject.activeSelf && other.TryClaim());
+        }
     }
     static void Bosses()
     {
