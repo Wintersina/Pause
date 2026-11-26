@@ -413,7 +413,27 @@ public static class ShotAtomDrops
 
     // Has this run's first elite kill happened (it always drops)? Reset by ShotAtoms.BeginRun.
     public static bool FirstEliteDone { get; private set; }
-    public static void NewRun() { FirstEliteDone = false; lastEnemyDrop = -9999f; }
+    public static int RunCoinsReleased { get; private set; }
+    public const float OpeningFirstSeconds = 2f, OpeningGapSeconds = 6f;
+    static float openingFlightSeconds;
+    public static void NewRun()
+    {
+        FirstEliteDone = false; lastEnemyDrop = -9999f;
+        RunCoinsReleased = 0; openingFlightSeconds = 0f;
+    }
+
+    // The opening belongs to the run, not the world or the number collected. Enemy/elite/boss
+    // drops share these slots, so a lucky early drop does not duplicate the scheduled opener.
+    public static void TickOpening(float dt, Vector3 at)
+    {
+        if (dt <= 0f || !Counts() || !WorldManager.Flying || WorldEntry.Active ||
+            Planetfall.SuspendsSpawning || Liftoff.SuspendsSpawning || PortalArrival.SuspendsSpawning ||
+            BossEncounter.Running || (WorldManager.Instance != null && WorldManager.Instance.Stage != WorldManager.LevelStage.Level)) return;
+        openingFlightSeconds += dt;
+        int reserved = RunCoinsReleased + queue.Count;
+        if (reserved < 3 && openingFlightSeconds >= OpeningFirstSeconds + OpeningGapSeconds * reserved)
+            Offer(at);
+    }
     public static void ResetSeams() { ClockOverride = null; EnemyRollOverride = -1f; lastEnemyDrop = -9999f; }
 
     static bool Counts()
@@ -515,8 +535,9 @@ public static class ShotAtomDrops
 
     static void ReleaseOne(Vector3 at, float roll)
     {
-        ShotAtom atom;
-        if (!ShotAtoms.TryPick(roll >= 0f ? roll : Random.value, out atom))
+        ShotAtom atom = RunCoinsReleased < 2 ? ShotAtom.Twin : ShotAtom.Arc;
+        bool opening = RunCoinsReleased < 3 && ShotAtoms.CanDrop(atom);
+        if (!opening && !ShotAtoms.TryPick(roll >= 0f ? roll : Random.value, out atom))
         {
             // everything unlocked is maxed: dust instead
             DustDrops++;
@@ -531,6 +552,7 @@ public static class ShotAtomDrops
         Released++;
         AtomSpacing.Released();
         ShotAtomPickup.Spawn(atom, at);
+        RunCoinsReleased++;
         if (Spawned != null) Spawned(atom, at);
     }
 }

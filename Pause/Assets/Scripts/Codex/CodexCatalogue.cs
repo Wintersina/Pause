@@ -296,6 +296,7 @@ public static class CodexCatalogue
         // the range of the effect: the first level and the last (ten levels would be a wall of text)
         lines.Add("LEVEL 1  " + ShotAtomLevelText(atom, 1));
         lines.Add("LEVEL " + ShotAtomTuning.MaxLevel + "  " + ShotAtomLevelText(atom, ShotAtomTuning.MaxLevel));
+        lines.Add("RUN OPENING  TWIN, TWIN, ARC, starting after 2 seconds of flight with pickup spacing; later coins are random");
         lines.Add("DROPPED BY  every elite, a boss (two always, a third half the time) ordinary kills (18% on the run's starting level, 8% elsewhere; drop spacing applies)");
         lines.Add("MAX LEVEL  " + ShotAtomTuning.MaxLevel + "; once it is maxed on every drone a catch pays star dust");
         return string.Join("\n", lines);

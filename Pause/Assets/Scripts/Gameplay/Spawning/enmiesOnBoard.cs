@@ -212,6 +212,7 @@ public class enmiesOnBoard : MonoBehaviour {
     // level: the last ~1/8 of Space, earlier in each later world
     // (enemyRampScale; Ember ~78s) and earlier again on loops -- always
     // before the boss, at any start speed.
+    public const float AuthoredLevelSeconds = 120f;
     public const float ChaosStartSeconds = 105f;
 
     public static SpawnPhase[] DefaultPhases()
@@ -300,14 +301,14 @@ public class enmiesOnBoard : MonoBehaviour {
     }
 
     // The clock the phases run on. In gameS1 it is the world's level clock
-    // (WorldManager.LevelClockSeconds): 0 on arrival, 120 at the boss, so
+    // (WorldManager.LevelClockSeconds), normalized to the authored 120-second phase clock, so
     // every world -- and every visit -- goes through the phases again, a
     // faster start just as a stock one, proportionally sooner. Without a
     // WorldManager (tutorial, headless tests) it is the seconds flown.
     float PhaseClockSeconds()
     {
         var world = WorldManager.Instance;
-        return world != null && world.HasLevelClock ? world.LevelClockSeconds : elapsedFlightSeconds;
+        return world != null && world.HasLevelClock ? world.LevelClockSeconds * AuthoredLevelSeconds / world.WorldLength : elapsedFlightSeconds;
     }
 
     void SelectPhase()
@@ -682,9 +683,9 @@ public class enmiesOnBoard : MonoBehaviour {
         // The ramp runs on the level clock (0..120 across the level, however
         // fast the start), so a fast start climbs through the same ramp
         // sooner instead of sitting at its first steps; a stock start's clock
-        // is its seconds flown. (Past the level: seconds flown.)
+        // is stretched across the longer flight. (Past the level: seconds flown.)
         float rampClock = elapsedFlightSeconds;
-        if (world != null && world.HasLevelClock && world.DistanceLeft > 0f) rampClock = world.LevelClockSeconds;
+        if (world != null && world.HasLevelClock && world.DistanceLeft > 0f) rampClock = world.LevelClockSeconds * AuthoredLevelSeconds / world.WorldLength;
         int tick = Mathf.FloorToInt(rampClock / DensityTickSeconds);
 
         if (rampClock <= DensityFirstMinute)

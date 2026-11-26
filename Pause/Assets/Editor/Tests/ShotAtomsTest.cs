@@ -34,6 +34,7 @@ public static class ShotAtomsTest
         {
             Schedule();
             DropPicking();
+            OpeningDrops();
             DropRates();
             DropHooks();
             Twin();
@@ -236,6 +237,53 @@ public static class ShotAtomsTest
     }
 
     // ---- drops --------------------------------------------------------------------
+
+    static void OpeningDrops()
+    {
+        FreshScene();
+        ShotAtoms.BeginRun(); AtomSpacing.Reset();
+        var seen = new List<ShotAtom>();
+        ShotAtomDrops.Spawned = (atom, at) => seen.Add(atom);
+        try
+        {
+            var pos = new Vector3(0f, 4f, 0f);
+            ShotAtomDrops.TickOpening(1.9f, pos);
+            Check("opening waits only two playable seconds, independent of kills", seen.Count == 0);
+            ShotAtomDrops.TickOpening(.11f, pos);
+            Check("the first early coin is TWIN", seen.Count == 1 && seen[0] == ShotAtom.Twin);
+            // No pickup is collected: the order is determined by appearance.
+            AtomSpacing.Tick(6f); ShotAtomDrops.TickOpening(6f, pos);
+            Check("the second early coin is TWIN even if the first was missed", seen.Count == 2 && seen[1] == ShotAtom.Twin);
+            AtomSpacing.Tick(6f); ShotAtomDrops.TickOpening(6f, pos);
+            Check("the third early coin is ARC", seen.Count == 3 && seen[2] == ShotAtom.Arc);
+            ShotAtomDrops.TickOpening(100f, pos);
+            Check("scheduled opening stops after three visible coins", seen.Count == 3);
+            AtomSpacing.Released();
+            ShotAtomDrops.OnEliteKilled(pos);
+            AtomSpacing.Tick(4f); ShotAtomDrops.Pump(.99f);
+            Check("ordinary random selection resumes after the opener (a high roll gives RAPID)", seen.Count == 4 && seen[3] == ShotAtom.Rapid);
+            ShotAtoms.BeginRun(); AtomSpacing.Reset(); seen.Clear();
+            ShotAtomDrops.OnEliteKilled(pos);
+            Check("a kill before the schedule still gives the first TWIN", seen.Count == 1 && seen[0] == ShotAtom.Twin);
+            AtomSpacing.Reset(); ShotAtomDrops.TickOpening(2.1f, pos);
+            Check("an early kill consumes its opening slot, preventing a duplicate scheduled first drop", seen.Count == 1);
+            ShotAtomDrops.Clear(); AtomSpacing.Reset();
+            ShotAtomDrops.TickOpening(6f, pos);
+            Check("clearing a queue does not restart the opening order", seen.Count == 2 && seen[1] == ShotAtom.Twin);
+            ShotAtoms.BeginRun(); seen.Clear(); AtomSpacing.Released();
+            ShotAtomDrops.TickOpening(3f, pos);
+            ShotAtomDrops.TickOpening(1f, pos);
+            Check("a blocked opening coin queues once until pickup spacing is free", seen.Count == 0 && ShotAtomDrops.Pending == 1);
+            AtomSpacing.Tick(4f); ShotAtomDrops.Pump(.99f);
+            Check("the spacing queue preserves TWIN regardless of random roll", seen.Count == 1 && seen[0] == ShotAtom.Twin);
+            ShotAtoms.BeginRun(); seen.Clear(); AtomSpacing.Reset();
+            buttonClicks.playerDied = true; ShotAtomDrops.TickOpening(100f, pos);
+            buttonClicks.playerDied = false; startMenu.youAreInTutorial = true; ShotAtomDrops.TickOpening(100f, pos);
+            startMenu.youAreInTutorial = false; ShotAtomDrops.TickOpening(1f, pos);
+            Check("death/tutorial time never advances the opening clock", seen.Count == 0);
+        }
+        finally { ShotAtomDrops.Spawned = null; buttonClicks.playerDied = false; startMenu.youAreInTutorial = false; ShotAtoms.BeginRun(); }
+    }
 
     static void DropRates()
     {

@@ -11,7 +11,7 @@ using UnityEngine;
 //      (the four priciest) 10/15/20/25/30, by colour 1..5
 //   2  a run starts at the equipped colour's speed, clamped to the speed cap;
 //      a portal arrival never drops below it
-//   3  each world reaches its boss after ~120s of flight at the baseline
+//   3  each world reaches its boss after ~180s of flight at the baseline
 //      (stock start), and strictly sooner at starts 5/10/20/30 (logged)
 //      ... and every world's enemy phases, Chaos last, all come before its
 //      boss at starts 0 and 30, at the same share of the level
@@ -218,6 +218,7 @@ public static class WorldPaceTest
 
     static void TimeToBoss()
     {
+        Check("each baseline level adds a minute before its boss warning (120 + 60 seconds)", WorldManager.BaselineWorldSeconds == 180f);
         int[] starts = { 0, 5, 10, 20, 30 };
         for (int w = 0; w < WorldManager.LiveWorldCount; w++)
         {
@@ -247,7 +248,7 @@ public static class WorldPaceTest
     {
         var names = enmiesOnBoard.DefaultPhases().Select(p => p.name).ToArray();
         int chaos = names.Length - 1;
-        Check("the last phase is Chaos, from " + enmiesOnBoard.ChaosStartSeconds + "s of the 120s level",
+        Check("the last phase is Chaos, from " + enmiesOnBoard.ChaosStartSeconds + "s on the authored phase clock",
               names[chaos] == "Chaos" && enmiesOnBoard.ChaosStartSeconds < WorldManager.BaselineWorldSeconds);
         for (int w = 0; w < WorldManager.LiveWorldCount; w++)
         {
@@ -266,7 +267,7 @@ public static class WorldPaceTest
                       ordered && at[chaos] < boss - 3f && !float.IsInfinity(boss));
                 // Chaos lands in the same share of the level at any start
                 float expected = enmiesOnBoard.ChaosStartSeconds / WorldManager.Worlds[w].enemyRampScale /
-                                 WorldManager.BaselineWorldSeconds;
+                                 enmiesOnBoard.AuthoredLevelSeconds;
                 float share = at[chaos] / boss;
                 Check(name + " start " + hud + ": Chaos at " + (share * 100f).ToString("F0") + "% of the level (~" +
                       (expected * 100f).ToString("F0") + "%)", Mathf.Abs(share - expected) < .03f);

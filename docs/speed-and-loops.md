@@ -84,7 +84,7 @@ While the blue atom's shield is up the ship boosts, as today: +5 HUD per blue at
 ### Ship start speed is the advantage
 
 Unchanged table (`ShipStartSpeed`): regular ships 0 / 5 / 10 / 15 / 20 by colour, high-end 10 - 30. A
-world is a distance (what a start of 0 covers in 120 s on the world's curve), so a faster start meets the
+world is a distance (what a start of 0 covers in 180 s on the world's curve), so a faster start meets the
 boss sooner, and arrives in every later world at its start speed again. **Every new world resets the speed**
 (`WorldManager.Advance`: portal, planetfall and the final world's lift-off into Space) to exactly what a
 fresh run starts at (`WorldManager.RunStartSpeed`: the selected ship and colour's START SPD), a limit-break
@@ -92,24 +92,25 @@ boost in progress included; the ramp then climbs again at the new world's rate. 
 faster (`LoopRules.ArrivalSpeed` is not used any more): their difficulty is the ramp rate, density and
 enemies. Score, distance, hearts and charge carry over; nothing resets mid-world or mid-boss
 (`WorldSpeedResetTest`). With the cap at 35 nobody can out-ramp a fast start: time to the boss by start
-speed *(measured, `SpeedCapTest` "TABLE time to the boss")*, seconds old / new:
+speed. The baseline flight is now **180 seconds**, one minute longer before the boss warning.
+Faster ships still arrive sooner. `WorldPaceTest` measured these flight times at HUD starts 0 / 5 / 10 / 20 / 30:
 
-| World (distance old / new) | 0 | 5 | 10 | 15 | 20 | 25 | 30 |
-|---|---|---|---|---|---|---|---|
-| Space (22.1 / 22.1) | 120/120 | 105/105 | 93/93 | 83/83 | 75/75 | 69/69 | 65/65 |
-| Frost (22.9 / 23.0) | 120/120 | 106/106 | 94/94 | 84/84 | 77/77 | 71/71 | 67/68 |
-| Verdant (23.7 / 23.8) | 120/120 | 107/107 | 95/95 | 86/86 | 78/79 | 73/73 | 68/70 |
-| Ember (24.7 / 24.8) | 120/120 | 107/107 | 96/97 | 87/88 | 80/81 | 75/76 | 70/73 |
-| First pass, 4 levels of flight | 480/480 | 425/425 | 379/379 | 341/341 | 310/311 | 287/290 | 270/276 |
+| World | 0 | 5 | 10 | 20 | 30 |
+|---|---|---|---|---|---|
+| Space | 180.0 | 165.3 | 152.8 | 134.7 | 125.1 |
+| Frost | 180.0 | 165.9 | 154.0 | 136.7 | 127.6 |
+| Verdant | 180.0 | 166.6 | 155.2 | 138.6 | 129.9 |
+| Ember | 180.0 | 167.3 | 156.5 | 140.9 | 132.6 |
+| Tide | 180.0 | 168.0 | 157.7 | 142.9 | 135.1 |
+| Storm | 180.0 | 168.5 | 158.8 | 144.7 | 137.3 |
+| Desert | 180.0 | 169.1 | 159.8 | 146.4 | 139.3 |
 
-A start of 30 meets every boss 39-46% sooner than a stock start and flies a first pass in 276 s
-instead of 480 (boss fights not counted). The cap costs the fastest starts up to 3 s a level against
-the old curve (they used to keep climbing past 35 late in a level); nobody can make the time up by
-out-ramping them any more.
+Enemy phases and density ramping keep their authored 120-second clock, stretched over the longer flight;
+Chaos still arrives near the end instead of filling the added minute. Flight dust remains proportional to distance.
 
-Starting at or near 35 (tested with a start override of 35): the calm arrival is skipped (HUD >= 10, as
-before), the first enemy is primed, the boss warning's lead (30 s) is shorter than the shortest possible
-level (about 63 s at a flat 35), density starts at its HUD-35 values.
+The run's first three gun coins are **TWIN, TWIN, ARC**. They are scheduled after 2 / 8 / 14 seconds of
+playable flight, respecting the shared pickup spacing. Earlier kill drops use the same opening slots.
+The order advances when coins appear, even if missed; world changes do not reset it. Later coins are random.
 
 ### Things that were keyed to speeds above 35
 

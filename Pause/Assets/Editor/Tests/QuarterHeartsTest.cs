@@ -74,8 +74,23 @@ public static class QuarterHeartsTest
         Check("a same-frame 50% hit removes two more quarters; detached pieces coexist", h.QuartersLeft == 5 && h.View.VisibleQuarters(1) == 1 && h.View.ActiveQuarterBreaks == 3);
         ShipAttackHits.Hit(go, 1, .75f, ref budget, HitKind.Drone);
         Check("a same-frame 75% hit removes three quarters without restoring the broken heart", h.QuartersLeft == 2 && h.View.VisibleQuarters(0) == 2 && h.View.VisibleQuarters(1) == 0);
+        int remnantsBefore = Object.FindObjectsByType<HeartQuarterRemnant>(FindObjectsSortMode.None).Length;
         bool killed = ShipAttackHits.Hit(go, 1, .5f, ref budget, HitKind.Drone);
         Check("the final half heart kills and pays once", killed && go == null && ShipAttackHits.Kills == kills + 1);
+        Check("quarter fragments survive the enemy's destruction", Object.FindObjectsByType<HeartQuarterRemnant>(FindObjectsSortMode.None).Length == remnantsBefore + 1);
+        var remnant = Object.FindFirstObjectByType<HeartQuarterRemnant>();
+        bool visible = remnant != null;
+        if (remnant != null)
+        {
+            foreach (var part in remnant.GetComponentsInChildren<SpriteRenderer>())
+                visible &= part.enabled && part.color.a >= .9f && part.sprite != null;
+            var partRenderer = remnant.GetComponentInChildren<SpriteRenderer>();
+            var before = partRenderer.transform.position;
+            remnant.Step(.2f);
+            visible &= remnant != null && (partRenderer.transform.position - before).sqrMagnitude > .0001f;
+            remnant.Step(HeartQuarterFrames.BreakSeconds);
+        }
+        Check("the detached animation is bright, survives at least .2 seconds, then cleans itself up", visible && Object.FindObjectsByType<HeartQuarterRemnant>(FindObjectsSortMode.None).Length == remnantsBefore);
     }
     static void Boss()
     {

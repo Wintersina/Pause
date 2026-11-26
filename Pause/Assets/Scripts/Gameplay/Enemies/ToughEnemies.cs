@@ -114,11 +114,11 @@ public class EnemyHearts : MonoBehaviour
         lastHit = now;
         Strikes++;
         quarters = Mathf.Max(0, quarters - HeartDamage.Units(amount));
-        if (Hearts <= 0) return Toughness.Result.Lethal;
-        Toughness.Hurts++;
         impactPending = true;
         impactAt = from;
         if (View != null) View.Refresh();
+        if (Hearts <= 0) return Toughness.Result.Lethal;
+        Toughness.Hurts++;
         float r = ClearTarget.MeasureRadius(gameObject);
         Toughness.HitFx(gameObject, from, Mathf.Max(.15f, r));
         return Toughness.Result.Hurt;

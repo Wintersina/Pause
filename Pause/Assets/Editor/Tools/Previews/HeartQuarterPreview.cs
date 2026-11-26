@@ -1,5 +1,6 @@
 using System.IO;
 using UnityEditor;
+using UnityEditor.SceneManagement;
 using UnityEngine;
 
 // Deterministic export of the native heart's quarter states and break-off frames. Run after compile:
@@ -52,12 +53,59 @@ public static class HeartQuarterPreview
         Object.DestroyImmediate(strip);
         File.WriteAllText(Path.Combine(DirectoryPath, "frames.txt"),
             "Loss order: top-right, bottom-right, bottom-left, top-left.\n" +
-            "States index remaining quarters 0..4. Each loss has 8 frames at .045 seconds/frame.\n" +
+            "States index remaining quarters 0..4. Each loss has 8 frames at .07 seconds/frame.\n" +
             "Atlas: 8 columns x 10 rows, source-size cells, rows top to bottom.\n" +
             "Row 0 states 0%,25%,50%,75%,100%; row 1 original quarter pieces; rows 2..5 combined breaks; rows 6..9 detached overlays.\n" +
             "All cells keep the original pivot and pixels-per-unit.\n");
         Debug.Log("[HEARTQ] Preview exported to " + DirectoryPath);
     }
+    // Actual health/damage/render path at phone resolution, including a killing hit.
+    public static void ExportCombat()
+    {
+        using var sandbox = new TestHarness.Sandbox();
+        EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
+        var cam = new GameObject("Main Camera", typeof(Camera)).GetComponent<Camera>();
+        cam.tag = "MainCamera"; cam.orthographic = true; cam.orthographicSize = 5f;
+        cam.aspect = 480f / 854f; cam.transform.position = new Vector3(0f, 0f, -10f);
+        cam.clearFlags = CameraClearFlags.SolidColor; cam.backgroundColor = new Color(.015f, .02f, .05f);
+        var rt = new RenderTexture(480, 854, 24);
+        var image = new Texture2D(480, 854, TextureFormat.RGBA32, false);
+        var previous = RenderTexture.active;
+        cam.targetTexture = rt;
+        var dir = Path.Combine(DirectoryPath, "combat-quarter"); Directory.CreateDirectory(dir);
+        var enemy = EnemyFactory.Create(EnemyRoster.One(0, EnemyRole.Fighter), Vector3.zero, Quaternion.identity, 1f, true);
+        ClearTarget.Ensure(enemy);
+        var view = enemy.GetComponent<EnemyHearts>().View;
+        for (int i = 0; i < 40; i++) view.Place(.02f, .02f);
+        float budget = 1f;
+        try
+        {
+            ShipAttackHits.Hit(enemy, 1, .25f, ref budget, HitKind.Drone);
+            for (int phase = 0; phase < 2; phase++)
+            {
+                if (phase == 1)
+                    for (int hit = 0; hit < 7; hit++) ShipAttackHits.Hit(enemy, 1, .25f, ref budget, HitKind.Drone);
+                for (int frame = 0; frame < 6; frame++)
+                {
+                    if (frame > 0)
+                    {
+                        if (enemy != null) { view.Place(.11f, .11f); view.StepBreaks(.11f); }
+                        foreach (var remnant in Object.FindObjectsByType<HeartQuarterRemnant>(FindObjectsSortMode.None)) remnant.Step(.11f);
+                    }
+                    cam.Render(); RenderTexture.active = rt;
+                    image.ReadPixels(new Rect(0, 0, 480, 854), 0, 0); image.Apply();
+                    File.WriteAllBytes(Path.Combine(dir, (phase == 0 ? "hit" : "kill") + "-" + frame.ToString("D2") + ".png"), image.EncodeToPNG());
+                }
+            }
+        }
+        finally
+        {
+            cam.targetTexture = null; RenderTexture.active = previous;
+            Object.DestroyImmediate(rt); Object.DestroyImmediate(image);
+        }
+        Debug.Log("[HEARTQ] Live combat frames exported to " + dir);
+    }
+
     static void Save(Sprite sprite, string name)
     {
         var rect = sprite.rect;
