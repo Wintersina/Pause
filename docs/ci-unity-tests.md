@@ -63,6 +63,8 @@ Jobs: `plan` (a few seconds) -> `test` matrix (shards in parallel) -> `AllTests`
 - Skipped on purpose: `BossLadderBotTest` no longer re-runs the old-table baseline (info only) unless
   `PAUSE_LADDER_BASELINE=1`; `BossWaveTest`'s pause/slow-motion stress runs 60 s instead of 90 s.
 
+`WorldHazardsTest` uses one empty scene per suite and destroys its scene roots between cases, including untracked effect roots. Shard 1 of PR #592 timed out after two hours with no failed assertions, immediately after the 2,000-shot pool checks at the next scene's native asset-unload step. Explicit teardown keeps hazard `OnDestroy` and texture releases outside that scene-unload pass. The allocation, ambient, geometry and art checks still run; the normal sandbox restores state and unloads assets at suite end.
+
 ## One-time setup (repo admin)
 
 Unity removed manual (.ulf) activation for Personal accounts, so CI activates the Personal seat
