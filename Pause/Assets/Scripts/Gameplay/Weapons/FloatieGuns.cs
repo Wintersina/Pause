@@ -1,6 +1,6 @@
 using UnityEngine;
 
-// Every ship starts with three dormant companions. Directional cores activate them and set
+// Dock upgrades unlock one, two or three starting companion slots. Directional cores activate them and set
 // straight, alternating or aimed fire; bosses recruit additional drones up to twelve.
 // Aimed shots choose a heading at launch and never track afterward. Weapon skins retain
 // their colour and final-tier cooldown cut. Core levels and shared RAPID increase fire rate.
@@ -22,8 +22,8 @@ public static class FloatieTuning
     public const float BossWeight = 1f;          // one plain bullet, in hearts
     public const int PoolSize = ShotAtomTuning.MaxBullets;   // bullets alive at once, at most (the shot atoms' cap; twin and split need the room)
 
-    public static int CountAt(int level) => DroneSquad.Slots;
-    public static int CountAt(int ship, int level) => DroneSquad.Slots;
+    public static int CountAt(int level) => DroneSquad.UnlockedAtLevel(level);
+    public static int CountAt(int ship, int level) => DroneSquad.UnlockedAtLevel(level);
 
     public enum Role { Main, Spread, Seeker, FanLeft, FanRight, SeekerTwo }
 
@@ -55,7 +55,7 @@ public static class FloatieTuning
 
     public static string DockNote(int ship, int level)
     {
-        return level >= ShipWeaponUpgrades.MaxLevel ? "-25% DRONE CD" : null;
+        return level >= ShipWeaponUpgrades.MaxLevel ? "+1 DRONE, -25% DRONE CD" : level == 3 ? "+1 DRONE" : null;
     }
 
     // The word the dock, the shop's offer and the Codex add to a step: what the floaties gain at that level (null: nothing).
@@ -63,7 +63,7 @@ public static class FloatieTuning
 
     public static string StepNote(int ship, int level)
     {
-        return level >= ShipWeaponUpgrades.MaxLevel ? "-25% DRONE COOLDOWN" : null;
+        return level >= ShipWeaponUpgrades.MaxLevel ? "+1 DRONE, -25% DRONE COOLDOWN" : level == 3 ? "+1 DRONE" : null;
     }
 }
 

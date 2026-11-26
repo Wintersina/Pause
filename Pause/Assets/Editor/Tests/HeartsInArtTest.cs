@@ -120,7 +120,7 @@ public static class HeartsInArtTest
         foreach (var b in BossCatalog.All) bosses &= b.heartColor == ShipLivesIndicator.HeartTint;
         Check("... and so do all " + BossCatalog.All.Length + " bosses", bosses);
         Check("elite and boss hearts draw the very same sprite as the player's", EliteHearts.SpritePath == ShipLivesIndicator.HeartSpritePath && BossHearts.SpritePath == ShipLivesIndicator.HeartSpritePath);
-        Check("a boss has 10 hearts and 10 hit points", BossConfig.Hearts == 10 && BossConfig.HitPoints == 10);
+        Check("a starting boss has 13 hearts, one hit point per heart", BossConfig.HeartsAt(0, 0) == 13 && BossConfig.HitPoints == BossConfig.Hearts);
     }
 
     // ---- elites ----------------------------------------------------------
@@ -228,8 +228,8 @@ public static class HeartsInArtTest
             var actor = BossActor.Spawn(boss);
             actor.BeginFight();
             var h = actor.Hearts;
-            Check(boss.artKey + ": 10 player-red hearts in a tilted (3D) ring",
-                  h.Hearts.Length == 10 && h.OrbitParams.tilt >= 30f && h.OrbitParams.precession > 0f && h.Hearts[0].GetComponent<SpriteRenderer>().color == ShipLivesIndicator.HeartTint);
+            Check(boss.artKey + ": its scaled player-red hearts in a tilted (3D) ring",
+                  h.Hearts.Length == BossConfig.HeartsForWorld(boss.WorldIndex) && h.OrbitParams.tilt >= 30f && h.OrbitParams.precession > 0f && h.Hearts[0].GetComponent<SpriteRenderer>().color == ShipLivesIndicator.HeartTint);
             // the first idle drawing of the body, exactly as the boss shows it at rest
             int f = BossArt.HasExpandedCombat(boss) ? BossArt.SpaceIdle0 : BossArt.Idle0;
             int col = f % BossArt.BodyColumns, row = f / BossArt.BodyColumns, x0 = col * cell, y0 = (rows - 1 - row) * cell;

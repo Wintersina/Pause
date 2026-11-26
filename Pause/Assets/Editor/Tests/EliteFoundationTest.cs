@@ -181,7 +181,7 @@ public static class EliteFoundationTest
         Fresh(.05f);
         var def = Space("eventide_bastion");
         var e = InPlay(def, new Vector2(0f, 1.5f));
-        RunScore.OnElite(Vector3.zero, 300);
+        RunScore.OnElite(Vector3.zero, ScoreRules.EliteEscapePenalty + 300);
         long before = RunScore.Total;
         Check("a fresh elite has its engagement timer (" + e.EngageLeft + ")", Mathf.Approximately(e.EngageLeft, def.engageSeconds) && def.engageSeconds >= 40f);
         var popups = new List<(int, RunScore.Source)>();
@@ -202,8 +202,8 @@ public static class EliteFoundationTest
         Check("it left without a death (no kill, no reward, no dust)", !Alive(e) && EliteShip.Escapes == escapes + 1 && EliteShip.Kills == kills &&
               EliteRewards.Paid == paid && Mathf.Approximately(EliteRewards.LastDust, dustBefore));
         Check("it never attacked on the way", e == null || e.Attacks == attacks);
-        int half = def.Score / 2;
-        Check("the pilot lost half the kill's score (" + before + " -> " + RunScore.Total + ", -" + half + ")", RunScore.Total == before - half && EliteShip.LastEscapeLoss == half);
+        int half = ScoreRules.EliteEscapePenalty;
+        Check("the pilot lost the flat 1000 escape penalty (" + before + " -> " + RunScore.Total + ", -" + half + ")", RunScore.Total == before - half && EliteShip.LastEscapeLoss == half);
         Check("a '-N' ESCAPED popup was raised", popups.Contains((-half, RunScore.Source.Escape)));
         Check("it is gone from the live list", EliteShip.Live.Count == 0);
     }
@@ -211,15 +211,15 @@ public static class EliteFoundationTest
     static void EscapeScoreClamp()
     {
         Fresh(.05f);
-        Check("an empty run loses nothing", RunScore.Total == 0 && RunScore.OnEliteEscaped(Vector3.zero, 25) == 0 && RunScore.Total == 0);
+        Check("an empty run loses nothing", RunScore.Total == 0 && RunScore.OnEliteEscaped(Vector3.zero) == 0 && RunScore.Total == 0);
         RunScore.OnElite(Vector3.zero, 10);
         long have = RunScore.Total;
-        int lost = RunScore.OnEliteEscaped(Vector3.zero, 25);
-        Check("10 points, 25 asked: only what it has is lost, never below 0 (" + have + " -> " + RunScore.Total + ")", lost == have && RunScore.Total == 0);
-        RunScore.OnElite(Vector3.zero, 100);
+        int lost = RunScore.OnEliteEscaped(Vector3.zero);
+        Check("10 points, 1000 asked: only what it has is lost, never below 0 (" + have + " -> " + RunScore.Total + ")", lost == have && RunScore.Total == 0);
+        RunScore.OnElite(Vector3.zero, ScoreRules.EliteEscapePenalty + 100);
         have = RunScore.Total;
-        RunScore.OnEliteEscaped(Vector3.zero, 25);
-        Check("the score keeps the rest", RunScore.Total == have - 25);
+        RunScore.OnEliteEscaped(Vector3.zero);
+        Check("the score keeps the rest", RunScore.Total == have - ScoreRules.EliteEscapePenalty);
         // through the elite: score 0, escape
         Fresh(.05f);
         var e = InPlay(Space("rift_lancer"), new Vector2(0f, 1.5f));

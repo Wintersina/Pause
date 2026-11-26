@@ -108,7 +108,7 @@ Faster ships still arrive sooner. `WorldPaceTest` measured these flight times at
 Enemy phases and density ramping keep their authored 120-second clock, stretched over the longer flight;
 Chaos still arrives near the end instead of filling the added minute. Flight dust remains proportional to distance.
 
-The run starts with three dormant drone slots and an immediate **AIMED directional core** near the ship. The first three modifier coins are **TWIN, TWIN, ARC**; the two TWIN pickups activate the remaining dormant slots, inheriting the last chosen mode. They are scheduled after 2 / 8 / 14 seconds of
+The run starts with its dock-unlocked drone slots (1 / 1 / 1 / 2 / 3 by upgrade level) and an **AIMED directional core** entering from above the camera. The first three modifier coins are **TWIN, TWIN, ARC**; TWIN pickups activate only unlocked dormant slots, inheriting the last chosen mode. They are scheduled after 2 / 8 / 14 seconds of
 playable flight, respecting the shared pickup spacing. Earlier kill drops use the same opening slots.
 The order advances when coins appear, even if missed; world changes do not reset it. Later coins are random.
 

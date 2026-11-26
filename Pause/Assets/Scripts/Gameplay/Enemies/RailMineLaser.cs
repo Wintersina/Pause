@@ -12,7 +12,7 @@ using UnityEngine;
 //   Beam   BeamSeconds of sustained beam: the only phase with a hitbox.
 //   Cool   CoolSeconds of flicker as it dies out. Harmless.
 //
-// LOOK, THEMED. Ember (flame-thrower), Frost (cryo beam), Verdant (thorned vine), Tide (water jet) and Storm (lightning arc) each fire their own
+// LOOK, THEMED. Ember (flame-thrower), Frost (cryo beam), Verdant (thorned vine), Tide (water jet), Storm (lightning arc) and Desert (sun-glass lance) each fire their own
 // painted mine atlas (<w>_attack_minebeam.png, the mineflame layout, AttackArt.MineBeam / MineFlameArt.ForWorld): pilot, aim line, beam loop,
 // muzzle burst, rail impact and haze in that world's material, all with the pink hostile cue. Where that atlas is missing: Space, Frost and Verdant
 // fire their world's own painted laser kit (Resources/Attacks/<World>/<w>_attack_laser*.png via

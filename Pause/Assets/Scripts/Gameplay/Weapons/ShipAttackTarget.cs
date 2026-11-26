@@ -196,7 +196,7 @@ public static class ShipTargets
     //   * while a boss is alive, the boss and nothing else.
     public static bool IsBossTarget(ClearTarget t)
     {
-        return t != null && t.TryGetComponent<BossTarget>(out _);
+        return t != null && t.TryGetComponent<IBossAttackTarget>(out _);
     }
 
     public static bool BossAlive()

@@ -27,6 +27,7 @@ public static class BossEscapeClockTest
         try
         {
             TheNumbers();
+            SelectedStartIsHeld();
             for (int w = 0; w < BossCatalog.All.Length; w++) EveryBossHasTheRule(w);
         }
         finally
@@ -43,14 +44,37 @@ public static class BossEscapeClockTest
     {
         const int OldHearts = 5;
         Check("the escape clock is one named constant, 120 s (2 minutes)", BossConfig.EscapeSeconds == 120f && BossConfig.FightSeconds == BossConfig.EscapeSeconds);
-        Check("hearts = the old " + OldHearts + " + 5 = 10 (" + BossConfig.Hearts + ")",
-              BossConfig.BaseHearts == OldHearts && BossConfig.ExtraHearts == 5 && BossConfig.Hearts == 10 && BossConfig.HitPoints == 10);
+        Check("starting hearts = the old " + OldHearts + " + 8 = 13 (" + BossConfig.Hearts + ")",
+              BossConfig.BaseHearts == OldHearts && BossConfig.ExtraHearts == 8 && BossConfig.HeartsAt(0, 0) == 13 && BossConfig.HitPoints == BossConfig.Hearts);
         Check("the hearts still split the hit points evenly (" + BossConfig.HitPoints + " hits, " + BossConfig.HeartWeight.ToString("F3") + " a heart)",
               Mathf.Abs(BossConfig.HeartWeight * BossConfig.Hearts - BossConfig.HitPoints) < 1e-4f && BossConfig.HitPoints == BossConfig.Hearts && Mathf.Abs(BossConfig.HeartWeight - 1f) < 1e-4f);
         Check("no boss has its own hearts or clock: the catalogue holds neither", typeof(BossDef).GetField("hearts") == null && typeof(BossDef).GetField("fightSeconds") == null);
+        for (int start = 0; start < WorldManager.Worlds.Length; start++)
+        for (int step = 0; step < WorldManager.Worlds.Length; step++)
+        {
+            int world = (start + step) % WorldManager.Worlds.Length;
+            Check("start " + start + ", world " + world + ": health grows from the selected starting level, including wraps",
+                BossConfig.HeartsAt(world, start) == 13 + step && BossConfig.HeartsAt(world, start, 1) == 20 + step);
+        }
         // the free shots of the fight fit its clock
         float[] t = new float[BossFreeShotAtoms.Count];
         Check("the free-shot atoms fit the 120 s clock", BossFreeShotAtoms.Roll(BossConfig.FightSeconds, t) == BossFreeShotAtoms.Count);
+    }
+
+    static void SelectedStartIsHeld()
+    {
+        using var held = new TestHarness.Sandbox();
+        EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
+        BossEncounter.ResetRun(); WorldManager.ClearReplayWorld(); RunLoop.Reset();
+        PlayerPrefs.SetInt(DeveloperUnlocks.EnabledKey, 0);
+        PlayerPrefs.SetInt(WorldManager.PrefsHighestWorld, 6); PlayerStartWorld.Select(3);
+        var manager = new GameObject("~HeldHealthStart").AddComponent<WorldManager>();
+        manager.SendMessage("Awake"); manager.HoldStartWorld();
+        Check("dock-selected Ember starts at thirteen hearts; the next world has fourteen",
+            WorldManager.RunStart == 3 && BossConfig.HeartsForWorld(3) == 13 && BossConfig.HeartsForWorld(4) == 14 && BossConfig.HeartsForWorld(0) == 17);
+        PlayerStartWorld.Select(0);
+        Check("changing a saved preference cannot move the active run's health curve", BossConfig.HeartsForWorld(3) == 13);
+        Object.DestroyImmediate(manager.gameObject);
     }
 
     static void EveryBossHasTheRule(int world)
@@ -70,6 +94,7 @@ public static class BossEscapeClockTest
         PlayerPrefs.SetInt(DeveloperUnlocks.EnabledKey, 0);
         PlayerPrefs.SetInt(WorldManager.PrefsCurrentWorld, world);
 
+        RunScore.EndRun(RunScore.RunId); RunScore.BeginRun(true, true); RunScore.OnElite(Vector3.zero, 20000);
         BossEncounter.Begin(world, null);
         var e = BossEncounter.Instance;
         e.Step(Dt, 1f);
@@ -79,6 +104,7 @@ public static class BossEscapeClockTest
               e.State == BossEncounter.Phase.Fight && e.HeartsLeft == BossConfig.Hearts && e.Actor.Hearts != null && e.Actor.Hearts.ShownCount == BossConfig.Hearts &&
               Mathf.Abs(e.Remaining - 120f) < .01f);
 
+        long scoreBeforeEscape = RunScore.Total;
         float fought = 0f;
         while (e.State == BossEncounter.Phase.Fight && fought < 119.5f) { e.Step(Dt, 1f); fought += Dt; }
         Check(name + ": still here at " + fought.ToString("F1") + " s (not escaped before 2 min)",
@@ -87,5 +113,8 @@ public static class BossEscapeClockTest
         Check(name + ": escapes at 120 s (" + fought.ToString("F1") + " s), not destroyed",
               e.State == BossEncounter.Phase.Outro && !e.Destroyed && e.Actor.State == BossActor.Mode.Retreating &&
               Mathf.Abs(fought - 120f) < .3f);
+        Check(name + ": an escape costs exactly 10000 points", RunScore.Total == scoreBeforeEscape - 10000);
+        long afterEscape = RunScore.Total; e.Step(Dt, 1f);
+        Check(name + ": the escape penalty is not charged again during the outro", RunScore.Total == afterEscape);
     }
 }

@@ -33,7 +33,7 @@ using UnityEngine;
 //
 // Bullet counts are not a knob: walls are laid at each world's pitch with one gap, so a "denser" wave is more waves on
 // the beat, not more bullets in one; the director's budget (Room: the pool less a reserve) bounds the live shots.
-// The boss's health is not a knob either: every boss has the same 10 hearts (BossConfig.Hearts, the user's rule).
+// Boss health follows run-relative world progression in BossConfig, independently of musical intensity.
 // Nor is the attack ROTATION: every boss keeps its phase structure (phase 1 its first attacks, the specials as their
 // minPhase unlocks them, BossThemedTest); the ladder works through the waves' intensity, speed and start only.
 public sealed class BossDifficultyRow

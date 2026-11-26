@@ -6,7 +6,10 @@ public enum DroneMode { Dormant = 0, Straight = 1, Alternating = 2, Aimed = 3 }
 
 public static class DroneSquad
 {
-    public const int StartingSlots = 3, MaxSlots = 12, MaxCoreLevel = 4;
+    public const int MaxStartingSlots = 3, MaxSlots = 12, MaxCoreLevel = 4;
+    public static int StartingSlots { get; private set; } = 1;
+    public static int UnlockedAtLevel(int level) => level >= ShipWeaponUpgrades.MaxLevel ? 3 : level >= 3 ? 2 : 1;
+    public static int StartingFor(int ship) => UnlockedAtLevel(ShipWeaponUpgrades.Level(ship));
     static readonly DroneMode[] modes = new DroneMode[MaxSlots];
     static readonly int[] coreLevels = new int[MaxSlots];
     public static int Slots { get; private set; } = StartingSlots;
@@ -22,13 +25,15 @@ public static class DroneSquad
     public static DroneMode Mode(int slot) => slot >= 0 && slot < Slots ? modes[slot] : DroneMode.Dormant;
     public static int CoreLevel(int slot) => slot >= 0 && slot < Slots ? coreLevels[slot] : 0;
     public static float RateBonus(int slot) => Mathf.Max(0, CoreLevel(slot) - 1) * .25f;
-    public static void BeginRun()
+    public static void BeginRun(int startingSlots = -1)
     {
+        StartingSlots = startingSlots > 0 ? Mathf.Clamp(startingSlots, 1, MaxStartingSlots) : StartingFor(ShipId.Equipped());
         Slots = StartingSlots; Selected = 0; PreferredMode = DroneMode.Aimed; StarterOffered = false;
         for (int i = 0; i < MaxSlots; i++) { modes[i] = DroneMode.Dormant; coreLevels[i] = 0; }
         Version++;
     }
-    // ShotAtoms and editor fixtures share the same slot limit.
+    // ShotAtoms and editor fixtures share the same slot limit. Pickups never call this;
+    // normal coins cannot grant a locked dock slot.
     public static void SetSlots(int count)
     {
         count = Mathf.Clamp(count, 1, MaxSlots);
@@ -123,8 +128,7 @@ public static class DroneSquad
         if (StarterOffered || startMenu.youAreInTutorial || buttonClicks.playerDied || !WorldManager.Flying ||
             WorldEntry.Active || WorldTransition.InProgress || BossEncounter.Running) return;
         var battery = FloatieBattery.Current;
-        Vector3 at = battery != null ? battery.transform.position + Vector3.up * 1.25f : new Vector3(0f, CameraFit.ViewBottom + 2.5f, 0f);
-        at.y = Mathf.Min(at.y, CameraFit.ViewTop - .8f);
+        Vector3 at = new Vector3(battery != null ? battery.transform.position.x : 0f, CameraFit.ViewTop + .6f, 0f);
         DroneCorePickup.Spawn(DroneMode.Aimed, at);
         StarterOffered = true;
         AtomSpacing.Released();

@@ -733,7 +733,7 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint, I
         if (gone || stateTime >= RetreatMaxSeconds) Escape(false);
     }
 
-    // It got away: removed without a death, a reward or a codex entry; the pilot loses half what the kill paid.
+    // It got away: removed without a death, a reward or a codex entry; the pilot loses the flat elite escape penalty.
     void Escape(bool intoDock)
     {
         if (State == EliteState.Dead) return;
@@ -745,7 +745,7 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint, I
         if (target != null) ClearTarget.Release(gameObject);
         if (footprint != null) footprint.enabled = false;
         if (Attack != null) { Attack.OnDeath(); Attack.End(); }
-        LastEscapeLoss = RunScore.OnEliteEscaped(at, bossEscape ? BossArrivalEscapePenalty : Def.Score / 2);
+        LastEscapeLoss = RunScore.OnEliteEscaped(at);
         if (EscapedCb != null) EscapedCb(this, LastEscapeLoss);
         BossUtil.Kill(gameObject);
     }
@@ -1592,7 +1592,7 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint, I
         BossUtil.Kill(gameObject);
     }
     public static int Dismissed;
-    public const int BossArrivalEscapePenalty = 25;   // score lost when an elite boosts away because a boss arrived
+    public const int BossArrivalEscapePenalty = ScoreRules.EliteEscapePenalty;   // score lost when an elite boosts away because a boss arrived
     bool bossEscape;
 
     void Die(EliteDamage cause)

@@ -161,7 +161,8 @@ public static class ScoreRules
 
     // ---- bosses ----
     public static int BossDestroyed = 300;
-    public static int BossEscapePenalty = 150;   // it ran out the clock and got away: the pilot LOSES this (floored at 0)
+    public static int BossEscapePenalty = 10000; // flat loss, floored at zero
+    public const int EliteEscapePenalty = 1000; // flat loss, including retreats caused by boss arrival
     // HitPoints rule only: seconds left on the fight clock when it blew up.
     public static int BossTimeBonusPerSecond = 5;
 

@@ -67,7 +67,7 @@ public static class UnifiedLeaderboardTest
         foreach (string k in new[]
         {
             LeaderboardService.PendingKey, LeaderboardService.SubmittedKey, LeaderboardService.NormalBestKey, LeaderboardService.BoostedBestKey,
-            LeaderboardService.BoundPlayerKey, LeaderboardService.SeasonKey, RunScore.BestScoreKey, AccountLink.DisconnectedKey,
+            LeaderboardService.BoundPlayerKey, LeaderboardService.SeasonKey, NewBestReset.FlagKey, RunScore.BestScoreKey, AccountLink.DisconnectedKey,
         }) PlayerPrefs.DeleteKey(k);
         PlayerPrefs.SetInt(DeveloperUnlocks.EnabledKey, 0);
         PlayerPrefs.SetString("HasDoneTut", "true");

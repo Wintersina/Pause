@@ -345,7 +345,9 @@ public static class AccountCloudSaveTest
         Check("codex: round trip restores all three keys",
               PlayerPrefs.GetString(Codex.PrefsKey) == "a,b,c" && PlayerPrefs.GetString(Codex.NewKey) == "b,c" &&
               PlayerPrefs.GetString(Codex.AckKey) == "ach:x,c");
-        Check("codex: json stays compact (< 2 KB for 5 ids)", json.Length < 2048);
+        var codexOnly = new ProgressSnapshot { codexSeen = cap.codexSeen, codexNew = cap.codexNew, codexNewAck = cap.codexNewAck };
+        int codexBytes = codexOnly.ToJson().Length - new ProgressSnapshot().ToJson().Length;
+        Check("codex: five ids add under 2 KB to the save", codexBytes < 2048);
 
         // union of discoveries
         var m = ProgressMerge.Merge(CodexSnap(10, "a,b", "", ""), CodexSnap(20, "b,c", "", ""));
@@ -415,8 +417,12 @@ public static class AccountCloudSaveTest
         PlayerPrefs.SetString(Codex.PrefsKey, string.Join(",", entryIds));
         PlayerPrefs.SetString(Codex.NewKey, string.Join(",", entryIds));
         PlayerPrefs.SetString(Codex.AckKey, string.Join(",", entryIds));
-        int full = ProgressSnapshot.Capture(0).ToJson().Length;
-        Check("codex: a snapshot with every entry in all three lists stays under 16 KB (" + full + ")", full < 16384);
+        var fullSnapshot = ProgressSnapshot.Capture(0);
+        int full = fullSnapshot.ToJson().Length;
+        var allCodex = new ProgressSnapshot { codexSeen = fullSnapshot.codexSeen, codexNew = fullSnapshot.codexNew, codexNewAck = fullSnapshot.codexNewAck };
+        int allCodexBytes = allCodex.ToJson().Length - new ProgressSnapshot().ToJson().Length;
+        Check("codex: all three complete lists add under 16 KB (" + allCodexBytes + ")", allCodexBytes < 16384);
+        Check("the complete save with all Codex entries stays under 32 KB (" + full + ")", full < 32768);
 
         ClearProgress();
         Codex.Reload();

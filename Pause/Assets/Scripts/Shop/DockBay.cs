@@ -17,7 +17,7 @@ using UnityEngine;
 // berth lights answer the tap, and its name and price tag stay readable.
 // Buying it reveals it: the shape fills with white, then the white fades
 // into the hull's own colours.
-public class DockBay : MonoBehaviour
+public partial class DockBay : MonoBehaviour
 {
     // Sorting orders, back to front.
     public const int OrderBay = 2, OrderBack = 3, OrderShadow = 5, OrderHighlight = 10,
@@ -101,6 +101,7 @@ public class DockBay : MonoBehaviour
         back = MakeSprite("Wall", DockArt.Lot("bay_back"), new Vector3(0f, -(64f - 12f) * DockLayout.Px, 0f), OrderBack, orient);
         floor.color = back.color = new Color(1f, 1f, 1f, DockArt.DeckOpacity);
         highlight = MakeSprite("Highlight", DockArt.Lot("bay_highlight"), Vector3.zero, OrderHighlight, orient);
+        floor.transform.localScale = highlight.transform.localScale = Vector3.one * 1.06f;
         shadow = MakeSprite("Shadow", DockArt.Get("shadow"), ShipRest + new Vector3(.05f, -.06f), OrderShadow, orient);
         for (int k = 0; k < 2; k++) digits[k] = MakeSprite("Digit" + k, null, Vector3.zero, OrderLabel, transform);
 
@@ -165,6 +166,7 @@ public class DockBay : MonoBehaviour
         chipText.color = DockArt.Gold;
 
         SetNumber(i);
+        BuildLoadout(font);
         SetFacing(Facing.Up);
         SetLabelScale(1f);
         ApplyPower(0f);
@@ -232,6 +234,7 @@ public class DockBay : MonoBehaviour
     {
         Owned = owned;
         Equipped = equipped;
+        RefreshLoadout();
         nameText.color = equipped ? DockArt.Cyan : owned ? NameOwned : NameLocked;
         statusIcon.enabled = owned;
         statusIcon.sprite = DockArt.Get(equipped ? "icon_active" : "icon_owned");
@@ -279,7 +282,7 @@ public class DockBay : MonoBehaviour
 
     public const float LabelPad = 8f * DockLayout.Px;     // clear space between a label and the bay's frame
     public const float ChipH = .24f;                       // price pill height, world units (about 20 kit px)
-    public const float DigitK = .6f;                       // the bay number's size next to the 12 x 16 px stencil
+    public const float DigitK = .75f;                       // the bay number's size next to the 12 x 16 px stencil
     static readonly float ChipY = 48f * DockLayout.Px - LabelPad - ChipH * .5f;
 
     bool Side { get { return nose.x != 0f; } }
@@ -318,10 +321,11 @@ public class DockBay : MonoBehaviour
             iconAt = new Vector3(40f * px, WallY, 0f);
         }
         // digit cells are 12 px wide; the pair is centred on numberAt
-        digits[0].transform.localPosition = numberAt + new Vector3(-6f * px * DigitK, 0f, 0f);
-        digits[1].transform.localPosition = numberAt + new Vector3(6f * px * DigitK, 0f, 0f);
+        digits[0].transform.localPosition = numberAt + new Vector3(-6f * px * DigitK * labelK, 0f, 0f);
+        digits[1].transform.localPosition = numberAt + new Vector3(6f * px * DigitK * labelK, 0f, 0f);
         statusIcon.transform.localPosition = iconAt;
         PlaceChip();
+        PlaceLoadout();
     }
 
     int number;
@@ -340,7 +344,7 @@ public class DockBay : MonoBehaviour
         get
         {
             Vector3 a = digits[0].transform.localPosition, b = digits[1].transform.localPosition;
-            float k = DigitK * DockLayout.Px;
+            float k = DigitK * labelK * DockLayout.Px;
             return new Rect(a.x - 6f * k, a.y - 8f * k, (b.x - a.x) + 12f * k, 16f * k);
         }
     }
@@ -361,6 +365,7 @@ public class DockBay : MonoBehaviour
     public void SetLabelScale(float k)
     {
         labelK = k;
+        PositionLabels();
         nameText.transform.localScale = new Vector3(E, E, 1f);
         statusIcon.transform.localScale = Vector3.one * .62f * E;
         for (int d = 0; d < 2; d++) digits[d].transform.localScale = new Vector3(k * DigitK, k * DigitK, 1f);

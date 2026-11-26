@@ -156,10 +156,10 @@ public static class ShipLoadoutTable
             PowerTrigger.EnemiesOnScreen, 3, 0f,
             maxHits: 5, range: 4.6f, width: 2.5f),
         // 3 Solar Fang (2900)
-        Row(3, ShipAttack.HeatWave, "HEAT WAVE", "A wall of heat rolls up the screen, burning everything it passes.",
+        Row(3, ShipAttack.HeatWave, "HEAT WAVE", "A faster, thicker heat wall burns across the screen. Boss damage grows from 1.5 to 3 hearts with colours.",
             SecretPower.SolarNova, "SOLAR NOVA", "Burns away everything close by and leaves a burning ring for 2 s.",
             PowerTrigger.HazardsNearShip, 3, 2.3f,
-            duration: .4f, width: .7f, speed: 5f),
+            duration: .4f, width: 1f, speed: 6f),
         // 4 Crimson Halo (4550)
         Row(4, ShipAttack.RailSlug, "RAIL GUN", "Pierces everything in a straight line.",
             SecretPower.CapacitorDump, "CAPACITOR DUMP", "Fires the rail gun at once.",

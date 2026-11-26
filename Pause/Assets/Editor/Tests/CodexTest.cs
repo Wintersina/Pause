@@ -702,7 +702,7 @@ public static class CodexTest
             Check("boss " + b.id + " lore lists every attack", attacks);
             Check("boss " + b.id + " lore names the body part each attack fires from" + (parts ? "" : " (missing" + missing + " in: " + e.lore.Replace("\n", " | ") + ")"), parts);
             Check("boss " + b.id + " lore says how the fight ends",
-                  e.lore.Contains(BossConfig.HitPoints + " weapon hits") && e.lore.Contains(Mathf.RoundToInt(BossConfig.FightSeconds) + " s"));
+                  e.lore.Contains(BossConfig.HeartsForWorld(b.WorldIndex) + " weapon hits") && e.lore.Contains(Mathf.RoundToInt(BossConfig.FightSeconds) + " s"));
             accounted.Add(b.id);
         }
 

@@ -183,6 +183,12 @@ public sealed class LeaderboardService
     {
         int season = LeaderboardBoards.Season;
         if (PlayerPrefs.GetInt(SeasonKey, LeaderboardBoards.FirstSeason) >= season) return;
+        // Season 2 introduced this scoreboard. A migrated/restored modern save must not
+        // lose its scores merely because its local season stamp was absent.
+        if (season == 2 && PlayerPrefs.GetInt(NewBestReset.FlagKey, 0) >= NewBestReset.CurrentScoreSystem)
+        {
+            PlayerPrefs.SetInt(SeasonKey, season); PrefsSaver.SaveNow(); return;
+        }
         PlayerPrefs.DeleteKey(PendingKey);
         PlayerPrefs.DeleteKey(SubmittedKey);
         PlayerPrefs.SetInt(NormalBestKey, 0);

@@ -117,7 +117,9 @@ public class shopingShips : MonoBehaviour {
     };
 
     // Prices, exposed so the shop buttons can show them before you tap in.
-    public static readonly float[] Prices =
+    public const float Ship15Price = 15000f;
+    public const float ProgressionPriceScale = Ship15Price / 6150f;
+    static readonly float[] OriginalPrices =
     {
         0f, 0f, 300f, 2900f, 4550f, 6600f, 9100f, 12000f,
         500f, 2050f, 2500f, 3350f, 3700f, 4100f, 4950f, 6150f,
@@ -125,6 +127,19 @@ public class shopingShips : MonoBehaviour {
         // 0 here is never shown or charged: TryPurchase refuses it.
         0f,
     };
+
+    public static readonly float[] Prices = BuildPrices();
+    static float[] BuildPrices()
+    {
+        var prices = (float[])OriginalPrices.Clone();
+        for (int id = 3; id <= 15; id++) prices[id] = Mathf.Round(prices[id] * ProgressionPriceScale / 50f) * 50f;
+        prices[15] = Ship15Price;
+        return prices;
+    }
+    public static float UpgradePriceFor(int ship, float basePrice)
+    {
+        return ship >= 3 && ship <= 15 ? Mathf.Round(basePrice * ProgressionPriceScale / 25f) * 25f : basePrice;
+    }
 
     public static float CostFor(int index)
     {

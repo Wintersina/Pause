@@ -508,8 +508,7 @@ public static class HeartsPlacementTest
     // (and the playful styles turn back).
     static void FlourishesHappen()
     {
-        FlourishesHappen(DroneSquad.StartingSlots);
-        FlourishesHappen(DroneSquad.MaxSlots);
+        foreach (int slots in new[] { 1, 2, DroneSquad.MaxStartingSlots, DroneSquad.MaxSlots }) FlourishesHappen(slots);
     }
 
     static void FlourishesHappen(int slots)

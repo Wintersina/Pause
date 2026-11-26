@@ -236,7 +236,7 @@ public static class EliteFightZoneTest
         Check("setup: Frost has elites", defs.Count > 0);
         var def = defs[0];
         var dir = new GameObject("~Dir").AddComponent<EliteDirector>();
-        RunScore.OnElite(Vector3.zero, 300);
+        RunScore.OnElite(Vector3.zero, ScoreRules.EliteEscapePenalty + 300);
         long before = RunScore.Total;
         var live = EliteShip.CreateInPlay(def, new Vector2(0f, 0f));
         var launching = dir.Spawn(def, Body(new Vector2(1.5f, 3f), 1), 2.6f);
@@ -255,7 +255,7 @@ public static class EliteFightZoneTest
         dir.Tick(Dt);
         Check("... a second tick does not restart or double-penalise it", live.Retreating && RunScore.Total == before);
         for (int i = 0; i < 600 && Alive(live); i++) { Step(.05f); }
-        Check("it escaped (not killed): flat 25 lost, no reward",
+        Check("it escaped (not killed): flat 1000 lost, no reward",
               !Alive(live) && EliteShip.Escapes == escapes + 1 && EliteShip.Kills == kills && EliteRewards.Paid == paid &&
               Mathf.Approximately(EliteRewards.LastDust, dust) && RunScore.Total == before - EliteShip.BossArrivalEscapePenalty);
         Check("none spawn while it lasts", dir.SpawnGroup(1, 1) >= 0 && EliteDirector.Blocked(1, 100f) == "boss");
@@ -274,7 +274,7 @@ public static class EliteFightZoneTest
         {
             Fresh(.05f);
             var def = EliteCatalog.Find(key);
-            RunScore.OnElite(Vector3.zero, 300);
+            RunScore.OnElite(Vector3.zero, ScoreRules.EliteEscapePenalty + 300);
             var e = EliteShip.CreateInPlay(def, new Vector2(0f, 1.5f));
             e.AttackCooldown = 999f;
             int escapes = EliteShip.Escapes;

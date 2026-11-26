@@ -58,6 +58,7 @@ public partial class ScoreHud : MonoBehaviour
     float nextRecordPoll;
     readonly NewRecordTracker records = new NewRecordTracker();
     float lastSpeedMultiplier = 1f;
+    bool speedBaselineRead;
     float speedPunchAt = -1f;
     int lastLoop;
     float loopPunchAt = -1f;
@@ -169,6 +170,7 @@ public partial class ScoreHud : MonoBehaviour
         hud.newTag = BuildNewTag(hud.scoreText.transform, hud.font);
         ScoreX2Cue.Attach(hud.scoreText);   // the max-speed streak's bar and x2 plate, on the SCORE row
         hud.lastSpeedMultiplier = 1f;
+        hud.speedBaselineRead = false;
         hud.lastLoop = 0;
 
         var c = rows.GetComponentInParent<Canvas>();
@@ -187,7 +189,7 @@ public partial class ScoreHud : MonoBehaviour
     // size) into the font atlas -- "SHIELD" at 28, "NEW COMBO DISCOVERED" and the fusion names at 40 / 46 -- on
     // the frame the word first shows. Now the pool is built as the HUD attaches and the glyphs are requested one
     // size per frame (a handful of ms spread over ~a dozen frames, inside the run's calm start).
-    public static readonly int[] PrewarmSizes = { 18, 22, 26, 28, 30, 32, 34, 36, 38, 40, 44, 46 };
+    public static readonly int[] PrewarmSizes = { 16, 18, 22, 26, 28, 30, 32, 34, 36, 38, 40, 44, 46 };
     const string PrewarmBase = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789+-x!.,:%/'&()";
     static string prewarmChars;
     int prewarmStep;
@@ -528,6 +530,7 @@ public partial class ScoreHud : MonoBehaviour
         if (popups == null) BuildPopups();
         int index = nextPopup;
         nextPopup = (nextPopup + 1) % popups.Length;
+        ResetAtomCard(index);
         var p = popups[index];
         if (p.glow != null && p.glow.enabled) p.glow.enabled = false;
         p.text.text = text;
@@ -554,7 +557,7 @@ public partial class ScoreHud : MonoBehaviour
             float m = RunScore.SpeedMultiplier;
             if (!Mathf.Approximately(m, lastSpeedMultiplier))
             {
-                if (m > lastSpeedMultiplier && m > 1f)
+                if (speedBaselineRead && !WorldEntry.Active && !WorldTransition.InProgress && m > lastSpeedMultiplier && m > 1f)
                 {
                     speedPunchAt = now;
                     // past the cap on the boost shield: the callout says so
@@ -564,6 +567,7 @@ public partial class ScoreHud : MonoBehaviour
                 speedBadge.text = SpeedBadgeLabel(m);
                 lastSpeedMultiplier = m;
             }
+            speedBaselineRead = true;
             if (m > 1f)
             {
                 float since = now - speedPunchAt;
@@ -598,6 +602,7 @@ public partial class ScoreHud : MonoBehaviour
         if (popups == null) BuildPopups();
         int index = nextPopup;
         nextPopup = (nextPopup + 1) % popups.Length;
+        ResetAtomCard(index);
         var p = popups[index];
         if (p.glow != null && p.glow.enabled) p.glow.enabled = false;
         p.text.text = text;
@@ -638,6 +643,7 @@ public partial class ScoreHud : MonoBehaviour
         if (popups == null) BuildPopups();
         int index = nextPopup;
         nextPopup = (nextPopup + 1) % popups.Length;
+        ResetAtomCard(index);
         var p = popups[index];
         if (p.glow != null && p.glow.enabled) p.glow.enabled = false;
         p.text.text = text;
@@ -674,6 +680,7 @@ public partial class ScoreHud : MonoBehaviour
         }
         calloutSlot = index;
         calloutText = text;
+        ResetAtomCard(index);
         var p = popups[index];
         if (p.glow != null && p.glow.enabled) p.glow.enabled = false;
         p.text.text = text;
@@ -691,7 +698,7 @@ public partial class ScoreHud : MonoBehaviour
         return p.text;
     }
 
-    // A shot atom's "upgrade gained" popup (ShotAtoms.UpgradeTitle / UpgradeHint): a big title line over a smaller effect hint, centred
+    // A shot atom's compact "upgrade gained" card (ShotAtoms.UpgradeTitle / UpgradeHint), centred
     // on `screenAnchor` (screen px, its TOP: the point just under the shot-atom HUD row; NaN = under the score board's middle), held
     // ShotAtoms.UpgradeSeconds, in the popups' pool, pop and fade. One slot: a second catch while it shows replaces it in place.
     int atomSlot = -1;
@@ -742,19 +749,19 @@ public partial class ScoreHud : MonoBehaviour
         int index = nextPopup;
         nextPopup = (nextPopup + 1) % popups.Length;
         atomSlot = index;
+        ResetAtomCard(index);
         var p = popups[index];
         if (p.glow != null && p.glow.enabled) p.glow.enabled = false;
-        int size = PopupSize(ShotAtoms.UpgradeTitleSize);
-        int hintSize = Mathf.Max(12, Mathf.RoundToInt(size * .62f));
-        int bigSize = Mathf.RoundToInt(size * 1.9f);
+        ConfigureAtomCard(index, title, levelLine);
         p.text.supportRichText = true;
-        p.text.fontSize = Mathf.RoundToInt(size * .78f);   // the title line is long ("TWIN SHOT -> RIGHT OUTER DRONE")
-        string body = title;
-        if (!string.IsNullOrEmpty(levelLine)) body += "\n<size=" + bigSize + ">" + levelLine + "</size>";
-        if (!string.IsNullOrEmpty(hint)) body += "\n<size=" + hintSize + "><color=#" + ColorUtility.ToHtmlStringRGB(AkiraPalette.Bone) + ">" + hint + "</color></size>";
-        p.text.text = body;
+        p.text.fontSize = PopupSize(UpgradeBenefitSize);
+        p.text.text = EmphasizeBenefit(hint);
+        upgradeBenefit = hint;
         atomText = p.text.text;
-        p.text.color = colour;
+        p.text.color = Color.white;
+        p.text.rectTransform.sizeDelta = new Vector2(UpgradeCardWidth - 20f, 36f);
+        if (p.text.preferredWidth > UpgradeCardWidth - 24f)
+            p.text.fontSize = Mathf.Max(12, Mathf.FloorToInt(p.text.fontSize * (UpgradeCardWidth - 24f) / p.text.preferredWidth));
         p.seconds = ShotAtoms.UpgradeSeconds;
         p.rise = 0f;
         Vector2 size2 = canvasRect.rect.size;
@@ -766,14 +773,19 @@ public partial class ScoreHud : MonoBehaviour
             Camera uiCam = canvas != null && canvas.renderMode != RenderMode.ScreenSpaceOverlay ? canvas.worldCamera : null;
             if (!RectTransformUtility.ScreenPointToLocalPointInRectangle(canvasRect, screenAnchor, uiCam, out at)) at = Vector2.zero;
         }
-        at.y -= (size + bigSize + hintSize) * .6f;   // the anchor is the text block's top; the pivot is its middle
-        p.from = KeepInSafeArea(p.text, at, 0f);
+        // The input anchor is the card's top, directly below the scoreboard.
+        Rect safe = SafeUnits();
+        float halfWidth = UpgradeCardWidth * .5f + 8f;
+        at.x = safe.width >= halfWidth * 2f ? Mathf.Clamp(at.x, safe.xMin + halfWidth, safe.xMax - halfWidth) : safe.center.x;
+        at.y = Mathf.Clamp(at.y - UpgradeCardHeight * .5f - 10f, safe.yMin + UpgradeCardHeight * .5f, safe.yMax - UpgradeCardHeight * .5f - 10f);
+        p.from = at;
         p.age = 0f;
         p.text.gameObject.SetActive(true);
         p.text.transform.SetAsLastSibling();
         p.text.rectTransform.anchoredPosition = p.from;
         p.text.rectTransform.localScale = Vector3.zero;
         popups[index] = p;
+        SyncAtomCards();
         return p.text;
     }
 
@@ -870,6 +882,7 @@ public partial class ScoreHud : MonoBehaviour
 
         int index = nextPopup;
         nextPopup = (nextPopup + 1) % popups.Length;
+        ResetAtomCard(index);
         var p = popups[index];
         if (p.glow != null && p.glow.enabled) p.glow.enabled = false;
         var style = StyleFor(source, source == RunScore.Source.Kill && RunScore.Multiplier > 1);
@@ -902,6 +915,7 @@ public partial class ScoreHud : MonoBehaviour
     {
         BuildFusionPopup();
         popups = new Popup[PopupPool];
+        BuildUpgradeCards();
         for (int i = 0; i < popups.Length; i++)
         {
             var go = new GameObject("ScorePopup", typeof(RectTransform), typeof(Text));
@@ -1060,12 +1074,14 @@ public partial class ScoreHud : MonoBehaviour
             float ease = 1f - (1f - Mathf.Min(1f, q * 1.6f)) * (1f - Mathf.Min(1f, q * 1.6f));
             rt.anchoredPosition = p.from + new Vector2(0f, p.rise * ease);
             // Pop: big on the first drawing, a squash, then settled.
-            float s = t < 1f / 12f ? 1.6f : t < 2f / 12f ? .9f : 1f;
+            bool upgrade = i == atomSlot && AtomUpgradeShowing;
+            float s = upgrade ? (t < 1f / 12f ? 1.04f : 1f) : t < 1f / 12f ? 1.6f : t < 2f / 12f ? .9f : 1f;
             if (!Mathf.Approximately(rt.localScale.x, s)) rt.localScale = new Vector3(s, s, 1f);
             var c = p.text.color;
             float a = q < .65f ? 1f : q < .82f ? .6f : .3f;
             if (!Mathf.Approximately(c.a, a)) { c.a = a; p.text.color = c; }
         }
+        SyncAtomCards();
     }
 
     public int LivePopups

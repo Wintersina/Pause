@@ -71,6 +71,8 @@ public static class ShipWeaponUpgrades
     // Ligher's blowtorch burns 5 s at level 0 (ShipLoadoutTable); each of its two
     // flame steps adds this many seconds: 6.25 s, then 7.5 s at MaxLevel.
     public const float BlowtorchStepSeconds = 1.25f;
+    // Solar Fang's wave gains actual boss power, rather than splitting the same one-heart hit.
+    public static readonly float[] SolarWaveBossHearts = { 1.5f, 1.75f, 2f, 2.5f, 3f };
 
     // By ShipId; MaxLevel steps each.
     static readonly WeaponStep[][] tracks =
@@ -78,7 +80,7 @@ public static class ShipWeaponUpgrades
         null,
         /*  1 Neon Comet   */ new[] { Up("+1 STREAK", shots: 1), Cd(.15f, ShipSignatures.CometExtrasPierceNote), Up("+1 STREAK", shots: 1), Cd(.20f, ShipSignatures.CometAllPierceNote) },
         /*  2 Volt Viper   */ new[] { Up("+2 JUMPS", maxHits: 2), Cd(.15f), Up(ShipSignatures.Note("+2 JUMPS", ShipSignatures.ViperStunNote), maxHits: 2, width: .5f), Cd(.20f, ShipSignatures.ViperLongStunNote) },
-        /*  3 Solar Fang   */ new[] { Up("THICKER BAND", width: .3f), Cd(.15f), Up("+1 WAVE", shots: 1), Cd(.20f) },
+        /*  3 Solar Fang   */ new[] { Up("THICKER BAND, +1/4 BOSS HEART", width: .3f), CdPlus(.15f, "+1/4 BOSS HEART"), Up("+1 WAVE, +1/2 BOSS HEART", shots: 1), CdPlus(.20f, "+1/2 BOSS HEART") },
         /*  4 Crimson Halo */ new[] { Cd(.15f), Up("WIDER RAIL", width: .14f), Cd(.20f, ShipSignatures.HaloPierceNote), Up("+2 SIDE RAILS", shots: 2) },
         /*  5 Ion Lancer   */ new[] { Up("LONGER SWEEP", duration: .3f), Cd(.15f), Up("+1 PASS", shots: 1), Cd(.20f, ShipSignatures.IonCrossNote) },
         /*  6 Jade Phantom */ new[] { Up("SHATTER SPLASH", width: .8f), ShipSignatures2.Tag(Cd(.15f), "CHILL"), Up("BIGGER SPLASH", width: .4f), ShipSignatures2.Tag(Cd(.20f), "DEEP CHILL") },

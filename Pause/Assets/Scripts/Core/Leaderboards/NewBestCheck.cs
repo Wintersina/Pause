@@ -81,7 +81,11 @@ public static class NewBestCheck
 // notifications against the reset shared board. Versioned by a PlayerPrefs flag; touches ONLY the keys below.
 public static class NewBestReset
 {
+    // This is a scoring-format migration, never an app/build version.
     public const string FlagKey = "scores.resetV2";
+    public const int CurrentScoreSystem = 1;
+    public static bool UsesCurrentScoreSystem => PlayerPrefs.GetInt(FlagKey, 0) >= CurrentScoreSystem
+        || PlayerPrefs.GetInt(LeaderboardService.SeasonKey, 0) >= 2;
 
     public static string[] Keys()
     {
@@ -101,7 +105,14 @@ public static class NewBestReset
     // True when the wipe ran now.
     public static bool Run()
     {
-        if (PlayerPrefs.GetInt(FlagKey, 0) >= 1) return false;
+        if (UsesCurrentScoreSystem)
+        {
+            if (PlayerPrefs.GetInt(FlagKey, 0) < CurrentScoreSystem)
+            {
+                PlayerPrefs.SetInt(FlagKey, CurrentScoreSystem); PrefsSaver.SaveNow();
+            }
+            return false;
+        }
         foreach (string k in Keys()) PlayerPrefs.DeleteKey(k);
         PlayerPrefs.SetInt(FlagKey, 1);
         PrefsSaver.SaveNow();

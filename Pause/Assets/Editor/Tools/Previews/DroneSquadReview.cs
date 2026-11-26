@@ -28,7 +28,7 @@ public static class DroneSquadReview
     }
     static void Stage(ScreenFitRig rig, int state)
     {
-        ShotAtoms.BeginRun();
+        ShotAtoms.BeginRun(3);
         ScreenFitScreens.WorldBase(rig, state == 5 ? 3 : 0, false, false);
         var ship = new ShotFeelTest.Rig();
         ship.ship = new GameObject("ship1", typeof(SpriteRenderer));

@@ -248,6 +248,16 @@ public static class ShipAttacksV3CheapTest
         Object.DestroyImmediate(body);
     }
 
+    class WaveBossProbe : FakeBoss, IBossAttackTarget
+    {
+        public bool TryStrike(int ship, float value, Vector3 at) { TakeShipAttack(ship, value, at); return true; }
+    }
+    static WaveBossProbe WaveBoss(float x, float y)
+    {
+        var go = Hazard(x, y); go.GetComponent<ClearTarget>().SetRadius(.8f);
+        return go.AddComponent<WaveBossProbe>();
+    }
+
     static void HeatWaveBurnsOnce()
     {
         FreshScene();
@@ -268,21 +278,21 @@ public static class ShipAttacksV3CheapTest
 
         FreshScene();
         c = Ship(3);
-        var boss = Boss(0f, 1f);
+        var boss = WaveBoss(0f, 1f);
         c.Runner.Fire();
         Steps(c.Runner, 4f);
-        Check("a wave is one boss hit", boss.hits == 1 && Mathf.Approximately(boss.weight, 1f));
+        Check("a base wave deals one and a half boss hearts", boss.hits == 1 && Mathf.Approximately(boss.weight, ShipWeaponUpgrades.SolarWaveBossHearts[0]));
         Teardown(c);
         Object.DestroyImmediate(boss.gameObject);
 
         SetLevel(3, ShipWeaponUpgrades.MaxLevel);
         FreshScene();
         c = Ship(3);
-        boss = Boss(0f, 1f);
+        boss = WaveBoss(0f, 1f);
         c.Runner.Fire();
         Steps(c.Runner, 4f);
-        Check("with a second wave the boss still takes one hit in all (" + boss.hits + " x " + boss.weight + ")",
-              boss.hits == 2 && Mathf.Abs(boss.weight - 1f) < 1e-3f);
+        Check("the final two-wave volley deals three boss hearts (" + boss.hits + " x " + boss.weight + ")",
+              boss.hits == 2 && Mathf.Abs(boss.weight - ShipWeaponUpgrades.SolarWaveBossHearts[4]) < 1e-3f);
         Teardown(c);
         Object.DestroyImmediate(boss.gameObject);
         SetLevel(3, 0);

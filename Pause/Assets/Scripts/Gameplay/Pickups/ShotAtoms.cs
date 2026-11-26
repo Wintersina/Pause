@@ -115,9 +115,9 @@ public static class ShotAtoms
     public static int Catches { get; private set; }       // coins collected this run
     public static int MaxedCatches { get; private set; }  // ...that paid dust
 
-    public static void BeginRun()
+    public static void BeginRun(int startingSlots = -1)
     {
-        DroneSquad.BeginRun();
+        DroneSquad.BeginRun(startingSlots);
         droneCount = DroneSquad.StartingSlots;
         for (int d = 0; d < ShotAtomTuning.MaxDrones; d++)
             for (int a = 0; a < ShotAtomTuning.PerDroneAtoms; a++) droneLevels[DL(d, a)] = 0;
@@ -297,7 +297,7 @@ public static class ShotAtoms
 
     public static readonly string[] Roman = { "", "I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X" };
 
-    // Shared Rapid + modifier levels normalized to the initial three slots + active-drone bonus.
+    // Shared Rapid + modifier levels normalized to this run's dock-unlocked starting slots + active-drone bonus.
     // Recruitment never dilutes existing power; spawn pressure is capped at MaxPower.
     public const int MaxPower = ShotAtomTuning.Count * ShotAtomTuning.MaxLevel;
     public static int PowerLevel
@@ -320,17 +320,16 @@ public static class ShotAtoms
     }
 
     // ---- the catch popup (ScoreHud.ShowAtomUpgrade): a title and a one-line effect hint ----
-    public const float UpgradeSeconds = 1.8f;
-    public const int UpgradeTitleSize = 40;
+    public const float UpgradeSeconds = 1.1f;
 
-    // "TWIN SHOT -> LEFT DRONE", "RAPID FIRE  ALL DRONES" (the big level line is UpgradeLevel; the hint is UpgradeHint)
+    // Recipient and atom metadata for the compact upgrade card; UpgradeHint supplies its benefit line.
     public static string UpgradeTitle(ShotAtom atom, int drone, string droneName)
     {
         if (atom == ShotAtom.Rapid) return "RAPID FIRE  ALL DRONES";
         return Name(atom) + " SHOT -> " + (string.IsNullOrEmpty(droneName) ? "DRONE" : droneName);
     }
 
-    // The big line: "LV 4"
+    // Small header metadata: "LV 4"
     public static string UpgradeLevel(int level)
     {
         return "LV " + Mathf.Clamp(level, 1, ShotAtomTuning.MaxLevel);
@@ -421,26 +420,12 @@ public static class ShotAtomDrops
     // Has this run's first elite kill happened (it always drops)? Reset by ShotAtoms.BeginRun.
     public static bool FirstEliteDone { get; private set; }
     public static int RunCoinsReleased { get; private set; }
-    public const float OpeningFirstSeconds = 2f, OpeningGapSeconds = 6f;
-    static float openingFlightSeconds;
     public static void NewRun()
     {
         FirstEliteDone = false; lastEnemyDrop = -9999f;
-        RunCoinsReleased = 0; openingFlightSeconds = 0f;
+        RunCoinsReleased = 0;
     }
 
-    // The opening belongs to the run, not the world or the number collected. Enemy/elite/boss
-    // drops share these slots, so a lucky early drop does not duplicate the scheduled opener.
-    public static void TickOpening(float dt, Vector3 at)
-    {
-        if (dt <= 0f || !Counts() || !WorldManager.Flying || WorldEntry.Active ||
-            Planetfall.SuspendsSpawning || Liftoff.SuspendsSpawning || PortalArrival.SuspendsSpawning ||
-            BossEncounter.Running || (WorldManager.Instance != null && WorldManager.Instance.Stage != WorldManager.LevelStage.Level)) return;
-        openingFlightSeconds += dt;
-        int reserved = RunCoinsReleased + queue.Count;
-        if (reserved < 3 && openingFlightSeconds >= OpeningFirstSeconds + OpeningGapSeconds * reserved)
-            Offer(at);
-    }
     public static void ResetSeams() { ClockOverride = null; EnemyRollOverride = -1f; lastEnemyDrop = -9999f; }
 
     static bool Counts()
@@ -495,6 +480,14 @@ public static class ShotAtomDrops
         if (target.name.StartsWith("Boss", System.StringComparison.Ordinal) || target.TryGetComponent(out EliteShip _)) return false;
         var identity = target.GetComponent<EnemyIdentity>();
         if (identity != null && identity.Def != null ? identity.Def.IsHazard : PrefabName.Is(target, "mine")) return false;
+        if (!Application.isPlaying && roll < 0f && EnemyRollOverride < 0f) return false;
+        // The directional starter is the only free opening pickup. The scripted
+        // TWIN / TWIN / ARC modifier sequence is earned one coin per enemy kill.
+        if (Counts() && RunCoinsReleased + queue.Count < 3)
+        {
+            if (!Offer(target.transform.position)) return false;
+            Enemies++; return true;
+        }
         return RollEnemyDrop(target.transform.position, roll);
     }
 
@@ -584,6 +577,7 @@ public class ShotAtomPickup : MonoBehaviour
     public static GameObject Spawn(ShotAtom atom, Vector3 at)
     {
         Vector2 half = Vector2.one * Diameter * .5f * PickupArt.AtomVisualScale;
+        at = SpawnAboveCamera.PickupEntry(at, half.y);
         at = SpawnSpace.PickupSpot(at, half, -RailInset.PickupLaneHalf, RailInset.PickupLaneHalf);
         var go = Build(atom, at);
         SpawnFootprint.Attach(go, half, SpawnLayer.Pickup);

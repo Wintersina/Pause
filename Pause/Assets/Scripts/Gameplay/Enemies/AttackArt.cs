@@ -59,7 +59,7 @@ public static class AttackArt
     // The themed rail-mine beam atlases (<w>_attack_minebeam.png, the mineflame layout) per world index: Frost, Verdant, Tide, Storm.
     // (Ember's is its mineflame; Space keeps its laser kit.) Storm (5) has no ShotSkins key yet, so its folder is named here.
     public const string MineBeamFile = "minebeam";
-    public static readonly string[] MineBeamKeys = { null, "frost", "verdant", null, "tide", "storm" };
+    public static readonly string[] MineBeamKeys = { null, "frost", "verdant", null, "tide", "storm", "desert" };
     public static bool HasMineBeam(int world) => world >= 0 && world < MineBeamKeys.Length && MineBeamKeys[world] != null;
 
     static readonly Dictionary<string, Texture2D> atlases = new Dictionary<string, Texture2D>();
@@ -152,18 +152,36 @@ public static class AttackArt
         var a = new MineFlameArt();
         a.painted = true;
         var proc = procFallback ? MineFlameArt.Build() : MineFlameArt.Empty();
-        for (int i = 0; i < a.beam.Length; i++) a.beam[i] = Cell(world, file, i, 0, 128, 384) ?? proc.beam[i];
-        for (int i = 0; i < a.pilot.Length; i++) a.pilot[i] = CellAt(world, file, i * 128, 384, 128, 128) ?? proc.pilot[i];
-        a.sight = CellAt(world, file, 4 * 128, 384, 128, 128) ?? proc.sight;
-        a.sightB = CellAt(world, file, 5 * 128, 384, 128, 128);
-        for (int i = 0; i < a.flash.Length; i++) a.flash[i] = CellAt(world, file, i * 128, 512, 128, 128) ?? proc.flash[i];
-        a.spark[0] = CellAt(world, file, 4 * 128, 512, 128, 128) ?? proc.spark[0];
-        a.spark[1] = CellAt(world, file, 5 * 128, 512, 128, 128) ?? proc.spark[1];
-        a.spark[2] = CellAt(world, file, 0, 640, 128, 128) ?? proc.spark[2];
-        a.haze[0] = CellAt(world, file, 128, 640, 128, 128) ?? proc.haze[0];
-        a.haze[1] = CellAt(world, file, 256, 640, 128, 128) ?? proc.haze[1];
+        for (int i = 0; i < a.beam.Length; i++) a.beam[i] = MineCell(world, file, i * 128, 0, 128, 384) ?? proc.beam[i];
+        for (int i = 0; i < a.pilot.Length; i++) a.pilot[i] = MineCell(world, file, i * 128, 384, 128, 128) ?? proc.pilot[i];
+        a.sight = MineCell(world, file, 4 * 128, 384, 128, 128) ?? proc.sight;
+        a.sightB = MineCell(world, file, 5 * 128, 384, 128, 128);
+        for (int i = 0; i < a.flash.Length; i++) a.flash[i] = MineCell(world, file, i * 128, 512, 128, 128) ?? proc.flash[i];
+        a.spark[0] = MineCell(world, file, 4 * 128, 512, 128, 128) ?? proc.spark[0];
+        a.spark[1] = MineCell(world, file, 5 * 128, 512, 128, 128) ?? proc.spark[1];
+        a.spark[2] = MineCell(world, file, 0, 640, 128, 128) ?? proc.spark[2];
+        a.haze[0] = MineCell(world, file, 128, 640, 128, 128) ?? proc.haze[0];
+        a.haze[1] = MineCell(world, file, 256, 640, 128, 128) ?? proc.haze[1];
         if (!procFallback && !a.Complete) return null;
         return a;
+    }
+
+    // Mine atlases share a six-column layout; preserve one-unit cells at the imported resolution.
+    static Sprite MineCell(int world, string file, int x, int y, int w, int h)
+    {
+        var tex = Atlas(world, file);
+        if (world != 6 || tex == null) return CellAt(world, file, x, y, w, h);
+        float unit = tex.width / 6f, scale = unit / 128f;
+        if (tex.width != tex.height || unit < 1f) return null;
+        string key = PathOf(world, file) + "#mine:" + x + "," + y + "," + w + "," + h;
+        if (cells.TryGetValue(key, out var cached) && cached != null) return cached;
+        var rect = new Rect(x * scale, tex.height - (y + h) * scale, w * scale, h * scale);
+        // The generated lance/sight occupy narrow columns: trim their transparent
+        // side margins when slicing so the visible art matches the existing hit width.
+        if (h == 384) { rect.x += unit * .38f; rect.width = unit * .34f; }
+        else if (y == 384 && x >= 512) { rect.x += unit * .44f; rect.width = unit * .14f; }
+        var sprite = Sprite.Create(tex, rect, Vector2.one * .5f, unit, 0, SpriteMeshType.FullRect);
+        sprite.name = key; cells[key] = sprite; return sprite;
     }
 
     // <w>_attack_laser (1024 x 384, 8 x 3 cells of 128), <w>_attack_laserbody (512 x 256: four 128 x 256 beam frames, root at the TOP)

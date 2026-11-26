@@ -20,6 +20,9 @@ public enum WaveKind
     Slant,   // the same row tilted (drift degrees): one end leads; crossing waves are slants of opposite sign
     Ring,    // a radial ring from a muzzle with one gap (only the downward half fires)
     Fan,     // an arc of bullets from a muzzle with one gap (a ring with a limited arc)
+    Petals,  // separated clusters around the escape corridor: Verdant
+    Rain,    // columns staggered in time: Storm
+    Pincer,  // two sloping jaws meet at the escape corridor: Desert
 }
 
 public struct WaveMove
@@ -30,7 +33,12 @@ public struct WaveMove
     public float arc;           // fan: half arc in degrees each side of the gap
     public int count;           // ring: bullets round the full circle
     public int minTier;         // intensity tier (0..3) that unlocks it
-    public int rows;            // wall / slant: rows deep (a thicker wave)
+    public int rows;            // row shapes: rows deep (a thicker wave)
+
+    public bool IsRow => kind == WaveKind.Wall || kind == WaveKind.Slant || kind == WaveKind.Rain || kind == WaveKind.Pincer;
+    public static WaveMove Petals(int tier, int count = 36) => new WaveMove { kind = WaveKind.Petals, minTier = tier, count = count, arc = 80f, sweep = true };
+    public static WaveMove Rain(int tier, int rows = 1) => new WaveMove { kind = WaveKind.Rain, minTier = tier, rows = rows };
+    public static WaveMove Pincer(int tier, float drift, int rows = 1) => new WaveMove { kind = WaveKind.Pincer, minTier = tier, drift = drift, rows = rows };
 
     public static WaveMove Wall(int tier, bool sweep = false, int rows = 1) => new WaveMove { kind = WaveKind.Wall, minTier = tier, sweep = sweep, rows = rows };
     public static WaveMove Slant(int tier, float drift, bool sweep = false, int rows = 1) => new WaveMove { kind = WaveKind.Slant, minTier = tier, drift = drift, sweep = sweep, rows = rows };
@@ -202,11 +210,12 @@ public sealed class WaveGaps
 // How a wave's front meets the ship's row away from its gap centre `c` (WaveGaps.Choose): relative arrival times.
 public struct WaveFront
 {
-    public int kind;            // 0 flat (a wall: everywhere at once), 1 radial (a ring / fan from muzzle x `fx`), 2 tilted row
+    public int kind;            // 0 flat, 1 radial, 2 tilted row, 3 mirrored pincer edges
     public float fx, h, rs;     // radial: the muzzle's x, its height above the ship row, the ring's speed
     public float tilt, spd;     // tilted: tan of the tilt, the fall speed
 
     public static WaveFront Radial(float fx, float h, float rs) => new WaveFront { kind = 1, fx = fx, h = Mathf.Max(.5f, h), rs = Mathf.Max(.5f, rs) };
+    public static WaveFront Jaws(float tilt, float spd) => new WaveFront { kind = 3, tilt = tilt, spd = Mathf.Max(.5f, spd) };
     public static WaveFront Tilted(float tilt, float spd) => new WaveFront { kind = tilt != 0f ? 2 : 0, tilt = tilt, spd = Mathf.Max(.5f, spd) };
 
     // seconds the wave reaches x before it reaches c
@@ -214,6 +223,7 @@ public struct WaveFront
     {
         if (kind == 1) return (Dist(c) - Dist(x)) / rs;
         if (kind == 2) return -tilt * (x - c) / spd;
+        if (kind == 3) return -tilt * Mathf.Abs(x - c) / spd;
         return 0f;
     }
 
@@ -249,6 +259,26 @@ public static class WaveRhythm
         return Bits(0);
     }
 
+    // Same density / intensity ramp, seven different beat phrases. Used by BOTH forecasts and firing.
+    public static int MaskFor(int world, string kind, float intensity)
+    {
+        int mask = Mask(kind, intensity), count = 0;
+        for (int i = 0; i < TicksPerBar; i++) count += (mask >> i) & 1;
+        int[] phrase = Phrases[Mathf.Clamp(world, 0, Phrases.Length - 1)];
+        int result = 0;
+        for (int i = 0; i < count; i++) result |= 1 << phrase[i];
+        return result;
+    }
+    static readonly int[][] Phrases = {
+        new[] { 0, 6, 12, 9, 3, 15 }, // rotating syncopation
+        new[] { 0, 8, 2, 10, 4, 12 }, // measured ice pulses
+        new[] { 0, 5, 10, 14, 3, 8 }, // unfolding petals
+        new[] { 0, 2, 4, 6, 8, 10 }, // one breath, then recovery
+        new[] { 0, 6, 10, 14, 4, 12 }, // rolling swells
+        new[] { 0, 4, 8, 12, 6, 14 }, // steady thunder over staggered rain
+        new[] { 0, 4, 10, 14, 6, 12 }, // closing jaws, then re-step
+    };
+
     static int Bits(params int[] ticks)
     {
         int m = 0;
@@ -277,28 +307,21 @@ public static class WaveMoves
     {
         all = new[]
         {
-            // 0 Void Archon: the pulsar's rotating comb of rings, mirrored sweeping fans, crossing walls at the peak
-            new BossWaveStyle { style = BossShotStyle.Shard, art = 2, speed = 3.0f, pitch = .6f, moves = new[] {
-                WaveMove.Ring(0, 24, sweep: true), WaveMove.Fan(1, 50f, 28, sweep: true), WaveMove.Wall(2, true), WaveMove.Slant(3, 14f), WaveMove.Slant(3, -14f) } },
-            // 1 Hoarfrost Leviathan: cold-snap rings with a gap, icicle rows, glacier slabs crossing
+            // Each musical fight keeps its geometry from the first bar through the peak.
+            new BossWaveStyle { style = BossShotStyle.Shard, art = 3, speed = 3f, pitch = .6f, moves = new[] {
+                WaveMove.Fan(0, 38f, 32, true), WaveMove.Fan(0, 62f, 32, true), WaveMove.Fan(1, 82f, 40, true), WaveMove.Ring(3, 32, true) } },
             new BossWaveStyle { style = BossShotStyle.Shard, art = 3, speed = 2.9f, pitch = .55f, moves = new[] {
-                WaveMove.Ring(0, 22), WaveMove.Wall(1), WaveMove.Ring(2, 26, sweep: true), WaveMove.Slant(3, 10f, rows: 2), WaveMove.Slant(3, -10f, rows: 2) } },
-            // 2 Bloom Queen: vine fans and hedges of seeds with a path through them, the path sweeping like a vine
-            new BossWaveStyle { style = BossShotStyle.Bolt, art = 1, speed = 3.1f, pitch = .6f, moves = new[] {
-                WaveMove.Fan(0, 55f, 22), WaveMove.Wall(1, true), WaveMove.Fan(2, 70f, 30, sweep: true), WaveMove.Slant(3, 8f, true, 2), WaveMove.Slant(3, -8f, true, 2) } },
-            // 3 Cinder Drake: flame fans and fire walls with a drifting gap
-            new BossWaveStyle { style = BossShotStyle.Shard, art = 1, speed = 3.2f, pitch = .55f, moves = new[] {
-                WaveMove.Fan(0, 45f, 26), WaveMove.Wall(1, true), WaveMove.Fan(2, 65f, 34, sweep: true), WaveMove.Slant(3, 12f, rows: 2), WaveMove.Slant(3, -12f, rows: 2) } },
-            // 4 Iron Kraken: the TIDAL WALLS (sweeping gap), surf crossing at the peak, a swell of rings from the beak
-            new BossWaveStyle { style = BossShotStyle.Shard, art = 2, speed = 3.3f, pitch = .5f, moves = new[] {
-                WaveMove.Wall(0, true), WaveMove.Wall(1, true), WaveMove.Slant(2, 9f, true), WaveMove.Slant(2, -9f, true), WaveMove.Wall(3, true, 2), WaveMove.Ring(3, 26) } },
-            // 5 Tempest Engine: rain curtains and lightning slants, and an arc discharge fanned from the core drum (its
-            //   bolts are the only ones that reach the rails: the ricochets, BossBounce)
-            new BossWaveStyle { style = BossShotStyle.Bolt, art = 1, speed = 3.7f, pitch = .5f, moves = new[] {
-                WaveMove.Wall(0), WaveMove.Slant(1, 11f), WaveMove.Fan(1, 55f, 24), WaveMove.Wall(2, true), WaveMove.Slant(2, -11f), WaveMove.Wall(3, false, 2) } },
-            // 6 Dune-Eater: closing pincers (two slants that close on the gap), sand walls
+                WaveMove.Ring(0, 22), WaveMove.Ring(0, 28), WaveMove.Ring(2, 34), WaveMove.Ring(3, 40) } },
+            new BossWaveStyle { style = BossShotStyle.Bolt, art = 2, speed = 3.1f, pitch = .6f, moves = new[] {
+                WaveMove.Petals(0, 36), WaveMove.Petals(0, 42), WaveMove.Petals(2, 48) } },
+            new BossWaveStyle { style = BossShotStyle.Shard, art = 3, speed = 3.2f, pitch = .55f, moves = new[] {
+                WaveMove.Fan(0, 34f, 30), WaveMove.Fan(0, 58f, 34), WaveMove.Fan(1, 82f, 40), WaveMove.Fan(3, 95f, 44) } },
+            new BossWaveStyle { style = BossShotStyle.Shard, art = 3, speed = 3.3f, pitch = .5f, moves = new[] {
+                WaveMove.Wall(0, true), WaveMove.Wall(1, true, 2), WaveMove.Slant(2, 9f, true), WaveMove.Slant(2, -9f, true) } },
+            new BossWaveStyle { style = BossShotStyle.Bolt, art = 2, speed = 3.7f, pitch = .5f, moves = new[] {
+                WaveMove.Rain(0), WaveMove.Rain(1), WaveMove.Fan(1, 55f, 24), WaveMove.Rain(2, 2) } },
             new BossWaveStyle { style = BossShotStyle.Shard, art = 1, speed = 3.4f, pitch = .52f, moves = new[] {
-                WaveMove.Slant(0, 12f), WaveMove.Slant(0, -12f), WaveMove.Wall(1, true), WaveMove.Ring(2, 26, sweep: true), WaveMove.Slant(3, 16f, rows: 2), WaveMove.Slant(3, -16f, rows: 2) } },
+                WaveMove.Pincer(0, 18f), WaveMove.Pincer(0, -18f), WaveMove.Pincer(2, 24f), WaveMove.Fan(1, 65f, 30), WaveMove.Pincer(3, -24f, 2) } },
         };
     }
 }
@@ -494,14 +517,14 @@ public sealed class BossWaveVoice
     }
 
     public WaveSource SourceFor(WaveMove m, bool alt) =>
-        m.kind == WaveKind.Ring ? sources.ring : m.kind == WaveKind.Fan ? sources.fan : (alt && sources.hasAlt ? sources.wallAlt : sources.wall);
+        m.kind == WaveKind.Ring ? sources.ring : (m.kind == WaveKind.Fan || m.kind == WaveKind.Petals) ? sources.fan : (alt && sources.hasAlt ? sources.wallAlt : sources.wall);
 
     // The source the NEXT wave will leave from (for its tell on the beat before), without using it up.
     public WaveSource Peek(float intensity)
     {
         int at = index;
         var m = Pick(intensity, ref at);
-        return SourceFor(m, m.kind == WaveKind.Wall || m.kind == WaveKind.Slant ? altWall : false);
+        return SourceFor(m, m.IsRow ? altWall : false);
     }
 
     // One wave spawning now (a grid sixteenth). `spb` music seconds per beat, `gameNow` the gameplay clock,
@@ -518,7 +541,7 @@ public sealed class BossWaveVoice
     public int EmitMove(WaveMove m, float intensity, double spb, float gameNow, bool telegraph, float lateSeconds = 0f, float holdCap = float.MaxValue)
     {
         lateSeconds = Mathf.Clamp(lateSeconds, 0f, .1f);
-        bool row = m.kind == WaveKind.Wall || m.kind == WaveKind.Slant;
+        bool row = m.IsRow;
         var src = SourceFor(m, row && altWall);
         var player = host.Player;
         float scale = host.ShotSpeedScale;
@@ -542,7 +565,7 @@ public sealed class BossWaveVoice
                 var e = host.Emitter(src.parts[i]);
                 reach = Mathf.Max(reach, Mathf.Max(Mathf.Abs(edge - e.x), Mathf.Abs(-edge - e.x)) / src.parts.Length);
             }
-            tilt = m.kind == WaveKind.Slant ? Mathf.Tan(m.drift * Mathf.Deg2Rad) : 0f;
+            tilt = m.kind == WaveKind.Slant || m.kind == WaveKind.Pincer ? Mathf.Tan(m.drift * Mathf.Deg2Rad) : 0f;
             lift = Mathf.Abs(tilt) * 2f * edge;                      // the tilted row's lead, in u of fall
             float D = Mathf.Max(1f, formY - player.y) + lift;
             // every row falls at the SAME speed (rows of different speeds would catch each other up and cross); the
@@ -555,6 +578,7 @@ public sealed class BossWaveVoice
             fanOut = (float)(k * spb) - lateSeconds - flight;
             // passing the ship: one row, the tilt across the gap, and every row behind the first
             thick = (2f * PatternSim.ShipRadius + 2f * r + .3f + Mathf.Abs(tilt) * (clear + 2f * r) + (Mathf.Max(1, m.rows) - 1) * style.rowSep) / Mathf.Max(.5f, spd);
+            if (m.kind == WaveKind.Rain) thick += (float)spb * .5f;
         }
         else
         {
@@ -573,7 +597,7 @@ public sealed class BossWaveVoice
         // where the pattern would like the gap: a steady sweep, or a hop to the far side of the ship
         float want = m.sweep ? sweepDir * .6f : (Waves % 2 == 0 ? 1f : -1f) * (player.x >= 0f ? -1f : 1f) * .9f;
         WaveFront front;
-        if (row) front = WaveFront.Tilted(tilt, spd);
+        if (row) front = m.kind == WaveKind.Pincer ? WaveFront.Jaws(tilt, spd) : WaveFront.Tilted(tilt, spd);
         else
         {
             var mz = host.Emitter(src.parts[0]);
@@ -653,7 +677,9 @@ public sealed class BossWaveVoice
                 for (float x = c + side * (centres * .5f + ox); side < 0 ? x >= -edge : x <= edge; x += side * pitch)
                 {
                     // a tilted row's lead: lift + tilt * (x - c) u of extra wait before it turns down, always >= 0
-                    float turn = Mathf.Max(.12f, fanOut + (lift + tilt * (x - c)) / Mathf.Max(.5f, spd) + behind);
+                    float contour = m.kind == WaveKind.Pincer ? tilt * Mathf.Abs(x - c) : tilt * (x - c);
+                    float stagger = m.kind == WaveKind.Rain ? ((Mathf.RoundToInt((x + edge) / pitch) + Waves) % 3) * spb * .25f : 0f;
+                    float turn = Mathf.Max(.12f, fanOut + (lift + contour) / Mathf.Max(.5f, spd) + behind + stagger);
                     var from = WaveDeploy.Nearest(host, src.parts, x);
                     var to = new Vector2(x, formY);
                     sh.turnAt = turn;
@@ -685,7 +711,7 @@ public sealed class BossWaveVoice
         float rs = (float)(dist / (kk * spb - late));
         // a wide lane (LaneMetrics.Density) fans further out at the same step: the gap corridor and the step between
         // bullets are the phone's, only the arc grows (still the downward half only, below)
-        float arc = m.kind == WaveKind.Fan ? Mathf.Max(step, m.arc * Mathf.Max(1f, host.LaneDensity)) : 180f;
+        float arc = (m.kind == WaveKind.Fan || m.kind == WaveKind.Petals) ? Mathf.Max(step, m.arc * Mathf.Max(1f, host.LaneDensity)) : 180f;
         var sh = Shot();
         int fired = 0;
         for (int side = -1; side <= 1; side += 2)
@@ -693,6 +719,7 @@ public sealed class BossWaveVoice
             {
                 float off = theta * .5f + j * step;
                 if (off > arc) break;
+                if (m.kind == WaveKind.Petals && (j / 2) % 2 == 1) continue; // pairs of seeds, separated by clear petal seams
                 float h = g + side * off;
                 if (Mathf.Sin(h * Mathf.Deg2Rad) > -.1f) break;     // the downward half only
                 var v = new Vector2(Mathf.Cos(h * Mathf.Deg2Rad), Mathf.Sin(h * Mathf.Deg2Rad)) * rs;

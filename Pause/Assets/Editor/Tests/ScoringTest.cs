@@ -41,6 +41,7 @@ public static class ScoringTest
             BestScorePersistsAndMergesAsMax();
             EveryRunEndBanksOnce();
             HudShowsScoreAndFits();
+            StartingSpeedIsNotAnUpgrade();
             DeathPanelFitsEveryAspect();
             LeaderboardRegistry();
             SpeedTiersDustAndMilestones();
@@ -211,9 +212,10 @@ public static class ScoringTest
         t = RunScore.Total;
         RunScore.OnBoss(true, 0f, false, Vector3.zero);
         Check("a destroyed boss pays 300", RunScore.Total - t == 300);
+        RunScore.OnElite(Vector3.zero, 12000);
         t = RunScore.Total;
         RunScore.OnBossEscaped(Vector3.zero);
-        Check("an escaped boss costs 150", RunScore.Total - t == -ScoreRules.BossEscapePenalty && ScoreRules.BossEscapePenalty == 150);
+        Check("an escaped boss costs 10000", RunScore.Total - t == -ScoreRules.BossEscapePenalty && ScoreRules.BossEscapePenalty == 10000);
         Check("... and never takes the score below 0", RunScore.OnBossEscaped(Vector3.zero) + RunScore.OnBossEscaped(Vector3.zero) + RunScore.OnBossEscaped(Vector3.zero) >= 0 && RunScore.Total >= 0);
         t = RunScore.Total;
         RunScore.OnBoss(true, 10f, true, Vector3.zero);
@@ -557,6 +559,25 @@ public static class ScoringTest
         ("9:24 1080x2880",          new Vector2(1080, 2880), new Rect(0, 0, 1080, 2880 - 120)),
         ("iPad 1536x2048",          new Vector2(1536, 2048), new Rect(0, 0, 1536, 2048)),
     };
+
+    static void StartingSpeedIsNotAnUpgrade()
+    {
+        foreach (float speed in new[] { .2f, .3f, .35f })
+        {
+            EditorSceneLoader.Open("gameS1"); RealContext(); RunScore.BeginRun(true, true);
+            moveBackGround.speed = speed;
+            var host = new GameObject("~StartingSpeedTest");
+            var styler = host.AddComponent<HudStyler>(); styler.SendMessage("Start");
+            var hud = host.GetComponent<ScoreHud>();
+            hud.SendMessage("Update");
+            Check("starting at speed " + speed + " shows its score multiplier without an upgrade notification",
+                hud.SpeedBadge.text == ScoreHud.SpeedBadgeLabel(ScoreRules.SpeedMultiplierFor(speed)) && hud.LivePopups == 0);
+            moveBackGround.speed = speed < .3f ? .3f : speed < .35f ? .35f : .4f;
+            hud.SendMessage("Update");
+            Check("a speed tier earned after starting still announces the gain", hud.LivePopups == 1);
+            Object.DestroyImmediate(host);
+        }
+    }
 
     static void HudShowsScoreAndFits()
     {

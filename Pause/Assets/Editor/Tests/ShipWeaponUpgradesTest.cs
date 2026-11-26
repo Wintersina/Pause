@@ -372,7 +372,7 @@ public static class ShipWeaponUpgradesTest
         PlayerPrefs.SetString(ShipId.OwnedKey(1), "True");
         PlayerPrefs.SetString(ShipId.OwnedKey(8), "True");
         PlayerPrefs.SetInt("spawnShip", 8);
-        PlayerPrefs.SetFloat(StarDustLedger.CurrencyKey, 400f);
+        PlayerPrefs.SetFloat(StarDustLedger.CurrencyKey, ShipSkins.PriceOf(8, 2) + 100f);
         SetLevel(8, 1);
         ShopSceneExtender.Build();
         var dock = SpaceDock.Instance;

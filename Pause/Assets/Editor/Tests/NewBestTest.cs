@@ -51,6 +51,7 @@ public static class NewBestTest
     {
         foreach (string k in NewBestReset.Keys()) PlayerPrefs.DeleteKey(k);
         PlayerPrefs.DeleteKey(NewBestReset.FlagKey);
+        PlayerPrefs.DeleteKey(LeaderboardService.SeasonKey);
         PlayerPrefs.DeleteKey(SharedLeaderboardService.SharingKey);
     }
 
@@ -238,6 +239,24 @@ public static class NewBestTest
 
         PlayerPrefs.SetInt(RunScore.BestScoreKey, 123);
         Check("reset: a second launch does nothing (a new best score survives)", !NewBestReset.Run() && PlayerPrefs.GetInt(RunScore.BestScoreKey, 0) == 123);
+        PlayerPrefs.DeleteKey(NewBestReset.FlagKey);
+        PlayerPrefs.SetInt(LeaderboardService.SeasonKey, 2);
+        Check("a save already using the new leaderboard keeps its best even without the reset flag",
+            !NewBestReset.Run() && RunScore.SavedBest == 123);
+        PlayerPrefs.DeleteKey(LeaderboardService.SeasonKey);
+        PlayerPrefs.SetInt(LeaderboardService.NormalBestKey, 123);
+        var modern = ProgressSnapshot.Capture(10);
+        var restored = ProgressMerge.Merge(new ProgressSnapshot(), modern);
+        PlayerPrefs.DeleteKey(NewBestReset.FlagKey); PlayerPrefs.DeleteKey(RunScore.BestScoreKey);
+        restored.Apply(); LeaderboardService.Install();
+        Check("cloud restore remembers the new score system and later installs preserve its score",
+            restored.scoreSystemVersion == NewBestReset.CurrentScoreSystem && RunScore.SavedBest == 123 && !NewBestReset.Run());
+        PlayerPrefs.SetInt(LeaderboardService.NormalBestKey, 234);
+        PlayerPrefs.SetInt(LeaderboardService.BoostedBestKey, 345);
+        PlayerPrefs.DeleteKey(LeaderboardService.SeasonKey); LeaderboardService.MigrateSeason();
+        Check("a missing season stamp cannot wipe modern route bests", PlayerPrefs.GetInt(LeaderboardService.NormalBestKey) == 234 && PlayerPrefs.GetInt(LeaderboardService.BoostedBestKey) == 345);
+        var old = new ProgressSnapshot { bestScore = 9999 };
+        Check("legacy cloud scores cannot replace new-system records", ProgressMerge.Merge(modern, old).bestScore == 123 && ProgressMerge.Merge(old, modern).bestScore == 123);
         Check("reset: exactly the expected keys", NewBestReset.Keys().Length == 13);
         foreach (string k in keep) PlayerPrefs.DeleteKey(k);
     }

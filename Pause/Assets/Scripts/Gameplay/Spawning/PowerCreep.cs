@@ -1,7 +1,7 @@
 using UnityEngine;
 
 // POWER CREEP: the board's spawn pressure follows ShotAtoms.PowerLevel (0..60): shared Rapid,
-// modifier levels normalized to the starting three slots, and an active-drone bonus. Recruitment
+// modifier levels normalized to the dock-unlocked starting slots, and an active-drone bonus. Recruitment
 // never dilutes existing power. Two multipliers read it:
 //
 //   SpawnScale     ordinary enemy / hazard spawn RATE (the spawn delays are divided by it, enmiesOnBoard.RollWith, next to

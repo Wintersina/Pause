@@ -1483,16 +1483,15 @@ Branch `feature/boss-hearts`. The user: "The bosses should have 5 spinning heart
 enemy elite hearts more clear: give them an outline glow". Tested by `BossHeartsTest`; renders from
 `BossHeartsPreview`.
 
-**Health.** A boss has `BossConfig.HitPoints` = 12, always equal to `Hearts` (full-weight ship-attack hits: a rail slug, a fireball, one
-homing shot of the volley = 1; a gatling shell 1/14, a beam or cone tick 0.2, ...), worn as `BossConfig.Hearts` = 12
-hearts (`BaseHearts` 5 + `ExtraHearts` 7; it was 9 = 5 + 4, then the user asked for 12), each an
-equal share (`HeartWeight` = 12/12 = 1 hit: one full hit, one heart) of the pool: a heart goes the moment its share is spent, the twelfth
-exactly with the last hit point. Twelve full hits destroy it (it was 7 hits with 12 hearts, five hits and 9 hearts, three and 5 before; `HitPoints` is now defined as `Hearts`, so they cannot diverge). Every boss in every world has the same numbers (`BossConfig`; the catalogue holds neither).
+**Health.** The boss on the run's selected starting world has **13 hearts** (three more than the previous 10). Each subsequent world adds one heart. The curve is relative to the actual held run start, including the Space Dock selection and replay start; starting on Ember gives Ember 13, Tide 14, Storm 15, Desert 16, then Space 17. Crossing Desert does not reset it, and a complete loop adds seven. `BossConfig.HeartsAt` owns the curve; the encounter snapshots its maximum and the rendered orbit and damage stages use that world's count. One heart is one hit point, with immediate quarter-heart damage.
+
+An escaped boss deducts **10,000 points** once at the start of its retreat. An escaped elite deducts **1,000 points**, including an in-play elite forced to retreat by a boss arrival. Both penalties stop at zero, pay no rewards, and use the existing negative escape callouts.
+
 **The escape clock** is `BossConfig.EscapeSeconds` = 120 s (`FightSeconds`): an untouched boss stays two minutes,
 then retreats (it was 36 s). The rules round it are unchanged: hits count only in the Fight phase (nothing while it
 warps in or out), the clock is never shaved, DeathCombo never chains a boss, rams and shockwaves pass through it.
 The attack phases stay at the thirds of the clock / of the hearts (40 s each); the damaged-hull looks
-(`BossArt.DamageStage`, 4 stages) spread across the 12 hearts (1-3 lost stage 1, 4-6 stage 2, 7-9 stage 3, 10+ stage 4).
+(`BossArt.DamageStage`, 4 stages) spread proportionally across the encounter's actual maximum hearts.
 **Hit window (no per-firing cap).** Nothing caps a firing, a barrage, a beam or a ram against a boss (`BossTarget` is
 `IShipAttackTargetUncapped`; elites keep the one-budget-per-firing rule). The only limiter is
 `BossConfig.HitInvulnerableSeconds` = 0.25 s of invulnerability after a lost hit point (or after a discrete bump, a ram),
@@ -1600,7 +1599,7 @@ boss runs (`Blocked` -> "boss"). Their shots and area hazards already in the air
 `EscapeSpoolSeconds` (0.4 s: hull nearly still, `thrust` ramping so the plume / glow / damaged burn loop grow), then boosts at
 `EscapeBoostScale` (3x) its cruise speed, accelerating at `EscapeAccelScale` (6x), `thrust` `EscapeThrust` (1.7: a long trail), straight
 out of the top or the nearest side (a side where it is clearly nearer). It flies over the rails (no rail crash) and may cross the zone
-top. It no longer flies home to its dock. Costs the pilot half the kill's score as before.
+top. It no longer flies home to its dock. Costs the pilot the flat 1,000-point escape penalty, capped at the current score.
 
 **Attack cadence** (`EliteTuning.AttackRate`, 1.7). Every gap between two attacks (the first wait, the cooldown after an attack and
 after a hurt-hide, the Rimebreaker's pause between runs) is divided by it; wind-ups, telegraphs and hazards are unchanged.

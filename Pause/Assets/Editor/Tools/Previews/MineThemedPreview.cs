@@ -34,6 +34,8 @@ public static class MineThemedPreview
                 for (World = 0; World < Keys.Length; World++)
                 {
                     string key = Keys[World].ToLowerInvariant();
+                    string only = System.Environment.GetEnvironmentVariable("MINE_THEMED_WORLD");
+                    if (!string.IsNullOrEmpty(only) && !string.Equals(only, key, System.StringComparison.OrdinalIgnoreCase)) continue;
                     var after = Capture(dir, key + "-after", false);
                     var before = both ? Capture(dir, key + "-before", true) : new List<Texture2D>();
                     Sheet(dir, key, before, after);
