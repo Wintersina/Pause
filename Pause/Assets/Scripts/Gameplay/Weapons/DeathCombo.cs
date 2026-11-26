@@ -256,8 +256,7 @@ public static class DeathCombo
         }
         finally { Resolving = false; }
         ClearTarget.Release(go);
-        if (Application.isPlaying) Object.Destroy(go);
-        else Object.DestroyImmediate(go);
+        Pooled.Remove(go);   // (a pooled enemy goes back to its pool)
         Enqueue(true, at, 0f, depth, null);
     }
 

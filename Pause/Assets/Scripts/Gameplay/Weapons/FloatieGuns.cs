@@ -233,6 +233,7 @@ public class FloatieBullet : MonoBehaviour
 
     public void Launch(FloatieBattery by, int shipId, Vector3 at, Vector3 heading, Color tint, FloatieAim.Pick lockOnPick, Mods withMods)
     {
+        if (Active) { Active = false; FloatieBullets.NoteGone(this); }   // launched again while still in the air: the old shot is over
         mods = withMods;
         if (mods.damage <= 0f) mods.damage = 1f;
         speed = mods.speed > 0f ? mods.speed : FloatieTuning.BulletSpeed;
@@ -254,6 +255,7 @@ public class FloatieBullet : MonoBehaviour
         float lift = mods.celebrated ? .5f : mods.pierce > 0 ? .3f : .12f;
         body.color = new Color(Mathf.Lerp(tint.r, 1f, lift), Mathf.Lerp(tint.g, 1f, lift), Mathf.Lerp(tint.b, 1f, lift), Alpha);
         Active = true;
+        FloatieBullets.NoteLive(this);
         Launched++;
         LaunchId = Launched;
         gameObject.SetActive(true);
@@ -266,9 +268,17 @@ public class FloatieBullet : MonoBehaviour
 
     public void Release()
     {
-        Active = false;
+        if (Active) { Active = false; FloatieBullets.NoteGone(this); }
         gameObject.SetActive(false);
     }
+
+    void OnDestroy()
+    {
+        if (Active) { Active = false; FloatieBullets.NoteGone(this); }
+    }
+
+    // Set by FloatieBullets when it built this one: only those go back on its free list.
+    [System.NonSerialized] public bool Pooled;
 
     // One step on the world's clock: fly straight (no homing, ever), then stop on the first thing along the step.
     public void Tick(float dt)
@@ -450,7 +460,7 @@ public static class FloatieBullets
     {
         get
         {
-            if (root == null) { root = new GameObject("~Floaties").transform; pool.Clear(); }
+            if (root == null) { root = new GameObject("~Floaties").transform; pool.Clear(); free.Clear(); activeCount = 0; }
             return root;
         }
     }
@@ -460,19 +470,28 @@ public static class FloatieBullets
 
     static void Purge()
     {
-        if (root == null) { pool.Clear(); return; }
+        if (root == null) { pool.Clear(); free.Clear(); activeCount = 0; return; }
         for (int i = pool.Count - 1; i >= 0; i--) if (pool[i] == null) pool.RemoveAt(i);
     }
 
-    public static int Active
+    // Bullets in the air: a running count (Launch / Release / destroy keep it), not a scan of the pool.
+    static int activeCount;
+    // Bullets built by the pool and idle, most recently freed last (Take pops from the end).
+    static readonly System.Collections.Generic.List<FloatieBullet> free = new System.Collections.Generic.List<FloatieBullet>(FloatieTuning.PoolSize);
+
+    public static int Active => activeCount;
+
+    internal static void NoteLive(FloatieBullet b)
     {
-        get
-        {
-            Purge();
-            int n = 0;
-            for (int i = 0; i < pool.Count; i++) if (pool[i].Active) n++;
-            return n;
-        }
+        activeCount++;
+        if (b.Owner != null) b.Owner.NoteLive(b.Source, 1);
+    }
+
+    internal static void NoteGone(FloatieBullet b)
+    {
+        if (activeCount > 0) activeCount--;
+        if (b.Owner != null) b.Owner.NoteLive(b.Source, -1);
+        if (b.Pooled) free.Add(b);
     }
 
     // Bullets a split's shards may never use: a drone's volley always finds room for at least this many (the fair-share rule).
@@ -483,17 +502,22 @@ public static class FloatieBullets
     public static FloatieBullet Take(bool primary = true)
     {
         var parent = Root;
-        Purge();
-        if (Active + AttackPool.ActiveProjectiles >= AttackPool.MaxCombinedProjectiles) return null;
-        if (!primary && Active >= FloatieTuning.PoolSize - VolleyReserve) return null;
-        for (int i = 0; i < pool.Count; i++) if (!pool[i].Active) return pool[i];
+        if (activeCount + AttackPool.ActiveProjectiles >= AttackPool.MaxCombinedProjectiles) return null;
+        if (!primary && activeCount >= FloatieTuning.PoolSize - VolleyReserve) return null;
+        while (free.Count > 0)
+        {
+            var b = free[free.Count - 1];
+            free.RemoveAt(free.Count - 1);
+            if (b != null && !b.Active) return b;
+        }
         if (pool.Count >= FloatieTuning.PoolSize) return null;
         var go = new GameObject("~floatie");
         go.transform.SetParent(parent, false);
-        var b = go.AddComponent<FloatieBullet>();
-        b.Build();
-        pool.Add(b);
-        return b;
+        var nb = go.AddComponent<FloatieBullet>();
+        nb.Build();
+        nb.Pooled = true;
+        pool.Add(nb);
+        return nb;
     }
 
     public static void ReleaseAll(FloatieBattery owner = null)
@@ -515,6 +539,8 @@ public static class FloatieBullets
             go.transform.SetParent(parent, false);
             var b = go.AddComponent<FloatieBullet>();
             b.Build();
+            b.Pooled = true;
+            free.Add(b);
             pool.Add(b);
         }
     }

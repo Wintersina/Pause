@@ -1136,7 +1136,7 @@ public class TowSlingAttack : EliteAttack
     {
         var d = EnemyRoster.Find(RockKey);
         if (d == null) return null;
-        var go = EnemyFactory.Create(d, new Vector3(at.x, at.y, 0f), Quaternion.identity, Mathf.Max(.5f, def.hazardSize));
+        var go = EnemyFactory.Create(d, new Vector3(at.x, at.y, 0f), Quaternion.identity, Mathf.Max(.5f, def.hazardSize), true, false);   // (an elite is built and destroyed, never pooled)
         if (go == null) return null;
         go.transform.SetParent(EliteSystem.Root, true);   // (gone with the elites on a clear)
         // flown by the hauler: its own scroll mover and brain off

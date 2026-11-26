@@ -1264,6 +1264,9 @@ public static class BossUtil
     public static void Kill(Object o)
     {
         if (o == null) return;
+        // a pooled enemy goes back to its pool (PrefabPool); everything else is destroyed as before
+        var go = o as GameObject;
+        if (go != null) { Pooled.Remove(go); return; }
         if (Application.isPlaying) Object.Destroy(o);
         else Object.DestroyImmediate(o);
     }

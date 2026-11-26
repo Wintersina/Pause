@@ -1,3 +1,5 @@
+using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 // Builds a playable enemy from its roster entry. Same pieces the old prefabs
@@ -20,21 +22,91 @@ using UnityEngine;
 // Every enemy carries a SpawnFootprint (its reserved space, see SpawnSpace)
 // bound to its mover. Every enemy is a ClearTarget (the movers register themselves in Awake;
 // Create also registers explicitly so edit-mode builds count too).
+//
+// POOLING. An ordinary enemy's body (the GameObject, its SpriteRenderer, trigger collider, kinematic body and EnemyIdentity) is
+// built once per roster entry and reused (PrefabPool: its snapshot restores transform, tag, layer, colour, sprite, collider and body
+// to the fresh state). Everything that carries a life of its own -- movers, spin, flipbook, ClearTarget, brain, footprint, hearts,
+// armour plates, the obsidian glint, whatever a weapon or a flare added -- is NOT part of the pooled body: it is added again by
+// Configure on every spawn (exactly the calls and the order Create always made) and removed again on release (PooledObject drops
+// everything that is not in the snapshot). So a reused enemy cannot carry a timer, a registry entry or a status from its last life.
+// Not pooled (built and destroyed as before): mines (rail mounts), chasers, and every caller that asks pooled: false (elites, the
+// tutorial). Outside play mode the pool is off (PrefabPool), so edit-mode tests build plain objects as they always did.
 public static class EnemyFactory
 {
+    // The roles whose bodies are pooled.
+    public static bool Poolable(EnemyDef def)
+    {
+        return def != null && def.role != EnemyRole.Mine && def.role != EnemyRole.Chaser;
+    }
+
+    // Idle instances kept per roster entry at level start (more are built on demand, up to PrefabPool.MaxFreePerKey).
+    public const int PrewarmPerType = 2;
+    // A released body rests this long (real seconds, in play) before it can be another enemy: anything that remembers it for a
+    // moment (a weapon's already-hit list, a lingering follower) never meets it again as a stranger. See also EnemyLife.
+    public const float ReuseCooldownSeconds = 4f;
+
+    sealed class Slot
+    {
+        public string key;
+        public Func<GameObject> build;
+    }
+    static readonly Dictionary<EnemyDef, Slot> slots = new Dictionary<EnemyDef, Slot>();
+
+    static Slot SlotFor(EnemyDef def)
+    {
+        Slot slot;
+        if (slots.TryGetValue(def, out slot)) return slot;
+        slot = new Slot { key = "enemy:" + def.key };
+        slot.build = () => BuildBody(def);
+        slots[def] = slot;
+        PrefabPool.SetCooldown(slot.key, ReuseCooldownSeconds);
+        return slot;
+    }
+
     // `size`: a rock's size as a multiple of its roster size (HazardSize;
     // the spawner draws it). Ignored for everything but a rock.
     // `tough`: false builds a one-hit enemy (the tutorial); otherwise see Toughness.
-    public static GameObject Create(EnemyDef def, Vector3 position, Quaternion rotation, float size = 1f, bool tough = true)
+    // `pooled`: false always builds a plain object that the caller destroys (elites, the tutorial).
+    public static GameObject Create(EnemyDef def, Vector3 position, Quaternion rotation, float size = 1f, bool tough = true, bool pooled = true)
     {
         if (def == null) return null;
+        GameObject go;
+        if (pooled && PrefabPool.Enabled && Poolable(def))
+        {
+            var slot = SlotFor(def);
+            go = PrefabPool.Get(slot.key, slot.build, position, rotation);
+        }
+        else
+        {
+            go = BuildBody(def);
+            go.transform.SetPositionAndRotation(position, rotation);
+        }
+        Configure(go, def, position, size, tough);
+        return go;
+    }
+
+    // The pooled part: a body with its art slot, trigger collider and (for the ones that have it) kinematic rigid body.
+    static GameObject BuildBody(EnemyDef def)
+    {
         var go = new GameObject(def.ObjectName);
         go.tag = def.Tag;
-        go.transform.SetPositionAndRotation(position, rotation);
 
         var sr = go.AddComponent<SpriteRenderer>();
         sr.sortingOrder = def.role == EnemyRole.Mine ? 12 : def.role == EnemyRole.Rock ? 2 : 3;
-        var identity = go.AddComponent<EnemyIdentity>();
+        go.AddComponent<EnemyIdentity>();
+
+        var col = go.AddComponent<BoxCollider2D>();
+        col.isTrigger = true;
+        col.size = def.ColliderSize;
+
+        if (def.role != EnemyRole.Rock && def.role != EnemyRole.Alien && def.role != EnemyRole.Mine) Kinematic(go);
+        return go;
+    }
+
+    // The per-life part, in the order Create has always made it.
+    static void Configure(GameObject go, EnemyDef def, Vector3 position, float size, bool tough)
+    {
+        var identity = go.GetComponent<EnemyIdentity>();
         identity.Set(def);
         // the obsidian shard's glass colour, stable for this body (ObsidianShards.Pick)
         if (ObsidianShards.Applies(def))
@@ -43,10 +115,6 @@ public static class EnemyFactory
             identity.SetVariant(ObsidianShards.Pick(shardSeed));
             go.AddComponent<ObsidianGlint>().Init(shardSeed, identity.Variant);   // its blinking glint (a child sprite)
         }
-
-        var col = go.AddComponent<BoxCollider2D>();
-        col.isTrigger = true;
-        col.size = def.ColliderSize;
 
         // What it does (EnemyBehaviours): the mover below scrolls it, the
         // brain adds its pattern and its attack on top.
@@ -75,11 +143,9 @@ public static class EnemyFactory
                 scroller = go.AddComponent<moveItemEnmInStrightLine>();
                 break;
             case EnemyRole.Chaser:
-                Kinematic(go);
                 go.AddComponent<ChaserEnemy>().Configure(behaviour);
                 break;
             default:
-                Kinematic(go);
                 scroller = go.AddComponent<moveItemEnmInStrightLine>();
                 break;
         }
@@ -108,7 +174,6 @@ public static class EnemyFactory
         SpawnFootprint.Bind(go, go.GetComponent<IMovementFootprint>());
         // 2 hearts (a rock or mine stays one-hit); the tutorial's enemies stay one-hit
         if (tough) Toughness.Attach(go, def);
-        return go;
     }
 
     static void Kinematic(GameObject go)
@@ -116,5 +181,25 @@ public static class EnemyFactory
         var rb = go.AddComponent<Rigidbody2D>();
         rb.bodyType = RigidbodyType2D.Kinematic;
         rb.gravityScale = 0f;
+    }
+
+    // ---- prewarm (level start) ----
+
+    // Builds ONE missing idle body of the world's poolable roster per call (spread the work over frames); true while more remain.
+    public static bool PrewarmStep(int world)
+    {
+        if (!PrefabPool.Enabled) return false;
+        var all = EnemyRoster.All;
+        for (int i = 0; i < all.Length; i++)
+        {
+            var def = all[i];
+            if (def.world != world || !Poolable(def)) continue;
+            var slot = SlotFor(def);
+            int have = PrefabPool.FreeCount(slot.key);
+            if (have >= PrewarmPerType) continue;
+            PrefabPool.Prewarm(slot.key, slot.build, have + 1);
+            return true;
+        }
+        return false;
     }
 }

@@ -8,6 +8,12 @@ public sealed class HazardVisuals
     public const int Pool = 150, PerField = 14;
     public const int SortingOrder = -7;
     readonly SpriteRenderer[] sr = new SpriteRenderer[Pool];
+    // what each pooled renderer was last given, so an unchanged value is not pushed to the engine again every frame
+    readonly Sprite[] lastSprite = new Sprite[Pool];
+    readonly Color[] lastColor = new Color[Pool];
+    readonly float[] lastRot = new float[Pool];
+    readonly Vector3[] lastScale = new Vector3[Pool];
+    readonly bool[] lastOn = new bool[Pool];
     Transform root;
     readonly SpriteRenderer[] artSr = new SpriteRenderer[14];   // 14: a three-band flare train of three stacked tiles each needs nine   // the world's approved hazard sheet: a swirl's body or a front's tiles
     readonly SpriteMask[] holeMasks = new SpriteMask[HazardField.MaxBands];   // the painted flare's openings: one mask per band, cutting that band's tiles
@@ -122,7 +128,7 @@ public sealed class HazardVisuals
         masksUsed = 0;
         for (int f = 0; f < fields.Length; f++)
             if (fields[f].Active) n = DrawField(fields[f], n);
-        for (int i = n; i < Pool; i++) if (sr[i].enabled) sr[i].enabled = false;
+        for (int i = n; i < Pool; i++) if (lastOn[i]) { lastOn[i] = false; sr[i].enabled = false; }
         for (int i = artDrawn; i < artSr.Length; i++) artSr[i].enabled = false;
         for (int i = masksUsed; i < holeMasks.Length; i++) if (holeMasks[i] != null && holeMasks[i].enabled) holeMasks[i].enabled = false;
         masksUsedLast = masksUsed;
@@ -135,14 +141,17 @@ public sealed class HazardVisuals
     void Put(ref int n, AmbientShape shape, Vector2 pos, float rot, float sx, float sy, Color c)
     {
         if (n >= Pool) return;
-        var r = sr[n++];
-        r.sprite = WeatherSprites.Get(shape);
+        int i = n++;
+        var r = sr[i];
+        var sprite = WeatherSprites.Get(shape);
+        if (lastSprite[i] != sprite) { lastSprite[i] = sprite; r.sprite = sprite; }
         var t = r.transform;
         t.position = new Vector3(pos.x, pos.y, 0f);
-        t.rotation = Quaternion.Euler(0f, 0f, rot);
-        t.localScale = new Vector3(sx, sy, 1f);
-        r.color = c;
-        r.enabled = true;
+        if (lastRot[i] != rot || !lastOn[i]) { lastRot[i] = rot; t.rotation = Quaternion.Euler(0f, 0f, rot); }
+        var scale = new Vector3(sx, sy, 1f);
+        if (lastScale[i] != scale) { lastScale[i] = scale; t.localScale = scale; }
+        if (lastColor[i] != c) { lastColor[i] = c; r.color = c; }
+        if (!lastOn[i]) { lastOn[i] = true; r.enabled = true; }
     }
 
     static float RotAlong(Vector2 d) { return Mathf.Atan2(d.y, d.x) * Mathf.Rad2Deg - 90f; }   // a vertical streak laid along d

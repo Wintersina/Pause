@@ -138,7 +138,7 @@ public partial class DeathCrash
         {
             int n = 0;
             for (int i = 0; i < actorCount; i++)
-                if ((actors[i].kind == TargetKind.Enemy || actors[i].kind == TargetKind.Elite) && actors[i].alive && actors[i].go != null) n++;
+                if ((actors[i].kind == TargetKind.Enemy || actors[i].kind == TargetKind.Elite) && actors[i].alive && !EnemyLife.Gone(actors[i].go)) n++;
             return n;
         }
     }
@@ -315,7 +315,7 @@ public partial class DeathCrash
         {
             ref var a = ref actors[i];
             if (!a.alive) continue;
-            if (a.go == null) { a.alive = false; continue; }
+            if (EnemyLife.Gone(a.go)) { a.alive = false; continue; }
             if (a.kind == TargetKind.Boss || a.kind == TargetKind.Shot) continue;   // frozen with their fight
             if (a.elite != null)
             {
@@ -341,7 +341,7 @@ public partial class DeathCrash
         {
             ref var a = ref actors[j];
             if (!a.alive || a.kind == TargetKind.Prop || j == p.lastHit) continue;
-            if (a.go == null) { a.alive = false; continue; }
+            if (EnemyLife.Gone(a.go)) { a.alive = false; continue; }
             Vector3 d = a.tf.position - pos;
             float r = p.radius * .8f + a.radius * .85f;
             if (d.x * d.x + d.y * d.y > r * r) continue;
@@ -547,7 +547,7 @@ public partial class DeathCrash
         {
             int j = megaOrder[megaNext];
             ref var a = ref actors[j];
-            if (!a.alive || a.go == null) { megaNext++; continue; }   // the chain got there first
+            if (!a.alive || EnemyLife.Gone(a.go)) { megaNext++; continue; }   // the chain got there first
             if (elapsed < a.megaAt) break;
             Vector3 at = a.tf.position;
             Shrapnel(megaFrom, at);

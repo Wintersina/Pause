@@ -54,7 +54,17 @@ public static class PrefabPool
         public Func<GameObject> build;          // code-built pools
         public Action<GameObject> decorate;
         public readonly Stack<PooledObject> free = new Stack<PooledObject>();
+        public readonly Queue<PooledObject> cooling = new Queue<PooledObject>();   // released lately: not handed out again until their cooldown is over
     }
+
+    // COOLDOWN. Something that remembers a pooled body across frames (a weapon's "already hit" list, a lingering follower) must not
+    // meet it again as a different enemy a moment later. A key with a cooldown keeps a released body aside for that many seconds
+    // before it can be reused (in play, or when a test supplies CooldownClock). Prewarmed bodies are never cooled.
+    static readonly Dictionary<object, float> cooldowns = new Dictionary<object, float>();
+    public static void SetCooldown(object key, float seconds) { cooldowns[key] = seconds; }
+    public static System.Func<float> CooldownClock;   // tests: a clock that works in edit mode
+    static float CooldownNow { get { return CooldownClock != null ? CooldownClock() : Time.unscaledTime; } }
+    static bool prewarming;
 
     static readonly Dictionary<object, Pool> pools = new Dictionary<object, Pool>();
     static readonly List<PooledObject> pending = new List<PooledObject>();
@@ -74,7 +84,7 @@ public static class PrefabPool
     public static int FreeCount(object key)
     {
         Pool p;
-        return key != null && pools.TryGetValue(key, out p) ? p.free.Count : 0;
+        return key != null && pools.TryGetValue(key, out p) ? p.free.Count + p.cooling.Count : 0;
     }
 
     // ------------------------------------------------------------------
@@ -120,6 +130,18 @@ public static class PrefabPool
 
     static GameObject Take(Pool pool, Vector3 pos, Quaternion rot)
     {
+        if (pool.cooling.Count > 0)
+        {
+            float cooldown, now = CooldownNow;
+            cooldowns.TryGetValue(pool.key, out cooldown);
+            while (pool.cooling.Count > 0)
+            {
+                var c = pool.cooling.Peek();
+                if (c != null && now - c.freedAt < cooldown) break;
+                pool.cooling.Dequeue();
+                if (c != null) pool.free.Push(c);
+            }
+        }
         while (pool.free.Count > 0)
         {
             var po = pool.free.Pop();
@@ -173,10 +195,12 @@ public static class PrefabPool
     static void Prewarm(Pool pool, int count)
     {
         count = Mathf.Min(count, MaxFreePerKey);
-        while (pool.free.Count < count)
+        while (pool.free.Count + pool.cooling.Count < count)
         {
             var go = Build(pool, Parked, Quaternion.identity);
-            go.GetComponent<PooledObject>().ReleaseNow();
+            prewarming = true;
+            try { go.GetComponent<PooledObject>().ReleaseNow(); }
+            finally { prewarming = false; }
         }
     }
 
@@ -204,8 +228,14 @@ public static class PrefabPool
     internal static void Push(Pool pool, PooledObject po)
     {
         live--;
-        if (pool.free.Count >= MaxFreePerKey) { Discarded++; Destroy(po.gameObject); return; }
-        pool.free.Push(po);
+        if (pool.free.Count + pool.cooling.Count >= MaxFreePerKey) { Discarded++; Destroy(po.gameObject); return; }
+        float cooldown;
+        if (!prewarming && (Application.isPlaying || CooldownClock != null) && cooldowns.TryGetValue(pool.key, out cooldown) && cooldown > 0f)
+        {
+            po.freedAt = CooldownNow;
+            pool.cooling.Enqueue(po);
+        }
+        else pool.free.Push(po);
         Released++;
     }
 
@@ -233,8 +263,12 @@ public static class PrefabPool
     public static void ClearAndDestroy()
     {
         foreach (var pool in pools.Values)
+        {
             foreach (var po in pool.free)
                 if (po != null) Destroy(po.gameObject);
+            foreach (var po in pool.cooling)
+                if (po != null) Destroy(po.gameObject);
+        }
         foreach (var po in pending)
             if (po != null) Destroy(po.gameObject);
         Clear();
@@ -308,6 +342,7 @@ public sealed class PooledObject : MonoBehaviour
     internal enum State { InUse, Pending, Free }
     internal State state = State.InUse;
     internal PrefabPool.Pool pool;
+    internal float freedAt;   // when it was released (PrefabPool cooldown)
 
     public bool IsFree { get { return state == State.Free; } }
     public bool IsPending { get { return state == State.Pending; } }

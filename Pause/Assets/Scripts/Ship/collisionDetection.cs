@@ -399,7 +399,7 @@ public class collisionDetection : MonoBehaviour {
                 AwardDestroyedTarget(hit.gameObject);
                 // the blue-atom shield's kill: BLOOM / SINGULARITY (AtomFusions)
                 if (atomCheck) AtomFusions.OnShieldKill();
-                Destroy(hit.gameObject);
+                Pooled.Destroy(hit.gameObject);   // (a pooled enemy goes back to its pool)
                 
                 
                 
@@ -470,12 +470,12 @@ public class collisionDetection : MonoBehaviour {
                 // unpaid (RamKill). A rail mine's laser is not spent on the
                 // hull: the beam burns on across the lane and the heart's
                 // i-frames carry the ship through it (RailMineLaser).
-                if (fatal) Destroy(hit.gameObject);
+                if (fatal) Pooled.Destroy(hit.gameObject);
                 else if (RailMineLaser.IsHitbox(hit.gameObject) || AttackHazard.IsHitbox(hit.gameObject)) { }   // (a laser / a themed hazard is not spent on the hull)
                 else if (!EliteShip.Rammed(hit.gameObject, shipPos))
                 {
                     RamKill.Blast(hit.gameObject, ShipId.Of(gameObject, ShipId.Equipped()));
-                    Destroy(hit.gameObject);
+                    Pooled.Destroy(hit.gameObject);
                 }
 
             }

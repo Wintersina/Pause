@@ -821,7 +821,7 @@ public class EnemyBrain : MonoBehaviour
         ReleaseReservation();
         PilotAirspace.NoteDeparture(this);
         PilotAirspace.Unregister(this);
-        if (Application.isPlaying) Destroy(gameObject);
+        if (Application.isPlaying) Pooled.Destroy(gameObject);   // (a pooled enemy goes back to its pool)
         else
         {
             transform.position = new Vector3(transform.position.x, how == PilotExit.Run ? -60f : 60f, transform.position.z);

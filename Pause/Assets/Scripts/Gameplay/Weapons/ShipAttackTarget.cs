@@ -132,8 +132,7 @@ public static class ShipAttackHits
         EnemyDeathAudio.Play(target);
         collisionDetection.AwardDestroyedTarget(target);
         ClearTarget.Release(target);
-        if (Application.isPlaying) Object.Destroy(target);
-        else Object.DestroyImmediate(target);
+        Pooled.Remove(target);   // (a pooled enemy goes back to its pool)
     }
 }
 
@@ -162,13 +161,33 @@ public static class ShipTargets
     // camera: an unbounded rect, so everything counts.
     public static Rect View(float margin = 0f)
     {
-        var cam = CameraFit.Main;
-        if (cam == null || !cam.orthographic)
-            return new Rect(-1e5f, -1e5f, 2e5f, 2e5f);
-        float h = cam.orthographicSize, w = h * cam.aspect;
-        Vector3 c = cam.transform.position;
-        return new Rect(c.x - w - margin, c.y - h - margin, (w + margin) * 2f, (h + margin) * 2f);
+        // the camera's centre and half extents are read once per frame (every shot asks for the view every tick:
+        // a native camera read each). Edit mode (no real frames) always reads fresh unless a test switches the cache on.
+        if (!(viewStamp == Time.frameCount && (Application.isPlaying || ForceViewCache)))
+        {
+            var cam = CameraFit.Main;
+            if (cam == null || !cam.orthographic) viewOpen = true;
+            else
+            {
+                viewOpen = false;
+                float h = cam.orthographicSize;
+                Vector3 c = cam.transform.position;
+                viewHalfH = h; viewHalfW = h * cam.aspect; viewX = c.x; viewY = c.y;
+            }
+            viewStamp = Time.frameCount;
+            ViewReads++;
+        }
+        if (viewOpen) return new Rect(-1e5f, -1e5f, 2e5f, 2e5f);
+        float w = viewHalfW, hh = viewHalfH;
+        return new Rect(viewX - w - margin, viewY - hh - margin, (w + margin) * 2f, (hh + margin) * 2f);
     }
+
+    static int viewStamp = -1;
+    static bool viewOpen;
+    static float viewX, viewY, viewHalfW, viewHalfH;
+    public static bool ForceViewCache;   // tests: cache by frame in edit mode too
+    public static int ViewReads;         // tests: camera reads so far
+    public static void ResetViewCache() { viewStamp = -1; }
 
     // Hazards (enemies + asteroids) inside the view, plus `topMargin` above
     // it so something just coming in can be shot.

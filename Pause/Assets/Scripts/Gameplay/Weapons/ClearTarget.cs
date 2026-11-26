@@ -71,6 +71,41 @@ public class ClearTarget : MonoBehaviour, IPoolReset
         Mother = null;
         PlayfieldSeconds = 0f;
         enabled = true;
+        InvalidateBody();
+    }
+
+    // ---- the weather's per-body lookups (WorldHazards.PushBodies / StunBand), resolved once per body, not per frame ----
+    // The components a hazard field asks about on every body every frame while it is active. They are all added in the
+    // body's construction (the same call that makes it), so the first frame it is looked at sees them; a pooled body
+    // forgets them on reuse (OnPoolAcquire) and a body that went away takes the cache with it.
+    bool bodyResolved, bodyExempt;
+    RailMineMount bodyMount;
+    SpawnFootprint bodyFootprint;
+    FrozenState bodyFrost;
+
+    void ResolveBody()
+    {
+        bodyResolved = true;
+        bodyExempt = TryGetComponent(out BossTarget _) || TryGetComponent(out BossActor _) || TryGetComponent(out EliteShip _);
+        TryGetComponent(out bodyMount);
+        TryGetComponent(out bodyFootprint);
+        TryGetComponent(out bodyFrost);
+    }
+
+    public void InvalidateBody() { bodyResolved = false; bodyExempt = false; bodyMount = null; bodyFootprint = null; bodyFrost = null; }
+
+    // A boss, a boss part or an elite (the weather treats those on their own).
+    public bool IsBossOrElite { get { if (!bodyResolved) ResolveBody(); return bodyExempt; } }
+    public RailMineMount BodyMount { get { if (!bodyResolved) ResolveBody(); return bodyMount; } }
+    public SpawnFootprint BodyFootprint { get { if (!bodyResolved) ResolveBody(); return bodyFootprint; } }
+
+    // The weather's stun: a frozen body is refreshed in place (the same failsafe reset Freeze does), anything else is frozen as before.
+    public FrozenState Stun(float seconds)
+    {
+        if (!bodyResolved) ResolveBody();
+        if (bodyFrost != null && bodyFrost.IsFrozen) { bodyFrost.Refresh(seconds); return bodyFrost; }
+        bodyFrost = FrozenState.Freeze(gameObject, seconds);
+        return bodyFrost;
     }
 
     public EnemyBrain Brain { get { if (!classified) Classify(); return brain; } }

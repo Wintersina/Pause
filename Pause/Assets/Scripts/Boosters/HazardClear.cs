@@ -106,7 +106,7 @@ public static class HazardClear
         var rock = go.GetComponent<FieldAsteroid>();
         if (rock != null) { rock.Vanish(); return; }
         ClearTarget.Release(go);
-        if (Application.isPlaying) Object.Destroy(go); else Object.DestroyImmediate(go);
+        Pooled.Remove(go);   // (a pooled enemy goes back to its pool)
     }
 
     // The body's own pixel-art burst: white (the flipbook's own colours), no ship-coloured flash on top.

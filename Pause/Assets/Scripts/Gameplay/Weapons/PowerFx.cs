@@ -184,7 +184,7 @@ public static class PowerFx
         float speed = 5.8f + (style % 4) * .45f;
         for (float t = 0; t < maxSeconds; t += Time.deltaTime)
         {
-            if (target == null) { Object.Destroy(go); yield break; }
+            if (target == null || EnemyLife.Gone(target)) { Object.Destroy(go); yield break; }
             Vector3 toTarget = target.position - go.transform.position;
             if (toTarget.sqrMagnitude <= .018f) break;
             heading = SteerHeading(heading, toTarget, 235f, Time.deltaTime);

@@ -1295,6 +1295,9 @@ public class FrozenState : MonoBehaviour
         return st;
     }
 
+    // Already frozen: just push the failsafe out (what Freeze does to a frozen hazard).
+    public void Refresh(float failSafe) { left = failSafe; }
+
     void Hold(float failSafe)
     {
         left = failSafe;

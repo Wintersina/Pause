@@ -473,10 +473,10 @@ public sealed class WorldHazards : MonoBehaviour
             var go = t.gameObject;
             bool rock = go.CompareTag("Astr");
             if (!rock && !go.CompareTag("Enimey")) continue;
-            if (go.TryGetComponent(out BossTarget _) || go.TryGetComponent(out BossActor _)) continue;
-            if (go.TryGetComponent(out EliteShip _)) continue;          // elites: PushElites
+            if (t.IsBossOrElite) continue;                              // bosses; elites: PushElites
             if (RunScore.IsHostileShot(go)) continue;
-            if (go.TryGetComponent(out RailMineMount mount) && mount.rail != null) continue;   // rides its rail
+            var mount = t.BodyMount;
+            if (mount != null && mount.rail != null) continue;   // rides its rail
             float share = 1f;
             var brain = t.Brain;
             if (brain != null && brain.enabled && brain.Behaviour != null && brain.IsPilot)
@@ -487,10 +487,10 @@ public sealed class WorldHazards : MonoBehaviour
             if (!Field(f, p, HazardTarget.Body, out Vector2 v)) continue;
             float mass = rock ? HazardSize.ShoveScale(EnemyIdentity.ScaleOf(go)) : 1f;
             // rocks and (rail-less) mines are hazardous objects: a flare flings them far harder than a ship (no stun, no damage)
-            float obj = f != null && (rock || go.TryGetComponent(out RailMineMount _)) ? f.def.objectPush : 1f;
+            float obj = f != null && (rock || mount != null) ? f.def.objectPush : 1f;
             v = HazardForce.Clamp(v * (share * mass * obj), WorldWeatherTable.BodyMaxSpeed * Cap(f) * obj);
-            SpawnFootprint fp;
-            Vector2 half = go.TryGetComponent(out fp) ? fp.half : new Vector2(t.Radius, t.Radius);
+            SpawnFootprint fp = t.BodyFootprint;
+            Vector2 half = fp != null ? fp.half : new Vector2(t.Radius, t.Radius);
             Vector2 move = v * dt;
             float lane = SpawnLane.LaneHalf - half.x;
             float nx = p.x + move.x;
@@ -523,11 +523,10 @@ public sealed class WorldHazards : MonoBehaviour
             if (!go.CompareTag("Enimey")) continue;
             Vector3 p = go.transform.position;
             if (p.y > top || p.y < bottom || !HazardForce.Touches(f, p, t.Radius)) continue;
-            if (go.TryGetComponent(out BossTarget _) || go.TryGetComponent(out BossActor _)) continue;
-            if (go.TryGetComponent(out EliteShip _)) continue;          // elites: below
+            if (t.IsBossOrElite) continue;                              // bosses; elites: below
             if (RunScore.IsHostileShot(go)) continue;
-            if (go.TryGetComponent(out RailMineMount _)) continue;       // mines are pushed, not stunned
-            var fs = FrozenState.Freeze(go, StunSeconds);
+            if (t.BodyMount != null) continue;                           // mines are pushed, not stunned
+            var fs = t.Stun(StunSeconds);
             if (fs == null) continue;
             LastStunned++;
             DazedSparks.Mark(go.transform, fs, null);

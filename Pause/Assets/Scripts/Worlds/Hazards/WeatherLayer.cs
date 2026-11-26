@@ -16,6 +16,12 @@ public sealed class WeatherLayer
     struct P { public Vector2 pos, vel; public float seed, phase; public int kind; }
 
     readonly SpriteRenderer[] sr = new SpriteRenderer[WorldWeatherTable.AmbientMax];
+    // what each renderer was last given: an unchanged value is not pushed to the engine again every frame
+    readonly Sprite[] lastSprite = new Sprite[WorldWeatherTable.AmbientMax];
+    readonly Color[] lastColor = new Color[WorldWeatherTable.AmbientMax];
+    readonly float[] lastRot = new float[WorldWeatherTable.AmbientMax];
+    readonly Vector3[] lastScale = new Vector3[WorldWeatherTable.AmbientMax];
+    readonly bool[] lastOn = new bool[WorldWeatherTable.AmbientMax];
     readonly P[] ps = new P[WorldWeatherTable.AmbientMax];
     readonly Transform root;
     int world = -1, count;
@@ -94,7 +100,7 @@ public sealed class WeatherLayer
         fade = Mathf.MoveTowards(fade, target, (dt > 0f ? dt : 0f) * .7f);
         if (entry == null || fade <= 0f)
         {
-            for (int i = 0; i < sr.Length; i++) if (sr[i].enabled) sr[i].enabled = false;
+            for (int i = 0; i < sr.Length; i++) if (lastOn[i]) { lastOn[i] = false; sr[i].enabled = false; }
             return;
         }
         clock += dt;
@@ -125,7 +131,8 @@ public sealed class WeatherLayer
             }
             var r = sr[i];
             bool art = k.artKind >= 0 && WeatherArt.LoadedFor(world);
-            r.sprite = art ? WeatherArt.Get(k.artKind, (int)(p.seed * 4f)) : WeatherSprites.Get(k.shape);
+            var sprite = art ? WeatherArt.Get(k.artKind, (int)(p.seed * 4f)) : WeatherSprites.Get(k.shape);
+            if (lastSprite[i] != sprite) { lastSprite[i] = sprite; r.sprite = sprite; }
             Vector2 d = p.vel.sqrMagnitude > 1e-4f ? p.vel : k.drift;
             float rot = 0f;
             if (art) rot = 0f;                                  // the painted particles carry their own slant
@@ -133,15 +140,16 @@ public sealed class WeatherLayer
             else if (k.shape == AmbientShape.Leaf || k.shape == AmbientShape.Flake) rot = clock * 40f * (p.seed - .5f) + p.phase * 57f;
             var t = r.transform;
             t.position = new Vector3(p.pos.x, p.pos.y, 0f);
-            t.rotation = Quaternion.Euler(0f, 0f, rot);
+            if (lastRot[i] != rot || !lastOn[i]) { lastRot[i] = rot; t.rotation = Quaternion.Euler(0f, 0f, rot); }
             float s = k.size * (.8f + .4f * p.seed);
-            t.localScale = new Vector3(s, s, 1f);
+            var scale = new Vector3(s, s, 1f);
+            if (lastScale[i] != scale) { lastScale[i] = scale; t.localScale = scale; }
             Color c = art ? Color.white : k.color;
             float flick = k.shape == AmbientShape.Ember ? .75f + .25f * Mathf.Sin(clock * 9f + p.phase) : 1f;
             c.a = Mathf.Min(k.alpha, WorldWeatherTable.AmbientMaxAlpha) * fade * flick;
-            r.color = c;
-            r.enabled = true;
+            if (lastColor[i] != c) { lastColor[i] = c; r.color = c; }
+            if (!lastOn[i]) { lastOn[i] = true; r.enabled = true; }
         }
-        for (int i = count; i < sr.Length; i++) if (sr[i].enabled) sr[i].enabled = false;
+        for (int i = count; i < sr.Length; i++) if (lastOn[i]) { lastOn[i] = false; sr[i].enabled = false; }
     }
 }

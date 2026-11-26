@@ -796,7 +796,7 @@ public class DroneDeployAttack : EliteAttack
     {
         var d = EnemyRoster.Find(DroneKey);
         if (d == null) return null;
-        var go = EnemyFactory.Create(d, new Vector3(at.x, at.y, 0f), Quaternion.identity);
+        var go = EnemyFactory.Create(d, new Vector3(at.x, at.y, 0f), Quaternion.identity, 1f, true, false);   // (an elite is built and destroyed, never pooled)
         if (go == null) return null;
         go.transform.SetParent(EliteSystem.Root, true);   // (gone with the elites on a clear)
         go.transform.localScale *= Mathf.Max(.2f, def.hazardSize);
