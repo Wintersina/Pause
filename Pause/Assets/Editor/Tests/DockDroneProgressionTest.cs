@@ -82,6 +82,13 @@ public static class DockDroneProgressionTest
         var root = new GameObject("Dock"); var bay = DockBay.Create(root.transform, 3, CodexUi.FindFont());
         bay.RefreshStatus(true, false, shopingShips.CostFor(3));
         Check("owned berth shows current health and two unlocked drones", bay.ShowsLoadout && bay.DroneCountText == "2" && bay.HealthCountText == ShipLives.Max(3).ToString());
+        foreach (Facing facing in System.Enum.GetValues(typeof(Facing)))
+        {
+            bay.SetFacing(facing);
+            bay.SetLabelScale(1f);
+            Check("wall loadout stays below its larger number: " + facing,
+                bay.LoadoutPosition.y < bay.NumberRect.yMin && Mathf.Abs(bay.LoadoutPosition.x - bay.NumberRect.center.x) < .001f);
+        }
         Level(3, 4); bay.RefreshStatus(true, true, shopingShips.CostFor(3));
         Check("berth badge updates immediately after the final upgrade", bay.DroneCountText == "3");
         bay.RefreshStatus(false, false, shopingShips.CostFor(3));
