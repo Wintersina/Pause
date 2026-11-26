@@ -138,7 +138,6 @@ public class spawnGoodStuff : MonoBehaviour {
         AtomSpawnBias.Tick(dt);
         // A coin earned by a killed elite or boss that was waiting for the spacing gap (ShotAtomDrops).
         DroneSquad.OfferStarter();
-        ShotAtomDrops.TickOpening(dt, new Vector3(0f, transform.position.y, 0f));
         ShotAtomDrops.Pump();
         if (smStarTimer <= 0)
         {

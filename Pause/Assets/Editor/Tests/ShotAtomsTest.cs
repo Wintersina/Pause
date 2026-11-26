@@ -241,47 +241,25 @@ public static class ShotAtomsTest
 
     static void OpeningDrops()
     {
-        FreshScene();
-        ShotAtoms.BeginRun(3); AtomSpacing.Reset();
-        var seen = new List<ShotAtom>();
-        ShotAtomDrops.Spawned = (atom, at) => seen.Add(atom);
+        FreshScene(); ShotAtoms.BeginRun(3); AtomSpacing.Reset();
+        var seen = new List<ShotAtom>(); ShotAtomDrops.Spawned = (atom, at) => seen.Add(atom);
         try
         {
-            var pos = new Vector3(0f, 4f, 0f);
-            ShotAtomDrops.TickOpening(1.9f, pos);
-            Check("opening waits only two playable seconds, independent of kills", seen.Count == 0);
-            ShotAtomDrops.TickOpening(.11f, pos);
-            Check("the first early coin is TWIN", seen.Count == 1 && seen[0] == ShotAtom.Twin);
-            // No pickup is collected: the order is determined by appearance.
-            AtomSpacing.Tick(6f); ShotAtomDrops.TickOpening(6f, pos);
-            Check("the second early coin is TWIN even if the first was missed", seen.Count == 2 && seen[1] == ShotAtom.Twin);
-            AtomSpacing.Tick(6f); ShotAtomDrops.TickOpening(6f, pos);
-            Check("the third early coin is ARC", seen.Count == 3 && seen[2] == ShotAtom.Arc);
-            ShotAtomDrops.TickOpening(100f, pos);
-            Check("scheduled opening stops after three visible coins", seen.Count == 3);
-            AtomSpacing.Released();
-            ShotAtomDrops.OnEliteKilled(pos);
-            AtomSpacing.Tick(4f); ShotAtomDrops.Pump(.79f);
-            Check("ordinary random selection resumes after the opener (a high roll gives RAPID)", seen.Count == 4 && seen[3] == ShotAtom.Rapid);
-            ShotAtoms.BeginRun(3); AtomSpacing.Reset(); seen.Clear();
-            ShotAtomDrops.OnEliteKilled(pos);
-            Check("a kill before the schedule still gives the first TWIN", seen.Count == 1 && seen[0] == ShotAtom.Twin);
-            AtomSpacing.Reset(); ShotAtomDrops.TickOpening(2.1f, pos);
-            Check("an early kill consumes its opening slot, preventing a duplicate scheduled first drop", seen.Count == 1);
-            ShotAtomDrops.Clear(); AtomSpacing.Reset();
-            ShotAtomDrops.TickOpening(6f, pos);
-            Check("clearing a queue does not restart the opening order", seen.Count == 2 && seen[1] == ShotAtom.Twin);
-            ShotAtoms.BeginRun(3); seen.Clear(); AtomSpacing.Released();
-            ShotAtomDrops.TickOpening(3f, pos);
-            ShotAtomDrops.TickOpening(1f, pos);
-            Check("a blocked opening coin queues once until pickup spacing is free", seen.Count == 0 && ShotAtomDrops.Pending == 1);
-            AtomSpacing.Tick(4f); ShotAtomDrops.Pump(.99f);
-            Check("the spacing queue preserves TWIN regardless of random roll", seen.Count == 1 && seen[0] == ShotAtom.Twin);
+            var enemy = Hazard(0f, 1f);
+            ShotAtomDrops.Pump(); AtomSpacing.Tick(100f); ShotAtomDrops.Pump();
+            Check("no modifier coins arrive merely because flight time passed", seen.Count == 0);
+            Check("first enemy kill earns TWIN even on a losing random roll", ShotAtomDrops.OnEnemyKilled(enemy, .99f) && seen.Count == 1 && seen[0] == ShotAtom.Twin);
+            Check("the next kill earns one queued TWIN while spacing is blocked", ShotAtomDrops.OnEnemyKilled(enemy, .99f) && seen.Count == 1 && ShotAtomDrops.Pending == 1);
+            AtomSpacing.Tick(4f); ShotAtomDrops.Pump();
+            Check("the second TWIN enters after its earned spacing gap", seen.Count == 2 && seen[1] == ShotAtom.Twin);
+            AtomSpacing.Reset(); ShotAtomDrops.OnEnemyKilled(enemy, .99f);
+            Check("the third earned modifier is ARC", seen.Count == 3 && seen[2] == ShotAtom.Arc);
+            AtomSpacing.Reset();
+            Check("after the scripted opener ordinary random drops resume", !ShotAtomDrops.OnEnemyKilled(enemy, .99f) && seen.Count == 3);
             ShotAtoms.BeginRun(3); seen.Clear(); AtomSpacing.Reset();
-            buttonClicks.playerDied = true; ShotAtomDrops.TickOpening(100f, pos);
-            buttonClicks.playerDied = false; startMenu.youAreInTutorial = true; ShotAtomDrops.TickOpening(100f, pos);
-            startMenu.youAreInTutorial = false; ShotAtomDrops.TickOpening(1f, pos);
-            Check("death/tutorial time never advances the opening clock", seen.Count == 0);
+            buttonClicks.playerDied = true; ShotAtomDrops.OnEnemyKilled(enemy, 0f);
+            buttonClicks.playerDied = false; startMenu.youAreInTutorial = true; ShotAtomDrops.OnEnemyKilled(enemy, 0f);
+            Check("death and tutorial kills cannot release opening modifiers", seen.Count == 0 && ShotAtomDrops.Pending == 0);
         }
         finally { ShotAtomDrops.Spawned = null; buttonClicks.playerDied = false; startMenu.youAreInTutorial = false; ShotAtoms.BeginRun(3); }
     }
@@ -386,14 +364,14 @@ public static class ShotAtomsTest
         ShotAtomDrops.Clear();
         var plain = Hazard(0f, 1f);
         int enemies = ShotAtomDrops.Enemies;
-        Check("an ordinary kill on a bad roll drops nothing", !ShotAtomDrops.OnEnemyKilled(plain, .5f) && ShotAtomDrops.Enemies == enemies);
-        Check("... a roll under 8% drops one", ShotAtomDrops.OnEnemyKilled(plain, .01f) && ShotAtomDrops.Enemies == enemies + 1);
+        Check("an ordinary kill on a bad roll drops nothing", !ShotAtomDrops.RollEnemyDrop(plain.transform.position, .5f) && ShotAtomDrops.Enemies == enemies);
+        Check("... a roll under 8% drops one", ShotAtomDrops.RollEnemyDrop(plain.transform.position, .01f) && ShotAtomDrops.Enemies == enemies + 1);
         ShotAtomDrops.Clear();
         AtomSpacing.Reset();
         clock += 11f;
-        Check("... but not again within 12 s", !ShotAtomDrops.OnEnemyKilled(plain, .0f) && ShotAtomDrops.Enemies == enemies + 1);
+        Check("... but not again within 12 s", !ShotAtomDrops.RollEnemyDrop(plain.transform.position, .0f) && ShotAtomDrops.Enemies == enemies + 1);
         clock += 1.5f;
-        Check("... and again after the cooldown", ShotAtomDrops.OnEnemyKilled(plain, .0f) && ShotAtomDrops.Enemies == enemies + 2);
+        Check("... and again after the cooldown", ShotAtomDrops.RollEnemyDrop(plain.transform.position, .0f) && ShotAtomDrops.Enemies == enemies + 2);
         ShotAtomDrops.Clear();
         AtomSpacing.Reset();
         int hit = 0;
@@ -402,7 +380,7 @@ public static class ShotAtomsTest
             clock += 15f;
             ShotAtomDrops.Clear();
             AtomSpacing.Reset();
-            if (ShotAtomDrops.OnEnemyKilled(plain, i / 1000f)) hit++;
+            if (ShotAtomDrops.RollEnemyDrop(plain.transform.position, i / 1000f)) hit++;
         }
         Check("evenly spread rolls match the current level chance (of 1000: " + hit + ")", hit == Mathf.RoundToInt(ShotAtomDrops.EnemyChance * 1000f));
         // a boss body or a hazard that happens to carry an identity never rolls
@@ -417,7 +395,7 @@ public static class ShotAtomsTest
         AtomSpacing.Released();
         int rel = ShotAtomDrops.Released;
         clock += 100f;
-        ShotAtomDrops.OnEnemyKilled(plain, 0f);
+        ShotAtomDrops.RollEnemyDrop(plain.transform.position, 0f);
         Check("an ordinary drop respects the atom spacing (queued, not released)", ShotAtomDrops.Pending == 1 && ShotAtomDrops.Released == rel);
         ShotAtomDrops.Clear();
         ClearCoins();
@@ -431,11 +409,11 @@ public static class ShotAtomsTest
         ShotAtomDrops.Clear();
         AtomSpacing.Reset();
         clock += 100f;
-        Check("rush: a roll of 8% drops (it would not without the booster)", ShotAtomDrops.OnEnemyKilled(plain, .08f));
+        Check("rush: a roll of 8% drops (it would not without the booster)", ShotAtomDrops.RollEnemyDrop(plain.transform.position, .08f));
         ShotAtomDrops.Clear();
         AtomSpacing.Reset();
         clock += 7f;
-        Check("rush: the cooldown is 6 s", ShotAtomDrops.OnEnemyKilled(plain, 0f));
+        Check("rush: the cooldown is 6 s", ShotAtomDrops.RollEnemyDrop(plain.transform.position, 0f));
         ShotAtomDrops.Clear();
         AtomSpacing.Reset();
         int firstElite = ShotAtomDrops.Elites;
@@ -453,7 +431,7 @@ public static class ShotAtomsTest
         ShotAtomDrops.Clear();
         AtomSpacing.Reset();
         clock += 100f;
-        Check("rush off: back to the normal level chance", !ShotAtomDrops.OnEnemyKilled(plain, .20f));
+        Check("rush off: back to the normal level chance", !ShotAtomDrops.RollEnemyDrop(plain.transform.position, .20f));
         ShotAtomDrops.ResetSeams();
         ShotAtomDrops.Clear();
         ClearCoins();
