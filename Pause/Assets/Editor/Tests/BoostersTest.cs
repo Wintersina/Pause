@@ -1118,7 +1118,7 @@ public static class BoostersTest
               Boosters.RushCharges == 1 && Boosters.BoughtRush == 1 && Boosters.Owns(kind) && Boosters.Status(kind) == "x1" && !Boosters.AnyActive);
         Boosters.Reload();
         Check("rush: a restart keeps the charge and the balance", Boosters.RushCharges == 1 && Mathf.Approximately(PlayerPrefs.GetFloat(StarDustLedger.CurrencyKey), 1500f));
-        Check("rush: holding one does nothing until a run starts (the rates are normal)", !Boosters.RunRushActive && Mathf.Approximately(ShotAtomDrops.EnemyChance, ShotAtomTuning.EnemyDropChance));
+        Check("rush: holding one does nothing until a run starts (the rates are normal)", !Boosters.RunRushActive && Mathf.Approximately(ShotAtomDrops.EnemyChance, WorldManager.CurrentIndex == WorldManager.RunStart ? .18f : .08f));
 
         // not enough dust / the hold limit
         Reset(499f);
@@ -1140,14 +1140,14 @@ public static class BoostersTest
         Check("rush: switched off in the Shop it is not spent", !Boosters.BeginRush(true) && Boosters.RushCharges == 2 && !Boosters.IsActive(kind));
         Boosters.SetOn(kind, true);
         Check("rush: a real run spends one charge and turns the rates up", Boosters.BeginRush(true) && Boosters.RushCharges == 1 && Boosters.UsedRush == 1 && Boosters.RunRushActive);
-        Check("rush: the rates are x3 while it runs (enemy 3% -> 9%, cooldown 12 -> 6 s, elite 100%, boss second 100%)",
-              Mathf.Approximately(ShotAtomDrops.EnemyChance, .09f) && Mathf.Approximately(ShotAtomDrops.EnemyCooldown, 6f) &&
+        Check("rush: the rates are x3 while it runs (enemy 8% -> 24% or starting level 18% -> 54%, cooldown 12 -> 6 s, elite 100%, boss second 100%)",
+              Mathf.Approximately(ShotAtomDrops.EnemyChance, WorldManager.CurrentIndex == WorldManager.RunStart ? .54f : .24f) && Mathf.Approximately(ShotAtomDrops.EnemyCooldown, 6f) &&
               ShotAtomDrops.Rushed(ShotAtomTuning.EliteDropChance) == 1f && ShotAtomDrops.Rushed(ShotAtomTuning.BossSecondDropChance) == 1f);
         Boosters.Reload();
         Check("rush: the spent charge is on disk (a restart keeps 1 held, 1 used)", Boosters.RushCharges == 1 && Boosters.UsedRush == 1);
         Boosters.BeginRush(true);
         Boosters.ResetRun();
-        Check("rush: the next run's reset ends the effect (the rates are normal again) ", !Boosters.RunRushActive && Mathf.Approximately(ShotAtomDrops.EnemyChance, ShotAtomTuning.EnemyDropChance));
+        Check("rush: the next run's reset ends the effect (the rates are normal again) ", !Boosters.RunRushActive && Mathf.Approximately(ShotAtomDrops.EnemyChance, WorldManager.CurrentIndex == WorldManager.RunStart ? .18f : .08f));
         Check("rush: a run with no charge left gets no rush", !Boosters.BeginRush(true) && Boosters.RushCharges == 0 && !Boosters.RunRushActive && !Boosters.Owns(kind));
 
         // through the real run start (score.Awake)

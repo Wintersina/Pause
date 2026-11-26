@@ -111,7 +111,7 @@ public abstract class HeartOrbit : MonoBehaviour
     protected int styleKey;
     protected HeartStyle style;
     protected OrbitStyle orbit;
-    float baseScale;
+    float baseScale, sourceHeartSpan;
     int frontOrder, backOrder;
 
     // Per heart (indexed like hearts; swapped together).
@@ -164,6 +164,20 @@ public abstract class HeartOrbit : MonoBehaviour
     Vector2[] shardVelocity;
     float[] shardSpin;
     static Sprite[] shardSprites;
+    HeartQuarterFrames.Set quarterFrames;
+    Sprite[] quarterOutlines;
+    int[] quarterShown;
+    const int QuarterBreakPool = 8;
+    struct QuarterBreak { public bool live; public float age; public int part; public Vector3 at, scale; public Quaternion rotation; }
+    QuarterBreak[] quarterBreaks;
+    SpriteRenderer[] quarterPieces;
+
+    public int VisibleQuarters(int heart) => quarterShown != null && heart >= 0 && heart < quarterShown.Length ? quarterShown[heart] : 4;
+    public int ActiveQuarterBreaks
+    {
+        get { int n = 0; if (quarterBreaks != null) foreach (var b in quarterBreaks) if (b.live) n++; return n; }
+    }
+
     static Vector2[] shardHome;       // each shard's centre in the heart, unit heart size
 
     public HeartStyle Style { get { return style; } }
@@ -199,7 +213,7 @@ public abstract class HeartOrbit : MonoBehaviour
         {
             int n = 0;
             if (breaks != null) foreach (var b in breaks) if (b.live) n++;
-            return n;
+            return n + ActiveQuarterBreaks;
         }
     }
     // Where break slot b's heart is shielding (world), and how far in it is.
@@ -218,6 +232,8 @@ public abstract class HeartOrbit : MonoBehaviour
     public abstract void BuildHearts();
     // How many hearts are left right now.
     protected abstract int RemainingHearts();
+    protected virtual bool UsesQuarterHearts => false;
+    protected virtual int RemainingQuarterUnits() => RemainingHearts() * HeartDamage.PerHeart;
     // The hit the next lost heart shields against, if one was reported
     // (and forgets it).
     protected abstract bool TakeImpact(out Vector3 at);
@@ -357,7 +373,8 @@ public abstract class HeartOrbit : MonoBehaviour
         float localSize = heartSize / parentScale;
         int hullOrder = hull != null ? hull.sortingOrder : 0;
         SortOrders(hullOrder, out frontOrder, out backOrder);
-        baseScale = localSize / Mathf.Max(sprite.bounds.size.x, sprite.bounds.size.y);
+        sourceHeartSpan = Mathf.Max(sprite.bounds.size.x, sprite.bounds.size.y);
+        baseScale = localSize / sourceHeartSpan;
 
         int key = styleKey * 131 + Mathf.FloorToInt(seed * 977f);
         for (int i = 0; i < count; i++)
@@ -386,6 +403,7 @@ public abstract class HeartOrbit : MonoBehaviour
 
         measured = false;
         BuildBreakPool(sprite, frontOrder + 1);
+        BuildQuarterHearts(sprite);
         Place(0f);
     }
 
@@ -400,6 +418,7 @@ public abstract class HeartOrbit : MonoBehaviour
         }
         pendingDestroy.Clear();
         breaks = null;
+        quarterBreaks = null; quarterPieces = null; quarterShown = null; quarterOutlines = null; quarterFrames = null;
     }
     static readonly List<GameObject> pendingDestroy = new List<GameObject>();
 
@@ -579,6 +598,7 @@ public abstract class HeartOrbit : MonoBehaviour
     {
         if (breaks == null) return;
         dt = Mathf.Max(0f, dt);
+        StepQuarterBreaks(dt);
         Vector3 p = transform.position;
         var burstFrames = ShieldArt.Impact;
         for (int b = 0; b < breaks.Length; b++)
@@ -690,6 +710,7 @@ public abstract class HeartOrbit : MonoBehaviour
     // The heart sprite's longest edge in world units at scale 1.
     float HeartWorldSpan()
     {
+        if (quarterFrames != null) return sourceHeartSpan;
         var sprite = renderers != null && renderers.Length > 0 && renderers[0] != null ? renderers[0].sprite : null;
         return sprite != null ? Mathf.Max(sprite.bounds.size.x, sprite.bounds.size.y) : 1f;
     }
@@ -741,6 +762,7 @@ public abstract class HeartOrbit : MonoBehaviour
     protected virtual void Update()
     {
         if (hearts == null) return;
+        if (UsesQuarterHearts && quarterFrames != null) { UpdateQuarterHearts(); return; }
 
         int remaining = Mathf.Clamp(RemainingHearts(), 0, hearts.Length);
         if (remaining != lastShown)
@@ -770,6 +792,98 @@ public abstract class HeartOrbit : MonoBehaviour
             lastShown = remaining;
         }
         else { Vector3 unused; TakeImpact(out unused); }
+    }
+
+    void BuildQuarterHearts(Sprite source)
+    {
+        if (!UsesQuarterHearts) return;
+        quarterFrames = HeartQuarterFrames.For(source);
+        if (quarterFrames == null) return;
+        quarterShown = new int[hearts.Length];
+        quarterOutlines = outlines != null ? new Sprite[5] : null;
+        if (quarterOutlines != null)
+            for (int q = 1; q <= 4; q++) quarterOutlines[q] = OutlineFor(quarterFrames.States[q]);
+        for (int i = 0; i < hearts.Length; i++)
+        {
+            int q = Mathf.Clamp(RemainingQuarterUnits() - i * HeartDamage.PerHeart, 0, HeartDamage.PerHeart);
+            quarterShown[i] = q;
+            renderers[i].sprite = quarterFrames.States[q];
+            if (outlines != null) outlines[i].sprite = quarterOutlines[q];
+            hearts[i].gameObject.SetActive(q > 0);
+        }
+        lastShown = HeartDamage.WholeHearts(RemainingQuarterUnits());
+        quarterBreaks = new QuarterBreak[QuarterBreakPool];
+        quarterPieces = new SpriteRenderer[QuarterBreakPool];
+        Transform root = transform.Find("~HeartBreaks");
+        for (int i = 0; i < QuarterBreakPool; i++)
+            quarterPieces[i] = NewPiece(root, "Quarter" + i, quarterFrames.Parts[0], frontOrder + 2);
+    }
+
+    void UpdateQuarterHearts()
+    {
+        int units = Mathf.Clamp(RemainingQuarterUnits(), 0, hearts.Length * HeartDamage.PerHeart);
+        int count = HeartDamage.WholeHearts(units);
+        Vector3 impact;
+        if (!TakeImpact(out impact)) impact = DefaultImpact();
+        for (int i = 0; i < hearts.Length; i++)
+        {
+            if (hearts[i] == null) continue;
+            int q = Mathf.Clamp(units - i * 4, 0, 4), old = quarterShown[i];
+            bool was = hearts[i].gameObject.activeSelf;
+            if (lastShown >= 0 && q < old)
+            {
+                // Full-heart blows retain the existing shield/crumble. Fractional losses only
+                // shed the sections still present, so a damaged heart never reappears whole.
+                if (old == 4 && q == 0) StartShield(i, impact);
+                else for (int part = 4 - old; part < 4 - q; part++) StartQuarterBreak(i, part);
+            }
+            renderers[i].sprite = quarterFrames.States[q];
+            if (outlines != null) outlines[i].sprite = quarterOutlines[q];
+            if (!was && q > 0 && lastShown >= 0) Healed(i, count);
+            hearts[i].gameObject.SetActive(q > 0);
+            quarterShown[i] = q;
+        }
+        lastShown = count;
+    }
+
+    void StartQuarterBreak(int heart, int part)
+    {
+        int slot = 0;
+        for (int i = 0; i < quarterBreaks.Length; i++)
+        {
+            if (!quarterBreaks[i].live) { slot = i; break; }
+            if (quarterBreaks[i].age > quarterBreaks[slot].age) slot = i;
+        }
+        quarterBreaks[slot] = new QuarterBreak { live = true, part = part, at = hearts[heart].position,
+            rotation = hearts[heart].rotation, scale = hearts[heart].localScale };
+        var piece = quarterPieces[slot];
+        piece.sprite = quarterFrames.LossFrames[part][0];
+        piece.color = renderers[heart].color;
+        piece.transform.position = hearts[heart].position;
+        piece.transform.rotation = hearts[heart].rotation;
+        piece.transform.localScale = hearts[heart].localScale;
+        piece.enabled = true;
+    }
+
+    void StepQuarterBreaks(float dt)
+    {
+        if (quarterBreaks == null) return;
+        for (int i = 0; i < quarterBreaks.Length; i++)
+        {
+            var b = quarterBreaks[i];
+            if (!b.live) continue;
+            b.age += dt;
+            var piece = quarterPieces[i];
+            if (b.age >= HeartQuarterFrames.BreakSeconds) { b.live = false; piece.enabled = false; }
+            else
+            {
+                piece.sprite = quarterFrames.LossFrames[b.part][HeartQuarterFrames.FrameAt(b.age)];
+                piece.transform.position = b.at;
+                piece.transform.rotation = b.rotation;
+                piece.transform.localScale = b.scale;
+            }
+            quarterBreaks[i] = b;
+        }
     }
 
     // No hit point given: a hit from straight ahead.

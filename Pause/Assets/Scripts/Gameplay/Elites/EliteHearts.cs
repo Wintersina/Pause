@@ -51,6 +51,8 @@ public class EliteHearts : HeartOrbit
     public void Refresh() { Update(); }
 
     protected override int RemainingHearts() { return ship != null ? ship.Hearts : 0; }
+    protected override bool UsesQuarterHearts => true;
+    protected override int RemainingQuarterUnits() => ship != null ? ship.QuartersLeft : 0;
 
     protected override bool TakeImpact(out Vector3 at)
     {

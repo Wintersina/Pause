@@ -686,8 +686,7 @@ public static class ShipAttacksTest
             }
         }
         Check("a disc held on the boss hits it once per tick (" + boss.hits + " hits, closest " + minGap.ToString("F2") + " s apart)",
-              boss.hits >= 2 && boss.hits <= 6 && minGap >= ShipAttackRunner.DiscBossTick - dt - 1e-4f &&
-              minGap >= BossConfig.HitInvulnerableSeconds);
+              boss.hits >= 2 && boss.hits <= 6 && minGap >= ShipAttackRunner.DiscBossTick - dt - 1e-4f);
         Teardown(turtle);
         Object.DestroyImmediate(boss.gameObject);
 

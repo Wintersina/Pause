@@ -65,6 +65,7 @@ public static class PerfHitchTest
             EveryRuntimeSpriteIsFullRect();
             PixelsAreReadOnlyWhereAllowed();
             EliteSilhouettesAreBaked();
+            QuarterHeartsAreWarmed();
             BossFightIsWarmed();
             ShipStripsAreWarmed();
             ShotOutlineBuildsOnceAndLean();
@@ -158,7 +159,19 @@ public static class PerfHitchTest
         }
         callers.Sort();
         string got = string.Join(",", callers);
-        Check("ShieldContour.ReadPixels is called only by the known, warmed or baked callers", got == "BossArt.cs,EliteSilhouette.cs,HeartOutline.cs,RailMineLaser.cs,ShotOutline.cs", got);
+        Check("ShieldContour.ReadPixels is called only by the known, warmed or baked callers", got == "BossArt.cs,EliteSilhouette.cs,HeartOutline.cs,HeartQuarterFrames.cs,RailMineLaser.cs,ShotOutline.cs", got);
+    }
+
+    static void QuarterHeartsAreWarmed()
+    {
+        FirstUseWarm.Clear();
+        FirstUseWarm.QueueSession();
+        Check("quarter-heart frames are queued before combat", FirstUseWarm.Asked("heart:quarters"));
+        for (int i = 0; i < 500 && !FirstUseWarm.Done; i++) FirstUseWarm.Pump();
+        int builds = HeartQuarterFrames.BuildCount;
+        var heart = Resources.Load<Sprite>(ShipLivesIndicator.HeartSpritePath);
+        var frames = HeartQuarterFrames.For(heart);
+        Check("combat reuses the warmed quarter atlas without another build", frames != null && HeartQuarterFrames.BuildCount == builds);
     }
 
     // ---- 3 ----

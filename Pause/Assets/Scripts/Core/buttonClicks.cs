@@ -7,7 +7,7 @@ public class buttonClicks : MonoBehaviour {
     public static bool playerDied;
 	// Use this for initialization
 	void Start () {
-        popUpCanvas = GameObject.Find("PopUpCanvas").GetComponent<Canvas>();
+        popUpCanvas = SceneUtil.FindAny("PopUpCanvas").GetComponent<Canvas>();
         gameS1 = "gameS1";
         playerDied = false;
         popUpCanvas.gameObject.SetActive(false);
@@ -18,7 +18,7 @@ public class buttonClicks : MonoBehaviour {
     void Update() {
 
         // The panel waits for the crash sequence (DeathCrash) to finish.
-        if (playerDied && DeathCrash.PanelReady)
+        if (playerDied && DeathCrash.PanelReady && popUpCanvas != null && playerIsDead.PresentationReady(popUpCanvas.transform))
         {
             showButton();
 
@@ -64,7 +64,7 @@ public class buttonClicks : MonoBehaviour {
     }
     void showButton()
     {
-        popUpCanvas.gameObject.SetActive(true);
+        playerIsDead.RevealResults(popUpCanvas.gameObject);
     }
     public void mainMenuButton()
     {

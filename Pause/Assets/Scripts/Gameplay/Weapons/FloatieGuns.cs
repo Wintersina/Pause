@@ -17,8 +17,8 @@ using UnityEngine;
 //
 // A bullet is small, thin and low-glow, in the ship's own weapon colour, from a fixed pool (no allocation per shot). It stops on the
 // FIRST thing it touches: a hostile projectile (popped, no score), a hazard (ShipAttackHits: score, dust, chain, codex like any
-// weapon kill), an elite (a quarter of a heart a bullet: four bullets cost one heart through the elite's own hit rules) or the boss
-// (a quarter of a hit through the boss's hit window, so its 0.25 s invulnerability still applies).
+// weapon kill), an ordinary enemy, an elite or the boss. Damage is measured directly in quarter hearts
+// for all three: a plain bullet costs one heart; coin damage is 25%, 50%, 75% or 100%, with no repeat-hit delay.
 //
 // Everything tunable is a constant in FloatieTuning.
 public static class FloatieTuning
@@ -35,8 +35,8 @@ public static class FloatieTuning
     public const float SeekerRange = 6f;           // world units from the seeker's muzzle
     public const float BulletSpeed = 9f;           // world units a second
     public const float BulletRadius = .09f;        // hit radius
-    public const float EliteWeight = .25f;         // of a heart (the elite's hit rules bank it)
-    public const float BossWeight = .25f;          // of a hit on the boss (its hit window and banking apply)
+    public const float EliteWeight = 1f;         // one plain bullet, in hearts
+    public const float BossWeight = 1f;          // one plain bullet, in hearts
     public const int PoolSize = ShotAtomTuning.MaxBullets;   // bullets alive at once, at most (the shot atoms' cap; twin and split need the room)
 
     public static int CountAt(int level)
@@ -159,43 +159,6 @@ public static class FloatieAim
             pick.at = sp; pick.lockOn = c != null ? c.transform : null; pick.target = null;
         }
         return found;
-    }
-}
-
-// The quarter-hearts an elite has taken from floatie bullets: every FloatieTuning.EliteWeight a bullet adds, and a whole heart lands
-// (through the elite's own hit rules) when a quarter-heart sum reaches one. Elites are mini-bosses, one at a time, so a few slots do.
-public static class FloatieBank
-{
-    const int Slots = 4;
-    static readonly EliteShip[] owners = new EliteShip[Slots];
-    static readonly float[] banked = new float[Slots];
-
-    public static float Of(EliteShip e)
-    {
-        for (int i = 0; i < Slots; i++) if (owners[i] == e && e != null) return banked[i];
-        return 0f;
-    }
-
-    // Adds `weight`; true when a whole heart is now due (the bank then keeps the remainder).
-    public static bool Add(EliteShip e, float weight)
-    {
-        int slot = -1;
-        for (int i = 0; i < Slots; i++)
-        {
-            if (owners[i] == null) { if (slot < 0) slot = i; continue; }
-            if (owners[i] == e) { slot = i; break; }
-        }
-        if (slot < 0) slot = 0;
-        if (owners[slot] != e) { owners[slot] = e; banked[slot] = 0f; }
-        banked[slot] += weight;
-        if (banked[slot] < 1f - 1e-4f) return false;
-        banked[slot] -= 1f;
-        return true;
-    }
-
-    public static void Clear()
-    {
-        for (int i = 0; i < Slots; i++) { owners[i] = null; banked[i] = 0f; }
     }
 }
 
@@ -418,8 +381,7 @@ public class FloatieBullet : MonoBehaviour
         return true;
     }
 
-    // Lands on `hit`: whole kills for the small things, a quarter of a heart on an elite and a quarter of a hit on the boss (all
-    // times this bullet's damage), then what the shot atoms add: SPLIT's shards and ARC's spark.
+    // Lands the authored quarter-heart damage, then adds SPLIT shards and ARC sparks.
     void Strike(ClearTarget hit)
     {
         Vector3 at = hit.transform.position;
@@ -435,18 +397,12 @@ public class FloatieBullet : MonoBehaviour
         if (mods.arc > 0) Zap(at, hit);
     }
 
-    // One hit of `scale` of a whole shot on `target`.
+    // One hit of `scale` hearts on `target`.
     static bool Damage(GameObject target, int ship, float scale, Vector3 blowFrom)
     {
-        float budget = 1f, weight = scale;
-        if (target.TryGetComponent(out EliteShip elite))
-        {
-            weight = 1f;
-            if (!FloatieBank.Add(elite, FloatieTuning.EliteWeight * scale)) return false;   // banked: the heart follows with the fourth
-        }
-        else if (target.TryGetComponent(out BossTarget _)) weight = FloatieTuning.BossWeight * scale;
+        float budget = 1f, weight = HeartDamage.InQuarters(scale);
         ShipAttackHits.HitFrom = blowFrom;
-        bool dead = ShipAttackHits.Hit(target, ship, weight, ref budget);
+        bool dead = ShipAttackHits.Hit(target, ship, weight, ref budget, HitKind.Drone);
         ShipAttackHits.HitFrom = null;
         return dead;
     }

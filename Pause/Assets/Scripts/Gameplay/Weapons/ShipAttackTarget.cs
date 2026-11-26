@@ -30,12 +30,10 @@ public interface IShipAttackTarget
 // FieldAsteroid, and its backdrop rocks), so one volley can break several of them.
 public interface IShipAttackTargetUncapped : IShipAttackTarget { }
 
-// The end-of-level boss (BossTarget): an uncapped target that can say whether a hit counted. A heavy attack
-// (Paragon's nuke) uses it to try again until the hit window lets it through, instead of being swallowed.
+// A boss target reports whether a hit counted during an active fight.
 public interface IBossAttackTarget : IShipAttackTargetUncapped
 {
-    // True when the hit counted or there is nothing left to hit; false only when the boss's hit window blocked it
-    // (try again next frame).
+    // True when the hit counted or there is nothing left to hit.
     bool TryStrike(int ship, float weight, Vector3 at);
 }
 
@@ -46,8 +44,9 @@ public interface ISceneryTarget { }
 
 // What a player hit comes from. An ULTIMATE hit (the ship's charged main attack and its red-atom free shot: everything the ShipAttackRunner
 // fires -- ion laser, frost nova, sentries, nuke, rail, spark, eye, heat wave, star, mines, abduct, gale, blowtorch, disc) kills an ordinary
-// enemy outright whatever hearts it has left. Every other hit (floatie bullets, secret powers, fusions) is Normal: one heart.
-public enum HitKind { Normal, Ultimate }
+// enemy outright whatever hearts it has left. Drone hits carry actual quarter-heart damage.
+// Other normal hits (secret powers, fusions) remove one ordinary-enemy heart.
+public enum HitKind { Normal, Ultimate, Drone }
 
 public static class ShipAttackHits
 {
@@ -71,6 +70,13 @@ public static class ShipAttackHits
         IShipAttackTarget special;
         if (target.TryGetComponent(out special))
         {
+            if (kind == HitKind.Drone && special is EliteShip elite)
+            {
+                AttackTargetHits++;
+                AttackTargetWeight += weight;
+                elite.TakeDroneAttack(ship, weight, HitFrom ?? target.transform.position);
+                return false;
+            }
             if (special is IShipAttackTargetUncapped)
             {
                 AttackTargetHits++;
@@ -89,7 +95,7 @@ public static class ShipAttackHits
         // A tough enemy (2 hearts) takes ONE heart per hit, whatever the hit's weight; only the hit that takes the last one falls through
         // to the ordinary kill. Hazards and plain bodies (and the tests' bare targets) die in one hit.
         // An ultimate hit skips the hearts: it kills the enemy outright (paid once, in Kill).
-        if (kind != HitKind.Ultimate && Toughness.Absorb(target)) return false;
+        if (kind != HitKind.Ultimate && Toughness.Absorb(target, kind == HitKind.Drone ? weight : 1f)) return false;
         Kill(target, ship);
         return true;
     }

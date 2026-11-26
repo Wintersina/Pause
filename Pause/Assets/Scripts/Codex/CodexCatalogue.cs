@@ -292,10 +292,11 @@ public static class CodexCatalogue
         lines.Add(atom == ShotAtom.Rapid
             ? "EACH COIN  speeds up ALL your drones at once (one shared level)"
             : "EACH COIN  upgrades one random drone that is not maxed yet; every drone keeps its own level");
+        lines.Add("HEART DAMAGE  25% = one quarter, 50% = half, 75% = three quarters, 100% = one heart; same for enemies, elites and bosses");
         // the range of the effect: the first level and the last (ten levels would be a wall of text)
         lines.Add("LEVEL 1  " + ShotAtomLevelText(atom, 1));
         lines.Add("LEVEL " + ShotAtomTuning.MaxLevel + "  " + ShotAtomLevelText(atom, ShotAtomTuning.MaxLevel));
-        lines.Add("DROPPED BY  every elite, a boss (two always, a third half the time) and, now and then, ordinary kills");
+        lines.Add("DROPPED BY  every elite, a boss (two always, a third half the time) ordinary kills (18% on the run's starting level, 8% elsewhere; drop spacing applies)");
         lines.Add("MAX LEVEL  " + ShotAtomTuning.MaxLevel + "; once it is maxed on every drone a catch pays star dust");
         return string.Join("\n", lines);
     }
@@ -318,17 +319,17 @@ public static class CodexCatalogue
         switch (atom)
         {
             case ShotAtom.Twin:
-                return level == 1 ? "2 parallel shots, each " + Pct(ShotAtomTuning.TwinDamage[level]) + " damage"
-                     : ShotAtomTuning.TwinShots[level] + " shots in a narrow fan, each " + Pct(ShotAtomTuning.TwinDamage[level]) + " damage";
+                return level == 1 ? "2 parallel shots, each " + Pct(ShotAtomTuning.TwinDamage[level]) + " of a heart"
+                     : ShotAtomTuning.TwinShots[level] + " shots in a narrow fan, each " + Pct(ShotAtomTuning.TwinDamage[level]) + " of a heart";
             case ShotAtom.Pierce:
                 return "passes through " + ShotAtomTuning.PierceThrough[level] + " extra " + (level == 1 ? "enemy" : "enemies");
             case ShotAtom.Split:
-                return "breaks into " + ShotAtomTuning.SplitShards[level] + " shards on a hit, " + Pct(ShotAtomTuning.SplitDamage[level]) + " damage each";
+                return "breaks into " + ShotAtomTuning.SplitShards[level] + " shards on a hit, " + Pct(ShotAtomTuning.SplitDamage[level]) + " of a heart each";
             case ShotAtom.Ricochet:
                 return "bounces " + ShotAtomTuning.Bounces[level] + (level == 1 ? " time" : " times");
             case ShotAtom.Arc:
                 return ShotAtomTuning.ArcJumps[level] + (ShotAtomTuning.ArcJumps[level] == 1 ? " jump" : " jumps") + ", " +
-                       ShotAtomTuning.ArcRange[level].ToString("0.#", System.Globalization.CultureInfo.InvariantCulture) + " range, " + Pct(ShotAtomTuning.ArcDamage[level]) + " damage";
+                       ShotAtomTuning.ArcRange[level].ToString("0.##", System.Globalization.CultureInfo.InvariantCulture) + " range, " + Pct(ShotAtomTuning.ArcDamage[level]) + " of a heart";
             default:
                 return "+" + Mathf.RoundToInt(ShotAtomTuning.RapidBonus[level] * 100f) + "% fire rate";
         }

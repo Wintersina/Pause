@@ -32,7 +32,7 @@ public class BossHearts : HeartOrbit
     public const string SpritePath = EliteHearts.SpritePath;
 
     BossActor actor;
-    int left;
+    int left, quartersLeft;
     bool impactPending;
     Vector3 impactAt;
 
@@ -81,6 +81,7 @@ public class BossHearts : HeartOrbit
     {
         actor = owner;
         left = count;
+        quartersLeft = count * HeartDamage.PerHeart;
         heartSize = BossConfig.HeartSize;
         BuildHearts(count);
         PopInAll();
@@ -91,14 +92,17 @@ public class BossHearts : HeartOrbit
     public int Left => left;
 
     // BossEncounter: the hearts left now, and where the hit that cost them landed.
-    public void SetLeft(int n, Vector3 at)
+    public void SetLeft(int n, Vector3 at) => SetQuarterHealth(Mathf.Max(0, n) * HeartDamage.PerHeart, at);
+
+    public void SetQuarterHealth(int quarters, Vector3 at)
     {
-        n = Mathf.Max(0, n);
-        if (n == left) return;
-        left = n;
+        quarters = Mathf.Max(0, quarters);
+        if (quarters == quartersLeft) return;
+        quartersLeft = quarters;
+        left = HeartDamage.WholeHearts(quarters);
         impactPending = true;
         impactAt = at;
-        base.Update();   // the heart darts now, not next step
+        base.Update();
     }
 
     // One step: the loss check, the ring, the crumbles. realDt: re-measure
@@ -122,6 +126,8 @@ public class BossHearts : HeartOrbit
 
     protected override int MaxHearts { get { return Mathf.Max(BossConfig.Hearts, 1); } }
     protected override int RemainingHearts() { return left; }
+    protected override bool UsesQuarterHearts => true;
+    protected override int RemainingQuarterUnits() => quartersLeft;
 
     protected override bool TakeImpact(out Vector3 at)
     {

@@ -838,6 +838,12 @@ public static class EliteTest
         }
         e.TakeHit(EliteDamage.PlayerWeapon, e.transform.position + Vector3.left);
         Check("a hit: one heart darts out and crumbles (shield)", h.ShownCount == 1 && h.ActiveBreaks == 1);
+        e.TakeDroneAttack(0, .25f, e.Position);
+        h.Place(0f, 0f);
+        var quarterFrames = HeartQuarterFrames.For(Resources.Load<Sprite>(ShipLivesIndicator.HeartSpritePath));
+        Check("a quarter hit changes only the surviving heart's section and animates one fragment",
+              Mathf.Approximately(e.Health, .75f) && h.ShownCount == 1 && h.VisibleQuarters(0) == 3 &&
+              h.Hearts[0].GetComponent<SpriteRenderer>().sprite == quarterFrames.States[3] && h.ActiveQuarterBreaks == 1);
     }
 
     // ---- damage ---------------------------------------------------------------
@@ -885,8 +891,10 @@ public static class EliteTest
         ShipAttackHits.Hit(e.gameObject, 3);
         Check("a player weapon / the ultimate / the red atom's shot (ShipAttackHits) takes one heart, not the ship",
               e != null && e.Hearts == 1 && e.LastHitCause == EliteDamage.PlayerWeapon);
+        int weaponKills = EliteShip.Kills, weaponPaid = EliteRewards.Paid;
         ShipAttackHits.Hit(e.gameObject, 3);
-        Check("... and none in the same instant (its " + EliteShip.HitBlockSeconds + " s hit block)", e != null && e.Hearts == 1);
+        Check("a second same-frame weapon hit takes its last heart and pays exactly once",
+              (e == null || e.State == EliteState.Dead) && EliteShip.Kills == weaponKills + 1 && EliteRewards.Paid == weaponPaid + 1);
 
         // ELITES ARE MINI-BOSSES (user, 2026-10-28): a pause jump costs TWO hearts (owner, 2026-11-23) and says PAUSE BLOCKED, never an instant kill
         Fresh(.05f);
@@ -1107,8 +1115,8 @@ public static class EliteTest
         foreach (var d in EliteCatalog.All)
             Check(d.key + ": " + d.hearts + " hearts (>= 3; armoured 5)", d.hearts >= 3 && (!d.armored || d.hearts == 5));
 
-        // the weapons' hit block: hits 0.1 s apart each cost a heart, closer than that do not
-        Check("the weapon hit block is 0.1 s (bosses keep their own)", Mathf.Approximately(EliteShip.HitBlockSeconds, .1f));
+        // Weapon contacts have no repeat-hit timer; physical contact and blink guards remain independent.
+        Check("the weapon repeat-hit cooldown is zero", EliteShip.HitBlockSeconds == 0f);
         Fresh(.05f);
         var def = EliteCatalog.Find("space_elite_eventide_bastion");
         var e = EliteShip.CreateInPlay(def, new Vector2(0f, 1f));
@@ -1116,19 +1124,21 @@ public static class EliteTest
         e.EngageLeft = 9999f;
         int h = e.Hearts;
         e.TakeShipAttack(0, 1f, e.Position);
-        Check("a weapon hit costs a heart (" + h + " -> " + e.Hearts + ")", e.Hearts == h - 1);
+        Check("a weapon hit costs a full heart", e.Hearts == h - 1 && Mathf.Approximately(e.Health, h - 1f));
         e.TakeShipAttack(0, 1f, e.Position);
-        EliteSystem.Step(Dt);   // 0.033 s
-        e.TakeShipAttack(0, 1f, e.Position);
-        EliteSystem.Step(Dt);   // 0.067 s
-        e.TakeShipAttack(0, 1f, e.Position);
-        Check("hits closer than 0.1 s apart cost nothing more", e.Hearts == h - 1);
-        EliteSystem.Step(Dt);   // 0.1 s
-        e.TakeShipAttack(0, 1f, e.Position);
-        Check("a hit 0.1 s after the last heart lands (" + e.Hearts + ")", e.Hearts == h - 2);
-        for (int i = 0; i < 4; i++) EliteSystem.Step(Dt);   // 0.133 s
-        e.TakeShipAttack(0, 1f, e.Position);
-        Check("... and the next one 0.13 s later too: well inside the old half-second window", Alive(e) && e.Hearts == h - 3 && e.Grace > 0f);
+        Check("a consecutive same-frame weapon hit costs another full heart", Alive(e) && e.Hearts == h - 2 && Mathf.Approximately(e.Health, h - 2f));
+        for (int q = 0; q < 4; q++)
+        {
+            e.TakeDroneAttack(0, .25f, e.Position);
+            Check("same-frame drone quarter " + (q + 1) + " applies without a hidden bank or divisor",
+                  Alive(e) && e.QuartersLeft == (h - 2) * 4 - q - 1 && Mathf.Approximately(e.Health, h - 2f - (q + 1) * .25f));
+        }
+        Check("four quarter hits remove exactly one heart while contact grace remains active",
+              Alive(e) && e.Hearts == h - 3 && e.Grace > 0f && e.HitBlock == 0f);
+        float beforeContact = e.Health;
+        bool contact = e.TakeHit(EliteDamage.PlayerContact, e.Position);
+        Check("weapon repeat-hit removal preserves the independent physical-contact grace guard",
+              !contact && Mathf.Approximately(e.Health, beforeContact));
 
         // the reward: 100 flat at chain x1, times the running kill chain (x2 / x3 / x4), never the speed multiplier
         bool combo = DeathCombo.Enabled;

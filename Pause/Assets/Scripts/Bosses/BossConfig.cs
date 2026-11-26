@@ -97,7 +97,7 @@ public static class BossConfig
     // everything for this long, in GAME seconds (the fight's scaled dt, so a
     // hit-stop, a pause or a frozen screen holds the window instead of
     // spending it). Blocked hits still spark, they just deal nothing.
-    public static float HitInvulnerableSeconds = .25f;
+    public static float HitInvulnerableSeconds = 0f;
     // Hits lighter than this (a gatling shell, a beam tick, one eye of three) are
     // shares of one firing: inside the window they are banked, not lost, so a
     // fractional weapon keeps its full value; the bank is held just short of a

@@ -19,6 +19,7 @@ public class playerIsDead : MonoBehaviour
 
     void Start()
     {
+        PrepareResultsCanvas(SceneUtil.FindAny("PopUpCanvas"), deathHighScoreText);
         deathHighScoreText.gameObject.SetActive(false);
         deathScoreText.gameObject.SetActive(false);
         deathSpareText.gameObject.SetActive(false);
@@ -46,6 +47,7 @@ public class playerIsDead : MonoBehaviour
 
     void BeginResults()
     {
+        PrepareResultsCanvas(SceneUtil.FindAny("PopUpCanvas"), deathHighScoreText);
         // Bank the run and its star-dust score bonus first, so the totals
         // below (and the dust written) include it.
         float scoreBonus = score.SettleCurrentRun();
@@ -99,7 +101,9 @@ public class playerIsDead : MonoBehaviour
                         if (bought) results.dustAtStart -= offer.price;
                         DeathPanelView.Build(canvas.transform, deathScoreText, deathSpareText,
                                              deathHighScoreText, FindButton("Replay"), FindButton("MainMenu"), results);
+                        RevealResults(canvas);
                     });
+                    RevealResults(canvas);
                     return;
                 }
                 // Same moment and backoff, but the flown ship has nothing left
@@ -113,15 +117,51 @@ public class playerIsDead : MonoBehaviour
                         if (bought) results.dustAtStart -= shipOffer.price;
                         DeathPanelView.Build(canvas.transform, deathScoreText, deathSpareText,
                                              deathHighScoreText, FindButton("Replay"), FindButton("MainMenu"), results);
+                        RevealResults(canvas);
                     });
+                    RevealResults(canvas);
                     return;
                 }
             }
             DeathPanelView.Build(canvas.transform, deathScoreText, deathSpareText,
                                  deathHighScoreText, FindButton("Replay"), FindButton("MainMenu"), results);
+            RevealResults(canvas);
         };
         if (AdManager.TryRunEndAd(showResults)) return;
         showResults();
+    }
+
+    // Retire the authored empty frame BEFORE waiting for an ad. Keep its Texts and Buttons
+    // alive: the results builder reparents those serialized objects after the wait.
+    public static void PrepareResultsCanvas(GameObject canvas, Text legacyText)
+    {
+        if (canvas == null) return;
+        if (legacyText != null)
+        {
+            Transform dialog = legacyText.transform;
+            while (dialog.parent != null && dialog.parent != canvas.transform) dialog = dialog.parent;
+            if (dialog.parent == canvas.transform) dialog.gameObject.SetActive(false);
+        }
+        canvas.SetActive(false);
+    }
+
+    public static bool PresentationReady(Transform canvas)
+    {
+        if (canvas == null) return false;
+        var root = canvas.Find("FlightComplete");
+        var results = root != null ? root.GetComponent<DeathPanelView>() : null;
+        if (root != null && root.gameObject.activeSelf && results != null && results.PresentationReady) return true;
+        root = canvas.Find(UpgradeOfferCard.RootName);
+        var upgrade = root != null ? root.GetComponent<UpgradeOfferCard>() : null;
+        if (root != null && root.gameObject.activeSelf && upgrade != null && upgrade.BuyButton != null && upgrade.DeclineButton != null) return true;
+        root = canvas.Find(ShipOfferCard.RootName);
+        var ship = root != null ? root.GetComponent<ShipOfferCard>() : null;
+        return root != null && root.gameObject.activeSelf && ship != null && ship.BuyButton != null && ship.DeclineButton != null;
+    }
+
+    public static void RevealResults(GameObject canvas)
+    {
+        if (canvas != null && PresentationReady(canvas.transform)) canvas.SetActive(true);
     }
 
     static void SaveKillCam(bool newBest, bool ranked, long runScore)

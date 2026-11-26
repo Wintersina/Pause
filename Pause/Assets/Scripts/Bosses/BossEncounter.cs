@@ -159,6 +159,7 @@ public class BossEncounter : MonoBehaviour
     // Hearts left (BossConfig.Hearts at the start; 0 exactly when destroyed).
     public int HeartsLeft => heartsLeft;
     public float Damage => damage;
+    public int QuartersLeft => Mathf.Max(0, Mathf.CeilToInt((BossConfig.HitPoints - damage) * HeartDamage.PerHeart - .0001f));
     // The boss's hit points ran out (DESTROYED), as opposed to the fight
     // clock (SURVIVED). Meaningful from the outro on.
     public bool Destroyed => hp <= 0;
@@ -401,7 +402,7 @@ public class BossEncounter : MonoBehaviour
     // Each heart is HeartWeight of it (10/10 = 1): a heart goes the moment its
     // share is spent, the last with the last hit point.
     // This is the raw bookkeeping, with no invulnerability: the player's
-    // weapons come through TakePlayerHit (BossTarget.Strike), which adds the window.
+    // weapons come through TakePlayerHit (BossTarget.Strike), with no repeat-hit delay.
     float hitBank;
     float hitWindow;    // game seconds of invulnerability left after a damaging hit
 
@@ -409,29 +410,11 @@ public class BossEncounter : MonoBehaviour
     public float HitWindowLeft => hitWindow;
     public bool Invulnerable => hitWindow > 0f;
 
-    // A player attack reaches the boss (BossTarget.Strike). The ONLY limiter is the
-    // hit window: BossConfig.HitInvulnerableSeconds after a hit point is lost.
-    //   Landed   the hit counted (full feedback); losing a hit point opens the window
-    //   Banked   inside the window, a light share of a firing (< HitBankMaxWeight) is
-    //            kept in the bank, held just short of a whole hit point, so a
-    //            fractional weapon (gatling, beam, seekers) loses nothing
-    //   Blocked  inside the window, nothing counted (the caller sparks only)
-    // `discrete` is for a single bump, not a stream of shares (a ram): it never banks,
-    // and landing opens the window even when it does not complete a hit point.
+    // Every positive player hit lands immediately; physical ram cadence is handled by the caller.
     public HitResult TakePlayerHit(float weight, Vector3 at, bool discrete = false)
     {
         if (state != Phase.Fight || weight <= 0f) return HitResult.Blocked;
-        if (hitWindow > 0f)
-        {
-            if (discrete || weight >= BossConfig.HitBankMaxWeight) return HitResult.Blocked;
-            float room = 1f - 2e-4f - hitBank;   // never reaches the whole-hit threshold
-            if (room <= 0f) return HitResult.Blocked;
-            ApplyHit(Mathf.Min(weight, room), at, false);
-            return HitResult.Banked;
-        }
-        int before = hp;
         ApplyHit(weight, at, true);
-        if (discrete || hp < before) hitWindow = BossConfig.HitInvulnerableSeconds;
         return HitResult.Landed;
     }
     public void OnShipAttackHit(float weight)
@@ -439,9 +422,7 @@ public class BossEncounter : MonoBehaviour
         OnShipAttackHit(weight, actor != null ? actor.transform.position + Vector3.down : Vector3.zero);
     }
 
-    // Deliberately NOT behind the hit window (TakePlayerHit): the only callers are
-    // the unused OnUltimateHit path and FriendlyFire, whose sliver already has its
-    // own once-per-BossFriendlyFireGap limit. Player weapons go through TakePlayerHit.
+    // Friendly fire retains its own source cadence. Player weapons go through TakePlayerHit.
     public void OnShipAttackHit(float weight, Vector3 at) => ApplyHit(weight, at, true);
 
     float lastFlashAt = -99f, lastOverlayAt = -99f;
@@ -450,7 +431,7 @@ public class BossEncounter : MonoBehaviour
     public int OverlayFlashes { get; private set; }
     public float OverlayPeak { get; private set; }
 
-    // `payHitPoints` false: the weight only banks (inside the hit window).
+    // Accumulate fractional hearts and settle each completed heart immediately.
     void ApplyHit(float weight, Vector3 at, bool payHitPoints)
     {
         if (state != Phase.Fight || weight <= 0f) return;
@@ -463,7 +444,7 @@ public class BossEncounter : MonoBehaviour
         bool heartLost = heartsLeft != was, kill = hp <= 0;
         if (actor != null)
         {
-            if (heartLost) actor.SetHearts(heartsLeft, at);
+            actor.SetHearts(heartsLeft, at, QuartersLeft);
             // a stream of light hits flashes the boss at most every BossTarget.FxGap (damage is unaffected)
             bool throttle = Application.isPlaying || BossImpact.ClockOverride != null;
             bool lightHit = weight < .5f && !heartLost && !kill && throttle;

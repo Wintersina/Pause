@@ -130,6 +130,8 @@ public static class FirstUseWarm
     // liftoff shader and the always-on sounds. Called at app start (menu idle) and again at each run start (a no-op).
     public static void QueueSession()
     {
+        FirstUseWarm.Add("heart:quarters", ShipLivesIndicator.HeartSpritePath, typeof(Sprite),
+            () => HeartQuarterFrames.For(Resources.Load<Sprite>(ShipLivesIndicator.HeartSpritePath)));
         PewSound.QueueWarm();
         WeaponArt.QueueWarmExplosions();
         FirstUseWarmSteps.Pause();

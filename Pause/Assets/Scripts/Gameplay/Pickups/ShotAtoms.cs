@@ -6,10 +6,10 @@ using UnityEngine;
 //
 //   TWIN      more shots a volley: 2 parallel, then a fan of 3 .. 7 (it widens a little with the level)
 //   PIERCE    a shot passes through +1 enemy a level (up to 10)
-//   SPLIT     on a hit the shot breaks into 2 .. 6 small diagonal shards (40% .. 65% damage each)
+//   SPLIT     on a hit the shot breaks into 2 .. 6 small diagonal shards (50% .. 75% damage each)
 //   RICOCHET  shots bounce off the screen's side edges 1 .. 10 times
-//   ARC       a hit zaps a spark to the nearest other enemies in range (1 .. 6 jumps, 2.0 .. 4.0 range, 50% .. 85% damage)
-//   RAPID     the gun fires +20% .. +160% faster (never under ShotAtomTuning.MinCooldown between shots)
+//   ARC       a hit zaps a spark to the nearest other enemies in range (1 .. 6 jumps, 2.0 .. 4.25 range, 50% .. 100% damage)
+//   RAPID     the gun fires +25% .. +250% faster (never under ShotAtomTuning.MinCooldown between shots)
 //
 // PER DRONE (owner decision, 2026-11-23): the ship flies with 1 .. 6 drones (FloatieTuning.CountAt) and a caught coin upgrades ONE drone,
 // picked at random among the drones that are not maxed for that atom. Each drone keeps its own level (max 10) of TWIN / PIERCE / SPLIT /
@@ -17,7 +17,7 @@ using UnityEngine;
 // one shared level that speeds up EVERY drone. Past the max (the atom is maxed on EVERY drone) a catch pays star dust instead.
 // PowerCreep scales the enemy spawns with PowerLevel = the per-drone levels summed and divided by the drone count, plus Rapid, so six
 // drones are not harder to fill than three. Coins drop from bosses (two always, a third half the time), elites (every one) and ordinary
-// kills (3%, at most one per 12 s): one random atom that is not maxed yet (every atom can drop in every world).
+// kills (18% on the starting world, 8% elsewhere, at most one per 12 s): one random atom that is not maxed yet (every atom can drop in every world).
 // All of it is state of the run: BeginRun (score.Awake) wipes it.
 //
 // EVERY number lives in ShotAtomTuning.
@@ -35,7 +35,8 @@ public static class ShotAtomTuning
     public const float BossDropChance = 1f;       // a destroyed boss: the first drop
     public const float BossSecondDropChance = 1f;  // ...a second one always
     public const float BossThirdDropChance = .5f;  // ...and a third this often
-    public const float EnemyDropChance = .03f;    // an ordinary enemy kill (not a hazard, elite or boss)
+    public const float EnemyDropChance = .08f;    // an ordinary enemy kill (not a hazard, elite or boss)
+    public const float StartingLevelDropChance = .18f; // the world the run began on, not hard-coded to Space
     public const float EnemyDropCooldown = 12f;   // s: at most one drop from ordinary enemies per this (the atom spacing still applies)
     // ATOM RUSH booster (one run): every chance x RushMultiplier (capped at 1), the ordinary-enemy cooldown x RushCooldownScale.
     public const float RushMultiplier = 3f;       // +200%
@@ -46,11 +47,10 @@ public static class ShotAtomTuning
 
     // Every table below is indexed by LEVEL (0..MaxLevel); level 0 is "no atom" (the one plain bullet).
 
-    // ---- TWIN: bullets in a volley by level, the half-width of their fan (degrees off the gun's heading; the shots are spread evenly across
-    // it, so it widens a little with every level) and the damage of each. The volley's worth grows ~11-13% a level from level 3 on
-    // (shots x damage: 1.5 / 1.8 / 2.0 / 2.24 / 2.5 / 2.8 / 3.12 / 3.54 / 3.92 / 4.41 of one shot), never as fast as the shot count. ----
+    // TWIN keeps a consistent three-quarter heart per bullet at every upgraded level. More
+    // bullets and the wider fan grow its volley without arbitrary percentage multipliers.
     public static readonly int[] TwinShots = { 1, 2, 3, 4, 4, 5, 5, 6, 6, 7, 7 };
-    public static readonly float[] TwinDamage = { 1f, .75f, .6f, .5f, .56f, .5f, .56f, .52f, .59f, .56f, .63f };
+    public static readonly float[] TwinDamage = { 1f, .75f, .75f, .75f, .75f, .75f, .75f, .75f, .75f, .75f, .75f };
     public const float TwinParallelGap = .16f;
     public static readonly float[] TwinHalfFan = { 0f, 0f, 8f, 12f, 13f, 15f, 16f, 18f, 19f, 20f, 21f };
     public static readonly float[][] TwinAngles = Fans(TwinShots, TwinHalfFan);
@@ -60,11 +60,11 @@ public static class ShotAtomTuning
     public static readonly int[] PierceThrough = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 };
     public const int MaxPierce = 10;
 
-    // ---- SPLIT: shards by level, the half-width of their spread off the shot's heading, speed, life and the damage of each (of a whole shot) ----
+    // ---- SPLIT: shards by level, the half-width of their spread off the shot's heading, speed, life and the damage of each (in hearts) ----
     public static readonly int[] SplitShards = { 0, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6 };
-    public static readonly float[] SplitHalfFan = { 0f, 45f, 45f, 60f, 60f, 60f, 60f, 72f, 72f, 75f, 75f };
+    public static readonly float[] SplitHalfFan = { 0f, 35f, 45f, 50f, 60f, 60f, 65f, 65f, 72f, 72f, 75f };
     public static readonly float[][] SplitAngles = Fans(SplitShards, SplitHalfFan);
-    public static readonly float[] SplitDamage = { 0f, .40f, .42f, .44f, .47f, .50f, .53f, .56f, .59f, .62f, .65f };
+    public static readonly float[] SplitDamage = { 0f, .50f, .50f, .50f, .50f, .50f, .75f, .75f, .75f, .75f, .75f };
     public const float ShardSpeed = 7f, ShardLife = .5f;
 
     // ---- RICOCHET: side-edge bounces by level; a near-straight shot leans a little so a bounce can happen at all.
@@ -74,14 +74,14 @@ public static class ShotAtomTuning
     public const float RicochetLifeCap = 3.6f;
     public static readonly float[] RicochetLife = { 0f, 2.52f, 2.64f, 2.76f, 2.88f, 3f, 3.12f, 3.24f, 3.36f, 3.48f, RicochetLifeCap };
 
-    // ---- ARC: spark range (world units), damage (of a whole shot) and jumps by level ----
-    public static readonly float[] ArcRange = { 0f, 2f, 2.22f, 2.44f, 2.67f, 2.89f, 3.11f, 3.33f, 3.56f, 3.78f, 4f };
-    public static readonly float[] ArcDamage = { 0f, .50f, .54f, .58f, .62f, .65f, .69f, .73f, .77f, .81f, .85f };
+    // ---- ARC: spark range (world units), damage (in hearts) and jumps by level ----
+    public static readonly float[] ArcRange = { 0f, 2f, 2.25f, 2.5f, 2.75f, 3f, 3.25f, 3.5f, 3.75f, 4f, 4.25f };
+    public static readonly float[] ArcDamage = { 0f, .50f, .75f, .75f, .75f, .75f, .75f, .75f, 1f, 1f, 1f };
     public static readonly int[] ArcJumps = { 0, 1, 1, 2, 2, 3, 3, 4, 4, 5, 6 };
     public const int MaxArcJumps = 6;
 
     // ---- RAPID: the gun's fire-rate bonus by level (cooldown = base / (1 + bonus), never under MinCooldown) ----
-    public static readonly float[] RapidBonus = { 0f, .20f, .35f, .50f, .65f, .80f, .95f, 1.10f, 1.25f, 1.40f, 1.60f };
+    public static readonly float[] RapidBonus = { 0f, .25f, .50f, .75f, 1f, 1.25f, 1.50f, 1.75f, 2f, 2.25f, 2.50f };
     public const float MinCooldown = .5f;   // s: the floor of any floatie's cooldown, so the gun never becomes a laser stream
 
     // ---- the cap on the gun's bullets in the air (the floaties' own pool; AttackPool.MaxProjectiles still caps the total).
@@ -433,7 +433,11 @@ public static class ShotAtomDrops
 
     // Atom Rush multiplies a chance (never past certain).
     public static float Rushed(float chance) { return Boosters.RunRushActive ? Mathf.Min(1f, chance * ShotAtomTuning.RushMultiplier) : chance; }
-    public static float EnemyChance { get { return Rushed(ShotAtomTuning.EnemyDropChance); } }
+    public static float EnemyChanceFor(int world, int startingWorld)
+    {
+        return Rushed(world == startingWorld ? ShotAtomTuning.StartingLevelDropChance : ShotAtomTuning.EnemyDropChance);
+    }
+    public static float EnemyChance { get { return EnemyChanceFor(WorldManager.CurrentIndex, WorldManager.RunStart); } }
     public static float EnemyCooldown { get { return Boosters.RunRushActive ? ShotAtomTuning.EnemyDropCooldown * ShotAtomTuning.RushCooldownScale : ShotAtomTuning.EnemyDropCooldown; } }
 
     // A killed elite: a coin every time (EliteDropChance; Atom Rush keeps it certain) (`roll` 0..1: below the chance drops; -1 rolls it).

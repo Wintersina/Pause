@@ -215,6 +215,22 @@ public static class BossHeartsTest
 
     static void HeartsTrackHealth()
     {
+        FreshScene(0);
+        var quarterFight = StartFight(0);
+        var quarterRing = quarterFight.Actor.Hearts;
+        var nativeHeart = Resources.Load<Sprite>(ShipLivesIndicator.HeartSpritePath);
+        var frames = HeartQuarterFrames.For(nativeHeart);
+        var nativeOutline = quarterRing.HeartOutlineRenderer(0).sprite;
+        quarterFight.OnShipAttackHit(.25f);
+        quarterFight.Step(Dt, 1f);
+        var partial = quarterRing.Hearts[N - 1].GetComponent<SpriteRenderer>();
+        Check("a quarter hit displays the three-quarter state without removing the heart slot",
+              quarterRing.ShownCount == N && quarterRing.VisibleQuarters(N - 1) == 3 &&
+              partial.sprite == frames.States[3] && quarterRing.ActiveQuarterBreaks == 1);
+        Check("untouched hearts retain the native drawing and native full-heart outline",
+              quarterRing.Hearts[0].GetComponent<SpriteRenderer>().sprite == nativeHeart &&
+              quarterRing.HeartOutlineRenderer(0).sprite == nativeOutline && nativeOutline != null);
+
         // one heart's share at a time: a heart each
         FreshScene(1);
         var e = StartFight(1);
