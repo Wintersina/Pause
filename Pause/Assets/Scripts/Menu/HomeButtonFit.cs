@@ -106,6 +106,24 @@ public static class HomeButtonFit
         }
     }
 
+    // One column row after its label changed on its own (a longer word, a language): re-hug it now, so a badge that rides the
+    // word (the Codex button's) always has the whole word and its padding inside the plate. No-op for a row FitColumn never sized.
+    public static void RefitRow(RectTransform button)
+    {
+        var element = button != null ? button.GetComponent<LayoutElement>() : null;
+        var parent = button != null ? button.parent as RectTransform : null;
+        if (element == null || parent == null || element.preferredWidth <= 0f) return;
+        var canvas = button.GetComponentInParent<Canvas>();
+        float canvasW = canvas != null ? ((RectTransform)canvas.rootCanvas.transform).rect.width : 0f;
+        if (canvasW <= 0f) return;
+        float rowH = Mathf.Max(1f, element.preferredHeight);
+        float w = HugWidth(button, rowH, Mathf.Min(520f, canvasW * 0.78f));
+        if (Mathf.Abs(w - element.preferredWidth) < .5f) return;
+        element.minWidth = element.preferredWidth = w;
+        KeepTouchWidth(button, w, rowH, float.MaxValue);
+        LayoutRebuilder.ForceRebuildLayoutImmediate(parent);
+    }
+
     // A footer button (already placed): narrows about its centre to hug its text, never wider than placed.
     public static void FitFooter(string name, float rowHeight, float maxSidePad)
     {

@@ -445,17 +445,17 @@ public static class FriendlyFire
         int n = 0;
         for (int i = 0; i < live.Count; i++)
         {
-            var t = live[i];
-            if (!CanHit(t) || t.TryGetComponent(out EliteShip _)) continue;
+            var a = live[i];
+            if (!CanHit(a) || a.TryGetComponent(out EliteShip _)) continue;
             if (n == crashBody.Length)
             {
                 System.Array.Resize(ref crashBody, n * 2);
                 System.Array.Resize(ref crashPos, n * 2);
                 System.Array.Resize(ref crashRadius, n * 2);
             }
-            crashBody[n] = t;
-            crashPos[n] = t.transform.position;
-            crashRadius[n] = t.Radius;
+            crashBody[n] = a;
+            crashPos[n] = a.transform.position;
+            crashRadius[n] = a.Radius;
             n++;
         }
         bool crashed = false;

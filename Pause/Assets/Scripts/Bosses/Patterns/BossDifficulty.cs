@@ -58,11 +58,11 @@ public static class BossDifficulty
         // Short, beat-aligned openings keep quiet song intros from stalling combat.
         new BossDifficultyRow { boss = "Void Archon", rampSeconds = 8f, startIntensity = .60f, intensityFloor = .45f, beatSyncFromStart = true },
         new BossDifficultyRow { boss = "Hoarfrost Leviathan", rampSeconds = 7f, startIntensity = .60f, intensityFloor = .45f, beatSyncFromStart = true },
-        new BossDifficultyRow { boss = "Bloom Queen", rampSeconds = 6f, startIntensity = .60f, intensityFloor = .45f, shotSpeedScale = 1.02f, beatSyncFromStart = true },
+        new BossDifficultyRow { boss = "Bloom Queen", rampSeconds = 6f, startIntensity = .60f, intensityFloor = .45f, shotSpeedScale = 1f, beatSyncFromStart = true },
         new BossDifficultyRow { boss = "Cinder Drake", rampSeconds = 5f, startIntensity = .70f, intensityFloor = .50f, shotSpeedScale = 1.04f, beatSyncFromStart = true },
-        new BossDifficultyRow { boss = "Iron Kraken", rampSeconds = 3f, startIntensity = .85f, intensityFloor = .58f, shotSpeedScale = 1.06f, beatSyncFromStart = true },
-        new BossDifficultyRow { boss = "Tempest Engine", rampSeconds = 0f, startIntensity = 1f, intensityFloor = .66f, shotSpeedScale = 1.08f, beatSyncFromStart = true },
-        new BossDifficultyRow { boss = "Dune-Eater", rampSeconds = 0f, startIntensity = 1f, intensityFloor = .72f, shotSpeedScale = 1.10f, beatSyncFromStart = true },
+        new BossDifficultyRow { boss = "Iron Kraken", rampSeconds = 3f, startIntensity = .90f, intensityFloor = .62f, shotSpeedScale = 1.07f, beatSyncFromStart = true },
+        new BossDifficultyRow { boss = "Tempest Engine", rampSeconds = 0f, startIntensity = 1f, intensityFloor = .70f, shotSpeedScale = 1.10f, beatSyncFromStart = true },
+        new BossDifficultyRow { boss = "Dune-Eater", rampSeconds = 0f, startIntensity = 1f, intensityFloor = .74f, shotSpeedScale = 1.12f, beatSyncFromStart = true },
     };
 
     public static BossDifficultyRow For(int world) => Rows[Mathf.Clamp(world, 0, Rows.Length - 1)];

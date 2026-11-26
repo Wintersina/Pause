@@ -325,6 +325,10 @@ public class CodexHomeButton : MonoBehaviour
         var lr = label.rectTransform.rect;
         string sig = label.text + "|" + lr.size + "|" + scale + "|" + label.cachedTextGenerator.fontSizeUsedForBestFit;
         if (!force && sig == badgeSig) return;
+        // the plate hugs the word: a changed word re-hugs first, so the badge never has to sit over the last glyph
+        HomeButtonFit.RefitRow((RectTransform)transform);
+        lr = label.rectTransform.rect;
+        sig = label.text + "|" + lr.size + "|" + scale + "|" + label.cachedTextGenerator.fontSizeUsedForBestFit;
         float right, top, lastTop;
         if (!MeasureWord(out right, out top, out lastTop)) return;
         badgeSig = sig;
