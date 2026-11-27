@@ -425,7 +425,7 @@ public class BossActor : MonoBehaviour, IMusicPatternHost
         musicRunning = false;
         specialRunning = false;
         musicDirector = new BossMusicDirector(World, boss, this);
-        specials = new BossSpecials(boss, World);
+        specials = new BossSpecials(boss, World, BossSignatureTuning.Enabled);
         // its parts are every muzzle the song's waves leave from (BossWaveSources): the charge and flash slots
         musicAttack = new BossAttack { name = "song arrangement", kind = BossAttackKind.Pattern,
             parts = musicDirector.Parts, emitters = boss.DefaultAttacks[0].emitters,
@@ -655,7 +655,7 @@ public class BossActor : MonoBehaviour, IMusicPatternHost
                 alignBeat = BeatAlign.Target(src, tell, tune.barWaitMax);
                 tell = Mathf.Max(tell, (float)((alignBeat - src.BeatNow) * src.SecondsPerBeat));
             }
-            runner.Begin(current.pattern, this, BossLadder.RateAt(World, progress01), patternSeed++, tell, src, tune);
+            runner.Begin(current.pattern, this, current.signature ? BossSignatureTuning.Rate(progress01) : BossLadder.RateAt(World, progress01), patternSeed++, tell, src, tune);
             runner.BounceFraction = BossBounce.FractionFor(World);
         }
         else

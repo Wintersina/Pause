@@ -47,4 +47,28 @@ public static class BossHell
         foreach (var a in boss.DefaultAttacks) if (a.name == name) return a;
         return null;
     }
+
+    // The three signature bullet patterns (BossSignatureTables) as attacks. Resolved like any pattern attack; kept out of the
+    // rotation (BossDef.signatures), fired by BossSpecials.
+    public static BossAttack[] SignaturesFor(BossDef boss, int world)
+    {
+        var slots = BossSignatureTables.For(world);
+        if (slots == null || slots.Length == 0) return null;
+        var table = new BossAttack[slots.Length];
+        for (int i = 0; i < slots.Length; i++)
+        {
+            var sl = slots[i];
+            var names = new List<string>();
+            foreach (var st in sl.pattern.streams)
+                foreach (var n in st.emitters) if (!names.Contains(n)) names.Add(n);
+            foreach (var st in sl.pattern.streams) st.parts = BossEmitters.Resolve(boss, st.emitters);
+            table[i] = new BossAttack
+            {
+                name = sl.name, kind = BossAttackKind.Pattern, tell = sl.pose, tellSeconds = sl.tell, fireFrame = sl.fireFrame,
+                emitters = names.ToArray(), pattern = sl.pattern, cooldown = sl.cooldown, minPhase = sl.minPhase,
+                signature = true, telegraph = 1,
+            };
+        }
+        return table;
+    }
 }

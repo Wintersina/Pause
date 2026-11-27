@@ -96,7 +96,8 @@ public static class BossLadder
         // Beat-synced volleys are denser than Measure's timer rotation. Build their
         // bounded pool during the entrance rather than allocating on musical accents.
         if (BossBeat.Enabled && BossBeatTuning.For(world).enabled) return BossConfig.ProjectilePoolMax;
-        if (warm[world] == 0) warm[world] = Mathf.Min(BossConfig.ProjectilePoolMax, Measure(world).maxSimultaneous + 12);
+        // (the signature patterns' own peak is capped at BossSignatureTuning.MaxLive: the pool holds it too)
+        if (warm[world] == 0) warm[world] = Mathf.Min(BossConfig.ProjectilePoolMax, Mathf.Max(BossSignatureTuning.MaxLive + 12, Measure(world).maxSimultaneous + 12));
         return warm[world];
     }
 
