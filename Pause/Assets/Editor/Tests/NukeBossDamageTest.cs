@@ -88,9 +88,11 @@ public static class NukeBossDamageTest
         var t = Target(e);
         int hp = e.HitPointsLeft, hearts = e.HeartsLeft;
         Check("one nuke lands", ShipAttackHits.HitBoss(t, 16, ShipSignaturesG3.NukeBossWeight(0), t.transform.position));
-        Check("... and takes exactly 3 boss health (" + e.HitPointsLeft + " left of " + hp + ")", e.HitPointsLeft == hp - 3);
+        // the ultimate's boss damage is scaled back (ShipAttackHits.UltimateBossDamageScale): 3 x 0.75 = 2.25, two whole hearts and a quarter banked
+        int whole = Mathf.FloorToInt(3f * ShipAttackHits.UltimateBossDamageScale + 1e-4f);
+        Check("... and takes 3 x the ultimate boss scale (" + e.HitPointsLeft + " left of " + hp + ")", e.HitPointsLeft == hp - whole);
         Check("... as a single hit with no repeat-hit cooldown", e.Hits == 1 && !e.Invulnerable);
-        Check("... and the hearts follow (3 of " + hearts + " gone)", e.HeartsLeft == hearts - 3);
+        Check("... and the hearts follow (" + whole + " of " + hearts + " gone)", e.HeartsLeft == hearts - whole);
         Check("the fight goes on", e.State == BossEncounter.Phase.Fight && !e.Destroyed);
     }
 
@@ -106,11 +108,28 @@ public static class NukeBossDamageTest
         float budget = 1f;
         ShipAttackHits.Hit(e.Actor.BodyHitbox, 1, 1f, ref budget);   // an ordinary full attack hit, as every other ship deals
         Check("a normal full ship hit still costs one boss health", e.HitPointsLeft == hp - 1);
+
+        // ULTIMATE BOSS DAMAGE: an ultimate (and a secret power's strike) takes UltimateBossDamageScale (0.75) of its weight off the boss only
+        float k = ShipAttackHits.UltimateBossDamageScale;
+        Check("the ultimate boss scale is 0.75 (a quarter off)", Mathf.Approximately(k, .75f));
+        int Dealt(HitKind kind)
+        {
+            var f = StartFight();
+            int was = f.HitPointsLeft;
+            float spare = 1f;
+            ShipAttackHits.Hit(f.Actor.BodyHitbox, 1, 4f, ref spare, kind);
+            return was - f.HitPointsLeft;
+        }
+        Check("an ultimate weight-4 hit costs the boss 3 (4 x 0.75), not 4", Dealt(HitKind.Ultimate) == 3);
+        Check("a secret power's weight-4 strike is scaled the same way", Dealt(HitKind.Power) == 3);
+        Check("a normal weight-4 hit is not scaled", Dealt(HitKind.Normal) == 4);
+        Check("drone fire is not scaled", Dealt(HitKind.Drone) == 4);
+        Check("the scale never leaks out of a hit", Mathf.Approximately(ShipAttackHits.BossScale, 1f));
     }
 
     static void LowHealthKillsCleanlyOnce()
     {
-        foreach (int left in new[] { 1, 2, 3 })
+        foreach (int left in new[] { 1, 2 })   // (a nuke is 3 x 0.75 = 2.25 hearts: it finishes a boss with two left)
         {
             var e = StartFight();
             var t = Target(e);
@@ -144,8 +163,8 @@ public static class NukeBossDamageTest
         int hits = e.Hits;
         Check("a weapon hit leaves no boss repeat-hit cooldown", !e.Invulnerable && BossConfig.HitInvulnerableSeconds == 0f);
         Check("a nuke immediately after another weapon lands in full",
-              ShipAttackHits.HitBoss(t, 16, 3f, t.transform.position) && e.HitPointsLeft == hp - 3 && e.Hits == hits + 1);
+              ShipAttackHits.HitBoss(t, 16, 3f, t.transform.position) && e.HitPointsLeft == hp - Mathf.FloorToInt(2.25f) && e.Hits == hits + 1);
         Check("a second nuke in the same frame also lands in full",
-              ShipAttackHits.HitBoss(t, 16, 3f, t.transform.position) && e.HitPointsLeft == hp - 6 && e.Hits == hits + 2);
+              ShipAttackHits.HitBoss(t, 16, 3f, t.transform.position) && e.HitPointsLeft == hp - Mathf.FloorToInt(4.5f) && e.Hits == hits + 2);
     }
 }

@@ -1239,7 +1239,7 @@ public class BossTarget : MonoBehaviour, IBossAttackTarget
         var encounter = BossEncounter.Instance;
         var actor = GetComponentInParent<BossActor>();
         var kind = actor != null ? actor.ExplosionKind : TargetExplosion.Kind.Metal;
-        var result = encounter != null ? encounter.TakePlayerHit(weight, at, discrete) : BossEncounter.HitResult.Blocked;
+        var result = encounter != null ? encounter.TakePlayerHit(weight * ShipAttackHits.BossScale, at, discrete) : BossEncounter.HitResult.Blocked;
         if (result == BossEncounter.HitResult.Blocked)
         {
             float now = Application.isPlaying ? Time.unscaledTime : 0f;

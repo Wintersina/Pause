@@ -526,7 +526,7 @@ public class SecretPowerController : MonoBehaviour
             // a Space field rock is debris: struck dead like any hazard, not chipped by half a hit
             if (IsFieldRock(t)) { if (PowerKill(t.gameObject)) kills++; continue; }
             // a power that catches the boss is worth half an ultimate hit
-            if (ShipAttackHits.Hit(t.gameObject, ship, .5f, ref budget)) kills++;
+            if (ShipAttackHits.Hit(t.gameObject, ship, .5f, ref budget, HitKind.Power)) kills++;
         }
         return kills;
     }
@@ -908,7 +908,7 @@ public class SecretPowerController : MonoBehaviour
             if (dist > holePullRadius + t.Radius) continue;
             if (PowerSpecial(t))
             {
-                ShipAttackHits.Hit(t.gameObject, ship, budget, ref budget);
+                ShipAttackHits.Hit(t.gameObject, ship, budget, ref budget, HitKind.Power);
                 continue;
             }
             if (dist <= holeKillRadius + t.Radius * .5f)
