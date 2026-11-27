@@ -28,6 +28,8 @@ public sealed class GateView
 
     // star dust (the dock's sparkle glyph)
     readonly Transform[] dT = new Transform[MaxDust];
+    // per piece: its size relative to the dock glyph the burst was tuned for (small / medium / large mix)
+    readonly float[] dSizeK = new float[MaxDust];
     readonly SpriteRenderer[] dR = new SpriteRenderer[MaxDust];
     readonly Vector2[] dPos = new Vector2[MaxDust], dVel = new Vector2[MaxDust];
     readonly float[] dRot = new float[MaxDust], dSpin = new float[MaxDust], dSize = new float[MaxDust],
@@ -71,7 +73,13 @@ public sealed class GateView
         root.localPosition = new Vector3(0f, GateFilm.GateCentreY, -0.02f);
         root.localScale = Vector3.one * GateSpace;
 
-        for (int i = 0; i < MaxDust; i++) Pool("Dust " + i, art.dust != null ? art.dust : art.white, 6, out dT[i], out dR[i]);
+        for (int i = 0; i < MaxDust; i++)
+        {
+            // every size of star dust in the burst (StarDustArt); the dock glyph backs up a missing sprite
+            var piece = StarDustArt.Mixed(i);
+            Pool("Dust " + i, piece != null ? piece : art.dust != null ? art.dust : art.white, 6, out dT[i], out dR[i]);
+            dSizeK[i] = piece != null ? DustPieceScale(piece, i) : 1f;
+        }
         int hulls = HullCount;
         for (int i = 0; i < MaxShips; i++)
         {
@@ -89,6 +97,13 @@ public sealed class GateView
         WarmUp(true);
         sim.Cracked += OnCracked;
         sim.Smashed += OnSmashed;
+    }
+
+    // The scale that makes `piece` draw about as wide as the dock glyph the burst was tuned for, times its size in the mix.
+    float DustPieceScale(Sprite piece, int index)
+    {
+        float glyph = art.dust != null ? art.dust.bounds.size.x : piece.bounds.size.x;
+        return glyph / Mathf.Max(.0001f, piece.bounds.size.x) * StarDustArt.Relative(index);
     }
 
     // hulls that actually loaded (the leading ones: a missing sheet just means fewer kinds)
@@ -326,7 +341,7 @@ public sealed class GateView
             dT[i].localPosition = new Vector3(dPos[i].x, dPos[i].y, -0.02f);
             dT[i].localRotation = Quaternion.Euler(0f, 0f, dRot[i]);
             // the glyph is 72 px at 300 px/unit (0.24 wide): twinkle in, shrink out
-            dT[i].localScale = Vector3.one * (dSize[i] / 0.24f * (0.55f + 0.45f * Mathf.Sin(Mathf.Clamp01(k) * Mathf.PI * 0.5f)));
+            dT[i].localScale = Vector3.one * (dSize[i] / 0.24f * dSizeK[i] * (0.55f + 0.45f * Mathf.Sin(Mathf.Clamp01(k) * Mathf.PI * 0.5f)));
             dR[i].color = new Color(1f, 0.95f, 0.8f, Mathf.Clamp01(k * 2.5f) * 0.8f);
         }
         for (int i = 0; i < MaxShips; i++)

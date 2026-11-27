@@ -55,6 +55,7 @@ public class collisionDetection : MonoBehaviour {
     [Tooltip("Pickups are where nearly all star dust comes from -- the passive " +
              "trickle in score.cs is under 1% of income. Tune the economy here.")]
     public float smallStarValue = 0.5f;
+    public float mediumStarValue = 0.75f;   // the medium star dust, between the small and the Bright Star
     public float largeStarValue = 1f;
     public float blueAtomValue = 2f;
 
@@ -494,7 +495,7 @@ public class collisionDetection : MonoBehaviour {
             var refund = hit.GetComponent<RefundMark>();   // a power-up refund drop (PowerUpRefund)
 
 
-            if (PrefabName.Is(hit.gameObject, "smStar1") || PrefabName.Is(hit.gameObject, "LargeStar1"))
+            if (PickupArt.IsStarDust(hit.gameObject))
             {
                 AchievementTracker.OnStar();
             }
@@ -503,10 +504,18 @@ public class collisionDetection : MonoBehaviour {
                 if (PrefabName.Is(hit.gameObject, "smStar1"))
             {
                 awardDust(smallStarValue);
-                RunScore.OnDust(false, hit.transform.position);
+                RunScore.OnDust(DustSize.Small, hit.transform.position);
                 BoostUltimate(dust: true);
                 SecretPowerController.OnDust(large: false);
                 Pooled.Destroy(hit.gameObject);   // (pooled pickups go back to their pool: PrefabPool)
+            }
+            else if (PrefabName.Is(hit.gameObject, PickupArt.MediumStar))
+            {
+                awardDust(mediumStarValue);
+                RunScore.OnDust(DustSize.Medium, hit.transform.position);
+                BoostUltimate(dust: true);
+                SecretPowerController.OnDust(DustSize.Medium);
+                Pooled.Destroy(hit.gameObject);
             }
             else if(PrefabName.Is(hit.gameObject, "LargeStar1"))
             {

@@ -61,7 +61,7 @@ public class PickupGlow : MonoBehaviour, IPoolReset
 
     public static readonly Color HealGreen = new Color(.706f, .949f, .275f);   // #B4F246, the heal ramp's light
 
-    public static bool IsAtom(PickupKind kind) => kind != PickupKind.Dust && kind != PickupKind.DustSmall;
+    public static bool IsAtom(PickupKind kind) => kind != PickupKind.Dust && kind != PickupKind.DustSmall && kind != PickupKind.DustMedium;
 
     // Dresses a freshly spawned pickup in the friendly look: an atom is
     // drawn PickupArt.AtomVisualScale bigger (its colliders shrunk back, so

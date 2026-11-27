@@ -166,6 +166,7 @@ public static class AllTests
         ("CodexWhiteSpriteTest", CodexWhiteSpriteTest.Execute),
         ("CooldownAtomTest", CooldownAtomTest.Execute),
         ("MagnetAtomTest", MagnetAtomTest.Execute),
+        ("PickupArtTest", PickupArtTest.Execute),
         ("MagnetComboTest", MagnetComboTest.Execute),
         ("AtomFusionTest", AtomFusionTest.Execute),
         ("CreditsTest", CreditsTest.Execute),

@@ -30,7 +30,7 @@ it never touches the saved balance. Developer mode earns no bonus, as before.
 
 ## Effect
 
-`DustEconomyTest` simulates seeded runs: pickups identical to master, rewards 0.60x. Rewards are only a part of a
+`DustEconomyTest` simulates seeded runs: pickups master + about 6% (the medium star dust: 0.75 a piece on 18% of the small trail stars, small stays 0.5, Bright Star 1; points are 1 / 3 / 5), rewards 0.60x. Rewards are only a part of a
 typical run (the stars are most of it), so the combined income drops by less than 40% (see the test log lines
 `[DUSTECON]`). Prices are untouched, so ships and skins take proportionally more runs to afford.
 

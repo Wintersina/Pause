@@ -6,6 +6,8 @@ public class spawnGoodStuff : MonoBehaviour {
 
     public GameObject smStar;
     public GameObject midStar;
+    // The medium star dust (prefabs/medStar_1). Not wired in the scene: loaded in Start when empty.
+    public GameObject medStar;
     public GameObject Atom;
     public GameObject redAtom;
     public GameObject cooldownAtom;
@@ -57,6 +59,7 @@ public class spawnGoodStuff : MonoBehaviour {
         midStarTimer = 14f;
         atomTimer = Random.Range(20f, 45f);
         redAtomDelayTimer = 10f;
+        if (medStar == null) medStar = Resources.Load<GameObject>(PickupArt.MediumStarPrefab);
         if (cooldownAtom == null) cooldownAtom = Resources.Load<GameObject>("prefabs/cooldownAtom");
         if (magnetAtom == null) magnetAtom = Resources.Load<GameObject>("prefabs/" + MagnetPull.ObjectName);
         resetBlueBudget();
@@ -359,10 +362,21 @@ public class spawnGoodStuff : MonoBehaviour {
         return Mathf.Clamp(Mathf.Lerp(x, laneShip.transform.position.x, follow), -RailInset.PickupLaneHalf, RailInset.PickupLaneHalf);
     }
 
+    // Of every small-dust trail, this share of the stars are medium dust (worth more, drawn bigger), so the
+    // middle size shows up in most trails: ~2 per 6-star trail. Overall pickup dust moves only a few percent
+    // (see DustEconomyTest): a medium pays 0.75 against the small's 0.5.
+    public const float MediumShare = .18f;
+
+    // The prefab for the index-th star of a trail: a medium with MediumShare chance (roll in 0..1), else the small.
+    public GameObject TrailStar(float roll)
+    {
+        return medStar != null && roll < MediumShare ? medStar : smStar;
+    }
+
     void spawnSmStar(int pos, Vector3 vPos)
     {
         Vector3 spawner = new Vector3(StarX(), vPos.y + pos, vPos.z);
-        Place(smStar, spawner);
+        Place(TrailStar(Random.value), spawner);
     }
     void spawnMidStar(int pos, Vector3 vPos)
     {
@@ -466,6 +480,7 @@ public class spawnGoodStuff : MonoBehaviour {
         if (!PrefabPool.Enabled) return;
         PrefabPool.Prewarm(smStar, 12, SpecFor(smStar).dress);
         PrefabPool.Prewarm(midStar, 6, SpecFor(midStar).dress);
+        if (medStar != null) PrefabPool.Prewarm(medStar, 4, SpecFor(medStar).dress);
         PrefabPool.Prewarm(Atom, 1, SpecFor(Atom).dress);
         PrefabPool.Prewarm(redAtom, 1, SpecFor(redAtom).dress);
         PrefabPool.Prewarm(cooldownAtom, 1, SpecFor(cooldownAtom).dress);

@@ -6,10 +6,15 @@ public class spawnWithoutTouchNewBehaviourScript : MonoBehaviour {
 
     public GameObject smStar;
     public GameObject midStar;
+    // The medium star dust (Resources/Prefabs/CreditStarMd); not wired in the scene, loaded in Start when empty.
+    public GameObject medStar;
     public GameObject SuperStar;
     public static float atomDelayTimer;
     public static float smStarTimer;
     public static float midStarTimer;
+    public static float medStarTimer;
+
+    public const string MediumPrefab = "prefabs/CreditStarMd";
 
     // used for random int for generating stars
     int max;
@@ -20,7 +25,9 @@ public class spawnWithoutTouchNewBehaviourScript : MonoBehaviour {
 
         smStarTimer = 0;
         midStarTimer = 2f;
+        medStarTimer = 3.5f;
         atomDelayTimer = 5f;
+        if (medStar == null) medStar = Resources.Load<GameObject>(MediumPrefab);
     }
 
     // Update is called once per frame
@@ -35,6 +42,7 @@ public class spawnWithoutTouchNewBehaviourScript : MonoBehaviour {
     {
         smStarTimer -= Time.deltaTime;
         midStarTimer -= Time.deltaTime;
+        medStarTimer -= Time.deltaTime;
         atomDelayTimer -= Time.deltaTime;
 
         if (smStarTimer <= 0)
@@ -61,6 +69,13 @@ public class spawnWithoutTouchNewBehaviourScript : MonoBehaviour {
             {
                 spawnMidStar(i, randomStarPos);
             }
+        }
+        if (medStarTimer <= 0 && medStar != null)
+        {
+            // the medium dust, between the small and the large stars
+            medStarTimer = Random.Range(4f, 8f);
+            Vector3 randomStarPos = new Vector3(Random.Range(-RailInset.PickupLaneHalf, RailInset.PickupLaneHalf), transform.position.y, transform.rotation.z);
+            Instantiate(medStar, randomStarPos, transform.rotation);
         }
         if (atomDelayTimer <= 0)
         {

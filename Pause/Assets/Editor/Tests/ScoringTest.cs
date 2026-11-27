@@ -176,7 +176,10 @@ public static class ScoringTest
 
         long t = RunScore.Total;
         RunScore.OnDust(false);
-        Check("small star dust pays 2", RunScore.Total - t == 2);
+        Check("small star dust pays 1", RunScore.Total - t == ScoreRules.SmallDust && ScoreRules.SmallDust == 1);
+        t = RunScore.Total;
+        RunScore.OnDust(DustSize.Medium);
+        Check("medium star dust pays 3", RunScore.Total - t == 3);
         t = RunScore.Total;
         RunScore.OnDust(true);
         Check("large star dust pays 5", RunScore.Total - t == 5);
@@ -542,8 +545,8 @@ public static class ScoringTest
         RunScore.Stage();
         RunScore.EndRun(run);
         RunScore.EndRun(run);
-        Check("resume + end: banked once, best is the final total (7)",
-              RunScore.BankCount == banks + 1 && PlayerPrefs.GetInt(RunScore.BestScoreKey) == 7);
+        Check("resume + end: banked once, best is the final total (" + (ScoreRules.LargeDust + ScoreRules.SmallDust) + ")",
+              RunScore.BankCount == banks + 1 && PlayerPrefs.GetInt(RunScore.BestScoreKey) == ScoreRules.LargeDust + ScoreRules.SmallDust);
         Check("PrefsSaverRunner stages the score with the dust",
               Regex.Matches(TestHarness.StripComments(System.IO.File.ReadAllText("Assets/Scripts/Core/PrefsSaverRunner.cs")), @"RunScore\.Stage\(\)").Count >= 2);   // both save paths stage it; an extra call is harmless
     }

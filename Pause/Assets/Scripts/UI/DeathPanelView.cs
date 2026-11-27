@@ -421,7 +421,7 @@ public class DeathPanelView : MonoBehaviour, IPointerDownHandler
         view.BuildCards(bestText, runText, dustText);
         view.buttonRects = ButtonRects(HudSkin.CurrentWorld);
         view.BuildButtons(replay, replayGlyph, menu, menuGlyph);
-        view.dustBurst = view.BuildBurst("DustBurst", Gold);
+        view.dustBurst = view.BuildBurst("DustBurst", Gold, dust: true);
         view.bestBurst = view.BuildBurst("BestBurst", Cyan);
         view.BuildScoreBonus();
 
@@ -864,7 +864,7 @@ public class DeathPanelView : MonoBehaviour, IPointerDownHandler
         Place(bonusLine.rectTransform, Centered(LabelLeft + 150f, -20f, 300f, 28f));
         AddOutline(bonusLine.gameObject, Ink, 1.5f);
         bonusCentre = Shifted(CardRects[2].center + new Vector2(LabelLeft + 90f, -20f));
-        bonusBurst = BuildBurst("BonusBurst", Gold);
+        bonusBurst = BuildBurst("BonusBurst", Gold, dust: true);
         bonusPopup = NewText(BonusPopupName, panel, "+" + Dust(results.dustBonus) + " ★",
                              26, Gold, TextAnchor.MiddleCenter);
         Place(bonusPopup.rectTransform, Centered(bonusCentre.x, bonusCentre.y, 160f, 34f));
@@ -872,13 +872,17 @@ public class DeathPanelView : MonoBehaviour, IPointerDownHandler
         bonusPopup.gameObject.SetActive(false);
     }
 
-    Image[] BuildBurst(string name, Color tint)
+    // dust: the star-dust burst (the dust total and the score bonus) throws all three sizes of star dust (StarDustArt)
+    // in their own colours; the other bursts are gold / cyan sparkles.
+    Image[] BuildBurst(string name, Color tint, bool dust = false)
     {
         var sprite = Load("dp_sparkle");
         var pool = new Image[SparklesPerBurst];
         for (int i = 0; i < pool.Length; i++)
         {
-            var s = NewImage(name, panel, sprite, tint);
+            var piece = dust ? StarDustArt.Mixed(i) : null;
+            var s = NewImage(name, panel, piece != null ? piece : sprite, piece != null ? Color.white : tint);
+            if (piece != null) s.preserveAspect = true;
             Place(s.rectTransform, Centered(0f, 0f, 1f, 1f));
             s.gameObject.SetActive(false);
             pool[i] = s;
@@ -1066,6 +1070,7 @@ public class DeathPanelView : MonoBehaviour, IPointerDownHandler
             var rt = s.rectTransform;
             rt.anchoredPosition = origin + new Vector2(Mathf.Cos(angle), Mathf.Sin(angle) * .7f) * (dist * e);
             float size = 18f + (i % 4) * 5f;
+            if (s.sprite != null && StarDustArt.IsDust(s.sprite)) size *= StarDustArt.RelativeOf(s.sprite) * 1.25f;
             rt.sizeDelta = new Vector2(size, size);
             rt.localScale = Vector3.one * Mathf.Sin(p * Mathf.PI);
             rt.localRotation = Quaternion.Euler(0f, 0f, p * 90f);

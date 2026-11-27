@@ -18,6 +18,7 @@ public sealed class ShopDustFx
     // last launch + flight = ~1.34 s, plus the pulse settling: inside 1.2 .. 1.8 s
     public static float TotalSeconds { get { return FirstLaunch + LaunchGap * (MaxParticles - 1) + Flight + PulseSeconds; } }
 
+    public const float PieceSide = 30f;   // the medium piece's side in UI units; small and large scale from it (StarDustArt.Relative)
     const int Sparks = 12;
     static readonly Color Cyan = new Color(.45f, .95f, 1f, 1f), Gold = new Color(1f, .82f, .35f, 1f);
 
@@ -145,9 +146,12 @@ public sealed class ShopDustFx
         for (int k = 0; k < Sparks; k++) sparkImg[k] = CodexUi.NewImage("Spark", layer, EliteFxArt.Spark, k % 2 == 0 ? Cyan : Gold);
         for (int i = 0; i < cap; i++)
         {
-            dustImg[i] = CodexUi.NewImage("Dust", layer, dust, Color.white);
+            // every size of star dust (small, medium, large) in the mix; the passed glyph only backs up a missing sprite
+            var piece = StarDustArt.Mixed(i);
+            dustImg[i] = CodexUi.NewImage("Dust", layer, piece != null ? piece : dust, Color.white);
             dustImg[i].preserveAspect = true;
-            dustImg[i].rectTransform.sizeDelta = new Vector2(30f, 30f);
+            float side = PieceSide * (piece != null ? StarDustArt.Relative(i) : 1f);
+            dustImg[i].rectTransform.sizeDelta = new Vector2(side, side);
         }
     }
 

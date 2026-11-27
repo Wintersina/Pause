@@ -15,7 +15,7 @@ public class PickupBurst : MonoBehaviour
     static int lastPickup;
     static readonly Stack<PickupBurst> free = new Stack<PickupBurst>();
     static readonly PickupKind[] Kinds =
-        { PickupKind.Shield, PickupKind.Pause, PickupKind.Cooldown, PickupKind.Magnet, PickupKind.Dust, PickupKind.DustSmall, PickupKind.Heal,
+        { PickupKind.Shield, PickupKind.Pause, PickupKind.Cooldown, PickupKind.Magnet, PickupKind.Dust, PickupKind.DustSmall, PickupKind.DustMedium, PickupKind.Heal,
           PickupKind.ShotTwin, PickupKind.ShotPierce, PickupKind.ShotSplit, PickupKind.ShotRicochet, PickupKind.ShotArc, PickupKind.ShotRapid };
 
     Sprite[] frames;
@@ -101,7 +101,8 @@ public class PickupBurst : MonoBehaviour
         var burst = Take();
         var go = burst.gameObject;
         go.transform.position = pickup.transform.position;
-        float scale = kind == PickupKind.DustSmall ? .45f : kind == PickupKind.Dust ? .9f : 1f;
+        // the medium's burst art is 212 px at 700 ppu (.30 u), the small's and large's are the shared 388 px burst scaled down
+        float scale = kind == PickupKind.DustSmall ? .45f : kind == PickupKind.Dust ? .9f : kind == PickupKind.DustMedium ? 1.4f : 1f;
         go.transform.localScale = new Vector3(scale, scale, 1f);
         var sr = burst.sr;
         SpriteRenderer src;
