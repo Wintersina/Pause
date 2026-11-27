@@ -710,7 +710,6 @@ public static class CodexTest
         // ---- pickups: one entry per PickupKind ----
         foreach (PickupKind kind in Enum.GetValues(typeof(PickupKind)))
         {
-            if (kind == PickupKind.DustMedium) continue;   // medium dust has no entry of its own: catching it discovers Star Dust (alias "medstar")
             string id = null;
             foreach (var e in Codex.Entries)
             {

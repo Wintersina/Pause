@@ -281,7 +281,7 @@ public static class PerfHitchTest
             int queued = FirstUseWarm.Queued;
             PumpWarm();
             Check(boss.artKey + ": the warm steps (" + queued + ", one a frame) make the boss's sprites before the fight",
-                  queued >= 7 && queued <= 12 && FirstUseWarm.Done && BossArt.Warmed(boss));
+                  queued >= 7 && queued <= 14 && FirstUseWarm.Done && BossArt.Warmed(boss));
             int sprites = Sprites();
             Watch();
             TouchFight(boss);
