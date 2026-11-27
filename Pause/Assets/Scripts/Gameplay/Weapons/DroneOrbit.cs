@@ -152,12 +152,16 @@ public static class DroneOrbit
         return new Vector2(Cx + Mathf.Cos(a) * Rx, Cy + Mathf.Sin(a) * Ry);
     }
 
-    // `p` (world) nudged to keep a body of `size` inside the view.
-    public static Vector3 Clamp(Vector3 p, Vector2 size, Rect view)
+    // `p` (world, the transform's place) nudged to keep the drawn body `drawn` (its bounds at `p`) inside the view; the offset between
+    // the drawing's centre and `p` (a sprite not centred on its pivot, a tilt) is allowed for. Last resort: Fit already keeps the ring in.
+    public static Vector3 Clamp(Vector3 p, Bounds drawn, Rect view)
     {
         if (view.width <= 0f || view.width >= 1000f) return p;
-        p.x = Mathf.Clamp(p.x, view.xMin + size.x * .5f + ViewMargin, Mathf.Max(view.xMin + size.x * .5f + ViewMargin, view.xMax - size.x * .5f - ViewMargin));
-        p.y = Mathf.Clamp(p.y, view.yMin + size.y * .5f + ViewMargin, Mathf.Max(view.yMin + size.y * .5f + ViewMargin, view.yMax - size.y * .5f - ViewMargin));
+        Vector3 off = drawn.center - p;
+        float lox = view.xMin + ViewMargin + drawn.extents.x - off.x, hix = view.xMax - ViewMargin - drawn.extents.x - off.x;
+        float loy = view.yMin + ViewMargin + drawn.extents.y - off.y, hiy = view.yMax - ViewMargin - drawn.extents.y - off.y;
+        p.x = hix >= lox ? Mathf.Clamp(p.x, lox, hix) : (lox + hix) * .5f;
+        p.y = hiy >= loy ? Mathf.Clamp(p.y, loy, hiy) : (loy + hiy) * .5f;
         return p;
     }
 }

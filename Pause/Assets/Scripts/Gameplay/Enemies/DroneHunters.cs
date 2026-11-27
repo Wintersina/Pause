@@ -73,7 +73,7 @@ public static class DroneHunters
     // Called from Toughness.Attach for every ordinary enemy built. Cheap when it does not apply (power 0, tutorial, no brain).
     public static void MaybeMake(GameObject go, EnemyDef def)
     {
-        if (go == null || startMenu.youAreInTutorial) return;
+        if (go == null || startMenu.youAreInTutorial || !HeartTierRun.Live) return;   // (only a real run: fixtures and probes never grow hunters, whatever their power reads)
         float power = RunPower.Score01;
         if (power <= StartPower) return;
         if (!go.TryGetComponent(out EnemyBrain brain) || !Eligible(def, brain)) return;

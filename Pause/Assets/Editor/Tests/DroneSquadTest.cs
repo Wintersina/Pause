@@ -175,6 +175,7 @@ public static class DroneSquadTest
         foreach (float y in new[] { view.yMin + .7f, -2f, view.yMax - .7f })
         {
             rig.ship.transform.position = new Vector3(x, y, 0f);
+            for (int step = 0; step < 90; step++) rig.battery.Step(1f / 60f);   // (the orbit refits the ring to the room, DroneOrbit.Fit)
             for (int i = 0; i < DroneSquad.MaxSlots - 1; i++)
             {
                 var extra = rig.battery.Extra(i); extra.Place();
@@ -182,7 +183,7 @@ public static class DroneSquadTest
                 inView &= bounds.min.x >= view.xMin - .01f && bounds.max.x <= view.xMax + .01f && bounds.min.y >= view.yMin - .01f && bounds.max.y <= view.yMax + .01f;
             }
         }
-        Check("all eleven extra drones stay visible when the ship reaches screen corners", inView);
+        Check("all extra drones stay visible when the ship reaches screen corners", inView);
         var baseSprite = GunBoltArt.For(0);
         bool tiers = GunBoltArt.For(1) != baseSprite && GunBoltArt.For(2) != GunBoltArt.For(1) && GunBoltArt.For(3) != GunBoltArt.For(2);
         Check("gun milestones have distinct cached projectile silhouettes", tiers && GunBoltArt.For(3) == GunBoltArt.For(3));

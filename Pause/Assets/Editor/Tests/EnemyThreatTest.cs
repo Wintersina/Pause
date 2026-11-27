@@ -232,7 +232,7 @@ public static class EnemyThreatTest
         DroneOrbit.Reset();
         var view = new Rect(-2f, -4f, 4f, 8f);
         DroneOrbit.Advance(0f, 0xFF, 8, e, size, 0f, new Vector2(1.8f, 0f), 1f, view);
-        var c = DroneOrbit.Clamp(new Vector3(5f, 9f, 0f), new Vector2(.3f, .3f), view);
+        var c = DroneOrbit.Clamp(new Vector3(5f, 9f, 0f), new Bounds(new Vector3(5f, 9f, 0f), new Vector3(.3f, .3f, 0f)), view);
         Check("a drone body is kept inside the view", c.x <= view.xMax && c.y <= view.yMax);
         DroneOrbit.Reset();
         Separation();
@@ -328,6 +328,10 @@ public static class EnemyThreatTest
         var brain = go.GetComponent<EnemyBrain>();
         Check("a crystal enemy flies a tuned copy of its row", brain != null && brain.Tier == 2 && brain.Behaviour != EnemyBehaviours.For(fighter));
         Check("no hunter is made at zero power", DroneHunters.Alive == 0 && go.GetComponent<DroneHunter>() == null);
+        RunPower.Override = 1f; DroneHunters.RollOverride = 0f; HeartTierRun.Live = false;
+        var fixture = EnemyFactory.Create(fighter, Vector3.up * 8f, Quaternion.identity, 1f, true);
+        Check("a fixture or probe (no live run) never grows hunters, even at full power", DroneHunters.Alive == 0 && fixture.GetComponent<DroneHunter>() == null);
+        RunPower.Override = 0f; DroneHunters.RollOverride = -1f;
 
         HeartTierRun.ForceTier = 1;
         var alien = EnemyFactory.Create(EnemyRoster.One(1, EnemyRole.Alien), Vector3.up * 8f, Quaternion.identity, 1f, true);
@@ -337,6 +341,7 @@ public static class EnemyThreatTest
         Check("a crystal frost alien is armed with its simple shot", alien2.GetComponent<EnemyBrain>().Armed && alien2.GetComponent<EnemyBrain>().Behaviour.Shoots);
 
         RunPower.Override = 1f;
+        HeartTierRun.Live = true;   // (hunters only appear in a live run)
         DroneHunters.RollOverride = 0f;
         for (int i = 0; i < 10; i++) EnemyFactory.Create(fighter, new Vector3(i * .1f, 8f, 0f), Quaternion.identity, 1f, true);
         Check("hunters appear at full power but never more than the cap", DroneHunters.Alive > 0 && DroneHunters.Alive <= DroneHunters.MaxAlive(0));

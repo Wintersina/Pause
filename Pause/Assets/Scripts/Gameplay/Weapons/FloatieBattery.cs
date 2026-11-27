@@ -160,7 +160,7 @@ public class FloatieCompanion : MonoBehaviour
         else transform.localPosition = target;
         if (sr != null)
         {
-            if (orbit) { folded = false; transform.position = DroneOrbit.Clamp(transform.position, sr.bounds.size, ShipTargets.View()); }
+            if (orbit) { folded = false; transform.position = DroneOrbit.Clamp(transform.position, sr.bounds, ShipTargets.View()); }
             else transform.position = DroneFormation.KeepVisible(hull, transform.position, sr.bounds, out folded);
         }
         if (arrivalAge < .7f)
