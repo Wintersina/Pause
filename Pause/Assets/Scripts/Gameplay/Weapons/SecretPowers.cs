@@ -29,9 +29,9 @@ public class SecretPowerController : MonoBehaviour
 
     [Header("Tuning")]
     public float lookahead = .28f;
-    public float cloakSeconds = 4f;
+    public float cloakSeconds = ShipBalance.CloakSeconds;
     public float pulseRadius = 1.4f;
-    public float pulseInvulnerable = 1.2f;
+    public float pulseInvulnerable = ShipBalance.PulseSeconds;
     public float pulseShotRadius = 2.2f;   // the pulse ring also deletes enemy shots this close
     public float stunSeconds = 3f;
     public float novaRadius = 3f;
@@ -44,11 +44,12 @@ public class SecretPowerController : MonoBehaviour
     public float decoySeconds = 4f;
     public float decoyBlastRadius = 1.5f;
     public float bubbleRadius = 2.35f;      // the Time Bubble dome's radius (drawn)
-    public float bubbleSeconds = 2.5f;
+    public float bubbleSeconds = ShipBalance.BubbleSeconds;
     public float bubbleEliteKick = 14f;    // u/s^2 outward on an elite inside the dome (before EliteResist)
     public float dashDistance = 1.25f;
     public float dashThreatRadius = 2f;    // Blink Dash also fires proactively when a hazard is this close
     public float dashSeconds = .7f;
+    float lockLeft, windowLeft;   // ShipBalance: seconds until the power may be ready again / seconds of its window (no refills inside it)
     public float holeSeconds = 2.6f;
     public float holePullRadius = 2.7f;
     public float holeKillRadius = .45f;
@@ -71,8 +72,8 @@ public class SecretPowerController : MonoBehaviour
     public ShipLoadout Loadout => loadout;
     public SecretPower Power => loadout.power;
     public float Meter => meter;
-    public float Meter01 => Mathf.Clamp01(meter / Full);
-    public bool Ready => meter >= Full;
+    public float Meter01 => lockLeft > 0f ? Mathf.Min(.99f, meter / Full) : Mathf.Clamp01(meter / Full);
+    public bool Ready => meter >= Full && lockLeft <= 0f;
     public int FireCount { get; private set; }
     public SecretMeter Badge => badge;
 
@@ -184,11 +185,13 @@ public class SecretPowerController : MonoBehaviour
         if (amount <= 0f) return;
         // a timed meter (Aegis Shield) fills with time only
         if (loadout.power == SecretPower.AegisShield) return;
+        // no refill while the power's own window runs (ShipBalance): kills it makes cannot charge the next one
+        if (windowLeft > 0f) return;
         if (loadout.power == SecretPower.Mending) amount *= MendingFillScale;
         meter = Mathf.Min(Full, meter + amount);
     }
 
-    public void SetMeter(float value) { meter = Mathf.Clamp(value, 0f, Full); }
+    public void SetMeter(float value) { meter = Mathf.Clamp(value, 0f, Full); lockLeft = 0f; windowLeft = 0f; }   // (a forced meter also clears the balance lockout)
 
     // collisionDetection's pickup and kill hooks.
     public static void OnDust(bool large) { OnDust(large ? DustSize.Large : DustSize.Small); }
@@ -217,8 +220,10 @@ public class SecretPowerController : MonoBehaviour
     {
         if (dt <= 0f || buttonClicks.playerDied) return;
         TickEffects(dt);
+        if (lockLeft > 0f) lockLeft = Mathf.Max(0f, lockLeft - dt);
+        if (windowLeft > 0f) windowLeft = Mathf.Max(0f, windowLeft - dt);
         if (loadout.power == SecretPower.AegisShield && !Ready && !ShipPowerController.TransitionFrozen)
-            meter = Mathf.Min(Full, meter + Full * dt / Mathf.Max(.5f, PremiumShips.Current(ship).shieldEvery));
+            meter = Mathf.Min(Full, meter + Full * dt / Mathf.Max(.5f, PremiumShips.Current(ship).shieldEvery * ShipBalance.ScaleNow));
         if (Ready && ShouldTrigger()) Fire();
     }
 
@@ -316,6 +321,10 @@ public class SecretPowerController : MonoBehaviour
     public void Fire(GameObject threat = null)
     {
         meter = 0f;
+        // ShipBalance: the window refuses refills, the lockout keeps the power from being ready again too soon
+        int tier = PremiumShips.TierOf(ship);
+        windowLeft = ShipBalance.Window(loadout.power, ship, tier);
+        lockLeft = loadout.power == SecretPower.AegisShield ? 0f : ShipBalance.Period(loadout.power, ship, tier, RunPower.Score01, LoopDifficulty.RecoverScale);
         FireCount++;
         AchievementTracker.OnSecretPower();
         if (badge != null) badge.Flash();
@@ -698,7 +707,7 @@ public class SecretPowerController : MonoBehaviour
         DashCount++;
         DashOffsetX = dir * dashDistance;
         dashLeft = dashSeconds;
-        collisionDetection.BeginCloak(.6f);
+        collisionDetection.BeginCloak(ShipBalance.DashSeconds);
         PowerStripAt(ship, ShipFxArt.PowerStripName(SecretPower.BlinkDash), at, 8, false, DashScale, 0f, null, 73, StripAlpha);   // the vanish
         transform.position = new Vector3(ShipReach.ClampX(at.x + DashOffsetX), at.y, at.z);
         PowerStripAt(ship, ShipFxArt.PowerStripName(SecretPower.BlinkDash), transform.position, 0, false, DashScale, 0f, transform, 73, StripAlpha);   // the arrival
