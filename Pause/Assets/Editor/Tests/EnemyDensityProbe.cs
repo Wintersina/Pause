@@ -139,10 +139,19 @@ public static class EnemyDensityProbe
         EliteSystem.Clear();
         EnemyThreat.Reset();
         PilotAirspace.Clear();
-        foreach (var f in Object.FindObjectsByType<SpawnFootprint>(FindObjectsSortMode.None)) Object.DestroyImmediate(f.gameObject);
+        foreach (var f in Object.FindObjectsByType<SpawnFootprint>(FindObjectsSortMode.None)) Destroy(f.gameObject);
         foreach (var r in Object.FindObjectsByType<RailLaneScroller>(FindObjectsSortMode.None)) Object.DestroyImmediate(r.gameObject);
         foreach (var b in Object.FindObjectsByType<enmiesOnBoard>(FindObjectsSortMode.None)) Object.DestroyImmediate(b.gameObject);
-        foreach (var e in Object.FindObjectsByType<EnemyIdentity>(FindObjectsSortMode.None)) Object.DestroyImmediate(e.gameObject);
+        foreach (var e in Object.FindObjectsByType<EnemyIdentity>(FindObjectsSortMode.None)) Destroy(e.gameObject);
+        RailMineLasers.Clear();   // (a beam, a hazard or a reservation must never outlive the board that made it)
+    }
+
+    // DestroyImmediate does not run OnDisable: the brain gives its beam, hazards and reserved volley back first.
+    static void Destroy(GameObject go)
+    {
+        if (go == null) return;
+        foreach (var brain in go.GetComponentsInChildren<EnemyBrain>(true)) brain.Teardown();
+        Object.DestroyImmediate(go);
     }
 
     static readonly List<SpawnFootprint> buffer = new List<SpawnFootprint>(128);
@@ -190,7 +199,7 @@ public static class EnemyDensityProbe
             RailMineMount mount;
             // (a mine's laser may have burnt it during the brains' step)
             if (f == null || !f.TryGetComponent(out mount)) continue;
-            if (mount.rail == null) Object.DestroyImmediate(f.gameObject);
+            if (mount.rail == null) Destroy(f.gameObject);
             else mount.SendMessage("LateUpdate");
         }
         buffer.Clear();
@@ -205,7 +214,7 @@ public static class EnemyDensityProbe
         foreach (var f in buffer)
         {
             float y = f.transform.position.y;
-            if (y < -ViewHalfHeight - 3f || y > ViewHalfHeight + 15f) Object.DestroyImmediate(f.gameObject);   // off the board (departed pilots park at +/-60)
+            if (y < -ViewHalfHeight - 3f || y > ViewHalfHeight + 15f) Destroy(f.gameObject);   // off the board (departed pilots park at +/-60)
         }
         EliteSystem.Step(Dt);
     }

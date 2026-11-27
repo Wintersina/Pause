@@ -954,11 +954,20 @@ public static class RailMineLasers
     public static IReadOnlyList<RailMineLaser> All => all;
     public static int Created => all.Count;
 
+    // A beam can never outlive its mine: one whose owner is gone (a mine destroyed without its brain's OnDisable running, or
+    // culled mid-beam) is recycled, so it stops counting as a live shot and its pool slot comes back.
+    public static void Sweep()
+    {
+        for (int i = 0; i < all.Count; i++)
+            if (all[i] != null && all[i].Active && all[i].Owner == null) all[i].Recycle();
+    }
+
     // A free laser. Never null once the scene has a pool: if every pooled beam is busy (a pool smaller than a burst of mines),
     // one more is built and kept, so a telegraphed shot is never skipped and nothing throws. (Normally never reached: Max is the alive cap.)
     public static RailMineLaser Take()
     {
         Prewarm();
+        Sweep();
         for (int i = 0; i < all.Count; i++)
             if (all[i] != null && !all[i].Active) return all[i];
         if (root == null) return null;
@@ -984,6 +993,7 @@ public static class RailMineLasers
     {
         get
         {
+            Sweep();
             int n = 0;
             for (int i = 0; i < all.Count; i++) if (all[i] != null && all[i].State == RailMineLaser.Phase.Beam) n++;
             return n;
@@ -994,6 +1004,7 @@ public static class RailMineLasers
     {
         get
         {
+            Sweep();
             int n = 0;
             for (int i = 0; i < all.Count; i++) if (all[i] != null && all[i].Active) n++;
             return n;

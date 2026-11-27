@@ -598,7 +598,11 @@ public class EnemyBrain : MonoBehaviour
         reserved = 0;
     }
 
-    void OnDisable()
+    void OnDisable() { Teardown(); }
+
+    // Lets go of everything the brain holds in the shared budgets: its reserved volley, its area hazards, its mine beam. Runs on
+    // disable; edit-mode fixtures that DestroyImmediate an enemy call it first (OnDisable does not run for them).
+    public void Teardown()
     {
         ReleaseReservation();
         CancelHazards();
