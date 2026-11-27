@@ -110,15 +110,15 @@ public static class ScoreBonusTest
         RealRun();
         RunScore.EndRun(RunScore.RunId);
         StarDustLedger.EndRun(StarDustLedger.RunId);
-        float bonus = ScoreRules.ScoreDustBonus(300);
-        Check("a 300-point run earns " + bonus, bonus > 0f);
+        float bonus = ScoreRules.ScoreDustBonus(1000);
+        Check("a 1000-point run earns " + bonus, bonus > 0f);
 
         // Death, the death panel, then the teardown.
         PlayerPrefs.SetFloat(Dust, 100f);
         var s = MakeScore();
         Call(s, "Awake");
         Call(s, "Start");
-        RunScore.OnBoss(true, 0f, false, Vector3.zero);   // 300 points
+        RunScore.OnBoss(true, 0f, false, Vector3.zero);   // 1000 points
         buttonClicks.playerDied = true;
         Call(s, "Update");
         Check("death: the bonus is banked (" + PlayerPrefs.GetFloat(Dust) + ")", Saved(100f + bonus));
@@ -203,7 +203,7 @@ public static class ScoreBonusTest
         var best = SceneUtil.FindAny("playerDeadHighestSpeed").GetComponent<Text>();
         var run = SceneUtil.FindAny("deathSpeedReachedThisRoundText").GetComponent<Text>();
         var dust = SceneUtil.FindAny("playerDeadHighScore").GetComponent<Text>();
-        var parts = new RunScore.Breakdown { distance = 900, kills = 1200, bosses = 300, bossCount = 1 };
+        var parts = new RunScore.Breakdown { distance = 900, kills = 1200, bosses = 1000, bossCount = 1 };
         var view = DeathPanelView.Build(canvas.transform, best, run, dust,
             SceneUtil.FindAny("Replay").GetComponent<Button>(), SceneUtil.FindAny("MainMenu").GetComponent<Button>(),
             new DeathPanelView.Results { score = parts.Total, bestScore = 9000, ranked = true, parts = parts,

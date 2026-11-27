@@ -507,11 +507,11 @@ public static class LoopTest
         Check("flight / kill points per loop: x1.15, x1.3 ... capped at x1.6",
               Mathf.Approximately(LoopRules.ScoreScale(1), 1.15f) && Mathf.Approximately(LoopRules.ScoreScale(2), 1.3f) &&
               Mathf.Approximately(LoopRules.ScoreScale(99), 1.6f));
-        Check("boss 300 -> 450 on loop 2 (an escape pays 0), world bonus 50 x n x 1.5",
-              ScoreRules.BossPoints(true, 0f, false, 1) == 450 && ScoreRules.BossPoints(false, 0f, false, 1) == 0 &&
-              ScoreRules.WorldClearedPoints(3, 1) == 300 && ScoreRules.BossPoints(true, 0f, false, 0) == 300);
-        Check("small numbers even at the bonus cap (boss <= 900, world <= 600)",
-              ScoreRules.BossPoints(true, 0f, false, 99) <= 900 && ScoreRules.WorldClearedPoints(3, 99) <= 600);
+        Check("boss 1000 x its number in the run, whatever the loop (an escape pays 0), world bonus 50 x n x 1.5",
+              ScoreRules.BossPoints(true, 0f, false, 1) == 1000 && ScoreRules.BossPoints(false, 0f, false, 1) == 0 &&
+              ScoreRules.WorldClearedPoints(3, 1) == 300 && ScoreRules.BossPoints(true, 0f, false, 0, 3) == 3000);
+        Check("small numbers even at the bonus cap (boss flat at the ladder step, world <= 600)",
+              ScoreRules.BossPoints(true, 0f, false, 99) == ScoreRules.BossDestroyed && ScoreRules.WorldClearedPoints(3, 99) <= 600);
 
         // Applied: a world reached on loop 2 ramps faster, starts faster, spawns denser.
         FreshScene(2, 0);
@@ -644,7 +644,7 @@ public static class LoopTest
         t = RunScore.Total;
         RunScore.OnDust(true);
         RunScore.OnBoss(true, 0f, false, Vector3.zero);
-        Check("pickups and bosses are not speed-multiplied", RunScore.Total - t == 5 + 300);
+        Check("pickups and bosses are not speed-multiplied", RunScore.Total - t == 5 + 1000);
         Check("the breakdown still sums to the total", RunScore.Parts.Total == RunScore.Total);
 
         // A loop pays its flight and kill points x LoopRules.ScoreScale.
@@ -956,7 +956,7 @@ public static class LoopTest
         float bm = speedMultiplier ? ScoreRules.SpeedMultiplierFor(BossConfig.FightSpeed) : 1f;
         s.distance += ScoreRules.DistancePoints(BossConfig.FightSpeed, BossConfig.FightSeconds) * bm;
         s.kills += 10 * ScoreRules.BossShot;
-        s.bosses += ScoreRules.BossPoints(true, 0f, false, loopScaling ? loop : 0);
+        s.bosses += ScoreRules.BossPoints(true, 0f, false, loopScaling ? loop : 0, loop * WorldManager.LiveWorldCount + world + 1);
         s.other += 25 * ScoreRules.SmallDust + 5 * ScoreRules.LargeDust + 4 * ScoreRules.HealAtom + 8 * ScoreRules.Teleport;
         if (leaves) s.worlds += ScoreRules.WorldClearedPoints(world, loopScaling ? loop : 0);
         return s;
@@ -1025,7 +1025,7 @@ public static class LoopTest
               linger.Total < pass[0].Total + SimWorld(0, 1, true, true, false).Total * .5 &&
               lingerDist + lingerKills < SimWorld(0, 1, true, true, false).Total * .1);
         Check("simulated Space level + boss stays in the low thousands (" + space.Total.ToString("0") + ")",
-              space.Total > 800 && space.Total < 2000);
+              space.Total > 800 && space.Total < 3500);
         Check("the speed multiplier raises a pass by a fair amount, not a landslide (" +
               (pass[0].Total / oldPass.Total).ToString("F2") + "x)",
               pass[0].Total > oldPass.Total && pass[0].Total < oldPass.Total * 1.8);

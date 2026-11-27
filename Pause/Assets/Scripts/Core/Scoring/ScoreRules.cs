@@ -160,7 +160,9 @@ public static class ScoreRules
     public static int TeleportsScoredPerWorld = 12;
 
     // ---- bosses ----
-    public static int BossDestroyed = 300;
+    // A destroyed boss pays BossDestroyed x its number in the run: the first boss defeated is worth 1000, the
+    // second 2000, the third 3000 ... whichever world the run started in and however many loops it has flown.
+    public static int BossDestroyed = 1000;
     public static int BossEscapePenalty = 10000; // flat loss, floored at zero
     public const int EliteEscapePenalty = 1000; // flat loss, including retreats caused by boss arrival
     // HitPoints rule only: seconds left on the fight clock when it blew up.
@@ -322,16 +324,18 @@ public static class ScoreRules
         return Mathf.RoundToInt(DangerSurvivedBase * level * LoopRules.BonusScale(loop));
     }
 
-    public static int BossPoints(bool destroyed, float secondsLeft, bool hitPointsRule, int loop = 0)
+    // `bossNumber`: 1 for the first boss defeated this run, 2 for the second ... (RunScore.OnBoss). `loop` no
+    // longer scales it: the ladder itself grows by BossDestroyed per boss.
+    public static int BossPoints(bool destroyed, float secondsLeft, bool hitPointsRule, int loop = 0, int bossNumber = 1)
     {
         int points;
         if (!destroyed) points = 0;   // (an escape is a loss, RunScore.OnBossEscaped, not a gain)
         else
         {
             int bonus = hitPointsRule ? Mathf.RoundToInt(Mathf.Max(0f, secondsLeft) * BossTimeBonusPerSecond) : 0;
-            points = BossDestroyed + bonus;
+            points = BossDestroyed * Mathf.Max(1, bossNumber) + bonus;
         }
-        return Mathf.RoundToInt(points * LoopRules.BonusScale(loop));
+        return points;
     }
 
     public static float DistancePoints(float speed, float dt)

@@ -441,7 +441,7 @@ public static class CodexCatalogue
         lines.Add("PHASES  " + first + " attacks, then " + second + ", then all " + boss.attacks.Length + " faster, and it enrages at the end");
         lines.Add("HEARTS  " + BossConfig.HeartsForWorld(boss.WorldIndex) + " spin round it, all gone in " + BossConfig.HeartsForWorld(boss.WorldIndex) + " weapon hits");
         lines.Add("ENDS  break every heart (+" + ScoreRules.BossDestroyed +
-                  ") or let it flee at " + Mathf.RoundToInt(BossConfig.FightSeconds) + " s (-" + ScoreRules.BossEscapePenalty + ")");
+                  ", +" + ScoreRules.BossDestroyed + " more for each boss already beaten this run) or let it flee at " + Mathf.RoundToInt(BossConfig.FightSeconds) + " s (-" + ScoreRules.BossEscapePenalty + ")");
         return string.Join("\n", lines);
     }
 

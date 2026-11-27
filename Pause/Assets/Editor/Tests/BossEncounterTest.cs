@@ -607,9 +607,10 @@ public static class BossEncounterTest
         e.OnUltimateHit();
         Check("hits during the outro are ignored", e.HitPointsLeft == 1 && !e.Destroyed);
 
-        // Loop scaling unchanged: loop 2 pays x1.5 either way.
-        Check("loop scaling as before: 450 on loop 2, an escape pays nothing",
-              ScoreRules.BossPoints(true, 0f, false, 1) == 450 && ScoreRules.BossPoints(false, 0f, false, 1) == 0);
+        // A boss pays 1000 x its number in the run (no loop scaling); an escape pays nothing.
+        Check("boss points: 1000, 2000, 3000 by number; an escape pays nothing",
+              ScoreRules.BossPoints(true, 0f, false, 1) == 1000 && ScoreRules.BossPoints(true, 0f, false, 1, 2) == 2000 &&
+              ScoreRules.BossPoints(true, 0f, false, 0, 3) == 3000 && ScoreRules.BossPoints(false, 0f, false, 1) == 0);
         Check("BossEncounter pays a kill flat (no time bonus) and charges an escape",
               File.ReadAllText("Assets/Scripts/Bosses/BossEncounter.cs").Contains("RunScore.OnBoss(true, remaining, false, at)") &&
               File.ReadAllText("Assets/Scripts/Bosses/BossEncounter.cs").Contains("RunScore.OnBossEscaped(at)"));

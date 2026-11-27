@@ -53,15 +53,15 @@ intensity = min(level, max(raw, intensityFloor * level))
 
 | Boss | Ramp | Start level | Floor | Wave speed | Beat sync from start |
 | --- | ---: | ---: | ---: | ---: | --- |
-| Void Archon | 8 s | .60 | .45 | x1.00 | yes |
-| Hoarfrost Leviathan | 7 s | .60 | .45 | x1.00 | yes |
-| Bloom Queen | 6 s | .60 | .45 | x1.02 | yes |
+| Void Archon | 6 s | .70 | .50 | x1.00 | yes |
+| Hoarfrost Leviathan | 6 s | .70 | .50 | x1.00 | yes |
+| Bloom Queen | 6 s | .70 | .50 | x1.02 | yes |
 | Cinder Drake | 5 s | .70 | .50 | x1.04 | yes |
 | Iron Kraken | 3 s | .85 | .58 | x1.06 | yes |
 | Tempest Engine | none | 1 | .66 | x1.08 | yes |
 | Dune-Eater | none | 1 | .72 | x1.10 | yes |
 
-- Boss 1 no longer waits for its sparse ~40-second musical intro. Its intensity starts at least .25 (two waves per bar) and reaches a .45 floor after an eight-second ramp, applied on bar lines. Song accents still drive variation above that floor.
+- Boss 1 no longer waits for its sparse ~40-second musical intro. Its intensity starts at least .25 (two waves per bar) and reaches a .50 floor after a six-second ramp (starting capped at .70), applied on bar lines. Song accents still drive variation above that floor.
 - The floor is the attack-rate knob: >= .25 two waves a bar, >= .45 three, >= .62 a wave on every beat. Every floor stays under .75, where a wave stops showing its gap telegraph.
 - With `beatSyncFromStart` the director's first wave leaves on the first beat that leaves its one-beat tell, not after two beats of calm; with the floor over .62 every beat is in the rhythm, so the first wave and every one after it are on the beat.
 - The attack rotation is untouched: every boss keeps its phase structure (phase 1 its first attacks, the specials as their `minPhase` unlocks them; loops add their own head start, `LoopRules`, as before). The ladder works only through the waves' intensity, speed and start.

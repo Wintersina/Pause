@@ -457,7 +457,7 @@ public static class RunScore
     public static int OnBoss(bool destroyed, float secondsLeft, bool hitPointsRule, Vector3 at)
     {
         if (!Live) return 0;
-        int points = ScoreMultiplier.Gain(ScoreRules.BossPoints(destroyed, secondsLeft, hitPointsRule, RunLoop.Index));
+        int points = ScoreMultiplier.Gain(ScoreRules.BossPoints(destroyed, secondsLeft, hitPointsRule, RunLoop.Index, parts.bossCount + 1));
         parts.bosses += points;
         parts.bossCount++;
         Raise(points, at, Source.Boss);
