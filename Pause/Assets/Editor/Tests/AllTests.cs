@@ -370,6 +370,7 @@ public static class AllTests
         ("SpeedCapTest", SpeedCapTest.Execute),
         ("SpeedRampTest", SpeedRampTest.Execute),
         ("WorldSpeedResetTest", WorldSpeedResetTest.Execute),
+        ("HitSpeedBossScoreTest", HitSpeedBossScoreTest.Execute),
         ("SpinWindTest", SpinWindTest.Execute),
         ("SplashLayoutTest", SplashLayoutTest.Execute),
         ("SplashViolentGateTest", SplashViolentGateTest.Execute),

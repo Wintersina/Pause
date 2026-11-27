@@ -229,7 +229,7 @@ public static class ScoreMultiplierTest
         Check("an atom x2", RunScore.Total - b == ScoreRules.HealAtom * 2);
         b = RunScore.Total;
         RunScore.OnBoss(true, 0f, false, Vector3.zero);
-        Check("a boss x2", RunScore.Total - b == ScoreRules.BossPoints(true, 0f, false) * 2);
+        Check("a boss x2", RunScore.Total - b == ScoreRules.BossPoints(true, 0f, false, 0, RunScore.Parts.bossCount) * 2);
         b = RunScore.Total;
         RunScore.OnWorldCleared(0);
         Check("a world clear x2", RunScore.Total - b == ScoreRules.WorldClearedPoints(0) * 2);

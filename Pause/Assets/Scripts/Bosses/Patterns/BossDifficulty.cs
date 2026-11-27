@@ -55,10 +55,12 @@ public static class BossDifficulty
     // index = world (WorldManager.Worlds): Space, Frost, Verdant, Ember, Tide, Storm, Desert
     public static readonly BossDifficultyRow[] Rows =
     {
-        // Short, beat-aligned openings keep quiet song intros from stalling combat.
-        new BossDifficultyRow { boss = "Void Archon", rampSeconds = 8f, startIntensity = .60f, intensityFloor = .45f, beatSyncFromStart = true },
-        new BossDifficultyRow { boss = "Hoarfrost Leviathan", rampSeconds = 7f, startIntensity = .60f, intensityFloor = .45f, beatSyncFromStart = true },
-        new BossDifficultyRow { boss = "Bloom Queen", rampSeconds = 6f, startIntensity = .60f, intensityFloor = .45f, shotSpeedScale = 1f, beatSyncFromStart = true },
+        // Short, beat-aligned openings keep quiet song intros from stalling combat. The Void Archon opens hardest of the
+        // easy trio (6 s ramp from .70, floor .50: three waves a bar from ~3.7 s instead of 8 s); the ladder test keeps
+        // every knob non-decreasing, so the next two bosses open at the same level.
+        new BossDifficultyRow { boss = "Void Archon", rampSeconds = 6f, startIntensity = .70f, intensityFloor = .50f, beatSyncFromStart = true },
+        new BossDifficultyRow { boss = "Hoarfrost Leviathan", rampSeconds = 6f, startIntensity = .70f, intensityFloor = .50f, beatSyncFromStart = true },
+        new BossDifficultyRow { boss = "Bloom Queen", rampSeconds = 6f, startIntensity = .70f, intensityFloor = .50f, shotSpeedScale = 1f, beatSyncFromStart = true },
         new BossDifficultyRow { boss = "Cinder Drake", rampSeconds = 5f, startIntensity = .70f, intensityFloor = .50f, shotSpeedScale = 1.04f, beatSyncFromStart = true },
         new BossDifficultyRow { boss = "Iron Kraken", rampSeconds = 3f, startIntensity = .90f, intensityFloor = .62f, shotSpeedScale = 1.07f, beatSyncFromStart = true },
         new BossDifficultyRow { boss = "Tempest Engine", rampSeconds = 0f, startIntensity = 1f, intensityFloor = .70f, shotSpeedScale = 1.10f, beatSyncFromStart = true },

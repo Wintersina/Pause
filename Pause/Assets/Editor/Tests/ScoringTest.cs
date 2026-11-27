@@ -211,7 +211,7 @@ public static class ScoringTest
 
         t = RunScore.Total;
         RunScore.OnBoss(true, 0f, false, Vector3.zero);
-        Check("a destroyed boss pays 300", RunScore.Total - t == 300);
+        Check("the first destroyed boss pays 1000", RunScore.Total - t == 1000 && ScoreRules.BossDestroyed == 1000);
         RunScore.OnElite(Vector3.zero, 12000);
         t = RunScore.Total;
         RunScore.OnBossEscaped(Vector3.zero);
@@ -219,7 +219,7 @@ public static class ScoringTest
         Check("... and never takes the score below 0", RunScore.OnBossEscaped(Vector3.zero) + RunScore.OnBossEscaped(Vector3.zero) + RunScore.OnBossEscaped(Vector3.zero) >= 0 && RunScore.Total >= 0);
         t = RunScore.Total;
         RunScore.OnBoss(true, 10f, true, Vector3.zero);
-        Check("HitPoints rule: 10s left adds 50", RunScore.Total - t == 350);
+        Check("HitPoints rule: the second boss pays 2000, 10s left adds 50", RunScore.Total - t == 2050);
 
         t = RunScore.Total;
         RunScore.Tick(10f, .35f);
@@ -355,7 +355,7 @@ public static class ScoringTest
         // Destroyed: its hit points run out before the clock (BossEndRule).
         for (int i = 0; i < BossConfig.HitPoints; i++) e2.OnUltimateHit();
         for (int i = 0; i < 2000 && e2.State == BossEncounter.Phase.Fight; i++) e2.Step(.1f, 1f);
-        Check("a destroyed boss adds 300 on top (" + beforeBoss + " -> " + RunScore.Total + ")",
+        Check("a destroyed boss adds 1000 on top (" + beforeBoss + " -> " + RunScore.Total + ")",
               duringIntro == beforeBoss && RunScore.Total == beforeBoss + ScoreRules.BossDestroyed);
         RunScore.Tick(1f, .2f);
         Check("and the score keeps climbing in the next world", RunScore.Total > beforeBoss + ScoreRules.BossDestroyed);
@@ -420,7 +420,7 @@ public static class ScoringTest
         buttonClicks.playerDied = true;
         Call(s, "Update");
         Call(s, "OnDestroy");
-        Check("developer run: BestScore untouched (100, though it scored 300)", PlayerPrefs.GetInt(RunScore.BestScoreKey) == 100);
+        Check("developer run: BestScore untouched (100, though it scored 1000)", PlayerPrefs.GetInt(RunScore.BestScoreKey) == 100);
 
         var fake = new FakeLeaderboards();
         var service = new LeaderboardService(fake, () => 0f) { Ios = false };
@@ -447,24 +447,24 @@ public static class ScoringTest
         RunScore.OnBoss(true, 0f, false, Vector3.zero);
         Check("a better run is a new best", RunScore.IsNewBest);
         RunScore.EndRun(run);
-        Check("BestScore saved at run end (300)", PlayerPrefs.GetInt(RunScore.BestScoreKey) == 300);
+        Check("BestScore saved at run end (1000)", PlayerPrefs.GetInt(RunScore.BestScoreKey) == 1000);
         run = RunScore.BeginRun(true, true);
-        Check("the next run knows the best to beat", RunScore.BestAtStart == 300);
+        Check("the next run knows the best to beat", RunScore.BestAtStart == 1000);
         RunScore.OnDust(false);
         RunScore.EndRun(run);
-        Check("a worse run never lowers it", PlayerPrefs.GetInt(RunScore.BestScoreKey) == 300);
+        Check("a worse run never lowers it", PlayerPrefs.GetInt(RunScore.BestScoreKey) == 1000);
         // (HighestSpeed is a legacy cloud-save field now: the game no longer
         // reads or writes it, it only round-trips for older builds.)
         Check("BestScore is its own key, apart from the legacy HighestSpeed field",
               ProgressSnapshot.HighestSpeedKey == "HighestSpeed" && RunScore.BestScoreKey == "BestScore");
 
         var snap = ProgressSnapshot.Capture(1);
-        Check("cloud snapshot captures BestScore", snap.bestScore == 300);
+        Check("cloud snapshot captures BestScore", snap.bestScore == 1000);
         PlayerPrefs.DeleteKey(RunScore.BestScoreKey);
         ProgressSnapshot parsed;
         Check("snapshot JSON round-trips", ProgressSnapshot.TryParse(snap.ToJson(), out parsed) == ProgressSnapshot.ParseResult.Ok);
         parsed.Apply();
-        Check("applying the snapshot restores BestScore", PlayerPrefs.GetInt(RunScore.BestScoreKey) == 300);
+        Check("applying the snapshot restores BestScore", PlayerPrefs.GetInt(RunScore.BestScoreKey) == 1000);
         ProgressSnapshot old;
         ProgressSnapshot.TryParse("{\"schemaVersion\":1,\"savedAtUtc\":5,\"currency\":2}", out old);
         Check("an older save without BestScore reads as 0", old != null && old.bestScore == 0);
@@ -493,9 +493,9 @@ public static class ScoringTest
         RunScore.OnBoss(true, 0f, false, Vector3.zero);
         buttonClicks.playerDied = true;
         Call(s, "Update");
-        Check("death banks the run", RunScore.BankCount == banks + 1 && PlayerPrefs.GetInt(RunScore.BestScoreKey) == 300);
+        Check("death banks the run", RunScore.BankCount == banks + 1 && PlayerPrefs.GetInt(RunScore.BestScoreKey) == 1000);
         RunScore.OnDust(true);
-        Check("nothing scores after death", RunScore.Total == 300);
+        Check("nothing scores after death", RunScore.Total == 1000);
         Call(s, "Update");
         Call(s, "OnDestroy");
         Check("death + teardown bank it once", RunScore.BankCount == banks + 1);
@@ -599,7 +599,7 @@ public static class ScoringTest
         RunScore.OnBoss(true, 0f, false, Vector3.zero);
         RunScore.OnDust(true);
         for (int i = 0; i < 400; i++) Step(hud, .05f);
-        Check("it ticks up to the exact total ('" + hud.ScoreText.text + "')", hud.ScoreText.text == "SCORE  305");
+        Check("it ticks up to the exact total ('" + hud.ScoreText.text + "')", hud.ScoreText.text == "SCORE  1,005");
 
         // Star dust is still earned in the run but only shown when it ends:
         // the read-out is SCORE / SPEED / PAUSES with no dust figure.

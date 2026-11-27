@@ -5,7 +5,7 @@ using UnityEngine;
 //
 //   1 table      seven rows in world order; every knob non-decreasing in difficulty from boss 1 to boss 7 (ramp seconds
 //                non-increasing, the start level, floor, wave speed and beat-sync non-decreasing);
-//                boss 1 has an eight-second ramp and an opening floor, even when its song is quiet;
+//                boss 1 has a six-second ramp and an opening floor, even when its song is quiet;
 //                every boss syncs from the start and the last two have no ramp; every floor stays under the gap-telegraph line (.75)
 //   2 ramp       the ramp level at the fight's first frame is under 1 for bosses 1..5 and rises smoothly (no step over
 //                a quarter second bigger than .08) to 1 at rampSeconds; it is 1 from the first frame for the last two
@@ -82,9 +82,16 @@ public static class BossDifficultyTest
         foreach (var r in rows) telegraph &= r.intensityFloor < .75f && r.intensityFloor >= 0f && r.startIntensity >= 0f && r.startIntensity <= 1f;
         Check("every floor stays under .75: a floor-driven wave always shows its gap telegraph", telegraph);
         var a = rows[0];
-        Check("first boss ramps in eight seconds, with two waves per bar even in a silent intro",
-              !a.songRamp && a.rampSeconds <= 8f && BossDifficulty.Shape(0, 0f, 0f) >= .25f &&
-              BossDifficulty.Shape(0, 0f, 8f) >= .45f && BossDifficulty.SyncFromStart(0));
+        Check("first boss ramps in six seconds, with two waves per bar even in a silent intro",
+              !a.songRamp && a.rampSeconds <= 6f && BossDifficulty.Shape(0, 0f, 0f) >= .25f &&
+              BossDifficulty.Shape(0, 0f, 6f) >= .45f && BossDifficulty.SyncFromStart(0));
+        // VOID ARCHON OPENING: on a silent song (the worst case) three waves a bar (.45) arrive within 4.5 s, not 8 s,
+        // and the first beat-synced wave still leaves on the first beat with its one-beat tell.
+        float three = -1f;
+        for (float t = 0f; t <= 12f && three < 0f; t += .25f) if (BossDifficulty.Shape(0, 0f, t) >= .45f) three = t;
+        Check("Void Archon: three waves a bar from " + three.ToString("0.00") + " s of a silent opening (old ramp: 8 s)", three >= 0f && three <= 4.5f);
+        Check("Void Archon: opens at least .35 (was .27) and is at the full floor by the end of the ramp",
+              BossDifficulty.Shape(0, 0f, 0f) >= .35f - 1e-4f && BossDifficulty.RampLevel(0, a.rampSeconds) == 1f && BossDifficulty.RampLevel(0, a.rampSeconds - .5f) < 1f);
     }
 
     static string Join(Func<BossDifficultyRow, float> f)
