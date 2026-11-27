@@ -13,10 +13,15 @@ public struct MarketingJob { public int w, h; public bool video; public string s
 
 public class MarketingRunner : MonoBehaviour
 {
-    // Launch worlds only: Space, Frost, Verdant, Ember.
-    static readonly string[] WorldKey = { "space", "frost", "verdant", "ember" };
+    // All seven worlds (MC_WORLDS picks; default all).
+    static readonly string[] WorldKey = { "space", "frost", "verdant", "ember", "tide", "storm", "desert" };
     // A ship with several hearts per world (the autopilot also refills hearts, so a stray hit never ends a take).
-    static readonly int[] WorldShip = { 5, 6, 7, 4 };
+    static readonly int[] WorldShip = { 5, 6, 7, 4, 9, 13, 16 };
+    // promo run: the fusion each world tries to show (indexes into AtomFusionTable)
+    static readonly int[] WorldFusion = { 1, 2, 3, 4, 5, 6, 7 };
+    static bool Promo { get { return Environment.GetEnvironmentVariable("MC_PROMO") == "1"; } }
+    // hype run: a full drone squad and levelled shot atoms, so the screen fills with fire
+    static bool Hype { get { return Environment.GetEnvironmentVariable("MC_HYPE") == "1"; } }
 
     MarketingJob job;
     string root;
@@ -38,6 +43,46 @@ public class MarketingRunner : MonoBehaviour
         float v;
         return float.TryParse(Environment.GetEnvironmentVariable(key), System.Globalization.NumberStyles.Float,
                               System.Globalization.CultureInfo.InvariantCulture, out v) ? v : fallback;
+    }
+
+    // the developer flow readout (editor only) must never be in footage
+    GameObject flowOverlay;
+    void LateUpdate()
+    {
+        if (flowOverlay == null)
+        {
+            var o = UnityEngine.Object.FindFirstObjectByType<AdaptiveFlowOverlay>();
+            if (o != null) flowOverlay = o.gameObject;
+        }
+        if (flowOverlay != null && flowOverlay.activeSelf) flowOverlay.SetActive(false);
+    }
+
+    // Three drones (aimed, sweep, straight, cores levelled) and every shot atom part-way up.
+    static void ApplyHype()
+    {
+        ShotAtoms.SetDroneCount(3);
+        DroneMode[] modes = { DroneMode.Aimed, DroneMode.Alternating, DroneMode.Straight };
+        for (int i = 0; i < modes.Length; i++)
+            for (int k = 0; k < 3; k++) DroneSquad.CollectCore(modes[i]);
+        ShotAtoms.SetLevel(ShotAtom.Twin, 4);
+        ShotAtoms.SetLevel(ShotAtom.Split, 3);
+        ShotAtoms.SetLevel(ShotAtom.Pierce, 3);
+        ShotAtoms.SetLevel(ShotAtom.Arc, 2);
+        ShotAtoms.SetLevel(ShotAtom.Ricochet, 2);
+        ShotAtoms.SetLevel(ShotAtom.Rapid, 5);
+        Debug.Log("[MarketingCapture] hype loadout: drones " + DroneSquad.ActiveCount + "/" + DroneSquad.Slots);
+    }
+
+    // Boss fights: a lighter build, so the boss lives long enough for its bullet patterns to fill the screen.
+    static void ApplyBossLoadout()
+    {
+        ShotAtoms.SetDroneCount(2);
+        ShotAtoms.SetLevel(ShotAtom.Twin, 2);
+        ShotAtoms.SetLevel(ShotAtom.Split, 1);
+        ShotAtoms.SetLevel(ShotAtom.Pierce, 0);
+        ShotAtoms.SetLevel(ShotAtom.Arc, 0);
+        ShotAtoms.SetLevel(ShotAtom.Ricochet, 0);
+        ShotAtoms.SetLevel(ShotAtom.Rapid, 1);
     }
 
     IEnumerator Run()
@@ -66,8 +111,8 @@ public class MarketingRunner : MonoBehaviour
             yield break;
         }
 
-        yield return MenuShots();
-        foreach (int w in MarketingEnv.ParseList("MC_WORLDS", new[] { 0, 1, 2, 3 }))
+        if (Environment.GetEnvironmentVariable("MC_NO_MENUS") != "1") yield return MenuShots();
+        foreach (int w in MarketingEnv.ParseList("MC_WORLDS", new[] { 0, 1, 2, 3, 4, 5, 6 }))
             if (w >= 0) yield return WorldRun(w);
 
         if (job.video)
@@ -217,6 +262,9 @@ public class MarketingRunner : MonoBehaviour
         // fly a while unrecorded so the speed and the board have built up (the first minute is sparse)
         yield return Frames(Mathf.RoundToInt(EnvFloat("MC_WARMUP_SECONDS", 50f) * 60f));
         Debug.Log("[MarketingCapture] world " + WorldManager.CurrentIndex + " flying, entry done after " + t.ToString("F1") + "s");
+        if (Hype) ApplyHype();
+
+        pUlt = pUlt2 = pFus = pFusDone = pElite = pEliteAtk = false; pFired = AtomFusions.Fired;
 
         // ---- gameplay clip: flying + freeze -> teleport moments (the game's whole point) ----
         yield return Segment(key + "_gameplay", playSeconds, w, true,
@@ -232,8 +280,10 @@ public class MarketingRunner : MonoBehaviour
                 new[] { .60f }, false);
         }
 
+        FusionTestMode.Reset();
         pilot.CancelPending();
         pilot.OnMoment = null;
+        if (Hype) ApplyBossLoadout();
 
         // ---- boss clip ----
         yield return Frames(20);
@@ -319,11 +369,44 @@ public class MarketingRunner : MonoBehaviour
                 for (int i = 0; i < 4; i++)
                     if (!shot[i] && frac >= at[i] && !pilot.PauseMovePending) { shot[i] = true; shotQueue.Enqueue(key + "_" + (i + 1)); }
             }
+            if (Promo && takeShots) PromoTick(w, frac);
             while (shotQueue.Count > 0) yield return Shot(shotQueue.Dequeue());
             yield return null;
         }
         StopVideo();
         yield return Frames(30);
+    }
+
+    // ---- promo extras: ultimate, fusion, elite dock / fight ----------------------------
+    bool pUlt, pUlt2, pFus, pFusDone, pElite, pEliteAtk;
+    float pUltAt, pEliteAt, pFusAt;
+    int pFired;
+
+    void PromoTick(int w, float frac)
+    {
+        string key = WorldKey[w];
+        var ctl = ShipPowerController.Instance;
+        // the ultimate: arm a short charge, grab the slide-out and the release
+        if (!pUlt && frac > .34f && ctl != null && !pilot.PauseMovePending)
+        {
+            pUlt = true; pUltAt = clipClock;
+            ctl.Arm(2.2f); ctl.chargeMode = ShipPowerController.ChargeMode.Timed;
+        }
+        if (pUlt && !pUlt2 && clipClock > pUltAt + 1.55f) { pUlt2 = true; shotQueue.Enqueue(key + "_ultimate_1"); }
+        if (pUlt2 && clipClock > pUltAt + 2.0f && clipClock < pUltAt + 2.05f) shotQueue.Enqueue(key + "_ultimate_2");
+        if (pUlt && clipClock > pUltAt + 2.9f && clipClock < pUltAt + 2.95f) shotQueue.Enqueue(key + "_ultimate_3");
+        // a fusion: only this combo's atoms are released until it fuses
+        if (!pFus && frac > .72f) { pFus = true; pFusAt = clipClock; FusionTestMode.SetForTest(WorldFusion[w]); }
+        if (pFus && !pFusDone && AtomFusions.Fired > pFired) { pFusDone = true; pFusAt = clipClock; }
+        if (pFusDone && clipClock > pFusAt + .3f && clipClock < pFusAt + .35f) shotQueue.Enqueue(key + "_fusion");
+        // elites: the parked dock, then the fight
+        if (pElite && !pEliteAtk && EliteShip.Live.Count > 0)
+        {
+            foreach (var e in EliteShip.Live)
+                if (e != null && e.State == EliteState.Attack) { pEliteAtk = true; shotQueue.Enqueue(key + "_elite_fight"); break; }
+        }
+        if (frac > .22f && !pElite) { pElite = true; pEliteAt = clipClock; }
+        if (pElite && clipClock > pEliteAt + .9f && clipClock < pEliteAt + .95f) shotQueue.Enqueue(key + "_elite_dock");
     }
 
     // ---- helpers ---------------------------------------------------------------
@@ -384,7 +467,7 @@ public static class MarketingEnv
         get
         {
             string v = System.Environment.GetEnvironmentVariable("MC_OUT");
-            return string.IsNullOrEmpty(v) ? "/Users/sina/Developer/HapticGate-brand/marketing/pause" : v;
+            return string.IsNullOrEmpty(v) ? "/Users/sina/Developer/marketing-and-releases/pause/marketing/captures" : v;
         }
     }
 
