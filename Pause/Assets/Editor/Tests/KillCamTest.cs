@@ -46,6 +46,7 @@ public static class KillCamTest
             Fidelity(made);
             RecordOrder(made);
             RecordSettledOnFlush(made);
+            LastStandIcon(made);
         }
         finally
         {
@@ -850,5 +851,33 @@ public static class KillCamTest
                   pb.r > .8f && pb.g < .2f && pt.g > .8f && pt.r < .2f);
         }
         finally { loaded.Dispose(); }
+    }
+
+    // The Last Stand entry's icon is the hull the run was flown in: its colour, its intact rest frame --
+    // not the ship equipped now, not a damaged row.
+    static void LastStandIcon(System.Collections.Generic.List<Object> made)
+    {
+        int a = ShipId.Starter, b = -1;
+        foreach (int id in ShipId.All) if (id != a && ShipHullArt.Has(id)) { b = id; break; }
+        if (b < 0 || !ShipHullArt.Has(a)) { Check("last stand icon: two ships with art", false); return; }
+        PlayerPrefs.SetString(ShipId.OwnedKey(b), "True");
+        PlayerPrefs.SetInt(ShipSkins.OwnedKey(a, 2), 1);
+        PlayerPrefs.SetInt(ShipSkins.EquippedKey(a), 2);
+        ShipId.Equip(a);
+        var r = KillCamArchive.RecordForThisRun(777);
+        var clip = MakeClip(MakeSprite(made, Color.red, 16), 40, 1f / 60f, 2f);
+        bool saved = KillCamArchive.Save(clip, r, false);
+        ShipId.Equip(b);   // the dock moves on to another ship
+        PlayerPrefs.SetInt(ShipSkins.EquippedKey(a), 0);
+        var icon = CodexCatalogue.LastStandArt();
+        Check("last stand icon: the record keeps ship and colour", saved && r.ship == a && r.skin == 2 && KillCamArchive.Latest.skin == 2);
+        Check("last stand icon: the flown ship in the flown colour, not the equipped ship",
+              icon != null && icon == ShipHullArt.Get(a, 2, 0, 0) && icon != ShipHullArt.Get(b, 0, 0, 0));
+        Check("last stand icon: the intact frame, not a damage row", icon != ShipHullArt.Get(a, 2, 2, 0) && icon != ShipHullArt.Get(a, 0, 0, 0));
+        Check("last stand icon: an older record without a colour parses and shows stock",
+              KillCamArchive.Record.Parse("2|5|6|1|Space|x").skin == -1);
+        PlayerPrefs.DeleteKey(ShipSkins.OwnedKey(a, 2));
+        PlayerPrefs.DeleteKey(ShipSkins.EquippedKey(a));
+        PlayerPrefs.DeleteKey(ShipId.OwnedKey(b));
     }
 }

@@ -730,11 +730,14 @@ public static class CodexCatalogue
     }
 
     // LAST STAND's card: the wrecked hull of the ship the saved run flew (the equipped one before any).
-    static Sprite LastStandArt()
+    public static Sprite LastStandArt()
     {
         var record = KillCamArchive.Latest;
         int ship = record != null && ShipId.IsValid(record.ship) ? record.ship : ShipId.Equipped();
-        var hull = ShipId.IsValid(ship) ? ShipHullArt.Rest(ship, 2) : null;
+        // the intact rest frame (damage row 0) of the colour the run was flown in -- not the equipped one, not a damaged row
+        int skin = record == null ? (ShipId.IsValid(ship) ? ShipSkins.Equipped(ship) : ShipSkins.Stock)
+                 : record.skin >= 0 ? record.skin : ShipSkins.Stock;
+        var hull = ShipId.IsValid(ship) ? ShipHullArt.Get(ship, skin, 0, 0) : null;
         return hull != null ? hull : Art("cx_blackhole");
     }
 
