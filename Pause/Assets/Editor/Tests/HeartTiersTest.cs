@@ -361,6 +361,7 @@ public static class HeartTiersTest
         RunScore.EndRun(RunScore.RunId); RunScore.BeginRun(true, true);
         var go = new GameObject("~secret");
         var c = go.AddComponent<SecretPowerController>();
+        go.SendMessage("Awake");   // (edit mode skips Awake: it is what sets SecretPowerController.Instance)
         float budget = 0f;
         c.SetMeter(0f);
         for (int k = 0; k < 2; k++)
