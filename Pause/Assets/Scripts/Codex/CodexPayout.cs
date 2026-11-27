@@ -6,7 +6,7 @@ using System.Collections.Generic;
 //
 //   kind                              pays
 //   --------------------------------  -----------------------------------------------------------
-//   Atoms: star dust, bright star     5
+//   Atoms: star dust, medium, bright 5
 //   Atoms: blue, red                  8
 //   Atoms: green, violet              10
 //   Atoms: magnetic                   12

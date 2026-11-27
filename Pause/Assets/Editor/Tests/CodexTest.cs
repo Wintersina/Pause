@@ -501,6 +501,7 @@ public static class CodexTest
         if (goods != null)
         {
             CheckMaps("small star dust", goods.smStar, "atom_stardust");
+            CheckMaps("medium star dust", goods.medStar != null ? goods.medStar : Resources.Load<GameObject>(PickupArt.MediumStarPrefab), "atom_medstar");
             CheckMaps("large star", goods.midStar, "atom_bigstar");
             CheckMaps("blue atom", goods.Atom, "atom_blue");
             CheckMaps("red atom", goods.redAtom, "atom_red");
@@ -876,7 +877,7 @@ public static class CodexTest
             }
             var pickups = new[]
             {
-                ("atom_stardust", "prefabs/smStar_1"), ("atom_bigstar", "prefabs/LargeStar_1"), ("atom_blue", "prefabs/atom3a"),
+                ("atom_stardust", "prefabs/smStar_1"), ("atom_medstar", PickupArt.MediumStarPrefab), ("atom_bigstar", "prefabs/LargeStar_1"), ("atom_blue", "prefabs/atom3a"),
                 ("atom_red", "prefabs/pauseAtom"), (CodexCatalogue.VioletAtomId, "prefabs/cooldownAtom"), (CodexCatalogue.MagnetAtomId, "prefabs/magnetAtom"),
             };
             foreach (var (id, path) in pickups)
