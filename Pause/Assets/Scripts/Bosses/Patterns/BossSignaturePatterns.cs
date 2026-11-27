@@ -18,7 +18,7 @@ public sealed partial class BossPatternRunner
     // Before a shot leaves its muzzle the runner flies it forward on the same maths the game uses (PatternMotion.Apply) and
     // drops it when it would cross the corridor inside the ship's rows, at the corridor's place at THAT time. So however dense
     // the pattern or the loop, a free run of 2 * corrHalf always exists in the ship's rows, and it is the telegraphed lane.
-    public const float CorrPeriod = 7.5f, CorrDt = .04f, CorrR = .14f;
+    public const float CorrPeriod = 7.5f, CorrDt = .06f, CorrR = .14f;
     float corrC0, corrA, corrHalf, sigTime;
 
     void InitCorridor()
@@ -33,19 +33,24 @@ public sealed partial class BossPatternRunner
 
     float CorrX(float t) => corrC0 + corrA * Mathf.Sin(t * 6.2831853f / CorrPeriod);
 
-    // Does a shot launched at `at` with velocity `v` (already as the host will fly it) keep out of the lane while it is in the ship's rows?
+    // Does a shot launched at `at` with velocity `v` (already as the host will fly it) keep out of the lane while it is in the ship's
+    // rows? Flown forward on the game's own maths, in coarse steps (a step is far shorter than the lane is wide), and abandoned
+    // as soon as the shot is below the ship's rows or has left the rails: a phone pays at most MaxSteps cheap steps a shot.
+    const int MaxSteps = 140;
     bool Fits(Vector2 at, Vector2 v, PMotion m)
     {
         float yLo = host.ZoneBottom - CorrR - .25f, yHi = host.ZoneTop + CorrR + .25f;
-        float half = corrHalf + CorrR + .06f;
+        float half = corrHalf + CorrR + .08f;
+        float edge = host.RailEdge + 1f;
         var p = at; float age = 0f;
-        for (int n = 0; n < 220; n++)
+        for (int n = 0; n < MaxSteps; n++)
         {
             age += CorrDt;
             p += v * CorrDt;
             if (m.kind != MotionKind.None) PatternMotion.Apply(ref m, ref p, ref v, age, CorrDt);
-            if (p.y < yLo - 1f) break;
-            if (p.y <= yHi && p.y >= yLo && Mathf.Abs(p.x - CorrX(sigTime + age)) < half) return false;
+            if (p.y < yLo) return true;
+            if (m.kind == MotionKind.None && (p.x > edge || p.x < -edge)) return true;   // absorbed at the rail first
+            if (p.y <= yHi && Mathf.Abs(p.x - CorrX(sigTime + age)) < half) return false;
         }
         return true;
     }
@@ -73,8 +78,13 @@ public sealed partial class BossPatternRunner
 
     void FireM(int i, Vector2 at, Vector2 v, PMotion m)
     {
+        if (!Fits(at, v * emitSpeed * host.ShotSpeedScale, m)) return;
+        FireRaw(i, at, v, m);
+    }
+
+    void FireRaw(int i, Vector2 at, Vector2 v, PMotion m)
+    {
         v *= emitSpeed;
-        if (!Fits(at, v * host.ShotSpeedScale, m)) return;
         var sh = shot[i];
         sh.motion = m;
         host.Fire(at, v, ref sh);
@@ -154,14 +164,31 @@ public sealed partial class BossPatternRunner
             case StreamKind.Braid:
             {
                 var from = Part(s, s.alternate ? k : 0);
-                float h = Wrap(s.baseDeg + s.spin * ts);
+                float h0 = s.baseDeg + s.spin * ts;
                 int c = Mathf.Max(1, s.count);
-                for (int j = 0; j < c; j++)
+                bool braid = s.kind == StreamKind.Braid;
+                // The weave BENDS AROUND the safe lane: the volley's heading is the first of 0, +10, -10, +20, -20 ... degrees off
+                // its line for which every shot of it clears the lane; if none does the volley is skipped (the lane wins).
+                for (int d = 0; d < 9; d++)
                 {
-                    float off = c == 1 ? 0f : -s.spread * .5f + s.spread * j / (c - 1);
-                    var v = Heading(h + off) * s.speed;
-                    FireM(i, from, v, Sway(s, s.phaseDeg));
-                    if (s.kind == StreamKind.Braid) FireM(i, from, v, Sway(s, s.phaseDeg + 180f));
+                    float h = Wrap(h0 + ((d + 1) / 2) * 10f * ((d & 1) == 1 ? 1f : -1f));
+                    bool ok = true;
+                    for (int j = 0; j < c && ok; j++)
+                    {
+                        float off = c == 1 ? 0f : -s.spread * .5f + s.spread * j / (c - 1);
+                        var v = Heading(h + off) * s.speed;
+                        ok = Fits(from, v * emitSpeed * host.ShotSpeedScale, Sway(s, s.phaseDeg))
+                          && (!braid || Fits(from, v * emitSpeed * host.ShotSpeedScale, Sway(s, s.phaseDeg + 180f)));
+                    }
+                    if (!ok) continue;
+                    for (int j = 0; j < c; j++)
+                    {
+                        float off = c == 1 ? 0f : -s.spread * .5f + s.spread * j / (c - 1);
+                        var v = Heading(h + off) * s.speed;
+                        FireRaw(i, from, v, Sway(s, s.phaseDeg));
+                        if (braid) FireRaw(i, from, v, Sway(s, s.phaseDeg + 180f));
+                    }
+                    break;
                 }
                 break;
             }

@@ -42,7 +42,7 @@ public static class BossSignatureTables
         // ---- Space: the Void Archon
         all[0] = new[]
         {
-            S("neon braid", 1, 0, 1.0f, new PatternStream { kind = StreamKind.Braid, emitters = E("Core"), duration = 4.2f, interval = .4f, count = 1, speed = 3.3f, amp = 1.0f, hz = .45f, phaseDeg = 90f, spin = 8f, art = 3, style = B }),
+            S("neon braid", 1, 0, 1.0f, new PatternStream { kind = StreamKind.Braid, emitters = E("Core"), duration = 4.2f, interval = .4f, count = 1, speed = 3.3f, amp = .85f, hz = .45f, phaseDeg = 90f, spin = 8f, art = 3, style = B }),
             S("pulsar bloom", 2, 1, 1.0f, new PatternStream { kind = StreamKind.Rose, emitters = E("Core"), duration = 4.4f, interval = 1.45f, count = 26, petals = 3f, gap = 58f, spread = 30f, rotStep = 18f, speed = 3.4f, art = 4, style = H }),
             S("twin eight", 3, 2, 1.0f, new PatternStream { kind = StreamKind.Orbit, emitters = E("PodL", "PodR"), duration = 4.6f, interval = 1.5f, count = 6, orbitR = 1.1f, hz = .42f, holdSeconds = 1.3f, speed = 3.4f, art = 2, style = H }),
         };
@@ -56,7 +56,7 @@ public static class BossSignatureTables
         // ---- Verdant: the Bloom Queen
         all[2] = new[]
         {
-            S("vine weave", 1, 0, 1.0f, new PatternStream { kind = StreamKind.Sine, emitters = E("Stinger"), duration = 4.4f, interval = .4f, count = 1, speed = 3.0f, amp = 1.05f, hz = .5f, art = 1, style = B }),
+            S("vine weave", 1, 0, 1.0f, new PatternStream { kind = StreamKind.Sine, emitters = E("Stinger"), duration = 4.4f, interval = .4f, count = 1, speed = 3.0f, amp = .8f, hz = .5f, art = 1, style = B }),
             S("bloom rose", 2, 1, 1.0f, new PatternStream { kind = StreamKind.Rose, emitters = E("Stinger"), duration = 4.4f, interval = 1.4f, count = 30, petals = 5f, gap = 58f, spread = 30f, rotStep = 12f, speed = 3.0f, art = 2, style = H }),
             S("petal whirl", 3, 1, 1.0f, new PatternStream { kind = StreamKind.Arms, emitters = E("PetalUL", "PetalUR"), duration = 4.6f, interval = .17f, count = 3, spin = 38f, reverseAt = 2.2f, speed = 2.7f, art = 2, style = H }),
         };
@@ -71,20 +71,20 @@ public static class BossSignatureTables
         all[4] = new[]
         {
             S("tidal swell", 1, 0, 1.0f, new PatternStream { kind = StreamKind.WaveWall, emitters = E("Beak"), duration = 4.4f, interval = 1.25f, pitch = .55f, gap = 1.7f, gapStep = 1.0f, amp = .4f, hz = .6f, spread = 60f, speed = 3.0f, art = 3, style = H }),
-            S("riptide braid", 2, 1, 1.0f, new PatternStream { kind = StreamKind.Braid, emitters = E("LeftA", "RightA"), alternate = true, duration = 4.4f, interval = .36f, count = 1, speed = 3.3f, amp = 1.1f, hz = .5f, spin = 6f, art = 1, style = B }),
+            S("riptide braid", 2, 1, 1.0f, new PatternStream { kind = StreamKind.Braid, emitters = E("LeftA", "RightA"), alternate = true, duration = 4.4f, interval = .36f, count = 1, speed = 3.3f, amp = .85f, hz = .5f, spin = 6f, art = 1, style = B }),
             S("whirlpool", 3, 2, 1.0f, new PatternStream { kind = StreamKind.Orbit, emitters = E("Beak"), duration = 4.6f, interval = 1.6f, count = 7, orbitR = 1.2f, hz = .5f, holdSeconds = 1.4f, speed = 3.5f, art = 3, style = H }),
         };
         // ---- Storm: the Tempest Engine
         all[5] = new[]
         {
             S("cyclone", 1, 0, 1.0f, new PatternStream { kind = StreamKind.Tornado, emitters = E("Core"), duration = 4.2f, interval = .2f, count = 3, armDeg = 120f, spin = 85f, turnDeg = 45f, turnSeconds = 1.5f, gain = 1.35f, speed = 2.9f, art = 3, style = B }),
-            S("lightning zig", 2, 1, 1.0f, new PatternStream { kind = StreamKind.Sine, emitters = E("Rods"), duration = 4.4f, interval = .42f, count = 2, spread = 20f, speed = 3.6f, amp = .85f, hz = .9f, art = 1, style = B }),
+            S("lightning zig", 2, 1, 1.0f, new PatternStream { kind = StreamKind.Sine, emitters = E("Rods"), duration = 4.4f, interval = .42f, count = 2, spread = 20f, speed = 3.6f, amp = .75f, hz = .9f, art = 1, style = B }),
             S("storm eye", 3, 2, 1.0f, new PatternStream { kind = StreamKind.Halo, emitters = E("Core"), duration = 4.0f, interval = .95f, count = 34, gap = 52f, spread = 45f, rotStep = 95f, speed = 3.0f, art = 2, style = H }),
         };
         // ---- Desert: the Dune-Eater
         all[6] = new[]
         {
-            S("sand serpent", 1, 0, 1.0f, new PatternStream { kind = StreamKind.Sine, emitters = E("Maw"), duration = 4.4f, interval = .3f, count = 1, speed = 3.0f, amp = 1.2f, hz = .42f, spin = 8f, art = 1, style = H }),
+            S("sand serpent", 1, 0, 1.0f, new PatternStream { kind = StreamKind.Sine, emitters = E("Maw"), duration = 4.4f, interval = .3f, count = 1, speed = 3.0f, amp = .85f, hz = .42f, spin = 8f, art = 1, style = H }),
             S("dust devil", 2, 0, 1.0f, new PatternStream { kind = StreamKind.Tornado, emitters = E("Maw"), duration = 4.2f, interval = .2f, count = 4, armDeg = 90f, spin = 75f, turnDeg = 50f, turnSeconds = 1.6f, gain = 1.3f, speed = 3.0f, art = 2, style = B }),
             S("dune surge", 3, 1, 1.0f, new PatternStream { kind = StreamKind.WaveWall, emitters = E("Boom"), duration = 4.4f, interval = 1.15f, pitch = .55f, gap = 1.7f, gapStep = 1.1f, amp = .42f, hz = .75f, spread = 65f, speed = 3.2f, art = 2, style = H }),
         };
