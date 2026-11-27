@@ -72,7 +72,7 @@ public static class TideSoundTest
         clock += 5;
         EnemyDeathAudio.ResetVoices();
         bool played = EnemyDeathAudio.PlayAuthored("tide_big", .8f);
-        Check("a Tide big plays the shared roar at its own pitch (" + EnemyDeathAudio.LastPitch.ToString("0.00") + ")", played && EnemyDeathAudio.Played == 1 && EnemyDeathAudio.LastClip != null && EnemyDeathAudio.LastClip.name == "shared_roar_0");
+        Check("a Tide big plays its own scream (" + EnemyDeathAudio.LastPitch.ToString("0.00") + ")", played && EnemyDeathAudio.Played == 1 && EnemyDeathAudio.LastClip != null && EnemyDeathAudio.LastClip.name == "own_tide_big");
         clock += 5;
         EnemyDeathAudio.ResetVoices();
         EnemyDeathAudio.PlayAuthored("tide_rock_brain", .8f);

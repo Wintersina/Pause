@@ -79,9 +79,9 @@ public static class StormSoundTest
         EnemyDeathAudio.ResetVoices();
         clock += 5;
         EnemyDeathAudio.PlayAuthored("storm_big", .8f);
-        Check("a Storm big plays the shared roar at its pitch, no layer (" + EnemyDeathAudio.LastPitch.ToString("0.00") + ")",
-              EnemyDeathAudio.LastClip != null && EnemyDeathAudio.LastClip.name == "shared_roar_0" && EnemyDeathAudio.ActiveLayers() == 0 &&
-              Mathf.Abs(EnemyDeathAudio.LastPitch - .75f) <= .75f * EnemyDeathAudio.PitchJitter + 1e-4f);
+        Check("a Storm big plays its own scream, no layer (" + EnemyDeathAudio.LastPitch.ToString("0.00") + ")",
+              EnemyDeathAudio.LastClip != null && EnemyDeathAudio.LastClip.name == "own_storm_big" && EnemyDeathAudio.ActiveLayers() == 0 &&
+              Mathf.Abs(EnemyDeathAudio.LastPitch - 1f) <= 1f * EnemyDeathAudio.PitchJitter + 1e-4f);
         Check("the crack layer storm_crack_0..2 exists", Resources.Load<AudioClip>("Audio/EnemyDeath/storm_crack_0") != null &&
               Resources.Load<AudioClip>("Audio/EnemyDeath/storm_crack_1") != null && Resources.Load<AudioClip>("Audio/EnemyDeath/storm_crack_2") != null);
         Check("Tide keeps its own wet layer for its rocks and the other worlds' creatures are not aliased",
