@@ -19,7 +19,7 @@
   "lore": "A spear of brass and heat that works the rails of the screen. A thin line draws its lane across the whole board, and then it rams the length of it and stops at the far rail, flinging heat needles back along the track. It turns up the rail and comes back the other way on a new lane: watch every lane.",
   "cellWorldSize": 1.8,
   "hullRadius": 0.36,
-  "silhouetteShare": 0.4611,
+  "silhouetteShare": 0.4334,
   "noseDeg": 90,
   "turnsToFace": true,
   "speed": 3.0,
@@ -44,24 +44,24 @@
     {
       "name": "lance",
       "x": 192,
-      "y": 38,
+      "y": 43,
       "dir": -1.0
     }
   ],
   "nozzles": [
     {
       "name": "a",
-      "x": 160,
-      "y": 272,
+      "x": 148,
+      "y": 282,
       "dir": -1.0,
-      "offsets": [-1, -14, 0, 0, 0, 0, 0, 0, 0, 0, 3, 0, -1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+      "offsets": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4, 0, -2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
     },
     {
       "name": "b",
-      "x": 223,
-      "y": 273,
+      "x": 236,
+      "y": 258,
       "dir": -1.0,
-      "offsets": [0, -14, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, -3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+      "offsets": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, -4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
     }
   ],
   "codexId": "elite_ember_sunstoke",

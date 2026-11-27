@@ -19,7 +19,7 @@
   "lore": "A crescent of soot that blinks between perches high above you and never comes close. Each blink leaves a drifting cloud of embers where it stood, ringed first, and a fan of shards from where it lands. Hurt it and it fades out and returns from another side.",
   "cellWorldSize": 1.707,
   "hullRadius": 0.295,
-  "silhouetteShare": 0.4805,
+  "silhouetteShare": 0.4897,
   "noseDeg": 90,
   "turnsToFace": true,
   "speed": 2.8,
@@ -43,25 +43,25 @@
   "muzzles": [
     {
       "name": "beak",
-      "x": 192,
-      "y": 14,
+      "x": 198,
+      "y": 102,
       "dir": -1.0
     }
   ],
   "nozzles": [
     {
       "name": "a",
-      "x": 167,
-      "y": 244,
+      "x": 141,
+      "y": 291,
       "dir": -1.0,
-      "offsets": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+      "offsets": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 5, 0, -2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
     },
     {
       "name": "b",
-      "x": 217,
-      "y": 244,
+      "x": 250,
+      "y": 291,
       "dir": -1.0,
-      "offsets": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+      "offsets": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, -5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
     }
   ],
   "codexId": "elite_ember_ash_wraith",

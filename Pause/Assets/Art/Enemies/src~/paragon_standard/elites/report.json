@@ -1,0 +1,139 @@
+{
+ "ember_elite_coalrunner": {
+  "L": 30.0,
+  "mouths": [
+   [
+    107,
+    246,
+    7,
+    3
+   ],
+   [
+    194,
+    264,
+    7,
+    3
+   ],
+   [
+    282,
+    248,
+    7,
+    3
+   ]
+  ],
+  "muzzles": [
+   [
+    "left",
+    79,
+    103
+   ],
+   [
+    "right",
+    309,
+    103
+   ]
+  ],
+  "nozzles": [
+   [
+    "a",
+    194,
+    264
+   ]
+  ],
+  "silhouetteShare": 0.4641,
+  "old_share": 0.4663,
+  "drawn_u": 1.366,
+  "hr_ratio": 0.505,
+  "new_hullRadius": null,
+  "glow_px": 1712,
+  "files": [
+   "Resources/Elites/Ember/ember_elite_coalrunner.png",
+   "Enemies/Elite/Ember/ember_elite_coalrunner.png",
+   "Resources/Elites/Ember/ember_elite_coalrunner_damaged.png",
+   "Enemies/Elite/Ember/ember_elite_coalrunner_damaged.png",
+   "Enemies/Elite/Ember/new_docks_lights~/damaged/ember_elite_coalrunner_damaged.png",
+   "Resources/Elites/Ember/ember_elite_coalrunner_death.png",
+   "Enemies/Elite/Ember/ember_elite_coalrunner_death.png",
+   "Resources/Elites/Ember/ember_elite_coalrunner_lights.png",
+   "Enemies/Elite/Ember/ember_elite_coalrunner_lights.png",
+   "Enemies/Elite/Ember/new_docks_lights~/ember_elite_coalrunner_lights.png",
+   "Resources/Elites/Ember/ember_elite_coalrunner_lights_damaged.png",
+   "Enemies/Elite/Ember/ember_elite_coalrunner_lights_damaged.png",
+   "Enemies/Elite/Ember/new_docks_lights~/damaged/ember_elite_coalrunner_damaged_lights.png"
+  ]
+ },
+ "ember_elite_kilnback": {
+  "L": 33.0,
+  "mouths": [
+   [
+    80,
+    249,
+    6,
+    3
+   ],
+   [
+    127,
+    310,
+    12,
+    5
+   ],
+   [
+    262,
+    274,
+    12,
+    5
+   ],
+   [
+    306,
+    249,
+    6,
+    3
+   ]
+  ],
+  "muzzles": [
+   [
+    "l",
+    132,
+    181
+   ],
+   [
+    "r",
+    254,
+    181
+   ]
+  ],
+  "nozzles": [
+   [
+    "a",
+    127,
+    310
+   ],
+   [
+    "b",
+    262,
+    274
+   ]
+  ],
+  "silhouetteShare": 0.5106,
+  "old_share": 0.4853,
+  "drawn_u": 1.692,
+  "hr_ratio": 0.376,
+  "new_hullRadius": null,
+  "glow_px": 3435,
+  "files": [
+   "Resources/Elites/Ember/ember_elite_kilnback.png",
+   "Enemies/Elite/Ember/ember_elite_kilnback.png",
+   "Resources/Elites/Ember/ember_elite_kilnback_damaged.png",
+   "Enemies/Elite/Ember/ember_elite_kilnback_damaged.png",
+   "Enemies/Elite/Ember/new_docks_lights~/damaged/ember_elite_kilnback_damaged.png",
+   "Resources/Elites/Ember/ember_elite_kilnback_death.png",
+   "Enemies/Elite/Ember/ember_elite_kilnback_death.png",
+   "Resources/Elites/Ember/ember_elite_kilnback_lights.png",
+   "Enemies/Elite/Ember/ember_elite_kilnback_lights.png",
+   "Enemies/Elite/Ember/new_docks_lights~/ember_elite_kilnback_lights.png",
+   "Resources/Elites/Ember/ember_elite_kilnback_lights_damaged.png",
+   "Enemies/Elite/Ember/ember_elite_kilnback_lights_damaged.png",
+   "Enemies/Elite/Ember/new_docks_lights~/damaged/ember_elite_kilnback_damaged_lights.png"
+  ]
+ }
+}

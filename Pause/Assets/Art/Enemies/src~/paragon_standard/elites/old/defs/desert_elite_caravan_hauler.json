@@ -1,0 +1,161 @@
+{
+  "key": "desert_elite_caravan_hauler",
+  "codexId": "elite_desert_caravan_hauler",
+  "world": "desert",
+  "launchFrom": "crawlerhangar,caravanbay",
+  "cells": {
+    "flight": [
+      3,
+      7,
+      8
+    ],
+    "parked": 0,
+    "parkedIdle": 1,
+    "liftoff": 2,
+    "bankLeft": 4,
+    "bankRight": 5,
+    "tell": -1,
+    "action": -1,
+    "hit": -1,
+    "damaged": 6,
+    "damagedLoop": [
+      9,
+      10,
+      11,
+      12,
+      13,
+      14
+    ]
+  },
+  "cellWorldSize": 1.932,
+  "noseDeg": 90,
+  "maxBank": 3,
+  "heartColor": "#FFF6DC",
+  "shotColor": "#F4E3B0",
+  "shotCore": "#FFF6DC",
+  "engineColor": "#FFD060",
+  "hearts": 5,
+  "heartSize": 0.18,
+  "heartOrbit": 0.566,
+  "heartStyle": "Halo",
+  "exhaustShip": 3,
+  "exhaustScale": 0,
+  "glowScale": 0.09,
+  "cellPixels": 384,
+  "armored": true,
+  "hazardSeconds": 0.4,
+  "hazardSize": 0.6,
+  "displayName": "Caravan Hauler",
+  "role": "quicksand row hauler",
+  "brain": "caravan",
+  "attack": "quicksand_row",
+  "lore": "A heavy-lift freighter that plods along the top of the sky with the last of its sand-pit canisters. At the end of each leg it stops and lobs a row of quicksand pools across the board with one slot left open. Go through the gap; the pools swallow shots.",
+  "hullRadius": 0.379,
+  "silhouetteShare": 0.4679,
+  "turnsToFace": false,
+  "speed": 1.5,
+  "accel": 3.0,
+  "turnRate": 120,
+  "aggression": 0.5,
+  "tellSeconds": 1.1,
+  "attackGap": 3.6,
+  "avoidance": 0.5,
+  "lookAhead": 0.4,
+  "perception": 2.2,
+  "actionSeconds": 1.2,
+  "shotCount": 4,
+  "shotSpeed": 1.1,
+  "shotSpread": 0,
+  "shotSize": 0.34,
+  "shotInterval": 0.2,
+  "shotKind": "glob",
+  "muzzles": [
+    {
+      "name": "port",
+      "x": 90,
+      "y": 162,
+      "dir": -1.0
+    },
+    {
+      "name": "star",
+      "x": 292,
+      "y": 162,
+      "dir": -1.0
+    },
+    {
+      "name": "canister",
+      "x": 191,
+      "y": 224,
+      "dir": -1.0
+    }
+  ],
+  "nozzles": [
+    {
+      "name": "a",
+      "x": 129,
+      "y": 270,
+      "dir": -1.0,
+      "offsets": [0, -5, 0, -5, 0, 0, 0, 0, 20, 4, -14, -6, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    },
+    {
+      "name": "b",
+      "x": 192,
+      "y": 270,
+      "dir": -1.0,
+      "offsets": [0, -5, 0, -5, 0, 0, 0, 0, 16, 0, -18, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    },
+    {
+      "name": "c",
+      "x": 253,
+      "y": 270,
+      "dir": -1.0,
+      "offsets": [0, -5, 0, -5, 0, 0, 0, 0, 14, -5, -20, 5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    }
+  ],
+  "followDistance": 2.2,
+  "followLag": 0.25,
+  "lobSeconds": 0.85,
+  "lobAhead": 1.6,
+  "poolSeconds": 3.4,
+  "topMargin": 1.5,
+  "engageSeconds": 55,
+  "script": {
+    "tempo": 1.35,
+    "exitTell": 1.6,
+    "lastExit": "none",
+    "note": "anchor: plods legs with a rest at each end and throws only while resting, a quicksand row each rest; second row from phase 2; leg shake at the last heart.",
+    "entrance": { "kind": "overshoot", "seconds": 1.8, "amp": 0.8 },
+    "phase1": {
+      "speed": 1.0, "gap": 1.0,
+      "set": [ { "key": "hazardCount", "value": 1 } ],
+      "loop": [
+        { "wait": 2.0, "attack": "row" },
+        { "wait": 2.0, "attack": "high" },
+        { "wait": 2.0, "attack": "slow" }
+      ]
+    },
+    "phase2": {
+      "speed": 1.1, "gap": 0.9,
+      "set": [ { "key": "hazardCount", "value": 2 } ],
+      "loop": [
+        { "wait": 1.6, "attack": "rush" },
+        { "wait": 1.6, "attack": "high" },
+        { "wait": 1.6, "attack": "slow" }
+      ]
+    },
+    "last": {
+      "speed": 1.2, "gap": 0.8,
+      "set": [ { "key": "hazardCount", "value": 2 } ],
+      "loop": [
+        { "wait": 1.2, "move": "shake", "attack": "rush" },
+        { "wait": 1.2, "move": "shake", "attack": "high" }
+      ]
+    },
+    "variants": [
+      { "name": "row", "set": [ { "key": "shotInterval", "value": 0.2 } ] },
+      { "name": "high", "set": [ { "key": "lobAhead", "value": 2.6 }, { "key": "shotInterval", "value": 0.22 } ] },
+      { "name": "slow", "set": [ { "key": "shotInterval", "value": 0.32 }, { "key": "lobSeconds", "value": 0.95 } ] },
+      { "name": "rush", "set": [ { "key": "shotInterval", "value": 0.1 }, { "key": "lobSeconds", "value": 0.7 } ] }
+    ]
+  }
+}

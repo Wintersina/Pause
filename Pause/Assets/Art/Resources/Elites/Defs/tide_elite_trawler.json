@@ -53,7 +53,7 @@
   "launchFrom": "wreckhull,reefdock",
   "lore": "A trawler that works one flank of the board. It stands against a rail and drags a row of nets in from it, one after another, across the row you are flying in; rings show where each net will land and the far side of the row is always left open. Then it leaves by its own side and comes back on the opposite one.",
   "hullRadius": 0.376,
-  "silhouetteShare": 0.4507,
+  "silhouetteShare": 0.5107,
   "turnsToFace": false,
   "speed": 1.9,
   "accel": 3.5,
@@ -80,37 +80,37 @@
   "muzzles": [
     {
       "name": "port",
-      "x": 59,
-      "y": 130,
+      "x": 66,
+      "y": 157,
       "dir": -1.0
     },
     {
       "name": "star",
-      "x": 325,
-      "y": 130,
+      "x": 324,
+      "y": 157,
       "dir": -1.0
     },
     {
       "name": "winch",
-      "x": 192,
-      "y": 208,
+      "x": 195,
+      "y": 219,
       "dir": -1.0
     }
   ],
   "nozzles": [
     {
       "name": "l",
-      "x": 157,
-      "y": 284,
+      "x": 117,
+      "y": 266,
       "dir": -1.0,
-      "offsets": [0, 0, -1, 2, 0, 0, 0, 0, 4, 0, -2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+      "offsets": [0, 0, 0, 0, 0, 0, 0, 0, 5, 0, -1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
     },
     {
       "name": "r",
-      "x": 226,
-      "y": 284,
+      "x": 267,
+      "y": 266,
       "dir": -1.0,
-      "offsets": [0, 0, -1, 2, 0, 0, 0, 0, 1, 0, -4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+      "offsets": [0, 0, 0, 0, 0, 0, 0, 0, 1, 0, -5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
     }
   ],
   "followLag": 0.25,

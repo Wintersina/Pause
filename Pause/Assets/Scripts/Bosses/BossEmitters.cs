@@ -65,53 +65,16 @@ public static class BossEmitters
         return BossArt.Idle0;
     }
 
-    // Space idle cells 20..25 x (Chin, Core, PodL, PodR) x (x, y): measured from the atlas (alpha >= 250 around the point).
-    static readonly short[] SpaceIdleMuzzles =
-    {
-        192, 323, 192, 232, 58, 298, 327, 296,
-        192, 324, 192, 232, 52, 302, 331, 302,
-        192, 324, 192, 232, 61, 300, 331, 293,
-        192, 324, 192, 232, 50, 306, 336, 306,
-        192, 323, 192, 232, 55, 302, 327, 302,
-        192, 308, 192, 232, 58, 299, 325, 299,
-    };
-
-    static readonly Vector2Int[] BloomPetals = { new Vector2Int(121, 70), new Vector2Int(262, 67), new Vector2Int(71, 143),
-                                                 new Vector2Int(326, 145), new Vector2Int(71, 260), new Vector2Int(312, 258) };
-
     // The muzzle pixel (cell px, x right, y down) of `part` in `bodyFrame`.
     public static Vector2Int Pixel(BossDef boss, int part, int bodyFrame)
     {
         int w = World(boss);
         if (w < 0 || part < 0) return new Vector2Int(BossEmitterTable.CellPixels / 2, BossEmitterTable.CellPixels / 2);
-        // The first two frames of the Archon's extended lance deployment
-        // shift the nozzle a few pixels before it reaches the measured full
-        // extension.  Keep a real ink pixel under each beam root throughout
-        // that mechanical travel.
-        if (w == 0 && part >= 2 && part <= 3 && bodyFrame >= BossArt.SpaceTell0 + 2 * BossArt.SpaceTellFrames && bodyFrame < BossArt.SpaceTell0 + 3 * BossArt.SpaceTellFrames)
-        {
-            int stage = bodyFrame - (BossArt.SpaceTell0 + 2 * BossArt.SpaceTellFrames);
-            if (part == 2)
-                return stage == 0 ? new Vector2Int(50, 306) : stage == 1 ? new Vector2Int(50, 303) : new Vector2Int(53, 305);
-            return stage == 0 ? new Vector2Int(333, 305) : stage == 1 ? new Vector2Int(334, 304) : new Vector2Int(333, 305);
-        }
-        // The Archon's six engine-idle drawings (cells 20..25) bob the pods and chin a few pixels from the base
-        // drawing the table was measured on, so the base pixel can fall off the ink in them (a laser fading out as the
-        // boss settles back to idle would hang off the pod). Solid ink nearest each measured anchor, per idle cell.
-        if (w == 0 && part <= 3 && bodyFrame >= BossArt.SpaceIdle0 && bodyFrame < BossArt.SpaceIdle0 + BossArt.SpaceIdleFrames)
-        {
-            int i = (bodyFrame - BossArt.SpaceIdle0) * 8 + part * 2;
-            return new Vector2Int(SpaceIdleMuzzles[i], SpaceIdleMuzzles[i + 1]);
-        }
-        // Bloom petals flex independently during the expanded spore-bloom
-        // release. These are the actual ink tips in its final release pose.
-        if (w == 2 && part >= 1 && part <= 6 && bodyFrame == BossArt.SpaceTell0 + 7)
-        {
-            return BloomPetals[part - 1];
-        }
+        // (The Void Archon's and Bloom Queen's hand-placed pod / petal pixels went with the v3 redraw: every boss is now one
+        //  registered drawing, and the generated table covers each of its drawings.)
         var pts = BossEmitterTable.Points[w][part];
-        // A boss measured on its expanded cells (the Kraken: 35) has its own
-        // muzzle in every drawing.
+        // A boss measured on its expanded cells (35) has its own muzzle in
+        // every drawing.
         int f = bodyFrame >= 0 && bodyFrame < BossEmitterTable.FrameCount(w) ? bodyFrame : TableFrame(bodyFrame);
         return new Vector2Int(pts[f * 2], pts[f * 2 + 1]);
     }

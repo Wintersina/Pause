@@ -542,10 +542,11 @@ public static class RailMineLaserTest
         foreach (int col in new[] { RailMineArt.Waking, RailMineArt.Charging })
         {
             Vector2 piv = RailMineArt.PixelPivot(world, col);
-            if (world >= RailMineArt.StormWorld)
+            if (world == RailMineArt.DesertWorld)
             {
-                // Storm's coil and Desert's lens are lit areas, not a few brightest pixels (their glow / side lights would pull a top-25
-                // average away): the centroid of every near-white pixel within 35 px of the pivot is the core.
+                // Desert's lens is a lit area, not a few brightest pixels (its glow / side lights would pull a top-25 average away): the
+                // centroid of every near-white pixel within 35 px of the pivot is the core. (Storm's redrawn coil has one white-hot point
+                // at its centre, like every other redraw, so it takes the top-25 rule.)
                 Vector2 sumPx = Vector2.zero; int count = 0;
                 for (int x = (int)piv.x - 35; x <= (int)piv.x + 35; x++)
                     for (int y = (int)piv.y - 35; y <= (int)piv.y + 35; y++)

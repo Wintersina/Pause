@@ -1,0 +1,223 @@
+{
+  "key": "frost_elite_whiteout_sentinel",
+  "displayName": "Whiteout Sentinel",
+  "world": "frost",
+  "role": "armoured ironclad",
+  "codexId": "elite_frost_whiteout_sentinel",
+  "lore": "A shield wedge of glacier plate that patrols the top of the board and never dodges a thing. Each of its three ice plates soaks a hit and sprays its shards back along the blinking cone, so shoot from the side of it. Strip it bare and it calls down icicles: glyphs mark the lanes, one lane is always left safe.",
+  "brain": "patrol",
+  "attack": "icicle_barrage",
+  "launchFrom": "silo,padring",
+  "cells": {
+    "flight": [
+      3,
+      7,
+      8,
+      9
+    ],
+    "parked": 0,
+    "parkedIdle": 1,
+    "liftoff": 2,
+    "bankLeft": 4,
+    "bankRight": 5,
+    "tell": -1,
+    "action": -1,
+    "hit": -1,
+    "damaged": 6,
+    "damagedLoop": [
+      6,
+      10,
+      11,
+      12,
+      13,
+      14
+    ]
+  },
+  "cellWorldSize": 1.978,
+  "hullRadius": 0.401,
+  "silhouetteShare": 0.4918,
+  "noseDeg": 90,
+  "turnsToFace": true,
+  "maxBank": 0,
+  "speed": 1.8,
+  "accel": 3,
+  "turnRate": 70,
+  "aggression": 0.5,
+  "tellSeconds": 0.6,
+  "attackGap": 3.6,
+  "avoidance": 0.3,
+  "lookAhead": 0.3,
+  "perception": 2.0,
+  "actionSeconds": 0.7,
+  "shotCount": 5,
+  "shotSpeed": 4.0,
+  "shotSpread": 12,
+  "shotSize": 0.34,
+  "shotKind": "shard",
+  "heartColor": "#5CE8FF",
+  "shotColor": "#9FE4FF",
+  "shotCore": "#F2FCFF",
+  "engineColor": "#6FD8FF",
+  "hearts": 5,
+  "heartSize": 0.18,
+  "heartOrbit": 0.591,
+  "heartStyle": "Halo",
+  "exhaustShip": 3,
+  "exhaustScale": 0,
+  "glowScale": 0.08,
+  "cellPixels": 384,
+  "muzzles": [
+    {
+      "name": "eye",
+      "x": 190,
+      "y": 150,
+      "dir": -1.0
+    },
+    {
+      "name": "sideL",
+      "x": 98,
+      "y": 232,
+      "dir": -1.0
+    },
+    {
+      "name": "sideR",
+      "x": 286,
+      "y": 234,
+      "dir": -1.0
+    }
+  ],
+  "nozzles": [
+    {
+      "name": "l",
+      "x": 166,
+      "y": 308,
+      "dir": -1.0,
+      "offsets": [0, 0, -4, 0, 0, 0, 0, 0, 14, 2, -13, -3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    },
+    {
+      "name": "r",
+      "x": 218,
+      "y": 308,
+      "dir": -1.0,
+      "offsets": [0, 0, 0, 0, 0, 0, 0, 0, 13, -4, -14, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    }
+  ],
+  "armored": true,
+  "followDistance": 1.8,
+  "hazardCount": 3,
+  "followLag": 0.35,
+  "topMargin": 1.4,
+  "engageSeconds": 55,
+  "script": {
+    "tempo": 1.35,
+    "exitTell": 1.4,
+    "lastExit": "none",
+    "note": "anchor: patrol legs, fires at the ends; plated: side shards; stripped: icicle barrages (4, 5, then 6 lanes)",
+    "entrance": {
+      "kind": "slam",
+      "seconds": 1.7,
+      "amp": 1.5
+    },
+    "phase1": {
+      "speed": 1.0,
+      "gap": 1.0,
+      "loop": [
+        {
+          "wait": 3.0,
+          "move": "",
+          "attack": ""
+        },
+        {
+          "wait": 3.0,
+          "move": "",
+          "attack": ""
+        }
+      ]
+    },
+    "phase2": {
+      "speed": 1.0,
+      "gap": 1.0,
+      "loop": [
+        {
+          "wait": 2.6,
+          "move": "",
+          "attack": "barrageA"
+        },
+        {
+          "wait": 2.6,
+          "move": "",
+          "attack": "barrageB"
+        }
+      ]
+    },
+    "last": {
+      "speed": 1.0,
+      "gap": 0.8,
+      "loop": [
+        {
+          "wait": 2.0,
+          "move": "",
+          "attack": "barrageC"
+        },
+        {
+          "wait": 1.4,
+          "move": "",
+          "attack": "barrageC"
+        }
+      ]
+    },
+    "variants": [
+      {
+        "name": "barrageA",
+        "set": [
+          {
+            "key": "shotCount",
+            "value": 4
+          },
+          {
+            "key": "shotInterval",
+            "value": 0.42
+          },
+          {
+            "key": "shotSpeed",
+            "value": 5.0
+          }
+        ]
+      },
+      {
+        "name": "barrageB",
+        "set": [
+          {
+            "key": "shotCount",
+            "value": 5
+          },
+          {
+            "key": "shotInterval",
+            "value": 0.32
+          },
+          {
+            "key": "shotSpeed",
+            "value": 5.8
+          }
+        ]
+      },
+      {
+        "name": "barrageC",
+        "set": [
+          {
+            "key": "shotCount",
+            "value": 6
+          },
+          {
+            "key": "shotInterval",
+            "value": 0.22
+          },
+          {
+            "key": "shotSpeed",
+            "value": 6.6
+          }
+        ]
+      }
+    ]
+  }
+}

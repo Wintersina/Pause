@@ -52,4 +52,10 @@ if __name__ == "__main__":
         palette(k.split("_")[0])
         D.UNITS[k] = unit(k)
         b, o = D.build(k)
+        # nothing within 7 px of a death cell's edge (Verdant / Ember framing tests check death strips' margins)
+        import numpy as np
+        f = D.RES / f"{k}.png"; a = np.array(Image.open(f).convert("RGBA")); h = a.shape[0]
+        for i in range(a.shape[1] // h):
+            c = a[:, i * h:(i + 1) * h]; c[:7] = 0; c[-7:] = 0; c[:, :7] = 0; c[:, -7:] = 0
+        Image.fromarray(a, "RGBA").save(f, optimize=True)
         print("built", k, o.size)

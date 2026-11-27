@@ -33,7 +33,7 @@ from PIL import Image, ImageDraw
 HERE = os.path.dirname(os.path.abspath(__file__))
 ASSETS = os.path.normpath(os.path.join(HERE, "..", "..", ".."))
 ATLAS = os.path.join(ASSETS, "Art", "Resources", "Bosses")
-OUT = os.path.join(ASSETS, "Scripts", "Bosses", "BossEmitterTable.cs")
+OUT = os.environ.get("BOSS_EMITTER_OUT") or os.path.join(ASSETS, "Scripts", "Bosses", "BossEmitterTable.cs")
 
 CELL = 384
 COLS = 5
@@ -352,7 +352,32 @@ def measure_expanded(world):
     return frames, table
 
 
+# Bosses redrawn from one approved drawing (Art/Bosses~/redraw-v3/build.py): every drawing is that drawing at one
+# registration, so build.py writes each part's muzzle per drawing (rig_<World>.json, 384 reference px, on an interior
+# pixel of the drawing). They are read here, checked opaque in every drawing that can fire and snapped if not.
+REDRAW = os.path.normpath(os.path.join(ASSETS, "Art", "Bosses~", "redraw-v3"))
+REDRAWN = ("Space", "Frost", "Verdant", "Ember", "Tide")
+
+
+def measure_redrawn(world):
+    rig = __import__("json").load(open(os.path.join(REDRAW, "rig_%s.json" % world)))
+    n = 35 if rig["frames"] == 35 else len(FRAMES)
+    EXPANDED[world] = n if n == 35 else EXPANDED.get(world, 12)
+    frames = cells(world)[:n]
+    table = []
+    for name, pts in rig["points"].items():
+        out = []
+        for f in range(n):
+            x, y = pts[f]
+            a = np.asarray(frames[f])[:, :, 3]
+            out.append((x, y) if (12 <= f <= 16 or a[y, x] >= 160) else snap_opaque(frames[f], x, y))
+        table.append((name, out))
+    return frames, table
+
+
 def measure(world):
+    if world in REDRAWN and os.path.exists(os.path.join(REDRAW, "rig_%s.json" % world)):
+        return measure_redrawn(world)
     if world == "Tide":
         return measure_tide(world)
     if world in EXPANDED:
@@ -411,7 +436,7 @@ def write_cs(results):
     w("// Muzzle points per boss, per named body part, per body drawing (BossArt")
     w("// flat frames 0..11: idle 0..3, hit, tell0 a/b, tell1 a/b, fire, tell2")
     w("// a/b), in cell pixels (384 per cell, x right, y down from the top-left).")
-    w("// The Iron Kraken's and Cinder Drake's tables also cover their expanded cells 20..34.")
+    w("// The expanded bosses' tables (Void Archon, Cinder Drake, Iron Kraken, Dune-Eater) also cover their cells 12..34.")
     w("public static class BossEmitterTable")
     w("{")
     w("    public const int CellPixels = %d;" % CELL)
@@ -476,6 +501,8 @@ def apply_overrides(world, table, frames=None):
                 pts[f] = DESERT_BOOM[f] if name == "Boom" and f in DESERT_BOOM else DESERT_FIXED[name]
                 if frames is not None:       # the mine hangs a few px differently per drawing: land on its nearest opaque pixel
                     pts[f] = snap_opaque(frames[f], *pts[f])
+    if world in REDRAWN and os.path.exists(os.path.join(REDRAW, "rig_%s.json" % world)):
+        return   # (the hand fixes below were for the old Drake art)
     for name, pts in table:
         for (w, n, f), xy in OVERRIDES.items():
             if w == world and n == name and f < len(pts):

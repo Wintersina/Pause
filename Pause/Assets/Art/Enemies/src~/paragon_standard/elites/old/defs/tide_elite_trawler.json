@@ -1,0 +1,150 @@
+{
+  "key": "tide_elite_trawler",
+  "codexId": "elite_tide_trawler",
+  "world": "tide",
+  "cells": {
+    "flight": [
+      3,
+      7,
+      8,
+      9
+    ],
+    "parked": 0,
+    "parkedIdle": 1,
+    "liftoff": 2,
+    "bankLeft": 4,
+    "bankRight": 5,
+    "tell": -1,
+    "action": -1,
+    "hit": -1,
+    "damaged": 6,
+    "damagedLoop": [
+      10,
+      11,
+      12,
+      13,
+      14,
+      15
+    ]
+  },
+  "cellWorldSize": 1.914,
+  "noseDeg": 90,
+  "maxBank": 3,
+  "heartColor": "#7FD8FF",
+  "shotColor": "#7FF0FF",
+  "shotCore": "#F2FFFF",
+  "engineColor": "#96D7FF",
+  "hearts": 3,
+  "heartSize": 0.18,
+  "heartOrbit": 0.588,
+  "heartStyle": "Halo",
+  "exhaustShip": 3,
+  "exhaustScale": 0,
+  "glowScale": 0.09,
+  "cellPixels": 384,
+  "armored": false,
+  "hazardSeconds": 0.4,
+  "hazardSize": 0.6,
+  "displayName": "Trawler",
+  "hazardCount": 0,
+  "role": "net hauler",
+  "brain": "trawl",
+  "attack": "drag_net",
+  "launchFrom": "wreckhull,reefdock",
+  "lore": "A trawler that works one flank of the board. It stands against a rail and drags a row of nets in from it, one after another, across the row you are flying in; rings show where each net will land and the far side of the row is always left open. Then it leaves by its own side and comes back on the opposite one.",
+  "hullRadius": 0.376,
+  "silhouetteShare": 0.4507,
+  "turnsToFace": false,
+  "speed": 1.9,
+  "accel": 3.5,
+  "turnRate": 140,
+  "followDistance": 2.0,
+  "laneOffset": 1.2,
+  "aggression": 0.5,
+  "tellSeconds": 1.1,
+  "attackGap": 2.4,
+  "avoidance": 0.5,
+  "lookAhead": 0.4,
+  "perception": 2.0,
+  "actionSeconds": 1.6,
+  "shotCount": 3,
+  "shotSpeed": 0,
+  "shotSpread": 0,
+  "shotSize": 0.3,
+  "shotInterval": 0.3,
+  "shotKind": "glob",
+  "lobSeconds": 0.8,
+  "lobSpacing": 1.0,
+  "lobAhead": 1.7,
+  "poolSeconds": 4.0,
+  "muzzles": [
+    {
+      "name": "port",
+      "x": 59,
+      "y": 130,
+      "dir": -1.0
+    },
+    {
+      "name": "star",
+      "x": 325,
+      "y": 130,
+      "dir": -1.0
+    },
+    {
+      "name": "winch",
+      "x": 192,
+      "y": 208,
+      "dir": -1.0
+    }
+  ],
+  "nozzles": [
+    {
+      "name": "l",
+      "x": 157,
+      "y": 284,
+      "dir": -1.0,
+      "offsets": [0, 0, -1, 2, 0, 0, 0, 0, 4, 0, -2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    },
+    {
+      "name": "r",
+      "x": 226,
+      "y": 284,
+      "dir": -1.0,
+      "offsets": [0, 0, -1, 2, 0, 0, 0, 0, 1, 0, -4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    }
+  ],
+  "followLag": 0.25,
+  "topMargin": 1.6,
+  "engageSeconds": 48,
+  "script": {
+    "tempo": 1.1, "exitTell": 1.4, "lastExit": "none",
+    "entrance": { "kind": "dash", "seconds": 1.2, "amp": 1.4 },
+    "phase1": { "speed": 1.0, "gap": 1.0,
+      "loop": [
+        { "wait": 1.4, "move": "L", "attack": "" },
+        { "wait": 2.0, "move": "", "attack": "far" },
+        { "wait": 2.6, "move": "R", "attack": "-" },
+        { "wait": 1.4, "move": "", "attack": "" },
+        { "wait": 2.0, "move": "", "attack": "far" },
+        { "wait": 2.6, "move": "L", "attack": "-" } ] },
+    "phase2": { "speed": 1.2, "gap": 0.85,
+      "loop": [
+        { "wait": 1.2, "move": "L", "attack": "wide" },
+        { "wait": 1.6, "move": "", "attack": "near" },
+        { "wait": 2.2, "move": "R", "attack": "-" },
+        { "wait": 1.2, "move": "", "attack": "wide" },
+        { "wait": 1.6, "move": "", "attack": "near" },
+        { "wait": 2.2, "move": "L", "attack": "-" } ] },
+    "last": { "speed": 1.3, "gap": 0.75,
+      "loop": [
+        { "wait": 1.0, "move": "L", "attack": "both" },
+        { "wait": 1.2, "move": "R", "attack": "-" },
+        { "wait": 1.0, "move": "", "attack": "both" },
+        { "wait": 1.2, "move": "L", "attack": "-" } ] },
+    "variants": [
+      {"name": "far", "set": [{"key": "lobAhead", "value": 2.8}]},
+      {"name": "near", "set": [{"key": "lobAhead", "value": 1.0}]},
+      {"name": "wide", "set": [{"key": "shotCount", "value": 4}, {"key": "lobSpacing", "value": 0.75}]},
+      {"name": "both", "set": [{"key": "shotCount", "value": 4}, {"key": "hazardCount", "value": 2}, {"key": "lobSpacing", "value": 0.8}]} ]
+  }
+}

@@ -1,0 +1,178 @@
+{
+  "world": "ember",
+  "heartColor": "#FFC24A",
+  "shotColor": "#FF8A2A",
+  "shotCore": "#FFE9B8",
+  "engineColor": "#FF9A3C",
+  "hearts": 3,
+  "heartSize": 0.18,
+  "heartOrbit": 0.85,
+  "heartStyle": "Halo",
+  "exhaustShip": 3,
+  "cellPixels": 384,
+  "key": "ember_elite_brass_vulture",
+  "displayName": "Brass Vulture",
+  "role": "scrap diver",
+  "brain": "scavenger",
+  "attack": "scrap_dive",
+  "lore": "A salvage craft that circles high over the board. A ring marks a spot, and it comes down through it claw first, flinging scrap, then pulls straight back up to its circle. The rings walk from the pilot to either side of it, and once hurt it comes down twice in a row.",
+  "cellWorldSize": 1.74,
+  "hullRadius": 0.299,
+  "silhouetteShare": 0.4862,
+  "noseDeg": 90,
+  "turnsToFace": true,
+  "speed": 3.2,
+  "accel": 7,
+  "turnRate": 280,
+  "circleRadius": 2.0,
+  "aggression": 0.55,
+  "tellSeconds": 0.7,
+  "attackGap": 0.3,
+  "avoidance": 0.8,
+  "lookAhead": 0.5,
+  "actionSeconds": 3.0,
+  "dashSpeed": 7.8,
+  "shotCount": 5,
+  "shotSpeed": 5,
+  "shotSpread": 16,
+  "shotSize": 0.2,
+  "shotKind": "shard",
+  "exhaustScale": 0,
+  "muzzles": [
+    {
+      "name": "claw",
+      "x": 192,
+      "y": 62,
+      "dir": -1.0
+    }
+  ],
+  "nozzles": [
+    {
+      "name": "a",
+      "x": 192,
+      "y": 292,
+      "dir": -1.0,
+      "offsets": [-3, -13, 0, 0, 0, 0, 0, 0, 0, 0, 3, 0, -3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    }
+  ],
+  "codexId": "elite_ember_brass_vulture",
+  "followLag": 0.3,
+  "cells": {
+    "flight": [
+      3,
+      4
+    ],
+    "parked": 0,
+    "parkedIdle": 1,
+    "liftoff": 2,
+    "bankLeft": 5,
+    "bankRight": 6,
+    "tell": -1,
+    "action": -1,
+    "hit": -1,
+    "damaged": 7,
+    "damagedLoop": [
+      8,
+      9,
+      10,
+      11,
+      12,
+      13
+    ]
+  },
+  "glowScale": 0.09,
+  "maxBank": 3,
+  "launchFrom": "brassgantry,slagpad",
+  "hurtHide": true,
+  "hideSeconds": 3.5,
+  "engageSeconds": 42,
+  "script": {
+    "tempo": 0.8,
+    "exitTell": 1.2,
+    "lastExit": "top",
+    "lastExitSeconds": 1.6,
+    "note": "diver: circles high inside the view; ring slots cycle on-pilot, one side, other side",
+    "entrance": {
+      "kind": "swirl",
+      "seconds": 1.6,
+      "amp": 1.6
+    },
+    "phase1": {
+      "speed": 1.0,
+      "gap": 1.0,
+      "loop": [
+        {
+          "wait": 2.4,
+          "move": "wide"
+        },
+        {
+          "wait": 2.0
+        },
+        {
+          "wait": 2.4,
+          "move": "tight"
+        }
+      ]
+    },
+    "phase2": {
+      "speed": 1.2,
+      "gap": 0.8,
+      "loop": [
+        {
+          "wait": 2.2,
+          "move": "tight"
+        },
+        {
+          "wait": 0.9,
+          "attack": "fast"
+        },
+        {
+          "wait": 2.2,
+          "move": "wide"
+        },
+        {
+          "wait": 0.9,
+          "attack": "fast"
+        }
+      ]
+    },
+    "last": {
+      "speed": 1.3,
+      "gap": 0.7,
+      "loop": [
+        {
+          "wait": 1.8,
+          "move": "tight",
+          "attack": "fast"
+        },
+        {
+          "wait": 0.6,
+          "attack": "fast"
+        },
+        {
+          "wait": 2.6,
+          "move": "wide"
+        }
+      ]
+    },
+    "variants": [
+      {
+        "name": "fast",
+        "set": [
+          {
+            "key": "dashSpeed",
+            "value": 9.6
+          },
+          {
+            "key": "shotCount",
+            "value": 7
+          },
+          {
+            "key": "shotSpread",
+            "value": 14
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -1,0 +1,142 @@
+{
+  "key": "tide_elite_bathyscaphe",
+  "codexId": "elite_tide_bathyscaphe",
+  "world": "tide",
+  "cells": {
+    "flight": [
+      3,
+      7,
+      8,
+      9
+    ],
+    "parked": 0,
+    "parkedIdle": 1,
+    "liftoff": 2,
+    "bankLeft": 4,
+    "bankRight": 5,
+    "tell": -1,
+    "action": -1,
+    "hit": -1,
+    "damaged": 6,
+    "damagedLoop": [
+      10,
+      11,
+      12,
+      13,
+      14,
+      15
+    ]
+  },
+  "cellWorldSize": 2.134,
+  "noseDeg": 90,
+  "maxBank": 3,
+  "heartColor": "#7FD8FF",
+  "shotColor": "#7FF0FF",
+  "shotCore": "#F2FFFF",
+  "engineColor": "#9FF2FF",
+  "hearts": 5,
+  "heartSize": 0.18,
+  "heartOrbit": 0.546,
+  "heartStyle": "Halo",
+  "exhaustShip": 3,
+  "exhaustScale": 0,
+  "glowScale": 0.09,
+  "cellPixels": 384,
+  "armored": true,
+  "hazardSeconds": 0.6,
+  "hazardSize": 0.36,
+  "displayName": "Bathyscaphe",
+  "laneOffset": 0,
+  "role": "mine layer",
+  "brain": "deep",
+  "attack": "mine_chain",
+  "launchFrom": "subpen,rigdeck",
+  "lore": "An armoured deep-sea platform that surfaces at the top of the board and rings a chain of sea mines running down toward your column. Each mine bursts into a cross of bolts when its fuse runs out; a shot defuses one. Then it dives off the screen and surfaces somewhere else.",
+  "hullRadius": 0.446,
+  "silhouetteShare": 0.4135,
+  "turnsToFace": false,
+  "speed": 2.0,
+  "accel": 4.0,
+  "turnRate": 150,
+  "followDistance": 2.0,
+  "topMargin": 1.6,
+  "aggression": 0.5,
+  "tellSeconds": 1.1,
+  "attackGap": 2.2,
+  "avoidance": 0.5,
+  "lookAhead": 0.4,
+  "perception": 2.0,
+  "actionSeconds": 1.4,
+  "shotCount": 3,
+  "shotSpeed": 3.0,
+  "shotSpread": 0,
+  "shotSize": 0.3,
+  "shotInterval": 0.3,
+  "shotKind": "bolt",
+  "lobSpacing": 1.7,
+  "lobAhead": 1.5,
+  "hazardCount": 8,
+  "hazardSpeed": 2.2,
+  "muzzles": [
+    {
+      "name": "portclaw",
+      "x": 87,
+      "y": 218,
+      "dir": -1.0
+    },
+    {
+      "name": "starclaw",
+      "x": 297,
+      "y": 218,
+      "dir": -1.0
+    },
+    {
+      "name": "rack",
+      "x": 192,
+      "y": 241,
+      "dir": -1.0
+    }
+  ],
+  "nozzles": [
+    {
+      "name": "l",
+      "x": 148,
+      "y": 266,
+      "dir": -1.0,
+      "offsets": [0, 0, 0, 0, 0, 0, 0, 0, 4, 0, -1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    },
+    {
+      "name": "r",
+      "x": 237,
+      "y": 266,
+      "dir": -1.0,
+      "offsets": [0, 0, 0, 0, 0, 0, 0, 0, 1, 0, -4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    }
+  ],
+  "followLag": 0.25,
+  "lobSeconds": 0.6,
+  "engageSeconds": 55,
+  "script": {
+    "tempo": 1.35, "exitTell": 1.4, "lastExit": "none",
+    "entrance": { "kind": "slam", "seconds": 1.7, "amp": 1.6 },
+    "phase1": { "speed": 1.0, "gap": 1.0,
+      "loop": [
+        { "wait": 1.8, "move": "col:0", "attack": "" },
+        { "wait": 2.2, "move": "col:2", "attack": "long" },
+        { "wait": 2.2, "move": "col:1", "attack": "" } ] },
+    "phase2": { "speed": 1.15, "gap": 0.85, "set": [{"key": "shotCount", "value": 4}],
+      "loop": [
+        { "wait": 1.6, "move": "col:2", "attack": "long" },
+        { "wait": 1.6, "move": "col:0", "attack": "" },
+        { "wait": 1.4, "move": "col:1", "attack": "long" } ] },
+    "last": { "speed": 1.25, "gap": 0.75, "set": [{"key": "shotCount", "value": 4}],
+      "loop": [
+        { "wait": 1.2, "move": "col:0", "attack": "forkR" },
+        { "wait": 1.0, "move": "col:2", "attack": "forkL" },
+        { "wait": 1.0, "move": "col:1", "attack": "long" } ] },
+    "variants": [
+      {"name": "long", "set": [{"key": "shotCount", "value": 5}]},
+      {"name": "forkR", "set": [{"key": "shotCount", "value": 5}, {"key": "laneOffset", "value": 1.2}]},
+      {"name": "forkL", "set": [{"key": "shotCount", "value": 5}, {"key": "laneOffset", "value": -1.2}]} ]
+  }
+}

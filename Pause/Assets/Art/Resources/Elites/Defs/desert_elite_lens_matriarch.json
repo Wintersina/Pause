@@ -51,7 +51,7 @@
   "attack": "glass_fan",
   "lore": "A slim heliograph of six mirror panels that signals across the dunes in a zig-zag, off one side and back from the other. It halts and fans glass shards down thin glints, leaving your own line empty. Hold the gap between the rays.",
   "hullRadius": 0.387,
-  "silhouetteShare": 0.4622,
+  "silhouetteShare": 0.421,
   "turnsToFace": true,
   "speed": 2.2,
   "accel": 8.0,
@@ -72,37 +72,37 @@
   "muzzles": [
     {
       "name": "fan",
-      "x": 192,
-      "y": 38,
+      "x": 193,
+      "y": 41,
       "dir": -1.0
     },
     {
       "name": "portrod",
-      "x": 116,
-      "y": 141,
+      "x": 114,
+      "y": 97,
       "dir": -1.0
     },
     {
       "name": "starrod",
-      "x": 269,
-      "y": 141,
+      "x": 272,
+      "y": 97,
       "dir": -1.0
     }
   ],
   "nozzles": [
     {
       "name": "a",
-      "x": 168,
-      "y": 279,
+      "x": 146,
+      "y": 265,
       "dir": -1.0,
-      "offsets": [0, 0, 0, 0, 0, 0, 0, 0, 10, 2, -10, -2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+      "offsets": [0, 0, 0, 0, 0, 0, 0, 0, 4, 0, -2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
     },
     {
       "name": "b",
-      "x": 215,
-      "y": 279,
+      "x": 235,
+      "y": 265,
       "dir": -1.0,
-      "offsets": [0, 0, 0, 0, 0, 0, 0, 0, 10, -2, -11, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+      "offsets": [0, 0, 0, 0, 0, 0, 0, 0, 2, 0, -4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
     }
   ],
   "keepDistance": 2.6,

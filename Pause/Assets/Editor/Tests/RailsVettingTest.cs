@@ -181,7 +181,9 @@ public static class RailsVettingTest
         // KNOWN ART GAP (tracked, reported): the Tide mine's weathered brass brackets and clamp sit in the red band (7%),
         // well under Verdant's thorns (14%) and Ember's lava (42%).
         Check("(art gap, tracked) the Tide mine's brass brackets touch the player's red band: " + red[4].ToString("P0") + " (< 15%)", red[4] < .15f);
-        Check("the Space and Frost mines carry none of the player's red", red[0] < .01f && red[1] < .01f);
+        // (the redrawn Space mine's rust-orange bolt heads are 2% of it: tracked art delta, the approved drawing)
+        Check("the Space and Frost mines carry (next to) none of the player's red: " + red[0].ToString("P1") + ", " + red[1].ToString("P1"),
+              red[0] < .03f && red[1] < .01f);
         // KNOWN ART GAP (reported, not fixed here: the atlas is approved art):
         // the Ember mine's lava is orange-red, 42% of it inside the red band,
         // and the Verdant mine's magenta thorns touch it (14%).

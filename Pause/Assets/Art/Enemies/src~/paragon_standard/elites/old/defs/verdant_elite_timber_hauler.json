@@ -1,0 +1,261 @@
+{
+  "key": "verdant_elite_timber_hauler",
+  "displayName": "Timber Hauler",
+  "world": "verdant",
+  "role": "lumber barge",
+  "codexId": "elite_verdant_timber_hauler",
+  "lore": "An armoured lumber barge that rolls between three stations along the top and never chases. It lobs trunks onto a row of ringed spots, each rolling down a drawn diagonal; hurt, it drops a log raft, two trunks rolling down together with one gap between them.",
+  "brain": "lumber",
+  "attack": "raft_roll",
+  "launchFrom": "riverbay",
+  "cells": {
+    "flight": [
+      3,
+      7,
+      8,
+      9
+    ],
+    "parked": 0,
+    "parkedIdle": 1,
+    "liftoff": 2,
+    "bankLeft": 4,
+    "bankRight": 5,
+    "tell": -1,
+    "action": -1,
+    "hit": -1,
+    "damaged": 6
+  },
+  "cellWorldSize": 2.47,
+  "hullRadius": 0.502,
+  "silhouetteShare": 0.4061,
+  "noseDeg": 90,
+  "turnsToFace": false,
+  "maxBank": 3,
+  "speed": 1.5,
+  "accel": 3.0,
+  "turnRate": 120,
+  "followDistance": 2.3,
+  "laneOffset": 1.3,
+  "topMargin": 1.6,
+  "aggression": 0.4,
+  "tellSeconds": 0.9,
+  "attackGap": 4.2,
+  "avoidance": 0.45,
+  "lookAhead": 0.4,
+  "perception": 1.8,
+  "actionSeconds": 0.9,
+  "shotCount": 2,
+  "shotSpeed": 0,
+  "shotSpread": 0,
+  "shotInterval": 0.35,
+  "shotSize": 0.5,
+  "shotKind": "glob",
+  "lobSeconds": 1.1,
+  "lobSpacing": 1.5,
+  "lobAhead": 1.8,
+  "poolSeconds": 4,
+  "heartColor": "#C05CFF",
+  "shotColor": "#A6FF3C",
+  "shotCore": "#FFE9A8",
+  "engineColor": "#FFB45A",
+  "hearts": 5,
+  "heartSize": 0.18,
+  "heartOrbit": 0.58,
+  "heartStyle": "Halo",
+  "exhaustShip": 3,
+  "exhaustScale": 0,
+  "glowScale": 0.09,
+  "cellPixels": 384,
+  "muzzles": [
+    {
+      "name": "lgrab",
+      "x": 128,
+      "y": 134,
+      "dir": -1.0
+    },
+    {
+      "name": "rgrab",
+      "x": 270,
+      "y": 134,
+      "dir": -1.0
+    }
+  ],
+  "nozzles": [
+    {
+      "name": "a",
+      "x": 146,
+      "y": 272,
+      "dir": -1.0,
+      "offsets": [0, 0, 0, 0, 0, 0, 0, 0, 4, 2, -4, -3, 0, 0, 0, 0, 0, 0, 0, 0]
+    },
+    {
+      "name": "b",
+      "x": 192,
+      "y": 292,
+      "dir": -1.0,
+      "offsets": [0, 0, 0, 0, 0, 0, 0, 0, 5, 0, -5, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    },
+    {
+      "name": "c",
+      "x": 236,
+      "y": 272,
+      "dir": -1.0,
+      "offsets": [0, 0, 0, 0, 0, 0, 0, 0, 4, -3, -4, 2, 0, 0, 0, 0, 0, 0, 0, 0]
+    }
+  ],
+  "armored": true,
+  "shotMotion": "roll",
+  "followLag": 0.25,
+  "engageSeconds": 55,
+  "script": {
+    "tempo": 1.35,
+    "exitTell": 1.6,
+    "lastExit": "none",
+    "entrance": {
+      "kind": "slam",
+      "seconds": 1.7,
+      "amp": 1.4
+    },
+    "phase1": {
+      "speed": 1.0,
+      "gap": 1.0,
+      "loop": [
+        {
+          "wait": 2.0,
+          "move": "L",
+          "attack": "pair"
+        },
+        {
+          "wait": 2.2,
+          "move": "C",
+          "attack": "trio"
+        },
+        {
+          "wait": 2.0,
+          "move": "R",
+          "attack": "pair"
+        },
+        {
+          "wait": 2.4,
+          "move": "C",
+          "attack": "wide"
+        }
+      ]
+    },
+    "phase2": {
+      "speed": 1.1,
+      "gap": 0.85,
+      "loop": [
+        {
+          "wait": 2.0,
+          "move": "L",
+          "attack": "raft"
+        },
+        {
+          "wait": 2.0,
+          "move": "C",
+          "attack": "trio"
+        },
+        {
+          "wait": 2.0,
+          "move": "R",
+          "attack": "raft"
+        },
+        {
+          "wait": 2.0,
+          "move": "C",
+          "attack": "wide"
+        }
+      ]
+    },
+    "last": {
+      "speed": 1.2,
+      "gap": 0.7,
+      "loop": [
+        {
+          "wait": 1.6,
+          "move": "C",
+          "attack": "raft"
+        },
+        {
+          "wait": 0.7,
+          "move": "L",
+          "attack": "trio"
+        },
+        {
+          "wait": 1.6,
+          "move": "R",
+          "attack": "raft"
+        },
+        {
+          "wait": 0.7,
+          "move": "C",
+          "attack": "trio"
+        }
+      ]
+    },
+    "variants": [
+      {
+        "name": "pair",
+        "set": [
+          {
+            "key": "shotCount",
+            "value": 2
+          },
+          {
+            "key": "lobSpacing",
+            "value": 1.5
+          }
+        ]
+      },
+      {
+        "name": "trio",
+        "set": [
+          {
+            "key": "shotCount",
+            "value": 3
+          },
+          {
+            "key": "lobSpacing",
+            "value": 1.1
+          },
+          {
+            "key": "shotInterval",
+            "value": 0.3
+          }
+        ]
+      },
+      {
+        "name": "wide",
+        "set": [
+          {
+            "key": "shotCount",
+            "value": 2
+          },
+          {
+            "key": "lobSpacing",
+            "value": 2.4
+          },
+          {
+            "key": "tellSeconds",
+            "value": 1.0
+          }
+        ]
+      },
+      {
+        "name": "raft",
+        "set": [
+          {
+            "key": "shotCount",
+            "value": 2
+          },
+          {
+            "key": "tellSeconds",
+            "value": 1.0
+          }
+        ]
+      }
+    ],
+    "note": "denier: lobs trunk rows from three barge stations (L C R); rafts from the second phase; a second wave at the last heart"
+  }
+}

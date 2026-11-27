@@ -51,7 +51,7 @@
   "attack": "worm_churn",
   "lore": "A cobalt lance-fighter that hunts under the dunes and never stays to fight. It rises out of its worm-burrow, ripples across the top of the sky, and churns a trail of sand bursts toward you that erupt one after another. Read the rings and step off the trail.",
   "hullRadius": 0.321,
-  "silhouetteShare": 0.4674,
+  "silhouetteShare": 0.4608,
   "turnsToFace": true,
   "speed": 2.4,
   "accel": 6.5,
@@ -72,25 +72,25 @@
   "muzzles": [
     {
       "name": "hook",
-      "x": 192,
-      "y": 38,
+      "x": 193,
+      "y": 73,
       "dir": -1.0
     }
   ],
   "nozzles": [
     {
       "name": "a",
-      "x": 162,
-      "y": 279,
+      "x": 147,
+      "y": 283,
       "dir": -1.0,
-      "offsets": [0, 0, 0, 0, 0, 0, 0, 0, 2, 2, 0, -2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+      "offsets": [0, 0, 0, 0, 0, 0, 0, 0, 5, 0, -2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
     },
     {
       "name": "b",
-      "x": 221,
-      "y": 279,
+      "x": 241,
+      "y": 283,
       "dir": -1.0,
-      "offsets": [0, 0, 0, 0, 0, 0, 0, 0, 0, -4, -4, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+      "offsets": [0, 0, 0, 0, 0, 0, 0, 0, 2, 0, -5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
     }
   ],
   "followDistance": 2.0,

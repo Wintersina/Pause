@@ -1,0 +1,227 @@
+{
+  "world": "ember",
+  "heartColor": "#FFC24A",
+  "shotColor": "#FF8A2A",
+  "shotCore": "#FFE9B8",
+  "engineColor": "#FF9A3C",
+  "hearts": 5,
+  "heartSize": 0.18,
+  "heartOrbit": 0.73,
+  "heartStyle": "Halo",
+  "boldHearts": true,
+  "exhaustShip": 3,
+  "cellPixels": 384,
+  "key": "ember_elite_cauterizer",
+  "displayName": "Cauterizer",
+  "role": "siege kiln",
+  "brain": "furnace",
+  "attack": "fire_mortar",
+  "lore": "A siege kiln that parks high and sights one lane with a thin line before the shell comes. Between shots it lobs firebombs onto ringed spots that burst into rings of fire. Hurt, it fires two lanes at once, following you: the gap between them is yours.",
+  "cellWorldSize": 1.81,
+  "hullRadius": 0.376,
+  "silhouetteShare": 0.5057,
+  "noseDeg": 90,
+  "turnsToFace": true,
+  "speed": 1.8,
+  "accel": 4,
+  "turnRate": 120,
+  "topMargin": 1.6,
+  "aggression": 0.5,
+  "tellSeconds": 1.1,
+  "attackGap": 2.6,
+  "avoidance": 0.6,
+  "lookAhead": 0.4,
+  "actionSeconds": 0.5,
+  "shotCount": 2,
+  "shotSpeed": 9,
+  "shotSpread": 0,
+  "shotSize": 0.4,
+  "shotKind": "shell",
+  "exhaustScale": 0,
+  "muzzles": [
+    {
+      "name": "cannon",
+      "x": 192,
+      "y": 35,
+      "dir": -1.0
+    }
+  ],
+  "nozzles": [
+    {
+      "name": "a",
+      "x": 135,
+      "y": 302,
+      "dir": -1.0,
+      "offsets": [0, 0, 0, 0, 0, 4, 0, 0, 0, 0, 5, 0, -1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    },
+    {
+      "name": "b",
+      "x": 248,
+      "y": 302,
+      "dir": -1.0,
+      "offsets": [0, 0, 0, 0, 0, 4, 0, 0, 0, 0, 1, 0, -5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    }
+  ],
+  "codexId": "elite_ember_cauterizer",
+  "followLag": 0.25,
+  "cells": {
+    "flight": [
+      3,
+      4
+    ],
+    "parked": 0,
+    "parkedIdle": 1,
+    "liftoff": 2,
+    "bankLeft": 5,
+    "bankRight": 6,
+    "tell": -1,
+    "action": -1,
+    "hit": -1,
+    "damaged": 7,
+    "damagedLoop": [
+      8,
+      9,
+      10,
+      11,
+      12,
+      13
+    ]
+  },
+  "glowScale": 0.09,
+  "maxBank": 3,
+  "launchFrom": "bunker,furnacebay",
+  "armored": true,
+  "laneOffset": 1.5,
+  "shotInterval": 0.25,
+  "lobSeconds": 0.9,
+  "lobAhead": 1.2,
+  "hazardSize": 0.6,
+  "hazardSeconds": 0.8,
+  "hazardCount": 6,
+  "hazardSpeed": 2.4,
+  "hazardArmour": 0,
+  "engageSeconds": 55,
+  "script": {
+    "tempo": 1.35,
+    "exitTell": 1.4,
+    "lastExit": "none",
+    "lastExitSeconds": 1.6,
+    "note": "artillery: tracks the pilot's column for a shell, holds for bombs; hazardArmour is the cast (0 shell, 1 bombs, 2 double shell, 3 both)",
+    "entrance": {
+      "kind": "overshoot",
+      "seconds": 2.0,
+      "amp": 2.2
+    },
+    "phase1": {
+      "speed": 1.0,
+      "gap": 1.0,
+      "loop": [
+        {
+          "wait": 2.0,
+          "move": "track"
+        },
+        {
+          "wait": 1.6,
+          "move": "hold",
+          "attack": "bombs"
+        },
+        {
+          "wait": 2.0,
+          "move": "track"
+        },
+        {
+          "wait": 1.6,
+          "move": "hold",
+          "attack": "bombs"
+        }
+      ]
+    },
+    "phase2": {
+      "speed": 1.1,
+      "gap": 0.9,
+      "loop": [
+        {
+          "wait": 1.8,
+          "move": "track",
+          "attack": "double"
+        },
+        {
+          "wait": 1.4,
+          "move": "hold",
+          "attack": "bombs3"
+        },
+        {
+          "wait": 1.8,
+          "move": "track",
+          "attack": "double"
+        },
+        {
+          "wait": 1.4,
+          "move": "hold",
+          "attack": "bombs"
+        }
+      ]
+    },
+    "last": {
+      "speed": 1.1,
+      "gap": 0.75,
+      "loop": [
+        {
+          "wait": 1.6,
+          "move": "track",
+          "attack": "both"
+        },
+        {
+          "wait": 1.4,
+          "attack": "double"
+        }
+      ]
+    },
+    "variants": [
+      {
+        "name": "bombs",
+        "set": [
+          {
+            "key": "hazardArmour",
+            "value": 1
+          }
+        ]
+      },
+      {
+        "name": "bombs3",
+        "set": [
+          {
+            "key": "hazardArmour",
+            "value": 1
+          },
+          {
+            "key": "shotCount",
+            "value": 3
+          }
+        ]
+      },
+      {
+        "name": "double",
+        "set": [
+          {
+            "key": "hazardArmour",
+            "value": 2
+          }
+        ]
+      },
+      {
+        "name": "both",
+        "set": [
+          {
+            "key": "hazardArmour",
+            "value": 3
+          },
+          {
+            "key": "shotCount",
+            "value": 3
+          }
+        ]
+      }
+    ]
+  }
+}

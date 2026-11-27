@@ -18,7 +18,7 @@
   "lore": "A salvage craft that circles high over the board. A ring marks a spot, and it comes down through it claw first, flinging scrap, then pulls straight back up to its circle. The rings walk from the pilot to either side of it, and once hurt it comes down twice in a row.",
   "cellWorldSize": 1.74,
   "hullRadius": 0.299,
-  "silhouetteShare": 0.4862,
+  "silhouetteShare": 0.5197,
   "noseDeg": 90,
   "turnsToFace": true,
   "speed": 3.2,
@@ -41,18 +41,25 @@
   "muzzles": [
     {
       "name": "claw",
-      "x": 192,
-      "y": 62,
+      "x": 194,
+      "y": 90,
       "dir": -1.0
     }
   ],
   "nozzles": [
     {
       "name": "a",
-      "x": 192,
-      "y": 292,
+      "x": 146,
+      "y": 298,
       "dir": -1.0,
-      "offsets": [-3, -13, 0, 0, 0, 0, 0, 0, 0, 0, 3, 0, -3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+      "offsets": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 5, 0, -2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    },
+    {
+      "name": "b",
+      "x": 240,
+      "y": 298,
+      "dir": -1.0,
+      "offsets": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, -5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
     }
   ],
   "codexId": "elite_ember_brass_vulture",

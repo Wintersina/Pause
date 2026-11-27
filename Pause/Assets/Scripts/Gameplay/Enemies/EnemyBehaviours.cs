@@ -427,7 +427,7 @@ public static class EnemyBehaviours
         B("verdant_mine", "burr mine: swings on its rail, two lasers across the lane at random angles, riding up beside the ship to fire them")
             .Patrol(.7f, 1.9f).Laser().Muzzle(.5f).Timing(1f, RailMineLaser.ShotGapSeconds, RailMineLaser.ShotsPerRide, .15f);
         B("verdant_big", "Bloom Maw: lobs a resin glob onto the pilot's spot")
-            .Lob(.3f, 2.5f).Muzzle(.2f).Timing(.9f, 3.5f, 2, .15f)
+            .Lob(.3f, 2.5f).Muzzle(.36f).Timing(.9f, 3.5f, 2, .15f)   // .36: the redrawn maw's fanged mouth
             .Pilot(PilotEntry.Drop, 1.4f, 9f, PilotExit.Climb).Slow().Volleys(3);
         B("verdant_fighter_1", "Gnat: fast jittery weave")
             .Sway(.5f, .55f).Bob(.14f, .7f)
@@ -479,7 +479,7 @@ public static class EnemyBehaviours
             .Track(.5f, .4f).Brake(1.8f, .65f).Ring(Bolt, 8, 2.2f, .18f).Muzzle(0f).Timing(1.1f, 3.8f, 2, .15f)
             .Pilot(PilotEntry.Drop, 1.5f, 9f, PilotExit.Climb).Volleys(3);
         B("ember_fighter_5", "Forge Gyro: hovers over the pilot, a spray of small pellets from the twin pods")
-            .Track(.6f, .6f).Brake(1.6f, .55f).Shot(Bolt, 5, 9f, 2.6f, .11f).Twin(.11f).Muzzle(.3f).Timing(.9f, 3f, 3, .15f)
+            .Track(.6f, .6f).Brake(1.6f, .55f).Shot(Bolt, 5, 9f, 2.6f, .15f).Twin(.11f).Muzzle(.3f).Timing(.9f, 3f, 3, .15f)
             .Pilot(PilotEntry.Drop, 1.8f, 7f, PilotExit.Climb).Volleys(3);
         // (the Magma Skull's slag shell, one at a time and straight down from the jaw cannon: held to roster:ember_big's budget, AttackBudgetTest.Themed)
         B("ember_fighter_6", "Hellmouth: drops in, brakes, a slow heavy slag shell from its jaw cannon")
@@ -577,7 +577,7 @@ public static class EnemyBehaviours
             .Chaser(ChaserStyle.Spiral, 4.4f, 2.3f, 1f, 1.05f, .75f)
             .Linger(6f);
         B("storm_alien", "Static Mote: pulses as it sinks, quick sway; some spit a ball of static")
-            .Sway(.22f, 1.4f).Pulse(.3f, 1.2f).Shot(Bolt, 1, 0f, 2f, .16f).Armed(.35f).Timing(.6f, 3.6f, 1, .15f)
+            .Sway(.22f, 1.4f).Pulse(.3f, 1.2f).Shot(Bolt, 1, 0f, 2f, .16f).Muzzle(.22f).Armed(.35f).Timing(.6f, 3.6f, 1, .15f)
             .Descend(1.1f).Volleys(2);
 
         // ================================================================ DESERT

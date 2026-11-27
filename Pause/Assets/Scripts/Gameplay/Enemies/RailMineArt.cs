@@ -1,31 +1,35 @@
 using UnityEngine;
 
-// The rail mines' neon pixel art: the original four-world atlas
-// (Resources/Enemies/Mines/rail_mines_neon.png, byte-identical to the old
-// Vfx/rail_bomb_themes_atlas.png the user approved), sliced at runtime the way
+// The rail mines' neon pixel art: the four-world atlas
+// (Resources/Enemies/Mines/rail_mines_neon.png), sliced at runtime the way
 // the old RailBombSprites did, then played by RailBombAnimator.
+//
+// 2026-11: Space, Frost, Verdant, Ember, Tide and Storm are the Paragon-standard
+// redraws: one user-approved dormant drawing per world (clamp and wheels on the
+// rail side), scaled NEAREST to the old dormant frame's width, its four states
+// built by script in the world's cue hue (Waking: core and lugs lit; Charging:
+// brighter core, halo, arcs; Burst: a radial flare from the core). Nothing of
+// the glow reaches past the clamp's outer face. Build script, approved
+// drawings and the old atlases: Art/Enemies/src~/paragon_standard/mines/.
+// Desert's atlas is still the Codex one.
 //
 //   rows    = worlds (Space, Frost, Verdant, Ember), top to bottom
 //   columns = Dormant, Waking, Charging, Burst, left to right
 //
-// Later worlds get a SECOND atlas file of their own (the original stays
-// byte-identical: RailMineArtTest pins its SHA-1): Tide's Limpet Mine is the
+// Later worlds get a SECOND atlas file of their own (RailMineArtTest pins the
+// four-world file's SHA-1): Tide's Limpet Mine is the
 // one row of Resources/Enemies/Mines/rail_mines_neon_tide.png (1254x314,
-// same four columns, same 384 PPU, same clamp geometry). AtlasPathFor(world)
+// same four columns, same 384 PPU). AtlasPathFor(world)
 // routes; PixelRect / PixelPivot are in the world's own atlas. Storm's Rod Mine
 // is the third file, rail_mines_neon_storm.png (1254x314, one row, Tide's
-// frame rects; its own pivots: the clamp sits 65 px into every panel and its
-// centre line at y 165, so each pivot is placed 128 px right of the clamp's
-// solid left edge, as Tide's are). Desert's Mirage Mine is the FOURTH file,
+// frame rects, its own pivots). Desert's Mirage Mine is the FOURTH file,
 // rail_mines_neon_desert.png (1254x314, one row, panels cut at x 0 / 313 / 627 /
 // 940 / 1254); every frame's pivot is the lens centre, 215 px into its panel at
 // y 158 (the lens the heat-lance leaves from: its bright core IS the pivot).
 //
-// The drawings don't sit on the even 313.5 px grid the old slicer cut (the
-// rows drift up and the columns left, so Verdant's and Ember's top lugs were
-// clipped and frames jumped about), and the charging/burst glow spills past
-// it. So each frame has its own rect, cut along the empty gaps between rows
-// and the faintest column between neighbours, and its own pivot: the dormant
+// Each frame has its own rect (the rows keep the old bands; the columns are
+// cut to each state's reach: dormant and waking tight, charging wider for the
+// halo and arcs, the burst gets the rest) and its own pivot: the dormant
 // body's centre carried over by the clamp's position, so the clamp stays put
 // from frame to frame. A right-hand mine mirrors about that pivot
 // (SpriteRenderer.flipX), so it sits on its rail the same way.
@@ -39,8 +43,8 @@ public static class RailMineArt
     public const string AtlasPath = "Enemies/Mines/rail_mines_neon";
     public const float PixelsPerUnit = 384f;
     public const string TideAtlasPath = "Enemies/Mines/rail_mines_neon_tide";
-    // Verdant's LIT mine: the Verdant row again, repainted with the core and veins glowing, in its own file (the original atlas stays
-    // byte-identical). One row, 1254 x 298, the same four columns; its rects and pivots are the Verdant row's with the row's y (594)
+    // Verdant's LIT mine: the Verdant row again, repainted with the core and veins glowing, in its own file (built by the same
+    // script). One row, 1254 x 298, the same four columns; its rects and pivots are the Verdant row's with the row's y (594)
     // taken off. The mine wears it once it ARMS: the flipbook's tell slots (Waking, Charging). Idle, hit and the burst frame stay original.
     public const string VerdantLitAtlasPath = "Enemies/Mines/rail_mines_neon_verdant_lit";
     public const int VerdantWorld = 2, VerdantLitAtlasHeight = 298, VerdantRowY = 594;
@@ -54,7 +58,7 @@ public static class RailMineArt
 
     // Where a mine sits on its rail. The frames' pivot is the body's centre;
     // the clamp's outer face is ClampReach further toward the wall (measured
-    // on the atlas: 0.326-0.336 u in every row). A mounted mine's centre is
+    // on the redrawn atlas: 0.312 (Tide) - 0.336 u, 0.329 u on average). A mounted mine's centre is
     // put where that face sits ClampBite inside the DRAWN rail's inner edge
     // (WorldPainter.VisibleRailEdges), so the clamp visibly grips the rail
     // whatever the rail art or the camera is (enmiesOnBoard.WorldRailX).
@@ -79,32 +83,34 @@ public static class RailMineArt
     static readonly RectInt[] Rects =
     {
         // Space
-        new RectInt(0, 0, 310, 308), new RectInt(310, 0, 283, 308), new RectInt(593, 0, 327, 308), new RectInt(920, 0, 334, 308),
+        new RectInt(0, 0, 259, 308), new RectInt(259, 0, 259, 308), new RectInt(518, 0, 313, 308), new RectInt(831, 0, 423, 308),
         // Frost
-        new RectInt(0, 308, 328, 286), new RectInt(328, 308, 289, 286), new RectInt(617, 308, 305, 286), new RectInt(922, 308, 332, 286),
+        new RectInt(0, 308, 267, 286), new RectInt(267, 308, 270, 286), new RectInt(537, 308, 310, 286), new RectInt(847, 308, 407, 286),
         // Verdant
-        new RectInt(0, 594, 320, 298), new RectInt(320, 594, 293, 298), new RectInt(613, 594, 309, 298), new RectInt(922, 594, 332, 298),
+        new RectInt(0, 594, 267, 298), new RectInt(267, 594, 267, 298), new RectInt(534, 594, 320, 298), new RectInt(854, 594, 400, 298),
         // Ember
-        new RectInt(0, 892, 309, 362), new RectInt(309, 892, 294, 362), new RectInt(603, 892, 319, 362), new RectInt(922, 892, 332, 362),
-        // Tide (the second atlas, one row: y from its own top). Cut along the empty gaps between the panels.
-        new RectInt(0, 0, 330, 314), new RectInt(330, 0, 308, 314), new RectInt(638, 0, 309, 314), new RectInt(947, 0, 307, 314),
+        new RectInt(0, 892, 268, 362), new RectInt(268, 892, 271, 362), new RectInt(539, 892, 311, 362), new RectInt(850, 892, 404, 362),
+        // Tide (the second atlas, one row: y from its own top)
+        new RectInt(0, 0, 265, 314), new RectInt(265, 0, 265, 314), new RectInt(530, 0, 304, 314), new RectInt(834, 0, 420, 314),
         // Storm (the third atlas, one row, the same cuts as Tide's)
-        new RectInt(0, 0, 330, 314), new RectInt(330, 0, 308, 314), new RectInt(638, 0, 309, 314), new RectInt(947, 0, 307, 314),
+        new RectInt(0, 0, 265, 314), new RectInt(265, 0, 265, 314), new RectInt(530, 0, 304, 314), new RectInt(834, 0, 420, 314),
         // Desert (the fourth atlas, one row): the panels' own gaps, 313 / 314 / 313 / 314 wide
         new RectInt(0, 0, 313, 314), new RectInt(313, 0, 314, 314), new RectInt(627, 0, 313, 314), new RectInt(940, 0, 314, 314),
     };
 
-    // Each frame's pivot in image pixels (top-left origin): where the rail is.
+    // Each frame's pivot in image pixels (top-left origin): where the rail is. Space .. Storm: the dormant drawing's centre (its
+    // alpha > 50% bounds), carried into every frame by the clamp, which sits 6 px into every rect (the frames are built from the one
+    // drawing, so the clamp is pixel-identical in all four).
     static readonly Vector2[] Pivots =
     {
-        new Vector2(174f, 160f), new Vector2(472f, 160f), new Vector2(767f, 164f), new Vector2(1067f, 166f),
-        new Vector2(177f, 443f), new Vector2(477f, 445f), new Vector2(772f, 443f), new Vector2(1070f, 455f),
-        new Vector2(177f, 738f), new Vector2(473f, 744f), new Vector2(766f, 744f), new Vector2(1071f, 747f),
-        new Vector2(175f, 1042.5f), new Vector2(476f, 1049.5f), new Vector2(770f, 1046.5f), new Vector2(1074f, 1056.5f),
-        // Tide: the clamp's solid left edge sits 128 px left of the pivot in every frame (the others 124-134)
-        new Vector2(186f, 161f), new Vector2(490f, 161f), new Vector2(788f, 161f), new Vector2(1093f, 161f),
-        // Storm: the clamp's solid left edge sits 65 px into every panel, 128 px left of the pivot (Tide's rule); centre line y 165
-        new Vector2(193f, 165f), new Vector2(523f, 165f), new Vector2(831f, 165f), new Vector2(1140f, 165f),
+        new Vector2(130.5f, 154f), new Vector2(389.5f, 154f), new Vector2(648.5f, 154f), new Vector2(961.5f, 154f),
+        new Vector2(134.5f, 450.5f), new Vector2(401.5f, 450.5f), new Vector2(671.5f, 450.5f), new Vector2(981.5f, 450.5f),
+        new Vector2(134.5f, 742.5f), new Vector2(401.5f, 742.5f), new Vector2(668.5f, 742.5f), new Vector2(988.5f, 742.5f),
+        new Vector2(135f, 1072.5f), new Vector2(403f, 1072.5f), new Vector2(674f, 1072.5f), new Vector2(985f, 1072.5f),
+        // Tide: the clamp's solid left edge sits 120 px left of the pivot (a 240 px drawing)
+        new Vector2(126f, 156.5f), new Vector2(391f, 156.5f), new Vector2(656f, 156.5f), new Vector2(960f, 156.5f),
+        // Storm: 127.5 px
+        new Vector2(133.5f, 157f), new Vector2(398.5f, 157f), new Vector2(663.5f, 157f), new Vector2(967.5f, 157f),
         // Desert: the lens centre, (215, 158) inside every panel (the user-approved pivot)
         new Vector2(215f, 158f), new Vector2(528f, 158f), new Vector2(842f, 158f), new Vector2(1155f, 158f),
     };
@@ -113,15 +119,17 @@ public static class RailMineArt
     // Image px from a frame's pivot, x toward the lane (unflipped), y up:
     // the centre of the brightest pixels of the glowing core in the waking
     // and charging frames (shown through the windup and the burn), measured
-    // on the atlas (RailMineLaserTest measures them again).
+    // on the atlas (RailMineLaserTest measures them again). Space .. Storm:
+    // the redraws paint one white-hot point at the core's centre and cap
+    // every other pixel below it, so the 25 brightest are that point.
     static readonly Vector2[] CorePx =
     {
-        new Vector2(34.4f, -1.4f),   // Space
-        new Vector2(38f, -3f),       // Frost
-        new Vector2(39.4f, 1f),      // Verdant
-        new Vector2(38.1f, -2.2f),   // Ember
-        new Vector2(27.5f, .7f),     // Tide (same method; the brightest pixels sit on the eye's glare)
-        new Vector2(-4.1f, 1.6f),    // Storm: the white coil's centroid (every near-white pixel within 35 px of the pivot) in the waking / charging frames, (-4.0, 1.8) and (-4.2, 1.4); an earlier (14.5, 1.2) pre-dated the pivot move and put the beam on the coil's lane-side edge
+        new Vector2(51.7f, 1.5f),    // Space: the eye
+        new Vector2(43.5f, -.5f),    // Frost: the snowflake
+        new Vector2(26.3f, -6.6f),   // Verdant: where the vines cross
+        new Vector2(46.3f, 2.9f),    // Ember: the lens
+        new Vector2(42f, 7.5f),      // Tide: the eye
+        new Vector2(23.9f, -1.1f),   // Storm: the coil (the white-hot point at its centre, the same top-25 rule as the others)
         new Vector2(0f, 0f),         // Desert: the heat-lance leaves the lens centre = the pivot (the bright core's centroid in the waking / charging frames is exactly (0, 0))
     };
 

@@ -1,0 +1,234 @@
+{
+  "key": "verdant_elite_thornlash",
+  "displayName": "Thornlash",
+  "world": "verdant",
+  "role": "anchor whip",
+  "codexId": "elite_verdant_thornlash",
+  "lore": "A thorned vine whip that latches onto a rail from just outside the board and sweeps across the lane, the whole arc drawn first with a corridor left open. It swings across the top to the other rail and whips from there, and every wound adds a sweep.",
+  "brain": "anchor",
+  "attack": "thorn_sweep",
+  "launchFrom": "towerbay",
+  "cells": {
+    "flight": [
+      3,
+      7,
+      8,
+      9
+    ],
+    "parked": 0,
+    "parkedIdle": 1,
+    "liftoff": 2,
+    "bankLeft": 4,
+    "bankRight": 5,
+    "tell": -1,
+    "action": -1,
+    "hit": -1,
+    "damaged": 6
+  },
+  "cellWorldSize": 2.08,
+  "hullRadius": 0.462,
+  "silhouetteShare": 0.4179,
+  "noseDeg": 90,
+  "turnsToFace": false,
+  "maxBank": 3,
+  "speed": 2.1,
+  "accel": 4.0,
+  "turnRate": 150,
+  "followDistance": 2.0,
+  "laneOffset": 1.4,
+  "topMargin": 1.6,
+  "aggression": 0.5,
+  "tellSeconds": 1.0,
+  "attackGap": 2.6,
+  "avoidance": 0.55,
+  "lookAhead": 0.4,
+  "perception": 2.0,
+  "actionSeconds": 0.8,
+  "shotCount": 1,
+  "shotSpeed": 0,
+  "shotSpread": 0,
+  "shotInterval": 0.2,
+  "shotSize": 0.3,
+  "shotKind": "bolt",
+  "lobSeconds": 0.95,
+  "lobSpacing": 1.1,
+  "lobAhead": 1.8,
+  "poolSeconds": 4.5,
+  "heartColor": "#A56BFF",
+  "shotColor": "#A6FF3C",
+  "shotCore": "#FFE9A8",
+  "engineColor": "#FFB45A",
+  "hearts": 3,
+  "heartSize": 0.18,
+  "heartOrbit": 0.63,
+  "heartStyle": "Halo",
+  "exhaustShip": 3,
+  "exhaustScale": 0,
+  "glowScale": 0.09,
+  "cellPixels": 384,
+  "muzzles": [
+    {
+      "name": "lroot",
+      "x": 134,
+      "y": 136,
+      "dir": -1.0
+    },
+    {
+      "name": "rroot",
+      "x": 250,
+      "y": 136,
+      "dir": -1.0
+    }
+  ],
+  "nozzles": [
+    {
+      "name": "a",
+      "x": 172,
+      "y": 268,
+      "dir": -1.0,
+      "offsets": [0, 0, 0, 0, 0, 0, 0, 0, 4, 1, -4, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    },
+    {
+      "name": "b",
+      "x": 212,
+      "y": 268,
+      "dir": -1.0,
+      "offsets": [0, 0, 0, 0, 0, 0, 0, 0, 4, -1, -4, 1, 0, 0, 0, 0, 0, 0, 0, 0]
+    }
+  ],
+  "armored": false,
+  "hazardSeconds": 0.4,
+  "hazardSize": 4.6,
+  "followLag": 0.4,
+  "hurtHide": true,
+  "hideSeconds": 3.5,
+  "engageSeconds": 42,
+  "script": {
+    "tempo": 0.8,
+    "exitTell": 1.4,
+    "lastExit": "top",
+    "entrance": {
+      "kind": "arc",
+      "seconds": 1.6,
+      "amp": 1.8
+    },
+    "phase1": {
+      "speed": 1.0,
+      "gap": 1.0,
+      "loop": [
+        {
+          "wait": 1.3,
+          "move": "R",
+          "attack": "whip"
+        },
+        {
+          "wait": 1.3,
+          "move": "L",
+          "attack": "snap"
+        },
+        {
+          "wait": 1.6,
+          "move": "L",
+          "attack": "long"
+        },
+        {
+          "wait": 0.8,
+          "move": "R",
+          "attack": "-"
+        }
+      ]
+    },
+    "phase2": {
+      "speed": 1.15,
+      "gap": 0.85,
+      "loop": [
+        {
+          "wait": 1.0,
+          "move": "R",
+          "attack": "whip"
+        },
+        {
+          "wait": 0.7,
+          "move": "R",
+          "attack": "snap"
+        },
+        {
+          "wait": 1.0,
+          "move": "L",
+          "attack": "whip"
+        },
+        {
+          "wait": 0.7,
+          "move": "L",
+          "attack": "snap"
+        }
+      ]
+    },
+    "last": {
+      "speed": 1.2,
+      "gap": 0.8,
+      "loop": [
+        {
+          "wait": 0.9,
+          "move": "R",
+          "attack": "snap"
+        },
+        {
+          "wait": 0.5,
+          "move": "L",
+          "attack": "snap"
+        }
+      ]
+    },
+    "variants": [
+      {
+        "name": "whip",
+        "set": [
+          {
+            "key": "hazardSize",
+            "value": 4.6
+          },
+          {
+            "key": "hazardSeconds",
+            "value": 0.4
+          },
+          {
+            "key": "tellSeconds",
+            "value": 1.0
+          }
+        ]
+      },
+      {
+        "name": "snap",
+        "set": [
+          {
+            "key": "hazardSeconds",
+            "value": 0.28
+          },
+          {
+            "key": "tellSeconds",
+            "value": 0.8
+          }
+        ]
+      },
+      {
+        "name": "long",
+        "set": [
+          {
+            "key": "hazardSize",
+            "value": 5.8
+          },
+          {
+            "key": "hazardSeconds",
+            "value": 0.5
+          },
+          {
+            "key": "tellSeconds",
+            "value": 1.1
+          }
+        ]
+      }
+    ],
+    "note": "rammer (melee): latches the right rail, whips, swings over the top to the left rail, whips; double whips once hurt; its one scripted exit goes over the top"
+  }
+}

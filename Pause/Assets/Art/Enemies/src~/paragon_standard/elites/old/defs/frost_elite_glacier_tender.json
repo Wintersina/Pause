@@ -1,0 +1,244 @@
+{
+  "key": "frost_elite_glacier_tender",
+  "displayName": "Glacier Tender",
+  "world": "frost",
+  "role": "drone carrier",
+  "codexId": "elite_frost_glacier_tender",
+  "lore": "A fat rig tug that hangs back near the top and sends its little ice drones out on glowing tethers. While two or more drones are up, a shield link shrugs off your shots, and every few seconds a drone drops a frost mine on your lane, so shoot the mine, then the drones. Cut them down and it vents a cold fog straight under itself: do not hug the Tender.",
+  "brain": "carrier",
+  "attack": "tender_rig",
+  "launchFrom": "silo,hatch",
+  "cells": {
+    "flight": [
+      3,
+      7,
+      8,
+      9
+    ],
+    "parked": 0,
+    "parkedIdle": 1,
+    "liftoff": 2,
+    "bankLeft": 4,
+    "bankRight": 5,
+    "tell": -1,
+    "action": -1,
+    "hit": -1,
+    "damaged": 6,
+    "damagedLoop": [
+      6,
+      10,
+      11,
+      12,
+      13,
+      14
+    ]
+  },
+  "cellWorldSize": 1.839,
+  "hullRadius": 0.406,
+  "silhouetteShare": 0.5057,
+  "noseDeg": 90,
+  "turnsToFace": false,
+  "maxBank": 3,
+  "speed": 1.6,
+  "accel": 3.5,
+  "turnRate": 120,
+  "aggression": 0.4,
+  "tellSeconds": 0.8,
+  "attackGap": 5.0,
+  "avoidance": 0.55,
+  "lookAhead": 0.4,
+  "perception": 2.0,
+  "actionSeconds": 0.5,
+  "shotCount": 3,
+  "shotSpeed": 4,
+  "shotSpread": 0,
+  "shotSize": 0.2,
+  "shotKind": "bolt",
+  "heartColor": "#5CE8FF",
+  "shotColor": "#66E6FF",
+  "shotCore": "#EAFDFF",
+  "engineColor": "#6FD8FF",
+  "hearts": 5,
+  "heartSize": 0.18,
+  "heartOrbit": 0.599,
+  "heartStyle": "Halo",
+  "exhaustShip": 3,
+  "exhaustScale": 0,
+  "glowScale": 0.08,
+  "cellPixels": 384,
+  "muzzles": [
+    {
+      "name": "podA",
+      "x": 170,
+      "y": 224,
+      "dir": 270.0
+    },
+    {
+      "name": "podB",
+      "x": 214,
+      "y": 224,
+      "dir": 270.0
+    },
+    {
+      "name": "podC",
+      "x": 166,
+      "y": 254,
+      "dir": 270.0
+    },
+    {
+      "name": "podD",
+      "x": 216,
+      "y": 252,
+      "dir": 270.0
+    }
+  ],
+  "nozzles": [
+    {
+      "name": "l",
+      "x": 152,
+      "y": 322,
+      "dir": -1.0,
+      "offsets": [0, 0, 0, 0, 0, 0, 0, 0, 15, 2, -15, -4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    },
+    {
+      "name": "r",
+      "x": 230,
+      "y": 322,
+      "dir": -1.0,
+      "offsets": [0, 0, 0, 0, 0, 0, 0, 0, 15, -4, -15, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    }
+  ],
+  "armored": true,
+  "followDistance": 2.6,
+  "keepDistance": 1.9,
+  "topMargin": 1.3,
+  "lobAhead": 1.8,
+  "hazardSize": 0.7,
+  "hazardCount": 3,
+  "hazardSpeed": 2.4,
+  "followLag": 0.3,
+  "laneOffset": 1.4,
+  "engageSeconds": 55,
+  "script": {
+    "tempo": 1.35,
+    "exitTell": 1.4,
+    "lastExit": "none",
+    "note": "summoner: pair of drones, fog vent, refill; trio in phase 2; all four at once at the last heart",
+    "entrance": {
+      "kind": "overshoot",
+      "seconds": 1.9,
+      "amp": 1.4
+    },
+    "phase1": {
+      "speed": 1.0,
+      "gap": 1.0,
+      "loop": [
+        {
+          "wait": 2.2,
+          "move": "C",
+          "attack": "pair"
+        },
+        {
+          "wait": 3.0,
+          "move": "L",
+          "attack": "vent"
+        },
+        {
+          "wait": 2.2,
+          "move": "R",
+          "attack": "pair"
+        },
+        {
+          "wait": 3.0,
+          "move": "C",
+          "attack": "vent"
+        }
+      ]
+    },
+    "phase2": {
+      "speed": 1.15,
+      "gap": 0.9,
+      "loop": [
+        {
+          "wait": 2.0,
+          "move": "C",
+          "attack": "trio"
+        },
+        {
+          "wait": 2.8,
+          "move": "R",
+          "attack": "vent"
+        },
+        {
+          "wait": 2.0,
+          "move": "L",
+          "attack": "trio"
+        },
+        {
+          "wait": 2.8,
+          "move": "C",
+          "attack": "vent"
+        }
+      ]
+    },
+    "last": {
+      "speed": 1.3,
+      "gap": 0.75,
+      "set": [
+        {
+          "key": "hazardCount",
+          "value": 4
+        }
+      ],
+      "loop": [
+        {
+          "wait": 1.8,
+          "move": "C",
+          "attack": "all"
+        },
+        {
+          "wait": 2.4,
+          "move": "L",
+          "attack": "vent"
+        },
+        {
+          "wait": 1.8,
+          "move": "R",
+          "attack": "all"
+        }
+      ]
+    },
+    "variants": [
+      {
+        "name": "pair",
+        "set": [
+          {
+            "key": "shotCount",
+            "value": 2
+          }
+        ]
+      },
+      {
+        "name": "trio",
+        "set": [
+          {
+            "key": "shotCount",
+            "value": 3
+          }
+        ]
+      },
+      {
+        "name": "all",
+        "set": [
+          {
+            "key": "shotCount",
+            "value": 4
+          }
+        ]
+      },
+      {
+        "name": "vent"
+      }
+    ]
+  }
+}
