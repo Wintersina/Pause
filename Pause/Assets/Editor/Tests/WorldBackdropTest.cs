@@ -486,6 +486,7 @@ public static class WorldBackdropTest
             CheckRuntime();
             CheckSpaceDiscs();
             CheckSpaceMotion();
+            CheckSpaceLuna();
         }
         finally
         {
@@ -2027,6 +2028,81 @@ public static class WorldBackdropTest
     }
 
     // Space bodies play their atlas sequences on scaled time; the sky draws seamlessly, and none of it allocates.
+    // The luna moon (SpaceDirector.LunaCell, the app icon's moon): its full and pre-shrunk sprites load, their discs sit
+    // where DiscOf turns the surface, and in a run it orbits a planet as a turning sphere at LunaScale x a rock moon.
+    static void CheckSpaceLuna()
+    {
+        string dir = "Assets/Art/Backgrounds/Resources/Worlds/Space/Backdrop/";
+        string spaceArt = BackdropCatalog.Folder("Space");
+        foreach (string cell in new[] { SpaceDirector.LunaCell, SpaceDirector.LunaCell + "_mini" })
+        {
+            var loaded = Resources.Load<Sprite>(spaceArt + cell);
+            Check("luna: " + cell + " loads and is a turning sphere", loaded != null && SpaceDirector.IsSphere(loaded));
+            if (!File.Exists(dir + cell + ".png")) continue;
+            var tex = new Texture2D(2, 2, TextureFormat.RGBA32, false);
+            tex.LoadImage(File.ReadAllBytes(dir + cell + ".png"));
+            var s = Sprite.Create(tex, new Rect(0, 0, tex.width, tex.height), new Vector2(0.5f, 0.5f), 100f);
+            s.name = cell;
+            var px = tex.GetPixels();
+            int x0 = int.MaxValue, x1 = -1, y0 = int.MaxValue, y1 = -1;
+            for (int y = 0; y < tex.height; y++)
+                for (int x = 0; x < tex.width; x++)
+                    if (px[y * tex.width + x].a >= 0.5f)
+                    {
+                        x0 = Mathf.Min(x0, x); x1 = Mathf.Max(x1, x);
+                        y0 = Mathf.Min(y0, y); y1 = Mathf.Max(y1, y);
+                    }
+            Vector4 d = SpaceDirector.DiscOf(s);
+            var got = new Vector4((x0 + x1 + 1) / 2f, (y0 + y1 + 1) / 2f, (x1 - x0 + 1) / 2f, (y1 - y0 + 1) / 2f);
+            var want = new Vector4(d.x * tex.width, d.y * tex.height, d.z * tex.width, d.w * tex.height);
+            float err = x1 < 0 ? 999f : Mathf.Max(Mathf.Max(Mathf.Abs(got.x - want.x), Mathf.Abs(got.y - want.y)),
+                                                  Mathf.Max(Mathf.Abs(got.z - want.z), Mathf.Abs(got.w - want.w)));
+            Check("luna: " + cell + " disc matches DiscOf within 2 px (" + err.ToString("0.0") + ")", err <= 2f);
+            Object.DestroyImmediate(s);
+            Object.DestroyImmediate(tex);
+        }
+
+        var go = new GameObject("~SpaceLunaTest");
+        var wb = go.AddComponent<WorldBackdrop>();
+        bool wasForced = SpaceDirector.ForceLuna;
+        try
+        {
+            Time.timeScale = 1f;
+            moveBackGround.speed = 0.2f;
+            SpaceDirector.ForceLuna = true;
+            wb.Show("Space", false);
+            var sd = wb.Current != null ? wb.Current.Director as SpaceDirector : null;
+            if (sd == null) { Check("luna: Space backdrop runs the SpaceDirector", false); return; }
+            BackdropPiece seen = null;
+            const float step = 1f / 30f;
+            for (int i = 0; i < 600 * 30 && seen == null; i++)
+            {
+                moveBackGround.speed = Mathf.Repeat(i * 0.0002f, 0.62f);
+                wb.Step(step);
+                foreach (var pool in sd.Bodies)
+                    foreach (var p in pool.items)
+                        if (p.active && p.parent != null && p.sr.sprite != null &&
+                            (p.sr.sprite == sd.Luna || p.sr.sprite == sd.LunaMini)) seen = p;
+            }
+            Check("luna: with ForceLuna a moon companion draws the luna art within ten minutes", seen != null);
+            if (seen == null) return;
+            Check("luna: it orbits its planet and its surface turns (sphere shader, turn rate " + seen.turnRate.ToString("0.000") + ")",
+                  seen.kind == SpaceDirector.Moon && seen.parent.kind == SpaceDirector.Planet && seen.planet &&
+                  seen.turnRate != 0f && seen.spin != 0f);
+            float rockMoonMin = SpaceDirector.KindWidth(SpaceDirector.Moon) * 0.6f * 0.9f;
+            Check("luna: drawn at LunaScale x a rock moon (" + seen.size.ToString("0.00") + " u, rock moons from " + rockMoonMin.ToString("0.00") + ")",
+                  seen.size >= rockMoonMin * SpaceDirector.LunaScale - 1e-3f);
+            float turn0 = seen.turn;
+            for (int i = 0; i < 30 && seen.active; i++) wb.Step(step);
+            Check("luna: its surface keeps turning", !seen.active || seen.turn != turn0);
+        }
+        finally
+        {
+            SpaceDirector.ForceLuna = wasForced;
+            Object.DestroyImmediate(go);
+        }
+    }
+
     static void CheckSpaceMotion()
     {
         var go = new GameObject("~SpaceMotionTest");
