@@ -30,6 +30,7 @@ public static class ShipAttacksV3CheapTest
         BoomerangHitsBothLegs();
         BoomerangRearAndUpgrades();
         MinesWaitAndFizzle();
+        LimpetMinesStickAndRipple();
         AbductLiftsAndHurls();
         GaleShovesAndCollides();
         GaleTurnsShots();
@@ -456,6 +457,93 @@ public static class ShipAttacksV3CheapTest
         Check("the mines are one boss hit in all (" + boss.weight + ")", boss.hits >= 1 && boss.weight <= 1f + 1e-4f);
         Teardown(c);
         Object.DestroyImmediate(boss.gameObject);
+    }
+
+    class LimpetBoss : MonoBehaviour, IBossAttackTarget
+    {
+        public float weight;
+        public readonly List<float> times = new List<float>();
+        public float now;
+        public void TakeShipAttack(int ship, float w, Vector3 at) { weight += w; times.Add(now); }
+        public bool TryStrike(int ship, float w, Vector3 at) { TakeShipAttack(ship, w, at); return true; }
+    }
+
+    static LimpetBoss LBoss(float x, float y)
+    {
+        var go = Hazard(x, y);
+        go.GetComponent<ClearTarget>().SetRadius(1.2f);
+        return go.AddComponent<LimpetBoss>();
+    }
+
+    static void LStep(ShipAttackRunner r, LimpetBoss b, float seconds, float dt = .02f)
+    {
+        for (float t = 0f; t < seconds; t += dt) { if (b != null) b.now += dt; r.Step(dt); }
+    }
+
+    static void LimpetMinesStickAndRipple()
+    {
+        // a boss on screen: the mines stick to distinct hull points, ride it, and blow one after another
+        FreshScene();
+        var c = Ship(12);
+        var boss = LBoss(0f, 3f);
+        var spots = new Vector3[ShipAttackRunner.MineCap];
+        c.Runner.Fire();
+        LStep(c.Runner, boss, .2f);
+        Check("limpets are in flight, nothing has hit yet", c.Runner.LiveMines == 4 && c.Runner.LimpetSpots(spots) == 0 && boss.times.Count == 0);
+        LStep(c.Runner, boss, ShipAttackRunner.LimpetFlight - .2f + .04f);   // landed, first fuse not yet burnt
+        int n = c.Runner.LimpetSpots(spots);
+        bool distinct = n == 4, inside = true;
+        for (int i = 0; i < n; i++)
+        {
+            for (int j = i + 1; j < n; j++) distinct &= Vector2.Distance(spots[i], spots[j]) > .15f;
+            inside &= Vector2.Distance(spots[i], boss.transform.position) <= 1.3f;
+        }
+        Check("four limpets stuck to four distinct points of the hull (" + n + ")", distinct && inside);
+        Vector3 before = spots[0];
+        boss.transform.position += Vector3.right * .5f;
+        LStep(c.Runner, boss, .02f);
+        c.Runner.LimpetSpots(spots);
+        Check("they ride the boss as it moves", Mathf.Abs(spots[0].x - before.x - .5f) < .01f);
+        LStep(c.Runner, boss, 6f);
+        float gapMin = float.MaxValue;
+        for (int i = 1; i < boss.times.Count; i++) gapMin = Mathf.Min(gapMin, boss.times[i] - boss.times[i - 1]);
+        Check("each limpet is its own boss hit (" + boss.times.Count + ")", boss.times.Count == 4);
+        Check("they blow in order, spaced past the hit window (" + gapMin + ")",
+              gapMin > BossConfig.HitInvulnerableSeconds && gapMin >= ShipAttackRunner.LimpetBlowGap(0) - .03f);
+        Check("the firing is worth the configured total (" + boss.weight + ")", Mathf.Abs(boss.weight - ShipAttackRunner.MineBossTotal) < 1e-3f);
+        Check("and nothing is left behind", c.Runner.LiveMines == 0 && c.Runner.ActiveRuns == 0);
+        Teardown(c);
+        Object.DestroyImmediate(boss.gameObject);
+
+        // the chain upgrade: a faster ripple, still past the hit window, same total
+        FreshScene();
+        SetLevel(12, ShipWeaponUpgrades.MaxLevel);
+        c = Ship(12);
+        boss = LBoss(0f, 3f);
+        c.Runner.Fire();
+        LStep(c.Runner, boss, 8f);
+        gapMin = float.MaxValue;
+        for (int i = 1; i < boss.times.Count; i++) gapMin = Mathf.Min(gapMin, boss.times[i] - boss.times[i - 1]);
+        Check("chain ripple: every mine a hit, gaps past the window (" + boss.times.Count + ", " + gapMin + ")",
+              boss.times.Count >= 4 && gapMin > BossConfig.HitInvulnerableSeconds && gapMin < ShipAttackRunner.LimpetGap);
+        Check("chain ripple: same total (" + boss.weight + ")", Mathf.Abs(boss.weight - ShipAttackRunner.MineBossTotal) < 1e-3f);
+        Teardown(c);
+        Object.DestroyImmediate(boss.gameObject);
+        SetLevel(12, 0);
+
+        // the boss goes while the mines fly, and again while they are stuck: nothing is left, nothing throws
+        for (int pass = 0; pass < 2; pass++)
+        {
+            FreshScene();
+            c = Ship(12);
+            boss = LBoss(0f, 3f);
+            c.Runner.Fire();
+            LStep(c.Runner, boss, pass == 0 ? .2f : .7f);
+            Object.DestroyImmediate(boss.gameObject);
+            LStep(c.Runner, null, 1f);
+            Check("boss gone " + (pass == 0 ? "in flight" : "while stuck") + ": no orphan mines", c.Runner.LiveMines == 0 && c.Runner.ActiveRuns == 0);
+            Teardown(c);
+        }
     }
 
     static float MineFlightPlus() { return ShipAttackRunner.MineFlight + .3f; }
