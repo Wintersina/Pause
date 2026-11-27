@@ -296,6 +296,16 @@ public static class EnemyDensityProbe
                 shots += ShotsOnScreen();
                 pilots += PilotsOnScreen();
             }
+            if (seed == 0 && hud >= 20)
+            {
+                // fire-gate diagnostics (why a pilot would not fire): the volley gap, the shot budget, what is live / reserved, the pilots' own state
+                int armed = 0, volleys = 0, fired = 0;
+                var live = PilotAirspace.Live;
+                for (int i = 0; i < live.Count; i++) { if (live[i].Armed) armed++; volleys += live[i].Volleys; fired += live[i].ShotsFired; }
+                Debug.Log(string.Format("[DENSITY] fire gate hud {0}: Gap {1:F2} Budget {2} Live {3} Pending {4} Threat {5:F2} ShotSpeed {6:F2} | pilots {7} armed {8} volleys {9} shots {10} | launched {11}",
+                                        hud, EnemyThreat.Gap, EnemyThreat.ShotBudget, EnemyThreat.LiveShots, EnemyThreat.PendingShots, PlayerPower.ThreatScale,
+                                        PlayerPower.ShotSpeedScale, live.Count, armed, volleys, fired, EliteSystem.Shots.Launched));
+            }
             total.spawnsPerSecond += (board.SpawnedCount - before) / WindowSeconds;
             total.pilots += pilots / frames;
             AddPilotStats(ref total);

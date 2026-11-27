@@ -16,7 +16,7 @@ public static class EnemyThreatTest
     {
         fails = 0;
         using var sandbox = new TestHarness.Sandbox();
-        try { Cap(); Tiers(); Loops(); Hunters(); Shots(); Colours(); Knock(); Orbit(); Live(); }
+        try { Cap(); FireGate(); Tiers(); Loops(); Hunters(); Shots(); Colours(); Knock(); Orbit(); Live(); }
         finally
         {
             HeartTierRun.ForceTier = -1; HeartTierRun.Live = false; RunPower.Override = -1f;
@@ -37,6 +37,40 @@ public static class EnemyThreatTest
         Check("the HUD and loadout sizes follow the cap", ShotAtomHud.MaxSlots == ShotAtomHud.Columns + 6 && ShotAtomTuning.MaxDrones == 6 && FloatieTuning.MaxFloaties == 6);
         Check("no recruit past six: a full squad offers none and keeps its size", DroneSquad.AddBossDrone() == -1 && DroneSquad.Slots == 6);
         DroneSquad.BeginRun(1);
+    }
+
+    // Fresh power, not a live run: every fire path is exactly master's (all the shared scales are 1, a crystal-free row is the table's own,
+    // and a real pilot fires its volleys on the table's schedule).
+    static void FireGate()
+    {
+        PlayerPower.Override = 0f; HeartTierRun.Live = false; EnemyTierThreat.LoopOverride = -1;
+        Check("fresh power: the threat and shot-speed scales are 1", Mathf.Approximately(PlayerPower.ThreatScale, 1f) && Mathf.Approximately(PlayerPower.ShotSpeedScale, 1f) && Mathf.Approximately(LoopDifficulty.ShotSpeedScale, 1f));
+        float gap = EnemyThreat.VolleyGap * LoopRules.VolleyGapScale(RunLoop.Index) * PortalPressure.VolleyGapScale;
+        Check("fresh power: the volley gap is the plain gap (not zero, not scaled)", gap > 0f && Mathf.Approximately(EnemyThreat.Gap, gap));
+        Check("fresh power: the shot budget is the plain budget", EnemyThreat.ShotBudget >= EnemyThreat.MaxEnemyShots);
+        bool same = true;
+        foreach (var def in EnemyRoster.All)
+        {
+            var b = EnemyBehaviours.For(def);
+            if (b == null) continue;
+            same &= EnemyTierThreat.Tuned(def, b, 0, 0) == b && EnemyTierThreat.Tuned(def, b, 1, 0) == b;   // red and blue: the table's own row
+        }
+        Check("fresh power: every red / blue row is the table's own (master's fire rate exactly)", same);
+
+        EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
+        var cam = new GameObject("Main Camera", typeof(Camera)).GetComponent<Camera>();
+        cam.tag = "MainCamera"; cam.orthographic = true; cam.orthographicSize = 5f; cam.aspect = .5625f;
+        cam.transform.position = new Vector3(0, 0, -10);
+        buttonClicks.playerDied = false; startMenu.youAreInTutorial = false; Time.timeScale = 1f;
+        EnemyThreat.ForceShooting = true; EnemyThreat.Reset();
+        var def2 = EnemyRoster.Find("space_fighter_3");   // Twin Claw: two splayed bolts, an ordinary pilot
+        var ship = new GameObject("fireShip").transform; ship.position = new Vector3(0f, -3f, 0f);
+        var go = EnemyFactory.Create(def2, new Vector3(0f, CameraFit.ViewTop + 1f, 0f), Quaternion.identity, 1f, true);
+        var brain = go.GetComponent<EnemyBrain>();
+        brain.TargetOverride = ship;
+        for (int i = 0; i < 60 * 14 && brain != null && brain.ShotsFired == 0; i++) { brain.Step(1f / 60f); EliteSystem.Step(1f / 60f); }
+        Check("fresh power, not live: an ordinary pilot fires its volley within 14 s (" + (brain != null ? brain.ShotsFired + " shots, " + brain.Windups + " windups, armed " + brain.Armed : "gone") + ")", brain != null && brain.ShotsFired > 0);
+        EnemyThreat.ForceShooting = false; EnemyThreat.Reset();
     }
 
     static void Tiers()
