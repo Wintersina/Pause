@@ -45,7 +45,14 @@ public static class HeartTierTuning
     // share of spawns that are AT LEAST blue (blue+red or crystal+blue+red), and share that are crystal. The caps are raised
     // from .85 / .6 so a big squad meets crystal on most ordinary enemies:
     public const float BlueStart = .12f, BlueFull = .75f, BlueMax = .9f;
-    public const float CrystalStart = .38f, CrystalFull = .9f, CrystalMax = .8f;
+    // CRYSTAL comes from the DRONES ONLY (user, 2026-11-27: "tied to the power of drones and how many upgrades the drones have"):
+    // DronePower01 (RunPower.DronePower01: how many drones are out, how upgraded they are) through this ramp. No drones = no crystal,
+    // at any run power or loop. Blue-or-better is max(RunPower curve, crystal share), so crystal is always a subset of it.
+    public const float CrystalStart = .2f, CrystalFull = .85f, CrystalMax = .8f;
+    public const int DroneFullSquad = 6;                  // six drones (DroneSquad's cap) fill the count half of DronePower01
+    public const float DroneCountWeight = .5f;            // DronePower01 = .5 x count + .5 x upgrades
+    public const float DroneCoreWeight = .4f;             // upgrades = .4 x core levels + .6 x shot-atom levels, against a full upgraded squad
+    public const int CoreLevelMax = 4;                    // DroneSquad.MaxCoreLevel
     // Elites and bosses: power x boost (zero stays zero: red-only at no power for everyone).
     public const float EliteBoost = 1.35f, BossBoost = 1.6f;
 
@@ -71,9 +78,8 @@ public static class HeartTierTuning
     // first pass) = exactly 1, so the first pass is identical to before. Every use below is CAPPED so a late loop is brutal, never
     // impossible and never a frame-rate problem. ----
     public const float LoopBase = 1.4f;
-    public const int LoopMaxIndex = 20;                  // D stops growing here (1.4^20 is already far past every cap)
+    public const int LoopMaxIndex = 5;                   // D stops growing at loop 6 (index 5): nothing grows past it (user: keep the caps)
     public const int EnemyHeartCap = 8;                  // red hearts on an ordinary enemy (the orbit draws at most 8)
-    public const float CrystalFloorStep = .5f, CrystalFloorGrow = .2f, CrystalFloorMax = .9f;   // crystal share floor: loop 2 (index 1) none, index 2 .5, 3 .7, 4+ up to .9
     public const float FireRateCap = 2f;                 // enemy volley gap divided by min(D, this)
     public const float MinVolleyGap = .15f;              // seconds; no loop shortens a volley gap below it
     public const float ShotSpeedCap = 1.4f;              // enemy shot speed x min(sqrt(D), this)
@@ -83,7 +89,7 @@ public static class HeartTierTuning
     public const float HazardLoopRateMax = 1.8f, HazardLoopRateCap = 3.2f;   // extra hazard rate cap by loop; total rate cap from index 1
     public const float HazardCostPerLoop = .15f, HazardCostCap = 2f;       // hearts a hazard hit costs on average: capped at 2
     public const float RecoverMin = .2f;                // heals and shields x max(this, 1/D): never zero
-    public const float KillScorePerLoop = .5f; public const int KillScoreLoopCap = 10;   // kill points x (1 + .5 x index)
+    public const float KillScorePerLoop = .5f; public const int KillScoreLoopCap = 5;   // kill points x (1 + .5 x index)
 
     // ---- drone kills pay less as the squad grows (DroneScoring): x1 with one drone, DroneScoreMin at DampFullSquad drones. Drone kills
     // extend the kill chain but cannot lift its multiplier past the top step by themselves (a squad of 2+ needs
@@ -117,32 +123,30 @@ public static class HeartTierCurve
         return HeartTierTuning.BlueMax * Smooth((p - HeartTierTuning.BlueStart) / (HeartTierTuning.BlueFull - HeartTierTuning.BlueStart));
     }
 
-    // Share of spawns that are crystal (always <= BlueOrBetter). 0 at power 0, monotonic.
-    public static float Crystal(float power01, HeartTierKind kind)
+    // Blue-or-better share including the crystal ones (so crystal is always a subset): max(RunPower curve, crystal share).
+    public static float BlueOrBetter(float power01, float dronePower01, HeartTierKind kind)
     {
-        float p = Mathf.Clamp01(power01 * HeartTierTuning.PowerBoost(kind));
-        return Mathf.Min(BlueOrBetter(power01, kind),
-            HeartTierTuning.CrystalMax * Smooth((p - HeartTierTuning.CrystalStart) / (HeartTierTuning.CrystalFull - HeartTierTuning.CrystalStart)));
+        return Mathf.Max(BlueOrBetter(power01, kind), Crystal(dronePower01, kind));
+    }
+
+    // Share of spawns that are crystal at this DRONE power (RunPower.DronePower01), boosted for elites and bosses. 0 with no drones.
+    public static float Crystal(float dronePower01, HeartTierKind kind)
+    {
+        float p = Mathf.Clamp01(dronePower01 * HeartTierTuning.PowerBoost(kind));
+        return HeartTierTuning.CrystalMax * Smooth((p - HeartTierTuning.CrystalStart) / (HeartTierTuning.CrystalFull - HeartTierTuning.CrystalStart));
     }
 
     // The tier for a roll in [0,1): 0 red only, 1 blue+red, 2 crystal+blue+red. Rolls under the crystal share are crystal, then blue.
-    public static int Tier(float power01, HeartTierKind kind, float roll01) { return Tier(power01, kind, roll01, 0); }
+    public static int Tier(float power01, float dronePower01, HeartTierKind kind, float roll01) { return Tier(power01, dronePower01, kind, roll01, 0); }
 
-    // Loops put a FLOOR under the shares: from the second pass (index 1) nothing is red-only; from index 2 a crystal share that rises
-    // with each loop (CrystalFloor). Index 0: the plain curve.
-    public static int Tier(float power01, HeartTierKind kind, float roll01, int loopIndex)
+    // From the second pass (index 1) nothing is red-only. Loops never force crystal: that is the drones' alone.
+    public static int Tier(float power01, float dronePower01, HeartTierKind kind, float roll01, int loopIndex)
     {
         float roll = Mathf.Clamp01(roll01);
-        float crystal = Mathf.Max(Crystal(power01, kind), CrystalFloor(loopIndex));
-        float blue = loopIndex >= 1 ? 1f : BlueOrBetter(power01, kind);
+        float crystal = Crystal(dronePower01, kind);
+        float blue = loopIndex >= 1 ? 1f : BlueOrBetter(power01, dronePower01, kind);
         if (roll < crystal) return 2;
         return roll < blue ? 1 : 0;
-    }
-
-    public static float CrystalFloor(int loopIndex)
-    {
-        if (loopIndex < 2) return 0f;
-        return Mathf.Min(HeartTierTuning.CrystalFloorMax, HeartTierTuning.CrystalFloorStep + HeartTierTuning.CrystalFloorGrow * (loopIndex - 2));
     }
 }
 
@@ -160,6 +164,37 @@ public static class RunPower
             if (startMenu.youAreInTutorial || !HeartTierRoll.Live) return 0f;
             return Compute(ShotAtoms.PowerLevel, DroneSquad.ActiveCount, CoreLevelSum(), ShipWeaponUpgrades.Level(ShipId.Equipped()), RunScore.Parts.dustCount);
         }
+    }
+
+    // DRONE POWER 0..1 (drives the CRYSTAL share): drones out (of DroneFullSquad) and how upgraded they are -- each active drone's core
+    // level and its per-drone shot atoms (Twin, Split, Ricochet, Pierce, Arc), against a full squad at the maxima. 0 with no drones.
+    public static float DronePower01
+    {
+        get
+        {
+            if (Override >= 0f) return Mathf.Clamp01(Override);
+            if (startMenu.youAreInTutorial || !HeartTierRoll.Live) return 0f;
+            int cores = 0, atoms = 0, active = 0;
+            for (int d = 0; d < DroneSquad.Slots; d++)
+            {
+                if (!DroneSquad.IsActive(d)) continue;
+                active++;
+                cores += Mathf.Min(DroneSquad.CoreLevel(d), HeartTierTuning.CoreLevelMax);
+                for (int a = 0; a < ShotAtomTuning.PerDroneAtoms; a++) atoms += ShotAtoms.Level(d, (ShotAtom)a);
+            }
+            return DronePower01For(active, cores, atoms);
+        }
+    }
+
+    // The pure formula (tests): active drones, their core level sum, their per-drone atom level sum.
+    public static float DronePower01For(int active, int coreSum, int atomSum)
+    {
+        float full = HeartTierTuning.DroneFullSquad;
+        float count = Mathf.Clamp01(active / full);
+        float cores = Mathf.Clamp01(coreSum / (full * HeartTierTuning.CoreLevelMax));
+        float atoms = Mathf.Clamp01(atomSum / (full * ShotAtomTuning.PerDroneAtoms * ShotAtomTuning.MaxLevel));
+        float upgrades = HeartTierTuning.DroneCoreWeight * cores + (1f - HeartTierTuning.DroneCoreWeight) * atoms;
+        return Mathf.Clamp01(HeartTierTuning.DroneCountWeight * count + (1f - HeartTierTuning.DroneCountWeight) * upgrades * (active > 0 ? 1f : 0f));
     }
 
     // Public, stable (read by other systems): the squad's drone count, and its 0..1 term.
@@ -331,8 +366,9 @@ public static class HeartTierRoll
         if (!Live) return 0;
         float power = RunPower.Score01;
         int loop = RunLoop.Index;
-        if (power <= 0f && loop <= 0) return 0;   // (no roll spent: red-only is free on the first pass)
-        return HeartTierCurve.Tier(power, kind, NextRoll(), loop);
+        float drones = RunPower.DronePower01;
+        if (power <= 0f && drones <= 0f && loop <= 0) return 0;   // (no roll spent: red-only is free on the first pass)
+        return HeartTierCurve.Tier(power, drones, kind, NextRoll(), loop);
     }
 }
 
