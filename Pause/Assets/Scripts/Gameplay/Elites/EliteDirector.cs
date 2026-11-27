@@ -9,7 +9,7 @@ using UnityEngine.SceneManagement;
 //   * ONE elite at a time (MaxAlive; parked, launching, hiding and retreating
 //     ones count): the next one is not even timed until the last is dead or
 //     gone, then the ordinary gap runs (GapSeconds, a little shorter on later
-//     loops: LoopRules -> RunLoop.Index, GapLoopScale; shorter still with the shot atoms' power: PowerCreep.EliteGapScale)
+//     loops: LoopRules -> RunLoop.Index, GapLoopScale; shorter still with the shot atoms' power: PowerCreep.EliteGapScale; never under MinGapSeconds)
 //   * groups are always of size 1 (SpawnGroup still takes a size, capped by MaxAlive)
 //   * none in the first FirstSeconds of flight in a world, none during a
 //     boss (BossEncounter.Running) or in its run-up (SecondsLeftInWorld <
@@ -35,6 +35,7 @@ public class EliteDirector : MonoBehaviour
     public const float FirstSeconds = 20f;
     public const float BossLeadSeconds = 12f;
     public static readonly Vector2 GapSeconds = new Vector2(16f, 32f);
+    public const float MinGapSeconds = 8f;   // breathing room after the last elite is dead or gone, however much power and loop shorten the gap
     public const float GapLoopScale = .12f;   // each loop: gaps x 1 / (1 + this * loop), at most x 1/1.5
     public static readonly Vector2 ParkSeconds = new Vector2(2.5f, 5f);
     // The next elite's home bodies are asked for this long before it is due, and its launch waits at most this long for them.
@@ -167,7 +168,9 @@ public class EliteDirector : MonoBehaviour
     public static float NextGap()
     {
         float loopScale = 1f / Mathf.Min(1.5f, 1f + GapLoopScale * Mathf.Max(0, RunLoop.Index));
-        return Random.Range(GapSeconds.x, GapSeconds.y) * loopScale * PowerCreep.EliteGapScale;   // power creep: up to 45% shorter (still one at a time)
+        // power creep (drones + shot atoms): the gap falls to x0.5 at full power, i.e. twice the elite encounters (still one at a time),
+        // but never below MinGapSeconds
+        return Mathf.Max(MinGapSeconds, Random.Range(GapSeconds.x, GapSeconds.y) * loopScale * PowerCreep.EliteGapScale);
     }
 
     public static int AliveCount

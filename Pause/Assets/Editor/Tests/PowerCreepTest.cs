@@ -64,10 +64,29 @@ public static class PowerCreepTest
             for (int i = 0; i < 50; i++)
             {
                 float g = EliteDirector.NextGap();
-                full &= g >= EliteDirector.GapSeconds.x / LoopScale() * .5f - 1e-3f && g <= EliteDirector.GapSeconds.y / LoopScale() * .5f + 1e-3f;
+                float lo = Mathf.Max(EliteDirector.MinGapSeconds, EliteDirector.GapSeconds.x / LoopScale() * .5f);
+                full &= g >= lo - 1e-3f && g <= Mathf.Max(EliteDirector.MinGapSeconds, EliteDirector.GapSeconds.y / LoopScale() * .5f) + 1e-3f;
             }
+            // monotone in between, and the floor holds at every power and loop depth
+            bool monoGap = true, floorOk = true;
+            float prevMean = float.MaxValue;
+            for (int p = 0; p <= 60; p += 6)
+            {
+                PowerCreep.PowerOverride = p;
+                float sum = 0f;
+                for (int i = 0; i < 200; i++) { float g = EliteDirector.NextGap(); sum += g; floorOk &= g >= EliteDirector.MinGapSeconds - 1e-4f; }
+                float mean = sum / 200f;
+                monoGap &= mean <= prevMean + 1.5f;   // (random draws: allow noise; the means trend down)
+                prevMean = mean;
+            }
+            PowerCreep.PowerOverride = 60;
+            float meanFull = 0f; for (int i = 0; i < 400; i++) meanFull += EliteDirector.NextGap(); meanFull /= 400f;
+            PowerCreep.PowerOverride = 0;
+            float meanZero = 0f; for (int i = 0; i < 400; i++) meanZero += EliteDirector.NextGap(); meanZero /= 400f;
+            Check("the mean elite gap falls with power (x" + (meanFull / meanZero).ToString("0.00") + " at 60: about twice the encounters) and never drops under " + EliteDirector.MinGapSeconds + " s",
+                  monoGap && floorOk && meanFull / meanZero < .6f && meanFull / meanZero > .4f);
             PowerCreep.PowerOverride = -1;
-            Check("EliteDirector.NextGap is the old 16-32 s range at power 0 and 50% shorter at power 60", zero && full);
+            Check("EliteDirector.NextGap is the old 16-32 s range at power 0 and 50% shorter at power 60 (floored at MinGapSeconds)", zero && full);
             Check("... one elite alive at a time still holds (MaxAlive 1)", EliteDirector.MaxAlive == 1);
 
             string spawner = File.ReadAllText("Assets/Scripts/Gameplay/Spawning/enmiesOnBoard.cs");
