@@ -170,7 +170,7 @@ public static class ShipWeaponUpgradesTest
             var baseRow = ShipLoadoutTable.For(id);
             var l0 = ShipWeaponUpgrades.LoadoutAt(id, 0);
             base0 &= l0.shots == baseRow.shots && l0.maxHits == baseRow.maxHits && l0.duration == baseRow.duration &&
-                     Mathf.Approximately(ShipWeaponUpgrades.CooldownScaleAt(id, 0), 1f);
+                     Mathf.Approximately(ShipWeaponUpgrades.CooldownScaleAt(id, 0), id == ShipId.Starter ? ShipWeaponUpgrades.StarterCooldownScale : 1f);
             for (int lv = 1; lv <= ShipWeaponUpgrades.MaxLevel; lv++)
             {
                 var prev = ShipWeaponUpgrades.LoadoutAt(id, lv - 1);
@@ -185,7 +185,7 @@ public static class ShipWeaponUpgradesTest
             }
             var max = ShipWeaponUpgrades.LoadoutAt(id, ShipWeaponUpgrades.MaxLevel);
             bounded &= max.shots <= 26 && max.maxHits <= 9 && max.duration <= 15f &&
-                       ShipWeaponUpgrades.CooldownScaleAt(id, ShipWeaponUpgrades.MaxLevel) >= .55f;
+                       ShipWeaponUpgrades.CooldownScaleAt(id, ShipWeaponUpgrades.MaxLevel) >= (id == ShipId.Starter ? .55f * ShipWeaponUpgrades.StarterCooldownScale : .55f);
         }
         Check("level 0 is the ship's base loadout", base0);
         Check("every level of every ship adds something (more, bigger, longer or faster)", felt);
@@ -321,6 +321,9 @@ public static class ShipWeaponUpgradesTest
         }
         Check("every ship charges at least 30% faster at max level (" + table + ")", shrinks);
         Check("the charge countdown is the cooldown range scaled by the level", inRange);
+        Check("the starter's charge time is 40% shorter at every level",
+              Mathf.Approximately(ShipWeaponUpgrades.CooldownScaleAt(ShipId.Starter, 0), .6f) &&
+              Mathf.Approximately(ShipWeaponUpgrades.CooldownScaleAt(ShipId.Starter, ShipWeaponUpgrades.MaxLevel), .65f * .6f));
     }
 
     // A capped target (an elite): the per-firing allowance still applies to these. The boss itself is

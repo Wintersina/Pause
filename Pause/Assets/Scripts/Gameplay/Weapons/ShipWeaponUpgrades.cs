@@ -146,14 +146,18 @@ public static class ShipWeaponUpgrades
     // What the ship fires right now.
     public static ShipLoadout LoadoutFor(int shipId) { return LoadoutAt(shipId, Level(shipId)); }
 
-    // Multiplier on the charge time (1 at level 0).
+    // The starter's ultimate charges 40% faster than the track says, at every level (applied after the track's cuts).
+    public const float StarterCooldownScale = .6f;
+
+    // Multiplier on the charge time (1 at level 0, except the starter: StarterCooldownScale).
     public static float CooldownScaleAt(int shipId, int level)
     {
         if (!Has(shipId)) shipId = ShipId.Starter;
         level = Mathf.Clamp(level, 0, MaxLevel);
         float cut = 0f;
         for (int i = 1; i <= level; i++) cut += tracks[shipId][i - 1].cooldownCut;
-        return Mathf.Clamp(1f - cut, .4f, 1f);
+        float scale = Mathf.Clamp(1f - cut, .4f, 1f);
+        return shipId == ShipId.Starter ? scale * StarterCooldownScale : scale;
     }
 
     public static float CooldownScale(int shipId) { return CooldownScaleAt(shipId, Level(shipId)); }
