@@ -6,7 +6,8 @@ using UnityEngine.UI;
 // switch: ON (every run's end-of-level boss arrives a few seconds in) or
 // FINAL (straight to the end of the final world's boss and the portal back
 // round; see BossDev), and a FUSION TEST button (cycles the combos; only that
-// combo's atoms spawn: FusionTestMode).
+// combo's atoms spawn: FusionTestMode), +1000 STARDUST and a two-tap WIPE DUST &
+// COLLECTION (DeveloperDustTools; they sit above LEADERBOARD SETTINGS).
 //
 // Built at runtime from the screen's own "Tutorial" button, so it shares the
 // screen's font, size and transparent-button look; the labels are tinted
@@ -18,8 +19,15 @@ public class DeveloperOptions : MonoBehaviour
 
     const float RowH = 88f;   // rows are 90 apart (47, -43, -133)
 
-    Text toggleLabel, worldLabel, bossLabel, fusionLabel;
-    GameObject worldRow, bossRow, fusionRow;
+    Text toggleLabel, worldLabel, bossLabel, fusionLabel, dustLabel, wipeLabel;
+    GameObject worldRow, bossRow, fusionRow, dustRow, wipeRow;
+
+    // Row y for the two dust tools: one pitch above LEADERBOARD SETTINGS (340), so they join the
+    // Options column (and its scroll on short screens) without touching any existing row.
+    const float DustToolsY = 437f;
+    const float FeedbackSeconds = 1.6f;
+    float wipeArmedAt = -1f, feedbackUntil = -1f, wipedUntil = -1f;
+    string dustFeedback;
 
     void Start()
     {
@@ -64,6 +72,46 @@ public class DeveloperOptions : MonoBehaviour
                           new Vector2(140f, 47f), new Vector2(270f, RowH), StepFusion);
         fusionLabel = Label(fusionRow);
 
+        // Dust tools (developer mode only): +1000 stardust per tap, and a two-tap wipe of dust and
+        // collection for testing a fresh player (DeveloperDustTools).
+        dustRow = Clone(template, parent, "DeveloperAddDust",
+                        new Vector2(-140f, DustToolsY), new Vector2(270f, RowH), AddDust);
+        dustLabel = Label(dustRow);
+        wipeRow = Clone(template, parent, "DeveloperWipeDust",
+                        new Vector2(140f, DustToolsY), new Vector2(270f, RowH), WipeDust);
+        wipeLabel = Label(wipeRow);
+
+        Refresh();
+    }
+
+    void Update()
+    {
+        float now = Time.unscaledTime;
+        bool changed = false;
+        if (feedbackUntil >= 0f && now >= feedbackUntil) { feedbackUntil = -1f; dustFeedback = null; changed = true; }
+        if (wipedUntil >= 0f && now >= wipedUntil) { wipedUntil = -1f; changed = true; }
+        if (wipeArmedAt >= 0f && now - wipeArmedAt > DeveloperDustTools.ConfirmSeconds) { wipeArmedAt = -1f; changed = true; }
+        if (changed) Refresh();
+    }
+
+    void AddDust()
+    {
+        float balance = DeveloperDustTools.AddDust();
+        if (balance < 0f) { Refresh(); return; }
+        dustFeedback = "+1000  =  " + Mathf.FloorToInt(balance).ToString("N0");
+        feedbackUntil = Time.unscaledTime + FeedbackSeconds;
+        Refresh();
+    }
+
+    void WipeDust()
+    {
+        float armed = wipeArmedAt;
+        if (DeveloperDustTools.Confirm(ref armed, Time.unscaledTime))
+        {
+            wipeArmedAt = -1f;
+            if (DeveloperDustTools.Wipe()) wipedUntil = Time.unscaledTime + FeedbackSeconds;
+        }
+        else wipeArmedAt = armed;
         Refresh();
     }
 
@@ -115,6 +163,7 @@ public class DeveloperOptions : MonoBehaviour
     void ToggleMode()
     {
         DeveloperUnlocks.SetEnabledByUser(!DeveloperUnlocks.Enabled);
+        wipeArmedAt = -1f;
         Refresh();
     }
 
@@ -132,6 +181,11 @@ public class DeveloperOptions : MonoBehaviour
         if (worldRow != null) worldRow.SetActive(on);
         if (bossRow != null) bossRow.SetActive(on);
         if (fusionRow != null) fusionRow.SetActive(on);
+        if (dustRow != null) dustRow.SetActive(on);
+        if (wipeRow != null) wipeRow.SetActive(on);
+        if (dustLabel != null) dustLabel.text = dustFeedback ?? "+1000 STARDUST";
+        if (wipeLabel != null)
+            wipeLabel.text = wipedUntil >= 0f ? "WIPED" : wipeArmedAt >= 0f ? "TAP AGAIN TO WIPE" : "WIPE DUST & COLLECTION";
         if (fusionLabel != null) fusionLabel.text = FusionTestMode.Label(FusionTestMode.Selected);
         if (bossLabel != null)
             bossLabel.text = BossDev.RushLabel(BossDev.RushMode);
