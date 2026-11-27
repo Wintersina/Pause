@@ -138,7 +138,8 @@ public class collisionDetection : MonoBehaviour {
         RunScore.OnKill(target, bonusPoints);   // run score (ScoreRules), with the kill chain
         AdaptiveDifficulty.OnKill();
         Codex.Discover(target);   // ultimate kills count as meeting it too
-        SecretPowerController.OnKill();   // kills fill the secret power's meter
+        // kills fill the secret power's meter (its cooldown) -- but not a drone's: only the pilot's own kills count (DroneScoring)
+        if (!DroneScoring.InProgress) SecretPowerController.OnKill();
         RecordKillAchievement(target, bonusPoints);
         // Cached: a death combo or shockwave pays several kills in one frame.
         if (killPayer == null) killPayer = Object.FindFirstObjectByType<collisionDetection>();

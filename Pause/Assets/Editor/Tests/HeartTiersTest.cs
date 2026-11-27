@@ -17,7 +17,7 @@ public static class HeartTiersTest
     {
         fails = 0;
         using var sandbox = new TestHarness.Sandbox();
-        try { Curve(); Power(); Shell(); Enemy(); Rosters(); Art(); Hazards(); Shields(); DroneScore(); Heals(); HazardHits(); Loops(); }
+        try { Curve(); Power(); Shell(); Enemy(); Rosters(); Art(); Hazards(); Shields(); DroneScore(); Heals(); HazardHits(); Loops(); DroneMeters(); }
         finally
         {
             HeartTierRoll.ForceTier = -1;
@@ -351,5 +351,30 @@ public static class HeartTiersTest
         for (int i = 1; i <= 8; i++) kill &= LoopDifficulty.KillScale(i) > LoopDifficulty.KillScale(i - 1);
         Check("kill points rise 50% a loop", kill && Mathf.Approximately(LoopDifficulty.KillScale(1), 1.5f) && Mathf.Approximately(LoopDifficulty.KillScale(2), 2f));
         Check("the hazard cost rises with the loop and caps at 2 hearts", HazardDamage.HeartsFor(1f, 1) > HazardDamage.HeartsFor(1f, 0) && HazardDamage.HeartsFor(1f, 20) <= 2f + 1e-4f);
+    }
+
+    // Kill-driven meters: the secret power's meter (its cooldown) is the only one kills fill. A drone's kill does not fill it.
+    static void DroneMeters()
+    {
+        Scene();
+        HeartTierRoll.ForceTier = 0;
+        RunScore.EndRun(RunScore.RunId); RunScore.BeginRun(true, true);
+        var go = new GameObject("~secret");
+        var c = go.AddComponent<SecretPowerController>();
+        float budget = 0f;
+        c.SetMeter(0f);
+        for (int k = 0; k < 2; k++)
+        {
+            var t = EnemyFactory.Create(EnemyRoster.One(0, EnemyRole.Fighter), Vector3.zero, Quaternion.identity, 1f, true);
+            ClearTarget.Ensure(t);
+            for (int h = 0; h < 8 && t != null; h++) ShipAttackHits.Hit(t, 1, 1f, ref budget, HitKind.Drone);
+        }
+        Check("kills made by drones do not fill the secret power's meter", c.Meter == 0f);
+        var own = EnemyFactory.Create(EnemyRoster.One(0, EnemyRole.Fighter), Vector3.zero, Quaternion.identity, 1f, true);
+        ClearTarget.Ensure(own);
+        ShipAttackHits.Hit(own, 1, 1f, ref budget, HitKind.Ultimate);
+        Check("the pilot's own kill still fills it by perKill", Mathf.Approximately(c.Meter, c.perKill));
+        Object.DestroyImmediate(go);
+        HeartTierRoll.ForceTier = -1;
     }
 }
