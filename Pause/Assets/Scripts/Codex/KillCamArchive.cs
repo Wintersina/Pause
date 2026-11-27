@@ -52,7 +52,7 @@ using UnityEngine.Experimental.Rendering;
 // file then moved over the old one, off the main thread (the PNG encode and
 // gzip run in a Task: only the GPU copy happens on the main thread, once,
 // as the Flight Complete panel opens). PrefsKey holds the record ("2|score|
-// utc ticks|ship|world|killer") so the codex can describe it without opening
+// utc ticks|ship|world|killer|skin") so the codex can describe it without opening
 // the file. It is written only once the file is (Settle, on the main thread),
 // so it never names a file that is not there yet; a file newer than the
 // record (the app closed before the record was written) is adopted, a file
@@ -92,12 +92,13 @@ public static class KillCamArchive
         public long score;
         public long utcTicks;
         public int ship = -1;
+        public int skin = -1;   // the colour it flew in (-1: not recorded -- an older record -- shows stock)
         public string world = "";
         public string killer = "";
 
         public string Format()
         {
-            return Version + "|" + score + "|" + utcTicks + "|" + ship + "|" + Clean(world) + "|" + Clean(killer);
+            return Version + "|" + score + "|" + utcTicks + "|" + ship + "|" + Clean(world) + "|" + Clean(killer) + "|" + skin;
         }
 
         public static Record Parse(string text)
@@ -109,12 +110,13 @@ public static class KillCamArchive
             if (!long.TryParse(parts[1], out r.score) || !long.TryParse(parts[2], out r.utcTicks) || !int.TryParse(parts[3], out r.ship)) return null;
             r.world = parts[4];
             r.killer = parts[5];
+            if (parts.Length > 6 && !int.TryParse(parts[6], out r.skin)) r.skin = -1;
             return r;
         }
 
         public bool SameAs(Record o)
         {
-            return o != null && o.score == score && o.utcTicks == utcTicks && o.ship == ship && o.world == world && o.killer == killer;
+            return o != null && o.score == score && o.utcTicks == utcTicks && o.ship == ship && o.skin == skin && o.world == world && o.killer == killer;
         }
 
         static string Clean(string s) { return string.IsNullOrEmpty(s) ? "" : s.Replace("|", "/"); }
@@ -158,6 +160,7 @@ public static class KillCamArchive
     public static Record RecordForThisRun(long score)
     {
         var r = new Record { score = score, utcTicks = DateTime.UtcNow.Ticks, ship = ShipId.Equipped(), killer = DamageLog.RunKiller ?? "" };
+        r.skin = ShipId.IsValid(r.ship) ? ShipSkins.Equipped(r.ship) : -1;
         try
         {
             var theme = WorldManager.InSpaceLeg ? null : WorldManager.Current;
