@@ -224,6 +224,9 @@ public static class TestHarness
             // Elites carry double hearts in the game (EliteDef.HealthScale); the suites written for the authored counts run at 1:
             // ToughEnemiesTest (and any suite about the doubling) sets the override back to 0 for itself.
             EliteDef.ScaleOverride = 1;
+            // Heart tiers (HeartTiers.cs): every suite starts at power 0 and not in a live run, so no boss, enemy or elite carries a blue / crystal bar and
+            // no hazard scales unless the suite asks (HeartTiersTest and EnemyThreatTest set their own power and put it back).
+            PlayerPower.Override = 0f; HeartTierRun.Live = false; HeartTierRun.ForceTier = -1;
             DockGrade.Strict = false;      // suites place any dock kind anywhere; DockAuditTest turns the game's dock rules on
 
             // Start every suite with developer mode off. The editor shares

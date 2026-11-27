@@ -928,9 +928,9 @@ public static class ScoringTest
 
             for (int i = 0; i < 3; i++) RunLoop.Advance();   // Index 4: the cap
             long k4 = Kill(Enemy(rock));
-            Check("kills: a rock pays " + k0 + " / " + k1 + " / " + k4 + " on loops 1 / 2 / 5 (5 x1, x1.15, x1.6)",
-                  k0 == ScoreRules.Rock && k1 == Mathf.RoundToInt(ScoreRules.Rock * LoopRules.ScoreScale(1)) &&
-                  k4 == Mathf.RoundToInt(ScoreRules.Rock * LoopRules.ScoreScale(4)));
+            Check("kills: a rock pays " + k0 + " / " + k1 + " / " + k4 + " on loops 1 / 2 / 5 (5 x1, x1.5, x3: LoopDifficulty.KillScale, kills no longer use the flight scale)",
+                  k0 == ScoreRules.Rock && k1 == Mathf.RoundToInt(ScoreRules.Rock * LoopDifficulty.KillScale(1)) &&
+                  k4 == Mathf.RoundToInt(ScoreRules.Rock * LoopDifficulty.KillScale(4)));
         }
         finally
         {

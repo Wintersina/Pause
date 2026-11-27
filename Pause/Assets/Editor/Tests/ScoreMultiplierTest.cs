@@ -149,7 +149,7 @@ public static class ScoreMultiplierTest
         // ordering only (comment-stripped, no character distance): the loss is reported after the heart is
         // taken and before the game-over test, in the same method
         string det = TestHarness.StripComments(File.ReadAllText("Assets/Scripts/Ship/collisionDetection.cs"));
-        int hit = det.IndexOf("lifeCounter += 1;");
+        int hit = det.IndexOf("lifeCounter += heartCost;");
         int report = hit < 0 ? -1 : det.IndexOf("ScoreMultiplier.OnHeartLost();", hit);
         int gameOver = hit < 0 ? -1 : det.IndexOf("if (lifeCounter >= MAXLIFE)", hit);
         Check("collisionDetection reports the lost heart right where it is taken",
@@ -338,7 +338,7 @@ public static class ScoreMultiplierTest
         // a shielded / cloaked / invulnerable hit never reaches OnHeartLost; a heal is not a loss
         string det = TestHarness.StripComments(File.ReadAllText("Assets/Scripts/Ship/collisionDetection.cs"));
         int safeBranch = det.IndexOf("if (safe)");
-        int elseBranch = det.IndexOf("lifeCounter += 1;");
+        int elseBranch = det.IndexOf("lifeCounter += heartCost;");
         // exactly one reporting call site (a second would double-count a loss), after the safe branch and the heart taken
         Check("only the unsafe branch (a heart actually lost) reports a loss",
               safeBranch > 0 && elseBranch > safeBranch && det.IndexOf("OnHeartLost", safeBranch) > elseBranch &&

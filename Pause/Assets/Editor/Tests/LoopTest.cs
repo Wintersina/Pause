@@ -544,8 +544,9 @@ public static class LoopTest
         var e = BossEncounter.Instance;
         e.Step(.1f, 1f);
         RunWhile(e, BossEncounter.Phase.Intro);
-        Check("loop 2 boss: cooldowns x" + LoopRules.BossCooldownScale(1) + ", one more pattern from the start",
-              e.Actor != null && Mathf.Approximately(e.Actor.CooldownScale, LoopRules.BossCooldownScale(1)) &&
+        float bossCd = Mathf.Max(HeartTierTuning.BossCooldownMin, LoopRules.BossCooldownScale(1) * LoopDifficulty.BossCooldownScale(1));   // (the authored scale x the exponential loop factor)
+        Check("loop 2 boss: cooldowns x" + bossCd + ", one more pattern from the start",
+              e.Actor != null && Mathf.Approximately(e.Actor.CooldownScale, bossCd) &&
               BossCatalog.UnlockedAttacks(e.Boss, e.Actor.PatternHeadStart) == System.Array.FindAll(e.Boss.attacks, x => x.minPhase <= 2).Length &&   // (the phase-2 set: 2 of today's, 3 of a themed table)
               BossCatalog.UnlockedAttacks(e.Boss, 0f) == System.Array.FindAll(e.Boss.attacks, x => x.minPhase <= 1).Length);
         BossEncounter.ResetRun();
@@ -569,8 +570,8 @@ public static class LoopTest
               threats1.ToString("F2") + ")", Mathf.Abs(threats1 - threats0 - LoopRules.ThreatBonus(1) * EnemyDensity.ViewScale) < 1e-3f);
         Check("loop 2 shot budget +" + LoopRules.ShotBonus(1) + " (" + shots0 + " -> " + shots1 + ")",
               shots0 == EnemyThreat.MaxEnemyShots && shots1 == shots0 + LoopRules.ShotBonus(1));
-        Check("loop 2 volley gap x" + LoopRules.VolleyGapScale(1) + " (" + gap0.ToString("F2") + " -> " + gap1.ToString("F2") + " s)",
-              Mathf.Approximately(gap0, EnemyThreat.VolleyGap) && Mathf.Approximately(gap1, gap0 * LoopRules.VolleyGapScale(1)));
+        Check("loop 2 volley gap x" + LoopRules.VolleyGapScale(1) * LoopDifficulty.VolleyGapScale(1) + " (" + gap0.ToString("F2") + " -> " + gap1.ToString("F2") + " s)",
+              Mathf.Approximately(gap0, EnemyThreat.VolleyGap) && Mathf.Approximately(gap1, gap0 * LoopRules.VolleyGapScale(1) * LoopDifficulty.VolleyGapScale(1)));
         Check("loop 2 fighter tiers shift up (phase 1 tops out at tier " + maxTier0 + " -> " + maxTier1 + ")",
               maxTier0 == 1 && maxTier1 == 1 + LoopRules.TierShift(1));
     }
@@ -627,8 +628,8 @@ public static class LoopTest
         RunScore.Tick(ScoreRules.ComboWindowSeconds + .1f, 0f);
         moveBackGround.speed = .45f;   // a full limit break (the cap + the most boost)
         long sum = 0, last = 0;
-        for (int i = 0; i < 10; i++) { last = Kill(Enemy(rock)); sum += last; }
-        Check("HUD 45 (limit break x2.5), x4 chain: the 10th rock pays 40 (5 x 8 cap, got " + last + ")", last == 40);
+        for (int i = 0; i < 25; i++) { last = Kill(Enemy(rock)); sum += last; }   // (x4 needs a 25 chain)
+        Check("HUD 45 (limit break x2.5), x4 chain: the 25th rock pays 40 (5 x 8 cap, got " + last + ")", last == 40);
         Check("a heavy at the cap pays 320 -- the most any single kill can", Kill(Enemy(heavy)) == 40 * 8);
         Check("the best multiplier is recorded (x8)", Mathf.Approximately(RunScore.Parts.bestMultiplier, 8f));
         long t = RunScore.Total;
@@ -1089,12 +1090,12 @@ public static class LoopTest
         Advance(wm);
         float loopDelay = RollAt(enemies, range);
         Check("loop 2: spawn delays shrink by x" + LoopRules.DensityScale(1) + " (" + baseDelay.ToString("F3") + "s -> " +
-              loopDelay.ToString("F3") + "s)", Mathf.Abs(baseDelay / loopDelay - LoopRules.DensityScale(1)) < 1e-3f);
+              loopDelay.ToString("F3") + "s, and the exponential extra x" + LoopDifficulty.ExtraDensity(RunLoop.Index).ToString("F2") + ")", Mathf.Abs(baseDelay / loopDelay - LoopRules.DensityScale(1) * LoopDifficulty.ExtraDensity(RunLoop.Index)) < 1e-3f);
         for (int l = 2; l <= LoopRules.MaxScaledLoops + 1; l++)
         {
             LoopDifficulty.DensityScale = LoopRules.DensityScale(l);
             Check("loop " + (l + 1) + ": x" + LoopRules.DensityScale(l).ToString("F2"),
-                  Mathf.Abs(baseDelay / RollAt(enemies, range) - LoopRules.DensityScale(l)) < 1e-3f);
+                  Mathf.Abs(baseDelay / RollAt(enemies, range) - LoopRules.DensityScale(l) * LoopDifficulty.ExtraDensity(RunLoop.Index)) < 1e-3f);
         }
 
         // A waiting portal: its pressure on top of the loop's own, without a plateau.
@@ -1121,7 +1122,7 @@ public static class LoopTest
         Check("the spawner reads the pressure too", File.ReadAllText("Assets/Scripts/Gameplay/Spawning/enmiesOnBoard.cs")
               .Contains("EnemyDensity.RateScale(EnemyDensity.Hud) * PortalPressure.DensityScale"));
         Check("the spawner reads it (enmiesOnBoard.Roll)", File.ReadAllText("Assets/Scripts/Gameplay/Spawning/enmiesOnBoard.cs")
-              .Contains("/ Mathf.Max(0.1f, DensityMultiplier() * LoopDifficulty.DensityScale)"));
+              .Contains("LoopDifficulty.DensityScale * LoopDifficulty.ExtraDensity(RunLoop.Index))"));
         RunLoop.Reset();
         Check("a new run is back to x1", LoopDifficulty.DensityScale == 1f);
     }
