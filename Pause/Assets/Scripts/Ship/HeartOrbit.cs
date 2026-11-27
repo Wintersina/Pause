@@ -1421,11 +1421,11 @@ public abstract class HeartOrbit : MonoBehaviour
                 }
                 if (under1 != null)
                 {
-                    var c = sr.color;
+                    var underTint = sr.color;
                     var u1 = under1[i];
-                    if (u1 != null && shownLayer >= 1) { u1.enabled = !underHidden; u1.color = c; if (u1.sortingOrder != order - 2) u1.sortingOrder = order - 2; }
+                    if (u1 != null && shownLayer >= 1) { u1.enabled = !underHidden; u1.color = underTint; if (u1.sortingOrder != order - 2) u1.sortingOrder = order - 2; }
                     var u2 = under2 != null ? under2[i] : null;
-                    if (u2 != null && shownLayer >= 2) { u2.enabled = !underHidden; u2.color = c; if (u2.sortingOrder != order - 3) u2.sortingOrder = order - 3; }
+                    if (u2 != null && shownLayer >= 2) { u2.enabled = !underHidden; u2.color = underTint; if (u2.sortingOrder != order - 3) u2.sortingOrder = order - 3; }
                 }
             }
         }

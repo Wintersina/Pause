@@ -175,7 +175,7 @@ public static class HeartTiersTest
                     enemies &= s.Tier == tier && bar >= 1 && bar <= red && s.QuartersLeft == tier * bar * 4;
                 }
         }
-        foreach (var def in EliteDef.All)
+        foreach (var def in EliteCatalog.All)
         {
             if (def == null) continue;
             int red = def.MaxHearts, bar = HeartTierTuning.BarHearts(HeartTierKind.Elite, red);
