@@ -1184,8 +1184,10 @@ public static class EnemyThreat
         get
         {
             float gap = VolleyGap * LoopRules.VolleyGapScale(RunLoop.Index) * PortalPressure.VolleyGapScale;
-            if (RunLoop.Index <= 0) return gap;
-            return Mathf.Max(Mathf.Min(gap, HeartTierTuning.MinVolleyGap), gap * LoopDifficulty.VolleyGapScale(RunLoop.Index));   // exponential, never under MinVolleyGap
+            if (RunLoop.Index > 0) gap = Mathf.Max(Mathf.Min(gap, HeartTierTuning.MinVolleyGap), gap * LoopDifficulty.VolleyGapScale(RunLoop.Index));   // exponential, never under MinVolleyGap
+            // the pilot's power: T^P (PlayerPower.ThreatScale), capped; 1 for a fresh ship
+            float threat = Mathf.Min(PlayerPower.ThreatScale, HeartTierTuning.ThreatFireCap);
+            return threat <= 1f ? gap : Mathf.Max(Mathf.Min(gap, HeartTierTuning.MinVolleyGap), gap / threat);
         }
     }
 
@@ -1318,7 +1320,7 @@ public static class EnemyVolley
     static int One(EliteShots pool, EliteDef style, EnemyBehaviour b, GameObject source, Vector2 at, Vector2 direction)
     {
         float speed = pilotVolley ? b.shotSpeed * PilotShotSpeed * pilotView : b.shotSpeed;
-        speed *= PortalPressure.ShotSpeedScale * LoopDifficulty.ShotSpeedScale;   // x1 unless a portal has been kept waiting into overdrive
+        speed *= PortalPressure.ShotSpeedScale * LoopDifficulty.ShotSpeedScale * PlayerPower.ShotSpeedScale;   // x1 unless a portal has been kept waiting into overdrive
         var s = pool.Fire(null, style, b.shotKind, at, direction * speed, true, source.GetInstanceID());
         if (s == null) return 0;
         s.AsRosterShot(source, pilotVolley ? 0f : b.ride);

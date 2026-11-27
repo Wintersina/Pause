@@ -17,12 +17,13 @@ public static class HeartTiersTest
     {
         fails = 0;
         using var sandbox = new TestHarness.Sandbox();
-        try { Curve(); Power(); Shell(); Enemy(); Rosters(); Art(); Hazards(); Shields(); DroneScore(); Heals(); HazardHits(); Loops(); DroneMeters(); }
+        try { Growth(); Stages(); Enemy(); Rosters(); Art(); Hazards(); Shields(); DroneScore(); Heals(); HazardHits(); Loops(); DroneMeters(); }
         finally
         {
-            HeartTierRoll.ForceTier = -1;
-            HeartTierRoll.Live = false;
+            HeartTierRun.ForceTier = -1;
+            HeartTierRun.Live = false;
             RunPower.Override = -1f;
+            PlayerPower.Override = -1f;
             BossEncounter.ResetRun();
         }
         Debug.Log("[HEARTTIERS] failures: " + fails);
@@ -41,103 +42,103 @@ public static class HeartTiersTest
         Time.timeScale = 1f;
     }
 
-    static void Curve()
+    static float MaxLevels { get { return PlayerPower.LevelsFor(6, 24, 300, ShipWeaponUpgrades.MaxLevel, 10); } }
+
+    // P and what grows from it: deterministic, exponential, capped.
+    static void Growth()
     {
-        bool zero = true, mono = true, nested = true, order = true;
-        foreach (HeartTierKind kind in new[] { HeartTierKind.Enemy, HeartTierKind.Elite, HeartTierKind.Boss })
+        Check("a fresh ship has power 0 and gives exactly today's hearts", PlayerPower.LevelsFor(0, 0, 0, 0, 0) == 0f && PlayerPower.TotalHearts(HeartTierKind.Enemy, 3, 0f) == 3 &&
+              PlayerPower.TotalHearts(HeartTierKind.Elite, 10, 0f) == 10 && PlayerPower.TotalHearts(HeartTierKind.Boss, 13, 0f) == 13 && !HeartShell.FromTotal(3, 3).Any);
+        float a = PlayerPower.LevelsFor(1, 1, 5, 1, 1);
+        Check("every part of the ship raises P", PlayerPower.LevelsFor(2, 1, 5, 1, 1) > a && PlayerPower.LevelsFor(1, 2, 5, 1, 1) > a && PlayerPower.LevelsFor(1, 1, 9, 1, 1) > a &&
+              PlayerPower.LevelsFor(1, 1, 5, 2, 1) > a && PlayerPower.LevelsFor(1, 1, 5, 1, 2) > a);
+        Check("a drone is worth one level", Mathf.Approximately(PlayerPower.LevelsFor(1, 0, 0, 0, 0), 1f));
+        bool same = true, ratio = true, mono = true;
+        int last = 0;
+        for (int i = 0; i <= 40; i++)
         {
-            for (int r = 0; r <= 10; r++) zero &= HeartTierCurve.Tier(0f, 0f, kind, r / 10f) == 0 && HeartTierCurve.Tier(0f, 0f, kind, .999f) == 0;
-            float lastBlue = 0f, lastCrystal = 0f;
-            for (int i = 0; i <= 100; i++)
+            float p = i * .5f;
+            int t1 = PlayerPower.TotalHearts(HeartTierKind.Enemy, 3, p), t2 = PlayerPower.TotalHearts(HeartTierKind.Enemy, 3, p);
+            same &= t1 == t2;
+            mono &= t1 >= last; last = t1;
+        }
+        foreach (HeartTierKind kind in new[] { HeartTierKind.Enemy, HeartTierKind.Elite, HeartTierKind.Boss })
+            for (int lv = 0; lv < 8; lv++)
+                ratio &= Mathf.Abs(PlayerPower.Growth(lv + 1, kind) / PlayerPower.Growth(lv, kind) - HeartTierTuning.GrowthFor(kind)) < 1e-3f;
+        Check("the same power always gives the same hearts, never fewer as power rises", same && mono);
+        Check("toughness is strictly exponential in P: each level multiplies by G", ratio && HeartTierTuning.GEnemy > 1.1f && HeartTierTuning.GEnemy < 1.3f);
+        Check("elites and bosses grow a little steeper than ordinary enemies", PlayerPower.Growth(10, HeartTierKind.Boss) > PlayerPower.Growth(10, HeartTierKind.Elite) && PlayerPower.Growth(10, HeartTierKind.Elite) > PlayerPower.Growth(10, HeartTierKind.Enemy));
+        float maxed = PlayerPower.Growth(MaxLevels, HeartTierKind.Enemy);
+        Check("a maxed ship (6 upgraded drones) makes enemies 6 to 10 times tougher (x" + maxed.ToString("0.0") + ")", maxed >= 6f && maxed <= 10f && PlayerPower.TotalHearts(HeartTierKind.Enemy, 3, MaxLevels) >= 18 && PlayerPower.TotalHearts(HeartTierKind.Enemy, 3, MaxLevels) <= 30);
+        Check("caps hold at any power: enemy x12, elite x3, boss x2.5 of the red hearts",
+              PlayerPower.TotalHearts(HeartTierKind.Enemy, 3, 500f) == 36 && PlayerPower.TotalHearts(HeartTierKind.Elite, 10, 500f) == 30 &&
+              PlayerPower.TotalHearts(HeartTierKind.Boss, 13, 500f) <= Mathf.CeilToInt(13 * HeartTierTuning.BossMultCap));
+        // threat
+        bool tr = true; float lt = 0f;
+        for (int i = 0; i <= 60; i++) { float t = PlayerPower.ThreatScaleFor(i * .5f); tr &= t >= lt && t <= HeartTierTuning.ThreatCap + 1e-4f; lt = t; }
+        Check("threat T^P: 1 for a fresh ship, rising by T per level, capped", PlayerPower.ThreatScaleFor(0f) == 1f && tr && Mathf.Abs(PlayerPower.ThreatScaleFor(5f) / PlayerPower.ThreatScaleFor(4f) - HeartTierTuning.ThreatPerLevel) < 1e-3f &&
+              PlayerPower.ThreatScaleFor(500f) == HeartTierTuning.ThreatCap && HeartTierTuning.ThreatPerLevel < HeartTierTuning.GEnemy);
+        // RunPower is the same strength as 0..1
+        PlayerPower.Override = 0f; RunPower.Override = -1f;
+        Check("RunPower.Score01 is P over PowerFull (0 for a fresh ship, 1 maxed)", RunPower.Score01 == 0f);
+        PlayerPower.Override = HeartTierTuning.PowerFull * 2f;
+        Check("... and is capped at 1", RunPower.Score01 == 1f);
+        PlayerPower.Override = -1f;
+    }
+
+    // The visual stages: red -> blue -> crystal.
+    static void Stages()
+    {
+        var a = HeartShell.FromTotal(3, 3);
+        Check("total = red: red only", !a.Any && a.Tier == 0 && a.Layer == HeartLayer.Red);
+        var b = HeartShell.FromTotal(3, 4);
+        Check("one heart over: a blue bar of one", b.Tier == 1 && b.blueMax == 1 && b.crystalMax == 0 && b.Layer == HeartLayer.Blue);
+        var c = HeartShell.FromTotal(3, 6);
+        Check("blue fills up to the red count before crystal starts", c.Tier == 1 && c.blueMax == 3 && c.crystalMax == 0);
+        var d = HeartShell.FromTotal(3, 7);
+        Check("past that, crystal holds the rest and shows first", d.Tier == 2 && d.blueMax == 3 && d.crystalMax == 1 && d.crystalPip == 1 && d.Layer == HeartLayer.Crystal);
+        var e = HeartShell.FromTotal(3, 13);
+        Check("a crystal bar bigger than the red count: each pip stands for several hearts (7 hearts on 3 pips = x3)", e.crystalMax == 7 && e.crystalPip == 3 && e.DisplayQuarters == 10 && e.DisplayQuarters <= 3 * 4);
+        bool fits = true;
+        for (int total = 3; total <= 120; total++) for (int red = 2; red <= 13; red++)
+        {
+            if (total < red) continue;
+            var s = HeartShell.FromTotal(red, total);
+            fits &= s.DisplayQuarters <= red * 4 && s.blueMax <= red && s.blueMax + s.crystalMax == total - red && s.crystalPip >= 1;
+        }
+        Check("the drawn bar never exceeds the red count, and the hearts always add up", fits);
+        int br;
+        var f = HeartShell.FromTotal(3, 13);
+        int left = f.Absorb(12 * 4, out br);
+        Check("a big hit spends true health: 12 hearts on 7 crystal + 3 blue leave 2 for red, both bars broken", left == 8 && br == 2 && !f.Any);
+        f = HeartShell.FromTotal(3, 13);
+        left = f.Absorb(7 * 4, out br);
+        Check("spending exactly the crystal bar breaks it and shows blue", left == 0 && br == 1 && f.Layer == HeartLayer.Blue);
+        left = f.Absorb(5 * 4, out br);
+        Check("overflow carries: 5 hearts on a 3-heart blue bar leave 2 hearts for red", left == 8 && br == 1 && !f.Any);
+
+        // live plans
+        HeartTierRun.Live = true; HeartTierRun.ForceTier = -1;
+        PlayerPower.Override = 0f;
+        Check("a fresh ship (P = 0): red only, exactly today's", !HeartTierRun.Plan(HeartTierKind.Enemy, 3).Any && !HeartTierRun.Plan(HeartTierKind.Elite, 10).Any && !HeartTierRun.Plan(HeartTierKind.Boss, 13).Any);
+        PlayerPower.Override = 3f;
+        var mid = HeartTierRun.Plan(HeartTierKind.Enemy, 3);
+        PlayerPower.Override = MaxLevels;
+        var big = HeartTierRun.Plan(HeartTierKind.Enemy, 3);
+        var big2 = HeartTierRun.Plan(HeartTierKind.Enemy, 3);
+        Check("a middling ship: blue and red, a maxed ship: crystal (always, same every spawn)", mid.Tier == 1 && big.Tier == 2 && big.crystalMax == big2.crystalMax && big.blueMax == big2.blueMax);
+        PlayerPower.Override = -1f; HeartTierRun.Live = false;
+        Check("outside a real run (menus, tutorial, fixtures) nothing gets a shell", PlayerPower.Levels == 0f && !HeartTierRun.Plan(HeartTierKind.Enemy, 3).Any);
+        // table (logged for the report)
+        var sb = new System.Text.StringBuilder("[HEARTTIERS] table P -> total (red/blue/crystal x pip): ");
+        foreach (float p in new[] { 0f, 3f, 6f, 9f, 12f, 16.6f })
+            foreach (var pair in new[] { new[] { HeartTierKind.Enemy, (HeartTierKind)3 }, new[] { HeartTierKind.Elite, (HeartTierKind)10 }, new[] { HeartTierKind.Boss, (HeartTierKind)13 } })
             {
-                float p = i / 100f;
-                float b = HeartTierCurve.BlueOrBetter(p, p, kind), c = HeartTierCurve.Crystal(p, kind);
-                mono &= b >= lastBlue - 1e-6f && c >= lastCrystal - 1e-6f;
-                nested &= c <= b + 1e-6f && b <= 1f && c >= 0f;
-                lastBlue = b; lastCrystal = c;
+                int red = (int)pair[1], total = PlayerPower.TotalHearts(pair[0], red, p);
+                var sh = HeartShell.FromTotal(red, total);
+                sb.Append(pair[0] + " P" + p + "=" + total + "(" + red + "/" + sh.blueMax + "/" + sh.crystalMax + "x" + sh.crystalPip + ") ");
             }
-        }
-        for (int i = 0; i <= 100; i++)
-        {
-            float p = i / 100f;
-            order &= HeartTierCurve.BlueOrBetter(p, HeartTierKind.Boss) >= HeartTierCurve.BlueOrBetter(p, HeartTierKind.Elite) - 1e-6f &&
-                     HeartTierCurve.BlueOrBetter(p, HeartTierKind.Elite) >= HeartTierCurve.BlueOrBetter(p, HeartTierKind.Enemy) - 1e-6f;
-        }
-        Check("zero power gives red-only for every kind and every roll", zero);
-        Check("the blue-or-better and crystal shares never fall as power rises", mono);
-        Check("crystal is always a subset of blue-or-better", nested);
-        Check("bosses are biased up from elites, elites from enemies", order);
-        Check("full power makes blue and crystal common", HeartTierCurve.Crystal(1f, HeartTierKind.Enemy) >= .3f && HeartTierCurve.BlueOrBetter(1f, HeartTierKind.Enemy) >= .6f);
-        CrystalFromDrones();
-        Check("the tier roll is deterministic per seed", Rolls(7) == Rolls(7) && Rolls(7) != Rolls(8));
-    }
-
-    static string Rolls(int seed)
-    {
-        HeartTierRoll.BeginRun(seed);
-        var sb = new System.Text.StringBuilder();
-        for (int i = 0; i < 8; i++) sb.Append(HeartTierRoll.NextRoll().ToString("0.0000")).Append(',');
-        return sb.ToString();
-    }
-
-    // Crystal comes from the drones alone: count and upgrades.
-    static void CrystalFromDrones()
-    {
-        bool zero = true;
-        foreach (HeartTierKind kind in new[] { HeartTierKind.Enemy, HeartTierKind.Elite, HeartTierKind.Boss })
-            zero &= HeartTierCurve.Crystal(RunPower.DronePower01For(0, 0, 0), kind) == 0f;
-        Check("zero drones: crystal share is 0 for every kind (whatever the run power)", zero && RunPower.DronePower01For(0, 5, 50) == 0f);
-        bool count = true, cores = true, atoms = true;
-        float last = -1f;
-        for (int n = 0; n <= 6; n++) { float c = HeartTierCurve.Crystal(RunPower.DronePower01For(n, n, 0), HeartTierKind.Enemy); count &= c >= last; last = c; }
-        last = -1f;
-        for (int lv = 0; lv <= 4; lv++) { float c = HeartTierCurve.Crystal(RunPower.DronePower01For(3, 3 * lv, 0), HeartTierKind.Enemy); cores &= c >= last; last = c; }
-        last = -1f;
-        for (int lv = 0; lv <= 50; lv += 5) { float c = HeartTierCurve.Crystal(RunPower.DronePower01For(3, 3, 3 * lv), HeartTierKind.Enemy); atoms &= c >= last; last = c; }
-        Check("crystal rises with drone count", count && HeartTierCurve.Crystal(RunPower.DronePower01For(6, 6, 0), HeartTierKind.Enemy) > HeartTierCurve.Crystal(RunPower.DronePower01For(1, 1, 0), HeartTierKind.Enemy));
-        Check("crystal rises with core levels and with shot-atom levels on the drones", cores && atoms && HeartTierCurve.Crystal(RunPower.DronePower01For(3, 12, 0), HeartTierKind.Enemy) > HeartTierCurve.Crystal(RunPower.DronePower01For(3, 3, 0), HeartTierKind.Enemy) &&
-              HeartTierCurve.Crystal(RunPower.DronePower01For(3, 3, 150), HeartTierKind.Enemy) > HeartTierCurve.Crystal(RunPower.DronePower01For(3, 3, 0), HeartTierKind.Enemy));
-        float maxed = HeartTierCurve.Crystal(RunPower.DronePower01For(6, 24, 300), HeartTierKind.Enemy);
-        Check("a full upgraded squad of six reaches the crystal cap", Mathf.Approximately(maxed, HeartTierTuning.CrystalMax) && RunPower.DronePower01For(6, 24, 300) == 1f);
-        Check("crystal is always inside blue-or-better", HeartTierCurve.BlueOrBetter(0f, 1f, HeartTierKind.Enemy) >= HeartTierCurve.Crystal(1f, HeartTierKind.Enemy));
-        Check("elite and boss boosts apply to the drone term", HeartTierCurve.Crystal(.4f, HeartTierKind.Boss) > HeartTierCurve.Crystal(.4f, HeartTierKind.Elite) && HeartTierCurve.Crystal(.4f, HeartTierKind.Elite) > HeartTierCurve.Crystal(.4f, HeartTierKind.Enemy));
-        Check("loop-1 blue is unchanged by drones with no crystal share (blue-or-better = the run-power curve)", HeartTierCurve.BlueOrBetter(.5f, 0f, HeartTierKind.Enemy) == HeartTierCurve.BlueOrBetter(.5f, HeartTierKind.Enemy));
-    }
-
-    static void Power()
-    {
-        Check("RunPower is 0 with nothing and 1 with everything", RunPower.Compute(0, 0, 0, 0, 0) == 0f && Mathf.Approximately(RunPower.Compute(ShotAtoms.MaxPower, 12, 36, ShipWeaponUpgrades.MaxLevel, 999), 1f));
-        float a = RunPower.Compute(10, 1, 1, 0, 0);
-        Check("each part raises RunPower", RunPower.Compute(20, 1, 1, 0, 0) > a && RunPower.Compute(10, 2, 1, 0, 0) > a && RunPower.Compute(10, 1, 3, 0, 0) > a &&
-              RunPower.Compute(10, 1, 1, 2, 0) > a && RunPower.Compute(10, 1, 1, 0, 30) > a);
-        Check("three levelled drones alone are about 0.7 power, more with atoms and dust", RunPower.Compute(0, 3, 9, 0, 0) >= .699f && RunPower.Compute(24, 3, 6, 0, 60) >= .7f);
-        Check("the squad outweighs everything else", RunPower.Compute(0, 3, 9, 0, 0) > RunPower.Compute(ShotAtoms.MaxPower, 1, 1, 0, 0));
-        float full = HeartTierCurve.Crystal(RunPower.DronePower01For(6, 24, 300), HeartTierKind.Enemy);
-        Check("a full upgraded squad of six makes crystal common on ordinary enemies (more than half)", full > .5f);
-        RunPower.Override = 0f; HeartTierRoll.Live = true; HeartTierRoll.ForceTier = -1; HeartTierRoll.BeginRun(3);
-        bool red = true;
-        for (int i = 0; i < 50; i++) red &= HeartTierRoll.Pick(HeartTierKind.Enemy) == 0;
-        RunPower.Override = 1f; HeartTierRoll.BeginRun(3);
-        int crystal = 0;
-        for (int i = 0; i < 200; i++) if (HeartTierRoll.Pick(HeartTierKind.Enemy) == 2) crystal++;
-        Check("Pick gives red-only at power 0 and mostly upgraded hulls at power 1", red && crystal > 40);
-        HeartTierRoll.Live = false; RunPower.Override = -1f;
-    }
-
-    static void Shell()
-    {
-        var s = HeartShell.Make(2, HeartTierKind.Enemy, 2);   // crystal 2, blue 2 hearts
-        Check("a crystal shell shows crystal first, then blue, then red", s.Layer == HeartLayer.Crystal && s.crystalMax == 2 && s.blueMax == 2);
-        int broken;
-        int left = s.Absorb(8, out broken);
-        Check("spending the crystal bar exactly leaves nothing over and shows blue", left == 0 && broken == 1 && s.Layer == HeartLayer.Blue);
-        left = s.Absorb(12, out broken);
-        Check("overflow carries: 12 on a 8-quarter blue bar leaves 4 for the red hearts", left == 4 && broken == 1 && !s.Any && s.Layer == HeartLayer.Red);
-        var t = HeartShell.Make(2, HeartTierKind.Enemy, 2);
-        left = t.Absorb(20, out broken);
-        Check("one big hit can break both bars and carry the rest", broken == 2 && left == 4);
-        Check("red-only makes an empty shell", !HeartShell.Make(0, HeartTierKind.Enemy, 3).Any && HeartShell.Make(0, HeartTierKind.Boss, 13).Tier == 0);
-        Check("bar sizes: enemy = red, elite = half, boss = quarter", HeartTierTuning.BarHearts(HeartTierKind.Enemy, 3) == 3 && HeartTierTuning.BarHearts(HeartTierKind.Elite, 6) == 3 && HeartTierTuning.BarHearts(HeartTierKind.Boss, 13) == 4);
+        Debug.Log(sb.ToString());
     }
 
     static void Enemy()
@@ -145,7 +146,7 @@ public static class HeartTiersTest
         Scene();
         RunScore.EndRun(RunScore.RunId); RunScore.BeginRun(true, true);
         // red only: exactly as before
-        HeartTierRoll.ForceTier = 0;
+        HeartTierRun.ForceTier = 0;
         var plain = EnemyFactory.Create(EnemyRoster.One(0, EnemyRole.Fighter), Vector3.up, Quaternion.identity, 1f, true);
         var hp = plain.GetComponent<EnemyHearts>();
         Check("a red-only enemy has no shell and its old quarter pool", hp != null && hp.Tier == 0 && !hp.Shell.Any && hp.TotalQuarters == hp.QuartersLeft && hp.QuartersLeft == hp.Max * 4);
@@ -154,7 +155,7 @@ public static class HeartTiersTest
         ShipAttackHits.Hit(plain, 1, .25f, ref budget, HitKind.Drone);
         Check("a red-only enemy loses one quarter from a quarter hit", hp.QuartersLeft == hp.Max * 4 - 1);
 
-        HeartTierRoll.ForceTier = 2;
+        HeartTierRun.ForceTier = 2;
         var go = EnemyFactory.Create(EnemyRoster.One(0, EnemyRole.Fighter), Vector3.zero, Quaternion.identity, 1f, true);
         ClearTarget.Ensure(go);
         var h = go.GetComponent<EnemyHearts>();
@@ -175,7 +176,7 @@ public static class HeartTiersTest
         Check("the last red heart kills it", killed && go == null);
 
         // overflow through the live route (blue 8 quarters, then red): 3 x 75% = 9 quarters, the 9th carries into red
-        HeartTierRoll.ForceTier = 1;
+        HeartTierRun.ForceTier = 1;
         var big = EnemyFactory.Create(EnemyRoster.One(0, EnemyRole.Fighter), Vector3.zero, Quaternion.identity, 1f, true);
         ClearTarget.Ensure(big);
         var b = big.GetComponent<EnemyHearts>();
@@ -183,41 +184,49 @@ public static class HeartTiersTest
         for (int i = 0; i < 3; i++) ShipAttackHits.Hit(big, 1, .75f, ref budget, HitKind.Drone);
         int spent = 9 - blueMax;
         Check("overflow carries from a broken bar into the next", blueMax == 8 && !b.Shell.Any && b.QuartersLeft == redMax - spent && b.LayersBroken == 1);
-        HeartTierRoll.ForceTier = -1;
+        HeartTierRun.ForceTier = -1;
     }
 
     static void Rosters()
     {
         bool enemies = true, elites = true, bosses = true;
+        float[] powers = { 0f, 2f, 5f, 8f, 12f, 16.6f, 40f };
         foreach (var def in EnemyRoster.All)
         {
             if (def == null || def.IsHazard) continue;
             for (int red = 2; red <= 4; red++)
-                for (int tier = 0; tier <= 2; tier++)
+                foreach (float p in powers)
                 {
-                    var s = HeartShell.Make(tier, HeartTierKind.Enemy, red);
-                    int bar = HeartTierTuning.BarHearts(HeartTierKind.Enemy, red);
-                    enemies &= s.Tier == tier && bar >= 1 && bar <= red && s.QuartersLeft == tier * bar * 4;
+                    var s = HeartShell.FromTotal(red, PlayerPower.TotalHearts(HeartTierKind.Enemy, red, p));
+                    enemies &= s.blueMax <= red && s.DisplayQuarters <= red * 4 && s.crystalPip >= 1 && (p > 0f || !s.Any);
                 }
         }
         foreach (var def in EliteCatalog.All)
         {
             if (def == null) continue;
-            int red = def.MaxHearts, bar = HeartTierTuning.BarHearts(HeartTierKind.Elite, red);
-            for (int tier = 0; tier <= 2; tier++)
+            int red = def.MaxHearts;
+            foreach (float p in powers)
             {
-                var s = HeartShell.Make(tier, HeartTierKind.Elite, red);
-                elites &= red > 0 && bar >= 1 && bar <= red && s.Tier == tier && s.QuartersLeft == tier * bar * 4;
+                int total = PlayerPower.TotalHearts(HeartTierKind.Elite, red, p);
+                var s = HeartShell.FromTotal(red, total);
+                elites &= red > 0 && total >= red && total <= red * HeartTierTuning.EliteMultCap + 1 && s.blueMax <= red && s.DisplayQuarters <= red * 4 && (p > 0f || !s.Any);
             }
         }
         for (int w = 0; w < WorldManager.Worlds.Length; w++)
         {
-            int red = BossConfig.HeartsAt(w, 0), bar = HeartTierTuning.BarHearts(HeartTierKind.Boss, red);
-            bosses &= BossCatalog.ForWorld(w) != null && red >= 5 && bar >= 1 && bar <= red && HeartShell.Make(2, HeartTierKind.Boss, red).Tier == 2;
+            int red = BossConfig.HeartsAt(w, 0);
+            bool ok = BossCatalog.ForWorld(w) != null && red >= 5;
+            foreach (float p in powers)
+            {
+                int total = PlayerPower.TotalHearts(HeartTierKind.Boss, red, p);
+                var s = HeartShell.FromTotal(red, total);
+                ok &= total >= red && total <= Mathf.CeilToInt(red * HeartTierTuning.BossMultCap) && s.blueMax <= red && s.DisplayQuarters <= red * 4 && (p > 0f || !s.Any);
+            }
+            bosses &= ok;
         }
-        Check("every enemy hull gets a valid tier configuration", enemies);
-        Check("every elite gets a valid tier configuration", elites);
-        Check("every world's boss gets a valid tier configuration", bosses);
+        Check("every enemy hull gets a valid tier configuration at every power", enemies);
+        Check("every elite gets a valid tier configuration at every power", elites);
+        Check("every world's boss gets a valid tier configuration at every power", bosses);
     }
 
     static void Art()
@@ -274,7 +283,7 @@ public static class HeartTiersTest
     static long RunKills(HitKind kind, int squad, int count)
     {
         Scene();
-        HeartTierRoll.ForceTier = 0;
+        HeartTierRun.ForceTier = 0;
         DroneSquad.BeginRun(Mathf.Max(1, squad));
         for (int i = 0; i < squad; i++) DroneSquad.Activate(i);
         RunScore.EndRun(RunScore.RunId); RunScore.BeginRun(true, true);
@@ -286,7 +295,7 @@ public static class HeartTiersTest
             for (int h = 0; h < 8 && go != null; h++) ShipAttackHits.Hit(go, 1, 1f, ref budget, kind);
         }
         long total = RunScore.Parts.kills;
-        HeartTierRoll.ForceTier = -1;
+        HeartTierRun.ForceTier = -1;
         return total;
     }
 
@@ -298,12 +307,12 @@ public static class HeartTiersTest
         Check("heals: x1 at no power, 35% at full power, never zero, never rising", HealScaling.RateFor(0f) == 1f && Mathf.Approximately(HealScaling.RateFor(1f), .35f) && dec);
         Check("the heal bank keeps its size at no power and shrinks (never below one) at full power", HealScaling.BankMax(HealBank.Max, 0f) == HealBank.Max && HealScaling.BankMax(HealBank.Max, 1f) >= 1 && HealScaling.BankMax(HealBank.Max, 1f) < HealBank.Max);
         HealBank.Reset();
-        RunPower.Override = 1f; HeartTierRoll.Live = true;
+        RunPower.Override = 1f; HeartTierRun.Live = true;
         HealBank.OnCatch(false, false);
         var second = HealBank.OnCatch(false, false);
         Check("at full power the bank holds fewer atoms (the second banked catch is wasted)", second == HealBank.Catch.Wasted || HealScaling.BankMax(HealBank.Max, 1f) > 1);
         Check("the healing drone restores more slowly at full power", HealScaling.DelayScale > 2f);
-        RunPower.Override = -1f; HeartTierRoll.Live = false;
+        RunPower.Override = -1f; HeartTierRun.Live = false;
         HealBank.Reset();
         Check("at no power the bank and delay are exactly as before", HealScaling.DelayScale == 1f && HealBank.OnCatch(false, false) == HealBank.Catch.Bank);
         HealBank.Reset();
@@ -341,7 +350,7 @@ public static class HeartTiersTest
         Check("first pass: hearts, fire, density, boss, recovery, kill points are unchanged",
               LoopDifficulty.EnemyHearts(3, 0) == 3 && LoopDifficulty.VolleyGapScale(0) == 1f && LoopDifficulty.ShotBonus(0) == 0 && LoopDifficulty.ExtraDensity(0) == 1f &&
               LoopDifficulty.BossCooldownScale(0) == 1f && LoopDifficulty.KillScale(0) == 1f && HazardDamage.HeartsFor(.5f, 0) == HazardDamage.HeartsFor(.5f) &&
-              HeartTierCurve.Tier(0f, 0f, HeartTierKind.Enemy, .5f, 0) == 0 && HazardScaling.ExtraRate(.5f, 1.5f, 1f, 0) == HazardScaling.ExtraRate(.5f, 1.5f));
+              HazardScaling.ExtraRate(.5f, 1.5f, 1f, 0) == HazardScaling.ExtraRate(.5f, 1.5f));
 
         // caps hold at loop 20
         int far = 20;
@@ -359,14 +368,8 @@ public static class HeartTiersTest
         bool hearts = true; int lastHearts = 0;
         for (int i = 0; i <= 5; i++) { int h = LoopDifficulty.EnemyHearts(2, i); hearts &= h >= lastHearts && h >= 2; lastHearts = h; }
         Check("enemy hearts grow with the loop and stop at the cap", hearts && LoopDifficulty.EnemyHearts(2, 1) > 2 && LoopDifficulty.EnemyHearts(2, 5) == HeartTierTuning.EnemyHeartCap);
-        Check("elite and boss bars grow with the loop, never past the red count", HeartTierTuning.BarHearts(HeartTierKind.Elite, 10, LoopDifficulty.For(2)) > HeartTierTuning.BarHearts(HeartTierKind.Elite, 10, 1f) &&
-              HeartTierTuning.BarHearts(HeartTierKind.Boss, 13, LoopDifficulty.For(20)) == 13 && HeartTierTuning.BarHearts(HeartTierKind.Boss, 13, 1f) == 4);
-
-        // tier floor per loop: only blue, never crystal (crystal is the drones' alone)
-        Check("loop 2 (index 1): nothing is red-only, even at no power", HeartTierCurve.Tier(0f, 0f, HeartTierKind.Enemy, .99f, 1) >= 1 && HeartTierCurve.Tier(0f, 0f, HeartTierKind.Enemy, 0f, 1) == 1);
-        bool noCrystal = true;
-        for (int l = 0; l <= 25; l++) for (int i = 0; i < 20; i++) noCrystal &= HeartTierCurve.Tier(0f, 0f, HeartTierKind.Enemy, (i + .5f) / 20f, l) < 2 && HeartTierCurve.Tier(1f, 0f, HeartTierKind.Boss, (i + .5f) / 20f, l) < 2;
-        Check("no loop forces crystal: with no drones no tier is crystal at any loop or power", noCrystal);
+        Check("elites and bosses carry the loop on top of the power growth, capped", PlayerPower.TotalHearts(HeartTierKind.Elite, 10, 0f, LoopDifficulty.For(2)) > 10 &&
+              PlayerPower.TotalHearts(HeartTierKind.Elite, 10, 0f, LoopDifficulty.For(40)) <= 30 && PlayerPower.TotalHearts(HeartTierKind.Boss, 13, 0f, 1f) == 13 && PlayerPower.TotalHearts(HeartTierKind.Enemy, 3, 0f, 5f) == 3);
         Check("nothing grows past loop 6 (index 5)", LoopDifficulty.For(5) == LoopDifficulty.For(40) && LoopDifficulty.KillScale(5) == LoopDifficulty.KillScale(40) && LoopDifficulty.EnemyHearts(3, 5) == LoopDifficulty.EnemyHearts(3, 40));
 
         // recovery and score
@@ -381,7 +384,7 @@ public static class HeartTiersTest
     static void DroneMeters()
     {
         Scene();
-        HeartTierRoll.ForceTier = 0;
+        HeartTierRun.ForceTier = 0;
         RunScore.EndRun(RunScore.RunId); RunScore.BeginRun(true, true);
         var go = new GameObject("~secret");
         var c = go.AddComponent<SecretPowerController>();
@@ -400,6 +403,6 @@ public static class HeartTiersTest
         ShipAttackHits.Hit(own, 1, 1f, ref budget, HitKind.Ultimate);
         Check("the pilot's own kill still fills it by perKill", Mathf.Approximately(c.Meter, c.perKill));
         Object.DestroyImmediate(go);
-        HeartTierRoll.ForceTier = -1;
+        HeartTierRun.ForceTier = -1;
     }
 }

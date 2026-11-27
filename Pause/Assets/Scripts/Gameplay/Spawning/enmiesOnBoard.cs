@@ -846,7 +846,7 @@ public class enmiesOnBoard : MonoBehaviour {
         Spawn(SlotKind.Rock);
         // high power: now and then a second rock rides the same slot (HazardScaling.BurstChanceFor); it is placed by the same
         // spawn-space check (or deferred), so the lane keeps its gap
-        if (HeartTierRoll.Live && Random.value < HazardScaling.BurstChanceNow) Spawn(SlotKind.Rock);
+        if (HeartTierRun.Live && Random.value < HazardScaling.BurstChanceNow) Spawn(SlotKind.Rock);
     }
 
     // "big enemy" slot: the world's armoured heavy (SpawnLane.HeavyMaxX
