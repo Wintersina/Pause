@@ -296,6 +296,22 @@ public static class EnemyDensityProbe
                 shots += ShotsOnScreen();
                 pilots += PilotsOnScreen();
             }
+            if (seed == 0 && hud >= 20)
+            {
+                // fire-gate diagnostics (why a pilot would not fire): the volley gap, the shot budget, what is live / reserved, the pilots' own state
+                int armed = 0, volleys = 0, fired = 0;
+                var live = PilotAirspace.Live;
+                for (int i = 0; i < live.Count; i++) { if (live[i].Armed) armed++; volleys += live[i].Volleys; fired += live[i].ShotsFired; }
+                Debug.Log(string.Format("[DENSITY] fire gate hud {0}: Gap {1:F2} Budget {2} Live {3} Pending {4} Threat {5:F2} ShotSpeed {6:F2} | pilots {7} armed {8} volleys {9} shots {10} | launched {11}",
+                                        hud, EnemyThreat.Gap, EnemyThreat.ShotBudget, EnemyThreat.LiveShots, EnemyThreat.PendingShots, PlayerPower.ThreatScale,
+                                        PlayerPower.ShotSpeedScale, live.Count, armed, volleys, fired, EliteSystem.Shots.Launched));
+                // what LiveShots is made of: roster shots Active in the pool, every Active pooled shot, mine-laser beams, area-hazard threat
+                int rosterActive = 0, anyActive = 0, poolSize = 0;
+                var pool = EliteSystem.Shots.All;
+                for (int i = 0; i < pool.Count; i++) { poolSize++; if (pool[i] != null && pool[i].Active) { anyActive++; if (pool[i].RosterShot) rosterActive++; } }
+                Debug.Log(string.Format("[DENSITY] live terms hud {0}: roster active {1} | all active pooled shots {2} of {3} | mine-laser beams {4} (active lasers {5}) | hazard threat {6} (hazards {7})",
+                                        hud, rosterActive, anyActive, poolSize, RailMineLasers.LiveBeams, RailMineLasers.ActiveCount, AttackHazard.LiveThreat, AttackHazard.ActiveCount));
+            }
             total.spawnsPerSecond += (board.SpawnedCount - before) / WindowSeconds;
             total.pilots += pilots / frames;
             AddPilotStats(ref total);
