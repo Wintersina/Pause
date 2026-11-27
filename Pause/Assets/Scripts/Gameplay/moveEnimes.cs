@@ -11,6 +11,8 @@ using System.Collections;
 public class moveEnimes : MonoBehaviour, IMovementFootprint {
 
     private float itemSpeed;
+    // Hazard fall speed multiplier (HazardScaling.SpeedFor), set by the spawner for a rock; 1 for everything else.
+    [System.NonSerialized] public float SpeedScale = 1f;
     private float randPos;
     private bool alreadyMoved;
     private bool weaveSet;
@@ -80,7 +82,7 @@ public class moveEnimes : MonoBehaviour, IMovementFootprint {
         // straight down and can point back up the screen for part of its
         // spin, reading as moving backwards. World space keeps travel tied
         // to the screen, independent of whatever the sprite is doing.
-        transform.Translate(new Vector2(0, -1) * moveBackGround.speed * dt * itemSpeed, Space.World);
+        transform.Translate(new Vector2(0, -1) * moveBackGround.speed * dt * itemSpeed * SpeedScale, Space.World);
         if (!straight && transform.position.x <= 2.4 && transform.position.x >= -2.4 && alreadyMoved)
         {
             transform.position = new Vector3(WeavePlan.X(randPos, clock), transform.position.y, transform.position.z);

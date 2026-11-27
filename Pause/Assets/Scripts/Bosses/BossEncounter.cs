@@ -160,6 +160,14 @@ public class BossEncounter : MonoBehaviour
     // Hearts left (BossConfig.Hearts at the start; 0 exactly when destroyed).
     public int HeartsLeft => heartsLeft;
     public float Damage => damage;
+    // The blue / crystal bars in front of the boss's red hearts (HeartTiers.cs; none = red only). Chosen at Setup. Hits spend the outer
+    // bar first, overflow carries into the red hearts; phases, hp and the escape clock only ever read the red bar.
+    public HeartShell Shell;
+    float shellBank;     // fractional quarter units not yet spent on the shell
+    public int LayersBroken { get; private set; }
+    public int TotalQuarters => QuartersLeft + Shell.QuartersLeft;
+    public int ShownQuarters => Shell.Any ? Shell.LayerQuarters : QuartersLeft;
+    public int ShownLayer => (int)Shell.Layer;
     public int QuartersLeft => Mathf.Max(0, Mathf.CeilToInt((MaxHearts - damage) * HeartDamage.PerHeart - .0001f));
     // The boss's hit points ran out (DESTROYED), as opposed to the fight
     // clock (SURVIVED). Meaningful from the outro on.
@@ -225,6 +233,9 @@ public class BossEncounter : MonoBehaviour
         hitWindow = 0f;
         damage = 0f;
         heartsLeft = MaxHearts;
+        Shell = HeartShell.Make(HeartTierRoll.Pick(HeartTierKind.Boss), HeartTierKind.Boss, MaxHearts);
+        shellBank = 0f;
+        LayersBroken = 0;
         remaining = BossConfig.FightSeconds;
         fightClock = 0f;
         freeAtomCount = freeAtomNext = 0;
@@ -438,15 +449,28 @@ public class BossEncounter : MonoBehaviour
     {
         if (state != Phase.Fight || weight <= 0f) return;
         hits++;
-        hitBank += weight;
-        damage += weight;
+        // the blue / crystal bars first: only what is left over reaches the red hearts
+        float redWeight = weight;
+        int shellBroken = 0;
+        if (Shell.Any)
+        {
+            shellBank += weight * HeartDamage.PerHeart;
+            int units = Mathf.FloorToInt(shellBank + 1e-4f);
+            shellBank -= units;
+            int left = Shell.Absorb(units, out shellBroken);
+            LayersBroken += shellBroken;
+            if (Shell.Any) redWeight = 0f;
+            else { redWeight = (left + Mathf.Max(0f, shellBank)) * HeartDamage.Quarter; shellBank = 0f; }
+        }
+        hitBank += redWeight;
+        damage += redWeight;
         while (payHitPoints && hitBank >= 1f - 1e-4f && hp > 0) { hitBank -= 1f; hp--; }
         int was = heartsLeft;
         heartsLeft = HeartsFor(damage, hp, MaxHearts);
-        bool heartLost = heartsLeft != was, kill = hp <= 0;
+        bool heartLost = heartsLeft != was || shellBroken > 0, kill = hp <= 0;
         if (actor != null)
         {
-            actor.SetHearts(heartsLeft, at, QuartersLeft);
+            actor.SetHearts(heartsLeft, at, ShownQuarters, ShownLayer);
             // a stream of light hits flashes the boss at most every BossTarget.FxGap (damage is unaffected)
             bool throttle = Application.isPlaying || BossImpact.ClockOverride != null;
             bool lightHit = weight < .5f && !heartLost && !kill && throttle;

@@ -59,7 +59,7 @@ public class HealAtomSpawner : MonoBehaviour
         bool running = TouchInput.IsPressed || score.pauseCounter <= 0;
         if (!running) return;
 
-        timer -= dt * AdaptiveDifficulty.RecoveryScale;   // a struggling pilot gets it a bit sooner; the per-world cap is unchanged
+        timer -= dt * AdaptiveDifficulty.RecoveryScale * HealScaling.Rate;   // rarer as the run's power rises (HealScaling)   // a struggling pilot gets it a bit sooner; the per-world cap is unchanged
         if (timer > 0f) return;
         // Another atom just went out (AtomSpacing): this one waits its turn
         // with its timer run out, then rolls as usual.
@@ -69,7 +69,7 @@ public class HealAtomSpawner : MonoBehaviour
 
         // Damaged players need it; an undamaged one only gets one while the healing drone has room to bank it.
         if (collisionDetection.lifeCounter <= 0 && HealBank.Count >= HealBank.Max) return;
-        if (Random.value > chance) return;
+        if (Random.value > chance * HealScaling.Rate) return;
         // boss fight: at most BossEncounter.MaxHealAtomsPerFight in total
         if (!BossEncounter.TryReserveHealAtom()) return;
 

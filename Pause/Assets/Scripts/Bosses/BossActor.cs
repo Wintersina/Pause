@@ -436,10 +436,10 @@ public class BossActor : MonoBehaviour, IMusicPatternHost
     }
 
     // BossEncounter: `left` hearts are left after a hit at `at`.
-    public void SetHearts(int left, Vector3 at, int quarters = -1)
+    public void SetHearts(int left, Vector3 at, int quarters = -1, int layer = 0)
     {
         int before = hearts != null ? hearts.Left : left;
-        if (hearts != null) hearts.SetQuarterHealth(quarters >= 0 ? quarters : left * HeartDamage.PerHeart, at);
+        if (hearts != null) hearts.SetQuarterHealth(quarters >= 0 ? quarters : left * HeartDamage.PerHeart, at, layer);
         SetDamage(left);
         // a blow that costs a heart (not the last one: BeginOutro plays the death cue) is heard on the boss's own material
         if (mode == Mode.Fighting && left < before && left > 0 && boss != null) EnemyDeathAudio.PlayBossHurt(boss.artKey);
@@ -447,7 +447,8 @@ public class BossActor : MonoBehaviour, IMusicPatternHost
     }
 
     int loop;
-    public float CooldownScale => LoopRules.BossCooldownScale(loop);
+    // (later loops: the authored scale, and on top of it the exponential factor, capped: LoopDifficulty.BossCooldownScale)
+    public float CooldownScale => loop <= 0 ? LoopRules.BossCooldownScale(loop) : Mathf.Max(HeartTierTuning.BossCooldownMin, LoopRules.BossCooldownScale(loop) * LoopDifficulty.BossCooldownScale(loop));
     public float PatternHeadStart => LoopRules.BossHeadStart(loop);
 
     void EnsureBodyHitbox()

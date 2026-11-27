@@ -37,9 +37,9 @@ public static class GunImpactFeedback
     public static int Quarters(GameObject target)
     {
         if (target == null) return 0;
-        if (target.TryGetComponent(out EnemyHearts enemy)) return enemy.QuartersLeft;
-        if (target.TryGetComponent(out EliteShip elite)) return elite.QuartersLeft;
-        if (target.TryGetComponent(out BossTarget _) && BossEncounter.Instance != null) return BossEncounter.Instance.QuartersLeft;
+        if (target.TryGetComponent(out EnemyHearts enemy)) return enemy.TotalQuarters;
+        if (target.TryGetComponent(out EliteShip elite)) return elite.TotalQuarters;
+        if (target.TryGetComponent(out BossTarget _) && BossEncounter.Instance != null) return BossEncounter.Instance.TotalQuarters;
         return 4;
     }
     public static void Hit(bool fullHeart, bool killed)

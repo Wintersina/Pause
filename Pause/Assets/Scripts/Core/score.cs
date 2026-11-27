@@ -65,6 +65,7 @@ public class score : MonoBehaviour {
         Boosters.ResetRun();
         Boosters.BeginRush(paysRealDust);   // an Atom Rush charge is spent here, for this run only
         HazardClear.BeginRun();
+        HeartTierRoll.BeginRun(System.Environment.TickCount);   // this run's enemy-heart tier rolls (HeartTiers)
         ShotAtoms.BeginRun();   // the shot atoms are per run: a new run starts with none
         if (paysRealDust) UpgradeOfferStore.RunStarted();
         // Practice runs score nothing; developer runs score but never save a

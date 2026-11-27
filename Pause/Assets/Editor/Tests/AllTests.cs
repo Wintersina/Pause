@@ -322,6 +322,7 @@ public static class AllTests
         ("DockDroneProgressionTest", DockDroneProgressionTest.Execute),
         ("HeartQuarterFramesTest", HeartQuarterFramesTest.Execute),
         ("QuarterHeartsTest", QuarterHeartsTest.Execute),
+        ("HeartTiersTest", HeartTiersTest.Execute),
         ("RunUiPresentationTest", RunUiPresentationTest.Execute),
         ("ShotRowFirstFrameTest", ShotRowFirstFrameTest.Execute),
         ("PowerCreepTest", PowerCreepTest.Execute),

@@ -567,6 +567,12 @@ public class enmiesOnBoard : MonoBehaviour {
             var mover = go.GetComponent<moveEnimes>();
             if (mover != null) mover.SetWeave(amplitude);
         }
+        if (def.role == EnemyRole.Rock)
+        {
+            // a rock falls a little faster at high power (HazardScaling, capped); its place was found by TryPlace as ever
+            var fall = go.GetComponent<moveEnimes>();
+            if (fall != null) fall.SpeedScale = HazardScaling.SpeedNow;
+        }
         SpawnedCount++;
         return true;
     }
@@ -711,10 +717,13 @@ public class enmiesOnBoard : MonoBehaviour {
 
     float Roll(Vector2 range) { return RollWith(range, true); }
 
+    // A rock or mine delay: Roll, shorter by the run's power on top of PowerCreep (HazardScaling: capped, so a dodge line stays).
+    float RollHazard(Vector2 range) { return RollWith(range, true) / HazardScaling.ExtraRateNow; }
+
     float RollWith(Vector2 range, bool adaptive)
     {
         // ... and EnemyDensity.RateScale: fewer, smarter enemies, cut harder the faster the board scrolls
-        return Random.Range(range.x, range.y) / Mathf.Max(0.1f, DensityMultiplier() * LoopDifficulty.DensityScale)
+        return Random.Range(range.x, range.y) / Mathf.Max(0.1f, DensityMultiplier() * LoopDifficulty.DensityScale * LoopDifficulty.ExtraDensity(RunLoop.Index))
                / Mathf.Max(0.1f, EnemyDensity.RateScale(EnemyDensity.Hud) * PortalPressure.DensityScale)
                / Mathf.Max(0.1f, RunFactor())
                / (adaptive ? AdaptiveDifficulty.EnemyScale : 1f)   // pilot's flow, x0.75..x1.25 (rails stay out: they are rides)
@@ -780,7 +789,7 @@ public class enmiesOnBoard : MonoBehaviour {
         if (mineDelayTimer <= 0)
         {
             if (phase.mines) spawnMine();
-            mineDelayTimer = Roll(phase.mineInterval);
+            mineDelayTimer = RollHazard(phase.mineInterval);
         }
         if (chaserDelayTimer <= 0)
         {
@@ -800,17 +809,17 @@ public class enmiesOnBoard : MonoBehaviour {
         if (smallAstroidDelayTimer <= 0)
         {
             if (phase.smallAstroid) spawnSmallAstroid();
-            smallAstroidDelayTimer = Roll(phase.astroidInterval);
+            smallAstroidDelayTimer = RollHazard(phase.astroidInterval);
         }
         if (midAstroidDelayTimer <= 0)
         {
             if (phase.midAstroid) spawnMidAstroid();
-            midAstroidDelayTimer = Roll(phase.astroidInterval);
+            midAstroidDelayTimer = RollHazard(phase.astroidInterval);
         }
         if (bigAstroidDelayTimer <= 0)
         {
             if (phase.bigAstroid) spawnLargeAstroid();
-            bigAstroidDelayTimer = Roll(phase.astroidInterval);
+            bigAstroidDelayTimer = RollHazard(phase.astroidInterval);
         }
         if (spawnAnimatedEnimeOneDelayTimer <= 0)
         {
@@ -835,6 +844,9 @@ public class enmiesOnBoard : MonoBehaviour {
     {
         if (PostBossLeg.Active && !PostBossLeg.AdmitRock(PostBossLeg.RocksInPlay())) return;
         Spawn(SlotKind.Rock);
+        // high power: now and then a second rock rides the same slot (HazardScaling.BurstChanceFor); it is placed by the same
+        // spawn-space check (or deferred), so the lane keeps its gap
+        if (HeartTierRoll.Live && Random.value < HazardScaling.BurstChanceNow) Spawn(SlotKind.Rock);
     }
 
     // "big enemy" slot: the world's armoured heavy (SpawnLane.HeavyMaxX

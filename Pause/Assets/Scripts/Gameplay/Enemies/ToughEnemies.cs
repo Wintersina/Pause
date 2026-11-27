@@ -42,8 +42,8 @@ public static class Toughness
         if (def.IsHazard) return;   // hazards (rocks, mines) die in one player hit
         if (go.GetComponent<EnemyHearts>() == null)
         {
-            int health = HeartsFor(def);
-            go.AddComponent<EnemyHearts>().Init(health);
+            int health = LoopDifficulty.EnemyHearts(HeartsFor(def), RunLoop.Index);   // later loops: exponential, capped
+            go.AddComponent<EnemyHearts>().Init(health, HeartTierRoll.Pick(HeartTierKind.Enemy));   // (HeartTiers: crystal / blue bars in front of the red hearts, by run power)
             EnemyArmour.Mark(go, health);
             if (go.TryGetComponent(out ChaserEnemy chaser)) chaser.RecacheBurrow();
         }
@@ -98,6 +98,15 @@ public class EnemyHearts : MonoBehaviour
 {
     public int Max { get; private set; }
     int quarters;
+    // The blue / crystal bars in front of the red hearts (none: red only, exactly as before). See HeartTiers.cs.
+    public HeartShell Shell;
+    public int Tier => Shell.Tier;
+    // Quarter units across every bar left (what a hit's before / after compares).
+    public int TotalQuarters => quarters + Shell.QuartersLeft;
+    // The quarter units of the bar showing now (the shell's outer bar, else the red hearts).
+    public int ShownQuarters => Shell.Any ? Shell.LayerQuarters : quarters;
+    // Bars that broke (tests, tuning).
+    public int LayersBroken { get; private set; }
     public int Hearts => HeartDamage.WholeHearts(quarters);
     public int QuartersLeft => quarters;
     public float Health => HeartDamage.Hearts(quarters);
@@ -109,10 +118,11 @@ public class EnemyHearts : MonoBehaviour
     bool impactPending;
     Vector3 impactAt;
 
-    public void Init(int hearts)
+    public void Init(int hearts, int tier = 0)
     {
         Max = Mathf.Max(1, hearts);
         quarters = Max * HeartDamage.PerHeart;
+        Shell = HeartShell.Make(tier, HeartTierKind.Enemy, Max);
         lastHit = -999f;
         if (EnemyHeartsView.Live < Toughness.MaxHeartViews && GetComponent<SpriteRenderer>() != null)
         {
@@ -128,7 +138,14 @@ public class EnemyHearts : MonoBehaviour
         float now = Toughness.Now;
         lastHit = now;
         Strikes++;
-        quarters = Mathf.Max(0, quarters - HeartDamage.Units(amount));
+        int units = HeartDamage.Units(amount);
+        if (Shell.Any)
+        {
+            int broken;
+            units = Shell.Absorb(units, out broken);   // the outer bar first; overflow carries inward
+            LayersBroken += broken;
+        }
+        quarters = Mathf.Max(0, quarters - units);
         impactPending = true;
         impactAt = from;
         if (View != null) View.Refresh();
@@ -189,7 +206,9 @@ public class EnemyHeartsView : HeartOrbit
     protected override void LateUpdate()
     {
         base.LateUpdate();
-        if (chaser == null || !chaser.Buried || Hearts == null) return;
+        if (chaser == null || Hearts == null) return;
+        HideUnder(chaser.Buried);
+        if (!chaser.Buried) return;
         for (int i = 0; i < Hearts.Length; i++)
             if (Hearts[i] != null) { var r = Hearts[i].GetComponent<SpriteRenderer>(); if (r != null) r.enabled = false; }
         for (int i = 0; i < Hearts.Length; i++)
@@ -208,9 +227,11 @@ public class EnemyHeartsView : HeartOrbit
 
     public void Refresh() { Update(); }
 
-    protected override int RemainingHearts() { return owner != null ? owner.Hearts : 0; }
+    protected override int RemainingHearts() { return owner != null ? HeartDamage.WholeHearts(owner.ShownQuarters) : 0; }
     protected override bool UsesQuarterHearts => true;
-    protected override int RemainingQuarterUnits() => owner != null ? owner.QuartersLeft : 0;
+    protected override int RemainingQuarterUnits() => owner != null ? owner.ShownQuarters : 0;
+    protected override int CurrentLayer => owner != null ? (int)owner.Shell.Layer : 0;
+    protected override int TopLayer => owner != null ? owner.Tier : 0;
 
     protected override bool TakeImpact(out Vector3 at)
     {
