@@ -132,6 +132,7 @@ public static class FirstUseWarm
     {
         FirstUseWarm.Add("heart:quarters", ShipLivesIndicator.HeartSpritePath, typeof(Sprite),
             () => HeartQuarterFrames.For(Resources.Load<Sprite>(ShipLivesIndicator.HeartSpritePath)));
+        FirstUseWarm.Add("heart:tiers", HeartArt.Warm);   // the blue / crystal hearts (HeartTiers)
         FirstUseWarm.Add("drone:icons", DronePickupArt.Prewarm);
         FirstUseWarm.Add("dock:loadout", () => { var glyph = DockLoadoutArt.Drone; });
         for (int atom = 0; atom < ShotAtomTuning.Count; atom++)

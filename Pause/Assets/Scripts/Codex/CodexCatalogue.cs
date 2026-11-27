@@ -316,6 +316,7 @@ public static class CodexCatalogue
             ? "EACH COIN  speeds up ALL your drones at once (one shared level)"
             : "EACH COIN  activates an empty drone in the current mode, or upgrades the weakest eligible drone; preview the labelled recipient");
         lines.Add("HEART DAMAGE  25% = one quarter, 50% = half, 75% = three quarters, 100% = one heart; same for enemies, elites and bosses");
+        lines.Add("LAYERED HEARTS  strong runs meet BLUE and CRYSTAL hearts in front of the red ones: crystal breaks first, then blue, then red. It only dies when the red hearts are gone");
         // the range of the effect: the first level and the last (ten levels would be a wall of text)
         lines.Add("LEVEL 1  " + ShotAtomLevelText(atom, 1));
         lines.Add("LEVEL " + ShotAtomTuning.MaxLevel + "  " + ShotAtomLevelText(atom, ShotAtomTuning.MaxLevel));

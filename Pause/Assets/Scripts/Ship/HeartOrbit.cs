@@ -170,6 +170,26 @@ public abstract class HeartOrbit : MonoBehaviour
     int[] quarterShown;
     const int QuarterBreakPool = 8;
     struct QuarterBreak { public bool live; public float age; public int part; public Vector3 at, scale, worldScale; public Quaternion rotation; }
+
+    // ---- tiered hearts (HeartTiers): an owner with a crystal / blue bar in front of its red hearts ----
+    // The orbit shows ONE bar at a time (the outermost left), drawn from that bar's own art (HeartArt); the bars beneath peek out as
+    // offset copies under each heart (one copy per bar left), so the stack reads at a glance. A red-only owner never touches any of it.
+    const int FlipPool = 8;
+    struct FlipBreak { public bool live; public float age; public int layer; public Vector3 at, scale; public Quaternion rotation; }
+    FlipBreak[] flips;
+    SpriteRenderer[] flipPieces;
+    HeartQuarterFrames.Set[] layerFrames;
+    Sprite[][] layerOutlines;           // [layer][quarters 1..4]
+    Sprite[][] idleOutlines;            // [layer][frame]
+    SpriteRenderer[] under1, under2;
+    int shownLayer;
+    bool underHidden;
+    // A burrowed chaser hides its hearts: the bars beneath go too.
+    public void HideUnder(bool hidden) { underHidden = hidden; }
+    const float UnderStep = .13f;       // local units (sprite is 64 px = .64): how far each bar beneath peeks out
+    // 0 red, 1 blue, 2 crystal: the bar showing now / the highest bar this owner has (0: a red-only owner).
+    protected virtual int CurrentLayer => 0;
+    protected virtual int TopLayer => 0;
     QuarterBreak[] quarterBreaks;
     SpriteRenderer[] quarterPieces;
 
@@ -178,6 +198,12 @@ public abstract class HeartOrbit : MonoBehaviour
     {
         get { int n = 0; if (quarterBreaks != null) foreach (var b in quarterBreaks) if (b.live) n++; return n; }
     }
+
+    public int ActiveFlips
+    {
+        get { int n = 0; if (flips != null) foreach (var b in flips) if (b.live) n++; return n; }
+    }
+    public int ShownLayer => shownLayer;
 
     static Vector2[] shardHome;       // each shard's centre in the heart, unit heart size
 
@@ -214,7 +240,7 @@ public abstract class HeartOrbit : MonoBehaviour
         {
             int n = 0;
             if (breaks != null) foreach (var b in breaks) if (b.live) n++;
-            return n + ActiveQuarterBreaks;
+            return n + ActiveQuarterBreaks + ActiveFlips;
         }
     }
     // Where break slot b's heart is shielding (world), and how far in it is.
@@ -422,6 +448,7 @@ public abstract class HeartOrbit : MonoBehaviour
         pendingDestroy.Clear();
         breaks = null;
         quarterBreaks = null; quarterPieces = null; quarterShown = null; quarterOutlines = null; quarterFrames = null;
+        flips = null; flipPieces = null; layerFrames = null; layerOutlines = null; idleOutlines = null; under1 = null; under2 = null; shownLayer = 0;
     }
     static readonly List<GameObject> pendingDestroy = new List<GameObject>();
 
@@ -602,6 +629,7 @@ public abstract class HeartOrbit : MonoBehaviour
         if (breaks == null) return;
         dt = Mathf.Max(0f, dt);
         StepQuarterBreaks(dt);
+        StepFlips(dt);
         Vector3 p = transform.position;
         var burstFrames = ShieldArt.Impact;
         for (int b = 0; b < breaks.Length; b++)
@@ -820,10 +848,137 @@ public abstract class HeartOrbit : MonoBehaviour
         Transform root = transform.Find("~HeartBreaks");
         for (int i = 0; i < QuarterBreakPool; i++)
             quarterPieces[i] = NewPiece(root, "Quarter" + i, quarterFrames.Parts[0], frontOrder + 2);
+        if (TopLayer > 0) BuildLayers(root, source);
+    }
+
+    void BuildLayers(Transform root, Sprite redSource)
+    {
+        int top = Mathf.Clamp(TopLayer, 1, 2);
+        layerFrames = new HeartQuarterFrames.Set[top + 1];
+        layerOutlines = new Sprite[top + 1][];
+        idleOutlines = new Sprite[top + 1][];
+        layerFrames[0] = quarterFrames;
+        for (int l = 0; l <= top; l++)
+        {
+            if (l > 0) layerFrames[l] = HeartQuarterFrames.For(HeartArt.Full(l)) ?? quarterFrames;
+            if (outlines == null) continue;
+            layerOutlines[l] = new Sprite[5];
+            for (int q = 1; q <= 4; q++) layerOutlines[l][q] = OutlineFor(layerFrames[l].States[q]);
+            idleOutlines[l] = new Sprite[HeartArt.Frames];
+            for (int f = 0; f < HeartArt.Frames; f++) idleOutlines[l][f] = l == 0 ? null : OutlineFor(HeartArt.Idle(l)[f]);
+        }
+        flips = new FlipBreak[FlipPool];
+        flipPieces = new SpriteRenderer[FlipPool];
+        for (int i = 0; i < FlipPool; i++) flipPieces[i] = NewPiece(root, "Flip" + i, HeartArt.Break(top)[0], frontOrder + 3);
+        under1 = new SpriteRenderer[hearts.Length];
+        under2 = top >= 2 ? new SpriteRenderer[hearts.Length] : null;
+        for (int i = 0; i < hearts.Length; i++)
+        {
+            under1[i] = NewUnder(hearts[i], 1);
+            if (under2 != null) under2[i] = NewUnder(hearts[i], 2);
+        }
+        shownLayer = Mathf.Clamp(CurrentLayer, 0, top);
+        ApplyLayer(false);
+    }
+
+    SpriteRenderer NewUnder(Transform heart, int k)
+    {
+        var go = new GameObject("HeartUnder" + k);
+        go.transform.SetParent(heart, false);
+        go.transform.localPosition = new Vector3(0f, -UnderStep * k, 0f);
+        var sr = go.AddComponent<SpriteRenderer>();
+        sr.sortingOrder = frontOrder - 1 - k;
+        sr.enabled = false;
+        return sr;
+    }
+
+    // Puts the shown bar's art on every heart and the bars beneath under it (a layer change, or the first build). Never animates a loss.
+    void ApplyLayer(bool animate)
+    {
+        quarterFrames = layerFrames[shownLayer];
+        int units = Mathf.Clamp(RemainingQuarterUnits(), 0, hearts.Length * HeartDamage.PerHeart);
+        for (int i = 0; i < hearts.Length; i++)
+        {
+            if (hearts[i] == null) continue;
+            int q = Mathf.Clamp(units - i * 4, 0, 4);
+            quarterShown[i] = q;
+            renderers[i].sprite = quarterFrames.States[q];
+            if (outlines != null && layerOutlines[shownLayer] != null) outlines[i].sprite = layerOutlines[shownLayer][q];
+            bool was = hearts[i].gameObject.activeSelf;
+            hearts[i].gameObject.SetActive(q > 0);
+            if (animate && q > 0) popLeft[i] = PopSeconds;
+            if (under1[i] != null) { under1[i].sprite = shownLayer >= 1 ? HeartArt.Full(shownLayer - 1) : null; under1[i].enabled = shownLayer >= 1; }
+            if (under2 != null && under2[i] != null) { under2[i].sprite = shownLayer >= 2 ? HeartArt.Full(0) : null; under2[i].enabled = shownLayer >= 2; }
+        }
+        lastShown = HeartDamage.WholeHearts(units);
+    }
+
+    // The bar showing changed (one broke): every shown heart of the old bar breaks with its own flipbook, a thin flash of chips at
+    // the owner, then the next bar's hearts pop in. Pooled; nothing is built here.
+    void SwitchLayer(int layer)
+    {
+        int old = shownLayer;
+        for (int i = 0; i < hearts.Length; i++)
+            if (hearts[i] != null && hearts[i].gameObject.activeSelf && quarterShown[i] > 0) StartFlip(i, old);
+        RockHitFx.Chips(transform.position, Vector2.up, HeartShell.FlashColour(old), 4);
+        shownLayer = layer;
+        ApplyLayer(true);
+    }
+
+    void StartFlip(int heart, int layer)
+    {
+        if (flips == null || hearts[heart] == null) return;
+        int slot = 0;
+        for (int i = 0; i < flips.Length; i++)
+        {
+            if (!flips[i].live) { slot = i; break; }
+            if (flips[i].age > flips[slot].age) slot = i;
+        }
+        flips[slot] = new FlipBreak { live = true, layer = layer, at = hearts[heart].position, rotation = hearts[heart].rotation, scale = hearts[heart].lossyScale };
+        var piece = flipPieces[slot];
+        piece.sprite = HeartArt.Break(layer)[0];
+        piece.color = Color.white;
+        piece.transform.position = hearts[heart].position;
+        piece.transform.rotation = hearts[heart].rotation;
+        piece.transform.localScale = hearts[heart].lossyScale;
+        piece.enabled = true;
+    }
+
+    void StepFlips(float dt)
+    {
+        if (flips == null) return;
+        for (int i = 0; i < flips.Length; i++)
+        {
+            var b = flips[i];
+            if (!b.live) continue;
+            b.age += dt;
+            if (b.age >= HeartArt.BreakSeconds) { b.live = false; flipPieces[i].enabled = false; }
+            else flipPieces[i].sprite = HeartArt.Break(b.layer)[HeartArt.BreakFrame(b.age)];
+            flips[i] = b;
+        }
+    }
+
+    // A full heart of a bar plays its idle flipbook; partial hearts hold their quarter drawing.
+    void AnimateIdle()
+    {
+        if (layerFrames == null || shownLayer == 0) return;   // (red keeps its single drawing, exactly as before)
+        var frames = HeartArt.Idle(shownLayer);
+        var lines = idleOutlines != null ? idleOutlines[shownLayer] : null;
+        for (int i = 0; i < hearts.Length; i++)
+        {
+            if (hearts[i] == null || quarterShown[i] != 4) continue;
+            int f = HeartArt.IdleFrame(clock, i);
+            if (renderers[i].sprite != frames[f]) { renderers[i].sprite = frames[f]; if (lines != null && lines[f] != null) outlines[i].sprite = lines[f]; }
+        }
     }
 
     void UpdateQuarterHearts()
     {
+        if (layerFrames != null)
+        {
+            int want = Mathf.Clamp(CurrentLayer, 0, layerFrames.Length - 1);
+            if (want != shownLayer) SwitchLayer(want);
+        }
         int units = Mathf.Clamp(RemainingQuarterUnits(), 0, hearts.Length * HeartDamage.PerHeart);
         int count = HeartDamage.WholeHearts(units);
         Vector3 impact;
@@ -837,16 +992,18 @@ public abstract class HeartOrbit : MonoBehaviour
             {
                 // Full-heart blows retain the existing shield/crumble. Fractional losses only
                 // shed the sections still present, so a damaged heart never reappears whole.
-                if (old == 4 && q == 0) StartShield(i, impact);
+                if (old == 4 && q == 0 && shownLayer > 0) StartFlip(i, shownLayer);
+                else if (old == 4 && q == 0) StartShield(i, impact);
                 else for (int part = 4 - old; part < 4 - q; part++) StartQuarterBreak(i, part);
             }
             renderers[i].sprite = quarterFrames.States[q];
-            if (outlines != null) outlines[i].sprite = quarterOutlines[q];
+            if (outlines != null) outlines[i].sprite = shownLayer > 0 && layerOutlines != null ? layerOutlines[shownLayer][q] : quarterOutlines[q];
             if (!was && q > 0 && lastShown >= 0) Healed(i, count);
             hearts[i].gameObject.SetActive(q > 0);
             quarterShown[i] = q;
         }
         lastShown = count;
+        if (layerFrames != null) AnimateIdle();
         if (units == 0) ReleaseQuarterBreaks();
     }
 
@@ -930,6 +1087,8 @@ public abstract class HeartOrbit : MonoBehaviour
         Sw(popLeft, a, b); Sw(depth, a, b); Sw(ghostAmt, a, b); Sw(ghostNow, a, b); Sw(shrink, a, b); Sw(lean, a, b); Sw(push, a, b);
         Sw(pos, a, b); Sw(tangent, a, b);
         if (outlines != null) Sw(outlines, a, b);
+        if (under1 != null) Sw(under1, a, b);
+        if (under2 != null) Sw(under2, a, b);
     }
     static void Sw<T>(T[] arr, int a, int b) { T t = arr[a]; arr[a] = arr[b]; arr[b] = t; }
 
@@ -1259,6 +1418,14 @@ public abstract class HeartOrbit : MonoBehaviour
                     if (line.sortingOrder != order - 1) line.sortingOrder = order - 1;
                     if (!line.enabled) line.enabled = true;
                     line.color = new Color(lit, lit, lit, tint.a * seen * HeartOutline.Pulse(clock));
+                }
+                if (under1 != null)
+                {
+                    var c = sr.color;
+                    var u1 = under1[i];
+                    if (u1 != null && shownLayer >= 1) { u1.enabled = !underHidden; u1.color = c; if (u1.sortingOrder != order - 2) u1.sortingOrder = order - 2; }
+                    var u2 = under2 != null ? under2[i] : null;
+                    if (u2 != null && shownLayer >= 2) { u2.enabled = !underHidden; u2.color = c; if (u2.sortingOrder != order - 3) u2.sortingOrder = order - 3; }
                 }
             }
         }

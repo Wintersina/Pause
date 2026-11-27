@@ -50,9 +50,11 @@ public class EliteHearts : HeartOrbit
     // Applies a lost heart now (EliteShip.TakeHit) instead of next frame.
     public void Refresh() { Update(); }
 
-    protected override int RemainingHearts() { return ship != null ? ship.Hearts : 0; }
+    protected override int RemainingHearts() { return ship != null ? HeartDamage.WholeHearts(ship.ShownQuarters) : 0; }
     protected override bool UsesQuarterHearts => true;
-    protected override int RemainingQuarterUnits() => ship != null ? ship.QuartersLeft : 0;
+    protected override int RemainingQuarterUnits() => ship != null ? ship.ShownQuarters : 0;
+    protected override int CurrentLayer => ship != null ? (int)ship.Shell.Layer : 0;
+    protected override int TopLayer => ship != null ? ship.Shell.Tier : 0;
 
     protected override bool TakeImpact(out Vector3 at)
     {
