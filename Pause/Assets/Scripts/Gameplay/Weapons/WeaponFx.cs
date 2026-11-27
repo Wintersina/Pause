@@ -266,7 +266,7 @@ public class WeaponShot : MonoBehaviour
         if (!Active) return;
         age += dt;
         // a mark that has scrolled off the screen is let go: the shot never chases it out of view
-        if (target == null || !ShipTargets.InHomingView(target.position)) { Finish(false); return; }
+        if (target == null || EnemyLife.Gone(target) || !ShipTargets.InHomingView(target.position)) { Finish(false); return; }
         Vector3 pos = transform.position;
         Vector3 to = target.position - pos;
         to.z = 0f;
@@ -366,7 +366,7 @@ public class WeaponShot : MonoBehaviour
         Vector3 at = transform.position;
         var callback = onHit;
         onHit = null;
-        bool landed = hit && target != null;
+        bool landed = hit && target != null && !EnemyLife.Gone(target);
         target = null;
         WeaponFx.Impact(ship, at, landed ? .7f : .35f);
         gameObject.SetActive(false);

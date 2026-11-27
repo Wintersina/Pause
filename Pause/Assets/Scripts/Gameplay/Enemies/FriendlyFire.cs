@@ -430,34 +430,56 @@ public static class FriendlyFire
     public static bool FreeMover(GameObject go) =>
         go.TryGetComponent(out ChaserEnemy _) || go.TryGetComponent(out moveEnimes _);
 
+    // Per-step snapshot of the bodies a crash may involve (everything CanHit and not an elite): the pair test below then runs on
+    // plain data, not on four native lookups (tag, enabled, three TryGetComponents) per body per pair, which was O(n^2) native calls
+    // a frame in a dense fight. Same candidates, same order, same first crash as the old nested loop.
+    static ClearTarget[] crashBody = new ClearTarget[64];
+    static Vector2[] crashPos = new Vector2[64];
+    static float[] crashRadius = new float[64];
+
     // One crash a step at most (the registry changes under a kill).
     public static bool StepCrashes(Rect view)
     {
         if (DeathCrash.Running) return false;
         var live = ClearTarget.Live;
+        int n = 0;
         for (int i = 0; i < live.Count; i++)
         {
             var a = live[i];
             if (!CanHit(a) || a.TryGetComponent(out EliteShip _)) continue;
-            Vector2 pa = a.transform.position;
-            if (!view.Contains(pa) || !FreeMover(a.gameObject)) continue;
-            for (int j = 0; j < live.Count; j++)
+            if (n == crashBody.Length)
+            {
+                System.Array.Resize(ref crashBody, n * 2);
+                System.Array.Resize(ref crashPos, n * 2);
+                System.Array.Resize(ref crashRadius, n * 2);
+            }
+            crashBody[n] = a;
+            crashPos[n] = a.transform.position;
+            crashRadius[n] = a.Radius;
+            n++;
+        }
+        bool crashed = false;
+        for (int i = 0; i < n && !crashed; i++)
+        {
+            Vector2 pa = crashPos[i];
+            if (!view.Contains(pa) || !FreeMover(crashBody[i].gameObject)) continue;
+            for (int j = 0; j < n; j++)
             {
                 if (j == i) continue;
-                var b = live[j];
-                if (!CanHit(b) || b.TryGetComponent(out EliteShip _)) continue;
-                Vector2 pb = b.transform.position;
-                float r = (a.Radius + b.Radius) * CrashOverlap;
+                Vector2 pb = crashPos[j];
+                float r = (crashRadius[i] + crashRadius[j]) * CrashOverlap;
                 if ((pa - pb).sqrMagnitude > r * r || !view.Contains(pb)) continue;
                 Crashes++;
-                var ga = a.gameObject;
-                var gb = b.gameObject;
+                var ga = crashBody[i].gameObject;
+                var gb = crashBody[j].gameObject;
+                crashed = true;
                 Hit(gb, pa);
                 Hit(ga, pb);
-                return true;
+                break;
             }
         }
-        return false;
+        for (int i = 0; i < n; i++) crashBody[i] = null;   // hold nothing past the step
+        return crashed;
     }
 }
 

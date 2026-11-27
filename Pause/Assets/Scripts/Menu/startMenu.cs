@@ -10,7 +10,9 @@ public class startMenu : MonoBehaviour {
     public static bool playerDied;
     public static bool youAreInTutorial;
     public static int spawnTracker;
-    private int layoutWidth, layoutHeight;
+    private int layoutWidth, layoutHeight, layoutTextStamp;
+    private float nextTextCheck;
+    private Transform menuPanel;
     private float layoutCamSize;
     private float logoBaseY = float.NaN;   // the scene's authored logo height, before any lift
     private Vector3 logoBaseScale = Vector3.one;
@@ -49,6 +51,13 @@ public class startMenu : MonoBehaviour {
         if (layoutWidth != ScreenInfo.Width || layoutHeight != ScreenInfo.Height ||
             (cam != null && cam.orthographic && !Mathf.Approximately(layoutCamSize, cam.orthographicSize)))
             LayoutHome();
+        else if (Time.unscaledTime >= nextTextCheck)
+        {
+            // a label changed (language, a counter): the plates re-hug it (twice a second, not every frame)
+            nextTextCheck = Time.unscaledTime + .5f;
+            if (menuPanel == null) { var go = SceneUtil.FindAny("UIPanel"); menuPanel = go != null ? go.transform : null; }
+            if (menuPanel != null && HomeButtonFit.TextStamp(menuPanel) != layoutTextStamp) LayoutHome();
+        }
         // Back/Escape is BackNavigator's: on the home screen it closes the
         // codex one level at a time, then quits on a second press within
         // two seconds ("press back again to quit").
@@ -127,6 +136,7 @@ public class startMenu : MonoBehaviour {
         if (group != null)
         {
             group.spacing = 12f;
+            group.childForceExpandWidth = false;   // each row is as wide as its own label (HomeButtonFit.FitColumn)
             group.childAlignment = TextAnchor.MiddleCenter;
             EvenOutRows(panel.transform, group.spacing);
         }
@@ -212,6 +222,11 @@ public class startMenu : MonoBehaviour {
                 label.resizeTextMaxSize = name == "QuitButton" || name == PrivacyButtonName ? 28 : 38;
             }
         }
+        // Every button's plate hugs its own label (text preferred width + equal padding); finger-sized hit areas stay.
+        if (panel != null) HomeButtonFit.FitColumn(panel.transform, Mathf.Min(520f, width * 0.78f));
+        foreach (string name in new[] { "QuitButton", PrivacyButtonName, HomeSignIn.ButtonName })
+            HomeButtonFit.FitFooter(name, FooterRowUnits, FooterSideGap * .5f);
+        layoutTextStamp = HomeButtonFit.TextStamp(panel != null ? panel.transform : null);
         // Short / wide screens: the column rose (footer deficit) or the canvas floor scaled it up while the world-space
         // logo stayed put. Whatever the shape, the logo ends up clear of the column (lifted, then shrunk if need be).
         float rowShare = (columnHeight - group_spacing * (rowCount - 1)) / rowCount;

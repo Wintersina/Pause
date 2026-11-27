@@ -239,6 +239,7 @@ public class FloatieBattery : MonoBehaviour
         tint = WeaponStyleTable.For(shipId).energy;
         FloatieBullets.Prebuild(FloatieTuning.PoolSize);
         FloatieFx.Prebuild();
+        GunImpactFeedback.Prewarm();   // the three hit clips and their voices, built now, not on the first hit of a fight
         Refresh();
     }
 
@@ -409,9 +410,17 @@ public class FloatieBattery : MonoBehaviour
         pendingSet = true;
     }
 
+    // Running count of this battery's bullets in the air, per source floatie (FloatieBullets keeps it).
+    readonly int[] liveBy = new int[DroneSquad.MaxSlots + 1];
+    internal void NoteLive(int source, int d)
+    {
+        if (source >= 0 && source < liveBy.Length) liveBy[source] = Mathf.Max(0, liveBy[source] + d);
+    }
+
     // The bullets of floatie `index` in the air now.
     public int LiveBy(int index)
     {
+        if (index >= 0 && index < liveBy.Length) return liveBy[index];
         int n = 0;
         var all = FloatieBullets.All;
         for (int i = 0; i < all.Count; i++) if (all[i].Active && all[i].Owner == this && all[i].Source == index) n++;

@@ -410,7 +410,7 @@ public static class ShotFeelTest
         ShotAtoms.BeginRun(3); ArmSquad(6);
         for (int a = 0; a < ShotAtomTuning.PerDroneAtoms; a++) ShotAtoms.SetLevel(0, (ShotAtom)a, 10);
         Check("power pressure is capped and counts earned drone strength; one maxed drone of six is " + ShotAtoms.PowerLevel,
-              full6 && full3 && ShotAtoms.PowerLevel == 22);
+              full6 && full3 && ShotAtoms.PowerLevel == 37);
         Teardown(r);
         ShotAtoms.BeginRun(3); ArmSquad(6);
     }

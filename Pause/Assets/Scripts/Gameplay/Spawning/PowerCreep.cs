@@ -5,19 +5,20 @@ using UnityEngine;
 // never dilutes existing power. Two multipliers read it:
 //
 //   SpawnScale     ordinary enemy / hazard spawn RATE (the spawn delays are divided by it, enmiesOnBoard.RollWith, next to
-//                  AdaptiveDifficulty): x1 at power 0, up to x1.7 at power 60
-//   EliteGapScale  the gap between elites (EliteDirector.NextGap is multiplied by it): x1 at power 0, down to x0.55 at power 60
+//                  AdaptiveDifficulty): x1 at power 0, up to x2 at power 60
+//   EliteGapScale  the gap between elites (EliteDirector.NextGap is multiplied by it): x1 at power 0, down to x0.5 at power 60
 //
-// Both follow the same gentle curve, t^Exponent with t = power / MaxPower: slow at first, steeper late, monotonic, capped.
+// Both follow the same responsive curve, t^Exponent with t = power / MaxPower: responsive to the opening pickups, monotonic, capped.
 // Unchanged by it: bosses, the one-elite-at-a-time rule (EliteDirector.MaxAlive), the landing-site / dock rules, the first-elite
-// delay, enemy hit points and damage. Rails (rides) are not scaled, as for AdaptiveDifficulty.
+// delay and hit damage. Toughness also reads PowerLevel when assigning new armoured hulls.
+// Rails (rides) are not scaled, as for AdaptiveDifficulty.
 // EVERY number lives here.
 public static class PowerCreep
 {
     public const int MaxPower = ShotAtoms.MaxPower;       // 60
-    public const float Exponent = 1.2f;                   // the curve's bend (1 = a straight line)
-    public const float MaxSpawnBonus = .7f;               // +70% enemies at full power
-    public const float MaxEliteGapCut = .45f;             // elite gaps 45% shorter at full power
+    public const float Exponent = .75f;                   // the curve's bend (1 = a straight line)
+    public const float MaxSpawnBonus = 1f;               // +100% enemies at full power
+    public const float MaxEliteGapCut = .5f;             // elite gaps 50% shorter at full power
 
     // Tests: stand in for the run's power (negative: ask ShotAtoms).
     public static int PowerOverride = -1;

@@ -3,13 +3,17 @@ using UnityEngine;
 public sealed class DroneCorePickup : MonoBehaviour
 {
     public DroneMode mode;
-    public DroneCoreChoiceGroup group;
-    public bool TryClaim() => group == null || group.TryClaim(this);
+    bool claimed;
+    public bool TryClaim()
+    {
+        if (claimed) return false;
+        claimed = true;
+        return true;
+    }
     public void Consume()
     {
-        var root = group != null ? group.gameObject : gameObject;
-        if (Application.isPlaying) Pooled.Destroy(root);
-        else Object.DestroyImmediate(root);
+        if (Application.isPlaying) Pooled.Destroy(gameObject);
+        else Object.DestroyImmediate(gameObject);
     }
     public static GameObject Spawn(DroneMode mode, Vector3 at)
     {
@@ -19,19 +23,11 @@ public sealed class DroneCorePickup : MonoBehaviour
         SpawnFootprint.Attach(go, Vector2.one * .20f, SpawnLayer.Pickup);
         return go;
     }
-    public static void SpawnChoice(Vector3 at)
+    public static GameObject SpawnRandom(Vector3 at, float roll = -1f)
     {
-        var root = new GameObject("~DroneCoreChoice").AddComponent<DroneCoreChoiceGroup>();
-        float middle = Mathf.Clamp(at.x, -RailInset.PickupLaneHalf + .8f, RailInset.PickupLaneHalf - .8f);
-        var preferred = DroneSquad.PreferredMode;
-        int outside = 0;
-        foreach (var mode in new[] { DroneMode.Straight, DroneMode.Alternating, DroneMode.Aimed })
-        {
-            float dx = mode == preferred ? 0f : (++outside == 1 ? -.8f : .8f);
-            var go = Spawn(mode, new Vector3(middle + dx, at.y, 0f));
-            go.transform.SetParent(root.transform, true);
-            go.GetComponent<DroneCorePickup>().group = root;
-        }
+        if (roll < 0f) roll = Random.value;
+        int index = Mathf.Min(2, Mathf.FloorToInt(Mathf.Clamp01(roll) * 3f));
+        return Spawn((DroneMode)(1 + index), at);
     }
     public static GameObject Build(DroneMode mode, Vector3 at)
     {
@@ -48,18 +44,4 @@ public sealed class DroneCorePickup : MonoBehaviour
         go.AddComponent<DronePickupPreview>();
         return go;
     }
-}
-
-public sealed class DroneCoreChoiceGroup : MonoBehaviour
-{
-    bool claimed;
-    public bool TryClaim(DroneCorePickup selected)
-    {
-        if (claimed) return false;
-        claimed = true;
-        foreach (var core in GetComponentsInChildren<DroneCorePickup>())
-            if (core != selected) core.gameObject.SetActive(false);
-        return true;
-    }
-    void Update() { if (transform.childCount == 0) Destroy(gameObject); }
 }

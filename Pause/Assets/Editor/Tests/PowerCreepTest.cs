@@ -30,6 +30,11 @@ public static class PowerCreepTest
             Check("... 11 with TWIN 4 and RAPID 7", ShotAtoms.PowerLevel == 11 && PowerCreep.PowerLevel == 11);
             for (int i = 0; i < ShotAtomTuning.Count; i++) ShotAtoms.SetLevel((ShotAtom)i, ShotAtomTuning.MaxLevel);
             Check("... 60 with all six maxed", PowerCreep.PowerLevel == 60 && PowerCreep.MaxPower == 60);
+            ShotAtoms.BeginRun(3);
+            DroneSquad.CollectCore(DroneMode.Aimed);
+            ShotAtoms.Collect(ShotAtom.Twin);
+            ShotAtoms.Collect(ShotAtom.Twin);
+            Check("opening pickups count the firepower of three active drones", ShotAtoms.PowerLevel >= 8 && PowerCreep.SpawnScale >= 1.2f);
             ShotAtoms.BeginRun();
 
             Check("at power 0 both multipliers are exactly 1 (today's values)", PowerCreep.SpawnScaleFor(0) == 1f && PowerCreep.EliteGapScaleFor(0) == 1f);
@@ -44,10 +49,10 @@ public static class PowerCreepTest
             }
             Check("the spawn rate rises and the elite gap falls with every power level", mono);
             Check("... both are capped: x" + PowerCreep.SpawnScaleFor(60).ToString("0.00") + " enemies and x" + PowerCreep.EliteGapScaleFor(60).ToString("0.00") + " elite gap at 60, flat beyond it (and below 0)", capped &&
-                  Mathf.Abs(PowerCreep.SpawnScaleFor(60) - 1.7f) < 1e-4f && Mathf.Abs(PowerCreep.EliteGapScaleFor(60) - .55f) < 1e-4f &&
+                  Mathf.Abs(PowerCreep.SpawnScaleFor(60) - 2f) < 1e-4f && Mathf.Abs(PowerCreep.EliteGapScaleFor(60) - .5f) < 1e-4f &&
                   PowerCreep.SpawnScaleFor(99) == PowerCreep.SpawnScaleFor(60) && PowerCreep.SpawnScaleFor(-5) == 1f);
-            Check("... the curve is gentle: half the power gives under half the bonus (x" + PowerCreep.SpawnScaleFor(30).ToString("0.00") + " at 30)", PowerCreep.SpawnScaleFor(30) < 1f + PowerCreep.MaxSpawnBonus * .5f);
-            Check("the overall spawn bonus is within +60..80% and the elite gap cut within 40..50%", PowerCreep.MaxSpawnBonus >= .6f && PowerCreep.MaxSpawnBonus <= .8f &&
+            Check("... the curve responds to early upgrades: half the power gives over half the bonus (x" + PowerCreep.SpawnScaleFor(30).ToString("0.00") + " at 30)", PowerCreep.SpawnScaleFor(30) > 1f + PowerCreep.MaxSpawnBonus * .5f);
+            Check("the overall spawn bonus is within +90..100% and the elite gap cut within 40..50%", PowerCreep.MaxSpawnBonus >= .9f && PowerCreep.MaxSpawnBonus <= 1f &&
                   PowerCreep.MaxEliteGapCut >= .4f && PowerCreep.MaxEliteGapCut <= .5f);
 
             // the elite director: today's gap at power 0, shorter at 60, still one elite at a time
@@ -59,10 +64,10 @@ public static class PowerCreepTest
             for (int i = 0; i < 50; i++)
             {
                 float g = EliteDirector.NextGap();
-                full &= g >= EliteDirector.GapSeconds.x / LoopScale() * .55f - 1e-3f && g <= EliteDirector.GapSeconds.y / LoopScale() * .55f + 1e-3f;
+                full &= g >= EliteDirector.GapSeconds.x / LoopScale() * .5f - 1e-3f && g <= EliteDirector.GapSeconds.y / LoopScale() * .5f + 1e-3f;
             }
             PowerCreep.PowerOverride = -1;
-            Check("EliteDirector.NextGap is the old 16-32 s range at power 0 and 45% shorter at power 60", zero && full);
+            Check("EliteDirector.NextGap is the old 16-32 s range at power 0 and 50% shorter at power 60", zero && full);
             Check("... one elite alive at a time still holds (MaxAlive 1)", EliteDirector.MaxAlive == 1);
 
             string spawner = File.ReadAllText("Assets/Scripts/Gameplay/Spawning/enmiesOnBoard.cs");

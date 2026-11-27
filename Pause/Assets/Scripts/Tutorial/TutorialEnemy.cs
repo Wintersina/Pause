@@ -56,7 +56,7 @@ public class TutorialEnemy : MonoBehaviour
         float bottom, top;
         TutorialAtomDrift.View(out bottom, out top);
         x = Mathf.Clamp(x, -LaneHalfWidth + SwayAmplitude, LaneHalfWidth - SwayAmplitude);
-        var go = EnemyFactory.Create(def, new Vector3(x, top + SpawnAboveTop, 0f), Quaternion.identity, 1f, false);
+        var go = EnemyFactory.Create(def, new Vector3(x, top + SpawnAboveTop, 0f), Quaternion.identity, 1f, false, false);
         if (go == null) return null;
 
         Prepare(go);

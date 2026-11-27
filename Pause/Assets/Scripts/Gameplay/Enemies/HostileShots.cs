@@ -53,6 +53,8 @@ public static class HostileShots
     static readonly List<IHostileShot> shots = new List<IHostileShot>(128);
     static readonly List<BossBeam> beams = new List<BossBeam>(8);
     static readonly List<IHostileZone> zones = new List<IHostileZone>(16);
+    static Vector2[] snapPos = new Vector2[128];
+    static float[] snapRad = new float[128];
 
     // Counters (tests, previews).
     public static int Clashes, Pops, BeamBurns, ShotDown, ZoneBurns, PowerCleared, Wiped;
@@ -94,23 +96,31 @@ public static class HostileShots
         for (int i = beams.Count - 1; i >= 0; i--) if (beams[i] == null) beams.RemoveAt(i);
         for (int i = zones.Count - 1; i >= 0; i--) if (zones[i] == null || (zones[i] is Object zo && zo == null)) zones.RemoveAt(i);
 
-        for (int i = 0; i < shots.Count; i++)
+        // Positions and radii read once (a shot never moves during Resolve): the pair test is then a distance check on plain arrays,
+        // and only the pairs that touch pay for the interface calls (mass, owner, age...). Every dense boss pattern is O(n^2) pairs.
+        int n = shots.Count;
+        if (snapPos.Length < n) { snapPos = new Vector2[n * 2]; snapRad = new float[n * 2]; }
+        for (int i = 0; i < n; i++) { snapPos[i] = shots[i].ShotPosition; snapRad[i] = shots[i].ShotRadius; }
+
+        for (int i = 0; i < n && i < shots.Count; i++)
         {
             var a = shots[i];
             if (!a.ShotCollidable) continue;
-            Vector2 pa = a.ShotPosition;
-            float ra = a.ShotRadius;
-            for (int j = i + 1; j < shots.Count && a.ShotCollidable; j++)
+            Vector2 pa = snapPos[i];
+            float ra = snapRad[i];
+            bool aLive = true;
+            for (int j = i + 1; j < n && j < shots.Count && aLive; j++)
             {
+                Vector2 pb = snapPos[j];
+                float r = ra + snapRad[j];
+                if ((pa - pb).sqrMagnitude > r * r) continue;
                 var b = shots[j];
                 if (!b.ShotCollidable) continue;
                 if (a.ShotMass == Fixed && b.ShotMass == Fixed) continue;
                 if (SameVolley(a.ShotOwner, a.ShotAge, b.ShotOwner, b.ShotAge)) continue;
                 if (a.ShotSelfSafe && b.ShotSelfSafe && a.ShotOwner == b.ShotOwner) continue;
-                Vector2 pb = b.ShotPosition;
-                float r = ra + b.ShotRadius;
-                if ((pa - pb).sqrMagnitude > r * r) continue;
                 Clash(a, b, (pa + pb) * .5f);
+                aLive = a.ShotCollidable;
             }
             if (!a.ShotCollidable || a.ShotMass == Fixed) continue;
             for (int k = 0; k < beams.Count; k++)

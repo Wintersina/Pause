@@ -77,6 +77,7 @@ public static class WorldHazardsTest
         using var sandbox = new TestHarness.Sandbox();
         try
         {
+            UnityEditor.SceneManagement.EditorSceneManager.NewScene(UnityEditor.SceneManagement.NewSceneSetup.EmptyScene, UnityEditor.SceneManagement.NewSceneMode.Single);
             DataComplete();
             SwirlModel();
             FrontModel();
@@ -96,8 +97,7 @@ public static class WorldHazardsTest
         }
         finally
         {
-            foreach (var o in made) if (o != null) Object.DestroyImmediate(o);
-            made.Clear();
+            EmptyScene();
             HostileShots.ResetCounters();
             WeatherWind.Reset(null);
             WorldHazards.BossRunningOverride = null;
@@ -460,9 +460,14 @@ public static class WorldHazardsTest
     // every Transform write and every UnityEngine.Object comparison (change tracking), which would drown a real leak.
     static void EmptyScene()
     {
-        UnityEditor.SceneManagement.EditorSceneManager.NewScene(UnityEditor.SceneManagement.NewSceneSetup.EmptyScene, UnityEditor.SceneManagement.NewSceneMode.Single);
-        foreach (var o in made) if (o != null) Object.DestroyImmediate(o);
+        // Keep one empty scene for the suite. Replacing it between cases enters Unity's native
+        // asset-unload pass; Linux CI stalled there after the 2,000-shot pool case. Tear down
+        // roots explicitly so hazard OnDestroy/texture releases finish outside scene unloading.
+        // Include untracked FX roots, not only the objects in made, to keep cases isolated.
+        foreach (var root in UnityEngine.SceneManagement.SceneManager.GetActiveScene().GetRootGameObjects())
+            if (root != null) Object.DestroyImmediate(root);
         made.Clear();
+        TestHarness.FlushGpu();
     }
 
     // ---- pools and cost ----

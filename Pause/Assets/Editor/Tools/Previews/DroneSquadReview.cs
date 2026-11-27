@@ -45,7 +45,7 @@ public static class DroneSquadReview
         if (state >= 2) ShotAtoms.Collect(ShotAtom.Twin);
         if (state >= 3) { ShotAtoms.Collect(ShotAtom.Twin); ShotAtoms.Collect(ShotAtom.Arc); }
         if (state == 1 || state == 2) ShotAtomPickup.Build(ShotAtom.Twin, ship.ship.transform.position + Vector3.up * 1.8f);
-        if (state == 3) DroneCorePickup.SpawnChoice(ship.ship.transform.position + Vector3.up * 1.8f);
+        if (state == 3) DroneCorePickup.Build(DroneMode.Alternating, ship.ship.transform.position + Vector3.up * 1.8f);
         if (state == 4)
         {
             int recruit = DroneSquad.AddBossDrone(); ship.battery.Refresh();

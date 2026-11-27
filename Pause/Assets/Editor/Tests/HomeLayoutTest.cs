@@ -27,21 +27,25 @@ public static class HomeLayoutTest
     {
         public string device;
         public float logoY0, logoY1;      // PAUSE logo's drawn outline
-        public float x, w, h;             // every button
+        public float h;                   // every button's height (their widths hug their own labels: checked per button)
         public float play, dock, shop, options, credits, codex;   // bottom edges
         public float screenW, screenH, safeTop;   // the screen, and the unsafe strip at its top (px)
+        // per column button (Buttons order): the plate's width and centre x (px), the widest text it must hug (canvas units),
+        // the extra hit width on both sides together (units), and the canvas scale and column width cap (units)
+        public float[] bw, bcx, text, hit;
+        public float scale, maxW;
     }
 
     static readonly Pin[] Pins =
     {
-        new Pin { device = "and-1080x1920", logoY0 = 1293.7f, logoY1 = 1676.2f, x = 118.8f, w = 842.4f, h = 108.8f,
+        new Pin { device = "and-1080x1920", logoY0 = 1293.7f, logoY1 = 1676.2f, h = 108.8f,
                   play = 1014.4f, dock = 882.6f, shop = 750.7f, options = 618.9f, credits = 487.0f, codex = 355.2f },
         // Tall screens (>= ~21:9) lift the logo and the column (startMenu.LogoLiftFraction / ColumnExtraFraction): re-pinned 2026-11-08.
-        new Pin { device = "and-1080x2340-notch", logoY0 = 1704.4f, logoY1 = 2086.9f, x = 118.8f, w = 842.4f, h = 132.6f,
+        new Pin { device = "and-1080x2340-notch", logoY0 = 1704.4f, logoY1 = 2086.9f, h = 132.6f,
                   play = 1455.5f, dock = 1294.8f, shop = 1134.2f, options = 973.5f, credits = 812.8f, codex = 652.1f },
-        new Pin { device = "iphone-13", logoY0 = 1842.9f, logoY1 = 2257.3f, x = 128.7f, w = 912.6f, h = 143.5f,
+        new Pin { device = "iphone-13", logoY0 = 1842.9f, logoY1 = 2257.3f, h = 143.5f,
                   play = 1573.0f, dock = 1399.2f, shop = 1225.3f, options = 1051.4f, credits = 877.6f, codex = 703.7f },
-        new Pin { device = "flip7-1080x2520", logoY0 = 1921.3f, logoY1 = 2303.8f, x = 118.8f, w = 842.4f, h = 142.8f,
+        new Pin { device = "flip7-1080x2520", logoY0 = 1921.3f, logoY1 = 2303.8f, h = 142.8f,
                   play = 1689.2f, dock = 1516.2f, shop = 1343.2f, options = 1170.1f, credits = 997.1f, codex = 824.0f },
     };
 
@@ -50,12 +54,13 @@ public static class HomeLayoutTest
         fails = 0;
         using var sandbox = new TestHarness.Sandbox();
         PlayerPrefs.SetInt(WorldManager.PrefsHighestWorld, WorldManager.Worlds.Length - 1);
-        foreach (var id in new[] { "and-1080x1920", "and-1080x2340-notch", "iphone-13", "flip7-1080x2520", "and-1080x2640", "flip7-cover-948x1048" })
+        foreach (var id in new[] { "and-1080x1920", "and-1080x2340-notch", "iphone-13", "flip7-1080x2520", "and-1080x2640", "flip7-cover-948x1048",
+                                   "and-720x1280", "ipad-9", "tab-1600x2560", "tab-1024x768", "mac-1100x800-dpi144" })
         {
             bool found = false;
             foreach (var pin in Pins)
                 if (pin.device == id) { found = true; Measure(pin, false); Measure(pin, true); }
-            if (!found) { bool ok; var got = Stage(id, false, out ok); Debug.Log("[HOMELAY] measured " + JsonUtility.ToJson(got)); Shape(got, id); }
+            if (!found) { bool ok; var got = Stage(id, false, out ok); Debug.Log("[HOMELAY] measured " + JsonUtility.ToJson(got)); Shape(got, id); Hug(got, id); }
         }
         Debug.Log("[HOMELAY] failures: " + fails);
         return fails;
@@ -108,7 +113,20 @@ public static class HomeLayoutTest
             for (int i = 0; i < r.Length; i++) r[i] = Rect_(rig, Buttons[i]);
             pin.screenW = rig.W; pin.screenH = rig.H; pin.safeTop = rig.device.top;
             pin.logoY0 = logo.yMin; pin.logoY1 = logo.yMax;
-            pin.x = r[0].x; pin.w = r[0].width; pin.h = r[0].height;
+            pin.h = r[0].height;
+            var canvas = GameObject.Find("MainMenuCanvas").GetComponent<Canvas>();
+            pin.scale = canvas.scaleFactor;
+            pin.maxW = Mathf.Min(520f, ((RectTransform)canvas.transform).rect.width * 0.78f);
+            pin.bw = new float[r.Length]; pin.bcx = new float[r.Length]; pin.text = new float[r.Length]; pin.hit = new float[r.Length];
+            for (int i = 0; i < r.Length; i++)
+            {
+                var go = GameObject.Find(Buttons[i]);
+                pin.bw[i] = r[i].width; pin.bcx[i] = r[i].center.x;
+                if (go == null) continue;
+                pin.text[i] = HomeButtonFit.WidestText((RectTransform)go.transform);
+                var g = go.GetComponent<UnityEngine.UI.Button>().targetGraphic;
+                pin.hit[i] = g != null ? -(g.raycastPadding.x + g.raycastPadding.z) : 0f;
+            }
             pin.play = r[0].y; pin.dock = r[1].y; pin.shop = r[2].y; pin.options = r[3].y; pin.credits = r[4].y; pin.codex = r[5].y;
             ok = logo.height > 0f && r[0].height > 0f;
             var t = Object.FindFirstObjectByType<TitleScreenTraffic>();
@@ -135,6 +153,31 @@ public static class HomeLayoutTest
         if (aspect < 1.85f) Check(d + ": a short / wide screen is not lifted (tallness " + tall + ")", tall == 0f);
     }
 
+    // Each home button's plate hugs its own label: width = the label's preferred width + the equal padding on both sides
+    // (capped at the column), centred, on screen, with a finger-sized hit area; shorter label -> narrower plate.
+    static void Hug(Pin p, string d)
+    {
+        if (p.bw == null || p.scale <= 0f) return;
+        float pad = HomeButtonFit.PadX * 2f, minW = float.MaxValue, maxWd = 0f;
+        for (int i = 0; i < p.bw.Length; i++)
+        {
+            string n = Buttons[i].Substring(Buttons[i].LastIndexOf('/') + 1);
+            float units = p.bw[i] / p.scale, want = Mathf.Min(p.maxW, p.text[i] + pad);
+            Check(d + ": " + n + " plate " + units.ToString("F1") + " units hugs its text " + p.text[i].ToString("F1") + " + padding (" + want.ToString("F1") + ")",
+                  p.text[i] > 0f && Mathf.Abs(units - want) <= 2.5f);
+            Check(d + ": " + n + " is centred and on screen", Mathf.Abs(p.bcx[i] - p.screenW * .5f) <= 1.5f && p.bcx[i] - p.bw[i] * .5f >= -.5f && p.bcx[i] + p.bw[i] * .5f <= p.screenW + .5f);
+            Check(d + ": " + n + " keeps a finger-sized hit width (" + (units + p.hit[i]).ToString("F1") + " units)",
+                  units + p.hit[i] >= Mathf.Min(HomeButtonFit.MinTouchRows * p.h / p.scale, p.maxW) - 1f);
+            minW = Mathf.Min(minW, units); maxWd = Mathf.Max(maxWd, units);
+            for (int j = 0; j < p.bw.Length; j++)
+                if (p.text[i] < p.text[j] - 1f && p.bw[i] > p.bw[j] + 1.5f)
+                    Check(d + ": " + n + " has the shorter label but a wider plate", false);
+        }
+        Check(d + ": plates differ in width (" + minW.ToString("F1") + ".." + maxWd.ToString("F1") + " units), not one shared width", maxWd - minW >= 12f);
+        float pitch = p.play - p.dock;
+        Check(d + ": rows do not overlap (pitch " + pitch + " >= height " + p.h + ")", pitch >= p.h - 1.5f);
+    }
+
     static bool Near(float a, float b) { return Mathf.Abs(a - b) <= 1.5f; }
 
     static void Measure(Pin want, bool withBackdrop)
@@ -145,11 +188,12 @@ public static class HomeLayoutTest
         string d = want.device + (withBackdrop ? " + menu backdrop: " : ": ");
         Check(d + "logo and buttons found", ok);
         Check(d + "logo " + got.logoY0 + ".." + got.logoY1, Near(got.logoY0, want.logoY0) && Near(got.logoY1, want.logoY1));
-        Check(d + "buttons " + got.w + "x" + got.h + " at x " + got.x, Near(got.x, want.x) && Near(got.w, want.w) && Near(got.h, want.h));
+        Check(d + "buttons are " + got.h + " px tall", Near(got.h, want.h));
         Check(d + "Play / Space dock / Shop / Options / Leaderboard / Codex at " + got.play + " " + got.dock + " " + got.shop + " " + got.options + " " + got.credits + " " + got.codex,
               Near(got.play, want.play) && Near(got.dock, want.dock) && Near(got.shop, want.shop) && Near(got.options, want.options) &&
               Near(got.credits, want.credits) && Near(got.codex, want.codex));
         Shape(got, want.device);
+        Hug(got, d);
         // the spacing the player sees, independent of the absolute pins
         float gap = got.logoY0 - (got.play + got.h);
         Check(d + "the logo clears Play by " + gap + " px (" + (gap / got.h).ToString("F2") + " button heights)", gap >= got.h * .6f);

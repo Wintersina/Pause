@@ -674,7 +674,7 @@ public static class PickupPoolTest
               Src("Gameplay/Weapons/ClearTarget.cs").Contains("IPoolReset"));
         // the tutorial keeps raw spawns (scripted pickups are not pooled)
         Check("the tutorial's scripted pickups are untouched (no pool there)", !Src("Tutorial/spawnGoodStuffTut.cs").Contains("PrefabPool"));
-        // enemies stay on Instantiate / Destroy: nothing in the enemy factory or spawner is pooled
-        Check("enemies are not pooled in this change", !Src("Gameplay/Spawning/enmiesOnBoard.cs").Contains("PrefabPool") && !Src("Gameplay/Enemies/EnemyFactory.cs").Contains("PrefabPool"));
+        // ordinary enemy bodies are pooled by EnemyFactory (EnemyPoolTest owns that contract); the spawner itself still never touches the pool
+        Check("enemies are pooled through EnemyFactory only (the spawner stays off the pool)", Src("Gameplay/Enemies/EnemyFactory.cs").Contains("PrefabPool") && !Src("Gameplay/Spawning/enmiesOnBoard.cs").Contains("PrefabPool"));
     }
 }

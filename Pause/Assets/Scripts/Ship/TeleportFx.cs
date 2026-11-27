@@ -147,8 +147,7 @@ public class TeleportFx : MonoBehaviour
         collisionDetection.PlayExplosion();
         collisionDetection.AwardDestroyedTarget(go, ScoreRules.TeleportKillBonus);
         ClearTarget.Release(go);
-        if (Application.isPlaying) Destroy(go);
-        else DestroyImmediate(go);
+        Pooled.Remove(go);   // (a pooled enemy goes back to its pool)
     }
 
     // Unscaled time: a teleport begins while the world is still frozen.

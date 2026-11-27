@@ -5,7 +5,7 @@ using UnityEngine;
 // activate dormant slots first, then upgrade the weakest eligible drone deterministically.
 // RAPID is shared. Directional cores set firing mode independently of these modifiers.
 // BeginRun clears the squad and modifiers. The starter core precedes TWIN / TWIN / ARC;
-// later drops can offer a three-way mode choice. Bosses recruit drones instead of coins.
+// later drops can offer one random directional core. Bosses recruit drones instead of coins.
 // PowerLevel uses a fixed starting-squad divisor so recruiting never reduces spawn pressure.
 public enum ShotAtom { Twin = 0, Pierce = 1, Split = 2, Ricochet = 3, Arc = 4, Rapid = 5 }
 
@@ -298,7 +298,7 @@ public static class ShotAtoms
     public static readonly string[] Roman = { "", "I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X" };
 
     // Shared Rapid + modifier levels normalized to this run's dock-unlocked starting slots + active-drone bonus.
-    // Recruitment never dilutes existing power; spawn pressure is capped at MaxPower.
+    // Each additional active drone contributes four points; recruitment never dilutes existing power.
     public const int MaxPower = ShotAtomTuning.Count * ShotAtomTuning.MaxLevel;
     public static int PowerLevel
     {
@@ -307,7 +307,7 @@ public static class ShotAtoms
             int sum = 0;
             for (int d = 0; d < droneCount; d++)
                 for (int a = 0; a < ShotAtomTuning.PerDroneAtoms; a++) sum += droneLevels[DL(d, a)];
-            return Mathf.Min(MaxPower, rapidLevel + Mathf.RoundToInt(sum / (float)DroneSquad.StartingSlots) + Mathf.Max(0, DroneSquad.ActiveCount - 1));
+            return Mathf.Min(MaxPower, rapidLevel + Mathf.RoundToInt(sum / (float)DroneSquad.StartingSlots) + 4 * Mathf.Max(0, DroneSquad.ActiveCount - 1));
         }
     }
 
@@ -534,7 +534,7 @@ public static class ShotAtomDrops
             float choice = roll >= 0f ? roll : Random.value;
             if (choice >= .8f)
             {
-                DroneCorePickup.SpawnChoice(at);
+                DroneCorePickup.SpawnRandom(at, (choice - .8f) / .2f);
                 RunCoinsReleased++; Released++; LastWasDust = false; AtomSpacing.Released();
                 return;
             }

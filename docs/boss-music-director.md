@@ -53,23 +53,24 @@ intensity = min(level, max(raw, intensityFloor * level))
 
 | Boss | Ramp | Start level | Floor | Wave speed | Beat sync from start |
 | --- | ---: | ---: | ---: | ---: | --- |
-| Void Archon | song (~40 s) | song (.17) | none | x1.00 | no (2-beat warning) |
-| Hoarfrost Leviathan | 20 s | .45 | .30 | x1.00 | no |
-| Bloom Queen | 14 s | .55 | .40 | x1.02 | no |
-| Cinder Drake | 9 s | .65 | .50 | x1.04 | no |
-| Iron Kraken | 5 s | .80 | .58 | x1.06 | no |
+| Void Archon | 8 s | .60 | .45 | x1.00 | yes |
+| Hoarfrost Leviathan | 7 s | .60 | .45 | x1.00 | yes |
+| Bloom Queen | 6 s | .60 | .45 | x1.02 | yes |
+| Cinder Drake | 5 s | .70 | .50 | x1.04 | yes |
+| Iron Kraken | 3 s | .85 | .58 | x1.06 | yes |
 | Tempest Engine | none | 1 | .66 | x1.08 | yes |
 | Dune-Eater | none | 1 | .72 | x1.10 | yes |
 
-- Boss 1 keeps the song alone (`songRamp`): its fight is exactly what it was.
+- Boss 1 no longer waits for its sparse ~40-second musical intro. Its intensity starts at least .25 (two waves per bar) and reaches a .45 floor after an eight-second ramp, applied on bar lines. Song accents still drive variation above that floor.
 - The floor is the attack-rate knob: >= .25 two waves a bar, >= .45 three, >= .62 a wave on every beat. Every floor stays under .75, where a wave stops showing its gap telegraph.
 - With `beatSyncFromStart` the director's first wave leaves on the first beat that leaves its one-beat tell, not after two beats of calm; with the floor over .62 every beat is in the rhythm, so the first wave and every one after it are on the beat.
 - The attack rotation is untouched: every boss keeps its phase structure (phase 1 its first attacks, the specials as their `minPhase` unlocks them; loops add their own head start, `LoopRules`, as before). The ladder works only through the waves' intensity, speed and start.
+- The forecast skips subdivisions too close to the previous firing to satisfy the minimum wave spacing, avoiding warnings for overlaps the firing guard would suppress.
 - The ramp level moves only on bar lines (`BossMusicDirector.RampClock`), so the rhythm a wave is told on is the rhythm it fires on.
 - A told wave always fires: the tell is forecast from the last sixteenth's intensity, and a new beat's energy can drop that sixteenth from the rhythm (the Archon's calm opening did, about every 8 s on master). The director now fires the wave it is telling on its told sixteenth anyway (holds, spacing and the pool budget still apply). `BossDifficultyTest` checks every tell of every boss's first 30 s is answered within two beats.
-- Bullet counts and hearts are not knobs: denser means more waves on the beat inside the director's pool budget, and every boss keeps 10 hearts.
+- Denser means more waves on the beat inside the director's pool budget. Health is independent: 13 hearts at the selected starting world, +1 per subsequent world, +7 per loop.
 
-`BossDifficultyTest` enforces the ladder (each knob monotonic, boss 1 the identity, the last two without a ramp), measures each boss's real song from the fight's first frame old against new (the `[DIFFICULTY] TABLE` log lines), the dodgeability of the first 30 s (flood fill, gap widths) and the projectile budget of a whole fight.
+`BossDifficultyTest` enforces the ladder (each knob monotonic, short ramps and beat-aligned starts, the last two without a ramp), measures each boss's real song from the fight's first frame old against new (the `[DIFFICULTY] TABLE` log lines), the dodgeability of the first 30 s (flood fill, gap widths) and the projectile budget of a whole fight.
 
 ## Pauses and load
 

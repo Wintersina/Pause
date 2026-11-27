@@ -93,15 +93,17 @@ public static class FloatieAim
         pick = default(Pick);
         float bestSq = range * range;
         bool found = false;
+        // The view is read once and the cheap range test comes first: this runs every frame for every AIMED drone, and the filters
+        // (view, tag, enabled) are native calls that most of the board fails on distance alone.
+        Rect view = ShipTargets.View(0f);
         var live = ClearTarget.Live;
         for (int i = 0; i < live.Count; i++)
         {
             var t = live[i];
-            if (!Valid(t)) continue;
+            if (t == null) continue;
             Vector3 p = t.transform.position;
-            if (!InView(p, 0f)) continue;
             float sq = ((Vector2)(p - from)).sqrMagnitude;
-            if (sq >= bestSq) continue;
+            if (sq >= bestSq || !view.Contains(p) || !Valid(t)) continue;
             bestSq = sq;
             found = true;
             pick.at = p; pick.lockOn = t.transform; pick.target = t;
@@ -112,9 +114,8 @@ public static class FloatieAim
             var s = shots[i];
             if (s == null || (Object)s == null || !s.ShotCollidable || s.ShotMass == HostileShots.Fixed) continue;
             Vector2 sp = s.ShotPosition;
-            if (!InView(sp, 0f)) continue;
             float sq = (sp - (Vector2)from).sqrMagnitude;
-            if (sq >= bestSq) continue;
+            if (sq >= bestSq || !view.Contains(sp)) continue;
             var c = s as Component;
             bestSq = sq;
             found = true;
@@ -232,6 +233,7 @@ public class FloatieBullet : MonoBehaviour
 
     public void Launch(FloatieBattery by, int shipId, Vector3 at, Vector3 heading, Color tint, FloatieAim.Pick lockOnPick, Mods withMods)
     {
+        if (Active) { Active = false; FloatieBullets.NoteGone(this); }   // launched again while still in the air: the old shot is over
         mods = withMods;
         if (mods.damage <= 0f) mods.damage = 1f;
         speed = mods.speed > 0f ? mods.speed : FloatieTuning.BulletSpeed;
@@ -253,6 +255,7 @@ public class FloatieBullet : MonoBehaviour
         float lift = mods.celebrated ? .5f : mods.pierce > 0 ? .3f : .12f;
         body.color = new Color(Mathf.Lerp(tint.r, 1f, lift), Mathf.Lerp(tint.g, 1f, lift), Mathf.Lerp(tint.b, 1f, lift), Alpha);
         Active = true;
+        FloatieBullets.NoteLive(this);
         Launched++;
         LaunchId = Launched;
         gameObject.SetActive(true);
@@ -265,9 +268,18 @@ public class FloatieBullet : MonoBehaviour
 
     public void Release()
     {
-        Active = false;
+        if (Active) { Active = false; FloatieBullets.NoteGone(this); }
         gameObject.SetActive(false);
     }
+
+    void OnDestroy()
+    {
+        if (Active) { Active = false; FloatieBullets.NoteGone(this); }
+    }
+
+    // Set by FloatieBullets when it built this one: only those go back on its free list.
+    [System.NonSerialized] public bool Pooled;
+    [System.NonSerialized] public int Order;   // build order = position in the pool (Take hands out the lowest idle one first, as the old scan did)
 
     // One step on the world's clock: fly straight (no homing, ever), then stop on the first thing along the step.
     public void Tick(float dt)
@@ -317,10 +329,17 @@ public class FloatieBullet : MonoBehaviour
         for (int i = 0; i < live.Count; i++)
         {
             var t = live[i];
-            if (!Valid(t) || HasPassed(t)) continue;
+            if (t == null) continue;
+            // the cheap geometric reject first: Valid is several native lookups (enabled, two tag compares), and most of the board is
+            // nowhere near a bullet's step (every bullet walks every live body, every frame)
+            // a body whose radius is not measured yet (measuring is a one-off GetComponent + physics sync) must be a valid target first
+            bool valid = false;
+            if (!t.HasRadius) { if (!Valid(t)) continue; valid = true; }
             Vector3 p = t.transform.position;
             float reach = r + t.Radius;
             if (HostileShots.SegmentDistanceSq(a, b, p) > reach * reach) continue;
+            if (!valid && !Valid(t)) continue;
+            if (HasPassed(t)) continue;
             float along = len > 1e-8f ? Mathf.Clamp01(Vector2.Dot((Vector2)p - a, ab) / len) : 0f;
             if (along < bestAlong) { bestAlong = along; best = t; }
         }
@@ -442,7 +461,7 @@ public static class FloatieBullets
     {
         get
         {
-            if (root == null) { root = new GameObject("~Floaties").transform; pool.Clear(); }
+            if (root == null) { root = new GameObject("~Floaties").transform; pool.Clear(); free.Clear(); activeCount = 0; }
             return root;
         }
     }
@@ -452,19 +471,53 @@ public static class FloatieBullets
 
     static void Purge()
     {
-        if (root == null) { pool.Clear(); return; }
+        if (root == null) { pool.Clear(); free.Clear(); activeCount = 0; return; }
         for (int i = pool.Count - 1; i >= 0; i--) if (pool[i] == null) pool.RemoveAt(i);
     }
 
-    public static int Active
+    // Bullets in the air: a running count (Launch / Release / destroy keep it), not a scan of the pool.
+    static int activeCount;
+    // Bullets built by the pool and idle, most recently freed last (Take pops from the end).
+    static readonly System.Collections.Generic.List<FloatieBullet> free = new System.Collections.Generic.List<FloatieBullet>(FloatieTuning.PoolSize);
+
+    public static int Active => activeCount;
+
+    internal static void NoteLive(FloatieBullet b)
     {
-        get
+        activeCount++;
+        if (b.Pooled) FreeRemove(b);
+        if (b.Owner != null) b.Owner.NoteLive(b.Source, 1);
+    }
+
+    internal static void NoteGone(FloatieBullet b)
+    {
+        if (activeCount > 0) activeCount--;
+        if (b.Owner != null) b.Owner.NoteLive(b.Source, -1);
+        if (b.Pooled) FreeAdd(b);
+    }
+
+    static int nextOrder;
+    // `free` is kept sorted by Order, highest first, so its last entry is the lowest-numbered idle bullet.
+    static int FreeFind(FloatieBullet b)
+    {
+        int lo = 0, hi = free.Count;
+        while (lo < hi)
         {
-            Purge();
-            int n = 0;
-            for (int i = 0; i < pool.Count; i++) if (pool[i].Active) n++;
-            return n;
+            int mid = (lo + hi) >> 1;
+            if (free[mid].Order > b.Order) lo = mid + 1; else hi = mid;
         }
+        return lo;
+    }
+    static void FreeAdd(FloatieBullet b)
+    {
+        int i = FreeFind(b);
+        if (i < free.Count && free[i] == b) return;
+        free.Insert(i, b);
+    }
+    static void FreeRemove(FloatieBullet b)
+    {
+        int i = FreeFind(b);
+        if (i < free.Count && free[i] == b) free.RemoveAt(i);
     }
 
     // Bullets a split's shards may never use: a drone's volley always finds room for at least this many (the fair-share rule).
@@ -475,17 +528,24 @@ public static class FloatieBullets
     public static FloatieBullet Take(bool primary = true)
     {
         var parent = Root;
-        Purge();
-        if (Active + AttackPool.ActiveProjectiles >= AttackPool.MaxCombinedProjectiles) return null;
-        if (!primary && Active >= FloatieTuning.PoolSize - VolleyReserve) return null;
-        for (int i = 0; i < pool.Count; i++) if (!pool[i].Active) return pool[i];
+        if (activeCount + AttackPool.ActiveProjectiles >= AttackPool.MaxCombinedProjectiles) return null;
+        if (!primary && activeCount >= FloatieTuning.PoolSize - VolleyReserve) return null;
+        while (free.Count > 0)
+        {
+            var b = free[free.Count - 1];   // (peeked, not popped: a Take that is never launched leaves it free; Launch takes it off)
+            if (b != null && !b.Active) return b;
+            free.RemoveAt(free.Count - 1);
+        }
         if (pool.Count >= FloatieTuning.PoolSize) return null;
         var go = new GameObject("~floatie");
         go.transform.SetParent(parent, false);
-        var b = go.AddComponent<FloatieBullet>();
-        b.Build();
-        pool.Add(b);
-        return b;
+        var nb = go.AddComponent<FloatieBullet>();
+        nb.Build();
+        nb.Pooled = true;
+        nb.Order = nextOrder++;
+        FreeAdd(nb);   // idle until launched (a Take that is not launched must not leak a bullet)
+        pool.Add(nb);
+        return nb;
     }
 
     public static void ReleaseAll(FloatieBattery owner = null)
@@ -507,6 +567,9 @@ public static class FloatieBullets
             go.transform.SetParent(parent, false);
             var b = go.AddComponent<FloatieBullet>();
             b.Build();
+            b.Pooled = true;
+            b.Order = nextOrder++;
+            FreeAdd(b);
             pool.Add(b);
         }
     }

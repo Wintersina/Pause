@@ -43,7 +43,7 @@ public static class DockDroneProgressionTest
             camera.orthographicSize = halfHeight; camera.transform.position = new Vector3(0f, 2f, -10f);
             var modifier = ShotAtomPickup.Spawn(ShotAtom.Twin, Vector3.zero);
             var core = DroneCorePickup.Spawn(DroneMode.Aimed, Vector3.zero);
-            DroneCorePickup.SpawnChoice(Vector3.zero);
+            DroneCorePickup.SpawnRandom(Vector3.zero, .5f);
             bool hidden = modifier.GetComponent<SpriteRenderer>().bounds.min.y > halfHeight + 2f;
             foreach (var pickup in Object.FindObjectsByType<DroneCorePickup>(FindObjectsSortMode.None)) hidden &= pickup.GetComponent<SpriteRenderer>().bounds.min.y > halfHeight + 2f;
             Check("all modifier/mode coins enter above camera top " + halfHeight, hidden);

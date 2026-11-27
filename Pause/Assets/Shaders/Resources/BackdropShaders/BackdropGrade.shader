@@ -82,12 +82,20 @@ Shader "Pause/BackdropGrade"
             fixed4 frag (v2f i) : SV_Target
             {
                 float4 t = tex2D(_MainTex, i.uv);
-                float v = max(t.r, max(t.g, t.b));
-                float f = 1.0 - pow(saturate(1.0 - v), _Lift);
-                t.rgb *= v > 1e-4 ? f / v : 0.0;
-                float l = (t.r + t.g + t.b) / 3.0;
-                t.rgb = saturate(l + (t.rgb - l) * _Sat);
-                t.a = 1.0 - pow(saturate(1.0 - t.a), _AlphaLift);
+                // Each step is skipped when its uniform is 1 (the identity), so a
+                // layer that only feathers, or only lifts, pays for just that.
+                if (abs(_Lift - 1.0) > 0.0001)
+                {
+                    float v = max(t.r, max(t.g, t.b));
+                    float f = 1.0 - pow(saturate(1.0 - v), _Lift);
+                    t.rgb *= v > 1e-4 ? f / v : 0.0;
+                }
+                if (abs(_Sat - 1.0) > 0.0001)
+                {
+                    float l = (t.r + t.g + t.b) / 3.0;
+                    t.rgb = saturate(l + (t.rgb - l) * _Sat);
+                }
+                if (abs(_AlphaLift - 1.0) > 0.0001) t.a = 1.0 - pow(saturate(1.0 - t.a), _AlphaLift);
                 if (_Feather > 0.0)
                 {
                     // Feathered plate edge: the mean alpha of two rings of

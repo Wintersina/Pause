@@ -470,7 +470,7 @@ public static class EnemyShove
         for (int i = count - 1; i >= 0; i--)
         {
             var e = entries[i];
-            if (e.body == null) { Remove(i); continue; }
+            if (e.body == null || EnemyLife.Gone(e.body)) { Remove(i); continue; }
             e.time += dt;
             float k = Mathf.Clamp01(e.time / e.seconds);
             float eased = 1f - (1f - k) * (1f - k) * (1f - k);

@@ -276,7 +276,12 @@ public class enmiesOnBoard : MonoBehaviour {
         };
     }
 
+    int enemiesPrewarmedWorld = -1;
+
     void Update () {
+        // the world's idle enemy bodies are built a few frames at a time while the level opens (EnemyFactory pool)
+        int prewarmWorld = EnemyRoster.CurrentWorld;
+        if (enemiesPrewarmedWorld != prewarmWorld && Application.isPlaying && !EnemyFactory.PrewarmStep(prewarmWorld)) enemiesPrewarmedWorld = prewarmWorld;
         bool flying = !buttonClicks.playerDied &&
                       (TouchInput.IsPressed || score.pauseCounter <= 0);
         if (flying) elapsedFlightSeconds += Time.deltaTime;
