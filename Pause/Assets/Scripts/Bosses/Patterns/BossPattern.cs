@@ -204,6 +204,7 @@ public sealed partial class BossPatternRunner
         host = h;
         mh = h as IMusicPatternHost;
         rng = new System.Random(seed);
+        InitCorridor();
         rate = Mathf.Max(.2f, rateScale);
         clock = 0f;
         Fired = Emissions = 0;
@@ -327,7 +328,7 @@ public sealed partial class BossPatternRunner
                 next[i] = clock + Mathf.Max(.02f, s.interval / rate);
                 continue;
             }
-            float step = Mathf.Max(s.kind >= StreamKind.Sine && s.kind <= StreamKind.AccelFan ? BossPatternScaling.MinInterval : .02f, s.interval / rate);
+            float step = Mathf.Max(Mathf.Max(s.kind >= StreamKind.Sine && s.kind <= StreamKind.AccelFan ? BossPatternScaling.MinInterval : .02f, FloorSeconds(s)), s.interval / rate);
             while (next[i] <= clock && (next[i] < s.End - 1e-4f || emitted[i] == 0))
             {
                 Emit(i, s, next[i]);
@@ -388,6 +389,7 @@ public sealed partial class BossPatternRunner
         double now = beat.BeatNow;
         double spb = beat.SecondsPerBeat;
         double step = VolleyBeats(s);
+        if (s.kind == StreamKind.WaveWall) step = System.Math.Max(step, System.Math.Ceiling(FloorSeconds(s) / spb / GridBeats) * GridBeats);
         emitSpeed = tune.speedScale;
         // Gameplay can freeze while music keeps playing. Only a normal frame's lateness
         // is allowed, even for a stream that has not fired yet. Keep its original phase.
