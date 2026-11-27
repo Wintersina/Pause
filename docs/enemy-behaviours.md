@@ -793,7 +793,7 @@ Space backdrop's docks (stations, planets, big asteroids): in the last parked se
 clamp, no planned evasions, no rail crash, and untouchable (no collider, not a target) while outside the board. Elites are mini-bosses: a pause jump on any elite
 costs exactly ONE heart with a "PAUSE BLOCKED" popup, then `EliteShip.BlinkGuardSeconds` (0.5 s) of blink immunity (a kill only on its
 last heart); the pilot's weapons land one heart per hit, at most one per `EliteShip.HitBlockSeconds` (0.1 s); a shielded ram still
-takes them all. Downing one pays `ScoreRules.EliteDown` (100) times the running kill chain's multiplier (x2 / x3 / x4) + 15 star dust.
+takes them all. Downing one pays `ScoreRules.EliteDown` (100) times the running kill chain's multiplier (x2 at a 3-chain, x3 at 6, x4 at 25: `ScoreRules.ComboThresholds`) + 15 star dust.
 
 | Elite (hearts) | Brain | Attack |
 |---|---|---|

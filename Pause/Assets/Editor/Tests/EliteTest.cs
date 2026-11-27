@@ -1145,13 +1145,14 @@ public static class EliteTest
         DeathCombo.Enabled = false;
         try
         {
-            int[] chains = { 0, 3, 6, 10 };
+            int[] chains = { 0, 3, 6, 10, 24, 25 };
+            int[] mults = { 1, 2, 3, 3, 3, 4 };   // x4 needs a 25 chain (it was 10)
             for (int c = 0; c < chains.Length; c++)
             {
                 Fresh(.05f);
                 var rock = Rock(new Vector2(0f, 6f));
                 for (int k = 0; k < chains[c]; k++) RunScore.OnKill(rock);
-                int m = c + 1;
+                int m = mults[c];
                 Check("chain of " + chains[c] + ": x" + m, RunScore.Multiplier == (chains[c] == 0 ? 1 : m) && ScoreRules.EliteMultiplier(RunScore.Chain) == m);
                 e = InPlay("gunship", new Vector2(0f, 1f));
                 long total = RunScore.Total;
