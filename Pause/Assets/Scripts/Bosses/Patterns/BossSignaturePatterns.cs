@@ -12,16 +12,72 @@ public sealed partial class BossPatternRunner
 {
     IMusicPatternHost mh;
 
-    // Loop 2+: a volley is held back while the pool is nearly full (BossSignatureTuning.MaxLive); loop 1 never is.
-    bool Room() => !BossPatternScaling.Scaled || mh == null || mh.ActiveMusicShots + 6 <= BossSignatureTuning.MaxLive;
+    // ---- the guaranteed lane ----
+    // Every signature stream (but the wave wall, which carries its own gap) keeps one SAFE LANE clear: a corridor of
+    // 2 * corrHalf u that drifts slowly (corrA u about corrC0, one swing in CorrPeriod seconds, so never faster than ~.7 u/s).
+    // Before a shot leaves its muzzle the runner flies it forward on the same maths the game uses (PatternMotion.Apply) and
+    // drops it when it would cross the corridor inside the ship's rows, at the corridor's place at THAT time. So however dense
+    // the pattern or the loop, a free run of 2 * corrHalf always exists in the ship's rows, and it is the telegraphed lane.
+    public const float CorrPeriod = 7.5f, CorrDt = .04f, CorrR = .14f;
+    float corrC0, corrA, corrHalf, sigTime;
+
+    void InitCorridor()
+    {
+        corrHalf = .5f + BossPatternScaling.GapBonus;
+        float lim = Mathf.Max(0f, host.ShipHalfWidth - corrHalf - .2f);
+        corrA = Mathf.Min(.8f, lim * .5f);
+        var p = host.Player;
+        float away = p.x > 0f ? -1f : 1f;    // the lane is a step away from the ship: it has to move to it
+        corrC0 = Mathf.Clamp(p.x + away * 1.5f, -(lim - corrA), lim - corrA);
+    }
+
+    float CorrX(float t) => corrC0 + corrA * Mathf.Sin(t * 6.2831853f / CorrPeriod);
+
+    // Does a shot launched at `at` with velocity `v` (already as the host will fly it) keep out of the lane while it is in the ship's rows?
+    bool Fits(Vector2 at, Vector2 v, PMotion m)
+    {
+        float yLo = host.ZoneBottom - CorrR - .25f, yHi = host.ZoneTop + CorrR + .25f;
+        float half = corrHalf + CorrR + .06f;
+        var p = at; float age = 0f;
+        for (int n = 0; n < 220; n++)
+        {
+            age += CorrDt;
+            p += v * CorrDt;
+            if (m.kind != MotionKind.None) PatternMotion.Apply(ref m, ref p, ref v, age, CorrDt);
+            if (p.y < yLo - 1f) break;
+            if (p.y <= yHi && p.y >= yLo && Mathf.Abs(p.x - CorrX(sigTime + age)) < half) return false;
+        }
+        return true;
+    }
+
+    // Loop 2+: a volley is held back while the pool is nearly full (BossSignatureTuning.MaxLive); loop 1 never is. A volley of a
+    // ring, a rose or a wall may add up to Big shots, any other up to Small.
+    const int Big = 32, Small = 16;
+    bool Room(PatternStream s)
+    {
+        if (!BossPatternScaling.Scaled || mh == null) return true;
+        bool big = s.kind == StreamKind.Rose || s.kind == StreamKind.Halo || s.kind == StreamKind.WaveWall;
+        return mh.ActiveMusicShots + (big ? Big : Small) <= BossSignatureTuning.MaxLive;
+    }
+
+    // Seconds a stream may not volley faster than: a wave wall keeps one wall's height clear of the next (the ship's rows, the bob
+    // and a margin), so two walls' gaps are never in the ship's rows together.
+    float FloorSeconds(PatternStream s)
+    {
+        if (s.kind != StreamKind.WaveWall) return 0f;
+        float sep = host.ZoneTop - host.ZoneBottom + 2f * s.amp * Lane + .8f;
+        return sep / Mathf.Max(.5f, s.speed * BossPatternScaling.Speed * Mathf.Max(.01f, host.ShotSpeedScale));
+    }
 
     float Lane => Mathf.Max(.5f, host.RailEdge / 2.6f);
 
     void FireM(int i, Vector2 at, Vector2 v, PMotion m)
     {
+        v *= emitSpeed;
+        if (!Fits(at, v * host.ShotSpeedScale, m)) return;
         var sh = shot[i];
         sh.motion = m;
-        host.Fire(at, v * emitSpeed, ref sh);
+        host.Fire(at, v, ref sh);
         Fired++;
     }
 
@@ -73,11 +129,14 @@ public sealed partial class BossPatternRunner
                 host.Mark(from, from, .3f, tell);
                 break;
         }
+        // the safe lane, where it starts (every stream but the wall, whose gap is marked above)
+        if (s.kind != StreamKind.WaveWall) host.Mark(new Vector2(CorrX(0f), host.SpawnTop), new Vector2(CorrX(0f), host.ZoneBottom - .5f), corrHalf, tell);
     }
 
     void EmitSignature(int i, PatternStream s, float ts, int k)
     {
-        if (!Room()) return;
+        if (!Room(s)) return;
+        sigTime = s.start + ts;
         float saved = emitSpeed;
         emitSpeed *= BossPatternScaling.Speed;
         EmitSignatureShots(i, s, ts, k);
@@ -111,8 +170,9 @@ public sealed partial class BossPatternRunner
                 float gc = gapNow[i];
                 float edge = host.RailEdge - .15f;
                 float y = WaveDeploy.FormY(host, WaveDeploy.LowestY(host, PartsOf(s))), t = Spray(s);
-                for (float x = gc - s.gap * .5f; x > -edge; x -= s.pitch) WallShot(i, s, x, y, t);
-                for (float x = gc + s.gap * .5f; x < edge; x += s.pitch) WallShot(i, s, x, y, t);
+                float gap = s.gap + BossPatternScaling.GapBonus;
+                for (float x = gc - gap * .5f; x > -edge; x -= s.pitch) WallShot(i, s, x, y, t);
+                for (float x = gc + gap * .5f; x < edge; x += s.pitch) WallShot(i, s, x, y, t);
                 float lim = Mathf.Max(0f, host.ShipHalfWidth - .3f);
                 float nx = gc + gapDir[i] * s.gapStep;
                 if (nx > lim || nx < -lim) { gapDir[i] = -gapDir[i]; nx = Mathf.Clamp(gc + gapDir[i] * s.gapStep, -lim, lim); }
@@ -145,7 +205,7 @@ public sealed partial class BossPatternRunner
                 {
                     float h = theta + a * 360f / arms;
                     if (Mathf.Sin(h * Mathf.Deg2Rad) > -.15f) continue;
-                    Fire(i, from, h, s.speed);
+                    FireM(i, from, Heading(h) * s.speed, default);
                 }
                 break;
             }
@@ -160,7 +220,7 @@ public sealed partial class BossPatternRunner
                     float h = -165f + 150f * j / (c - 1);
                     if (Mathf.Abs(Mathf.DeltaAngle(h, g)) < s.gap * .5f) continue;
                     float petal = Mathf.Abs(Mathf.Cos(s.petals * (h + 90f + turn) * Mathf.Deg2Rad));
-                    Fire(i, from, h, s.speed * (.38f + .62f * petal));
+                    FireM(i, from, Heading(h) * (s.speed * (.38f + .62f * petal)), default);
                 }
                 break;
             }
@@ -174,7 +234,7 @@ public sealed partial class BossPatternRunner
                     float h = -90f + 360f * j / c;
                     if (Mathf.Sin(h * Mathf.Deg2Rad) > -.1f) continue;
                     if (Mathf.Abs(Mathf.DeltaAngle(h, g)) < s.gap * .5f) continue;
-                    Fire(i, from, h, s.speed);
+                    FireM(i, from, Heading(h) * s.speed, default);
                 }
                 break;
             }
