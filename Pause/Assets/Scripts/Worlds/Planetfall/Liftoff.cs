@@ -121,7 +121,7 @@ public class Liftoff : MonoBehaviour
     {
         if (def == null || def.planet == null) return null;
         var art = PlanetfallArt.Load(def.planet);
-        var shader = Resources.Load<Shader>(Planetfall.ShaderPath);
+        var shader = WorldArtPreload.Load<Shader>(Planetfall.ShaderPath);   // held by WorldArtPreload.Next (the boss fight), else loaded now
         if (!art.Complete || shader == null)
         {
             Debug.LogWarning("[Liftoff] art or shader missing for world " + def.world + "; opening the gateway instead");

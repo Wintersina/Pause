@@ -523,6 +523,11 @@ public class WorldManager : MonoBehaviour
         int to = PortalDestination;
         if (to < 0 || to >= Worlds.Length) return;
         WorldArtPreload.Next(CurrentIndex, to, !HasNext, Worlds[to].displayName);
+        // ... and its song (and the lift-off interlude's Space song), requested async and decoded on arrival, so the
+        // world change's WorldMusic.Apply finds the clip instead of opening it on the swap frame
+        WorldMusic.PreloadNext(Worlds[to]);
+        var lift = LiftoffCatalog.For(CurrentIndex, to, !HasNext);
+        if (lift != null && lift.interludeWorld >= 0 && lift.interludeWorld < Worlds.Length) WorldMusic.PreloadNext(Worlds[lift.interludeWorld]);
     }
 
     // The encounter is over (destroyed or survived): the portal, in every

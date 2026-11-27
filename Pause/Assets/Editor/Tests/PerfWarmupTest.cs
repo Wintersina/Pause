@@ -26,6 +26,7 @@ public static class PerfWarmupTest
             Warm();
             Attachers();
             Physics();
+            Transitions();
         }
         finally
         {
@@ -132,6 +133,70 @@ public static class PerfWarmupTest
             ArtWarm.Forget();
             Object.DestroyImmediate(tex);
         }
+    }
+
+    // ---- the world transitions: music requested early and crossfaded, layers faded in, no synchronous loads ----
+    static string Src(string rel) { return TestHarness.StripComments(System.IO.File.ReadAllText("Assets/Scripts/" + rel)); }
+
+    static string Body(string src, string signature)
+    {
+        int at = src.IndexOf(signature, System.StringComparison.Ordinal);
+        if (at < 0) return "";
+        int open = src.IndexOf('{', at), depth = 0;
+        for (int i = open; i < src.Length; i++)
+        {
+            if (src[i] == '{') depth++;
+            else if (src[i] == '}' && --depth == 0) return src.Substring(open, i - open);
+        }
+        return "";
+    }
+
+    static void Transitions()
+    {
+        var syncLoad = new System.Text.RegularExpressions.Regex(@"Resources\.Load(<|\()");
+        string wm = Src("Worlds/WorldManager.cs");
+        string music = Src("Worlds/WorldMusic.cs");
+        string preloadBody = Body(wm, "public static void PreloadNextWorld()");
+        int endLevel = wm.IndexOf("public void EndLevel()", System.StringComparison.Ordinal);
+        int preload = wm.IndexOf("PreloadNextWorld();", endLevel, System.StringComparison.Ordinal);
+        int boss = wm.IndexOf("BossEncounter.Begin(CurrentIndex", endLevel, System.StringComparison.Ordinal);
+        Check("the next world's music is requested with its art as the level ends, before the boss (and before any transition)",
+              preloadBody.Contains("WorldMusic.PreloadNext(Worlds[to])") && preload > endLevel && preload < boss);
+        Check("... and so is the lift-off interlude's song", preloadBody.Contains("LiftoffCatalog.For(CurrentIndex, to, !HasNext)") && preloadBody.Contains("WorldMusic.PreloadNext(Worlds[lift.interludeWorld])"));
+        Check("PreloadNext is asynchronous (Resources.LoadAsync, decoded on arrival) and Apply takes the held clip",
+              Body(music, "public static void PreloadNext(").Contains("Resources.LoadAsync<AudioClip>") &&
+              Body(music, "static void PumpPreload()").Contains("Prewarm(clip)") &&
+              !Body(music, "public static void Apply(WorldTheme theme)").Contains("Resources.Load") &&
+              Body(music, "public static void Apply(WorldTheme theme)").Contains("LoadClip(theme.musicResource)"));
+        Check("the song swap crossfades both ways: the old one fades out on its own source, the new one rises through FadeGain",
+              Body(music, "static IEnumerator Swap(").Contains("FadeOutAndDie") && Body(music, "static IEnumerator Swap(").Contains("FadeGain = k * k * (3f - 2f * k)") &&
+              Src("Audio/musicControl.cs").Contains("WorldMusic.FadeGain") && Src("Audio/musicControl.cs").Contains("WorldMusic.ResetFade()") &&
+              Body(music, "public static void Apply(WorldTheme theme)").Contains("Swap(source, next, 0f, true)"));
+
+        // the layers fade in: the backdrop swap of a transition cross-fades by alpha (never an instant enable), at 0.25-0.4 s or longer
+        string wb = Src("Worlds/Backdrop/WorldBackdrop.cs");
+        string show = Body(wb, "public void Show(string world, bool crossfade)");
+        string step = Body(wb, "public void Step(float unscaledDt)");
+        Check("a crossfaded backdrop swap starts the new set at alpha 0 and ramps both sets' alpha through the frame loop",
+              show.Contains("next.Alpha = 0f") && step.Contains("fade + dt / CrossfadeSeconds") && step.Contains("Current.Alpha = fade") && step.Contains("outgoing.Alpha = 1f - fade") &&
+              WorldBackdrop.CrossfadeSeconds >= .25f);
+        int fades = 0, at = 0;
+        while ((at = wm.IndexOf("WorldBackdrop.Apply(theme, true)", at, System.StringComparison.Ordinal)) >= 0) { fades++; at++; }
+        Check("the portal advance, the planetfall's world switch and the developer jump all use the crossfade (" + fades + " sites)", fades == 3);
+        string pf = Src("Worlds/Planetfall/Planetfall.cs");
+        Check("the planet, its rim and reticle appear through an alpha ramp on approach, not by an instant enable",
+              Body(pf, "void StepApproach(float dt)").Contains("float appear = Mathf.Clamp01(clock / .6f)") && Body(pf, "void StepApproach(float dt)").Contains("cue.a = appear *"));
+
+        // no synchronous Resources.Load anywhere on the transition path (the held-preload loader is the only door)
+        string[] files = { "Worlds/Planetfall/Liftoff.cs", "Worlds/Planetfall/Planetfall.cs", "Worlds/Planetfall/PlanetfallArt.cs", "Worlds/WorldPainter.cs", "Worlds/WorldManager.cs", "Worlds/WorldEntry.cs" };
+        foreach (var f in files)
+            Check(f + ": no synchronous Resources.Load (the swap loads through WorldArtPreload.Load)", !syncLoad.IsMatch(Src(f)));
+        Check("WorldMusic.Apply / the lift-off / the painter ask the preload for the rails, lift-off art and Space interlude",
+              Src("Core/WorldArtPreload.cs").Contains("LiftoffCatalog.For(from, to, loop)") && Src("Core/WorldArtPreload.cs").Contains("QueueRails(") &&
+              Src("Worlds/Planetfall/Liftoff.cs").Contains("WorldArtPreload.Load<Shader>(Planetfall.ShaderPath)") &&
+              Src("Worlds/WorldPainter.cs").Contains("WorldArtPreload.Load<Texture2D>(RailPath(theme))"));
+        Check("a theme with no song asks for nothing (and nothing is requested out of play)",
+              Body(music, "public static void PreloadNext(").Contains("!Application.isPlaying || string.IsNullOrEmpty(theme.musicResource)"));
     }
 
     // ---- the ship attachers: no scene scan, they wait for the ship's announcement ----
