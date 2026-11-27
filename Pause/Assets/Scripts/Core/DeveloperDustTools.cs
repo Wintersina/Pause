@@ -13,7 +13,7 @@ using UnityEngine;
 //           marks, killed / hurt tallies, atomic combo discoveries and the last-stand replay;
 //           boosters (bought / used counters and their on-off switches); the dust-offer
 //           streak; achievement unlocks, claims, counters and boss / elite flags.
-//   KEPT    Remove Ads (AdFree) and Paragon (real-money entitlements); best score, top speed,
+//   KEPT    Remove Ads (AdFree) and Paragon (real-money entitlements); best score,
 //           leaderboard bookkeeping and the shared-board settings; play time; the tutorial flag;
 //           audio, vibration, perch, offer-toggle and other settings; developer mode and its
 //           world pick; sign-in and account link; the Codex back-pay marker (so it cannot pay again).
