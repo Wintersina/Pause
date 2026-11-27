@@ -155,7 +155,8 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint, I
     // hearts above are untouched by it, so the fight script (ScriptHearts, phases) only ever reads the red bar.
     public HeartShell Shell;
     public int TotalQuarters => heartQuarters + Shell.QuartersLeft;
-    public int ShownQuarters => Shell.Any ? Shell.LayerQuarters : heartQuarters;
+    public int ShownQuarters => Shell.Any ? Shell.DisplayQuarters : heartQuarters;
+    public bool HasCrystal => Shell.Tier >= 2;   // PUBLIC for the enemy-threat code
     public int LayersBroken { get; private set; }
     public float Health => HeartDamage.Hearts(heartQuarters);
     // The hearts the fight script thinks in: the authored count (EliteDef.hearts), a lost authored heart being EliteDef.Scale real ones.
@@ -329,7 +330,7 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint, I
         def = def.Instance();
         Def = def;
         Hearts = def.MaxHearts;
-        Shell = HeartShell.Make(HeartTierRoll.Pick(HeartTierKind.Elite), HeartTierKind.Elite, def.MaxHearts);
+        Shell = HeartTierRun.Plan(HeartTierKind.Elite, def.MaxHearts);
         Brain = EliteBrains.Create(def.brain);
         Attack = EliteAttacks.Create(def.attack);
         Script = new EliteScriptRunner(this, def);

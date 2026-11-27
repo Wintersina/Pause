@@ -23,9 +23,9 @@ using UnityEngine;
 public static class EnemyTierThreat
 {
     // ---- THE TABLE (index = tier 0 red, 1 blue, 2 crystal) ----
-    public static readonly float[] IntervalMul = { 1f, .75f, .55f };   // x the cooldown and the first delay
-    public static readonly float[] SpeedMul = { 1f, 1.1f, 1.2f };      // x shot speed, the dive and the run
-    public static readonly float[] LungeMul = { 1f, .9f, .75f };       // x the lunge seconds (smaller = faster)
+    public static readonly float[] IntervalMul = { 1f, 1f, 1f };   // (the fire rate is the shared PlayerPower.ThreatScale in EnemyBrain: one path, never doubled here)   // x the cooldown and the first delay
+    public static readonly float[] SpeedMul = { 1f, 1f, 1f };      // x shot speed, the dive and the run
+    public static readonly float[] LungeMul = { 1f, 1f, 1f };       // x the lunge seconds (smaller = faster)
     public static readonly int[] ExtraShots = { 0, 0, 1 };
 
     // ---- caps ----
@@ -51,16 +51,14 @@ public static class EnemyTierThreat
         tier = Mathf.Clamp(tier, 0, 2);
         if (tier == 0) return 1f;
         float m = Mathf.Max(MinIntervalMul, IntervalMul[tier]);
-        if (loopIndex <= 0) return m;
-        return Mathf.Max(LoopMinIntervalMul, m / LoopFactor(loopIndex));
+        return m;   // (the loop's faster volleys are LoopDifficulty.VolleyGapScale in EnemyBrain: not applied twice)
     }
     public static float Speed(int tier, int loopIndex = 0)
     {
         tier = Mathf.Clamp(tier, 0, 2);
         if (tier == 0) return 1f;
         float m = Mathf.Min(MaxSpeedMul, SpeedMul[tier]);
-        if (loopIndex <= 0) return m;
-        return Mathf.Min(LoopMaxSpeedMul, m * Mathf.Sqrt(LoopFactor(loopIndex)));
+        return m;   // (the loop's faster shots are LoopDifficulty.ShotSpeedScale in EnemyBrain)
     }
 
     // The world's own shot kind for a simple shot: ice shards (Frost), droplets (Tide), sand (Desert) are shards; the rest are bolts
@@ -83,7 +81,7 @@ public static class EnemyTierThreat
     {
         loopIndex = Mathf.Clamp(loopIndex, 0, LoopCap);
         tier = Mathf.Clamp(tier, 0, 2);
-        if (b == null || tier == 0) return b;
+        if (b == null || tier < 2) return b;   // only a crystal hull is tuned now (its extra shot); blue / red fly the table's row
         if (b.IsPilot == false && b.attack == EnemyAttack.Laser) return b;   // (a mine never has hearts)
         long id = ((long)b.key.GetHashCode() << 8) | (long)(loopIndex << 2) | (uint)tier;
         EnemyBehaviour tuned;

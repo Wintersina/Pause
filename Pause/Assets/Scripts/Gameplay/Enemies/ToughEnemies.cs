@@ -43,9 +43,9 @@ public static class Toughness
         if (go.GetComponent<EnemyHearts>() == null)
         {
             int health = LoopDifficulty.EnemyHearts(HeartsFor(def), RunLoop.Index);   // later loops: exponential, capped
-            int tier = HeartTierRoll.Pick(HeartTierKind.Enemy);   // (HeartTiers: crystal / blue bars in front of the red hearts, by run power)
-            go.AddComponent<EnemyHearts>().Init(health, tier);
-            if (tier > 0 && go.TryGetComponent(out EnemyBrain brain)) brain.SetTier(tier);   // (EnemyTierThreat: a tiered enemy fights back)
+            var hearts = go.AddComponent<EnemyHearts>();
+            hearts.Init(health);   // (HeartTiers: blue / crystal bars in front of the red hearts, from the pilot's power at this spawn)
+            if (hearts.HasCrystal && go.TryGetComponent(out EnemyBrain brain)) brain.SetTier(hearts.Tier);   // (EnemyTierThreat: only a crystal hull gets its extra shot; the fire rate is the shared PlayerPower.ThreatScale)
             DroneHunters.MaybeMake(go, def);   // (DroneHunters: at high power some spawns hunt the drones)
             EnemyArmour.Mark(go, health);
             if (go.TryGetComponent(out ChaserEnemy chaser)) chaser.RecacheBurrow();
@@ -104,10 +104,12 @@ public class EnemyHearts : MonoBehaviour
     // The blue / crystal bars in front of the red hearts (none: red only, exactly as before). See HeartTiers.cs.
     public HeartShell Shell;
     public int Tier => Shell.Tier;
+    // PUBLIC for the enemy-threat code: this hull carries crystal (its extras key off what it actually has, not a roll).
+    public bool HasCrystal => Shell.Tier >= 2;
     // Quarter units across every bar left (what a hit's before / after compares).
     public int TotalQuarters => quarters + Shell.QuartersLeft;
     // The quarter units of the bar showing now (the shell's outer bar, else the red hearts).
-    public int ShownQuarters => Shell.Any ? Shell.LayerQuarters : quarters;
+    public int ShownQuarters => Shell.Any ? Shell.DisplayQuarters : quarters;
     // Bars that broke (tests, tuning).
     public int LayersBroken { get; private set; }
     public int Hearts => HeartDamage.WholeHearts(quarters);
@@ -121,11 +123,11 @@ public class EnemyHearts : MonoBehaviour
     bool impactPending;
     Vector3 impactAt;
 
-    public void Init(int hearts, int tier = 0)
+    public void Init(int hearts)
     {
         Max = Mathf.Max(1, hearts);
         quarters = Max * HeartDamage.PerHeart;
-        Shell = HeartShell.Make(tier, HeartTierKind.Enemy, Max);
+        Shell = HeartTierRun.Plan(HeartTierKind.Enemy, Max);
         lastHit = -999f;
         if (EnemyHeartsView.Live < Toughness.MaxHeartViews && GetComponent<SpriteRenderer>() != null)
         {

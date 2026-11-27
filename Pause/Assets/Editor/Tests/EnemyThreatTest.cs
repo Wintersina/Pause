@@ -19,7 +19,7 @@ public static class EnemyThreatTest
         try { Cap(); Tiers(); Loops(); Hunters(); Shots(); Colours(); Knock(); Orbit(); Live(); }
         finally
         {
-            HeartTierRoll.ForceTier = -1; HeartTierRoll.Live = false; RunPower.Override = -1f;
+            HeartTierRun.ForceTier = -1; HeartTierRun.Live = false; RunPower.Override = -1f;
             EnemyTierThreat.LoopOverride = -1; EnemyTierThreat.ClearCache(); DroneHunters.ResetAll(); DroneOrbit.Reset();
         }
         Debug.Log("[THREAT] failures: " + fails);
@@ -51,18 +51,17 @@ public static class EnemyThreatTest
             var blue = EnemyTierThreat.Tuned(def, b, 1);
             var cry = EnemyTierThreat.Tuned(def, b, 2);
             same &= red == b && red.cooldown == b.cooldown && red.shotSpeed == b.shotSpeed && red.shotCount == b.shotCount && red.firstDelay == b.firstDelay;
-            blueFaster &= blue.cooldown < red.cooldown || red.cooldown <= EnemyTierThreat.MinCooldownSeconds;
-            crystalFaster &= cry.cooldown < blue.cooldown || blue.cooldown <= EnemyTierThreat.MinCooldownSeconds;
-            speedUp &= blue.shotSpeed > red.shotSpeed && cry.shotSpeed > blue.shotSpeed && cry.shotSpeed <= red.shotSpeed * EnemyTierThreat.MaxSpeedMul + 1e-4f;
+            // one path: the fire rate and shot speed are the shared PlayerPower.ThreatScale in EnemyBrain, so a tier no longer multiplies them here
+            blueFaster &= blue.cooldown == red.cooldown && cry.cooldown == red.cooldown && blue.firstDelay == red.firstDelay;
+            speedUp &= blue.shotSpeed == red.shotSpeed && cry.shotSpeed == red.shotSpeed;
         }
         Check("there are shooting pilots to tune", any);
         Check("red-only enemies keep their exact table row (same object, same fire rate)", same);
-        Check("blue fires oftener than red", blueFaster);
-        Check("crystal fires oftener than blue", crystalFaster);
-        Check("shots are faster blue > red and crystal > blue, never past the cap", speedUp);
-        Check("table: blue x.75 / x1.1, crystal x.55 / x1.2",
-            Mathf.Approximately(EnemyTierThreat.Interval(1), .75f) && Mathf.Approximately(EnemyTierThreat.Interval(2), .55f) &&
-            Mathf.Approximately(EnemyTierThreat.Speed(1), 1.1f) && Mathf.Approximately(EnemyTierThreat.Speed(2), 1.2f));
+        Check("the tuned row keeps the table's own fire interval (the rate is PlayerPower.ThreatScale, not doubled here)", blueFaster && crystalFaster);
+        Check("... and its own shot speed", speedUp);
+        Check("table: tier interval / speed multipliers are all x1 (no double application)",
+            Mathf.Approximately(EnemyTierThreat.Interval(1), 1f) && Mathf.Approximately(EnemyTierThreat.Interval(2), 1f) &&
+            Mathf.Approximately(EnemyTierThreat.Speed(1), 1f) && Mathf.Approximately(EnemyTierThreat.Speed(2), 1f));
         bool capped = true;
         for (int t = 0; t <= 2; t++) capped &= EnemyTierThreat.Interval(t) >= EnemyTierThreat.MinIntervalMul && EnemyTierThreat.Speed(t) <= EnemyTierThreat.MaxSpeedMul;
         Check("loop 1 multipliers are capped", capped);
@@ -79,7 +78,7 @@ public static class EnemyThreatTest
     static void Loops()
     {
         Check("loop 1 factor is 1", Mathf.Approximately(EnemyTierThreat.LoopFactor(0), 1f));
-        Check("loop 1 tier multipliers are unchanged", Mathf.Approximately(EnemyTierThreat.Interval(2, 0), .55f) && Mathf.Approximately(EnemyTierThreat.Speed(2, 0), 1.2f));
+        Check("tier multipliers are x1 on loop 1", Mathf.Approximately(EnemyTierThreat.Interval(2, 0), 1f) && Mathf.Approximately(EnemyTierThreat.Speed(2, 0), 1f));
         Check("later loops are exponentially harder", EnemyTierThreat.LoopFactor(3) > EnemyTierThreat.LoopFactor(2) && EnemyTierThreat.LoopFactor(2) > EnemyTierThreat.LoopFactor(1) && EnemyTierThreat.LoopFactor(1) > 1f);
         bool ok = true, mono = true;
         float lastI = 9f, lastS = 0f;
@@ -94,9 +93,8 @@ public static class EnemyThreatTest
             lastI = i; lastS = s;
         }
         Check("at every loop to 20 the interval floor, speed cap, telegraph >= 0.4 s, hunter count and share caps hold", ok);
-        Check("interval shrinks and speed grows monotonically with the loop", mono);
-        Check("at loop 20 the caps are reached exactly", Mathf.Approximately(EnemyTierThreat.Interval(2, 20), EnemyTierThreat.LoopMinIntervalMul) && Mathf.Approximately(EnemyTierThreat.Speed(2, 20), EnemyTierThreat.LoopMaxSpeedMul) &&
-            Mathf.Approximately(DroneHunters.TelegraphSeconds(20), .4f) && DroneHunters.MaxAlive(20) == DroneHunters.HardMaxAlive);
+        Check("the tier multipliers stay x1 at every loop (the loop's pace is LoopDifficulty in EnemyBrain)", mono && Mathf.Approximately(EnemyTierThreat.Interval(2, 20), 1f) && Mathf.Approximately(EnemyTierThreat.Speed(2, 20), 1f));
+        Check("at loop 20 the hunter caps are reached exactly", Mathf.Approximately(DroneHunters.TelegraphSeconds(20), .4f) && DroneHunters.MaxAlive(20) == DroneHunters.HardMaxAlive);
         Check("loop 1 hunter numbers are the base ones", DroneHunters.MaxAlive(0) == DroneHunters.BaseMaxAlive && Mathf.Approximately(DroneHunters.TelegraphSeconds(0), DroneHunters.BaseTelegraphSeconds));
         // the ordinary enemy's budget: tiered volleys reserve their extras, so the roster shot budget is still the one ceiling
         EnemyTierThreat.LoopOverride = 20;
@@ -323,7 +321,7 @@ public static class EnemyThreatTest
         RunScore.EndRun(RunScore.RunId); RunScore.BeginRun(true, true);
         DroneHunters.ResetAll();
 
-        HeartTierRoll.ForceTier = 2;
+        HeartTierRun.ForceTier = 2;
         RunPower.Override = 0f;
         var fighter = EnemyRoster.One(1, EnemyRole.Fighter);
         var go = EnemyFactory.Create(fighter, Vector3.up * 8f, Quaternion.identity, 1f, true);
@@ -331,10 +329,10 @@ public static class EnemyThreatTest
         Check("a crystal enemy flies a tuned copy of its row", brain != null && brain.Tier == 2 && brain.Behaviour != EnemyBehaviours.For(fighter));
         Check("no hunter is made at zero power", DroneHunters.Alive == 0 && go.GetComponent<DroneHunter>() == null);
 
-        HeartTierRoll.ForceTier = 1;
+        HeartTierRun.ForceTier = 1;
         var alien = EnemyFactory.Create(EnemyRoster.One(1, EnemyRole.Alien), Vector3.up * 8f, Quaternion.identity, 1f, true);
         Check("a blue enemy that never shot still does not", !alien.GetComponent<EnemyBrain>().Armed);
-        HeartTierRoll.ForceTier = 2;
+        HeartTierRun.ForceTier = 2;
         var alien2 = EnemyFactory.Create(EnemyRoster.One(1, EnemyRole.Alien), Vector3.up * 8f, Quaternion.identity, 1f, true);
         Check("a crystal frost alien is armed with its simple shot", alien2.GetComponent<EnemyBrain>().Armed && alien2.GetComponent<EnemyBrain>().Behaviour.Shoots);
 

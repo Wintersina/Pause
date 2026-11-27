@@ -166,7 +166,8 @@ public class BossEncounter : MonoBehaviour
     float shellBank;     // fractional quarter units not yet spent on the shell
     public int LayersBroken { get; private set; }
     public int TotalQuarters => QuartersLeft + Shell.QuartersLeft;
-    public int ShownQuarters => Shell.Any ? Shell.LayerQuarters : QuartersLeft;
+    public int ShownQuarters => Shell.Any ? Shell.DisplayQuarters : QuartersLeft;
+    public bool HasCrystal => Shell.Tier >= 2;   // PUBLIC for the boss-pattern code
     public int ShownLayer => (int)Shell.Layer;
     public int QuartersLeft => Mathf.Max(0, Mathf.CeilToInt((MaxHearts - damage) * HeartDamage.PerHeart - .0001f));
     // The boss's hit points ran out (DESTROYED), as opposed to the fight
@@ -234,7 +235,7 @@ public class BossEncounter : MonoBehaviour
         hitWindow = 0f;
         damage = 0f;
         heartsLeft = MaxHearts;
-        Shell = HeartShell.Make(HeartTierRoll.Pick(HeartTierKind.Boss), HeartTierKind.Boss, MaxHearts);
+        Shell = HeartTierRun.Plan(HeartTierKind.Boss, MaxHearts);
         shellBank = 0f;
         LayersBroken = 0;
         remaining = BossConfig.FightSeconds;
