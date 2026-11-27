@@ -1487,10 +1487,10 @@ enemy elite hearts more clear: give them an outline glow". Tested by `BossHearts
 
 An escaped boss deducts **10,000 points** once at the start of its retreat. An escaped elite deducts **1,000 points**, including an in-play elite forced to retreat by a boss arrival. Both penalties stop at zero, pay no rewards, and use the existing negative escape callouts.
 
-**The escape clock** is `BossConfig.EscapeSeconds` = 120 s (`FightSeconds`): an untouched boss stays two minutes,
-then retreats (it was 36 s). The rules round it are unchanged: hits count only in the Fight phase (nothing while it
+**The escape clock** is `BossConfig.EscapeSeconds` = 105 s (`FightSeconds`; 120 s minus `EscapeSoonerSeconds` = 15 s): an untouched boss stays 105 s,
+then retreats (it was 120 s, and 36 s before that). The rules round it are unchanged: hits count only in the Fight phase (nothing while it
 warps in or out), the clock is never shaved, DeathCombo never chains a boss, rams and shockwaves pass through it.
-The attack phases stay at the thirds of the clock / of the hearts (40 s each); the damaged-hull looks
+The attack phases stay at the thirds of the clock / of the hearts (35 s each); the damaged-hull looks
 (`BossArt.DamageStage`, 4 stages) spread proportionally across the encounter's actual maximum hearts.
 **Hit window (no per-firing cap).** Nothing caps a firing, a barrage, a beam or a ram against a boss (`BossTarget` is
 `IShipAttackTargetUncapped`; elites keep the one-budget-per-firing rule). The only limiter is

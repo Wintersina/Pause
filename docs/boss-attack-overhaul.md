@@ -4,7 +4,7 @@ The user: "the bosses should progressively become harder and the attack patterns
 boss from each level should be harder than the last. Let's build this out fully for new different attack patterns. The
 current bosses each have too similar attack patterns."
 
-Kept as it was: 12 hearts / 12 hit points per boss (each heart one full hit), the 120 s escape clock, the thirds-of-the-fight phases, the free shots and
+Kept as it was: 12 hearts / 12 hit points per boss (each heart one full hit), the 105 s escape clock, the thirds-of-the-fight phases, the free shots and
 ultimate, the friendly-fire rules (a boss shot still takes out a rock it meets), the entrance, the death sequence, all artwork.
 What changed: what the bosses fire, how much, and how it escalates. Every number lives in two files:
 `Scripts/Bosses/Patterns/BossPatternTables.cs` (the attacks) and `Scripts/Bosses/Patterns/BossLadder.cs` (the ladder: density,
@@ -44,7 +44,7 @@ columns) or a second fan, and one sweeping laser; unlocked 1 / 2 / 3 by thirds, 
 | Tempest Engine | core arc fan: 3 fans of 5, 84 deg, ricochet x1, 2.6 u/s, tell 1.0; crown hail: 2 lobs of 4, tell .9; coil beams: 2 beams, tell 1.0 | 23 | coil | (off) crown strike, chain lightning |
 | Dune-Eater | grit fan: 3 fans of 5, 84 deg, ricochet x1, 2.5 u/s, tell 1.0; dune lob: 2 lobs of 4, tell .9; lens beam: 1 beam, tell 1.0 | 23 | lens | (off) burrower strike, sandstorm wall |
 
-Fight-wide: phases at thirds of the 120 s clock or of the 12 hearts (whichever is further on); final third cooldown x0.75
+Fight-wide: phases at thirds of the 105 s clock or of the 12 hearts (whichever is further on); final third cooldown x0.75
 (`BossConfig.FinalPhaseCooldownScale`); first attack 1.2 s after the fight starts; pool 48 shots / 6 beams.
 
 ### Similarity matrix (before)

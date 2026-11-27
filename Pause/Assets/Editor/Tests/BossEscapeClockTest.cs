@@ -6,7 +6,7 @@ using UnityEngine;
 // rule should be for all bosses."
 //
 // Every boss (all worlds) wears 5 hearts + 5 (10) and stays EscapeSeconds
-// (120) before it escapes: one rule, from BossConfig, not per boss.
+// (105) before it escapes: one rule, from BossConfig, not per boss.
 public static class BossEscapeClockTest
 {
     static int fails;
@@ -43,7 +43,7 @@ public static class BossEscapeClockTest
     static void TheNumbers()
     {
         const int OldHearts = 5;
-        Check("the escape clock is one named constant, 120 s (2 minutes)", BossConfig.EscapeSeconds == 120f && BossConfig.FightSeconds == BossConfig.EscapeSeconds);
+        Check("the escape clock is one named constant, 105 s (2 minutes less 15 s)", BossConfig.EscapeSeconds == 105f && BossConfig.FightSeconds == BossConfig.EscapeSeconds);
         Check("starting hearts = the old " + OldHearts + " + 8 = 13 (" + BossConfig.Hearts + ")",
               BossConfig.BaseHearts == OldHearts && BossConfig.ExtraHearts == 8 && BossConfig.HeartsAt(0, 0) == 13 && BossConfig.HitPoints == BossConfig.Hearts);
         Check("the hearts still split the hit points evenly (" + BossConfig.HitPoints + " hits, " + BossConfig.HeartWeight.ToString("F3") + " a heart)",
@@ -58,7 +58,7 @@ public static class BossEscapeClockTest
         }
         // the free shots of the fight fit its clock
         float[] t = new float[BossFreeShotAtoms.Count];
-        Check("the free-shot atoms fit the 120 s clock", BossFreeShotAtoms.Roll(BossConfig.FightSeconds, t) == BossFreeShotAtoms.Count);
+        Check("the free-shot atoms fit the 105 s clock", BossFreeShotAtoms.Roll(BossConfig.FightSeconds, t) == BossFreeShotAtoms.Count);
     }
 
     static void SelectedStartIsHeld()
@@ -102,17 +102,17 @@ public static class BossEscapeClockTest
         string name = e.Boss.artKey;
         Check(name + ": fights with " + e.HeartsLeft + " hearts (5 + 5) and a " + e.Remaining.ToString("F0") + " s clock",
               e.State == BossEncounter.Phase.Fight && e.HeartsLeft == BossConfig.Hearts && e.Actor.Hearts != null && e.Actor.Hearts.ShownCount == BossConfig.Hearts &&
-              Mathf.Abs(e.Remaining - 120f) < .01f);
+              Mathf.Abs(e.Remaining - 105f) < .01f);
 
         long scoreBeforeEscape = RunScore.Total;
         float fought = 0f;
-        while (e.State == BossEncounter.Phase.Fight && fought < 119.5f) { e.Step(Dt, 1f); fought += Dt; }
+        while (e.State == BossEncounter.Phase.Fight && fought < 104.5f) { e.Step(Dt, 1f); fought += Dt; }
         Check(name + ": still here at " + fought.ToString("F1") + " s (not escaped before 2 min)",
               e.State == BossEncounter.Phase.Fight && !e.Destroyed && e.Remaining > .4f);
         while (e.State == BossEncounter.Phase.Fight && fought < 130f) { e.Step(Dt, 1f); fought += Dt; }
-        Check(name + ": escapes at 120 s (" + fought.ToString("F1") + " s), not destroyed",
+        Check(name + ": escapes at 105 s (" + fought.ToString("F1") + " s), not destroyed",
               e.State == BossEncounter.Phase.Outro && !e.Destroyed && e.Actor.State == BossActor.Mode.Retreating &&
-              Mathf.Abs(fought - 120f) < .3f);
+              Mathf.Abs(fought - 105f) < .3f);
         Check(name + ": an escape costs exactly 10000 points", RunScore.Total == scoreBeforeEscape - 10000);
         long afterEscape = RunScore.Total; e.Step(Dt, 1f);
         Check(name + ": the escape penalty is not charged again during the outro", RunScore.Total == afterEscape);
