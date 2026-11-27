@@ -128,16 +128,18 @@ public static class EnemyDeathAudioTest
     {
         "space_fighter_1", "space_fighter_2", "space_fighter_3", "space_fighter_4", "space_alien", "space_chaser", "space_big",
         "space_elite_eventide_bastion", "space_elite_rift_lancer", "space_elite_singularity_hauler", "frost_fighter_1",
+        // batch 2: the six redone sounds
+        "boss_ember", "boss_frost", "boss_space", "desert_big", "desert_fighter_4", "ember_elite_kilnback",
     };
     static void OwnClips()
     {
-        Check("OwnTable lists exactly the 11 approved batch-1 ids", EnemyDeathAudio.OwnTable.Length == Approved.Length);
+        Check("OwnTable lists exactly the 17 approved ids (11 batch-1 + 6 redone)", EnemyDeathAudio.OwnTable.Length == Approved.Length);
         foreach (var id in Approved)
         {
             var res = Resources.Load<AudioClip>(EnemyDeathAudio.OwnClipPath(id));
-            bool known = EnemyRoster.Find(id) != null || EliteCatalog.Find(id) != null;
+            bool known = EnemyRoster.Find(id) != null || EliteCatalog.Find(id) != null || (id.StartsWith("boss_") && EnemyDeathAudio.CategoryOf(id) != "");
             Check(id + " is a real roster / elite key", known);
-            Check(id + " has own_" + id + " in Resources, mono, <= 1.6 s" + (res != null ? " (" + res.length.ToString("0.00") + " s)" : ""), res != null && res.channels == 1 && res.length > .2f && res.length <= 1.6f);
+            Check(id + " has own_" + id + " in Resources, mono, <= " + (id.StartsWith("boss_") ? "1.8" : "1.6") + " s" + (res != null ? " (" + res.length.ToString("0.00") + " s)" : ""), res != null && res.channels == 1 && res.length > .2f && res.length <= (id.StartsWith("boss_") ? 1.8f : 1.6f));
             EnemyDeathAudio.ResetVoices(); clock += 2.0;
             bool played = EnemyDeathAudio.PlayAuthored(id, .68f);
             Check(id + " resolves to its own clip (1 variant), not the shared category",
@@ -274,7 +276,7 @@ public static class EnemyDeathAudioTest
     static void Import()
     {
         var guids = AssetDatabase.FindAssets("t:AudioClip", new[] { EnemyDeathAudioImporter.Folder.TrimEnd('/') });
-        bool ok = guids.Length == 8 + 11 + 42 + 6 + 10;   // 8 shared clips + 11 own death clips + the 14 rocks' 42 cues + the 6 wet / crack layer clips (storm_crack_, tide_wet_) + 10 boss hurt blows -- recount if rocks change
+        bool ok = guids.Length == 8 + 17 + 42 + 6 + 10;   // 8 shared clips + 17 own death clips + the 14 rocks' 42 cues + the 6 wet / crack layer clips (storm_crack_, tide_wet_) + 10 boss hurt blows -- recount if rocks change
         string bad = "";
         foreach (var g in guids)
         {
@@ -314,7 +316,7 @@ public static class EnemyDeathAudioTest
             Check(key + " is a roar with 1 clip (" + EnemyDeathAudio.Variants(key) + ")", EnemyDeathAudio.CategoryOf(key) == EnemyDeathAudio.Roar && EnemyDeathAudio.Variants(key) == 1);
             clock += 5; EnemyDeathAudio.ResetVoices();
             bool played = EnemyDeathAudio.PlayBossDeath(b.artKey);
-            Check(key + " PlayBossDeath finds and plays its clip", played && EnemyDeathAudio.Played == 1 && EnemyDeathAudio.LastKey == key && EnemyDeathAudio.LastClip != null && EnemyDeathAudio.LastPitch < 1f);
+            Check(key + " PlayBossDeath finds and plays its clip", played && EnemyDeathAudio.Played == 1 && EnemyDeathAudio.LastKey == key && EnemyDeathAudio.LastClip != null && (EnemyDeathAudio.HasOwn(key) ? EnemyDeathAudio.LastClip.name == "own_" + key && EnemyDeathAudio.LastPitch < 1.05f : EnemyDeathAudio.LastPitch < 1f));
 
             // the hurt blow (a heart lost): its own two short clips, quieter than the death cue (not a shared death sound)
             string hurt = EnemyDeathAudio.BossHurtKey(b.artKey);

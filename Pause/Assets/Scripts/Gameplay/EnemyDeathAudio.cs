@@ -111,6 +111,9 @@ public static class EnemyDeathAudio
         new[] { "space_alien", "1.0" }, new[] { "space_chaser", "1.0" }, new[] { "space_big", "1.0" },
         new[] { "space_elite_eventide_bastion", "1.0" }, new[] { "space_elite_rift_lancer", "1.0" }, new[] { "space_elite_singularity_hauler", "1.0" },
         new[] { "frost_fighter_1", "1.0" },
+        // Batch 2 (the six redone sounds, owner picks): the three bosses, the Sandbarge, the Dust Devil Tank and Kilnback
+        new[] { "boss_ember", "1.0" }, new[] { "boss_frost", "1.0" }, new[] { "boss_space", "1.0" },
+        new[] { "desert_big", "1.0" }, new[] { "desert_fighter_4", "1.0" }, new[] { "ember_elite_kilnback", "1.0" },
     };
     static Dictionary<string, string[]> ownByKey = BuildOwn();
     static Dictionary<string, string[]> BuildOwn()
