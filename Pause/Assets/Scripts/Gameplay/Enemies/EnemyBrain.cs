@@ -320,6 +320,30 @@ public class EnemyBrain : MonoBehaviour
         PilotAirspace.Register(this);
     }
 
+    // The heart tier this enemy spawned with (0 red, 1 blue, 2 crystal; EnemyTierThreat.cs).
+    public int Tier { get; private set; }
+    EnemyBehaviour tableBehaviour;
+
+    // Called once, when the enemy's hearts are attached (Toughness.Attach): a blue or crystal enemy flies a tuned copy of its row, so it
+    // fires oftener and faster, dives harder and (crystal) throws one more shot. Red keeps the table's own behaviour untouched.
+    public void SetTier(int tier)
+    {
+        if (Behaviour == null) return;
+        if (tableBehaviour == null) tableBehaviour = Behaviour;
+        Tier = Mathf.Clamp(tier, 0, 2);
+        var tuned = EnemyTierThreat.Tuned(Def, tableBehaviour, Tier, EnemyTierThreat.LoopIndex);
+        if (tuned == Behaviour) return;
+        bool wasArmed = Armed;
+        Behaviour = tuned;
+        cooldown = tuned.firstDelay;
+        if (!wasArmed && tuned.Attacks && !tableBehaviour.Attacks)
+        {
+            Armed = true;   // crystal: an enemy that never shot gets its one simple shot
+            if (flipbook != null && !onRail) flipbook.SetBrainDriven(true);
+        }
+        if (Armed && tuned.Shoots && charge == null) BuildChargeLight();
+    }
+
     // Told to clear out (a boss or a portal is coming): it Climbs away.
     public void Order()
     {

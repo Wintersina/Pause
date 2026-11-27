@@ -4,7 +4,7 @@ using UnityEngine;
 // Stable, visible recipient before collection. Only the nearest nearby pickup draws a receiver line.
 public sealed class DronePickupPreview : MonoBehaviour
 {
-    static readonly List<DronePickupPreview> live = new List<DronePickupPreview>(12);
+    static readonly List<DronePickupPreview> live = new List<DronePickupPreview>(DroneSquad.MaxSlots);
     TextMesh label;
     LineRenderer line;
     ShotAtomPickup modifier;

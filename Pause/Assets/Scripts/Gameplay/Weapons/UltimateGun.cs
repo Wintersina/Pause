@@ -38,6 +38,7 @@ public class UltimateGun : MonoBehaviour
     float firePop;
     int shipIndex;
     Vector3 restingOffset, firingOffset;
+    public Vector2 HullExtents { get; private set; }
     Vector3 muzzleBaseScale;
 
     public static UltimateGun Attach(GameObject ship)
@@ -57,6 +58,7 @@ public class UltimateGun : MonoBehaviour
 
         shipIndex = ShipId.Of(hull != null ? hull.gameObject : gameObject, ShipId.Equipped());
         barrelLength = extents.x * 0.92f;
+        HullExtents = extents;
         // A companion weapon hovers beside its owner while charging, then
         // drifts into the forward firing slot just before the sweep begins.
         mountY = 0f;
@@ -118,7 +120,8 @@ public class UltimateGun : MonoBehaviour
     void Reposition(float extend01, float unscaledDt)
     {
         Vector3 hover = HoverOffset(shipIndex, Time.time); // the world clock: the hover stops with a pause
-        Vector3 target = Vector3.Lerp(restingOffset + hover, firingOffset + hover * .2f, extend01);
+        Vector3 rest0 = FloatieBattery.Orbiting(0) ? new Vector3(DroneOrbit.Local(0).x, DroneOrbit.Local(0).y, restingOffset.z) : restingOffset;   // (the squad's orbit, DroneOrbit)
+        Vector3 target = Vector3.Lerp(rest0 + hover, firingOffset + hover * .2f, extend01);
         var hull = transform.parent;
         bool spin = hull != null && ShipUiSlots.Spins(shipIndex);
         // At rest the hover eases on from wherever the gun is (as it always
@@ -377,6 +380,7 @@ public class UltimateGun : MonoBehaviour
     // `scale` -- draws inside LocalRestEnvelope.
     Vector3 ClampToRest(Vector3 g, float angle, float scale)
     {
+        if (FloatieBattery.Orbiting(0)) return g;   // (it circles the ship: no fixed rest box to hold it in)
         if (barrelRenderer == null || barrelRenderer.sprite == null) return g;
         Bounds env = LocalRestEnvelope();
         Bounds sb = barrelRenderer.sprite.bounds;

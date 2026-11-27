@@ -43,7 +43,10 @@ public static class Toughness
         if (go.GetComponent<EnemyHearts>() == null)
         {
             int health = LoopDifficulty.EnemyHearts(HeartsFor(def), RunLoop.Index);   // later loops: exponential, capped
-            go.AddComponent<EnemyHearts>().Init(health, HeartTierRoll.Pick(HeartTierKind.Enemy));   // (HeartTiers: crystal / blue bars in front of the red hearts, by run power)
+            int tier = HeartTierRoll.Pick(HeartTierKind.Enemy);   // (HeartTiers: crystal / blue bars in front of the red hearts, by run power)
+            go.AddComponent<EnemyHearts>().Init(health, tier);
+            if (tier > 0 && go.TryGetComponent(out EnemyBrain brain)) brain.SetTier(tier);   // (EnemyTierThreat: a tiered enemy fights back)
+            DroneHunters.MaybeMake(go, def);   // (DroneHunters: at high power some spawns hunt the drones)
             EnemyArmour.Mark(go, health);
             if (go.TryGetComponent(out ChaserEnemy chaser)) chaser.RecacheBurrow();
         }

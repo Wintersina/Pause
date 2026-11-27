@@ -1,7 +1,7 @@
 using UnityEngine;
 
 // Dock upgrades unlock one, two or three starting companion slots. Directional cores activate them and set
-// straight, alternating or aimed fire; bosses recruit additional drones up to twelve.
+// straight, alternating or aimed fire; bosses recruit additional drones up to six.
 // Aimed shots choose a heading at launch and never track afterward. Weapon skins retain
 // their colour and final-tier cooldown cut. Core levels and shared RAPID increase fire rate.
 // Firing holds during pauses, entry, transitions, death and tutorial, but not ultimates.

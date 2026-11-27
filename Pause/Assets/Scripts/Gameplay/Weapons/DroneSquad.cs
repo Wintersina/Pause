@@ -6,7 +6,7 @@ public enum DroneMode { Dormant = 0, Straight = 1, Alternating = 2, Aimed = 3 }
 
 public static class DroneSquad
 {
-    public const int MaxStartingSlots = 3, MaxSlots = 12, MaxCoreLevel = 4;
+    public const int MaxStartingSlots = 3, MaxSlots = 6, MaxCoreLevel = 4;
     public static int StartingSlots { get; private set; } = 1;
     public static int UnlockedAtLevel(int level) => level >= ShipWeaponUpgrades.MaxLevel ? 3 : level >= 3 ? 2 : 1;
     public static int StartingFor(int ship) => UnlockedAtLevel(ShipWeaponUpgrades.Level(ship));
@@ -29,7 +29,8 @@ public static class DroneSquad
     {
         StartingSlots = startingSlots > 0 ? Mathf.Clamp(startingSlots, 1, MaxStartingSlots) : StartingFor(ShipId.Equipped());
         Slots = StartingSlots; Selected = 0; PreferredMode = DroneMode.Aimed; StarterOffered = false;
-        for (int i = 0; i < MaxSlots; i++) { modes[i] = DroneMode.Dormant; coreLevels[i] = 0; }
+        for (int i = 0; i < MaxSlots; i++) { modes[i] = DroneMode.Dormant; coreLevels[i] = 0; returnIn[i] = 0f; }
+        KnockOuts = 0;
         Version++;
     }
     // ShotAtoms and editor fixtures share the same slot limit. Pickups never call this;
@@ -132,6 +133,41 @@ public static class DroneSquad
         DroneCorePickup.Spawn(DroneMode.Aimed, at);
         StarterOffered = true;
         AtomSpacing.Released();
+    }
+
+    // ---- KNOCK-OUT (a hunter's sniper bolt, DroneHunters). The one drone-loss path: a drone with core level 2+ loses one level and
+    // stays in the squad; a level-1 drone goes DORMANT for KnockOutSeconds, then comes back through Activate (its shot atoms were never
+    // touched, only its mode: the same way a fresh slot lights up). ----
+    public const float KnockOutSeconds = 14f;
+    static readonly float[] returnIn = new float[MaxSlots];
+    public static int KnockOuts { get; private set; }
+    public static bool IsKnockedOut(int slot) => slot >= 0 && slot < MaxSlots && returnIn[slot] > 0f;
+    public static float ReturnIn(int slot) => slot >= 0 && slot < MaxSlots ? returnIn[slot] : 0f;
+
+    // True when the drone was hit (an active slot). `lost`: it left the squad for a while (false: it only lost a core level).
+    public static bool KnockOut(int slot, out bool lost)
+    {
+        lost = false;
+        if (!IsActive(slot)) return false;
+        KnockOuts++;
+        if (coreLevels[slot] > 1) { coreLevels[slot]--; Version++; return true; }
+        modes[slot] = DroneMode.Dormant; coreLevels[slot] = 0;
+        returnIn[slot] = KnockOutSeconds; lost = true; Version++;
+        return true;
+    }
+
+    // Counts the knocked-out drones back in (FloatieBattery.Step, running frames only). A returning drone is a level-1 core.
+    public static void TickKnockOuts(float dt)
+    {
+        if (dt <= 0f) return;
+        for (int i = 0; i < MaxSlots; i++)
+        {
+            if (returnIn[i] <= 0f) continue;
+            returnIn[i] -= dt;
+            if (returnIn[i] > 0f) continue;
+            returnIn[i] = 0f;
+            if (i < Slots && !IsActive(i)) Activate(i);
+        }
     }
 
     public static int AddBossDrone()
