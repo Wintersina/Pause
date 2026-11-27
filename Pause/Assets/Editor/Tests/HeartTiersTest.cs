@@ -17,7 +17,7 @@ public static class HeartTiersTest
     {
         fails = 0;
         using var sandbox = new TestHarness.Sandbox();
-        try { Curve(); Power(); Shell(); Enemy(); Rosters(); Art(); Hazards(); Shields(); DroneScore(); }
+        try { Curve(); Power(); Shell(); Enemy(); Rosters(); Art(); Hazards(); Shields(); DroneScore(); Heals(); HazardHits(); }
         finally
         {
             HeartTierRoll.ForceTier = -1;
@@ -263,5 +263,40 @@ public static class HeartTiersTest
         long total = RunScore.Parts.kills;
         HeartTierRoll.ForceTier = -1;
         return total;
+    }
+
+    static void Heals()
+    {
+        bool dec = true;
+        float last = 2f;
+        for (int i = 0; i <= 20; i++) { float r = HealScaling.RateFor(i / 20f); dec &= r <= last && r > 0f; last = r; }
+        Check("heals: x1 at no power, 35% at full power, never zero, never rising", HealScaling.RateFor(0f) == 1f && Mathf.Approximately(HealScaling.RateFor(1f), .35f) && dec);
+        Check("the heal bank keeps its size at no power and shrinks (never below one) at full power", HealScaling.BankMax(HealBank.Max, 0f) == HealBank.Max && HealScaling.BankMax(HealBank.Max, 1f) >= 1 && HealScaling.BankMax(HealBank.Max, 1f) < HealBank.Max);
+        HealBank.Reset();
+        RunPower.Override = 1f; HeartTierRoll.Live = true;
+        HealBank.OnCatch(false, false);
+        var second = HealBank.OnCatch(false, false);
+        Check("at full power the bank holds fewer atoms (the second banked catch is wasted)", second == HealBank.Catch.Wasted || HealScaling.BankMax(HealBank.Max, 1f) > 1);
+        Check("the healing drone restores more slowly at full power", HealScaling.DelayScale > 2f);
+        RunPower.Override = -1f; HeartTierRoll.Live = false;
+        HealBank.Reset();
+        Check("at no power the bank and delay are exactly as before", HealScaling.DelayScale == 1f && HealBank.OnCatch(false, false) == HealBank.Catch.Bank);
+        HealBank.Reset();
+    }
+
+    static void HazardHits()
+    {
+        HazardDamage.Reset();
+        int costLow = 0;
+        for (int i = 0; i < 8; i++) costLow += HazardDamage.Cost(true, 0f);
+        Check("at no power a hazard costs exactly one heart a hit", costLow == 8);
+        HazardDamage.Reset();
+        int costHigh = 0, worst = 0;
+        for (int i = 0; i < 8; i++) { int c = HazardDamage.Cost(true, 1f); costHigh += c; worst = Mathf.Max(worst, c); }
+        Check("at full power a hazard averages 1.75 hearts (14 over 8 hits) and never costs more than 2", costHigh == 14 && worst <= 2);
+        Check("anything that is not a hazard always costs one", HazardDamage.Cost(false, 1f) == 1);
+        bool cap = HeartTierTuning.HazardExtraHearts <= 1f && HeartTierTuning.HazardSpeedMax <= .25f && HeartTierTuning.HazardBurstMax <= .5f;
+        Check("hazard tuning is capped (extra heart <= 1, speed <= +25%, burst <= 50%)", cap && HazardScaling.SpeedFor(0f) == 1f && HazardScaling.SpeedFor(1f) <= 1.25f && HazardScaling.BurstChanceFor(0f) == 0f && HazardScaling.BurstChanceFor(1f) <= .5f);
+        HazardDamage.Reset();
     }
 }

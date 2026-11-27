@@ -218,7 +218,7 @@ public class spawnGoodStuff : MonoBehaviour {
             {
                 case BossFreeShotAtoms.Kind.Shield: spawnAtom(); break;
                 case BossFreeShotAtoms.Kind.Capacitor: if (cooldownAtom != null) spawnCooldownAtom(); else spawnAtom(); break;
-                case BossFreeShotAtoms.Kind.Heal: spawnHealAtom(); break;
+                case BossFreeShotAtoms.Kind.Heal: if (Random.value <= HealScaling.Rate) spawnHealAtom(); break;
                 default: spawnRedAtom(); break;
             }
         }

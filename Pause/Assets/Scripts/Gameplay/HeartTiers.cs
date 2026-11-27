@@ -57,6 +57,16 @@ public static class HeartTierTuning
     // ---- shield atoms thin out as the squad grows: x1 with no drone bonus, ShieldMin (never zero) at a full squad ----
     public const float ShieldMin = .4f;
 
+    // ---- heals thin out as power rises (HealScaling): the green atom's chance and clock, the bank's size and the healing drone's
+    // restore delay all follow one rate, x1 at no power down to HealMin (never zero) at full power ----
+    public const float HealMin = .35f;
+
+    // ---- hazards hit harder at high power (HazardDamage): a hazard hit costs 1 heart at no power, rising to 1 + HazardExtraHearts on
+    // average at full power (carried in quarter hearts, so the sequence is 1,1,2,1,2,... never random), rocks fall up to
+    // HazardSpeedMax faster, and a rock slot adds a second rock with a chance up to HazardBurstMax. Every rock still goes through the
+    // spawn-space check, so a dodge gap always exists; rail mines, rides and elite docks are authored and untouched. ----
+    public const float HazardExtraHearts = .75f, HazardSpeedMax = .2f, HazardBurstMax = .35f;
+
     // ---- drone kills pay less as the squad grows (DroneScoring): x1 with one drone, DroneScoreMin at DampFullSquad drones. Drone kills
     // extend the kill chain but cannot lift its multiplier past the top step by themselves (a squad of 2+ needs
     // DroneChainUnlockKills of the pilot's own kills in the chain first). The player's own ship kills are unchanged. ----
@@ -120,6 +130,8 @@ public static class RunPower
         }
     }
 
+    // Public, stable (read by other systems): the squad's drone count, and its 0..1 term.
+    public static int ActiveDrones { get { return DroneSquad.ActiveCount; } }
     // The squad on its own, 0..1 (also what thins the shield atoms).
     public static float Drones01
     {
@@ -173,9 +185,55 @@ public static class HazardScaling
 
     public static float ExtraRateNow { get { return ExtraRate(RunPower.Score01, PowerCreep.SpawnScale); } }
 
+    // Hazard fall speed multiplier, burst chance (a second rock in a rock slot) at this power.
+    public static float SpeedFor(float power01) { return 1f + HeartTierTuning.HazardSpeedMax * Mathf.Clamp01(power01); }
+    public static float BurstChanceFor(float power01) { return HeartTierTuning.HazardBurstMax * Mathf.Clamp01(power01); }
+    public static float SpeedNow { get { return SpeedFor(RunPower.Score01); } }
+    public static float BurstChanceNow { get { return BurstChanceFor(RunPower.Score01); } }
+
     // Shield atom spawn clock multiplier: 1 with no squad, ShieldMin with a full one, never zero.
     public static float ShieldRateFor(float drones01) { return Mathf.Lerp(1f, HeartTierTuning.ShieldMin, Mathf.Clamp01(drones01)); }
     public static float ShieldRate { get { return ShieldRateFor(RunPower.Drones01); } }
+}
+
+// Heals (the green atom, the heal bank, the healing drone) get rarer and slower as the run's power rises.
+public static class HealScaling
+{
+    public static float RateFor(float power01) { return Mathf.Lerp(1f, HeartTierTuning.HealMin, Mathf.Clamp01(power01)); }
+    public static float Rate { get { return RateFor(RunPower.Score01); } }
+    // The heal bank's size now (never below 1, HealBank.Max at no power).
+    public static int BankMax(int max, float power01) { return Mathf.Max(1, Mathf.CeilToInt(max * RateFor(power01) - 1e-4f)); }
+    // The healing drone waits this much longer to restore a heart (x1 at no power).
+    public static float DelayScale { get { return 1f / Mathf.Max(.05f, Rate); } }
+}
+
+// What a hazard (rock or mine) costs the ship's hearts. Whole hearts, carried in quarters.
+public static class HazardDamage
+{
+    static int bankQuarters;
+    public static void Reset() { bankQuarters = 0; }
+
+    // Hearts one hazard hit costs at this power, on average (1 .. 1 + HazardExtraHearts).
+    public static float HeartsFor(float power01) { return 1f + HeartTierTuning.HazardExtraHearts * Mathf.Clamp01(power01); }
+
+    // The cost of this hit: always at least 1, the extra quarters carried until they make a whole heart. Not a hazard: 1.
+    public static int Cost(bool isHazard, float power01)
+    {
+        if (!isHazard) return 1;
+        bankQuarters += Mathf.RoundToInt(HeartsFor(power01) * HeartDamage.PerHeart);
+        int cost = Mathf.Max(1, bankQuarters / HeartDamage.PerHeart);
+        bankQuarters -= cost * HeartDamage.PerHeart;
+        return cost;
+    }
+
+    public static bool IsHazard(GameObject go)
+    {
+        if (go == null) return false;
+        var def = EnemyIdentity.Of(go);
+        return def != null ? def.IsHazard : go.CompareTag("Astr");
+    }
+
+    public static int Cost(GameObject go) { return Cost(IsHazard(go), RunPower.Score01); }
 }
 
 // A big squad pays less per kill and cannot lift the chain to the top multiplier on its own.
@@ -209,7 +267,7 @@ public static class HeartTierRoll
 
     // Only a real run rolls tiers (set by BeginRun; the tutorial, menus and editor-mode fixtures stay red-only unless a test forces it).
     public static bool Live;
-    public static void BeginRun(int seed, bool live = true) { Seed = seed; counter = 0; Live = live && !startMenu.youAreInTutorial; }
+    public static void BeginRun(int seed, bool live = true) { Seed = seed; counter = 0; HazardDamage.Reset(); Live = live && !startMenu.youAreInTutorial; }
 
     public static float NextRoll()
     {

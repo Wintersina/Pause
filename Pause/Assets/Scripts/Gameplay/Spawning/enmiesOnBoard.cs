@@ -567,6 +567,12 @@ public class enmiesOnBoard : MonoBehaviour {
             var mover = go.GetComponent<moveEnimes>();
             if (mover != null) mover.SetWeave(amplitude);
         }
+        if (def.role == EnemyRole.Rock)
+        {
+            // a rock falls a little faster at high power (HazardScaling, capped); its place was found by TryPlace as ever
+            var fall = go.GetComponent<moveEnimes>();
+            if (fall != null) fall.SpeedScale = HazardScaling.SpeedNow;
+        }
         SpawnedCount++;
         return true;
     }
@@ -838,6 +844,9 @@ public class enmiesOnBoard : MonoBehaviour {
     {
         if (PostBossLeg.Active && !PostBossLeg.AdmitRock(PostBossLeg.RocksInPlay())) return;
         Spawn(SlotKind.Rock);
+        // high power: now and then a second rock rides the same slot (HazardScaling.BurstChanceFor); it is placed by the same
+        // spawn-space check (or deferred), so the lane keeps its gap
+        if (HeartTierRoll.Live && Random.value < HazardScaling.BurstChanceNow) Spawn(SlotKind.Rock);
     }
 
     // "big enemy" slot: the world's armoured heavy (SpawnLane.HeavyMaxX
