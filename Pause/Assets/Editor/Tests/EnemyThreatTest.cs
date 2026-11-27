@@ -34,7 +34,7 @@ public static class EnemyThreatTest
         Check("asking for 12 starting slots clamps to the starting cap", DroneSquad.Slots <= DroneSquad.MaxStartingSlots);
         DroneSquad.SetSlots(12);   // (what a restored squad of 12 would do)
         Check("a squad of 12 clamps to 6 slots", DroneSquad.Slots == 6);
-        Check("the HUD and loadout sizes follow the cap", ShotAtomHud.MaxSlots == ShotAtomHud.Columns + 6 && ShotAtoms.MaxDrones == 6 && FloatieTuning.MaxFloaties == 6);
+        Check("the HUD and loadout sizes follow the cap", ShotAtomHud.MaxSlots == ShotAtomHud.Columns + 6 && ShotAtomTuning.MaxDrones == 6 && FloatieTuning.MaxFloaties == 6);
         Check("no recruit past six: a full squad offers none and keeps its size", DroneSquad.AddBossDrone() == -1 && DroneSquad.Slots == 6);
         DroneSquad.BeginRun(1);
     }
