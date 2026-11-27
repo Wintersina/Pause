@@ -720,6 +720,9 @@ public class enmiesOnBoard : MonoBehaviour {
     // A rock or mine delay: Roll, shorter by the run's power on top of PowerCreep (HazardScaling: capped, so a dodge line stays).
     float RollHazard(Vector2 range) { return RollWith(range, true) / HazardScaling.ExtraRateNow; }
 
+    // A mine delay: RollHazard, and shorter again by the laser-mine rate (MineScaling: x1 at no power, up to x3 / x4 on a later loop).
+    float RollMine(Vector2 range) { return RollHazard(range) / Mathf.Max(1f, MineScaling.Rate); }
+
     float RollWith(Vector2 range, bool adaptive)
     {
         // ... and EnemyDensity.RateScale: fewer, smarter enemies, cut harder the faster the board scrolls
@@ -789,7 +792,7 @@ public class enmiesOnBoard : MonoBehaviour {
         if (mineDelayTimer <= 0)
         {
             if (phase.mines) spawnMine();
-            mineDelayTimer = RollHazard(phase.mineInterval);
+            mineDelayTimer = RollMine(phase.mineInterval);
         }
         if (chaserDelayTimer <= 0)
         {
@@ -949,6 +952,14 @@ public class enmiesOnBoard : MonoBehaviour {
 
     bool TrySpawnMine()
     {
+        // laser mines scale with the pilot's power (MineScaling): the snapshot is read now, and no more than AliveCap ride at once
+        if (HeartTierRun.Live)
+        {
+            MineScaling.Refresh();
+            int alive = 0;
+            for (int i = 0; i < liveMines.Count; i++) if (liveMines[i] != null) alive++;
+            if (alive >= MineScaling.AliveCap) return true;   // (skipped: a cap, not a failed placement)
+        }
         // The current world's themed rail mine keeps its original mounted
         // movement and arming animation.
         var def = mine == null ? EnemyRoster.One(EnemyRoster.CurrentWorld, EnemyRole.Mine) : null;

@@ -21,7 +21,7 @@ public enum StreamKind
     Bomb,      // `count` slow bombs thrown at spots round the ship that burst after `fuse` seconds into a ring of `burst`
     Seeds,     // slow seeds that home on the ship for `homeSeconds` (turning `homeDeg` deg/s) and then fly straight
     Mines,     // `count` stationary mines on marked spots (never near the ship, `minSep` apart) that go after `fuse` seconds
-    // ---- the signature library (BossSignatureTables / BossSignatureTuning): parametric motion, ShotMotion ----
+    // ---- the signature library (BossSignatureTables / BossSignatureTuning): parametric motion, PatternMotion ----
     Sine,      // `count` shots a volley straight down (baseDeg, swept `spin` deg/s) weaving with sin: amp u wide, hz cycles a second
     Braid,     // two anti-phase sine streams (phaseDeg, phaseDeg + 180) from one muzzle: a braid
     WaveWall,  // a row across the lane (pitch) with a gap, its shots bobbing in a travelling sine wave (amp u, hz, spread deg a u)
@@ -41,7 +41,7 @@ public struct PShot
     public int art;                      // PatternStream.art: 0 the shared bolt / shard, k > 0 the boss's attack variant k (BossArt.AttackShot)
     public BossRailMode rail;
     public int bounces;
-    public PMotion motion;               // the signature library's parametric motion (ShotMotion); None for every older shot
+    public PMotion motion;               // the signature library's parametric motion (PatternMotion); None for every older shot
     public bool bouncy;                  // a RICOCHET shot (BossBounce): picked to bounce off the rails, wears the ricochet cue
     public float homeDeg, homeSeconds;   // seeds: turn rate and how long it homes
     public float fuse;                   // > 0: it ends (or bursts) after this long

@@ -74,7 +74,7 @@ public class BossProjectile : MonoBehaviour, IHostileShot
     bool patterned;
     float homeLeft, homeDeg, fuseLeft, fuseTotal, burstSpeed, burstRot;
     int burst;
-    PMotion motion;              // the signature library's parametric motion (ShotMotion)
+    PMotion motion;              // the signature library's parametric motion (PatternMotion)
     float turnLeft;              // a deploying shot: seconds until it takes `turnTo` (PShot.turnAt / then)
     Vector2 turnTo;
     // A RICOCHET shot (BossBounce): bounces off the rails up to MaxBounces times, keeping SpeedKeep of its speed each
@@ -361,7 +361,7 @@ public class BossProjectile : MonoBehaviour, IHostileShot
         if (motion.kind != MotionKind.None)
         {
             var q = new Vector2(p.x, p.y);
-            if (ShotMotion.Apply(ref motion, ref q, ref velocity, age, dt)) Face();
+            if (PatternMotion.Apply(ref motion, ref q, ref velocity, age, dt)) Face();
             p.x = q.x; p.y = q.y;
             if (rail != BossRailMode.Pass) p.x = Mathf.Clamp(p.x, -(BossRails.InnerEdge - radius), BossRails.InnerEdge - radius);
         }

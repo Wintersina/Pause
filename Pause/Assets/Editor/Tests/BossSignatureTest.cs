@@ -151,15 +151,15 @@ public static class BossSignatureTest
         var sine = new PMotion { kind = MotionKind.Sway, amp = 1f, hz = .5f };
         var p0 = new Vector2(0f, 3f); var v0 = new Vector2(0f, -3f);
         float maxX = 0f;
-        for (float t = .02f; t < 4f; t += .02f) { p0 += v0 * .02f; ShotMotion.Apply(ref sine, ref p0, ref v0, t, .02f); maxX = Mathf.Max(maxX, Mathf.Abs(p0.x)); }
+        for (float t = .02f; t < 4f; t += .02f) { p0 += v0 * .02f; PatternMotion.Apply(ref sine, ref p0, ref v0, t, .02f); maxX = Mathf.Max(maxX, Mathf.Abs(p0.x)); }
         Check("sway: weaves +-" + maxX.ToString("F2") + " u about its line (amp 1) at constant speed", maxX > .95f && maxX < 1.05f && Mathf.Abs(v0.y + 3f) < 1e-4f);
         var acc = new PMotion { kind = MotionKind.Accel, a = 4f, sec = 1.5f };
         var pv = new Vector2(0f, -1f); var pp = Vector2.zero;
-        for (float t = .02f; t < 2f; t += .02f) { pp += pv * .02f; ShotMotion.Apply(ref acc, ref pp, ref pv, t, .02f); }
+        for (float t = .02f; t < 2f; t += .02f) { pp += pv * .02f; PatternMotion.Apply(ref acc, ref pp, ref pv, t, .02f); }
         Check("accel: starts slow and ends " + pv.magnitude.ToString("F2") + " u/s (x4 of 1)", Mathf.Abs(pv.magnitude - 4f) < .05f);
         var orb = new PMotion { kind = MotionKind.Orbit, amp = 1f, hz = .5f, sec = 1.2f, a = 3f, b = .55f, anchor = new Vector2(0f, 3f) };
         var op = new Vector2(0f, 3f); var ov = Vector2.zero;
-        for (float t = .02f; t < 1.5f; t += .02f) { op += ov * .02f; ShotMotion.Apply(ref orb, ref op, ref ov, t, .02f); }
+        for (float t = .02f; t < 1.5f; t += .02f) { op += ov * .02f; PatternMotion.Apply(ref orb, ref op, ref ov, t, .02f); }
         Check("orbit: circles its anchor, then is released outward and down at its speed (" + ov.magnitude.ToString("F2") + " u/s, vy " + ov.y.ToString("F2") + ")", Mathf.Abs(ov.magnitude - 3f) < .01f && ov.y < 0f);
     }
 

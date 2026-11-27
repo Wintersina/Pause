@@ -1,7 +1,7 @@
 using UnityEngine;
 
 // THE BULLET-PATTERN LIBRARY'S EMITTERS (partial of BossPatternRunner): the signature streams' maths. Every shot comes out
-// of the boss's pool through host.Fire (prewarmed at the boss's spawn) and its path is a ShotMotion on the shot, so there is
+// of the boss's pool through host.Fire (prewarmed at the boss's spawn) and its path is a PatternMotion on the shot, so there is
 // no per-bullet logic and nothing is allocated. Every length is in lane units (host.RailEdge / 2.6 = 1 on a phone), so a tall
 // 1080x2520 cover or a wide screen draws the same pattern with the same gaps.
 //

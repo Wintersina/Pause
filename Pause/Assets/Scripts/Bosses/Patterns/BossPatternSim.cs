@@ -17,7 +17,7 @@ public sealed class PatternSim : IMusicPatternHost
         public Vector2 then;
         public BossRailMode rail;
         public bool alive;
-        public PMotion mo;              // parametric motion (ShotMotion)
+        public PMotion mo;              // parametric motion (PatternMotion)
         public bool bouncy;             // a ricochet shot (BossBounce): keeps SpeedKeep of its speed per bounce
     }
 
@@ -180,7 +180,7 @@ public sealed class PatternSim : IMusicPatternHost
             p += s.v * move;
             if (s.mo.kind != MotionKind.None)
             {
-                ShotMotion.Apply(ref s.mo, ref p, ref s.v, s.age, dt);
+                PatternMotion.Apply(ref s.mo, ref p, ref s.v, s.age, dt);
                 if (s.rail != BossRailMode.Pass) p.x = Mathf.Clamp(p.x, -(railEdge - s.r), railEdge - s.r);
             }
             if (driftVx != 0f)

@@ -1,7 +1,7 @@
 using UnityEngine;
 
 // PARAMETRIC SHOT MOTION (the bullet-pattern library's mover): a boss shot's path as a function of its age, so a pattern
-// costs no per-bullet MonoBehaviour logic. BossProjectile.Step and PatternSim.Advance both call ShotMotion.Apply after the
+// costs no per-bullet MonoBehaviour logic. BossProjectile.Step and PatternSim.Advance both call PatternMotion.Apply after the
 // straight-line move, so the sim the tests measure flies the same paths as the game. Plain structs and maths: no allocation.
 public enum MotionKind
 {
@@ -29,7 +29,7 @@ public struct PMotion
     public bool Active => kind != MotionKind.None;
 }
 
-public static class ShotMotion
+public static class PatternMotion
 {
     public const float RampSeconds = .45f;   // a sway / bob eases in over this long, so a shot leaves its muzzle straight
 
