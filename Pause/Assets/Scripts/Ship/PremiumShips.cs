@@ -80,11 +80,13 @@ public static class PremiumShips
     // table the game, the dock and the tests read.
     static readonly PremiumTier[] paragon =
     {
+        // shieldSeconds / shieldEvery: the shield is up at most ShipBalance.MaxProtectedUptime of the time and never chains
+        // (every >= seconds x ShipBalance.MinPeriodFactor); the skins buy hearts, speed and warheads, the shield barely moves.
         new PremiumTier { hearts = 10, startSpeedHud = 20, missileEvery = 10f,  missiles = 2, shieldEvery = 8f,   shieldSeconds = 2.5f },
-        new PremiumTier { hearts = 11, startSpeedHud = 22, missileEvery = 8.5f, missiles = 3, shieldEvery = 7.5f, shieldSeconds = 3f },
-        new PremiumTier { hearts = 12, startSpeedHud = 24, missileEvery = 7f,   missiles = 3, shieldEvery = 7f,   shieldSeconds = 3.5f },
-        new PremiumTier { hearts = 13, startSpeedHud = 26, missileEvery = 6f,   missiles = 4, shieldEvery = 6f,   shieldSeconds = 3.5f },
-        new PremiumTier { hearts = 14, startSpeedHud = 28, missileEvery = 5f,   missiles = 5, shieldEvery = 5f,   shieldSeconds = 4f },
+        new PremiumTier { hearts = 11, startSpeedHud = 22, missileEvery = 8.5f, missiles = 3, shieldEvery = 7.9f, shieldSeconds = 2.5f },
+        new PremiumTier { hearts = 12, startSpeedHud = 24, missileEvery = 7f,   missiles = 3, shieldEvery = 7.8f, shieldSeconds = 2.5f },
+        new PremiumTier { hearts = 13, startSpeedHud = 26, missileEvery = 6f,   missiles = 4, shieldEvery = 7.7f, shieldSeconds = 2.5f },
+        new PremiumTier { hearts = 14, startSpeedHud = 28, missileEvery = 5f,   missiles = 5, shieldEvery = 7.6f, shieldSeconds = 2.5f },
     };
 
     public static int TierCount(int id) { return IsPremium(id) ? paragon.Length : 0; }

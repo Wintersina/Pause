@@ -427,6 +427,16 @@ public static class PowersReworkTest
         Check("still a ghost at 3.9 s", SecretPowerController.Ghosted && sr.color.a < .6f);
         s.Step(.2f);
         Check("solid again after 4 s", !SecretPowerController.Ghosted && Mathf.Approximately(sr.color.a, 1f));
+        // ShipBalance: kills and dust cannot refill the meter inside the window, and the cloak is not ready again before its lockout
+        s.SetMeter(SecretPowerController.Full);
+        s.Fire();
+        s.Add(500f);
+        Check("a kill or dust inside the cloak window adds nothing", s.Meter <= .001f);
+        s.Step(ShipBalance.CloakSeconds + .1f);
+        s.Add(500f);
+        Check("after the window the meter refills but the cloak stays locked", s.Meter >= SecretPowerController.Full && !s.Ready);
+        s.Step(ShipBalance.CloakSeconds * (ShipBalance.MinPeriodFactor - 1f) + .1f);
+        Check("ready again once its period has passed", s.Ready);
         Teardown(jade);
     }
 

@@ -279,6 +279,7 @@ public static class AllTests
         ("ResumeSlowMoTest", ResumeSlowMoTest.Execute),
         ("RosterCleanupTest", RosterCleanupTest.Execute),
         ("PremiumShipTest", PremiumShipTest.Execute),
+        ("ShipBalanceTest", ShipBalanceTest.Execute),
         ("OptionsScreenTest", OptionsScreenTest.Execute),
         ("ShipUnlocksTest", ShipUnlocksTest.Execute),
         ("ScoringTest", ScoringTest.Execute),
