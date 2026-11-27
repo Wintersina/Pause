@@ -58,12 +58,12 @@ def reference_sheet():
 def verify():
     expected={ident for ident,_,_ in BADGES}
     issues=[]
-    if len(expected)!=60:issues.append('badge manifest is not 60 unique IDs')
+    if len(expected)!=61:issues.append('badge manifest is not 61 unique IDs')
     if {p.stem for p in OUT.glob('*.png')}!=expected:issues.append('128 icon inventory differs')
     masters={p.name.removesuffix('_1024.png') for p in SRC.glob('*_1024.png') if p.name!='sheet_1024.png'}
     if masters!=expected:issues.append('1024 master inventory differs')
     frame_files=list((SRC/'frames').glob('*.png'))
-    if len(frame_files)!=14:issues.append(f'frame inventory is {len(frame_files)}, expected 14')
+    if len(frame_files)!=15:issues.append(f'frame inventory is {len(frame_files)}, expected 15')
     counts={};hashes={};tier_counts=Counter();group_counts=Counter()
     for ident,tier,world in BADGES:
         icon=Image.open(OUT/f'{ident}.png')
@@ -101,7 +101,7 @@ def verify():
     if exact:issues.append(f'duplicate perceptual hashes: {exact}')
     report=[
       'VERIFY TABLE',
-      f'badges | {len(BADGES)} / 60',
+      f'badges | {len(BADGES)} / 61',
       f'128 icons | {len(list(OUT.glob("*.png")))} RGBA, hard alpha',
       f'1024 masters | {len(masters)} RGB, exact x8, #07070f corners',
       f'frames | {len(frame_files)} = 4 tiers + 10 accessories',

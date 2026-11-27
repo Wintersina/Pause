@@ -1,12 +1,12 @@
 using System;
 using System.Collections.Generic;
 
-// The 68 achievements in one reviewable table (docs/achievements-redesign.md
+// The 69 achievements in one reviewable table (docs/achievements-redesign.md
 // has the design; this is its code form, and the store CSV exporter and the
 // tests read it). Ids are stable snake_case keys: they name the saved state,
 // the badge art (Resources/Achievements/<id>) and the store rows.
 //
-// All 68 are live.
+// All 69 are live.
 //
 // Counters (lifetime, shared between achievements):
 //   kills rocks mines elites stars deaths blinks spent   Add()ed per event
@@ -33,13 +33,13 @@ public static class AchievementCatalog
             return n;
         }
     }
-    public const int Count = 68;
+    public const int Count = 69;
     public const int TotalPoints = 1000;
 
     // Single-run score thresholds. The design table had 10k / 50k / 150k, but a
     // whole first pass Space -> Ember scores ~6,600 and a second loop ~8,100
     // (ScoreRules), so they were recalibrated (ids keep their art names).
-    public const int ScoreRookie = 5000, ScoreAce = 20000, ScoreLegend = 80000;
+    public const int ScoreRookie = 5000, ScoreAce = 20000, ScoreLegend = 80000, ScoreMillion = 1000000;
 
     public const string CKills = "kills", CRocks = "rocks", CMines = "mines", CElites = "elites", CStars = "stars",
         CDeaths = "deaths", CBlinks = "blinks", CSpent = "spent", CShips = "ships", CCodex = "codex",
@@ -77,8 +77,8 @@ public static class AchievementCatalog
         D("world_verdant_reached", "Into the Green", "Reach the Verdant world.", 5, S, World, "WorldManager.Advance/Start -> OnWorldEntered(2)"),
         D("world_ember_reached", "Trial by Fire", "Reach the Ember world.", 10, S, World, "WorldManager.Advance/Start -> OnWorldEntered(3)"),
         D("world_tide_reached", "Deep Water", "Reach the Tide world.", 20, S, World, "WorldManager.Advance/Start -> OnWorldEntered(4)"),
-        D("world_storm_reached", "Eye of the Storm", "Reach the Storm world.", 10, S, World, "WorldManager.Advance/Start -> OnWorldEntered(5)"),
-        D("world_desert_reached", "Shifting Sands", "Reach the Desert world.", 10, S, World, "WorldManager.Advance/Start -> OnWorldEntered(6)"),
+        D("world_storm_reached", "Eye of the Storm", "Reach the Storm world.", 5, S, World, "WorldManager.Advance/Start -> OnWorldEntered(5)"),
+        D("world_desert_reached", "Shifting Sands", "Reach the Desert world.", 5, S, World, "WorldManager.Advance/Start -> OnWorldEntered(6)"),
         D("loop_1", "Full Circle", "Complete a full loop of every world.", 25, G, World, "WorldManager.Advance loop -> OnLoop", CLoop, 1),
         D("loop_2", "Second Lap", "Complete two loops in a single run.", 25, G, World, "WorldManager.Advance loop -> OnLoop", CLoop, 2),
         D("loop_5", "Orbit Lifer", "Complete five loops in a single run.", 40, P, World, "WorldManager.Advance loop -> OnLoop", CLoop, 5),
@@ -88,7 +88,7 @@ public static class AchievementCatalog
         D("boss_ember", "Drake Slayer", "Defeat the Cinder Drake.", 25, G, Boss, "BossEncounter.BeginOutro -> OnBossOutro(3)"),
         D("boss_tide", "Tide Turner", "Defeat the Tide boss.", 25, G, Boss, "BossEncounter.BeginOutro -> OnBossOutro(4)"),
         D("boss_storm", "Engine Stalled", "Defeat the Tempest Engine.", 25, G, Boss, "BossEncounter.BeginOutro -> OnBossOutro(5)"),
-        D("boss_desert", "Dune Breaker", "Defeat the Dune-Eater.", 25, G, Boss, "BossEncounter.BeginOutro -> OnBossOutro(6)"),
+        D("boss_desert", "Dune Breaker", "Defeat the Dune-Eater.", 20, G, Boss, "BossEncounter.BeginOutro -> OnBossOutro(6)"),
         D("boss_no_hit", "Untouchable", "Defeat a boss without losing a heart.", 25, G, Boss, "AchievementEvents.PlayerHurt + BossEncounter fight start/outro"),
         D("boss_all", "Boss Collector", "Defeat every live world's boss.", 35, P, Boss, "BossEncounter.BeginOutro (distinct worlds)", CBosses, 0, () => WorldManager.LiveWorldCount, steps: 7),
         D("elite_first", "Elite Hunter", "Destroy 5 elite ships.", 5, B, Elite, "EliteShip.Died", CElites, 5),
@@ -98,9 +98,9 @@ public static class AchievementCatalog
         D("elite_frost_all", "Frost Elites", "Down every Frost elite.", 20, S, Elite, "EliteShip.Died (EliteCatalog world 1)", "elite_w1", 0, () => EliteCount(1), steps: 5),
         D("elite_verdant_all", "Verdant Elites", "Down every Verdant elite.", 10, S, Elite, "EliteShip.Died (EliteCatalog world 2)", "elite_w2", 0, () => EliteCount(2)),
         D("elite_ember_all", "Ember Elites", "Down every Ember elite.", 25, G, Elite, "EliteShip.Died (EliteCatalog world 3)", "elite_w3", 0, () => EliteCount(3), steps: 6),
-        D("elite_tide_all", "Tide Elites", "Down every Tide elite.", 10, S, Elite, "EliteShip.Died (EliteCatalog world 4)", "elite_w4", 0, () => EliteCount(4), steps: 5),
-        D("elite_storm_all", "Storm Elites", "Down every Storm elite.", 10, S, Elite, "EliteShip.Died (EliteCatalog world 5)", "elite_w5", 0, () => EliteCount(5), steps: 5),
-        D("elite_desert_all", "Desert Elites", "Down every Desert elite.", 10, S, Elite, "EliteShip.Died (EliteCatalog world 6)", "elite_w6", 0, () => EliteCount(6), steps: 6),
+        D("elite_tide_all", "Tide Elites", "Down every Tide elite.", 5, S, Elite, "EliteShip.Died (EliteCatalog world 4)", "elite_w4", 0, () => EliteCount(4), steps: 5),
+        D("elite_storm_all", "Storm Elites", "Down every Storm elite.", 5, S, Elite, "EliteShip.Died (EliteCatalog world 5)", "elite_w5", 0, () => EliteCount(5), steps: 5),
+        D("elite_desert_all", "Desert Elites", "Down every Desert elite.", 5, S, Elite, "EliteShip.Died (EliteCatalog world 6)", "elite_w6", 0, () => EliteCount(6), steps: 6),
         D("elite_blink", "Blink Strike", "Destroy an elite with a pause blink.", 5, S, Elite, "EliteShip.Died (cause Teleport)"),
         D("kills_100", "Gunner", "Destroy 250 enemies.", 5, B, Enemy, "collisionDetection.AwardDestroyedTarget", CKills, 250, steps: 250),
         D("kills_1000", "Hundredfold", "Destroy 2,000 enemies.", 5, S, Enemy, "collisionDetection.AwardDestroyedTarget", CKills, 2000, steps: 2000),
@@ -127,6 +127,7 @@ public static class AchievementCatalog
         D("score_10k", "Rookie Score", "Score " + ScoreRookie.ToString("N0", System.Globalization.CultureInfo.InvariantCulture) + " points in a run.", 5, B, Skill, "RunScore.Scored / Bank", CScore, ScoreRookie),
         D("score_50k", "Ace Score", "Score " + ScoreAce.ToString("N0", System.Globalization.CultureInfo.InvariantCulture) + " points in a run.", 20, S, Skill, "RunScore.Scored / Bank", CScore, ScoreAce),
         D("score_150k", "Legend Score", "Score " + ScoreLegend.ToString("N0", System.Globalization.CultureInfo.InvariantCulture) + " points in a run.", 35, P, Skill, "RunScore.Scored / Bank", CScore, ScoreLegend),
+        D("score_1m", "Million Score", "Score " + ScoreMillion.ToString("N0", System.Globalization.CultureInfo.InvariantCulture) + " points in a run.", 35, P, Skill, "RunScore.Scored / Bank", CScore, ScoreMillion),
         D("speed_flash", "Flash", "Reach the speed cap.", 15, S, Skill, "SpeedMilestones.Step"),
         D("speed_speedster", "Speedster", "Break the speed limit.", 20, S, Skill, "SpeedMilestones.Step"),
         D("speed_super_sonic", "Super Sonic", "Max out the limit break.", 35, P, Skill, "SpeedMilestones.Step"),
@@ -138,7 +139,7 @@ public static class AchievementCatalog
         D("pause_no_pause_world", "Hold Your Breath", "Clear a world without spending a pause.", 20, S, Pause, "score.pauseCounterFunction + WorldManager.Advance"),
         D("pause_hoarder", "Time Banker", "Hold 15 pauses at once.", 10, S, Pause, "score.incromentPause"),
         D("pause_perfect_dodge", "Perfect Pause", "Blink out of a hostile shot's path.", 25, G, Pause, "movePlayer teleport probe + AchievementEvents.PlayerHurt", hidden: true),
-        D("escape_danger_10", "Hot Escape", "Survive 10 portal danger levels in a single escape.", 10, G, Skill, "PortalPressure.Tick -> AchievementTracker.OnDangerSurvived(10)"),
+        D("escape_danger_10", "Hot Escape", "Survive 10 portal danger levels in a single escape.", 5, G, Skill, "PortalPressure.Tick -> AchievementTracker.OnDangerSurvived(10)"),
     };
 
     // Points that the stores see (Play Games / Game Center: tier-independent).

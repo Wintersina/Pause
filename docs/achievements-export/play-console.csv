@@ -5,8 +5,8 @@ Order,Name,Description,Points,Incremental steps (blank = standard),Initial state
 4,Into the Green,Reach the Verdant world.,5,,Revealed,world_verdant_reached.png
 5,Trial by Fire,Reach the Ember world.,10,,Revealed,world_ember_reached.png
 6,Deep Water,Reach the Tide world.,20,,Revealed,world_tide_reached.png
-7,Eye of the Storm,Reach the Storm world.,10,,Revealed,world_storm_reached.png
-8,Shifting Sands,Reach the Desert world.,10,,Revealed,world_desert_reached.png
+7,Eye of the Storm,Reach the Storm world.,5,,Revealed,world_storm_reached.png
+8,Shifting Sands,Reach the Desert world.,5,,Revealed,world_desert_reached.png
 9,Full Circle,Complete a full loop of every world.,25,,Revealed,loop_1.png
 10,Second Lap,Complete two loops in a single run.,25,,Revealed,loop_2.png
 11,Orbit Lifer,Complete five loops in a single run.,40,,Revealed,loop_5.png
@@ -16,7 +16,7 @@ Order,Name,Description,Points,Incremental steps (blank = standard),Initial state
 15,Drake Slayer,Defeat the Cinder Drake.,25,,Revealed,boss_ember.png
 16,Tide Turner,Defeat the Tide boss.,25,,Revealed,boss_tide.png
 17,Engine Stalled,Defeat the Tempest Engine.,25,,Revealed,boss_storm.png
-18,Dune Breaker,Defeat the Dune-Eater.,25,,Revealed,boss_desert.png
+18,Dune Breaker,Defeat the Dune-Eater.,20,,Revealed,boss_desert.png
 19,Untouchable,Defeat a boss without losing a heart.,25,,Revealed,boss_no_hit.png
 20,Boss Collector,Defeat every live world's boss.,35,7,Revealed,boss_all.png
 21,Elite Hunter,Destroy 5 elite ships.,5,,Revealed,elite_first.png
@@ -26,9 +26,9 @@ Order,Name,Description,Points,Incremental steps (blank = standard),Initial state
 25,Frost Elites,Down every Frost elite.,20,5,Revealed,elite_frost_all.png
 26,Verdant Elites,Down every Verdant elite.,10,,Revealed,elite_verdant_all.png
 27,Ember Elites,Down every Ember elite.,25,6,Revealed,elite_ember_all.png
-28,Tide Elites,Down every Tide elite.,10,5,Revealed,elite_tide_all.png
-29,Storm Elites,Down every Storm elite.,10,5,Revealed,elite_storm_all.png
-30,Desert Elites,Down every Desert elite.,10,6,Revealed,elite_desert_all.png
+28,Tide Elites,Down every Tide elite.,5,5,Revealed,elite_tide_all.png
+29,Storm Elites,Down every Storm elite.,5,5,Revealed,elite_storm_all.png
+30,Desert Elites,Down every Desert elite.,5,6,Revealed,elite_desert_all.png
 31,Blink Strike,Destroy an elite with a pause blink.,5,,Revealed,elite_blink.png
 32,Gunner,Destroy 250 enemies.,5,250,Revealed,kills_100.png
 33,Hundredfold,Destroy 2000 enemies.,5,2000,Revealed,kills_1000.png
@@ -55,15 +55,16 @@ Order,Name,Description,Points,Incremental steps (blank = standard),Initial state
 54,Rookie Score,Score 5000 points in a run.,5,,Revealed,score_10k.png
 55,Ace Score,Score 20000 points in a run.,20,,Revealed,score_50k.png
 56,Legend Score,Score 80000 points in a run.,35,,Revealed,score_150k.png
-57,Flash,Reach the speed cap.,15,,Revealed,speed_flash.png
-58,Speedster,Break the speed limit.,20,,Revealed,speed_speedster.png
-59,Super Sonic,Max out the limit break.,35,,Revealed,speed_super_sonic.png
-60,Crash Course,Crash 25 times.,5,25,Revealed,deaths_10.png
-61,Frequent Flyer,Crash 150 times.,5,150,Hidden,deaths_100.png
-62,Paused,Spend your first pause.,5,,Revealed,pause_first.png
-63,Correct Pause,Destroy an enemy by blinking onto it.,5,,Revealed,pause_blink_kill.png
-64,Blink Master,Blink 200 times.,5,200,Revealed,pause_blink_100.png
-65,Hold Your Breath,Clear a world without spending a pause.,20,,Revealed,pause_no_pause_world.png
-66,Time Banker,Hold 15 pauses at once.,10,,Revealed,pause_hoarder.png
-67,Perfect Pause,Blink out of a hostile shot's path.,25,,Hidden,pause_perfect_dodge.png
-68,Hot Escape,Survive 10 portal danger levels in a single escape.,10,,Revealed,escape_danger_10.png
+57,Million Score,Score 1000000 points in a run.,35,,Revealed,score_1m.png
+58,Flash,Reach the speed cap.,15,,Revealed,speed_flash.png
+59,Speedster,Break the speed limit.,20,,Revealed,speed_speedster.png
+60,Super Sonic,Max out the limit break.,35,,Revealed,speed_super_sonic.png
+61,Crash Course,Crash 25 times.,5,25,Revealed,deaths_10.png
+62,Frequent Flyer,Crash 150 times.,5,150,Hidden,deaths_100.png
+63,Paused,Spend your first pause.,5,,Revealed,pause_first.png
+64,Correct Pause,Destroy an enemy by blinking onto it.,5,,Revealed,pause_blink_kill.png
+65,Blink Master,Blink 200 times.,5,200,Revealed,pause_blink_100.png
+66,Hold Your Breath,Clear a world without spending a pause.,20,,Revealed,pause_no_pause_world.png
+67,Time Banker,Hold 15 pauses at once.,10,,Revealed,pause_hoarder.png
+68,Perfect Pause,Blink out of a hostile shot's path.,25,,Hidden,pause_perfect_dodge.png
+69,Hot Escape,Survive 10 portal danger levels in a single escape.,5,,Revealed,escape_danger_10.png
