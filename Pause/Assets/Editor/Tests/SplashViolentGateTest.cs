@@ -563,10 +563,10 @@ public static class SplashViolentGateTest
         bool shipSprites = false, dustSprites = false;
         foreach (var r in view.root.GetComponentsInChildren<SpriteRenderer>(false))
         {
-            if (r.sprite == card.Art.dust) dustSprites = true;
+            if (r.sprite == card.Art.dust || StarDustArt.IsDust(r.sprite)) dustSprites = true;   // the burst mixes StarDustArt's three sizes
             for (int k = 0; k < card.Art.ships.Length; k++) if (r.sprite == card.Art.ships[k]) shipSprites = true;
         }
-        Check("... drawn with the star dust glyph and player hull sprites", dustSprites && shipSprites);
+        Check("... drawn with star dust sprites and player hull sprites", dustSprites && shipSprites);
 
         // 3. the logo is never touched by the particles
         var logoSprite = card.logo.sprite; var logoScale = card.logo.transform.localScale;
