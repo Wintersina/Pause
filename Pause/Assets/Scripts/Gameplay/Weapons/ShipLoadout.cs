@@ -27,7 +27,7 @@ public enum ShipAttack
     ArcaneEye,      // an eye gazes up its cone and marks targets; the marks detonate 0.8 s later
     HeatWave,       // a thin wall of heat rolls up the whole screen from the nose, burning what it passes
     BoomerangStar,  // a shuriken thrown ahead and one from the tail, each on an ellipse that hits out and back to the ship
-    ProximityMines, // mines launched ahead hold their screen position and blow when something comes close
+    ProximityMines, // mines launched ahead hold their screen position and blow when something comes close (on a boss or elite they stick to its hull)
     AbductHurl,     // a beam lifts the nearest enemy, then hurls it at the densest group
     RailSlug,       // a piercing slug that hits everything in a narrow line
     GaleWings,      // a feathered gust shoves everything up and outward and turns hostile shots back; collisions hurt
@@ -201,7 +201,7 @@ public static class ShipLoadoutTable
             PowerTrigger.ThreatClose, 1, 2f,
             shots: 2, range: 6f, speed: 12f),   // shots = stars thrown: one forward, one from the tail
         // 12 Saboteur (2150)
-        Row(12, ShipAttack.ProximityMines, "PROXIMITY MINES", "Four mines land ahead and blow when danger comes close.",
+        Row(12, ShipAttack.ProximityMines, "PROXIMITY MINES", "Four mines land ahead and blow when danger comes close, or stick to a boss and go off one by one.",
             SecretPower.BlackHole, "BLACK HOLE", "Swallows what drifts in once 3 enemies are on screen.",
             PowerTrigger.EnemiesOnScreen, 3, 0f,
             shots: 4),

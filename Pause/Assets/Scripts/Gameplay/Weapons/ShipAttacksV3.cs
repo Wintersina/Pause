@@ -11,7 +11,10 @@ using UnityEngine;
 //                              way out and again on the way back; a second one leaves the tail and sweeps
 //                              the area behind; every weapon step adds one more (StarTable, up to 6)
 //   ProximityMines  Saboteur   mines launched from the nose land ahead, hold their screen position (hazards
-//                              fall into them) and blow when something comes close; the rest fizzle out
+//                              fall into them) and blow when something comes close; the rest fizzle out.
+//                              With a boss or an elite on screen they are LIMPETS instead: each flies to a
+//                              different point of its hull, sticks and rides with it, then they blow one after
+//                              another (a ripple), each its own hit
 //   AbductHurl      UFO        a beam lifts the nearest enemy to a hold point, then hurls it at the densest
 //                              group; it kills what it hits and dies itself (bosses and elites are hit by
 //                              the beam instead)
@@ -37,6 +40,9 @@ public class AttackV3
     public readonly int[] n = new int[Max];
     // Proximity Mines: seconds until a mine set off by a neighbour's blast goes (0 = not set off; ShipSignatures2.MineChainLevel)
     public readonly float[] chain = new float[Max];
+    // Limpet mines (a boss or elite on screen): the run clock, when each stuck mine blows, and when the next one may
+    public readonly float[] fuse = new float[Max];
+    public float clock, nextBlow;
     public readonly System.Collections.Generic.List<GameObject> hit2 = new System.Collections.Generic.List<GameObject>(16);
     // Gale Wings' returned shots (a hostile shot the gust turned): position, velocity, drawing.
     public const int ReturnMax = 16;
@@ -70,6 +76,8 @@ public class AttackV3
         for (int i = 0; i < Max; i++) if (link[i] != null) link[i].Hide();
         for (int i = 0; i < starHit.Length; i++) starHit[i].Clear();
         System.Array.Clear(chain, 0, Max);
+        System.Array.Clear(fuse, 0, Max);
+        clock = nextBlow = 0f;
         for (int i = 0; i < ReturnMax; i++) { rFx[i] = null; rAge[i] = 0f; }
         rCount = 0;
         eye = null;
@@ -101,7 +109,7 @@ public class AttackV3
 
     public int LiveMines
     {
-        get { int c = 0; for (int i = 0; i < Max; i++) if (phase[i] == 1 || phase[i] == 2) c++; return c; }
+        get { int c = 0; for (int i = 0; i < Max; i++) if (phase[i] == 1 || phase[i] == 2 || phase[i] == 4) c++; return c; }
     }
 }
 
@@ -139,6 +147,18 @@ public partial class ShipAttackRunner
     // its blast along its wires and sets off the mines on them MineChainDelay later (ShipSignatures2). Level 4 (the
     // chain upgrade) lengthens the wires to MineChainReach.
     public const float MineWireReach = 1.6f;
+    // LIMPET MINES (a boss or elite is on screen): flight to the hull, a short settle, then one blow per LimpetGap (level 4,
+    // the chain upgrade: LimpetChainGap, a faster ripple on visible wires). The gap is never under the boss's hit window
+    // (BossConfig.HitInvulnerableSeconds + LimpetWindowPad), so every mine lands as its own hit.
+    // MineBossTotal is what a whole firing is worth on a boss in all, split over the firing's mines (the owner can raise it).
+    public const float LimpetFlight = .45f, LimpetSettle = .15f, LimpetGap = .4f, LimpetChainGap = .28f, LimpetWindowPad = .03f;
+    public const float MineBossTotal = 1f, LimpetScale = .4f;
+    public static float LimpetWeight(int shots) { return MineBossTotal / Mathf.Max(1, shots); }
+    public static float LimpetBlowGap(int weaponLevel)
+    {
+        float g = ShipSignatures2.MinesChainAt(weaponLevel) ? LimpetChainGap : LimpetGap;
+        return Mathf.Max(g, BossConfig.HitInvulnerableSeconds + LimpetWindowPad);
+    }
     public const int MineWireCap = 8;
     // ABDUCT & HURL (UFO)
     public const float HoldAhead = 1.5f, PullSeconds = .5f, HurlSpeed = 15f, HurlRadius = .3f, GroupRadius = 1.8f;
@@ -225,6 +245,8 @@ public partial class ShipAttackRunner
                         v.fx[i] = AttackPool.Sprite().Play(AttackSprite.Source.AttackLoop, ship, nose, Vector3.one * .6f, 0f,
                             ShipFxArt.LoopTicks, true, 0f, null, Vector3.zero, 70).Owned(run);
                     }
+                    var limpetHost = LimpetHost(view, nose);
+                    if (limpetHost != null) for (int i = 0; i < n; i++) if (LimpetTakes(limpetHost, i)) Latch(v, i, limpetHost, view);
                     v.count = n;
                     if (n <= 0) run.active = false;
                 }
@@ -548,10 +570,19 @@ public partial class ShipAttackRunner
         var lines = Links;
         ShipTargets.Collect(targets);
         int live = 0, kills = 0;
+        v.clock += dt;
+        var limpetHost = LimpetHost(view, v.count > 0 ? v.pos[0] : Vector3.zero);
         for (int i = 0; i < v.count; i++)
         {
-            if (v.phase[i] != 1 && v.phase[i] != 2) continue;
+            if (v.phase[i] != 1 && v.phase[i] != 2 && v.phase[i] != 4) continue;
+            // a mine holding its spot when a boss or elite shows up goes for it (not one a neighbour's blast has set off)
+            if (v.phase[i] == 2 && limpetHost != null && v.chain[i] <= 0f && LimpetTakes(limpetHost, i)) Latch(v, i, limpetHost, view);
             v.at[i] += dt;
+            if (v.n[i] == 1)
+            {
+                if (StepLimpet(run, v, i, dt, view, lines)) live++;
+                continue;
+            }
             var s = v.fx[i];
             bool drawn = s != null && s.Active && s.Run == run;
             if (v.phase[i] == 1)
@@ -613,7 +644,158 @@ public partial class ShipAttackRunner
             CameraKick.Kick(.02f);
         }
         DrawMineWires(v, wireReach, lines);
+        if (ShipSignatures2.MinesChainAt(l.weaponLevel)) DrawLimpetWires(v, lines);
         if (live == 0) run.active = false;
+    }
+
+    // ---- limpet mines
+
+    // Where the stuck limpets sit now (tests and previews); returns how many were written.
+    public int LimpetSpots(Vector3[] into)
+    {
+        int c = 0;
+        for (int r = 0; r < runs.Length; r++)
+        {
+            var v = runs[r] != null ? runs[r].v3 : null;
+            if (v == null) continue;
+            for (int i = 0; i < v.count && c < into.Length; i++)
+                if (v.phase[i] == 4) into[c++] = v.pos[i];
+        }
+        return c;
+    }
+
+    // The boss on screen, else the nearest elite on screen: whatever a mine can stick to. Null: plain proximity mines.
+    ClearTarget LimpetHost(Rect view, Vector3 from)
+    {
+        var liveList = ClearTarget.Live;
+        ClearTarget best = null;
+        bool bestBoss = false;
+        float bestSq = float.MaxValue;
+        for (int i = 0; i < liveList.Count; i++)
+        {
+            var t = liveList[i];
+            if (!LimpetHostOk(t, view)) continue;
+            bool boss = ShipTargets.IsBossTarget(t);
+            if (!boss && !t.TryGetComponent<EliteShip>(out _)) continue;
+            float sq = ((Vector2)(t.transform.position - from)).sqrMagnitude;
+            if ((boss && !bestBoss) || (boss == bestBoss && sq < bestSq)) { best = t; bestBoss = boss; bestSq = sq; }
+        }
+        return best;
+    }
+
+    // A boss takes every mine; an elite takes every other one and the rest stay proximity mines for what is around it.
+    static bool LimpetTakes(ClearTarget host, int i) { return ShipTargets.IsBossTarget(host) || (i & 1) == 0; }
+
+    static bool LimpetHostOk(ClearTarget t, Rect view)
+    {
+        if (t == null || !t.isActiveAndEnabled || !ShipTargets.IsHazard(t)) return false;
+        view.yMax += .4f;
+        return view.Contains(t.transform.position);
+    }
+
+    static readonly System.Collections.Generic.List<Renderer> hullParts = new System.Collections.Generic.List<Renderer>(8);
+
+    // Half the hull's size (its collider, else its drawings, else its target radius).
+    static Vector2 HullHalf(ClearTarget host)
+    {
+        Bounds b;
+        var col = host.GetComponentInChildren<Collider2D>();
+        if (col != null && col.enabled) b = col.bounds;
+        else
+        {
+            host.GetComponentsInChildren(false, hullParts);
+            bool any = false;
+            b = new Bounds(host.transform.position, Vector3.zero);
+            for (int i = 0; i < hullParts.Count; i++)
+            {
+                if (hullParts[i] == null || !hullParts[i].enabled) continue;
+                if (!any) { b = hullParts[i].bounds; any = true; } else b.Encapsulate(hullParts[i].bounds);
+            }
+            hullParts.Clear();
+            if (!any) return new Vector2(host.Radius, host.Radius);
+        }
+        return new Vector2(Mathf.Max(.3f, b.extents.x), Mathf.Max(.3f, b.extents.y));
+    }
+
+    // Sends mine i to a point of the host's hull (a different one for every mine: a golden-angle spread over the hull,
+    // dealt out of order so the ripple crosses it), from where it is now.
+    void Latch(AttackV3 v, int i, ClearTarget host, Rect view)
+    {
+        const int Spots = 12;
+        int k = (i * 5) % Spots;
+        float r = Mathf.Sqrt((k + .5f) / Spots), ang = k * 2.39996f;
+        Vector2 half = HullHalf(host);
+        Vector3 off = new Vector3(Mathf.Cos(ang) * r * .85f * half.x, Mathf.Sin(ang) * r * .7f * half.y, 0f);
+        if (view.width < 100f) off.y = Mathf.Min(off.y, view.yMax - .3f - host.transform.position.y);
+        v.tgt[i] = host;
+        v.n[i] = 1;   // a limpet (the host reference alone cannot say: a destroyed host reads as null)
+        v.to[i] = off;
+        v.from[i] = v.pos[i];
+        v.at[i] = 0f;
+        v.phase[i] = 1;
+        if (v.fx[i] != null && v.fx[i].Active && v.fx[i].Run == v.owner) v.fx[i].transform.localScale = Vector3.one * LimpetScale;
+    }
+
+    // One limpet: flies to its hull point, rides the host, blows in its turn as a hit of its own. False once it is gone.
+    bool StepLimpet(AttackRun run, AttackV3 v, int i, float dt, Rect view, ShipLinkLines lines)
+    {
+        var host = v.tgt[i];
+        if (!LimpetHostOk(host, view) || v.at[i] > MineLife * 2f) { Fizzle(v, i); return false; }   // gone: nothing left behind
+        Vector3 spot = host.transform.position + v.to[i];
+        if (v.phase[i] == 1)
+        {
+            float k = Mathf.Clamp01(v.at[i] / LimpetFlight);
+            float e = 1f - (1f - k) * (1f - k);
+            v.pos[i] = Vector3.Lerp(v.from[i], spot, e);
+            if (k >= 1f)
+            {
+                v.phase[i] = 4;
+                v.fuse[i] = Mathf.Max(v.clock + LimpetSettle, v.nextBlow);
+                v.nextBlow = v.fuse[i] + LimpetBlowGap(run.loadout.weaponLevel);
+            }
+        }
+        else v.pos[i] = spot;
+        var s = v.fx[i];
+        if (s != null && s.Active && s.Run == run) s.transform.position = v.pos[i];
+        if (v.phase[i] != 4 || v.clock < v.fuse[i]) return true;
+
+        Vector3 at = v.pos[i];
+        float gap = LimpetBlowGap(run.loadout.weaponLevel);
+        int next = -1;
+        for (int j = 0; j < v.count; j++)
+            if (j != i && v.phase[j] == 4 && v.tgt[j] != null && v.fuse[j] > v.fuse[i] && (next < 0 || v.fuse[j] < v.fuse[next])) next = j;
+        if (next >= 0 && ShipSignatures2.MinesChainAt(run.loadout.weaponLevel)) lines.Burn(at, v.pos[next], gap);
+        Fizzle(v, i);
+        Burst(run, at, 1f);
+        ShipAttackHits.Hit(host.gameObject, ship, LimpetWeight(run.loadout.shots), ref run.budget, HitKind.Ultimate);
+        // ordinary bodies caught in the blast die as ever (the boss or elite itself took its one hit above)
+        float blastR = ShipSignatures2.MineBlastAt(run.loadout.weaponLevel);
+        for (int k = 0; k < targets.Count; k++)
+        {
+            var t = targets[k];
+            if (t == null || !t.isActiveAndEnabled || t == host || Special(t.gameObject)) continue;
+            float r = blastR + t.Radius * .5f;
+            if (((Vector2)(t.transform.position - at)).sqrMagnitude > r * r) continue;
+            ShipAttackHits.Hit(t.gameObject, ship, LimpetWeight(run.loadout.shots), ref run.budget, HitKind.Ultimate);
+        }
+        CameraKick.Kick(.02f);
+        return false;
+    }
+
+    // Level 4: the stuck mines are wired to each other in the order they will blow.
+    void DrawLimpetWires(AttackV3 v, ShipLinkLines lines)
+    {
+        int drawn = 0;
+        for (int i = 0; i < v.count && drawn < MineWireCap; i++)
+        {
+            if (v.phase[i] != 4) continue;
+            int next = -1;
+            for (int j = 0; j < v.count; j++)
+                if (j != i && v.phase[j] == 4 && v.fuse[j] > v.fuse[i] && (next < 0 || v.fuse[j] < v.fuse[next])) next = j;
+            if (next < 0) continue;
+            if (lines.Link(ShipLinkLines.Kind.Wire, v.pos[i], v.pos[next], .05f, .05f,
+                    ShipLinkLines.WireWidth, ShipLinkLines.WireColor, .04f, i * 5 + next)) drawn++;
+        }
     }
 
     // A faint wire between each armed mine and its nearest armed neighbour in reach (one wire per pair), capped.
