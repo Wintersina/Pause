@@ -170,7 +170,7 @@ public static class ShipWeaponUpgradesTest
             var baseRow = ShipLoadoutTable.For(id);
             var l0 = ShipWeaponUpgrades.LoadoutAt(id, 0);
             base0 &= l0.shots == baseRow.shots && l0.maxHits == baseRow.maxHits && l0.duration == baseRow.duration &&
-                     Mathf.Approximately(ShipWeaponUpgrades.CooldownScaleAt(id, 0), id == ShipId.Starter ? ShipWeaponUpgrades.StarterCooldownScale : 1f);
+                     Mathf.Approximately(ShipWeaponUpgrades.CooldownScaleAt(id, 0), ShipWeaponUpgrades.BaseCooldownScale(id));
             for (int lv = 1; lv <= ShipWeaponUpgrades.MaxLevel; lv++)
             {
                 var prev = ShipWeaponUpgrades.LoadoutAt(id, lv - 1);
@@ -185,7 +185,7 @@ public static class ShipWeaponUpgradesTest
             }
             var max = ShipWeaponUpgrades.LoadoutAt(id, ShipWeaponUpgrades.MaxLevel);
             bounded &= max.shots <= 26 && max.maxHits <= 9 && max.duration <= 15f &&
-                       ShipWeaponUpgrades.CooldownScaleAt(id, ShipWeaponUpgrades.MaxLevel) >= (id == ShipId.Starter ? .55f * ShipWeaponUpgrades.StarterCooldownScale : .55f);
+                       ShipWeaponUpgrades.CooldownScaleAt(id, ShipWeaponUpgrades.MaxLevel) >= (.55f * ShipWeaponUpgrades.BaseCooldownScale(id));
         }
         Check("level 0 is the ship's base loadout", base0);
         Check("every level of every ship adds something (more, bigger, longer or faster)", felt);
@@ -324,6 +324,21 @@ public static class ShipWeaponUpgradesTest
         Check("the starter's charge time is 40% shorter at every level",
               Mathf.Approximately(ShipWeaponUpgrades.CooldownScaleAt(ShipId.Starter, 0), .6f) &&
               Mathf.Approximately(ShipWeaponUpgrades.CooldownScaleAt(ShipId.Starter, ShipWeaponUpgrades.MaxLevel), .65f * .6f));
+        // Quick strikes (Volt Viper 2, Crimson Halo 4, Ion Lancer 5, Lightning 8): x.75 at every level; every other ship unchanged.
+        bool quick = true, others = true;
+        foreach (int id in ShipId.All)
+        {
+            if (id == ShipId.Starter) continue;
+            bool isQuick = id == 2 || id == 4 || id == 5 || id == 8;
+            float want = isQuick ? .75f : 1f;
+            quick &= !isQuick || (Mathf.Approximately(ShipWeaponUpgrades.CooldownScaleAt(id, 0), .75f) &&
+                                  Mathf.Approximately(ShipWeaponUpgrades.CooldownScaleAt(id, ShipWeaponUpgrades.MaxLevel), .75f * .65f));
+            others &= isQuick || (Mathf.Approximately(ShipWeaponUpgrades.CooldownScaleAt(id, 0), 1f) &&
+                                  ShipWeaponUpgrades.CooldownScaleAt(id, ShipWeaponUpgrades.MaxLevel) >= .65f - 1e-4f &&
+                                  Mathf.Approximately(ShipWeaponUpgrades.BaseCooldownScale(id), want));
+        }
+        Check("the four quick-strike ships charge 25% faster at every level (.75 at level 0, .75 x .65 at max)", quick);
+        Check("every other ship's charge time is unchanged", others);
     }
 
     // A capped target (an elite): the per-firing allowance still applies to these. The boss itself is

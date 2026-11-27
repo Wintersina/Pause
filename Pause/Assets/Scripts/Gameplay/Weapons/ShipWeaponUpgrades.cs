@@ -148,16 +148,30 @@ public static class ShipWeaponUpgrades
 
     // The starter's ultimate charges 40% faster than the track says, at every level (applied after the track's cuts).
     public const float StarterCooldownScale = .6f;
+    // The quick one-moment strikes (Crimson Halo 4, Ion Lancer 5, Lightning 8, Volt Viper 2) charge 25% faster at every level:
+    // a single instant hit feels rare at 30-60 s. Lasting effects (sentries, blowtorch, mines...) keep 1, and Solar Fang and
+    // Paragon stay unchanged for balance.
+    public const float QuickStrikeCooldownScale = .75f;
 
-    // Multiplier on the charge time (1 at level 0, except the starter: StarterCooldownScale).
+    // The ship's own charge-time multiplier, applied at every level after the track's cuts.
+    public static float BaseCooldownScale(int shipId)
+    {
+        switch (shipId)
+        {
+            case ShipId.Starter: return StarterCooldownScale;
+            case 2: case 4: case 5: case 8: return QuickStrikeCooldownScale;
+            default: return 1f;
+        }
+    }
+
+    // Multiplier on the charge time (BaseCooldownScale at level 0: 1 for most ships, the starter .6, the quick strikes .75).
     public static float CooldownScaleAt(int shipId, int level)
     {
         if (!Has(shipId)) shipId = ShipId.Starter;
         level = Mathf.Clamp(level, 0, MaxLevel);
         float cut = 0f;
         for (int i = 1; i <= level; i++) cut += tracks[shipId][i - 1].cooldownCut;
-        float scale = Mathf.Clamp(1f - cut, .4f, 1f);
-        return shipId == ShipId.Starter ? scale * StarterCooldownScale : scale;
+        return Mathf.Clamp(1f - cut, .4f, 1f) * BaseCooldownScale(shipId);
     }
 
     public static float CooldownScale(int shipId) { return CooldownScaleAt(shipId, Level(shipId)); }
