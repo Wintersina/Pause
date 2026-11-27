@@ -99,18 +99,25 @@ public static class EnemyRosterTest
 
     // The helicopters are fighters of tier 5+ (outside the four-tier ladder): the spawner fields them as a rare extra from
     // phase 3 in their own world only, never from the phase 2 window, and the four-tier ladder still has its four.
+    // Ember has two tier 5+ extras: the Forge Gyro (tier 5, rotors) and the Hellmouth (tier 6, a furnace gunship: no rotors).
     static void HelicoptersAreRareExtras()
     {
         const int Ember = 3;
         var heli = EnemyRoster.Helicopter(Ember);
         Check("Ember has a helicopter", heli != null && EnemyRoster.IsHelicopter(heli));
-        if (heli != null)
+        var emberExtras = EnemyRoster.For(Ember, EnemyRole.Fighter).FindAll(EnemyRoster.IsHelicopter);
+        Check("Ember has two tier 5+ extras (" + emberExtras.Count + ")", emberExtras.Count == 2);
+        foreach (var e in emberExtras)
         {
-            Check("the Ember helicopter is a fighter of tier 5+ (" + heli.tier + ")", heli.role == EnemyRole.Fighter && heli.tier >= EnemyRoster.HelicopterTier);
-            Check("the helicopter has a behaviour with a shot", heli.Behaviour != null && heli.Behaviour.attack == EnemyAttack.Shot);
-            Check("the helicopter is a wing-flap (rotor) animation", EnemyRoster.FlapsWings(heli));
-            Check("the helicopter has a death strip", EnemyDeathFlipbook.Frames(heli) != null);
+            Check(e.key + " is a fighter of tier 5+ (" + e.tier + ")", e.role == EnemyRole.Fighter && e.tier >= EnemyRoster.HelicopterTier);
+            Check(e.key + " has a behaviour with a shot", e.Behaviour != null && e.Behaviour.attack == EnemyAttack.Shot);
+            Check(e.key + " has a death strip", EnemyDeathFlipbook.Frames(e) != null);
         }
+        var gyro = EnemyRoster.Find("ember_fighter_5");
+        Check("the Forge Gyro is a wing-flap (rotor) animation", gyro != null && EnemyRoster.FlapsWings(gyro));
+        var hellmouth = EnemyRoster.Find("ember_fighter_6");
+        Check("the Hellmouth is Ember's tier 6 extra, a calm idle (no rotors to flap)",
+              hellmouth != null && EnemyRoster.Fighter(Ember, 6) == hellmouth && !EnemyRoster.FlapsWings(hellmouth));
         const int Tide = 4;
         var tideHelis = EnemyRoster.For(Tide, EnemyRole.Fighter).FindAll(EnemyRoster.IsHelicopter);
         Check("Tide has two helicopters (" + tideHelis.Count + ")", tideHelis.Count == 2);
@@ -922,7 +929,11 @@ public static class EnemyRosterTest
     // and many colour boundaries (panel lines, rivets, plates, sockets,
     // teeth...). The heavies, drawn twice as big, carry more. Floors sit
     // well under the 2026-10 art (fewest: 374 tones, 4362 boundaries).
-    public const int MinTones = 300, MinBoundaries = 3000, MinBoundariesBig = 6000;
+    // The 2026-11 Paragon-standard redraw (src~/paragon_standard) is real pixel
+    // art on a fixed 32-colour palette per enemy, so tones stopped measuring
+    // detail: the tone floor only rules out flat fills now, and the colour
+    // boundaries (the redraw has 5500+ on a fighter) carry the detail check.
+    public const int MinTones = 24, MinBoundaries = 3000, MinBoundariesBig = 6000;
 
     static void DetailFloor()
     {

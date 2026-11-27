@@ -70,6 +70,7 @@ public static class EnemyDeathAudio
         new[] { "verdant_elite_thornlash", Screech, ".75" }, new[] { "verdant_elite_timber_hauler", Whine, ".65" },
         // Ember
         new[] { "ember_fighter_1", Yelp, "1.0" }, new[] { "ember_fighter_2", Human, "1.0" }, new[] { "ember_fighter_3", Human, ".95" }, new[] { "ember_fighter_4", Alien, ".9" }, new[] { "ember_fighter_5", Whine, ".75" },
+        new[] { "ember_fighter_6", Human, ".82" },   // Hellmouth: a crewed furnace gunship (shared clip until an own_ember_fighter_6 is approved)
         new[] { "ember_chaser", Screech, "1.0" }, new[] { "ember_alien", Alien, "1.0" }, new[] { "ember_big", Roar, "1.1" }, new[] { "ember_mine", Whine, "1.3" },
         new[] { "ember_elite_ash_wraith", Roar, "1.05" }, new[] { "ember_elite_brass_vulture", Screech, ".8" }, new[] { "ember_elite_cauterizer", Whine, ".7" },
         new[] { "ember_elite_coalrunner", Human, ".85" }, new[] { "ember_elite_kilnback", Whine, ".55" }, new[] { "ember_elite_sunstoke", Roar, ".85" },

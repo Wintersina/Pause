@@ -1,0 +1,19 @@
+{
+  "_style": "top-down shmup enemy seen from directly above, nose pointing DOWN toward the player, symmetric, chunky pixel clusters, 1 px dark hue-shifted outline, hard edges, lit from above, one glowing signal colour that also lights the engines, engine flames at the TOP rear, no background, no text",
+  "_anchors": ["Paragon (Art/Resources/ShipArt/Paragon/Paragon.png frame 0)", "Bastion (Art/Resources/Enemies/space_big.png frame 0)"],
+  "_native": "80 px canvas -> nearest x2 = 160 px drawing centred in the 192 px cell",
+  "space":  {"palette": ["#2a2228","#5a3e2e","#9a6a3c","#4a4e58","#8a8f9a","#c8ccd4","#ff3d9a","#ff9ad0"], "materials": "riveted gunmetal plates, rust streaks, bronze pipes, magenta power cores"},
+  "ember":  {"palette": ["#1c1614","#3a3434","#6a5a50","#e8dcc0","#8a2a14","#ff6a1a","#ffb020","#fff0b0"], "materials": "forged black iron, ivory bone horns, glowing molten-orange seams and vents"},
+  "enemies": {
+    "space_alien":     {"name": "Bile Mite",   "shot": "one shard from the mouth, 0.30 u below centre", "prompt": "crowned alien bug: bile-green carapace, bruise-purple mandibles opening downward, one magenta slit eye, six short legs, round body"},
+    "space_chaser":    {"name": "Steel Hound", "shot": "none (rams)", "prompt": "steel interceptor hound with hinged jaws at the front, one hungry magenta eye, swept back fins, twin rear thrusters"},
+    "space_fighter_1": {"name": "Needle",      "shot": "none (dashes)", "prompt": "slim steel dart fighter, single long ram prong at the nose, small bruise-purple wings, magenta visor, one rear thruster"},
+    "space_fighter_2": {"name": "Steel Claw",  "shot": "one bolt from between the prongs, 0.30 u below centre", "prompt": "claw fighter with twin pincer prongs at the front, armoured gunmetal hull, magenta visor, twin rear thrusters"},
+    "space_fighter_3": {"name": "Twin Claw",   "shot": "two splayed bolts, 0.30 u below centre", "prompt": "wide claw fighter with outer blade wings bolted on, two magenta visor eyes, twin cannons under the nose, twin rear thrusters"},
+    "space_fighter_4": {"name": "Warden",      "shot": "one heavy shell, 0.40 u below centre", "prompt": "heavy armoured claw fighter, big shoulder armour plates, centre ram prong with a heavy cannon, glowing magenta power core, three rear thrusters"},
+    "ember_alien":     {"name": "Ember Imp",   "shot": "none (pulses)", "prompt": "small caged cinder imp: molten orange core inside a black iron cage, bone fangs around the core, short fin spikes"},
+    "ember_fighter_2": {"name": "Scorch",      "shot": "one bolt straight down, 0.30 u below centre", "prompt": "forged iron gunship with swept pincer wings, one heavy cannon barrel at the nose, white-hot vents along the hull, twin rear engines"},
+    "ember_fighter_3": {"name": "Brand",       "shot": "one aimed bolt, 0.30 u below centre", "prompt": "sleek black iron raider with two long ivory hooked horn blades curving forward, molten orange seams, twin-nozzle rear engine"},
+    "ember_fighter_5": {"name": "Forge Gyro",  "shot": "two rockets from pods 0.45 u left and right, 0.30 u below centre", "prompt": "forge gunship hovering on two exhaust fans (no rotor blades), one rocket pod under each side, iron and brass plating, glowing amber canopy in the middle"}
+  }
+}

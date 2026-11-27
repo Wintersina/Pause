@@ -432,9 +432,9 @@ public static class EnemyBehaviours
         B("verdant_fighter_1", "Gnat: fast jittery weave")
             .Sway(.5f, .55f).Bob(.14f, .7f)
             .Pilot(PilotEntry.Swoop, 2.6f, 3f, PilotExit.Run);
-        B("verdant_fighter_2", "Wasp: tracks, then the deepest dive in the roster")
-            .Track(.6f, 1f).Brake(1.2f, .55f).Lunge(1f, 2f, .24f).Timing(.5f, 2f, 1, .15f)
-            .Pilot(PilotEntry.Drop, 2.4f, 5f, PilotExit.Run).Volleys(1);
+        B("verdant_fighter_2", "Wasp: tracks, brakes, fires its two flank cannons side by side")
+            .Track(.6f, 1f).Brake(1.2f, .55f).Shot(Bolt, 2, 0f, 3f, .18f).Twin(.54f).Muzzle(.3f).Timing(.6f, 2.2f, 2, .15f)   // gap = the redrawn cannons, .27 u either side
+            .Pilot(PilotEntry.Drop, 2.4f, 5f, PilotExit.Run).Volleys(2);
         B("verdant_fighter_3", "Mantis: hovers still, slashes sideways across its band")
             .Band(.7f).Brake(1.6f, .65f).Lunge(1f, 0f, .2f).Timing(.6f, 1.3f, 3, .15f)
             .Pilot(PilotEntry.Drop, 3f, 6.5f, PilotExit.Peel).Volleys(3);
@@ -478,9 +478,13 @@ public static class EnemyBehaviours
         B("ember_fighter_4", "Pyre: hovers, a full ring of eight")
             .Track(.5f, .4f).Brake(1.8f, .65f).Ring(Bolt, 8, 2.2f, .18f).Muzzle(0f).Timing(1.1f, 3.8f, 2, .15f)
             .Pilot(PilotEntry.Drop, 1.5f, 9f, PilotExit.Climb).Volleys(3);
-        B("ember_fighter_5", "Forge Gyro: hovers over the pilot, a pair of rockets from the twin pods")
-            .Track(.6f, .6f).Brake(1.6f, .55f).Shot(Bolt, 2, 0f, 2.9f, .2f).Twin(.45f).Muzzle(.3f).Timing(.8f, 2.8f, 3, .15f)
+        B("ember_fighter_5", "Forge Gyro: hovers over the pilot, a spray of small pellets from the twin pods")
+            .Track(.6f, .6f).Brake(1.6f, .55f).Shot(Bolt, 5, 9f, 2.6f, .11f).Twin(.11f).Muzzle(.3f).Timing(.9f, 3f, 3, .15f)
             .Pilot(PilotEntry.Drop, 1.8f, 7f, PilotExit.Climb).Volleys(3);
+        // (the Magma Skull's slag shell, one at a time and straight down from the jaw cannon: held to roster:ember_big's budget, AttackBudgetTest.Themed)
+        B("ember_fighter_6", "Hellmouth: drops in, brakes, a slow heavy slag shell from its jaw cannon")
+            .Track(.45f, .45f).Brake(1.6f, .6f).Shot(Slag, 1, 0f, 1.4f, .3f).Muzzle(.37f).Timing(1f, 3.4f, 3, .15f)
+            .Pilot(PilotEntry.Drop, 1.7f, 8f, PilotExit.Climb).Slow().Volleys(3);
         B("ember_chaser", "Cinder Fang: short hard chase, wide burnt-out wander")
             .Chaser(ChaserStyle.Burner, 2.5f, 3f, 1.4f, .8f, 1.1f)
             .Linger(7f);

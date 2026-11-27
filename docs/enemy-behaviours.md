@@ -162,7 +162,7 @@ Shot speeds are relative to the board, in world units per second.
 | `verdant_mine` | Burr Mine | vine-wrapped burr on the rail | `Patrol`: swings up and down its rail | **yes**: two lasers across the lane at random angles (`Laser`), from its hold row ("Rail-mine ride") | husk splits, charging loop 1.0 s, aim line its last 0.7 s | its aim line is the danger: leave it |
 | `verdant_big` | Bloom Maw | five-petal carnivorous bud | holds its column | **yes**: lobs a resin glob onto where the pilot is; it lands as a sticky pool | petals snap open 0.9 s; a ring marks the landing spot | leave the marked spot; the pool dries in ~2.5 s |
 | `verdant_fighter_1` | Gnat | small buzzing bug | fast jittery `Sway` + `Bob` | no | buzz when near (cosmetic) | small and erratic: keep a body's width |
-| `verdant_fighter_2` | Wasp | striped abdomen, stinger | `Track`, `Brake` | no (`Lunge`: a deep fast dive at the pilot's x) | wings blur, then the dive | deepest dive in the roster: sidestep late |
+| `verdant_fighter_2` | Wasp | striped abdomen, stinger | `Track`, `Brake` | yes (`Shot` x2 `Twin(.54)`: one bolt from each flank cannon) | cannons flare | the bolts straddle the aim line: hold still or slip clear of both |
 | `verdant_fighter_3` | Mantis | scythe arms | `Brake` hover, still ("praying") | no (`Lunge`: a sideways slash right across its band) | arms raise, then the slash | be above or below its row, not beside it |
 | `verdant_fighter_4` | Hornet Queen | four wings, scythes, stinger | `Brake` hover, `Track` | **yes**: three stingers in a tight aimed fan, up to three volleys | abdomen glows 0.8 s | a tight fan: one clear step sideways |
 | `verdant_chaser` | Dragonsting | four-winged dragonfly | chaser: weaving pursuit, longer and slower | no | lunge loop while hunting | its weave makes it overshoot |
@@ -182,6 +182,7 @@ Shot speeds are relative to the board, in world units per second.
 | `ember_fighter_2` | Scorch | forked claw with a mortar | `Track`s to line up over the pilot | **yes**: quick bolts straight down, up to three | vents go white 0.5 s | it must be over you to hit: keep moving |
 | `ember_fighter_3` | Brand | flame-finned claw | fast strafing `Drift` across a wide band | **yes**: one aimed bolt at where the pilot is | fins flare 0.5 s | "brands anything that doesn't move": move |
 | `ember_fighter_4` | Pyre | horned heavy, core like a sun | `Brake` hover, slow `Track` | **yes**: a full ring of eight bolts | core swells 1.1 s | back off; the ring opens with distance |
+| `ember_fighter_6` | Hellmouth | crimson skull-faced gunship, jaw cannon, two flame stacks (tier 6: a rare extra from phase 3, `ChooseExtraDef`) | `Brake` hover, slow `Track` | **yes**: one slow slag shell straight down from the jaw | stacks flare 1.0 s | step out of its column; the shell sinks slowly |
 | `ember_chaser` | Cinder Fang | salamander jaws | chaser: short hard chase, then a wide burnt-out wander | no | jaw gapes while hunting | outlast the short chase |
 | `ember_alien` | Ember Imp | flame in a basalt mask | flickers: quick small `Pulse` + `Sway` | no | flares up when near (cosmetic) | small quick moves, tight envelope |
 
@@ -329,7 +330,7 @@ that scrolled off the bottom before.
 | `frost_alien` Cryo Jelly | pilot | Descend 0.9 u/s | pulses | drifts out the bottom |
 | `verdant_big` Bloom Maw | pilot | slow Drop to 1.4 u | resin lobs x3, 9 s | slow Climb |
 | `verdant_fighter_1` Gnat | pilot | Swoop to 2.6 u | jitters, 3 s | Run |
-| `verdant_fighter_2` Wasp | pilot | Drop to 2.4 u | tracks, one deep dive and recover, 5 s | Run (the deepest, fastest) |
+| `verdant_fighter_2` Wasp | pilot | Drop to 2.4 u | tracks, two twin-cannon volleys, 5 s | Run (the deepest, fastest) |
 | `verdant_fighter_3` Mantis | pilot | Drop to 3.0 u | hovers still, slashes x3, 6.5 s | Peel |
 | `verdant_fighter_4` Hornet Queen | pilot | Drop to 1.6 u | tracks, stinger fans x4, 9 s | Climb |
 | `verdant_chaser` Dragonsting | pilot | from below | weaving pursuit, orbits 6 s | Climb |
@@ -339,6 +340,7 @@ that scrolled off the bottom before.
 | `ember_fighter_2` Scorch | pilot | Drop to 2.2 u | lines up over the pilot, bolts x4, 5.5 s | Peel |
 | `ember_fighter_3` Brand | pilot | Drop to 2.4 u | strafes, aimed bolts x3, 7 s | Run |
 | `ember_fighter_4` Pyre | pilot | Drop to 1.5 u | rings x3, 9 s | Climb |
+| `ember_fighter_6` Hellmouth | pilot | slow Drop to 1.7 u | tracks slowly, slag shells x3, 8 s | Climb |
 | `ember_chaser` Cinder Fang | pilot | from below | short hard chase, wide orbit 7 s | Climb |
 | `ember_alien` Ember Imp | pilot | Descend 1.3 u/s | flickers | out the bottom |
 

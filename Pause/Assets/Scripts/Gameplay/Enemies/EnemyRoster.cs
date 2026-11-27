@@ -314,7 +314,8 @@ public static class EnemyRoster
         return null;
     }
 
-    // The tier a fighter has to be (5+) to be a helicopter: a rare extra outside the four-tier ladder.
+    // The tier a fighter has to be (5+) to be a helicopter: a rare extra outside the four-tier ladder. (Not every one
+    // has rotors: Ember's tier 6 Hellmouth is a furnace gunship; only the rotor ones are WingFlapKeys.)
     public const int HelicopterTier = 5;
     public static bool IsHelicopter(EnemyDef d) => d != null && d.role == EnemyRole.Fighter && d.tier >= HelicopterTier;
 
@@ -535,11 +536,17 @@ public static class EnemyRoster
                 "Round gunmetal furnace dreadnought: a grated amber furnace eye, blue-lit pylons with cannon tips and a ring of vent ports.",
                 "The fire fleet's champion: horns, flames and a core like a small sun. Shield up, grin on."),
             // The helicopters are fighter tier 5 and up (the four-tier ladder is untouched): the spawner fields them as a
-            // rare extra (enmiesOnBoard.ChooseExtraDef), never as a regular tier pick.
+            // rare extra (enmiesOnBoard.ChooseExtraDef), never as a regular tier pick. (The Hellmouth, tier 6, is fielded
+            // the same way though it has no rotors: "helicopter" means "tier 5+ rare extra" in the code.)
             Def("ember_fighter_5", "Forge Gyro", F, 3, 5, "enemy_ember_fighter_5", Magma,
                 "Steampunk twin-rotor gunship from above: ash-violet plate, bronze rivet bands, a glowing amber canopy, a rocket pod under each rotor.",
                 "A forge-yard gyrocopter on two spinning rotors, a rocket pod hung beneath each. It hovers over your lane " +
                 "and lets both pods go together - take the gap between the two trails."),
+            // Tier 6: a second rare extra (no rotors: a furnace gunship), fielded the same way as the Forge Gyro.
+            Def("ember_fighter_6", "Hellmouth", F, 3, 6, "enemy_ember_fighter_6", Magma,
+                "Crimson-and-black skull-faced gunship from above: one heavy jaw cannon pointing down, two flame-topped stacks at the back, a crown of bone horns.",
+                "A furnace with a skull for a prow and two stacks burning at its back. It drops in, brakes hard over your lane " +
+                "and opens its jaw: one slow shell of slag, heavy enough to own the lane under it - step aside and let it sink."),
             Def("ember_chaser", "Cinder Fang", C, 3, 0, "enemy_ember_chaser", Magma,
                 "Flying teal and violet furnace-hound jet: swept fang-blade wings with gold trim, one cyan eye and twin burning engines.",
                 "It rises out of the lava glow below and snaps its fang-wings at your heels until it " +
