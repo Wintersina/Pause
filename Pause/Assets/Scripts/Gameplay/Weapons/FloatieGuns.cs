@@ -279,6 +279,7 @@ public class FloatieBullet : MonoBehaviour
 
     // Set by FloatieBullets when it built this one: only those go back on its free list.
     [System.NonSerialized] public bool Pooled;
+    [System.NonSerialized] public int Order;   // build order = position in the pool (Take hands out the lowest idle one first, as the old scan did)
 
     // One step on the world's clock: fly straight (no homing, ever), then stop on the first thing along the step.
     public void Tick(float dt)
@@ -484,6 +485,7 @@ public static class FloatieBullets
     internal static void NoteLive(FloatieBullet b)
     {
         activeCount++;
+        if (b.Pooled) FreeRemove(b);
         if (b.Owner != null) b.Owner.NoteLive(b.Source, 1);
     }
 
@@ -491,7 +493,31 @@ public static class FloatieBullets
     {
         if (activeCount > 0) activeCount--;
         if (b.Owner != null) b.Owner.NoteLive(b.Source, -1);
-        if (b.Pooled) free.Add(b);
+        if (b.Pooled) FreeAdd(b);
+    }
+
+    static int nextOrder;
+    // `free` is kept sorted by Order, highest first, so its last entry is the lowest-numbered idle bullet.
+    static int FreeFind(FloatieBullet b)
+    {
+        int lo = 0, hi = free.Count;
+        while (lo < hi)
+        {
+            int mid = (lo + hi) >> 1;
+            if (free[mid].Order > b.Order) lo = mid + 1; else hi = mid;
+        }
+        return lo;
+    }
+    static void FreeAdd(FloatieBullet b)
+    {
+        int i = FreeFind(b);
+        if (i < free.Count && free[i] == b) return;
+        free.Insert(i, b);
+    }
+    static void FreeRemove(FloatieBullet b)
+    {
+        int i = FreeFind(b);
+        if (i < free.Count && free[i] == b) free.RemoveAt(i);
     }
 
     // Bullets a split's shards may never use: a drone's volley always finds room for at least this many (the fair-share rule).
@@ -506,9 +532,9 @@ public static class FloatieBullets
         if (!primary && activeCount >= FloatieTuning.PoolSize - VolleyReserve) return null;
         while (free.Count > 0)
         {
-            var b = free[free.Count - 1];
-            free.RemoveAt(free.Count - 1);
+            var b = free[free.Count - 1];   // (peeked, not popped: a Take that is never launched leaves it free; Launch takes it off)
             if (b != null && !b.Active) return b;
+            free.RemoveAt(free.Count - 1);
         }
         if (pool.Count >= FloatieTuning.PoolSize) return null;
         var go = new GameObject("~floatie");
@@ -516,6 +542,8 @@ public static class FloatieBullets
         var nb = go.AddComponent<FloatieBullet>();
         nb.Build();
         nb.Pooled = true;
+        nb.Order = nextOrder++;
+        FreeAdd(nb);   // idle until launched (a Take that is not launched must not leak a bullet)
         pool.Add(nb);
         return nb;
     }
@@ -540,7 +568,8 @@ public static class FloatieBullets
             var b = go.AddComponent<FloatieBullet>();
             b.Build();
             b.Pooled = true;
-            free.Add(b);
+            b.Order = nextOrder++;
+            FreeAdd(b);
             pool.Add(b);
         }
     }
