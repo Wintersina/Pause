@@ -3,7 +3,8 @@ using UnityEngine;
 
 // Per-target destruction audio.
 //
-// SHARED CLIPS: every non-rock creature (fighters, chasers, aliens, bigs, mines, elites, bosses of all six worlds) plays one of a few
+// OWN CLIPS: approved enemies / elites have their own scream own_<key>.wav (OwnTable), tried before the shared ones.
+// SHARED CLIPS: every other non-rock creature (fighters, chasers, aliens, bigs, mines, elites, bosses of all six worlds) plays one of a few
 // shared clips, chosen by a deterministic key -> category table (SharedTable) and re-pitched per key at playback (AudioSource.pitch),
 // so one small file serves many creatures:
 //   yelp   (2 clips)  small scouts / pilots          human (2)  male + female crew     alien (1)  alien pilot / jelly scream
@@ -96,6 +97,32 @@ public static class EnemyDeathAudio
         new[] { "boss_space", Roar, ".65" }, new[] { "boss_frost", Roar, ".7" }, new[] { "boss_verdant", Roar, ".85" },
         new[] { "boss_ember", Roar, ".75" }, new[] { "boss_tide", Roar, ".78" }, new[] { "boss_storm", Roar, ".6" }, new[] { "boss_desert", Roar, ".55" },
     };
+    // ---- own clips (approved per-enemy screams) --------------------------------
+
+    // Enemies / elites whose death is their OWN authored clip, Resources/Audio/EnemyDeath/own_<key>.wav (mono 24 kHz, trimmed, ~-13 LUFS), played at the
+    // pitch in the row. Lookup order: own clip first, else the key's SharedTable category (so unapproved keys are unchanged). A new approved
+    // batch is just new own_<key>.wav files plus rows here; the SharedTable row stays as the fallback. Keys are the roster / elite catalog keys.
+    public const string OwnPrefix = "own_";
+    // key, playback pitch
+    public static readonly string[][] OwnTable =
+    {
+        // Batch 1 (Space + Flake)
+        new[] { "space_fighter_1", "1.0" }, new[] { "space_fighter_2", "1.0" }, new[] { "space_fighter_3", "1.0" }, new[] { "space_fighter_4", "1.0" },
+        new[] { "space_alien", "1.0" }, new[] { "space_chaser", "1.0" }, new[] { "space_big", "1.0" },
+        new[] { "space_elite_eventide_bastion", "1.0" }, new[] { "space_elite_rift_lancer", "1.0" }, new[] { "space_elite_singularity_hauler", "1.0" },
+        new[] { "frost_fighter_1", "1.0" },
+    };
+    static Dictionary<string, string[]> ownByKey = BuildOwn();
+    static Dictionary<string, string[]> BuildOwn()
+    {
+        var d = new Dictionary<string, string[]>();
+        foreach (var r in OwnTable) d[r[0]] = r;
+        return d;
+    }
+    public static bool HasOwn(string key) { return key != null && ownByKey.ContainsKey(key); }
+    // The own clip's resource path for a key (may not exist on disk for a key not in OwnTable).
+    public static string OwnClipPath(string key) { return ResourceFolder + OwnPrefix + key; }
+
     // (not readonly on purpose: TestHarness.Sandbox restores readonly dictionaries by clearing and refilling them, which empties a generic Dictionary)
     static Dictionary<string, string[]> sharedByKey = BuildShared();
     static Dictionary<string, string[]> BuildShared()
@@ -304,6 +331,16 @@ public static class EnemyDeathAudio
         KeyClips k;
         if (authored.TryGetValue(key, out k)) return k;
         string[] row;
+        if (ownByKey.TryGetValue(key, out row))
+        {
+            var own = Resources.Load<AudioClip>(OwnClipPath(key));
+            if (own != null)
+            {
+                k = new KeyClips { deaths = new[] { own }, wet = None, pitch = float.Parse(row[1], System.Globalization.CultureInfo.InvariantCulture) };
+                authored[key] = k;
+                return k;
+            }
+        }
         if (sharedByKey.TryGetValue(key, out row))
         {
             k = new KeyClips { deaths = Load(SharedPrefix + row[1] + "_"), wet = None, pitch = SharedPitchOf(key) };
