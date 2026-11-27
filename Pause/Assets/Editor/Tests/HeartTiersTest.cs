@@ -17,13 +17,14 @@ public static class HeartTiersTest
     {
         fails = 0;
         using var sandbox = new TestHarness.Sandbox();
-        try { Growth(); Stages(); Enemy(); Rosters(); Art(); Hazards(); Shields(); DroneScore(); Heals(); HazardHits(); Loops(); DroneMeters(); }
+        try { Growth(); Stages(); Enemy(); Rosters(); Art(); Hazards(); Shields(); DroneScore(); Heals(); HazardHits(); Loops(); DroneMeters(); LaserMines(); }
         finally
         {
             HeartTierRun.ForceTier = -1;
             HeartTierRun.Live = false;
             RunPower.Override = -1f;
             PlayerPower.Override = -1f;
+            MineScaling.Reset();
             BossEncounter.ResetRun();
         }
         Debug.Log("[HEARTTIERS] failures: " + fails);
@@ -405,4 +406,54 @@ public static class HeartTiersTest
         Object.DestroyImmediate(go);
         HeartTierRun.ForceTier = -1;
     }
+
+    // Laser mines: more of them, stronger beams, never under a half-second telegraph, a dodge lane always left.
+    static void LaserMines()
+    {
+        MineScaling.Reset();
+        Check("no power, first pass: the laser mines are exactly today's (aim .7 s, beam .4 s, hit .28, drawn .4)",
+              RailMineLaser.AimSeconds == .7f && RailMineLaser.BeamSeconds == .4f && RailMineLaser.HitThickness == .28f && RailMineLaser.DrawWidth == .4f &&
+              MineScaling.RateFor(0f, 0) == 1f && MineScaling.Strength01For(0f, 0) == 0f && MineScaling.WidthFor(0f) == 1f && MineScaling.DurationFor(0f) == 1f && MineScaling.AimFor(0f) == .7f);
+        bool rate = true, str = true, alive = true, aim = true;
+        float lr = 0f, lw = 0f, ld = 0f; int la = 0;
+        for (int i = 0; i <= 80; i++)
+        {
+            float lv = i * .5f, s01 = MineScaling.Strength01For(lv, 0);
+            float r = MineScaling.RateFor(lv, 0), w = MineScaling.WidthFor(s01), d = MineScaling.DurationFor(s01);
+            int a = MineScaling.AliveCapFor(r);
+            rate &= r >= lr && r <= HeartTierTuning.MineRateCap + 1e-4f; alive &= a >= la && a <= HeartTierTuning.MineAliveCap;
+            str &= w >= lw && d >= ld && w <= 1f + HeartTierTuning.MineWidthMax + 1e-4f && d <= 1f + HeartTierTuning.MineBeamLongerMax + 1e-4f;
+            aim &= MineScaling.AimFor(s01) >= HeartTierTuning.MineAimMin;
+            lr = r; lw = w; ld = d; la = a;
+        }
+        Check("laser mine count (rate and alive cap) grows with power and is capped", rate && alive && Mathf.Approximately(MineScaling.RateFor(16.6f, 0), HeartTierTuning.MineRateCap) && MineScaling.AliveCapFor(HeartTierTuning.MineRateCap) == HeartTierTuning.MineAliveCap);
+        Check("each level multiplies the laser mine rate by 1.08 until the cap", Mathf.Abs(MineScaling.RateFor(5f, 0) / MineScaling.RateFor(4f, 0) - HeartTierTuning.MineRatePerLevel) < 1e-3f);
+        Check("beam width and duration grow with power and are capped", str && MineScaling.WidthFor(1f) > 1f && MineScaling.DurationFor(1f) > 1f);
+        Check("the telegraph (aim line) is never under half a second, at any power or loop", aim && MineScaling.AimFor(5f) >= .5f && MineScaling.AimFor(1f) == .5f);
+        Check("a later loop multiplies on top, capped at loop 6", MineScaling.RateFor(8f, 2) >= MineScaling.RateFor(8f, 0) && MineScaling.RateFor(100f, 20) <= HeartTierTuning.MineRateCapLoop + 1e-4f &&
+              MineScaling.Strength01For(0f, 5) == MineScaling.Strength01For(0f, 40) && MineScaling.Strength01For(0f, 5) > 0f);
+        Check("a dodge lane always exists: even the widest beam stays far narrower than the lane", BaseWidest() <= .4f && HeartTierTuning.MineAliveCap <= 8);
+        // the live snapshot
+        HeartTierRun.Live = true; PlayerPower.Override = 0f; MineScaling.Refresh();
+        Check("P = 0 in a real run: the snapshot is neutral and uncapped", MineScaling.Rate == 1f && MineScaling.Width == 1f && MineScaling.Aim == .7f && MineScaling.AliveCap == int.MaxValue);
+        PlayerPower.Override = MaxLevels; MineScaling.Refresh();
+        Check("a maxed ship: x3 mines, at most 8 alive, wider and longer beams, telegraph .5 s",
+              MineScaling.Rate == HeartTierTuning.MineRateCap && MineScaling.AliveCap == HeartTierTuning.MineAliveCap && MineScaling.Width > 1.25f && MineScaling.Duration > 1.45f && MineScaling.Aim == .5f &&
+              RailMineLaser.AimSeconds >= .5f && RailMineLaser.HitThickness > RailMineLaser.BaseHitThickness);
+        var hit = new GameObject(RailMineLaser.HitboxName);
+        bool beamHurts = HazardDamage.IsHazard(hit);
+        HazardDamage.Reset();
+        int worst = 0;
+        for (int i = 0; i < 12; i++) worst = Mathf.Max(worst, HazardDamage.Cost(true, 1f, 5));
+        Object.DestroyImmediate(hit);
+        Check("a beam hit counts as a hazard hit: up to the 2-heart cap", beamHurts && worst <= 2 && HazardDamage.HeartsFor(1f, 5) <= HeartTierTuning.HazardCostCap + 1e-4f);
+        HeartTierRun.Live = false; PlayerPower.Override = -1f; MineScaling.Reset();
+        // pooled: scaling never builds beams, the pool is the same six
+        RailMineLasers.Prewarm();
+        int created = RailMineLasers.Created;
+        for (int i = 0; i < 50; i++) { MineScaling.Refresh(); RailMineLasers.Take(); }
+        Check("beams stay pooled: scaling builds nothing (the pool is RailMineLasers.Max)", created == RailMineLasers.Max && RailMineLasers.Created == created);
+    }
+
+    static float BaseWidest() { return RailMineLaser.BaseHitThickness * MineScaling.WidthFor(1f); }
 }

@@ -47,6 +47,17 @@ public static class HeartTierTuning
     // no hearts (one hit kills them), so only their rate scales. Rails, rail mines on rides and elite docks are authored: untouched. ----
     public const float HazardRateMax = .5f, HazardRateCap = 2.4f;
 
+    // ---- LASER MINES (MineScaling): the rail mines that fire beams scale with the pilot's power and the loop. More of them: spawn rate
+    // x min(MineRatePerLevel^P, MineRateCap) (x3 maxed; MineRateCapLoop on a later loop), at most MineAliveCap alive (4 at no power,
+    // growing with the rate). Stronger: the beam burns up to +50% longer and is up to +30% wider, the aim line (telegraph) shortens from .7 s
+    // but NEVER under MineAimMin (.5 s), and a beam hit costs hearts like any hazard (HazardDamage, at most 2). Authored rails and
+    // docks keep their places; extra mines are placed by the same spawn-space check, so a dodge lane always remains. Beams are pooled
+    // (RailMineLasers.Max), nothing allocates per frame. ----
+    public const float MineRatePerLevel = 1.08f, MineRateCap = 3f, MineRateCapLoop = 4f;
+    public const int MineAliveBase = 4, MineAliveCap = 8;
+    public const float MineWidthMax = .3f, MineBeamLongerMax = .5f, MineAimBase = .7f, MineAimShorterMax = .2f, MineAimMin = .5f;
+    public const float MineLoopStrength = .08f;   // each loop adds this much to the strength 0..1 (index capped at 5)
+
     // ---- shield atoms thin out as the squad grows: x1 with no drone bonus, ShieldMin (never zero) at a full squad ----
     public const float ShieldMin = .4f;
 
@@ -241,10 +252,51 @@ public static class HazardDamage
     {
         if (go == null) return false;
         var def = EnemyIdentity.Of(go);
-        return def != null ? def.IsHazard : go.CompareTag("Astr");
+        if (def != null) return def.IsHazard;
+        return go.CompareTag("Astr") || go.name == RailMineLaser.HitboxName;   // a rail mine's beam hurts like any hazard
     }
 
     public static int Cost(GameObject go) { return Cost(IsHazard(go), RunPower.Score01, RunLoop.Index); }
+}
+
+// Laser mines (rail mines that fire beams): how many, how strong. All values are PURE functions of the pilot's power (levels) and the
+// loop; a snapshot is taken (Refresh) when a mine spawns, so the beam code reads cached numbers and does no work per frame. Neutral
+// (all x1, aim .7 s) until Refresh runs in a real run, and exactly neutral at P = 0 on the first pass.
+public static class MineScaling
+{
+    public static float Strength01For(float levels, int loopIndex)
+    {
+        float s = Mathf.Clamp01(levels / HeartTierTuning.PowerFull) + HeartTierTuning.MineLoopStrength * Mathf.Clamp(loopIndex, 0, HeartTierTuning.LoopMaxIndex);
+        return Mathf.Clamp01(s);
+    }
+    public static float RateFor(float levels, int loopIndex)
+    {
+        float loop = loopIndex > 0 ? Mathf.Min(Mathf.Sqrt(LoopDifficulty.For(loopIndex)), 1.5f) : 1f;
+        float cap = loopIndex > 0 ? HeartTierTuning.MineRateCapLoop : HeartTierTuning.MineRateCap;
+        return Mathf.Max(1f, Mathf.Min(cap, Mathf.Pow(HeartTierTuning.MineRatePerLevel, Mathf.Max(0f, levels)) * loop));
+    }
+    public static int AliveCapFor(float rate) { return Mathf.Min(HeartTierTuning.MineAliveCap, Mathf.CeilToInt(HeartTierTuning.MineAliveBase * rate - 1e-4f)); }
+    public static float WidthFor(float s01) { return 1f + HeartTierTuning.MineWidthMax * Mathf.Clamp01(s01); }
+    public static float DurationFor(float s01) { return 1f + HeartTierTuning.MineBeamLongerMax * Mathf.Clamp01(s01); }
+    public static float AimFor(float s01) { return Mathf.Max(HeartTierTuning.MineAimMin, HeartTierTuning.MineAimBase - HeartTierTuning.MineAimShorterMax * Mathf.Clamp01(s01)); }
+
+    // The cached snapshot the mines and their beams read.
+    public static float Rate = 1f, Width = 1f, Duration = 1f, Aim = HeartTierTuning.MineAimBase;
+    public static int AliveCap = int.MaxValue;     // no cap until a real run has power (today's behaviour)
+
+    public static void Reset() { Rate = 1f; Width = 1f; Duration = 1f; Aim = HeartTierTuning.MineAimBase; AliveCap = int.MaxValue; }
+
+    // Called when a mine spawns in a real run (and at run start): reads the pilot's power and the loop once.
+    public static void Refresh()
+    {
+        if (!HeartTierRun.Live) { Reset(); return; }
+        float levels = PlayerPower.Levels;
+        int loop = RunLoop.Index;
+        float s = Strength01For(levels, loop);
+        Rate = RateFor(levels, loop);
+        Width = WidthFor(s); Duration = DurationFor(s); Aim = AimFor(s);
+        AliveCap = Rate > 1f ? AliveCapFor(Rate) : int.MaxValue;
+    }
 }
 
 // A big squad pays less per kill and cannot lift the chain to the top multiplier on its own.
@@ -276,7 +328,7 @@ public static class HeartTierRun
 
     // Only a real run has power (set by BeginRun; the tutorial, menus and editor-mode fixtures stay red-only unless a test forces it).
     public static bool Live;
-    public static void BeginRun(bool live = true) { HazardDamage.Reset(); Live = live && !startMenu.youAreInTutorial; }
+    public static void BeginRun(bool live = true) { HazardDamage.Reset(); Live = live && !startMenu.youAreInTutorial; MineScaling.Refresh(); }
 
     // The shell for a new entity of `kind` with `red` red hearts, at the current power and loop.
     public static HeartShell Plan(HeartTierKind kind, int red)
