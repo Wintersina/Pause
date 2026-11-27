@@ -152,10 +152,15 @@ public static class HealDroneTest
         collisionDetection.lifeCounter = 1;   // 3 of 4 hearts left: damaged, 2+ hearts
         bool deployed = false, nozzle = false, spurt = false, fromNozzle = true, tucked = false, sprayWhileOut = true;
         Vector3 under = default;
+        float maxOut = 0f;
         for (float t = 0f; t < 20f; t += Dt)
         {
             Frame(fx, life, drone, gun);
-            if (drone.OnStation) deployed = true;
+            if (drone.OnStation)
+            {
+                deployed = true;
+                maxOut = Mathf.Max(maxOut, Mathf.Abs(drone.transform.position.x - go.transform.position.x));
+            }
             if (drone.NozzleShown) nozzle = true;
             var ns = drone.NozzleRenderer.sprite;
             if (drone.NozzleShown && (ns == ShipDamageFx.Frame(ShipDamageFx.RowNozzle, 2) || ns == ShipDamageFx.Frame(ShipDamageFx.RowNozzle, 3))) spurt = true;
@@ -169,6 +174,9 @@ public static class HealDroneTest
         }
         Check("damaged with 2+ hearts: the drone deploys, its nozzle out and spurting, and tucks back (" + fx.Sprays + " sprays in 20 s)",
               deployed && nozzle && spurt && tucked && fx.Sprays >= 2 && fx.Sprays <= 4 && sprayWhileOut);
+        float hullHalf = ShipUiSlots.HullBounds(go.transform, ShipId.Starter).extents.x;
+        Check("on station the drone hovers out beside the hull, not over it (" + maxOut.ToString("0.00") + " from the hull centre, hull half-width " + hullHalf.ToString("0.00") + ")",
+              maxOut > hullHalf);
         Check("the spray leaves the mini-drone's nozzle", fromNozzle && fx.Healer == drone);
         Check("the first deployment is under the ship (the drone starts at the hull)", Vector3.Distance(under, go.transform.position) < .6f);
         Cleanup(go, drone);

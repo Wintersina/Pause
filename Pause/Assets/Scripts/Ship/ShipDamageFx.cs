@@ -70,6 +70,20 @@ public class ShipDamageFx : MonoBehaviour
     // The furthest anything flies from its emitter, in hull lengths (tests);
     // the retardant flies from the drone to the hull, so further.
     public const float MaxReach = .75f, SprayReach = 3f;
+    // Engine smoke streams further than the other bits and gets thicker as hearts are lost (Heaviness): a hit or
+    // two leaves light wisps, the wreck trails a thick plume. Never more than SmokeBudget puffs at once, so smoke
+    // can't push sparks and spray out of the pool.
+    public const float SmokeReach = 2f;
+    public const int SmokeBudget = 48;
+
+    // How heavy the smoke is, 0 (intact) .. 1 (the wreck): the state, and within "damaged" how far the hearts are gone.
+    public static float Heaviness(int state, int hitsTaken, int maxLives)
+    {
+        if (state <= 0 || hitsTaken <= 0) return 0f;
+        if (state >= ShipDamageTable.States - 1) return 1f;
+        float f = Mathf.Clamp01(hitsTaken / (float)Mathf.Max(2, maxLives - 1));
+        return Mathf.Lerp(.3f, .75f, f);
+    }
 
     // Retardant timing (seconds of gameplay time).
     public const float SprayFirst = .8f, SprayDuration = .7f, DouseSeconds = 1.6f;
@@ -122,6 +136,7 @@ public class ShipDamageFx : MonoBehaviour
     float hullSize = .58f;
     Color leakTint = Color.white;
     bool started;
+    int smokeAlive;   // live smoke puffs (the SmokeBudget)
 
     // retardant
     float clock, sprayNext = SprayFirst, sprayLeft, sprayAge, sprayEmit, foamEmit;
@@ -438,12 +453,15 @@ public class ShipDamageFx : MonoBehaviour
             case DamageEmitterKind.Smoke:
                 if (em.next <= 0f)
                 {
-                    em.next = Random.Range(.09f, .16f) * (critical ? .6f : 1f) * (calm > 0f ? 2.5f : 1f);
-                    float big = critical ? 1.3f : 1f;
+                    float h = Heaviness(state, collisionDetection.lifeCounter, ShipDamageTable.MaxLives());
+                    em.next = Random.Range(.8f, 1.2f) * Mathf.Lerp(.14f, .045f, h) * (calm > 0f ? 2.5f : 1f);
+                    if (smokeAlive >= SmokeBudget) break;
+                    float big = Mathf.Lerp(1f, 2.1f, h);
                     var v = new Vector3(Random.Range(-.18f, .18f), -Random.Range(.8f, 1.1f), 0f) * hullSize;
                     Spawn(RowSmoke, at + (Vector3)(Random.insideUnitCircle * .03f * hullSize), v,
-                          Random.Range(.5f, .7f), SmokeStart * hullSize, SmokeEnd * hullSize * big, 0f, 0f, 1.2f,
-                          calm > 0f ? SteamTint : Color.white, -1, false, MaxReach, false);
+                          Random.Range(.8f, 1f) * Mathf.Lerp(.7f, 1.6f, h), SmokeStart * hullSize, SmokeEnd * hullSize * big, 0f, 0f, 1f,
+                          calm > 0f ? SteamTint : Color.Lerp(new Color(1f, 1f, 1f, .85f), new Color(.82f, .82f, .86f, 1f), h),
+                          -1, false, SmokeReach, false);
                 }
                 break;
 
@@ -451,6 +469,7 @@ public class ShipDamageFx : MonoBehaviour
                 if (em.next <= 0f)
                 {
                     em.next = Random.Range(.2f, .3f) * hurry * (calm > 0f ? 2.5f : 1f);
+                    if (smokeAlive >= SmokeBudget) break;
                     Vector2 o = OutwardWorld(e);
                     var v = new Vector3(o.x * .18f + Random.Range(-.08f, .08f), o.y * .1f - Random.Range(.35f, .5f), 0f) * hullSize;
                     Spawn(RowSmoke, at + (Vector3)(Random.insideUnitCircle * .02f * hullSize), v,
@@ -733,10 +752,12 @@ public class ShipDamageFx : MonoBehaviour
         particles[slot].angle = drawing >= 0 && !faceVelocity ? particles[slot].angle : 0f;
         if (row == RowSmoke && fade) particles[slot].angle = Random.Range(0f, 360f);
         fixedDrawing[slot] = drawing;
+        if (row == RowSmoke) smokeAlive++;
     }
 
     void StepParticles(float dt)
     {
+        int smoke = 0;
         float local = 1f / Mathf.Max(1e-4f, Mathf.Abs(root.lossyScale.x));
         for (int i = 0; i < particles.Length; i++)
         {
@@ -764,6 +785,7 @@ public class ShipDamageFx : MonoBehaviour
             }
             sr.sprite = Frame(p.row, d);
             sr.enabled = true;
+            if (p.row == RowSmoke) smoke++;
             if (p.fade)
             {
                 var c = p.tint;
@@ -779,6 +801,7 @@ public class ShipDamageFx : MonoBehaviour
             t.localScale = Vector3.one * (Mathf.Lerp(p.size0, p.size1, u) * local);
             Duck(sr, p.pos, Mathf.Lerp(p.size0, p.size1, u) * .5f, p.row == RowSpray || p.row == RowFoam);
         }
+        smokeAlive = smoke;
     }
 
     // Hidden this frame if it would cover a heart or a ship element (the
