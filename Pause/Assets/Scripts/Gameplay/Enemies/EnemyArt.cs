@@ -50,6 +50,18 @@ public static class EnemyArt
         return frames;
     }
 
+    // ArtWarm: the flipbook strips and death strips of world `world`'s roster (mines draw from RailMineArt's shared atlas), read
+    // off-thread as the world begins, so the first enemy of each kind is a texture already resident (Frames then only slices it).
+    public static void WarmPaths(int world, List<string> into)
+    {
+        foreach (var def in EnemyRoster.All)
+        {
+            if (def.world != world || def.role == EnemyRole.Mine) continue;
+            into.Add(def.StripPath);
+            into.Add("Enemies/Death/" + def.key);
+        }
+    }
+
     public static Sprite Frame(EnemyDef def, int index)
     {
         var frames = Frames(def);

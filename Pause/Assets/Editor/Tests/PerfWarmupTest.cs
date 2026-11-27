@@ -71,6 +71,14 @@ public static class PerfWarmupTest
             if (e != null && e.enabled)
                 Check("world " + w + ": its boulders' manifest, sheet, break strip and fx",
                       into.Contains(e.folder + "/manifest") && into.Contains(e.folder + "/boulder") && into.Contains(e.folder + "/break") && into.Contains(e.folder + "/fx"));
+            bool roster = true; int strips = 0;
+            foreach (var def in EnemyRoster.All)
+            {
+                if (def.world != w || def.role == EnemyRole.Mine) continue;
+                strips++;
+                roster &= into.Contains(def.StripPath) && into.Contains("Enemies/Death/" + def.key);
+            }
+            Check("world " + w + ": every roster enemy's flipbook and death strip is warmed (" + strips + " enemies)", roster && strips > 0);
             var seen = new HashSet<string>();
             bool dup = false;
             foreach (var p in into) if (!seen.Add(p)) dup = true;
@@ -110,6 +118,12 @@ public static class PerfWarmupTest
             string wm = TestHarness.StripComments(System.IO.File.ReadAllText("Assets/Scripts/Worlds/WorldManager.cs"));
             int begins = 0, at = 0;
             while ((at = wm.IndexOf("ArtWarm.Begin(CurrentIndex)", at, System.StringComparison.Ordinal)) >= 0) { begins++; at++; }
+            int endLevel = wm.IndexOf("public void EndLevel()", System.StringComparison.Ordinal);
+            int preload = wm.IndexOf("PreloadNextWorld();", endLevel, System.StringComparison.Ordinal);
+            int boss = wm.IndexOf("BossEncounter.Begin(CurrentIndex", endLevel, System.StringComparison.Ordinal);
+            Check("the next world's art is requested as the level ends, before the boss starts (not at the gateway)", endLevel >= 0 && preload > endLevel && preload < boss);
+            Check("PreloadNextWorld asks WorldArtPreload.Next with the same key OpenPortal uses, and skips low-end phones",
+                  wm.Contains("WorldArtPreload.Next(CurrentIndex, to, !HasNext, Worlds[to].displayName)") && wm.Contains("PerfTier.LowEnd) return;"));
             Check("WorldManager warms at the run's start, the planetfall entry, every advance and the developer jump (" + begins + " sites)", begins == 4);
         }
         finally
