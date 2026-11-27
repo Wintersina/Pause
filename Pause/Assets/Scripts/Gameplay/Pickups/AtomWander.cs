@@ -51,6 +51,7 @@ public class AtomWander
     public float phase;
     public float omega;
     public float side;      // +1 / -1: which way the sway starts and bounces
+    public float descentScale = 1f;   // < 1 lingers: the boss drone falls at this share of the normal descent
 
     public AtomWander(float phase, float omega, float side)
     {
@@ -102,7 +103,7 @@ public class AtomWander
     public Vector3 Advance(Vector3 p, float dt, float worldSpeed, float viewTop)
     {
         if (dt <= 0f) return p;
-        float down = Descent(worldSpeed);
+        float down = Descent(worldSpeed) * Mathf.Clamp(descentScale, .05f, 1f);
         float swing = Mathf.Min(down * WanderUpRatio, MaxVerticalSwing);
         float ceiling = Ceiling(viewTop);
 

@@ -121,6 +121,7 @@ public static class AllTests
         ("MineFlameArtTest", MineFlameArtTest.Execute),
         ("VerdantAttackArtTest", VerdantAttackArtTest.Execute),
         ("AtomFlightTest", AtomFlightTest.Execute),
+        ("BossDroneLingerTest", BossDroneLingerTest.Execute),
         ("AtomSpacingTest", AtomSpacingTest.Execute),
         ("PowerUpRefundTest", PowerUpRefundTest.Execute),
         ("BackNavigationTest", BackNavigationTest.Execute),
