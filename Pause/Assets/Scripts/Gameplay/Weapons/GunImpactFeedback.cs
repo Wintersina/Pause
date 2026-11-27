@@ -1,6 +1,6 @@
 using UnityEngine;
 
-// Short, distinct cues with a shared rate limit: twelve drones never produce twelve overlapping hit sounds.
+// Short, distinct cues with a shared rate limit: six drones never produce six overlapping hit sounds.
 public static class GunImpactFeedback
 {
     static AudioClip light, heavy, kill;

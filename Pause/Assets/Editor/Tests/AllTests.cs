@@ -323,6 +323,7 @@ public static class AllTests
         ("HeartQuarterFramesTest", HeartQuarterFramesTest.Execute),
         ("QuarterHeartsTest", QuarterHeartsTest.Execute),
         ("HeartTiersTest", HeartTiersTest.Execute),
+        ("EnemyThreatTest", EnemyThreatTest.Execute),
         ("RunUiPresentationTest", RunUiPresentationTest.Execute),
         ("ShotRowFirstFrameTest", ShotRowFirstFrameTest.Execute),
         ("PowerCreepTest", PowerCreepTest.Execute),

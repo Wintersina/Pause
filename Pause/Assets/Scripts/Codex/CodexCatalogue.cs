@@ -201,7 +201,7 @@ public static class CodexCatalogue
                 "BOSS REWARD  Every destroyed boss drops one drone recruit instead of upgrade coins.\n" +
                 "SQUAD  Dock colours unlock 1 / 1 / 1 / 2 / 3 starting slots; the opening directional core activates the first.\n" +
                 "RECRUIT  Joins active in your latest chosen firing mode, with half the squad's average modifier levels.\n" +
-                "CAP  Twelve drones; an extra recruit pays five dust.", new[] { Codex.Normalise("bossDroneReward") }),
+                "CAP  Six drones; an extra recruit pays five dust.", new[] { Codex.Normalise("bossDroneReward") }),
 
             // ------------------------------------------------------------- Worlds
             new CodexEntry(PortalId, "Wormhole Portal", CodexCategory.Worlds, () => TeleportPortalSprites.FrameAt(0),
