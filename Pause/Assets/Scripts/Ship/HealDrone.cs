@@ -19,9 +19,10 @@ using UnityEngine;
 public class HealDrone : MonoBehaviour
 {
     public const string ObjectName = "~HealDrone";
-    public const float BodyOfHull = .3f;        // the body's longest edge, of the hull's longest edge
+    public const float BodyOfHull = .4f;        // the body's longest edge, of the hull's longest edge
     public const float NozzleSpan = .42f;       // the nozzle, of the body art's narrow edge
     public const float MaxTilt = 24f;
+    public const float OutsideHull = .75f;      // how far past the hull's side edge its station is, in body widths
     const float Arrive = 3.2f, Leave = 2.2f, Chase = 9f;
     public static readonly Color Green = new Color(.6f, 1f, .66f, 1f);
 
@@ -160,7 +161,7 @@ public class HealDrone : MonoBehaviour
         }
         float e = Smooth01(deploy);
         Vector3 at = haveStation ? Vector3.Lerp(tuck, stationNow, e) : tuck;
-        at += new Vector3(Mathf.Sin(clock * 3.1f) * .1f, Mathf.Sin(clock * 4.3f) * .08f, 0f) * (bodyWorld * e);
+        at += new Vector3(Mathf.Sin(clock * 3.1f) * .22f, Mathf.Cos(clock * 3.1f) * .18f, 0f) * (bodyWorld * e);   // a slow loop in the air, not a twitch
         transform.position = at;
 
         // lean toward the spot, the nozzle facing it
@@ -194,8 +195,9 @@ public class HealDrone : MonoBehaviour
     static Vector3 StationFor(Bounds hull, Vector3 spot, float bodyWorld)
     {
         float side = spot.x >= hull.center.x ? 1f : -1f;
-        float standoff = bodyWorld * .9f;
-        Vector3 want = spot + new Vector3(side * standoff, -standoff * .35f, 0f);
+        // clear of the hull: past its side edge, not over it, so it reads as a drone flying beside the ship
+        float outX = hull.center.x + side * (hull.extents.x + bodyWorld * OutsideHull);
+        Vector3 want = new Vector3(outX, spot.y - bodyWorld * .3f, spot.z);
         Rect screen = ShipUiSlots.ScreenRect(null);
         float half = bodyWorld * .5f;
         want.x = Mathf.Clamp(want.x, screen.xMin + half, Mathf.Max(screen.xMin + half, screen.xMax - half));

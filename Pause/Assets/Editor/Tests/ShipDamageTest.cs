@@ -58,6 +58,7 @@ public static class ShipDamageTest
         Pool(13);
         Ducking(ShipId.Starter);
         Smoke(3);
+        SmokeHeaviness();
         // the companion drone is the firefighter, on every ship
         foreach (int id in ShipId.All) Floatie(id);
         FlameFirst(9);
@@ -461,7 +462,7 @@ public static class ShipDamageTest
         var gun = AddGun(go);   // so the retardant runs in the pool too
         int children = go.GetComponentsInChildren<Transform>(true).Length;
         SetState(Critical);
-        int peak = 0;
+        int peak = 0, peakSmoke = 0;
         bool near = true;
         float reach = ShipDamageFx.MaxReach * fx.HullSize + 1e-4f;
         Run(fx, life, .5f);
@@ -476,7 +477,9 @@ public static class ShipDamageTest
                 {
                     var d = fx.ParticlePosition(i) - fx.ParticleOrigin(i);
                     bool retardant = fx.ParticleRow(i) == ShipDamageFx.RowSpray || fx.ParticleRow(i) == ShipDamageFx.RowFoam;
-                    float r = retardant ? ShipDamageFx.SprayReach * fx.HullSize + 1e-4f : reach;
+                    float r = retardant ? ShipDamageFx.SprayReach * fx.HullSize + 1e-4f
+                            : fx.ParticleRow(i) == ShipDamageFx.RowSmoke ? ShipDamageFx.SmokeReach * fx.HullSize + 1e-4f : reach;
+                    peakSmoke = Mathf.Max(peakSmoke, fx.ActiveOfRow(ShipDamageFx.RowSmoke));
                     near &= fx.ParticleReach(i) <= r && new Vector2(d.x, d.y).magnitude <= r;
                 }
         }
@@ -487,6 +490,8 @@ public static class ShipDamageTest
         peak = Mathf.Max(peak, fx.ActiveParticles);
         Check("the particle pool is bounded (peak " + peak + " of " + ShipDamageFx.MaxParticles + ")",
               peak <= ShipDamageFx.MaxParticles && fx.PoolSize == ShipDamageFx.MaxParticles);
+        Check("smoke never takes more than its budget of the pool (peak " + peakSmoke + " of " + ShipDamageFx.SmokeBudget + ")",
+              peakSmoke > 0 && peakSmoke <= ShipDamageFx.SmokeBudget && ShipDamageFx.SmokeBudget < ShipDamageFx.MaxParticles);
         Check("nothing is created while it runs",
               go.GetComponentsInChildren<Transform>(true).Length == children);
         Check("particles stay within " + ShipDamageFx.MaxReach + " hull lengths of their emitter (the retardant " +
@@ -542,6 +547,14 @@ public static class ShipDamageTest
             n++;
         }
         return sum / (float)n;
+    }
+
+    static void SmokeHeaviness()
+    {
+        float none = ShipDamageFx.Heaviness(0, 0, 4), one = ShipDamageFx.Heaviness(1, 1, 4),
+              two = ShipDamageFx.Heaviness(1, 2, 4), wreck = ShipDamageFx.Heaviness(ShipDamageTable.States - 1, 3, 4);
+        Check("smoke heaviness grows with the hearts lost (" + none + ", " + one.ToString("0.00") + ", " + two.ToString("0.00") + ", " + wreck + ")",
+              none == 0f && one > 0f && two > one && wreck == 1f && one < .6f);
     }
 
     static void Smoke(int id)
