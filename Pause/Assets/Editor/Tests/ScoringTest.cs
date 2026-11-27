@@ -663,7 +663,7 @@ public static class ScoringTest
         Check("the run ending clears them", hud.LivePopups == 0);
         Check("pickups report where they were caught (dust / atom popups)",
               Regex.Matches(System.IO.File.ReadAllText("Assets/Scripts/Ship/collisionDetection.cs"),
-                            @"RunScore\.On(Dust|Atom)\([^;]*hit\.transform\.position\)").Count == 7);   // + the violet capacitor atom + the magnetic atom
+                            @"RunScore\.On(Dust|Atom)\([^;]*hit\.transform\.position\)").Count == 8);   // + the medium dust + the violet capacitor atom + the magnetic atom
 
         // Every row still fits; the score row is as wide as it can get.
         hud.ScoreText.text = ScoreHud.Label(9999999);

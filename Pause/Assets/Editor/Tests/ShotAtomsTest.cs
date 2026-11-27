@@ -1026,7 +1026,7 @@ public static class ShotAtomsTest
         int twin = ShotAtomHud.SelectedAtomSlot(ShotAtom.Twin), arc = ShotAtomHud.SelectedAtomSlot(ShotAtom.Arc),
             pierce = ShotAtomHud.SelectedAtomSlot(ShotAtom.Pierce), rapid = ShotAtomHud.SelectedAtomSlot(ShotAtom.Rapid);
         Check("compact HUD shows the selected drone's modifiers and all three mode pips", hud.VisibleCount == 3 && hud.LabelAt(twin) == "x2" && hud.LabelAt(arc) == "x1" && hud.LabelAt(rapid) == "x1" && hud.ActiveAt(ShotAtomHud.PipSlot(0)) && hud.ActiveAt(ShotAtomHud.PipSlot(2)));
-        Check("modifier icons retain their idle art and the selected mode is shown", hud.IconAt(twin).name.StartsWith("shot_twin_idle") && hud.IconAt(0).name.StartsWith("DroneMode"));
+        Check("modifier icons retain their idle art and the selected mode is shown", hud.IconAt(twin).name.StartsWith("shot_twin_idle") && hud.IconAt(0).name.StartsWith("core_"));
         var next = ShotAtoms.Collect(ShotAtom.Twin, 0f); hud.SendMessage("Update");
         Check("a pickup switches the detail row to its predictable recipient", next.drone == 1 && DroneSquad.Selected == 1 && hud.LabelAt(twin) == "x1" && hud.LabelAt(pierce) == "x4" && hud.VisibleCount == 3);
         var split = ShotAtoms.Collect(ShotAtom.Split, .99f); hud.SendMessage("Update");
