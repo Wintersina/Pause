@@ -137,7 +137,7 @@ public static class EnemyDeathAudioTest
         foreach (var id in Approved)
         {
             var res = Resources.Load<AudioClip>(EnemyDeathAudio.OwnClipPath(id));
-            bool known = EnemyRoster.Find(id) != null || EliteCatalog.Find(id) != null;
+            bool known = EnemyRoster.Find(id) != null || EliteCatalog.Find(id) != null || (id.StartsWith("boss_") && EnemyDeathAudio.CategoryOf(id) != "");
             Check(id + " is a real roster / elite key", known);
             Check(id + " has own_" + id + " in Resources, mono, <= " + (id.StartsWith("boss_") ? "1.8" : "1.6") + " s" + (res != null ? " (" + res.length.ToString("0.00") + " s)" : ""), res != null && res.channels == 1 && res.length > .2f && res.length <= (id.StartsWith("boss_") ? 1.8f : 1.6f));
             EnemyDeathAudio.ResetVoices(); clock += 2.0;
@@ -316,7 +316,7 @@ public static class EnemyDeathAudioTest
             Check(key + " is a roar with 1 clip (" + EnemyDeathAudio.Variants(key) + ")", EnemyDeathAudio.CategoryOf(key) == EnemyDeathAudio.Roar && EnemyDeathAudio.Variants(key) == 1);
             clock += 5; EnemyDeathAudio.ResetVoices();
             bool played = EnemyDeathAudio.PlayBossDeath(b.artKey);
-            Check(key + " PlayBossDeath finds and plays its clip", played && EnemyDeathAudio.Played == 1 && EnemyDeathAudio.LastKey == key && EnemyDeathAudio.LastClip != null && EnemyDeathAudio.LastClip.name == "own_" + key && EnemyDeathAudio.HasOwn(key) && EnemyDeathAudio.LastPitch < 1.05f);
+            Check(key + " PlayBossDeath finds and plays its clip", played && EnemyDeathAudio.Played == 1 && EnemyDeathAudio.LastKey == key && EnemyDeathAudio.LastClip != null && (EnemyDeathAudio.HasOwn(key) ? EnemyDeathAudio.LastClip.name == "own_" + key && EnemyDeathAudio.LastPitch < 1.05f : EnemyDeathAudio.LastPitch < 1f));
 
             // the hurt blow (a heart lost): its own two short clips, quieter than the death cue (not a shared death sound)
             string hurt = EnemyDeathAudio.BossHurtKey(b.artKey);

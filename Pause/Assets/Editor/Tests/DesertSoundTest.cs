@@ -75,8 +75,8 @@ public static class DesertSoundTest
         EnemyDeathAudio.ResetVoices();
         clock += 5;
         bool played = EnemyDeathAudio.PlayAuthored("desert_big", .8f);
-        Check("a Desert big plays the shared roar with no layer voice (pitch " + EnemyDeathAudio.LastPitch.ToString("0.00") + ")",
-              played && EnemyDeathAudio.Played == 1 && EnemyDeathAudio.LastClip != null && EnemyDeathAudio.LastClip.name == "shared_roar_0" && EnemyDeathAudio.ActiveLayers() == 0);
+        Check("a Desert big plays its own clip with no layer voice (pitch " + EnemyDeathAudio.LastPitch.ToString("0.00") + ")",
+              played && EnemyDeathAudio.Played == 1 && EnemyDeathAudio.LastClip != null && EnemyDeathAudio.LastClip.name == "own_desert_big" && EnemyDeathAudio.ActiveLayers() == 0);
         EnemyDeathAudio.ResetVoices();
         clock += 5;
         EnemyDeathAudio.PlayAuthored("desert_rock_dune", .8f);
