@@ -52,10 +52,27 @@ public sealed class BossSpecials
     public bool Running => !double.IsNaN(activeLand);
     public int BarsBetween => Bars[Mathf.Clamp(world, 0, Bars.Length - 1)];
 
-    public BossSpecials(BossDef boss, int world)
+    // The signature bullet patterns (BossDef.signatures, BossSignatureTuning): a SECOND schedule of the same machinery, landing
+    // half a cadence after the specials' own, so each boss fights its lasers / vines / flames exactly as before and a signature
+    // pattern comes between every two of them. Off (the default) for a BossSpecials built without them.
+    readonly BossAttack[] sigPool;
+    readonly float[] sigTell0;
+    int sigNext;
+    double sigLand = double.NaN;
+    bool sigPending;
+    public int SignatureCount => sigPool.Length;
+    public int SignaturesFired { get; private set; }
+    public BossAttack LastSignature { get; private set; }
+    public double SignatureLand => sigLand;
+    public int SignatureBars => BossSignatureTuning.CadenceBars;
+
+    public BossSpecials(BossDef boss, int world, bool withSignatures = false)
     {
         this.boss = boss;
         this.world = world;
+        var sigs = withSignatures && boss != null && boss.signatures != null ? boss.signatures : new BossAttack[0];
+        sigPool = new BossAttack[sigs.Length]; sigTell0 = new float[sigs.Length];
+        for (int i = 0; i < sigs.Length; i++) { sigPool[i] = sigs[i].Copy(); sigTell0[i] = sigs[i].tellSeconds; }
         var table = boss != null ? boss.attacks : null;
         int n = 0;
         if (table != null) for (int i = 0; i < table.Length; i++) if (IsSpecial(table[i])) n++;
@@ -80,10 +97,13 @@ public sealed class BossSpecials
     {
         activeLand = double.NaN;
         landBeat = BarLineAtOrAfter(music, directorStart + BarsBetween * Math.Max(1, music.BeatsPerBar));
+        sigPending = false;
+        sigLand = sigPool.Length == 0 ? double.NaN
+            : BarLineAtOrAfter(music, directorStart + (BarsBetween + SignatureBars * .5) * Math.Max(1, music.BeatsPerBar));
     }
 
     // The song stopped: nothing is scheduled until it starts again.
-    public void Suspend() { landBeat = double.NaN; activeLand = double.NaN; }
+    public void Suspend() { landBeat = double.NaN; activeLand = double.NaN; sigLand = double.NaN; sigPending = false; }
 
     // The special in progress is over: the waves may resume.
     public void Done() { activeLand = double.NaN; }
@@ -95,7 +115,8 @@ public sealed class BossSpecials
         get
         {
             if (!double.IsNaN(activeLand)) return activeLand - HoldBeats;
-            return pending ? landBeat - HoldBeats : double.NaN;
+            double a = pending ? landBeat - HoldBeats : double.NaN, b = sigPending ? sigLand - HoldBeats : double.NaN;
+            return double.IsNaN(a) ? b : double.IsNaN(b) ? a : Math.Min(a, b);
         }
     }
     bool pending;   // a special is unlocked and scheduled (set by Due)
@@ -106,7 +127,8 @@ public sealed class BossSpecials
         get
         {
             if (!double.IsNaN(activeLand)) return activeLand;
-            return pending ? landBeat : double.NaN;
+            double a = pending ? landBeat : double.NaN, b = sigPending ? sigLand : double.NaN;
+            return double.IsNaN(a) ? b : double.IsNaN(b) ? a : Math.Min(a, b);
         }
     }
 
@@ -114,6 +136,46 @@ public sealed class BossSpecials
     // null. `progress01` is the fight's progress for the unlocks; `realDt` the frame's unscaled length (how late a tell
     // start may legitimately be seen).
     public BossAttack Due(IBeatSource music, float realDt, float progress01)
+    {
+        var a = DueSpecial(music, realDt, progress01);
+        return a != null ? a : DueSignature(music, realDt, progress01);
+    }
+
+    // The signature pattern whose tell starts this frame (re-timed to land on its bar line like a special), or null.
+    BossAttack DueSignature(IBeatSource music, float realDt, float progress01)
+    {
+        if (!Enabled || sigPool.Length == 0 || music == null || !music.Active || double.IsNaN(sigLand) || Running) { sigPending = false; return null; }
+        int phase = BossCatalog.PhaseOf(progress01), pick = -1;
+        for (int k = 0; k < sigPool.Length && pick < 0; k++)
+        {
+            int i = (sigNext + k) % sigPool.Length;
+            if (sigPool[i].minPhase <= phase) pick = i;
+        }
+        if (pick < 0) { sigPending = false; return null; }
+        sigPending = true;
+        double now = music.BeatNow, spb = music.SecondsPerBeat;
+        int bar = Math.Max(1, music.BeatsPerBar);
+        double tellBeats = sigTell0[pick] / spb;
+        if (now < sigLand - tellBeats) return null;
+        double late = (now - (sigLand - tellBeats)) * spb;
+        double allowed = Math.Max(Math.Max(0, realDt), BossMusicDirector.AudioStepSeconds);
+        if (late > allowed + 1e-6)
+        {
+            Skipped++;
+            sigLand = BarLineAtOrAfter(music, now + tellBeats + 1e-6);
+            return null;
+        }
+        var a = sigPool[pick];
+        a.tellSeconds = (float)Math.Max(AttackHazard.MinTellSeconds, sigTell0[pick] - late);
+        sigNext = pick + 1;
+        SignaturesFired++;
+        LastSignature = a;
+        LastLanding = activeLand = sigLand;
+        sigLand = BarLineAtOrAfter(music, sigLand + SignatureBars * bar);
+        return a;
+    }
+
+    BossAttack DueSpecial(IBeatSource music, float realDt, float progress01)
     {
         if (!Enabled || pool.Length == 0 || music == null || !music.Active || double.IsNaN(landBeat) || Running) { pending = false; return null; }
         int pick = Pick(progress01);

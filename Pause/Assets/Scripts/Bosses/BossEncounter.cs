@@ -222,6 +222,7 @@ public class BossEncounter : MonoBehaviour
         CoverBoulders.DismissAll();   // a boulder fades out as the boss arrives
         world = worldIndex;
         boss = BossCatalog.ForWorld(worldIndex);
+        BossPatternScaling.LoopFactor = LoopDifficulty.Current;   // the loop seam of the signature patterns: 1 on the first pass, exponential after
         onFinished = finished;
         state = Phase.Pending;
         introClock = 0f;

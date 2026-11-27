@@ -110,6 +110,8 @@ public sealed class BossAttack
 
     // Pattern: the streams (BossPatternTables)
     public BossPattern pattern;
+    // A signature pattern (BossSignatureTables): fired at BossSignatureTuning's rate for the phase, with its telegraph shown.
+    public bool signature;
 
     public BossAttack Copy() => (BossAttack)MemberwiseClone();
 }
@@ -137,6 +139,9 @@ public sealed class BossDef
     // The bullet-hell table (BossPatternTables): the boss's rotation since the overhaul. Fights with it unless
     // overhaulAttacks is off (the old default / themed tables, kept for their tests).
     public BossAttack[] hell;
+    // The signature bullet patterns (BossSignatureTables): 3 pattern attacks that come IN ADDITION to the rotation above, fired by
+    // BossSpecials between its own specials. Never part of `attacks`, so every original attack, unlock and cadence stays as it was.
+    public BossAttack[] signatures;
     public bool overhaulAttacks = true;
     BossAttack[] baseAttacks;
     // Five attacks: today's three plus the world's two new ones (docs/world-attacks-design.md section 7). Null: the
@@ -468,6 +473,8 @@ public static class BossCatalog
             Resolve(b, b.themed);
             b.hell = BossHell.TableFor(b, System.Array.IndexOf(bosses, b));
             Resolve(b, b.hell);
+            b.signatures = BossHell.SignaturesFor(b, System.Array.IndexOf(bosses, b));
+            Resolve(b, b.signatures);
         }
         return bosses;
     }
