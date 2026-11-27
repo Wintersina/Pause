@@ -241,7 +241,7 @@ public static class BossFreeShotAtomsTest
         Cleanup();
     }
 
-    // A full 120 s fight offers exactly 2 free shots (~30% and ~65%)
+    // A full 105 s fight offers exactly 2 free shots (~30% and ~65%)
     // plus at least 3 other kinds of atom, and none of it costs the boss a heart.
     static void EveryFightHasTheSupply(int w)
     {

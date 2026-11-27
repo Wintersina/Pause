@@ -74,9 +74,10 @@ public static class BossConfig
     // ---- fight ----
     // moveBackGround.speed for the whole fight: the HUD shows round(x*100) = 20.
     public static float FightSpeed = 0.20f;
-    // How long a boss stays before it escapes: 2 minutes, for every boss in
-    // every world (one rule, one number).
-    public const float EscapeSeconds = 120f;
+    // How long a boss stays before it escapes: 105 s (the old 2 minutes minus
+    // EscapeSoonerSeconds), for every boss in every world (one rule, one number).
+    public const float EscapeSoonerSeconds = 15f;
+    public const float EscapeSeconds = 120f - EscapeSoonerSeconds;
     public static float FightSeconds = EscapeSeconds;
     public static float FirstAttackDelay = 1.2f;
     // Phase 3 (the last third) shortens every pattern's cooldown by this.

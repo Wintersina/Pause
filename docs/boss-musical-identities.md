@@ -18,4 +18,4 @@ The shared `WaveGaps` planner still limits how far the opening can move and acco
 
 The native Unity preview `BossIdentityReview.Export` captures real musical boss actors and then exports the dock review. Whole-song solver tests, live actors at 60/120 FPS, stepped audio clocks and the dodge bot exercise these changes. Manual playtesting is still needed to judge how the rhythm feels.
 
-Boss health begins at **13 hearts on the Space Dock-selected starting world**, then increases by one each world, continuing across world wraps and complete loops. Escaping costs 10,000 points for a boss or 1,000 for an elite, floored at zero. The fight clock remains 120 seconds.
+Boss health begins at **13 hearts on the Space Dock-selected starting world**, then increases by one each world, continuing across world wraps and complete loops. Escaping costs 10,000 points for a boss or 1,000 for an elite, floored at zero. The fight clock is 105 seconds.
