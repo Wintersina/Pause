@@ -96,7 +96,9 @@ public static class ShipAttackHits
         // to the ordinary kill. Hazards and plain bodies (and the tests' bare targets) die in one hit.
         // An ultimate hit skips the hearts: it kills the enemy outright (paid once, in Kill).
         if (kind != HitKind.Ultimate && Toughness.Absorb(target, kind == HitKind.Drone ? weight : 1f)) return false;
-        Kill(target, ship);
+        DroneScoring.InProgress = kind == HitKind.Drone;   // (a squad's kill pays less: DroneScoring)
+        try { Kill(target, ship); }
+        finally { DroneScoring.InProgress = false; }
         return true;
     }
 

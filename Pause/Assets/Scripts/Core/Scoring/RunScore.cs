@@ -72,6 +72,7 @@ public static class RunScore
     static double distance;   // fractional distance points
     static Breakdown parts;
     static int chain;
+    static int chainOwnKills;   // the pilot's own (non-drone) kills in the running chain (DroneScoring)
     static float chainLeft;
     // Only enemy/elite kill points are doubled, after the existing multipliers.
     // This uses Tick's flight clock, so holding a pause does not waste the window.
@@ -165,6 +166,7 @@ public static class RunScore
         distance = 0d;
         parts = new Breakdown();
         chain = 0;
+        chainOwnKills = 0;
         chainLeft = 0f;
         pauseBonusLeft = 0f; pauseUsedFrame = -1;
         teleportsThisWorld = 0;
@@ -262,14 +264,20 @@ public static class RunScore
         }
 
         int basePoints = BasePoints(target) + Mathf.Max(0, bonusPoints);
+        bool droneKill = DroneScoring.InProgress;
+        int squad = DroneSquad.ActiveCount;
         chain = chainLeft > 0f ? chain + 1 : 1;
+        if (chain == 1) chainOwnKills = 0;
+        if (!droneKill) chainOwnKills++;
         chainLeft = ScoreRules.ComboWindowSeconds;
         parts.bestChain = Mathf.Max(parts.bestChain, chain);
         AchievementTracker.OnChain(chain);
-        float m = ScoreRules.Combined(ScoreRules.MultiplierFor(chain),
+        // a squad's kills extend the chain but cannot reach its top step alone (DroneScoring); the pilot's own kills score as ever
+        int scored = droneKill ? DroneScoring.EffectiveChain(chain, chainOwnKills, squad) : chain;
+        float m = ScoreRules.Combined(ScoreRules.MultiplierFor(scored),
                                       ScoreRules.SpeedMultiplierFor(moveBackGround.speed));
         NoteMultiplier(m * PauseKillMultiplier);
-        int points = ScoreMultiplier.Gain(Mathf.RoundToInt(basePoints * m * LoopRules.ScoreScale(RunLoop.Index))) * PauseKillMultiplier;
+        int points = ScoreMultiplier.Gain(Mathf.RoundToInt(basePoints * m * LoopRules.ScoreScale(RunLoop.Index) * (droneKill ? DroneScoring.Scale(squad) : 1f))) * PauseKillMultiplier;
         parts.kills += points;
         parts.killCount++;
         Raise(points, target.transform.position, Source.Kill);
@@ -289,7 +297,7 @@ public static class RunScore
     {
         LastEliteMultiplier = 1;
         if (!Earning || points <= 0) return 0;
-        int m = (chained ? ScoreRules.EliteMultiplier(Chain) : 1) * PauseKillMultiplier;
+        int m = (chained ? ScoreRules.EliteMultiplier(DroneScoring.EffectiveChain(Chain, chainOwnKills, DroneSquad.ActiveCount)) : 1) * PauseKillMultiplier;
         LastEliteMultiplier = m;
         if (m > 1) NoteMultiplier(m);
         points = ScoreMultiplier.Gain(points * m);

@@ -29,20 +29,40 @@ public static class HeartTierTuning
     // Table: red hearts -> (blue, crystal) hearts:   enemy 2 -> 2,2 | 3 -> 3,3 | 4 -> 4,4
     //                                                elite 6 -> 3,3 | 10 -> 5,5     boss 13 -> 4,4 | 20 -> 5,5
 
-    // ---- RunPower: weights of the parts (sum 1) ----
-    public const float WAtoms = .65f;      // ShotAtoms.PowerLevel / 60: rapid fire + every drone's shot atoms + active drones
-    public const float WCores = .12f;      // the drones' core levels (DroneSquad.CoreLevel) against 3 drones at the top core level
-    public const float WShip = .08f;       // the equipped ship's weapon-upgrade level (ShipWeaponUpgrades): its ultimate / upgrade state
-    public const float WDust = .15f;       // star dust gathered this run (RunScore dustCount) against DustFull
+    // ---- RunPower: weights of the parts (sum 1). THE DRONE SQUAD DRIVES IT (user, 2026-11-27: "once player has too many drones the
+    // score gets out of hand"): a full squad on its own is already deep in crystal territory. ----
+    public const float WDrones = .7f;     // the squad: active drones + their core levels (Drones01)
+    public const float WAtoms = .15f;      // ShotAtoms.PowerLevel / 60: rapid fire + every drone's shot atoms + active drones
+    public const float WShip = .05f;       // the equipped ship's weapon-upgrade level (ShipWeaponUpgrades): its ultimate / upgrade state
+    public const float WDust = .10f;       // star dust gathered this run (RunScore dustCount) against DustFull
     public const int DustFull = 120;
-    public const int CoreSlotsCounted = 3;
+    // Drones01 = DroneCountShare x (active / PowerFullSquad) + (1 - DroneCountShare) x (core levels / (PowerFullSquad x DroneCoreFull)).
+    public const int PowerFullSquad = 3;       // three drones count as a full squad for the power score
+    public const int DroneCoreFull = 3;        // a core at this level counts as levelled (the cap is 4)
+    public const float DroneCountShare = .6f;  // 3 drones at core 2 = 0.87, at core 3 = 1.0; 1 fresh drone = 0.24
 
     // ---- the curve (smoothstep ramps on the boosted power) ----
-    // share of spawns that are AT LEAST blue (blue+red or crystal+blue+red), and share that are crystal:
-    public const float BlueStart = .12f, BlueFull = .85f, BlueMax = .85f;
-    public const float CrystalStart = .38f, CrystalFull = 1f, CrystalMax = .6f;
+    // share of spawns that are AT LEAST blue (blue+red or crystal+blue+red), and share that are crystal. The caps are raised
+    // from .85 / .6 so a big squad meets crystal on most ordinary enemies:
+    public const float BlueStart = .12f, BlueFull = .75f, BlueMax = .9f;
+    public const float CrystalStart = .38f, CrystalFull = .9f, CrystalMax = .8f;
     // Elites and bosses: power x boost (zero stays zero: red-only at no power for everyone).
     public const float EliteBoost = 1.35f, BossBoost = 1.6f;
+
+    // ---- hazards scale with the same power (HazardScaling): rocks and mines spawn up to HazardRateMax more often (x1.5 at power 1),
+    // and the whole spawn-rate multiplier (PowerCreep x this) is capped at HazardRateCap so a dodge line always exists. Hazards have
+    // no hearts (one hit kills them), so only their rate scales. Rails, rail mines on rides and elite docks are authored: untouched. ----
+    public const float HazardRateMax = .5f, HazardRateCap = 2.4f;
+
+    // ---- shield atoms thin out as the squad grows: x1 with no drone bonus, ShieldMin (never zero) at a full squad ----
+    public const float ShieldMin = .4f;
+
+    // ---- drone kills pay less as the squad grows (DroneScoring): x1 with one drone, DroneScoreMin at DampFullSquad drones. Drone kills
+    // extend the kill chain but cannot lift its multiplier past the top step by themselves (a squad of 2+ needs
+    // DroneChainUnlockKills of the pilot's own kills in the chain first). The player's own ship kills are unchanged. ----
+    public const int DampFullSquad = 6;
+    public const float DroneScoreMin = .5f;
+    public const int DroneChainUnlockKills = 2;
 
     public static float PowerBoost(HeartTierKind kind) { return kind == HeartTierKind.Boss ? BossBoost : kind == HeartTierKind.Elite ? EliteBoost : 1f; }
     public static float BarShare(HeartTierKind kind) { return kind == HeartTierKind.Boss ? BossBarShare : kind == HeartTierKind.Elite ? EliteBarShare : EnemyBarShare; }
@@ -95,26 +115,86 @@ public static class RunPower
         get
         {
             if (Override >= 0f) return Mathf.Clamp01(Override);
-            if (startMenu.youAreInTutorial) return 0f;
-            return Compute(ShotAtoms.PowerLevel, CoreLevelSum(), ShipWeaponUpgrades.Level(ShipId.Equipped()), RunScore.Parts.dustCount);
+            if (startMenu.youAreInTutorial || !HeartTierRoll.Live) return 0f;
+            return Compute(ShotAtoms.PowerLevel, DroneSquad.ActiveCount, CoreLevelSum(), ShipWeaponUpgrades.Level(ShipId.Equipped()), RunScore.Parts.dustCount);
+        }
+    }
+
+    // The squad on its own, 0..1 (also what thins the shield atoms).
+    public static float Drones01
+    {
+        get
+        {
+            if (Override >= 0f) return Mathf.Clamp01(Override);
+            if (startMenu.youAreInTutorial || !HeartTierRoll.Live) return 0f;
+            return DroneScore01(DroneSquad.ActiveCount, CoreLevelSum());
         }
     }
 
     static int CoreLevelSum()
     {
         int n = 0;
-        for (int i = 0; i < HeartTierTuning.CoreSlotsCounted; i++) n += DroneSquad.CoreLevel(i);
+        for (int i = 0; i < DroneSquad.Slots; i++) if (DroneSquad.IsActive(i)) n += Mathf.Min(DroneSquad.CoreLevel(i), HeartTierTuning.DroneCoreFull);
         return n;
     }
 
-    // The pure formula (tests): power 0..60, core level sum, ship weapon level 0..MaxLevel, dust count.
-    public static float Compute(int atomPower, int coreSum, int shipLevel, int dustCount)
+    public static float DroneScore01(int active, int coreSum)
+    {
+        float count = Mathf.Clamp01(active / (float)HeartTierTuning.PowerFullSquad);
+        float cores = Mathf.Clamp01(coreSum / (float)(HeartTierTuning.PowerFullSquad * HeartTierTuning.DroneCoreFull));
+        return HeartTierTuning.DroneCountShare * count + (1f - HeartTierTuning.DroneCountShare) * cores;
+    }
+
+    // The pure formula (tests): atom power 0..60, active drones, their core level sum (each capped at DroneCoreFull), ship weapon
+    // level 0..MaxLevel, dust count.
+    public static float Compute(int atomPower, int activeDrones, int coreSum, int shipLevel, int dustCount)
     {
         float atoms = Mathf.Clamp01(atomPower / (float)ShotAtoms.MaxPower);
-        float cores = Mathf.Clamp01(coreSum / (float)(HeartTierTuning.CoreSlotsCounted * DroneSquad.MaxCoreLevel));
         float ship = Mathf.Clamp01(shipLevel / (float)Mathf.Max(1, ShipWeaponUpgrades.MaxLevel));
         float dust = Mathf.Clamp01(dustCount / (float)HeartTierTuning.DustFull);
-        return Mathf.Clamp01(HeartTierTuning.WAtoms * atoms + HeartTierTuning.WCores * cores + HeartTierTuning.WShip * ship + HeartTierTuning.WDust * dust);
+        return Mathf.Clamp01(HeartTierTuning.WDrones * DroneScore01(activeDrones, coreSum) + HeartTierTuning.WAtoms * atoms +
+                             HeartTierTuning.WShip * ship + HeartTierTuning.WDust * dust);
+    }
+}
+
+// What the run's power does outside the hearts (all numbers in HeartTierTuning).
+public static class HazardScaling
+{
+    // Extra hazard spawn rate at this power (>= 1), before the cap.
+    public static float RateFor(float power01) { return 1f + HeartTierTuning.HazardRateMax * Mathf.Clamp01(power01); }
+
+    // The factor rock and mine spawn delays are divided by on top of PowerCreep.SpawnScale: never pushes the two together past HazardRateCap.
+    public static float ExtraRate(float power01, float existingScale)
+    {
+        float want = RateFor(power01);
+        float room = HeartTierTuning.HazardRateCap / Mathf.Max(1f, existingScale);
+        return Mathf.Max(1f, Mathf.Min(want, room));
+    }
+
+    public static float ExtraRateNow { get { return ExtraRate(RunPower.Score01, PowerCreep.SpawnScale); } }
+
+    // Shield atom spawn clock multiplier: 1 with no squad, ShieldMin with a full one, never zero.
+    public static float ShieldRateFor(float drones01) { return Mathf.Lerp(1f, HeartTierTuning.ShieldMin, Mathf.Clamp01(drones01)); }
+    public static float ShieldRate { get { return ShieldRateFor(RunPower.Drones01); } }
+}
+
+// A big squad pays less per kill and cannot lift the chain to the top multiplier on its own.
+public static class DroneScoring
+{
+    // Set by ShipAttackHits around a kill made by a drone's shot (HitKind.Drone).
+    public static bool InProgress;
+
+    public static float Squad01(int active) { return Mathf.Clamp01((active - 1) / (float)(HeartTierTuning.DampFullSquad - 1)); }
+    // Points scale of a drone kill: 1 with one drone, DroneScoreMin at DampFullSquad.
+    public static float Scale(int active) { return Mathf.Lerp(1f, HeartTierTuning.DroneScoreMin, Squad01(active)); }
+    public static bool CapsChain(int active) { return active >= 2; }
+
+    // The chain length a drone-extended chain is scored at: capped just under the top step until the pilot's own kills in it unlock it.
+    public static int EffectiveChain(int chain, int ownKills, int active)
+    {
+        if (!CapsChain(active) || ownKills >= HeartTierTuning.DroneChainUnlockKills) return chain;
+        var t = ScoreRules.ComboThresholds;
+        return Mathf.Min(chain, t[t.Length - 1] - 1);
     }
 }
 

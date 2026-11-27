@@ -129,7 +129,7 @@ public class spawnGoodStuff : MonoBehaviour {
         float dustDt = dt * PickupRules.StarDustRate() * AdaptiveDifficulty.DustScale;
         smStarTimer -= dustDt;
         midStarTimer -= dustDt;
-        atomTimer -= dt * PickupRules.ShieldAtomRate;
+        atomTimer -= dt * PickupRules.ShieldAtomRate * HazardScaling.ShieldRate;   // thinner with a big drone squad (HeartTierTuning.ShieldMin)
         redAtomDelayTimer -= dt * AdaptiveDifficulty.RecoveryScale * PickupRules.PauseAtomRate;
         cooldownAtomDelayTimer -= dt * PickupRules.CooldownAtomRate;
         magnetAtomDelayTimer -= dt * PickupRules.MagnetAtomRate;

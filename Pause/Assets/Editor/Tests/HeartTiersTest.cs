@@ -17,7 +17,7 @@ public static class HeartTiersTest
     {
         fails = 0;
         using var sandbox = new TestHarness.Sandbox();
-        try { Curve(); Power(); Shell(); Enemy(); Rosters(); Art(); }
+        try { Curve(); Power(); Shell(); Enemy(); Rosters(); Art(); Hazards(); Shields(); DroneScore(); }
         finally
         {
             HeartTierRoll.ForceTier = -1;
@@ -81,9 +81,14 @@ public static class HeartTiersTest
 
     static void Power()
     {
-        Check("RunPower is 0 with nothing and 1 with everything", RunPower.Compute(0, 0, 0, 0) == 0f && Mathf.Approximately(RunPower.Compute(ShotAtoms.MaxPower, 12, ShipWeaponUpgrades.MaxLevel, 999), 1f));
-        float a = RunPower.Compute(10, 0, 0, 0);
-        Check("each part raises RunPower", RunPower.Compute(20, 0, 0, 0) > a && RunPower.Compute(10, 4, 0, 0) > a && RunPower.Compute(10, 0, 2, 0) > a && RunPower.Compute(10, 0, 0, 30) > a);
+        Check("RunPower is 0 with nothing and 1 with everything", RunPower.Compute(0, 0, 0, 0, 0) == 0f && Mathf.Approximately(RunPower.Compute(ShotAtoms.MaxPower, 12, 36, ShipWeaponUpgrades.MaxLevel, 999), 1f));
+        float a = RunPower.Compute(10, 1, 1, 0, 0);
+        Check("each part raises RunPower", RunPower.Compute(20, 1, 1, 0, 0) > a && RunPower.Compute(10, 2, 1, 0, 0) > a && RunPower.Compute(10, 1, 3, 0, 0) > a &&
+              RunPower.Compute(10, 1, 1, 2, 0) > a && RunPower.Compute(10, 1, 1, 0, 30) > a);
+        Check("three levelled drones alone are about 0.7 power, more with atoms and dust", RunPower.Compute(0, 3, 9, 0, 0) >= .699f && RunPower.Compute(24, 3, 6, 0, 60) >= .7f);
+        Check("the squad outweighs everything else", RunPower.Compute(0, 3, 9, 0, 0) > RunPower.Compute(ShotAtoms.MaxPower, 1, 1, 0, 0));
+        float full = HeartTierCurve.Crystal(RunPower.Compute(0, 3, 9, 0, 0), HeartTierKind.Enemy);
+        Check("a full squad makes crystal common on ordinary enemies (more than half)", full > .5f);
         RunPower.Override = 0f; HeartTierRoll.Live = true; HeartTierRoll.ForceTier = -1; HeartTierRoll.BeginRun(3);
         bool red = true;
         for (int i = 0; i < 50; i++) red &= HeartTierRoll.Pick(HeartTierKind.Enemy) == 0;
@@ -201,5 +206,62 @@ public static class HeartTiersTest
         }
         Check("idle and break flipbooks load for red, blue and crystal", ok);
         Check("blue and crystal use their own files, not the red fallback", HeartArt.Idle(1)[0].name.Contains("blue") && HeartArt.Idle(2)[0].name.Contains("crystal") && HeartArt.Empty != null);
+    }
+
+    static void Hazards()
+    {
+        bool mono = true;
+        float last = 0f;
+        for (int i = 0; i <= 20; i++) { float r = HazardScaling.RateFor(i / 20f); mono &= r >= last; last = r; }
+        Check("hazard spawn rate is x1 at no power and rises to x1.5", HazardScaling.RateFor(0f) == 1f && mono && Mathf.Approximately(HazardScaling.RateFor(1f), 1.5f));
+        bool capped = true;
+        for (int i = 0; i <= 20; i++) for (float scale = 1f; scale <= 2f; scale += .25f)
+        {
+            float extra = HazardScaling.ExtraRate(i / 20f, scale);
+            capped &= extra >= 1f && extra * scale <= Mathf.Max(HeartTierTuning.HazardRateCap, scale) + 1e-4f;
+        }
+        Check("hazard scaling never takes the whole spawn rate past its cap", capped);
+        Check("hazards have no hearts, so no shell is ever attached to them", EnemyRoster.One(0, EnemyRole.Rock).IsHazard && EnemyRoster.One(0, EnemyRole.Mine).IsHazard);
+    }
+
+    static void Shields()
+    {
+        bool dec = true;
+        float last = 2f;
+        for (int i = 0; i <= 20; i++) { float r = HazardScaling.ShieldRateFor(i / 20f); dec &= r <= last && r > 0f; last = r; }
+        Check("shield atoms: x1 with no squad, 40% with a full one, never zero, never rising", HazardScaling.ShieldRateFor(0f) == 1f && Mathf.Approximately(HazardScaling.ShieldRateFor(1f), .4f) && dec);
+    }
+
+    static void DroneScore()
+    {
+        Check("drone kill scale: x1 with one drone, x0.5 at a full squad, falling", DroneScoring.Scale(1) == 1f && Mathf.Approximately(DroneScoring.Scale(HeartTierTuning.DampFullSquad), .5f) && DroneScoring.Scale(3) < DroneScoring.Scale(2) && DroneScoring.Scale(12) >= .5f - 1e-4f);
+        int cap = ScoreRules.ComboThresholds[ScoreRules.ComboThresholds.Length - 1] - 1;
+        Check("a squad's chain is capped under the top step until the pilot's own kills unlock it",
+            DroneScoring.EffectiveChain(40, 0, 3) == cap && DroneScoring.EffectiveChain(40, HeartTierTuning.DroneChainUnlockKills, 3) == 40 && DroneScoring.EffectiveChain(40, 0, 1) == 40);
+        Check("the cap leaves the top multiplier out of reach", ScoreRules.MultiplierFor(cap) < ScoreRules.MultiplierFor(ScoreRules.ComboThresholds[ScoreRules.ComboThresholds.Length - 1]));
+
+        long own = RunKills(HitKind.Ultimate, 1, 14), droneOne = RunKills(HitKind.Drone, 1, 14), droneSquad = RunKills(HitKind.Drone, 3, 14);
+        Check("with one drone a drone kill pays what it always did", droneOne > 0 && Mathf.Abs(droneOne - own) <= own * .02f + 1);
+        Check("with a squad of three the same kills pay less and stay under the pilot's own", droneSquad > 0 && droneSquad < droneOne);
+    }
+
+    // Score of `count` kills inside one chain window, by `kind`, with `squad` drones active.
+    static long RunKills(HitKind kind, int squad, int count)
+    {
+        Scene();
+        HeartTierRoll.ForceTier = 0;
+        DroneSquad.BeginRun(Mathf.Max(1, squad));
+        for (int i = 0; i < squad; i++) DroneSquad.Activate(i);
+        RunScore.EndRun(RunScore.RunId); RunScore.BeginRun(true, true);
+        float budget = 0f;
+        for (int i = 0; i < count; i++)
+        {
+            var go = EnemyFactory.Create(EnemyRoster.One(0, EnemyRole.Fighter), Vector3.zero, Quaternion.identity, 1f, true);
+            ClearTarget.Ensure(go);
+            for (int h = 0; h < 8 && go != null; h++) ShipAttackHits.Hit(go, 1, 1f, ref budget, kind);
+        }
+        long total = RunScore.Parts.kills;
+        HeartTierRoll.ForceTier = -1;
+        return total;
     }
 }

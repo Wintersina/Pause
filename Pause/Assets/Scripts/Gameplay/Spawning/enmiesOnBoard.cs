@@ -711,6 +711,9 @@ public class enmiesOnBoard : MonoBehaviour {
 
     float Roll(Vector2 range) { return RollWith(range, true); }
 
+    // A rock or mine delay: Roll, shorter by the run's power on top of PowerCreep (HazardScaling: capped, so a dodge line stays).
+    float RollHazard(Vector2 range) { return RollWith(range, true) / HazardScaling.ExtraRateNow; }
+
     float RollWith(Vector2 range, bool adaptive)
     {
         // ... and EnemyDensity.RateScale: fewer, smarter enemies, cut harder the faster the board scrolls
@@ -780,7 +783,7 @@ public class enmiesOnBoard : MonoBehaviour {
         if (mineDelayTimer <= 0)
         {
             if (phase.mines) spawnMine();
-            mineDelayTimer = Roll(phase.mineInterval);
+            mineDelayTimer = RollHazard(phase.mineInterval);
         }
         if (chaserDelayTimer <= 0)
         {
@@ -800,17 +803,17 @@ public class enmiesOnBoard : MonoBehaviour {
         if (smallAstroidDelayTimer <= 0)
         {
             if (phase.smallAstroid) spawnSmallAstroid();
-            smallAstroidDelayTimer = Roll(phase.astroidInterval);
+            smallAstroidDelayTimer = RollHazard(phase.astroidInterval);
         }
         if (midAstroidDelayTimer <= 0)
         {
             if (phase.midAstroid) spawnMidAstroid();
-            midAstroidDelayTimer = Roll(phase.astroidInterval);
+            midAstroidDelayTimer = RollHazard(phase.astroidInterval);
         }
         if (bigAstroidDelayTimer <= 0)
         {
             if (phase.bigAstroid) spawnLargeAstroid();
-            bigAstroidDelayTimer = Roll(phase.astroidInterval);
+            bigAstroidDelayTimer = RollHazard(phase.astroidInterval);
         }
         if (spawnAnimatedEnimeOneDelayTimer <= 0)
         {
