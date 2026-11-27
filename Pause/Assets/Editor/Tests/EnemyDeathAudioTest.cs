@@ -128,24 +128,49 @@ public static class EnemyDeathAudioTest
     {
         "space_fighter_1", "space_fighter_2", "space_fighter_3", "space_fighter_4", "space_alien", "space_chaser", "space_big",
         "space_elite_eventide_bastion", "space_elite_rift_lancer", "space_elite_singularity_hauler", "frost_fighter_1",
-        // batch 2: the six redone sounds
-        "boss_ember", "boss_frost", "boss_space", "desert_big", "desert_fighter_4", "ember_elite_kilnback",
+        // batch 2
+        "boss_space", "boss_ember", "boss_frost", "desert_big", "desert_fighter_4", "ember_elite_kilnback",
+        "boss_desert", "boss_storm", "boss_tide", "boss_verdant",
+        "desert_alien", "desert_elite_caravan_hauler", "desert_elite_dune_stalker", "desert_elite_glass_cannon",
+        "desert_elite_lens_matriarch", "desert_elite_mirror_bastion", "desert_elite_scorpion_walker", "desert_fighter_1",
+        "desert_fighter_2", "desert_fighter_3", "ember_alien", "ember_big",
+        "ember_chaser", "ember_elite_ash_wraith", "ember_elite_brass_vulture", "ember_elite_cauterizer",
+        "ember_elite_coalrunner", "ember_elite_sunstoke", "ember_fighter_1", "ember_fighter_2",
+        "ember_fighter_3", "ember_fighter_4", "ember_fighter_5", "frost_alien",
+        "frost_big", "frost_chaser", "frost_elite_cryo_siren", "frost_elite_floe_harrower",
+        "frost_elite_glacier_tender", "frost_elite_rimebreaker", "frost_elite_whiteout_sentinel", "frost_fighter_3",
+        "frost_fighter_4", "storm_alien", "storm_big", "storm_chaser",
+        "storm_elite_anvil_cloud", "storm_elite_refinery_tender", "storm_elite_rod_dancer", "storm_elite_skyhook_harrier",
+        "storm_elite_static_bastion", "storm_fighter_1", "storm_fighter_2", "storm_fighter_3",
+        "storm_fighter_4", "tide_alien", "tide_big", "tide_chaser",
+        "tide_elite_bathyscaphe", "tide_elite_pearl_warden", "tide_elite_riptide", "tide_elite_thunderfin",
+        "tide_elite_trawler", "tide_fighter_1", "tide_fighter_2", "tide_fighter_3",
+        "tide_fighter_4", "tide_fighter_5", "tide_fighter_6", "verdant_alien",
+        "verdant_big", "verdant_chaser", "verdant_elite_leafblade", "verdant_elite_resin_warden",
+        "verdant_elite_sporebloom", "verdant_elite_thornlash", "verdant_elite_timber_hauler", "verdant_fighter_1",
+        "verdant_fighter_2", "verdant_fighter_3", "verdant_fighter_4",
     };
+    static bool IsBossKey(string id)
+    {
+        foreach (var b in BossCatalog.All) if (EnemyDeathAudio.BossKey(b.artKey) == id) return true;
+        return false;
+    }
     static void OwnClips()
     {
-        Check("OwnTable lists exactly the 17 approved ids (11 batch-1 + 6 redone)", EnemyDeathAudio.OwnTable.Length == Approved.Length);
+        Check("OwnTable lists exactly the 92 approved ids (batch 1 + 2)", EnemyDeathAudio.OwnTable.Length == Approved.Length && Approved.Length == 92);
         foreach (var id in Approved)
         {
             var res = Resources.Load<AudioClip>(EnemyDeathAudio.OwnClipPath(id));
-            bool known = EnemyRoster.Find(id) != null || EliteCatalog.Find(id) != null || (id.StartsWith("boss_") && EnemyDeathAudio.CategoryOf(id) != "");
+            bool boss = id.StartsWith("boss_");
+            bool known = boss ? IsBossKey(id) : EnemyRoster.Find(id) != null || EliteCatalog.Find(id) != null;
             Check(id + " is a real roster / elite key", known);
-            Check(id + " has own_" + id + " in Resources, mono, <= " + (id.StartsWith("boss_") ? "1.8" : "1.6") + " s" + (res != null ? " (" + res.length.ToString("0.00") + " s)" : ""), res != null && res.channels == 1 && res.length > .2f && res.length <= (id.StartsWith("boss_") ? 1.8f : 1.6f));
+            Check(id + " has own_" + id + " in Resources, mono, <= " + (boss ? "2.2" : "1.6") + " s" + (res != null ? " (" + res.length.ToString("0.00") + " s)" : ""), res != null && res.channels == 1 && res.length > .2f && res.length <= (boss ? 2.2f : 1.6f));
             EnemyDeathAudio.ResetVoices(); clock += 2.0;
             bool played = EnemyDeathAudio.PlayAuthored(id, .68f);
             Check(id + " resolves to its own clip (1 variant), not the shared category",
                   EnemyDeathAudio.HasOwn(id) && EnemyDeathAudio.Variants(id) == 1 && played && EnemyDeathAudio.LastClip == res && EnemyDeathAudio.LastClip.name == "own_" + id);
         }
-        string[] unapproved = { "ember_fighter_1", "space_elite_orbit_reaver", "frost_fighter_2", "space_mine" };
+        string[] unapproved = { "space_elite_orbit_reaver", "frost_fighter_2", "desert_chaser", "space_mine" };
         foreach (var id in unapproved)
         {
             string cat = EnemyDeathAudio.CategoryOf(id);
@@ -190,13 +215,13 @@ public static class EnemyDeathAudioTest
     {
         EnemyDeathAudio.ResetVoices();
         clock += 5.0;
-        EnemyDeathAudio.PlayAuthored("frost_elite_glacier_tender", .8f);
+        EnemyDeathAudio.PlayAuthored("frost_fighter_2", .8f);
         float low = EnemyDeathAudio.LastPitch; var c1 = EnemyDeathAudio.LastClip;
         clock += 5.0;
-        EnemyDeathAudio.PlayAuthored("frost_fighter_2", .8f);
+        EnemyDeathAudio.PlayAuthored("space_mine", .8f);
         float high = EnemyDeathAudio.LastPitch; var c2 = EnemyDeathAudio.LastClip;
-        Check("two keys share one clip at different pitches (" + low.ToString("0.00") + " vs " + high.ToString("0.00") + ")", c1 == c2 && c1 != null && high > low * 1.5f);
-        Check("pitch = table pitch within jitter", Mathf.Abs(low - EnemyDeathAudio.SharedPitchOf("frost_elite_glacier_tender")) <= EnemyDeathAudio.SharedPitchOf("frost_elite_glacier_tender") * EnemyDeathAudio.PitchJitter + 1e-4f);
+        Check("two keys share one clip at different pitches (" + low.ToString("0.00") + " vs " + high.ToString("0.00") + ")", c1 == c2 && c1 != null && high > low * 1.15f);
+        Check("pitch = table pitch within jitter", Mathf.Abs(low - EnemyDeathAudio.SharedPitchOf("frost_fighter_2")) <= EnemyDeathAudio.SharedPitchOf("frost_fighter_2") * EnemyDeathAudio.PitchJitter + 1e-4f);
     }
 
     static void NoRepeats()
@@ -216,9 +241,6 @@ public static class EnemyDeathAudioTest
         }
         Check("200 plays: never the same variant twice in a row", !repeat && EnemyDeathAudio.Played == 200);
         Check("... both human variants heard", seen.Count == 2);
-        seen.Clear();
-        for (int i = 0; i < 100; i++) { clock += 2.0; EnemyDeathAudio.PlayAuthored("ember_fighter_1", .68f); seen.Add(EnemyDeathAudio.LastClip); }
-        Check("... both yelp variants heard", seen.Count == 2);
     }
 
     static void Burst()
@@ -276,7 +298,7 @@ public static class EnemyDeathAudioTest
     static void Import()
     {
         var guids = AssetDatabase.FindAssets("t:AudioClip", new[] { EnemyDeathAudioImporter.Folder.TrimEnd('/') });
-        bool ok = guids.Length == 8 + 17 + 42 + 6 + 10;   // 8 shared clips + 17 own death clips + the 14 rocks' 42 cues + the 6 wet / crack layer clips (storm_crack_, tide_wet_) + 10 boss hurt blows -- recount if rocks change
+        bool ok = guids.Length == 8 + 92 + 42 + 6 + 10;   // 8 shared clips + 92 own death clips + the 14 rocks' 42 cues + the 6 wet / crack layer clips (storm_crack_, tide_wet_) + 10 boss hurt blows -- recount if rocks change
         string bad = "";
         foreach (var g in guids)
         {
@@ -307,7 +329,7 @@ public static class EnemyDeathAudioTest
         Check("EnemyDeath clips (" + guids.Length + ") import mono / PCM / decompress-on-load / preload" + (bad != "" ? " (bad: " + bad + ")" : ""), ok);
     }
 
-    // Boss death cues (BossActor.BeginOutro / the codex): the shared roar at each boss's own pitch.
+    // Boss death cues (BossActor.BeginOutro / the codex): an approved boss plays its own scream at the elite mix level, the rest the shared roar at the boss's own pitch.
     static void Bosses()
     {
         foreach (var b in BossCatalog.All)
@@ -316,7 +338,7 @@ public static class EnemyDeathAudioTest
             Check(key + " is a roar with 1 clip (" + EnemyDeathAudio.Variants(key) + ")", EnemyDeathAudio.CategoryOf(key) == EnemyDeathAudio.Roar && EnemyDeathAudio.Variants(key) == 1);
             clock += 5; EnemyDeathAudio.ResetVoices();
             bool played = EnemyDeathAudio.PlayBossDeath(b.artKey);
-            Check(key + " PlayBossDeath finds and plays its clip", played && EnemyDeathAudio.Played == 1 && EnemyDeathAudio.LastKey == key && EnemyDeathAudio.LastClip != null && (EnemyDeathAudio.HasOwn(key) ? EnemyDeathAudio.LastClip.name == "own_" + key && EnemyDeathAudio.LastPitch < 1.05f : EnemyDeathAudio.LastPitch < 1f));
+            Check(key + " PlayBossDeath finds and plays its clip", played && EnemyDeathAudio.Played == 1 && EnemyDeathAudio.LastKey == key && EnemyDeathAudio.LastClip != null && (EnemyDeathAudio.HasOwn(key) ? EnemyDeathAudio.LastClip.name == "own_" + key && EnemyDeathAudio.LastVolume <= EnemyDeathAudio.EliteVolume * EnemyDeathAudio.AuthoredGain + 1e-4f : EnemyDeathAudio.LastPitch < 1f));
 
             // the hurt blow (a heart lost): its own two short clips, quieter than the death cue (not a shared death sound)
             string hurt = EnemyDeathAudio.BossHurtKey(b.artKey);

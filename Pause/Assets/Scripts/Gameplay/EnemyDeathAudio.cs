@@ -111,8 +111,34 @@ public static class EnemyDeathAudio
         new[] { "space_alien", "1.0" }, new[] { "space_chaser", "1.0" }, new[] { "space_big", "1.0" },
         new[] { "space_elite_eventide_bastion", "1.0" }, new[] { "space_elite_rift_lancer", "1.0" }, new[] { "space_elite_singularity_hauler", "1.0" },
         new[] { "frost_fighter_1", "1.0" },
-        // Batch 2 (the six redone sounds, owner picks): the three bosses, the Sandbarge, the Dust Devil Tank and Kilnback
-        new[] { "boss_ember", "1.0" }, new[] { "boss_frost", "1.0" }, new[] { "boss_space", "1.0" },
+        // Batch 2 (every other world + the Verdant / Tide / Storm / Desert bosses: own_boss_<world>, up to ~1.8 s)
+        new[] { "boss_desert", "1.0" }, new[] { "boss_storm", "1.0" }, new[] { "boss_tide", "1.0" },
+        new[] { "boss_verdant", "1.0" }, new[] { "desert_alien", "1.0" }, new[] { "desert_elite_caravan_hauler", "1.0" },
+        new[] { "desert_elite_dune_stalker", "1.0" }, new[] { "desert_elite_glass_cannon", "1.0" }, new[] { "desert_elite_lens_matriarch", "1.0" },
+        new[] { "desert_elite_mirror_bastion", "1.0" }, new[] { "desert_elite_scorpion_walker", "1.0" }, new[] { "desert_fighter_1", "1.0" },
+        new[] { "desert_fighter_2", "1.0" }, new[] { "desert_fighter_3", "1.0" }, new[] { "ember_alien", "1.0" },
+        new[] { "ember_big", "1.0" }, new[] { "ember_chaser", "1.0" }, new[] { "ember_elite_ash_wraith", "1.0" },
+        new[] { "ember_elite_brass_vulture", "1.0" }, new[] { "ember_elite_cauterizer", "1.0" }, new[] { "ember_elite_coalrunner", "1.0" },
+        new[] { "ember_elite_sunstoke", "1.0" }, new[] { "ember_fighter_1", "1.0" }, new[] { "ember_fighter_2", "1.0" },
+        new[] { "ember_fighter_3", "1.0" }, new[] { "ember_fighter_4", "1.0" }, new[] { "ember_fighter_5", "1.0" },
+        new[] { "frost_alien", "1.0" }, new[] { "frost_big", "1.0" }, new[] { "frost_chaser", "1.0" },
+        new[] { "frost_elite_cryo_siren", "1.0" }, new[] { "frost_elite_floe_harrower", "1.0" }, new[] { "frost_elite_glacier_tender", "1.0" },
+        new[] { "frost_elite_rimebreaker", "1.0" }, new[] { "frost_elite_whiteout_sentinel", "1.0" }, new[] { "frost_fighter_3", "1.0" },
+        new[] { "frost_fighter_4", "1.0" }, new[] { "storm_alien", "1.0" }, new[] { "storm_big", "1.0" },
+        new[] { "storm_chaser", "1.0" }, new[] { "storm_elite_anvil_cloud", "1.0" }, new[] { "storm_elite_refinery_tender", "1.0" },
+        new[] { "storm_elite_rod_dancer", "1.0" }, new[] { "storm_elite_skyhook_harrier", "1.0" }, new[] { "storm_elite_static_bastion", "1.0" },
+        new[] { "storm_fighter_1", "1.0" }, new[] { "storm_fighter_2", "1.0" }, new[] { "storm_fighter_3", "1.0" },
+        new[] { "storm_fighter_4", "1.0" }, new[] { "tide_alien", "1.0" }, new[] { "tide_big", "1.0" },
+        new[] { "tide_chaser", "1.0" }, new[] { "tide_elite_bathyscaphe", "1.0" }, new[] { "tide_elite_pearl_warden", "1.0" },
+        new[] { "tide_elite_riptide", "1.0" }, new[] { "tide_elite_thunderfin", "1.0" }, new[] { "tide_elite_trawler", "1.0" },
+        new[] { "tide_fighter_1", "1.0" }, new[] { "tide_fighter_2", "1.0" }, new[] { "tide_fighter_3", "1.0" },
+        new[] { "tide_fighter_4", "1.0" }, new[] { "tide_fighter_5", "1.0" }, new[] { "tide_fighter_6", "1.0" },
+        new[] { "verdant_alien", "1.0" }, new[] { "verdant_big", "1.0" }, new[] { "verdant_chaser", "1.0" },
+        new[] { "verdant_elite_leafblade", "1.0" }, new[] { "verdant_elite_resin_warden", "1.0" }, new[] { "verdant_elite_sporebloom", "1.0" },
+        new[] { "verdant_elite_thornlash", "1.0" }, new[] { "verdant_elite_timber_hauler", "1.0" }, new[] { "verdant_fighter_1", "1.0" },
+        new[] { "verdant_fighter_2", "1.0" }, new[] { "verdant_fighter_3", "1.0" }, new[] { "verdant_fighter_4", "1.0" },
+        // Batch 2b (the redo takes)
+        new[] { "boss_space", "1.0" }, new[] { "boss_ember", "1.0" }, new[] { "boss_frost", "1.0" },
         new[] { "desert_big", "1.0" }, new[] { "desert_fighter_4", "1.0" }, new[] { "ember_elite_kilnback", "1.0" },
     };
     static Dictionary<string, string[]> ownByKey = BuildOwn();
@@ -238,14 +264,15 @@ public static class EnemyDeathAudio
         return ok;
     }
 
-    // A boss going down (BossActor.BeginOutro, the codex's tapped boss): the shared roar at the boss's own pitch (SharedTable boss_<artKey>).
+    // A boss going down (BossActor.BeginOutro, the codex's tapped boss): its own scream (OwnTable boss_<artKey>) if approved, else the shared roar at the boss's own pitch (SharedTable boss_<artKey>).
     public static float BossVolume = 1f;
     public static string BossKey(string artKey) { return string.IsNullOrEmpty(artKey) ? null : "boss_" + artKey.ToLowerInvariant(); }
     public static bool PlayBossDeath(string artKey)
     {
         if (!(Application.isPlaying || Simulate)) return false;
         string key = BossKey(artKey);
-        return key != null && PlayAuthored(key, BossVolume);
+        // A boss with its own scream plays it at the elites' mix level (its authored explosion already carries the boss); the shared roar keeps BossVolume.
+        return key != null && PlayAuthored(key, HasOwn(key) ? EliteVolume : BossVolume);
     }
     // A boss losing a heart (BossActor.SetHearts): an authored boss_<artKey>_hurt_<n> blow (a short hit on the boss's own material, 0.5-0.7 s, a
     // few dB under its death cue); silent without clips. Never the last heart: that is the death cue.
