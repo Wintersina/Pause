@@ -26,6 +26,8 @@ public static class BossPatternScaling
     public static bool Scaled => LoopFactor > 1.0001f;
     public static float Density => Mathf.Min(MaxDensity, Mathf.Sqrt(F));
     public static float Speed => Mathf.Min(MaxSpeed, Mathf.Pow(F, .2f));
+    // the lane and a wall's gap WIDEN with the loop (never shrink): +.1 u of lane half width per extra arm
+    public static float GapBonus => .1f * ExtraArms;
     public static int ExtraArms => Mathf.Min(MaxExtraArms, Mathf.FloorToInt(Mathf.Log(F, 2f) * .5f));
 
     // a count of shots grown with the factor, capped
