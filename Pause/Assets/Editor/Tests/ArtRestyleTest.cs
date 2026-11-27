@@ -101,6 +101,9 @@ public static class ArtRestyleTest
         "29A805", "7EE702", "B4F246", "FDFDFD", "00021B",   // heal (sampled from the original)
         "080B1C", "12172D", "3D485F", "707E94", "B1C1D2", "F4F8F0",   // magnet: steel ramp + ink (red pole reuses the pause reds)
         "16237E", "2F6BFF", "7FB0FF", "308FAC", "9DEEEB", "E2FFF9", "FFF9DA", "75141E",   // magnet: blue pole, glints, dark red
+        // magnet redraw (Art/Pickups/src~/generate_cores_magnet.py): steel, blue-pole and cyan ramps
+        "080A1C", "223049", "24425C", "286C86", "2D67E1", "2F7090", "3EABBE", "4BB0CD", "52D3E1", "566F8E",
+        "6AABFF", "70E1E8", "76E8EB", "AFCADB", "D22930", "E1FFF4", "F6F0D8", "FF5B4E",
     };
 
     static List<Color32> Parse(string[] hex)
@@ -205,10 +208,12 @@ public static class ArtRestyleTest
             var px = Pixels(path);
             if (px == null) { Check(path + " decodes", false); continue; }
             int bad = 0;
+            // the magnet's burst fades out by uniform whole-frame alpha (colours stay on the palette)
+            bool fade = Path.GetFileName(path).StartsWith("magnet_burst");
             foreach (var c in px)
             {
                 if (c.a == 0) continue;
-                bool ok = c.a == 255;
+                bool ok = c.a == 255 || fade;
                 if (ok)
                 {
                     ok = false;

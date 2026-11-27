@@ -144,10 +144,10 @@ public static class CodexCatalogue
             // PickupFlipbook in flight. The green atom keeps its original.
             new CodexEntry("atom_stardust", "Star Dust", CodexCategory.Atoms,
                 () => Pickup(PickupKind.DustSmall, "prefabs/smStar_1"),
-                "Glittering crumbs of collapsed stars, scattered in long trails. Scoop them up - star dust buys " +
+                "Glittering crumbs of collapsed stars, scattered in long trails (small, medium and big ones). Scoop them up - star dust buys " +
                 "new ships and colours, and every crumb shaves a moment off your weapon's charge and feeds your " +
                 "secret power.",
-                new[] { "smstar" }),
+                new[] { "smstar", "medstar" }),
             new CodexEntry("atom_bigstar", "Bright Star", CodexCategory.Atoms,
                 () => Pickup(PickupKind.Dust, "prefabs/LargeStar_1"),
                 "A fat, bright clump of star dust worth twice a small one. It charges your weapon and your secret " +

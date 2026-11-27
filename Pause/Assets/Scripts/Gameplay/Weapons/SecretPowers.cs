@@ -23,6 +23,7 @@ public class SecretPowerController : MonoBehaviour
 
     [Header("Meter")]
     public float perSmallDust = 3f;
+    public float perMediumDust = 4.5f;   // between the small (3) and the Bright Star (6)
     public float perLargeDust = 6f;
     public float perKill = 5f;
 
@@ -190,11 +191,13 @@ public class SecretPowerController : MonoBehaviour
     public void SetMeter(float value) { meter = Mathf.Clamp(value, 0f, Full); }
 
     // collisionDetection's pickup and kill hooks.
-    public static void OnDust(bool large)
+    public static void OnDust(bool large) { OnDust(large ? DustSize.Large : DustSize.Small); }
+
+    public static void OnDust(DustSize size)
     {
         var c = Instance;
         // (DUST STORM: x AtomFusions.DustMeterMultiplier while it runs)
-        if (c != null) c.Add((large ? c.perLargeDust : c.perSmallDust) * AtomFusions.DustMeterMultiplier);
+        if (c != null) c.Add((size == DustSize.Large ? c.perLargeDust : size == DustSize.Medium ? c.perMediumDust : c.perSmallDust) * AtomFusions.DustMeterMultiplier);
     }
 
     public static void OnKill()

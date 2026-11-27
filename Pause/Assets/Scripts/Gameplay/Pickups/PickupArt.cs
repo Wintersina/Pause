@@ -13,6 +13,7 @@ public enum PickupKind
     // the permanent shot atoms (ShotAtoms.cs), in ShotAtom order
     ShotTwin = 7, ShotPierce = 8, ShotSplit = 9, ShotRicochet = 10, ShotArc = 11, ShotRapid = 12,
     CoreStraight = 13, CoreAlternating = 14, CoreAimed = 15, DroneRecruit = 16,
+    DustMedium = 17,   // the medium star dust (dustmd_*, prefab medStar_1): between the small and the Bright Star
 }
 
 public static class PickupArt
@@ -64,8 +65,11 @@ public static class PickupArt
 
     public static bool IsStarDust(GameObject go)
     {
-        return PrefabName.Is(go, "smStar1") || PrefabName.Is(go, "LargeStar1");
+        return PrefabName.Is(go, "smStar1") || PrefabName.Is(go, MediumStar) || PrefabName.Is(go, "LargeStar1");
     }
+
+    public const string MediumStar = "medStar1";
+    public const string MediumStarPrefab = "prefabs/medStar_1";
 
     // StarDustScale for star dust, 1 for anything else.
     public static float InGameScale(GameObject prefab)
@@ -124,6 +128,7 @@ public static class PickupArt
             case PickupKind.Magnet: return "magnet_idle";
             case PickupKind.Dust: return "dust_idle";
             case PickupKind.DustSmall: return "dustsm_idle";
+            case PickupKind.DustMedium: return "dustmd_idle";
             default: return "heal_glint";
         }
     }
@@ -140,6 +145,7 @@ public static class PickupArt
             case PickupKind.Cooldown: return "cooldown_burst";
             case PickupKind.Magnet: return "magnet_burst";
             case PickupKind.Heal: return "heal_burst";
+            case PickupKind.DustMedium: return "dustmd_burst";
             default: return "dust_burst";
         }
     }
@@ -150,7 +156,8 @@ public static class PickupArt
         switch (kind)
         {
             case PickupKind.Dust:
-            case PickupKind.DustSmall: return DustIdleTicks;
+            case PickupKind.DustSmall:
+            case PickupKind.DustMedium: return DustIdleTicks;
             case PickupKind.Heal: return HealIdleTicks;
             default: return AtomIdleTicks;
         }
@@ -168,7 +175,8 @@ public static class PickupArt
         if (name.StartsWith("drone_", System.StringComparison.Ordinal))
         {
             int icon = name[6] - '0';
-            for (int i = 0; i < count; i++) frames[i] = DronePickupArt.Frame(icon, i);
+            bool burst = name.EndsWith("_burst", System.StringComparison.Ordinal);
+            for (int i = 0; i < count; i++) frames[i] = burst ? DronePickupArt.BurstFrame(icon, i) : DronePickupArt.Frame(icon, i);
             cache[name] = frames; return frames;
         }
         string root = name.StartsWith("shot_", System.StringComparison.Ordinal) ? ShotRoot : Root;
@@ -193,6 +201,7 @@ public static class PickupArt
         if (PrefabName.Is(go, MagnetPull.ObjectName)) { kind = PickupKind.Magnet; return true; }
         if (PrefabName.Is(go, "LargeStar1")) { kind = PickupKind.Dust; return true; }
         if (PrefabName.Is(go, "smStar1")) { kind = PickupKind.DustSmall; return true; }
+        if (PrefabName.Is(go, MediumStar)) { kind = PickupKind.DustMedium; return true; }
         return false;
     }
 }

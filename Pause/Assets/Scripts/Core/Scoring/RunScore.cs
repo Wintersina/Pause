@@ -400,10 +400,18 @@ public static class RunScore
     }
 
     // `at`: where it was caught (for the HUD popup); none -> no popup.
-    public static int OnDust(bool large, Vector3? at = null)
+    public static int OnDust(bool large, Vector3? at = null) { return OnDust(large ? DustSize.Large : DustSize.Small, at); }
+
+    public static int DustPoints(DustSize size)
     {
-        if (!Earning) { Practice(large ? ScoreRules.LargeDust : ScoreRules.SmallDust, at, Source.Dust); return 0; }
-        int points = ScoreMultiplier.Gain(large ? ScoreRules.LargeDust : ScoreRules.SmallDust);
+        return size == DustSize.Large ? ScoreRules.LargeDust : size == DustSize.Medium ? ScoreRules.MediumDust : ScoreRules.SmallDust;
+    }
+
+    public static int OnDust(DustSize size, Vector3? at = null)
+    {
+        int basePoints = DustPoints(size);
+        if (!Earning) { Practice(basePoints, at, Source.Dust); return 0; }
+        int points = ScoreMultiplier.Gain(basePoints);
         parts.dust += points;
         parts.dustCount++;
         if (at.HasValue) Raise(points, at.Value, Source.Dust);

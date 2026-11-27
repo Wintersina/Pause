@@ -61,6 +61,8 @@ __pycache__/
 # Atom art: only the generator is tracked (PickupArt.cs names it)
 Pause/Assets/Art/Pickups/src~/*
 !Pause/Assets/Art/Pickups/src~/pixel_atoms.py
+!Pause/Assets/Art/Pickups/src~/generate_dust_medium.py
+!Pause/Assets/Art/Pickups/src~/generate_cores_magnet.py
 
 # Generated SVG intermediates. Each is re-written by the tracked generator
 # next to it (bosses.py, weapons.py/fx.py, Enemies build.py, Worlds <world>.py,

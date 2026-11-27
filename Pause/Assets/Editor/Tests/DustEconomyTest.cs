@@ -7,7 +7,7 @@ using UnityEngine.UI;
 // less overall except when actually picking up stardust"):
 //   1  the constant and which sources it touches (pickups: no; flight trickle,
 //      kill crumbs, elites, score bonus: yes) -- all through ScoreRules.RewardDust
-//   2  fixed-seed simulated runs: pickup dust equals the master baseline,
+//   2  fixed-seed simulated runs: pickup dust is the master baseline + the medium dust's few percent,
 //      reward dust is 0.60x the master baseline (within 2%), the combined
 //      total is documented in the log; no positive reward rounds to zero
 //   3  the live path: AwardStarDust (pickups) pays full, AwardRewardDust
@@ -25,6 +25,7 @@ public static class DustEconomyTest
 
     // Master baseline (before this change), written out here on purpose so a
     // retune of the live constants can't silently move the baseline with it.
+    // (medium star dust: Art/Pickups pickup-art PR; pickups = baseline + the medium share, checked below)
     const float BaseSmall = .5f, BaseLarge = 1f, BaseBlue = 2f;           // pickups: unchanged
     const float BaseKill = .12f, BaseElite = 15f;                         // rewards: x0.60
     const float BaseFlightPerDistance = 1f / 12f, BaseBonusPerSqrt = .02f, BaseBonusCap = 1.5f;
@@ -104,7 +105,9 @@ public static class DustEconomyTest
             }
             int small = rng.Next(45, 80), large = rng.Next(8, 18), blue = rng.Next(0, 3), kills = rng.Next(25, 55), elites = rng.Next(0, 2);
             oldT.pickup += small * BaseSmall + large * BaseLarge + blue * BaseBlue;
-            newT.pickup += small * .5f + large * 1f + blue * 2f;   // what collisionDetection awards, via AwardStarDust
+            // what collisionDetection awards, via AwardStarDust: spawnGoodStuff.MediumShare of the small trail stars are medium dust (0.75)
+            int medium = Mathf.RoundToInt(small * spawnGoodStuff.MediumShare);
+            newT.pickup += (small - medium) * .5f + medium * .75f + large * 1f + blue * 2f;
             for (int k = 0; k < kills; k++)
             {
                 oldT.kills += BaseKill;
@@ -132,7 +135,9 @@ public static class DustEconomyTest
             float ratio = sumNewR / sumOldR, total = (sumNewR + sumNewP) / (sumOldR + sumOldP);
             Debug.Log(string.Format("[DUSTECON] {0} world(s), 20 seeded runs: pickups {1:F1} -> {2:F1}; rewards {3:F1} -> {4:F1} (x{5:F3}); combined {6:F1} -> {7:F1} (x{8:F3})",
                 worlds, sumOldP / 20, sumNewP / 20, sumOldR / 20, sumNewR / 20, ratio, (sumOldR + sumOldP) / 20, (sumNewR + sumNewP) / 20, total));
-            Check(worlds + " world(s): pickup dust identical to the master baseline", Mathf.Approximately(sumOldP, sumNewP));
+            // the medium dust (0.75 instead of a small's 0.5 on MediumShare of the trail stars) lifts pickup dust a few percent, no more
+            float pickupRatio = sumNewP / sumOldP;
+            Check(worlds + " world(s): pickup dust is the master baseline plus the medium dust's few percent (x" + pickupRatio.ToString("F3") + ")", pickupRatio > 1.02f && pickupRatio < 1.10f);
             // The score bonus is tidied to 0.01 and its cap is scaled too, so the ratio has a hair of slack.
             Check(worlds + " world(s): reward dust is 0.60x the baseline (x" + ratio.ToString("F3") + ")", Mathf.Abs(ratio - .6f) <= .6f * .02f);
             Check(worlds + " world(s): combined dust is between 0.60x and 1.0x (x" + total.ToString("F3") + ")", total > .6f && total < 1f);

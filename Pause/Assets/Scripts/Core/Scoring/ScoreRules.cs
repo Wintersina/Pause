@@ -140,7 +140,8 @@ public static class ScoreRules
     }
 
     // ---- pickups ----
-    public static int SmallDust = 2;
+    public static int SmallDust = 1;     // was 2 before the medium dust (1 / 3 / 5: small / medium / Bright Star)
+    public static int MediumDust = 3;
     public static int LargeDust = 5;
     public static int HealAtom = 10;
     public static int ShieldAtom = 10;
