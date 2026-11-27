@@ -277,7 +277,7 @@ public static class RunScore
         float m = ScoreRules.Combined(ScoreRules.MultiplierFor(scored),
                                       ScoreRules.SpeedMultiplierFor(moveBackGround.speed));
         NoteMultiplier(m * PauseKillMultiplier);
-        int points = ScoreMultiplier.Gain(Mathf.RoundToInt(basePoints * m * LoopRules.ScoreScale(RunLoop.Index) * (droneKill ? DroneScoring.Scale(squad) : 1f))) * PauseKillMultiplier;
+        int points = ScoreMultiplier.Gain(Mathf.RoundToInt(basePoints * m * LoopDifficulty.KillScale(RunLoop.Index) * (droneKill ? DroneScoring.Scale(squad) : 1f))) * PauseKillMultiplier;
         parts.kills += points;
         parts.killCount++;
         Raise(points, target.transform.position, Source.Kill);
@@ -300,7 +300,9 @@ public static class RunScore
         int m = (chained ? ScoreRules.EliteMultiplier(DroneScoring.EffectiveChain(Chain, chainOwnKills, DroneSquad.ActiveCount)) : 1) * PauseKillMultiplier;
         LastEliteMultiplier = m;
         if (m > 1) NoteMultiplier(m);
-        points = ScoreMultiplier.Gain(points * m);
+        // an elite finished by a drone's shot pays like any drone kill (DroneScoring.Scale); the pilot's own never does
+        float droneScale = DroneScoring.InProgress ? DroneScoring.Scale(DroneSquad.ActiveCount) : 1f;
+        points = ScoreMultiplier.Gain(Mathf.RoundToInt(points * m * droneScale));
         parts.kills += points;
         parts.killCount++;
         Raise(points, at, Source.Elite);

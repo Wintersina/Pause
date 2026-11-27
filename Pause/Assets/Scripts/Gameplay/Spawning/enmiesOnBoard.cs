@@ -723,7 +723,7 @@ public class enmiesOnBoard : MonoBehaviour {
     float RollWith(Vector2 range, bool adaptive)
     {
         // ... and EnemyDensity.RateScale: fewer, smarter enemies, cut harder the faster the board scrolls
-        return Random.Range(range.x, range.y) / Mathf.Max(0.1f, DensityMultiplier() * LoopDifficulty.DensityScale)
+        return Random.Range(range.x, range.y) / Mathf.Max(0.1f, DensityMultiplier() * LoopDifficulty.DensityScale * LoopDifficulty.ExtraDensity(RunLoop.Index))
                / Mathf.Max(0.1f, EnemyDensity.RateScale(EnemyDensity.Hud) * PortalPressure.DensityScale)
                / Mathf.Max(0.1f, RunFactor())
                / (adaptive ? AdaptiveDifficulty.EnemyScale : 1f)   // pilot's flow, x0.75..x1.25 (rails stay out: they are rides)

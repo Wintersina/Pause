@@ -661,7 +661,7 @@ public static class LoopTest
               Mathf.Abs(first - 500) <= 1 && Mathf.Abs(looped - first * LoopRules.ScoreScale(1)) <= 1f);
         moveBackGround.speed = .10f;
         RunScore.Tick(ScoreRules.ComboWindowSeconds + .1f, 0f);
-        Check("loop 2: a rock at x1 pays 5 x " + LoopRules.ScoreScale(1) + " rounded (6)", Kill(Enemy(rock)) == Mathf.RoundToInt(5 * LoopRules.ScoreScale(1)));
+        Check("loop 2: a rock at x1 pays 5 x " + LoopDifficulty.KillScale(1) + " rounded (kill points now rise 50% a loop: LoopDifficulty.KillScale)", Kill(Enemy(rock)) == Mathf.RoundToInt(5 * LoopDifficulty.KillScale(1)));
         RunLoop.Reset();
         moveBackGround.speed = 0f;
     }

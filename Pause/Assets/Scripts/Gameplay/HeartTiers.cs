@@ -67,20 +67,41 @@ public static class HeartTierTuning
     // spawn-space check, so a dodge gap always exists; rail mines, rides and elite docks are authored and untouched. ----
     public const float HazardExtraHearts = .75f, HazardSpeedMax = .2f, HazardBurstMax = .35f;
 
+    // ---- LOOPS (LoopDifficulty): from the second pass on everything gets harder, exponentially: D(index) = LoopBase ^ index, index 0 (the
+    // first pass) = exactly 1, so the first pass is identical to before. Every use below is CAPPED so a late loop is brutal, never
+    // impossible and never a frame-rate problem. ----
+    public const float LoopBase = 1.4f;
+    public const int LoopMaxIndex = 20;                  // D stops growing here (1.4^20 is already far past every cap)
+    public const int EnemyHeartCap = 8;                  // red hearts on an ordinary enemy (the orbit draws at most 8)
+    public const float CrystalFloorStep = .5f, CrystalFloorGrow = .2f, CrystalFloorMax = .9f;   // crystal share floor: loop 2 (index 1) none, index 2 .5, 3 .7, 4+ up to .9
+    public const float FireRateCap = 2f;                 // enemy volley gap divided by min(D, this)
+    public const float MinVolleyGap = .15f;              // seconds; no loop shortens a volley gap below it
+    public const float ShotSpeedCap = 1.4f;              // enemy shot speed x min(sqrt(D), this)
+    public const int ShotBonusPerD = 3, ShotAliveCap = 14;   // extra shots alive = round((D-1) x 3), never more than 14 alive in all
+    public const float DensityCap = 1.8f;               // extra spawn density = min(sqrt(D), this); EnemyDensity.MaxThreats still caps enemies alive
+    public const float BossRateCap = 2f, BossCooldownMin = .3f;   // boss cooldowns divided by min(D, 2), never under x0.3
+    public const float HazardLoopRateMax = 1.8f, HazardLoopRateCap = 3.2f;   // extra hazard rate cap by loop; total rate cap from index 1
+    public const float HazardCostPerLoop = .15f, HazardCostCap = 2f;       // hearts a hazard hit costs on average: capped at 2
+    public const float RecoverMin = .2f;                // heals and shields x max(this, 1/D): never zero
+    public const float KillScorePerLoop = .5f; public const int KillScoreLoopCap = 10;   // kill points x (1 + .5 x index)
+
     // ---- drone kills pay less as the squad grows (DroneScoring): x1 with one drone, DroneScoreMin at DampFullSquad drones. Drone kills
     // extend the kill chain but cannot lift its multiplier past the top step by themselves (a squad of 2+ needs
     // DroneChainUnlockKills of the pilot's own kills in the chain first). The player's own ship kills are unchanged. ----
     public const int DampFullSquad = 6;
-    public const float DroneScoreMin = .5f;
+    public const float DroneScoreOne = .5f, DroneScoreMin = .2f;
     public const int DroneChainUnlockKills = 2;
 
     public static float PowerBoost(HeartTierKind kind) { return kind == HeartTierKind.Boss ? BossBoost : kind == HeartTierKind.Elite ? EliteBoost : 1f; }
     public static float BarShare(HeartTierKind kind) { return kind == HeartTierKind.Boss ? BossBarShare : kind == HeartTierKind.Elite ? EliteBarShare : EnemyBarShare; }
 
     // Hearts in one extra bar for an entity with `red` red hearts.
-    public static int BarHearts(HeartTierKind kind, int red)
+    public static int BarHearts(HeartTierKind kind, int red) { return BarHearts(kind, red, 1f); }
+
+    // `loopD` (LoopDifficulty.Current) grows an elite's and a boss's bars exponentially, never past the red count.
+    public static int BarHearts(HeartTierKind kind, int red, float loopD)
     {
-        int n = Mathf.CeilToInt(Mathf.Max(1, red) * BarShare(kind) - .0001f);
+        int n = Mathf.CeilToInt(Mathf.Max(1, red) * BarShare(kind) * Mathf.Max(1f, loopD) - .0001f);
         return Mathf.Clamp(n, MinBarHearts, Mathf.Max(MinBarHearts, red));
     }
 }
@@ -105,12 +126,23 @@ public static class HeartTierCurve
     }
 
     // The tier for a roll in [0,1): 0 red only, 1 blue+red, 2 crystal+blue+red. Rolls under the crystal share are crystal, then blue.
-    public static int Tier(float power01, HeartTierKind kind, float roll01)
+    public static int Tier(float power01, HeartTierKind kind, float roll01) { return Tier(power01, kind, roll01, 0); }
+
+    // Loops put a FLOOR under the shares: from the second pass (index 1) nothing is red-only; from index 2 a crystal share that rises
+    // with each loop (CrystalFloor). Index 0: the plain curve.
+    public static int Tier(float power01, HeartTierKind kind, float roll01, int loopIndex)
     {
         float roll = Mathf.Clamp01(roll01);
-        float crystal = Crystal(power01, kind), blue = BlueOrBetter(power01, kind);
+        float crystal = Mathf.Max(Crystal(power01, kind), CrystalFloor(loopIndex));
+        float blue = loopIndex >= 1 ? 1f : BlueOrBetter(power01, kind);
         if (roll < crystal) return 2;
         return roll < blue ? 1 : 0;
+    }
+
+    public static float CrystalFloor(int loopIndex)
+    {
+        if (loopIndex < 2) return 0f;
+        return Mathf.Min(HeartTierTuning.CrystalFloorMax, HeartTierTuning.CrystalFloorStep + HeartTierTuning.CrystalFloorGrow * (loopIndex - 2));
     }
 }
 
@@ -176,14 +208,16 @@ public static class HazardScaling
     public static float RateFor(float power01) { return 1f + HeartTierTuning.HazardRateMax * Mathf.Clamp01(power01); }
 
     // The factor rock and mine spawn delays are divided by on top of PowerCreep.SpawnScale: never pushes the two together past HazardRateCap.
-    public static float ExtraRate(float power01, float existingScale)
+    public static float ExtraRate(float power01, float existingScale) { return ExtraRate(power01, existingScale, 1f, 0); }
+
+    public static float ExtraRate(float power01, float existingScale, float loopD, int loopIndex)
     {
-        float want = RateFor(power01);
-        float room = HeartTierTuning.HazardRateCap / Mathf.Max(1f, existingScale);
+        float want = RateFor(power01) * Mathf.Min(Mathf.Max(1f, loopD), HeartTierTuning.HazardLoopRateMax);
+        float room = (loopIndex > 0 ? HeartTierTuning.HazardLoopRateCap : HeartTierTuning.HazardRateCap) / Mathf.Max(1f, existingScale);
         return Mathf.Max(1f, Mathf.Min(want, room));
     }
 
-    public static float ExtraRateNow { get { return ExtraRate(RunPower.Score01, PowerCreep.SpawnScale); } }
+    public static float ExtraRateNow { get { return ExtraRate(RunPower.Score01, PowerCreep.SpawnScale, LoopDifficulty.Current, RunLoop.Index); } }
 
     // Hazard fall speed multiplier, burst chance (a second rock in a rock slot) at this power.
     public static float SpeedFor(float power01) { return 1f + HeartTierTuning.HazardSpeedMax * Mathf.Clamp01(power01); }
@@ -193,14 +227,14 @@ public static class HazardScaling
 
     // Shield atom spawn clock multiplier: 1 with no squad, ShieldMin with a full one, never zero.
     public static float ShieldRateFor(float drones01) { return Mathf.Lerp(1f, HeartTierTuning.ShieldMin, Mathf.Clamp01(drones01)); }
-    public static float ShieldRate { get { return ShieldRateFor(RunPower.Drones01); } }
+    public static float ShieldRate { get { return ShieldRateFor(RunPower.Drones01) * LoopDifficulty.RecoverScale; } }
 }
 
 // Heals (the green atom, the heal bank, the healing drone) get rarer and slower as the run's power rises.
 public static class HealScaling
 {
     public static float RateFor(float power01) { return Mathf.Lerp(1f, HeartTierTuning.HealMin, Mathf.Clamp01(power01)); }
-    public static float Rate { get { return RateFor(RunPower.Score01); } }
+    public static float Rate { get { return RateFor(RunPower.Score01) * LoopDifficulty.RecoverScale; } }
     // The heal bank's size now (never below 1, HealBank.Max at no power).
     public static int BankMax(int max, float power01) { return Mathf.Max(1, Mathf.CeilToInt(max * RateFor(power01) - 1e-4f)); }
     // The healing drone waits this much longer to restore a heart (x1 at no power).
@@ -214,13 +248,23 @@ public static class HazardDamage
     public static void Reset() { bankQuarters = 0; }
 
     // Hearts one hazard hit costs at this power, on average (1 .. 1 + HazardExtraHearts).
-    public static float HeartsFor(float power01) { return 1f + HeartTierTuning.HazardExtraHearts * Mathf.Clamp01(power01); }
+    public static float HeartsFor(float power01) { return HeartsFor(power01, 0); }
+
+    // On a later loop a hazard hits harder still, but never past HazardCostCap (2) hearts on average.
+    public static float HeartsFor(float power01, int loopIndex)
+    {
+        float h = 1f + HeartTierTuning.HazardExtraHearts * Mathf.Clamp01(power01);
+        if (loopIndex > 0) h = Mathf.Min(HeartTierTuning.HazardCostCap, h * (1f + HeartTierTuning.HazardCostPerLoop * loopIndex));
+        return h;
+    }
 
     // The cost of this hit: always at least 1, the extra quarters carried until they make a whole heart. Not a hazard: 1.
-    public static int Cost(bool isHazard, float power01)
+    public static int Cost(bool isHazard, float power01) { return Cost(isHazard, power01, 0); }
+
+    public static int Cost(bool isHazard, float power01, int loopIndex)
     {
         if (!isHazard) return 1;
-        bankQuarters += Mathf.RoundToInt(HeartsFor(power01) * HeartDamage.PerHeart);
+        bankQuarters += Mathf.RoundToInt(HeartsFor(power01, loopIndex) * HeartDamage.PerHeart);
         int cost = Mathf.Max(1, bankQuarters / HeartDamage.PerHeart);
         bankQuarters -= cost * HeartDamage.PerHeart;
         return cost;
@@ -233,7 +277,7 @@ public static class HazardDamage
         return def != null ? def.IsHazard : go.CompareTag("Astr");
     }
 
-    public static int Cost(GameObject go) { return Cost(IsHazard(go), RunPower.Score01); }
+    public static int Cost(GameObject go) { return Cost(IsHazard(go), RunPower.Score01, RunLoop.Index); }
 }
 
 // A big squad pays less per kill and cannot lift the chain to the top multiplier on its own.
@@ -243,8 +287,9 @@ public static class DroneScoring
     public static bool InProgress;
 
     public static float Squad01(int active) { return Mathf.Clamp01((active - 1) / (float)(HeartTierTuning.DampFullSquad - 1)); }
-    // Points scale of a drone kill: 1 with one drone, DroneScoreMin at DampFullSquad.
-    public static float Scale(int active) { return Mathf.Lerp(1f, HeartTierTuning.DroneScoreMin, Squad01(active)); }
+    // Points scale of a drone kill (elites too): DroneScoreOne with one drone, falling in a line to DroneScoreMin at DampFullSquad
+    // (1 -> .5, 2 -> .44, 3 -> .38, 4 -> .32, 5 -> .26, 6 -> .2). The pilot's own kills are never scaled.
+    public static float Scale(int active) { return Mathf.Lerp(HeartTierTuning.DroneScoreOne, HeartTierTuning.DroneScoreMin, Squad01(active)); }
     public static bool CapsChain(int active) { return active >= 2; }
 
     // The chain length a drone-extended chain is scored at: capped just under the top step until the pilot's own kills in it unlock it.
@@ -285,8 +330,9 @@ public static class HeartTierRoll
         if (ForceTier >= 0) return Mathf.Clamp(ForceTier, 0, 2);
         if (!Live) return 0;
         float power = RunPower.Score01;
-        if (power <= 0f) return 0;   // (no roll spent: red-only is free)
-        return HeartTierCurve.Tier(power, kind, NextRoll());
+        int loop = RunLoop.Index;
+        if (power <= 0f && loop <= 0) return 0;   // (no roll spent: red-only is free on the first pass)
+        return HeartTierCurve.Tier(power, kind, NextRoll(), loop);
     }
 }
 
@@ -307,8 +353,8 @@ public struct HeartShell
     public static HeartShell Make(int tier, HeartTierKind kind, int redHearts)
     {
         var s = new HeartShell();
-        if (tier >= 1) { s.blueMax = HeartTierTuning.BarHearts(kind, redHearts); s.blueQ = s.blueMax * HeartDamage.PerHeart; }
-        if (tier >= 2) { s.crystalMax = HeartTierTuning.BarHearts(kind, redHearts); s.crystalQ = s.crystalMax * HeartDamage.PerHeart; }
+        if (tier >= 1) { s.blueMax = HeartTierTuning.BarHearts(kind, redHearts, LoopDifficulty.Current); s.blueQ = s.blueMax * HeartDamage.PerHeart; }
+        if (tier >= 2) { s.crystalMax = HeartTierTuning.BarHearts(kind, redHearts, LoopDifficulty.Current); s.crystalQ = s.crystalMax * HeartDamage.PerHeart; }
         return s;
     }
 

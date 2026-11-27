@@ -1172,14 +1172,21 @@ public static class EnemyThreat
     {
         get
         {
-            return Mathf.Min(Mathf.Max(MaxEnemyShots, PortalPressure.ShotCap),
-                             MaxEnemyShots + LoopRules.ShotBonus(RunLoop.Index) + PortalPressure.ShotBonus);
+            int budget = Mathf.Min(Mathf.Max(MaxEnemyShots, PortalPressure.ShotCap),
+                                   MaxEnemyShots + LoopRules.ShotBonus(RunLoop.Index) + PortalPressure.ShotBonus + LoopDifficulty.ShotBonus(RunLoop.Index));
+            // (a later loop never has more than ShotAliveCap shots alive, and never fewer than the first pass)
+            return RunLoop.Index > 0 ? Mathf.Max(MaxEnemyShots, Mathf.Min(budget, HeartTierTuning.ShotAliveCap)) : budget;
         }
     }
 
     public static float Gap
     {
-        get { return VolleyGap * LoopRules.VolleyGapScale(RunLoop.Index) * PortalPressure.VolleyGapScale; }
+        get
+        {
+            float gap = VolleyGap * LoopRules.VolleyGapScale(RunLoop.Index) * PortalPressure.VolleyGapScale;
+            if (RunLoop.Index <= 0) return gap;
+            return Mathf.Max(Mathf.Min(gap, HeartTierTuning.MinVolleyGap), gap * LoopDifficulty.VolleyGapScale(RunLoop.Index));   // exponential, never under MinVolleyGap
+        }
     }
 
     // Tests: allow firing with no EliteDirector stepping the shots.
@@ -1311,7 +1318,7 @@ public static class EnemyVolley
     static int One(EliteShots pool, EliteDef style, EnemyBehaviour b, GameObject source, Vector2 at, Vector2 direction)
     {
         float speed = pilotVolley ? b.shotSpeed * PilotShotSpeed * pilotView : b.shotSpeed;
-        speed *= PortalPressure.ShotSpeedScale;   // x1 unless a portal has been kept waiting into overdrive
+        speed *= PortalPressure.ShotSpeedScale * LoopDifficulty.ShotSpeedScale;   // x1 unless a portal has been kept waiting into overdrive
         var s = pool.Fire(null, style, b.shotKind, at, direction * speed, true, source.GetInstanceID());
         if (s == null) return 0;
         s.AsRosterShot(source, pilotVolley ? 0f : b.ride);

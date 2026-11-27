@@ -42,7 +42,7 @@ public static class Toughness
         if (def.IsHazard) return;   // hazards (rocks, mines) die in one player hit
         if (go.GetComponent<EnemyHearts>() == null)
         {
-            int health = HeartsFor(def);
+            int health = LoopDifficulty.EnemyHearts(HeartsFor(def), RunLoop.Index);   // later loops: exponential, capped
             go.AddComponent<EnemyHearts>().Init(health, HeartTierRoll.Pick(HeartTierKind.Enemy));   // (HeartTiers: crystal / blue bars in front of the red hearts, by run power)
             EnemyArmour.Mark(go, health);
             if (go.TryGetComponent(out ChaserEnemy chaser)) chaser.RecacheBurrow();

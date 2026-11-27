@@ -447,7 +447,8 @@ public class BossActor : MonoBehaviour, IMusicPatternHost
     }
 
     int loop;
-    public float CooldownScale => LoopRules.BossCooldownScale(loop);
+    // (later loops: the authored scale, and on top of it the exponential factor, capped: LoopDifficulty.BossCooldownScale)
+    public float CooldownScale => loop <= 0 ? LoopRules.BossCooldownScale(loop) : Mathf.Max(HeartTierTuning.BossCooldownMin, LoopRules.BossCooldownScale(loop) * LoopDifficulty.BossCooldownScale(loop));
     public float PatternHeadStart => LoopRules.BossHeadStart(loop);
 
     void EnsureBodyHitbox()

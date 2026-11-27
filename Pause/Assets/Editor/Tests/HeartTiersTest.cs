@@ -17,7 +17,7 @@ public static class HeartTiersTest
     {
         fails = 0;
         using var sandbox = new TestHarness.Sandbox();
-        try { Curve(); Power(); Shell(); Enemy(); Rosters(); Art(); Hazards(); Shields(); DroneScore(); Heals(); HazardHits(); }
+        try { Curve(); Power(); Shell(); Enemy(); Rosters(); Art(); Hazards(); Shields(); DroneScore(); Heals(); HazardHits(); Loops(); }
         finally
         {
             HeartTierRoll.ForceTier = -1;
@@ -234,14 +234,14 @@ public static class HeartTiersTest
 
     static void DroneScore()
     {
-        Check("drone kill scale: x1 with one drone, x0.5 at a full squad, falling", DroneScoring.Scale(1) == 1f && Mathf.Approximately(DroneScoring.Scale(HeartTierTuning.DampFullSquad), .5f) && DroneScoring.Scale(3) < DroneScoring.Scale(2) && DroneScoring.Scale(12) >= .5f - 1e-4f);
+        Check("drone kill scale: x0.5 with one drone, x0.2 at a full squad, falling in a line", Mathf.Approximately(DroneScoring.Scale(1), .5f) && Mathf.Approximately(DroneScoring.Scale(HeartTierTuning.DampFullSquad), .2f) && DroneScoring.Scale(3) < DroneScoring.Scale(2) && DroneScoring.Scale(2) < DroneScoring.Scale(1) && DroneScoring.Scale(12) >= .2f - 1e-4f);
         int cap = ScoreRules.ComboThresholds[ScoreRules.ComboThresholds.Length - 1] - 1;
         Check("a squad's chain is capped under the top step until the pilot's own kills unlock it",
             DroneScoring.EffectiveChain(40, 0, 3) == cap && DroneScoring.EffectiveChain(40, HeartTierTuning.DroneChainUnlockKills, 3) == 40 && DroneScoring.EffectiveChain(40, 0, 1) == 40);
         Check("the cap leaves the top multiplier out of reach", ScoreRules.MultiplierFor(cap) < ScoreRules.MultiplierFor(ScoreRules.ComboThresholds[ScoreRules.ComboThresholds.Length - 1]));
 
         long own = RunKills(HitKind.Ultimate, 1, 14), droneOne = RunKills(HitKind.Drone, 1, 14), droneSquad = RunKills(HitKind.Drone, 3, 14);
-        Check("with one drone a drone kill pays what it always did", droneOne > 0 && Mathf.Abs(droneOne - own) <= own * .02f + 1);
+        Check("with one drone a drone kill pays half of the pilot's own", droneOne > 0 && Mathf.Abs(droneOne - own * .5f) <= own * .05f + 2);
         Check("with a squad of three the same kills pay less and stay under the pilot's own", droneSquad > 0 && droneSquad < droneOne);
     }
 
@@ -298,5 +298,58 @@ public static class HeartTiersTest
         bool cap = HeartTierTuning.HazardExtraHearts <= 1f && HeartTierTuning.HazardSpeedMax <= .25f && HeartTierTuning.HazardBurstMax <= .5f;
         Check("hazard tuning is capped (extra heart <= 1, speed <= +25%, burst <= 50%)", cap && HazardScaling.SpeedFor(0f) == 1f && HazardScaling.SpeedFor(1f) <= 1.25f && HazardScaling.BurstChanceFor(0f) == 0f && HazardScaling.BurstChanceFor(1f) <= .5f);
         HazardDamage.Reset();
+    }
+
+    static void Loops()
+    {
+        float B = HeartTierTuning.LoopBase;
+        bool ratio = true, inc = true, first = LoopDifficulty.For(0) == 1f;
+        for (int i = 1; i <= 6; i++)
+        {
+            ratio &= Mathf.Abs(LoopDifficulty.For(i) / LoopDifficulty.For(i - 1) - B) < 1e-3f;
+            inc &= LoopDifficulty.For(i) > LoopDifficulty.For(i - 1);
+        }
+        Check("D(loop 1) is exactly 1, strictly increasing, and each loop is Base times the last", first && inc && ratio && B > 1.3f && B < 1.6f);
+        Check("D stops growing at LoopMaxIndex", LoopDifficulty.For(HeartTierTuning.LoopMaxIndex) == LoopDifficulty.For(99));
+
+        // first pass identical to before
+        Check("first pass: hearts, fire, density, boss, recovery, kill points are unchanged",
+              LoopDifficulty.EnemyHearts(3, 0) == 3 && LoopDifficulty.VolleyGapScale(0) == 1f && LoopDifficulty.ShotBonus(0) == 0 && LoopDifficulty.ExtraDensity(0) == 1f &&
+              LoopDifficulty.BossCooldownScale(0) == 1f && LoopDifficulty.KillScale(0) == 1f && HazardDamage.HeartsFor(.5f, 0) == HazardDamage.HeartsFor(.5f) &&
+              HeartTierCurve.Tier(0f, HeartTierKind.Enemy, .5f, 0) == 0 && HazardScaling.ExtraRate(.5f, 1.5f, 1f, 0) == HazardScaling.ExtraRate(.5f, 1.5f));
+
+        // caps hold at loop 20
+        int far = 20;
+        bool caps = LoopDifficulty.EnemyHearts(4, far) <= HeartTierTuning.EnemyHeartCap &&
+                    LoopDifficulty.ShotBonus(far) >= 0 && 
+                    1f / LoopDifficulty.VolleyGapScale(far) <= HeartTierTuning.FireRateCap + 1e-4f &&
+                    LoopDifficulty.ExtraDensity(far) <= HeartTierTuning.DensityCap + 1e-4f &&
+                    LoopDifficulty.BossCooldownScale(far) >= HeartTierTuning.BossCooldownMin - 1e-4f &&
+                    HazardDamage.HeartsFor(1f, far) <= HeartTierTuning.HazardCostCap + 1e-4f &&
+                    HazardScaling.ExtraRate(1f, 1f, LoopDifficulty.For(far), far) <= HazardScaling.RateFor(1f) * HeartTierTuning.HazardLoopRateMax + 1e-4f &&
+                    HazardScaling.ExtraRate(1f, 2f, LoopDifficulty.For(far), far) * 2f <= HeartTierTuning.HazardLoopRateCap + 1e-4f;
+        Check("every loop-scaled number respects its cap at loop 20", caps);
+        int budget = Mathf.Min(HeartTierTuning.ShotAliveCap, 4 + LoopDifficulty.ShotBonus(far));
+        Check("shots alive never pass the alive cap, and the volley gap never drops under the minimum", budget <= HeartTierTuning.ShotAliveCap && HeartTierTuning.MinVolleyGap >= .1f);
+        bool hearts = true; int lastHearts = 0;
+        for (int i = 0; i <= 8; i++) { int h = LoopDifficulty.EnemyHearts(2, i); hearts &= h >= lastHearts && h >= 2; lastHearts = h; }
+        Check("enemy hearts grow with the loop and stop at the cap", hearts && LoopDifficulty.EnemyHearts(2, 1) > 2 && LoopDifficulty.EnemyHearts(2, 8) == HeartTierTuning.EnemyHeartCap);
+        Check("elite and boss bars grow with the loop, never past the red count", HeartTierTuning.BarHearts(HeartTierKind.Elite, 10, LoopDifficulty.For(2)) > HeartTierTuning.BarHearts(HeartTierKind.Elite, 10, 1f) &&
+              HeartTierTuning.BarHearts(HeartTierKind.Boss, 13, LoopDifficulty.For(20)) == 13 && HeartTierTuning.BarHearts(HeartTierKind.Boss, 13, 1f) == 4);
+
+        // tier floors per loop (power 0: floors alone)
+        Check("loop 2 (index 1): nothing is red-only, even at no power", HeartTierCurve.Tier(0f, HeartTierKind.Enemy, .99f, 1) >= 1 && HeartTierCurve.Tier(0f, HeartTierKind.Enemy, 0f, 1) == 1);
+        float f2 = HeartTierCurve.CrystalFloor(2), f3 = HeartTierCurve.CrystalFloor(3), f9 = HeartTierCurve.CrystalFloor(9);
+        Check("crystal floor: none until index 2, then rising to its cap", HeartTierCurve.CrystalFloor(1) == 0f && f2 > 0f && f3 > f2 && f9 <= HeartTierTuning.CrystalFloorMax + 1e-4f && f9 >= f3);
+        int crystal = 0;
+        for (int i = 0; i < 100; i++) if (HeartTierCurve.Tier(0f, HeartTierKind.Enemy, (i + .5f) / 100f, 3) == 2) crystal++;
+        Check("loop 4 (index 3) at no power: crystal on about the floor's share of enemies", Mathf.Abs(crystal / 100f - f3) < .05f);
+
+        // recovery and score
+        Check("heals and shields shrink with the loop but never reach zero", Mathf.Max(HeartTierTuning.RecoverMin, 1f / LoopDifficulty.For(20)) >= .2f && HeartTierTuning.RecoverMin > 0f);
+        bool kill = true;
+        for (int i = 1; i <= 8; i++) kill &= LoopDifficulty.KillScale(i) > LoopDifficulty.KillScale(i - 1);
+        Check("kill points rise 50% a loop", kill && Mathf.Approximately(LoopDifficulty.KillScale(1), 1.5f) && Mathf.Approximately(LoopDifficulty.KillScale(2), 2f));
+        Check("the hazard cost rises with the loop and caps at 2 hearts", HazardDamage.HeartsFor(1f, 1) > HazardDamage.HeartsFor(1f, 0) && HazardDamage.HeartsFor(1f, 20) <= 2f + 1e-4f);
     }
 }

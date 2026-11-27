@@ -103,6 +103,35 @@ public static class LoopDifficulty
 {
     public static float DensityScale = 1f;
 
+    // ---- THE EXPONENTIAL LOOP FACTOR (user, 2026-11-27: "on loop 2 -> n things get much much harder, scaled exponentially") ----
+    // D(index) = HeartTierTuning.LoopBase ^ index, where index = RunLoop.Index (0 on the first pass, so D = 1 EXACTLY and nothing
+    // changes on a first pass). Public and stable: `LoopDifficulty.Current` is what other systems (boss patterns, enemy threat) read;
+    // every consumer applies its own cap from HeartTierTuning (listed there). RunLoop.Reset resets it with the run.
+    public static float For(int loopIndex)
+    {
+        int i = Mathf.Clamp(loopIndex, 0, HeartTierTuning.LoopMaxIndex);
+        return i == 0 ? 1f : Mathf.Pow(HeartTierTuning.LoopBase, i);
+    }
+    public static float Current { get { return For(RunLoop.Index); } }
+    public static bool Looped { get { return RunLoop.Index > 0; } }
+
+    // Enemy red hearts on this loop: exponential, capped (EnemyHeartCap); never below the first-pass count.
+    public static int EnemyHearts(int baseHearts, int loopIndex)
+    {
+        if (loopIndex <= 0) return baseHearts;
+        return Mathf.Max(baseHearts, Mathf.Min(HeartTierTuning.EnemyHeartCap, Mathf.RoundToInt(baseHearts * For(loopIndex))));
+    }
+    // Enemy volley gap multiplier (<= 1; 1 on the first pass) and the least gap in seconds.
+    public static float VolleyGapScale(int loopIndex) { return 1f / Mathf.Min(For(loopIndex), HeartTierTuning.FireRateCap); }
+    public static float ShotSpeedScale { get { return Mathf.Min(Mathf.Sqrt(Current), HeartTierTuning.ShotSpeedCap); } }
+    public static int ShotBonus(int loopIndex) { return Mathf.RoundToInt((For(loopIndex) - 1f) * HeartTierTuning.ShotBonusPerD); }
+    public static float ExtraDensity(int loopIndex) { return Mathf.Min(Mathf.Sqrt(For(loopIndex)), HeartTierTuning.DensityCap); }
+    public static float BossCooldownScale(int loopIndex) { return Mathf.Max(HeartTierTuning.BossCooldownMin, 1f / Mathf.Min(For(loopIndex), HeartTierTuning.BossRateCap)); }
+    // Heals and shields: x1 on a first pass, 1/D after, never under RecoverMin.
+    public static float RecoverScale { get { return Mathf.Max(HeartTierTuning.RecoverMin, 1f / Current); } }
+    // Kill points: x1, x1.5, x2 ... (index capped).
+    public static float KillScale(int loopIndex) { return 1f + HeartTierTuning.KillScorePerLoop * Mathf.Clamp(loopIndex, 0, HeartTierTuning.KillScoreLoopCap); }
+
     public static void Reset() { DensityScale = 1f; }
 }
 

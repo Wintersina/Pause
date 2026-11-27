@@ -1643,7 +1643,11 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint, I
     {
         if (!InPlay || damage <= 0f) return;
         Vector3 blast = Vector3.Lerp(transform.position, at, .5f);
-        if (TakeHeartDamage(EliteDamage.PlayerWeapon, at, damage))
+        DroneScoring.InProgress = true;   // (a kill by this shot pays as a drone kill: DroneScoring)
+        bool landed;
+        try { landed = TakeHeartDamage(EliteDamage.PlayerWeapon, at, damage); }
+        finally { DroneScoring.InProgress = false; }
+        if (landed)
             TargetExplosion.Spawn(blast, TargetExplosion.KindForWorld(Def != null ? Def.world : null), TargetExplosion.Size.Small, ship);
     }
 
