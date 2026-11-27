@@ -70,6 +70,7 @@ public static class ShipSignaturesG3
     // It is a single weight-3 hit, never three hits in a row: the boss's 0.25 s hit window would swallow two of
     // them. BossEncounter.TakePlayerHit pays all three health in one go and opens the window once. At the top
     // level the two warheads split it (1.5 each), so the whole nuke is still exactly 3.
+    // 2026-11-27: every ultimate's boss damage is scaled by ShipAttackHits.UltimateBossDamageScale (0.75), so a whole nuke now takes 2.25.
     public const float NukeBossDamage = 3f;
     public static float NukeBossWeight(int level) { return NukeBossDamage / NukeWarheads(level); }
 }

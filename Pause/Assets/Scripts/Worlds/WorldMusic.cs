@@ -107,11 +107,11 @@ public class WorldMusic : MonoBehaviour
         // The world's own song counts as heard for the codex MUSIC tab (the tutorial never counts).
         CodexMusic.HeardWorld(theme);
 
-        AudioClip next = UsesStages(theme) ? Resources.Load<AudioClip>(StageResource(theme, 1)) : null;
+        AudioClip next = UsesStages(theme) ? LoadClip(StageResource(theme, 1)) : null;
         if (next == null)
             next = string.IsNullOrEmpty(theme.musicResource)
                 ? sceneDefault
-                : Resources.Load<AudioClip>(theme.musicResource);
+                : LoadClip(theme.musicResource);
 
         // Only a full-song world loops at a measured point; anything else
         // (stage arrangements, the scene's own track) loops end to end.
@@ -133,7 +133,54 @@ public class WorldMusic : MonoBehaviour
             if (loopClip != null) EnsureRunner();
             return;
         }
-        EnsureRunner().StartCoroutine(Swap(source, next));
+        EnsureRunner().StartCoroutine(Swap(source, next, 0f, true));
+    }
+
+    // ---- preloading the next world's song ------------------------------------
+    //
+    // The world songs are Streaming imports (loadType 2): Resources.Load only makes the clip object, but the first
+    // Play() still opens the file and decodes its first buffers on the frame of the swap. PreloadNext asks for the
+    // song with Resources.LoadAsync while the boss fight / lift-off runs (WorldManager.PreloadNextWorld) and
+    // LoadAudioData()s it on the frame it arrives; Apply then takes the held clip (LoadClip), so the swap's Load is a cache hit.
+    static readonly System.Collections.Generic.Dictionary<string, AudioClip> heldClips = new System.Collections.Generic.Dictionary<string, AudioClip>();
+    static readonly System.Collections.Generic.Dictionary<string, ResourceRequest> asking = new System.Collections.Generic.Dictionary<string, ResourceRequest>();
+    static readonly System.Collections.Generic.List<string> askDone = new System.Collections.Generic.List<string>(2);
+    public static int PreloadRequests { get; private set; }
+
+    // Asks for `theme`'s song (each path once). Several themes are fine (the destination's and the lift-off interlude's).
+    public static void PreloadNext(WorldTheme theme)
+    {
+        if (theme == null || !Application.isPlaying || string.IsNullOrEmpty(theme.musicResource) || UsesStages(theme)) return;
+        string path = theme.musicResource;
+        if (heldClips.ContainsKey(path) || asking.ContainsKey(path)) return;
+        PreloadRequests++;
+        asking[path] = Resources.LoadAsync<AudioClip>(path);
+        EnsureRunner().enabled = true;
+    }
+
+    // The swap's loader: the preloaded clip when there is one (released to the caller), else the synchronous load.
+    static AudioClip LoadClip(string path)
+    {
+        AudioClip c;
+        if (heldClips.TryGetValue(path, out c) && c != null) { heldClips.Remove(path); return c; }
+        return Resources.Load<AudioClip>(path);
+    }
+
+    // One frame of PreloadNext: finished requests become held clips, decoded now rather than inside the swap's Play().
+    static void PumpPreload()
+    {
+        if (asking.Count == 0) return;
+        askDone.Clear();
+        foreach (var kv in asking)
+        {
+            if (!kv.Value.isDone) continue;
+            askDone.Add(kv.Key);
+            var clip = kv.Value.asset as AudioClip;
+            if (clip == null) continue;
+            heldClips[kv.Key] = clip;
+            Prewarm(clip);
+        }
+        for (int i = 0; i < askDone.Count; i++) asking.Remove(askDone[i]);
     }
 
     // Brings a one-shot's audio into memory ahead of its first Play(). A clip
@@ -180,6 +227,7 @@ public class WorldMusic : MonoBehaviour
     // looping.
     void Update()
     {
+        PumpPreload();
         if (loopClip == null) return;
         var main = FindBackgroundSource(everyFrame: true);
         if (main == null || main.clip != loopClip || !main.isPlaying) return;
@@ -250,7 +298,7 @@ public class WorldMusic : MonoBehaviour
         var source = FindBackgroundSource();
         if (upbeat == null || source == null || source.clip == upbeat) return;
         musicStage = nextStage;
-        EnsureRunner().StartCoroutine(Swap(source, upbeat));
+        EnsureRunner().StartCoroutine(Swap(source, upbeat, 0f, true));
     }
 
     // ---- boss music ---------------------------------------------------------
@@ -350,8 +398,17 @@ public class WorldMusic : MonoBehaviour
         return map == null ? 0f : map.StartSeconds;
     }
 
-    static IEnumerator Swap(AudioSource main, AudioClip next, float startAt = 0f)
+    // Multiplies the source's volume (musicControl): the new song rises over the old one's fade-out, an equal-power-ish
+    // crossfade instead of a hard cut in. 1 whenever no swap is fading in.
+    public static float FadeGain { get; private set; } = 1f;
+    static int swapId;
+    // A new scene's source starts at full gain whatever a swap that died with the old scene left behind.
+    public static void ResetFade() { swapId++; FadeGain = 1f; }
+
+    static IEnumerator Swap(AudioSource main, AudioClip next, float startAt = 0f, bool fadeIn = false)
     {
+        int id = ++swapId;
+        FadeGain = 1f;
         float fade = runner != null ? runner.crossfadeSeconds : 1.5f;
 
         // hand the outgoing track to a throwaway source so it can fade freely
@@ -373,12 +430,23 @@ public class WorldMusic : MonoBehaviour
             tail.Play();
             runner.StartCoroutine(FadeOutAndDie(tail, fade));
         }
+        else fadeIn = false;   // nothing was playing (the run's first track): no crossfade to make
+        if (fadeIn) { FadeGain = 0f; main.volume = 0f; }
 
         main.clip = next;
         main.loop = true;
         main.time = startAt > 0f && startAt < next.length ? startAt : 0f;
         main.Play();
-        yield return null;
+        if (!fadeIn) { yield return null; yield break; }
+        float rise = runner != null ? runner.crossfadeSeconds : 1.5f;
+        for (float t = 0f; t < rise; t += Time.unscaledDeltaTime)
+        {
+            if (id != swapId) yield break;   // a newer swap owns the gain
+            float k = t / rise;
+            FadeGain = k * k * (3f - 2f * k);
+            yield return null;
+        }
+        if (id == swapId) FadeGain = 1f;
     }
 
     static IEnumerator FadeOutAndDie(AudioSource src, float seconds)

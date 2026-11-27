@@ -84,6 +84,19 @@ public static class WorldPainter
         return new Color(c.r * k, c.g * k, c.b * k, c.a);
     }
 
+    public const string RailShader = "WorldRailRepeat";
+
+    // Resources path of the reinforced rail texture a world flies between (null: no rail art).
+    public static string RailPath(WorldTheme theme)
+    {
+        if (theme == null) return null;
+        string railName = RailTextureName(theme.displayName);
+        if (railName == null) return null;
+        string root = "Worlds/" + (RailArtWorld(theme.displayName) != theme.displayName ? RailArtWorld(theme.displayName)
+                      : string.IsNullOrEmpty(theme.resourceFolder) ? theme.displayName : theme.resourceFolder) + "/";
+        return root + railName;
+    }
+
     public static void Apply(WorldTheme theme)
     {
         if (theme == null) return;
@@ -100,13 +113,11 @@ public static class WorldPainter
             return;
         }
 
-        string root = "Worlds/" + (RailArtWorld(theme.displayName) != theme.displayName ? RailArtWorld(theme.displayName)
-                      : string.IsNullOrEmpty(theme.resourceFolder) ? theme.displayName : theme.resourceFolder) + "/";
-        // Reinforced rails share Frost's visible width and are mirrored so
-        // their lamp/pipe edges face the playfield on both sides.
-        var rail = Resources.Load<Texture2D>(root + railName);
+        // The rail texture and its shader come from the next-world preload when it ran (WorldArtPreload.Next
+        // queues RailPath / RailShader), else load synchronously as before.
+        var rail = WorldArtPreload.Load<Texture2D>(RailPath(theme));
         // Preserve neon brightness and remove residual exterior mattes.
-        SetRailShader(Resources.Load<Shader>("WorldRailRepeat"));
+        SetRailShader(WorldArtPreload.Load<Shader>(RailShader));
         foreach (var wall in new[] { LeftWallName, RightWallName })
         {
             var mat = MaterialOf(wall);

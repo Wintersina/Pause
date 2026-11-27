@@ -70,7 +70,7 @@ public static class DroneSquadTest
         int awarded = score.dustPickups;
         var overflow = DroneRewardPickup.Spawn(catcher.ship.transform.position);
         catcher.trigger(overflow.GetComponent<Collider2D>());
-        Check("a capped recruit pays dust once without replacing a drone", overflow == null && DroneSquad.Slots == 12 && score.dustPickups == awarded + 1);
+        Check("a capped recruit pays dust once without replacing a drone", overflow == null && DroneSquad.Slots == DroneSquad.MaxSlots && score.dustPickups == awarded + 1);
         while (!DroneSquad.CollectCore(DroneMode.Aimed).maxed) { }
         Check("a fully upgraded matching core pays dust rather than changing the squad", DroneSquad.CoreRecipient(DroneMode.Aimed) == -1 && DroneSquad.CollectCore(DroneMode.Aimed).maxed);
         Object.DestroyImmediate(catcher.ship);
@@ -133,8 +133,8 @@ public static class DroneSquadTest
         Check("boss reward is a new drone pickup, not modifier coins", Object.FindObjectsByType<DroneRewardPickup>(FindObjectsSortMode.None).Length == 1 && Object.FindObjectsByType<ShotAtomPickup>(FindObjectsSortMode.None).Length == 0);
         int first = DroneSquad.AddBossDrone();
         Check("new drone joins active with the preferred mode and useful inherited upgrades", first == 3 && DroneSquad.ActiveCount == 4 && DroneSquad.Mode(3) == DroneMode.Aimed && ShotAtoms.Level(3, ShotAtom.Twin) == 2 && ShotAtoms.PowerLevel >= power);
-        while (DroneSquad.Slots < 12) DroneSquad.AddBossDrone();
-        Check("boss recruitment caps at twelve without overwriting any drone", DroneSquad.Slots == 12 && DroneSquad.ActiveCount == 12 && DroneSquad.AddBossDrone() == -1 && ShotAtoms.Level(0, ShotAtom.Twin) == 4);
+        while (DroneSquad.Slots < DroneSquad.MaxSlots) DroneSquad.AddBossDrone();
+        Check("boss recruitment caps at six without overwriting any drone", DroneSquad.MaxSlots == 6 && DroneSquad.Slots == 6 && DroneSquad.ActiveCount == 6 && DroneSquad.AddBossDrone() == -1 && ShotAtoms.Level(0, ShotAtom.Twin) == 4);
         ShotAtoms.BeginRun(3); Check("a new run clears boss recruits", DroneSquad.Slots == 3 && DroneSquad.ActiveCount == 0);
     }
     public sealed class Target : MonoBehaviour, IShipAttackTargetUncapped
@@ -147,7 +147,7 @@ public static class DroneSquadTest
         Fresh();
         var rig = ShotFeelTest.MakeShip(1, 4, activate: false);
         DroneSquad.CollectCore(DroneMode.Aimed); DroneSquad.Activate(1); DroneSquad.Activate(2);
-        while (DroneSquad.Slots < 12) DroneSquad.AddBossDrone();
+        while (DroneSquad.Slots < DroneSquad.MaxSlots) DroneSquad.AddBossDrone();
         for (int atom = 0; atom < ShotAtomTuning.Count; atom++) ShotAtoms.SetLevel((ShotAtom)atom, 10);
         rig.battery.Refresh(); GunBoltArt.Prewarm(); FloatieFx.Prebuild();
         var target = new GameObject("endurance target"); target.tag = "Enimey"; target.transform.position = Vector3.up * 2f;
@@ -156,33 +156,34 @@ public static class DroneSquadTest
         int peak = FloatieBullets.Active;
         int pool = FloatieBullets.All.Count;
         bool active = true;
-        for (int i = 0; i < 12; i++) active &= rig.battery.Shots[i] > 0;
+        for (int i = 0; i < DroneSquad.MaxSlots; i++) active &= rig.battery.Shots[i] > 0;
         for (int i = 0; i < 600; i++) { rig.battery.Step(1f / 60f); peak = Mathf.Max(peak, FloatieBullets.Active); }
-        Check("all twelve upgraded aimed drones fire while the bullet pool stays bounded", active && peak <= 128 && FloatieBullets.All.Count == pool && pool <= 128);
+        Check("all six upgraded aimed drones fire while the bullet pool stays bounded", active && peak <= 128 && FloatieBullets.All.Count == pool && pool <= 128);
         long control;
         bool meter = TestHarness.AllocMeterWorks(out control);
         long allocated = meter ? TestHarness.AllocatedBytes(() =>
         {
             for (int frame = 0; frame < 600; frame++) rig.battery.Step(1f / 60f);
         }) : -1;
-        Check("twelve max-upgrade drones sustain ten seconds of combat without managed allocations", meter && allocated == 0);
+        Check("six max-upgrade drones sustain ten seconds of combat without managed allocations", meter && allocated == 0);
         Check("ultimate and drone projectile budgets have independent reserved room", AttackPool.MaxProjectiles == 40 && AttackPool.MaxCombinedProjectiles == 168);
-        var boxes = new Bounds[11];
-        Check("every additional drone reports a resting envelope for heart/hull avoidance", rig.battery.ExtraRestBounds(boxes) == 11);
+        var boxes = new Bounds[DroneSquad.MaxSlots - 1];
+        Check("every additional drone reports a resting envelope for heart/hull avoidance", rig.battery.ExtraRestBounds(boxes) == DroneSquad.MaxSlots - 1);
         bool inView = true;
         var view = ShipTargets.View();
         foreach (float x in new[] { -2f, 0f, 2f })
         foreach (float y in new[] { view.yMin + .7f, -2f, view.yMax - .7f })
         {
             rig.ship.transform.position = new Vector3(x, y, 0f);
-            for (int i = 0; i < 11; i++)
+            for (int step = 0; step < 90; step++) rig.battery.Step(1f / 60f);   // (the orbit refits the ring to the room, DroneOrbit.Fit)
+            for (int i = 0; i < DroneSquad.MaxSlots - 1; i++)
             {
                 var extra = rig.battery.Extra(i); extra.Place();
                 var bounds = extra.Renderer.bounds;
                 inView &= bounds.min.x >= view.xMin - .01f && bounds.max.x <= view.xMax + .01f && bounds.min.y >= view.yMin - .01f && bounds.max.y <= view.yMax + .01f;
             }
         }
-        Check("all eleven extra drones stay visible when the ship reaches screen corners", inView);
+        Check("all extra drones stay visible when the ship reaches screen corners", inView);
         var baseSprite = GunBoltArt.For(0);
         bool tiers = GunBoltArt.For(1) != baseSprite && GunBoltArt.For(2) != GunBoltArt.For(1) && GunBoltArt.For(3) != GunBoltArt.For(2);
         Check("gun milestones have distinct cached projectile silhouettes", tiers && GunBoltArt.For(3) == GunBoltArt.For(3));

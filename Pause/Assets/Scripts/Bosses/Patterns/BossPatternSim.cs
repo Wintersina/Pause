@@ -17,6 +17,7 @@ public sealed class PatternSim : IMusicPatternHost
         public Vector2 then;
         public BossRailMode rail;
         public bool alive;
+        public PMotion mo;              // parametric motion (PatternMotion)
         public bool bouncy;             // a ricochet shot (BossBounce): keeps SpeedKeep of its speed per bounce
     }
 
@@ -119,6 +120,7 @@ public sealed class PatternSim : IMusicPatternHost
         s.homeLeft = ps.homeSeconds > 0f && ps.homeDeg > 0f ? ps.homeSeconds : 0f; s.homeDeg = ps.homeDeg;
         s.turnLeft = ps.turnAt > 0f ? ps.turnAt : 0f; s.then = ps.then;
         s.bouncy = ps.bouncy && s.bounces > 0;
+        s.mo = ps.motion;
         if (s.bouncy) bouncyFired++;
         live++;
         if (live > maxLive) maxLive = live;
@@ -176,6 +178,11 @@ public sealed class PatternSim : IMusicPatternHost
                 else s.turnLeft -= dt;
             }
             p += s.v * move;
+            if (s.mo.kind != MotionKind.None)
+            {
+                PatternMotion.Apply(ref s.mo, ref p, ref s.v, s.age, dt);
+                if (s.rail != BossRailMode.Pass) p.x = Mathf.Clamp(p.x, -(railEdge - s.r), railEdge - s.r);
+            }
             if (driftVx != 0f)
             {
                 float dx = driftVx * dt;

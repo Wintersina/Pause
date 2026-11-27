@@ -508,8 +508,26 @@ public class WorldManager : MonoBehaviour
     {
         distanceLeft = 0f;
         if (portalOpen) return;
+        PreloadNextWorld();   // the next planet's backdrop and planetfall load under the boss fight, not at the gateway
         if (BossEncounter.Begin(CurrentIndex, OnBossOver)) return;
         if (!BossEncounter.Running) OpenPortal();
+    }
+
+    // Asks WorldArtPreload for the destination's art as the level ends (the same request OpenPortal makes, which is then a
+    // no-op: one key, no double loads). The boss fight and the lift-off interlude are the time it loads in, a frame apart,
+    // so the swap, the planetfall and the first frames of the new world are cache hits instead of pop-in and a hitch.
+    // Skipped on a low-end phone (the hold is tens of MB for the whole fight) and out of play.
+    public static void PreloadNextWorld()
+    {
+        if (!Application.isPlaying || PerfTier.LowEnd) return;
+        int to = PortalDestination;
+        if (to < 0 || to >= Worlds.Length) return;
+        WorldArtPreload.Next(CurrentIndex, to, !HasNext, Worlds[to].displayName);
+        // ... and its song (and the lift-off interlude's Space song), requested async and decoded on arrival, so the
+        // world change's WorldMusic.Apply finds the clip instead of opening it on the swap frame
+        WorldMusic.PreloadNext(Worlds[to]);
+        var lift = LiftoffCatalog.For(CurrentIndex, to, !HasNext);
+        if (lift != null && lift.interludeWorld >= 0 && lift.interludeWorld < Worlds.Length) WorldMusic.PreloadNext(Worlds[lift.interludeWorld]);
     }
 
     // The encounter is over (destroyed or survived): the portal, in every

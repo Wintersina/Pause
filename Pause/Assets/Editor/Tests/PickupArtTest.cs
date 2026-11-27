@@ -55,6 +55,48 @@ public static class PickupArtTest
         Check("secret-meter fill: small 3 < medium 4.5 < large 6", powers.Contains("perSmallDust = 3f") && powers.Contains("perMediumDust = 4.5f") && powers.Contains("perLargeDust = 6f"));
     }
 
+    // The codex lists the medium dust between Star Dust and the Bright Star, quotes its points, has art, an animation and a payout.
+    static void CodexMediumEntry()
+    {
+        var entry = Codex.Find("atom_medstar");
+        Check("the codex has a Medium Star entry in Atoms", entry != null && entry.category == CodexCategory.Atoms && entry.name == "Medium Star");
+        if (entry == null) return;
+        int small = System.Array.FindIndex(Codex.Entries, e => e.id == "atom_stardust");
+        int med = System.Array.FindIndex(Codex.Entries, e => e.id == "atom_medstar");
+        int big = System.Array.FindIndex(Codex.Entries, e => e.id == "atom_bigstar");
+        Check("codex order is small < medium < Bright Star", small >= 0 && small < med && med < big);
+        Check("its lore states +3 points; neighbours state theirs", entry.lore.Contains("+" + ScoreRules.MediumDust + " points") &&
+              Codex.Find("atom_stardust").lore.Contains("+" + ScoreRules.SmallDust + " point") &&
+              Codex.Find("atom_bigstar").lore.Contains("+" + ScoreRules.LargeDust + " points"));
+        Check("its art is the medium idle frame", entry.Sprite != null);
+        PickupKind kind;
+        Check("its codex animation is the medium flipbook", CodexAnimations.TryPickupKind("atom_medstar", out kind) && kind == PickupKind.DustMedium &&
+              CodexAnimations.Atom(entry) != null);
+        Check("it pays the plain atom payout", CodexPayout.For(entry) == CodexPayout.Atom);
+        Check("a Star Dust discovery no longer claims the medium prefab", !System.Array.Exists(Codex.Find("atom_stardust").matches, m => m == "medstar"));
+    }
+
+    // Nothing playable may lack a codex entry: every pickup kind, roster enemy / hazard, elite, boss, hazard rock, ship and world.
+    static void CodexCoverage()
+    {
+        var kinds = new HashSet<PickupKind>();
+        foreach (var e in Codex.Entries)
+        {
+            PickupKind k;
+            if (e.category == CodexCategory.Atoms && CodexAnimations.TryPickupKind(e.id, out k)) kinds.Add(k);
+        }
+        foreach (PickupKind kind in System.Enum.GetValues(typeof(PickupKind)))
+            Check("codex has an entry for pickup kind " + kind, kinds.Contains(kind));
+        int missing = 0;
+        foreach (var def in EnemyRoster.All) if (Codex.Find(def.codexId) == null) { missing++; Debug.Log("[PICKART] no codex entry for roster " + def.key); }
+        foreach (var d in EliteCatalog.All) if (Codex.Find(d.codexId) == null) { missing++; Debug.Log("[PICKART] no codex entry for elite " + d.key); }
+        foreach (var b in BossCatalog.All) if (Codex.Find(b.id) == null) { missing++; Debug.Log("[PICKART] no codex entry for boss " + b.id); }
+        foreach (var r in SpaceHazardRockTypes.All) if (Codex.Find(r.CodexId) == null) { missing++; Debug.Log("[PICKART] no codex entry for rock " + r.key); }
+        foreach (int ship in ShipId.All) if (Codex.Find(CodexCatalogue.ShipPrefix + ShipId.KeyOf(ship)) == null) { missing++; Debug.Log("[PICKART] no codex entry for ship " + ship); }
+        for (int w = 0; w < WorldManager.Worlds.Length; w++) if (Codex.Find(Codex.WorldId(w)) == null) { missing++; Debug.Log("[PICKART] no codex entry for world " + w); }
+        Check("every roster enemy / hazard, elite, boss, hazard rock, ship and world has a codex entry", missing == 0);
+    }
+
     static void MediumPrefab()
     {
         var prefab = Resources.Load<GameObject>(PickupArt.MediumStarPrefab);
@@ -88,7 +130,10 @@ public static class PickupArtTest
         Check("it flies bigger like the other star dust (StarDustScale)", Mathf.Approximately(PickupArt.InGameScale(prefab), PickupArt.StarDustScale));
         Check("no atom ring / spin for it", !PickupGlow.IsAtom(PickupKind.DustMedium));
         string codex = File.ReadAllText("Assets/Scripts/Codex/CodexCatalogue.cs");
-        Check("catching one discovers Star Dust in the codex", Codex.IdForName("medStar 1(Clone)") == "atom_stardust" && codex.Contains("\"medstar\""));
+        Check("catching one discovers its own Medium Star codex entry (not Star Dust)", Codex.IdForName("medStar 1(Clone)") == "atom_medstar" &&
+              Codex.IdForName("smStar 1(Clone)") == "atom_stardust" && codex.Contains("\"medstar\"") && !codex.Contains("\"smstar\", \"medstar\""));
+        CodexMediumEntry();
+        CodexCoverage();
         string pull = File.ReadAllText("Assets/Scripts/Gameplay/Pickups/MagnetPull.cs");
         Check("the magnet pulls it (IsStarDust)", pull.Contains("PickupArt.IsStarDust(go)"));
         var go = Object.Instantiate(prefab);

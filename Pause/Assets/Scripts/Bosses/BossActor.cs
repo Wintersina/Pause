@@ -425,7 +425,7 @@ public class BossActor : MonoBehaviour, IMusicPatternHost
         musicRunning = false;
         specialRunning = false;
         musicDirector = new BossMusicDirector(World, boss, this);
-        specials = new BossSpecials(boss, World);
+        specials = new BossSpecials(boss, World, BossSignatureTuning.Enabled);
         // its parts are every muzzle the song's waves leave from (BossWaveSources): the charge and flash slots
         musicAttack = new BossAttack { name = "song arrangement", kind = BossAttackKind.Pattern,
             parts = musicDirector.Parts, emitters = boss.DefaultAttacks[0].emitters,
@@ -436,10 +436,10 @@ public class BossActor : MonoBehaviour, IMusicPatternHost
     }
 
     // BossEncounter: `left` hearts are left after a hit at `at`.
-    public void SetHearts(int left, Vector3 at, int quarters = -1)
+    public void SetHearts(int left, Vector3 at, int quarters = -1, int layer = 0)
     {
         int before = hearts != null ? hearts.Left : left;
-        if (hearts != null) hearts.SetQuarterHealth(quarters >= 0 ? quarters : left * HeartDamage.PerHeart, at);
+        if (hearts != null) hearts.SetQuarterHealth(quarters >= 0 ? quarters : left * HeartDamage.PerHeart, at, layer);
         SetDamage(left);
         // a blow that costs a heart (not the last one: BeginOutro plays the death cue) is heard on the boss's own material
         if (mode == Mode.Fighting && left < before && left > 0 && boss != null) EnemyDeathAudio.PlayBossHurt(boss.artKey);
@@ -447,7 +447,8 @@ public class BossActor : MonoBehaviour, IMusicPatternHost
     }
 
     int loop;
-    public float CooldownScale => LoopRules.BossCooldownScale(loop);
+    // (later loops: the authored scale, and on top of it the exponential factor, capped: LoopDifficulty.BossCooldownScale)
+    public float CooldownScale => loop <= 0 ? LoopRules.BossCooldownScale(loop) : Mathf.Max(HeartTierTuning.BossCooldownMin, LoopRules.BossCooldownScale(loop) * LoopDifficulty.BossCooldownScale(loop));
     public float PatternHeadStart => LoopRules.BossHeadStart(loop);
 
     void EnsureBodyHitbox()
@@ -655,7 +656,7 @@ public class BossActor : MonoBehaviour, IMusicPatternHost
                 alignBeat = BeatAlign.Target(src, tell, tune.barWaitMax);
                 tell = Mathf.Max(tell, (float)((alignBeat - src.BeatNow) * src.SecondsPerBeat));
             }
-            runner.Begin(current.pattern, this, BossLadder.RateAt(World, progress01), patternSeed++, tell, src, tune);
+            runner.Begin(current.pattern, this, current.signature ? BossSignatureTuning.Rate(progress01) : BossLadder.RateAt(World, progress01), patternSeed++, tell, src, tune);
             runner.BounceFraction = BossBounce.FractionFor(World);
         }
         else
@@ -1239,7 +1240,7 @@ public class BossTarget : MonoBehaviour, IBossAttackTarget
         var encounter = BossEncounter.Instance;
         var actor = GetComponentInParent<BossActor>();
         var kind = actor != null ? actor.ExplosionKind : TargetExplosion.Kind.Metal;
-        var result = encounter != null ? encounter.TakePlayerHit(weight, at, discrete) : BossEncounter.HitResult.Blocked;
+        var result = encounter != null ? encounter.TakePlayerHit(weight * ShipAttackHits.BossScale, at, discrete) : BossEncounter.HitResult.Blocked;
         if (result == BossEncounter.HitResult.Blocked)
         {
             float now = Application.isPlaying ? Time.unscaledTime : 0f;

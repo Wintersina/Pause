@@ -129,7 +129,7 @@ public class spawnGoodStuff : MonoBehaviour {
         float dustDt = dt * PickupRules.StarDustRate() * AdaptiveDifficulty.DustScale;
         smStarTimer -= dustDt;
         midStarTimer -= dustDt;
-        atomTimer -= dt * PickupRules.ShieldAtomRate;
+        atomTimer -= dt * PickupRules.ShieldAtomRate * HazardScaling.ShieldRate;   // thinner with a big drone squad (HeartTierTuning.ShieldMin)
         redAtomDelayTimer -= dt * AdaptiveDifficulty.RecoveryScale * PickupRules.PauseAtomRate;
         cooldownAtomDelayTimer -= dt * PickupRules.CooldownAtomRate;
         magnetAtomDelayTimer -= dt * PickupRules.MagnetAtomRate;
@@ -218,7 +218,7 @@ public class spawnGoodStuff : MonoBehaviour {
             {
                 case BossFreeShotAtoms.Kind.Shield: spawnAtom(); break;
                 case BossFreeShotAtoms.Kind.Capacitor: if (cooldownAtom != null) spawnCooldownAtom(); else spawnAtom(); break;
-                case BossFreeShotAtoms.Kind.Heal: spawnHealAtom(); break;
+                case BossFreeShotAtoms.Kind.Heal: if (Random.value <= HealScaling.Rate) spawnHealAtom(); break;
                 default: spawnRedAtom(); break;
             }
         }

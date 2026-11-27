@@ -21,6 +21,16 @@ public enum StreamKind
     Bomb,      // `count` slow bombs thrown at spots round the ship that burst after `fuse` seconds into a ring of `burst`
     Seeds,     // slow seeds that home on the ship for `homeSeconds` (turning `homeDeg` deg/s) and then fly straight
     Mines,     // `count` stationary mines on marked spots (never near the ship, `minSep` apart) that go after `fuse` seconds
+    // ---- the signature library (BossSignatureTables / BossSignatureTuning): parametric motion, PatternMotion ----
+    Sine,      // `count` shots a volley straight down (baseDeg, swept `spin` deg/s) weaving with sin: amp u wide, hz cycles a second
+    Braid,     // two anti-phase sine streams (phaseDeg, phaseDeg + 180) from one muzzle: a braid
+    WaveWall,  // a row across the lane (pitch) with a gap, its shots bobbing in a travelling sine wave (amp u, hz, spread deg a u)
+    Tornado,   // `count` arms (armDeg apart) swirling out of the muzzle: the heading turns turnDeg deg/s for turnSeconds, speed x gain
+    Arms,      // `count` evenly spaced rotating arms (spin deg/s), the spin reversing at reverseAt seconds (0 = never)
+    Rose,      // a rose curve r = |cos(petals * theta)| across the lower half: the shots' speeds trace the petals, one gap
+    Halo,      // a ring of `count` with a safe gap of `gap` degrees that sweeps (spread deg either side of straight down, rotStep a ring)
+    Orbit,     // `count` shots circle the muzzle on a figure-8 (orbitR u, hz) for holdSeconds, then fly out
+    AccelFan,  // an aimed fan of `count` that starts slow and speeds up gainx over turnSeconds (it never starts at full speed)
     Pincer,    // two jaws (the part pair) aimed at either side of the ship, closing by `gapStep` u per volley
 }
 
@@ -31,6 +41,7 @@ public struct PShot
     public int art;                      // PatternStream.art: 0 the shared bolt / shard, k > 0 the boss's attack variant k (BossArt.AttackShot)
     public BossRailMode rail;
     public int bounces;
+    public PMotion motion;               // the signature library's parametric motion (PatternMotion); None for every older shot
     public bool bouncy;                  // a RICOCHET shot (BossBounce): picked to bounce off the rails, wears the ricochet cue
     public float homeDeg, homeSeconds;   // seeds: turn rate and how long it homes
     public float fuse;                   // > 0: it ends (or bursts) after this long
@@ -73,6 +84,14 @@ public sealed class PatternStream
     public float minSep = 1.9f;         // mines: apart; bombs: apart across the ship
     public int free = 2;                // rain: lanes left empty each drop row
     public float side = 1.4f;           // pincer: how far either side of the part the two jaws sit (one part given)
+    // the signature library (every length is in lane units: it scales with BossRails.InnerEdge, so a wide or tall screen is as fair)
+    public float hz = .5f;              // sway / bob / orbit: cycles a second
+    public float phaseDeg;              // sway / bob / orbit: the starting phase
+    public float turnDeg = 50f, turnSeconds = 1.5f;   // tornado: turn rate and how long; accel fan: how long it speeds up
+    public float gain = 1f;             // tornado: speed x this over the swirl; accel fan: final speed / starting speed
+    public float petals = 3f;           // rose: k of r = |cos(k theta)|
+    public float orbitR = .9f, holdSeconds = 1.2f;    // orbit: radius (u) and seconds before release
+    public float reverseAt;             // arms: seconds at which the spin reverses (0 = never)
 
     public float End => start + duration;
 }
@@ -130,7 +149,7 @@ public interface IPatternHost
     float LaneDensity => 1f;
 }
 
-public sealed class BossPatternRunner
+public sealed partial class BossPatternRunner
 {
     public const int MaxStreams = 4;
     public const int MaxSpots = 12;
@@ -183,7 +202,9 @@ public sealed class BossPatternRunner
         for (int i = 0; i < MaxStreams; i++) beatMode[i] = false;
         pat = pattern;
         host = h;
+        mh = h as IMusicPatternHost;
         rng = new System.Random(seed);
+        InitCorridor();
         rate = Mathf.Max(.2f, rateScale);
         clock = 0f;
         Fired = Emissions = 0;
@@ -257,6 +278,9 @@ public sealed class BossPatternRunner
             case StreamKind.Bomb:
                 PlaceBombs(i, s, p, tell);
                 break;
+            default:
+                PlanSignature(i, s, tell);
+                break;
         }
     }
 
@@ -304,7 +328,7 @@ public sealed class BossPatternRunner
                 next[i] = clock + Mathf.Max(.02f, s.interval / rate);
                 continue;
             }
-            float step = Mathf.Max(.02f, s.interval / rate);
+            float step = Mathf.Max(Mathf.Max(s.kind >= StreamKind.Sine && s.kind <= StreamKind.AccelFan ? BossPatternScaling.MinInterval : .02f, FloorSeconds(s)), s.interval / rate);
             while (next[i] <= clock && (next[i] < s.End - 1e-4f || emitted[i] == 0))
             {
                 Emit(i, s, next[i]);
@@ -365,6 +389,7 @@ public sealed class BossPatternRunner
         double now = beat.BeatNow;
         double spb = beat.SecondsPerBeat;
         double step = VolleyBeats(s);
+        if (s.kind == StreamKind.WaveWall) step = System.Math.Max(step, System.Math.Ceiling(FloorSeconds(s) / spb / GridBeats) * GridBeats);
         emitSpeed = tune.speedScale;
         // Gameplay can freeze while music keeps playing. Only a normal frame's lateness
         // is allowed, even for a stream that has not fired yet. Keep its original phase.
@@ -404,7 +429,7 @@ public sealed class BossPatternRunner
     {
         v *= emitSpeed;
         var sh = shot[i];
-        if (sh.rail == BossRailMode.Absorb && sh.fuse <= 0f && sh.burst == 0 && sh.homeSeconds <= 0f) Ricochet(ref sh, at, v * host.ShotSpeedScale);
+        if (sh.rail == BossRailMode.Absorb && sh.fuse <= 0f && sh.burst == 0 && sh.homeSeconds <= 0f && !sh.motion.Active) Ricochet(ref sh, at, v * host.ShotSpeedScale);
         host.Fire(at, v, ref sh);
         Fired++;
     }
@@ -658,6 +683,9 @@ public sealed class BossPatternRunner
                 }
                 break;
             }
+            default:
+                EmitSignature(i, s, ts, k);
+                break;
         }
     }
 

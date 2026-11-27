@@ -103,6 +103,10 @@ public sealed class EnemyBehaviour
 
     public bool IsPilot => presence == EnemyPresence.Pilot;
 
+    // A private copy (EnemyTierThreat tunes a copy per heart tier; the table's own behaviour is never touched).
+    public EnemyBehaviour basis;   // (a tuned copy: the table row it was cut from)
+    public EnemyBehaviour Clone() { var c = (EnemyBehaviour)MemberwiseClone(); c.style = null; return c; }
+
     // ---- chasers (ChaserEnemy) ----
     public ChaserStyle chaser;
     public float chaseSeconds = 3.5f, chaseSpeed = 2.4f, chaseStart = .9f, wanderSpeed = 1.1f, wanderRadius = .7f;

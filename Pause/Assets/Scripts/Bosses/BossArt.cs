@@ -691,6 +691,7 @@ public static class BossArt
             FirstUseWarm.Add(k + "damagefx", Folder + boss.damageKey + "_damage_fx", typeof(Texture2D), () => DamageFx(boss, 0));
             FirstUseWarm.Add(k + "attackdamage", () => AttackDamageSheet(boss, 1));
         }
+        EnemyDeathAudio.QueueBossWarm(boss.artKey, k);   // its death scream and heart-loss blows, decoded before the fight
         if (!string.IsNullOrEmpty(boss.deathKey))
             FirstUseWarm.Add(k + "death", Folder + boss.deathKey + "_death", typeof(Texture2D), () => DeathStrip(boss, 0));
     }

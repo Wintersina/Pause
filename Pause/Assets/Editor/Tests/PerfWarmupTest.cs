@@ -26,6 +26,7 @@ public static class PerfWarmupTest
             Warm();
             Attachers();
             Physics();
+            Transitions();
         }
         finally
         {
@@ -71,6 +72,14 @@ public static class PerfWarmupTest
             if (e != null && e.enabled)
                 Check("world " + w + ": its boulders' manifest, sheet, break strip and fx",
                       into.Contains(e.folder + "/manifest") && into.Contains(e.folder + "/boulder") && into.Contains(e.folder + "/break") && into.Contains(e.folder + "/fx"));
+            bool roster = true; int strips = 0;
+            foreach (var def in EnemyRoster.All)
+            {
+                if (def.world != w || def.role == EnemyRole.Mine) continue;
+                strips++;
+                roster &= into.Contains(def.StripPath) && into.Contains("Enemies/Death/" + def.key);
+            }
+            Check("world " + w + ": every roster enemy's flipbook and death strip is warmed (" + strips + " enemies)", roster && strips > 0);
             var seen = new HashSet<string>();
             bool dup = false;
             foreach (var p in into) if (!seen.Add(p)) dup = true;
@@ -110,6 +119,12 @@ public static class PerfWarmupTest
             string wm = TestHarness.StripComments(System.IO.File.ReadAllText("Assets/Scripts/Worlds/WorldManager.cs"));
             int begins = 0, at = 0;
             while ((at = wm.IndexOf("ArtWarm.Begin(CurrentIndex)", at, System.StringComparison.Ordinal)) >= 0) { begins++; at++; }
+            int endLevel = wm.IndexOf("public void EndLevel()", System.StringComparison.Ordinal);
+            int preload = wm.IndexOf("PreloadNextWorld();", endLevel, System.StringComparison.Ordinal);
+            int boss = wm.IndexOf("BossEncounter.Begin(CurrentIndex", endLevel, System.StringComparison.Ordinal);
+            Check("the next world's art is requested as the level ends, before the boss starts (not at the gateway)", endLevel >= 0 && preload > endLevel && preload < boss);
+            Check("PreloadNextWorld asks WorldArtPreload.Next with the same key OpenPortal uses, and skips low-end phones",
+                  wm.Contains("WorldArtPreload.Next(CurrentIndex, to, !HasNext, Worlds[to].displayName)") && wm.Contains("PerfTier.LowEnd) return;"));
             Check("WorldManager warms at the run's start, the planetfall entry, every advance and the developer jump (" + begins + " sites)", begins == 4);
         }
         finally
@@ -118,6 +133,86 @@ public static class PerfWarmupTest
             ArtWarm.Forget();
             Object.DestroyImmediate(tex);
         }
+    }
+
+    // ---- the world transitions: music requested early and crossfaded, layers faded in, no synchronous loads ----
+    static string Src(string rel) { return TestHarness.StripComments(System.IO.File.ReadAllText("Assets/Scripts/" + rel)); }
+
+    static string Body(string src, string signature)
+    {
+        int at = src.IndexOf(signature, System.StringComparison.Ordinal);
+        if (at < 0) return "";
+        int open = src.IndexOf('{', at), depth = 0;
+        for (int i = open; i < src.Length; i++)
+        {
+            if (src[i] == '{') depth++;
+            else if (src[i] == '}' && --depth == 0) return src.Substring(open, i - open);
+        }
+        return "";
+    }
+
+    static void Transitions()
+    {
+        var syncLoad = new System.Text.RegularExpressions.Regex(@"Resources\.Load(<|\()");
+        string wm = Src("Worlds/WorldManager.cs");
+        string music = Src("Worlds/WorldMusic.cs");
+        string preloadBody = Body(wm, "public static void PreloadNextWorld()");
+        int endLevel = wm.IndexOf("public void EndLevel()", System.StringComparison.Ordinal);
+        int preload = wm.IndexOf("PreloadNextWorld();", endLevel, System.StringComparison.Ordinal);
+        int boss = wm.IndexOf("BossEncounter.Begin(CurrentIndex", endLevel, System.StringComparison.Ordinal);
+        Check("the next world's music is requested with its art as the level ends, before the boss (and before any transition)",
+              preloadBody.Contains("WorldMusic.PreloadNext(Worlds[to])") && preload > endLevel && preload < boss);
+        Check("... and so is the lift-off interlude's song", preloadBody.Contains("LiftoffCatalog.For(CurrentIndex, to, !HasNext)") && preloadBody.Contains("WorldMusic.PreloadNext(Worlds[lift.interludeWorld])"));
+        Check("PreloadNext is asynchronous (Resources.LoadAsync, decoded on arrival) and Apply takes the held clip",
+              Body(music, "public static void PreloadNext(").Contains("Resources.LoadAsync<AudioClip>") &&
+              Body(music, "static void PumpPreload()").Contains("Prewarm(clip)") &&
+              !Body(music, "public static void Apply(WorldTheme theme)").Contains("Resources.Load") &&
+              Body(music, "public static void Apply(WorldTheme theme)").Contains("LoadClip(theme.musicResource)"));
+        Check("the song swap crossfades both ways: the old one fades out on its own source, the new one rises through FadeGain",
+              Body(music, "static IEnumerator Swap(").Contains("FadeOutAndDie") && Body(music, "static IEnumerator Swap(").Contains("FadeGain = k * k * (3f - 2f * k)") &&
+              Src("Audio/musicControl.cs").Contains("WorldMusic.FadeGain") && Src("Audio/musicControl.cs").Contains("WorldMusic.ResetFade()") &&
+              Body(music, "public static void Apply(WorldTheme theme)").Contains("Swap(source, next, 0f, true)"));
+
+        // the layers fade in: the backdrop swap of a transition cross-fades by alpha (never an instant enable), at 0.25-0.4 s or longer
+        string wb = Src("Worlds/Backdrop/WorldBackdrop.cs");
+        string show = Body(wb, "public void Show(string world, bool crossfade)");
+        string step = Body(wb, "public void Step(float unscaledDt)");
+        Check("a crossfaded backdrop swap starts the new set at alpha 0 and ramps both sets' alpha through the frame loop",
+              show.Contains("next.Alpha = 0f") && step.Contains("fade + dt / CrossfadeSeconds") && step.Contains("Current.Alpha = fade") && step.Contains("outgoing.Alpha = 1f - fade") &&
+              WorldBackdrop.CrossfadeSeconds >= .25f);
+        int fades = 0, at = 0;
+        while ((at = wm.IndexOf("WorldBackdrop.Apply(theme, true)", at, System.StringComparison.Ordinal)) >= 0) { fades++; at++; }
+        Check("the portal advance, the planetfall's world switch and the developer jump all use the crossfade (" + fades + " sites)", fades == 3);
+        string pf = Src("Worlds/Planetfall/Planetfall.cs");
+        Check("the planet, its rim and reticle appear through an alpha ramp on approach, not by an instant enable",
+              Body(pf, "void StepApproach(float dt)").Contains("float appear = Mathf.Clamp01(clock / .6f)") && Body(pf, "void StepApproach(float dt)").Contains("cue.a = appear *"));
+
+        // no synchronous Resources.Load anywhere on the transition path (the held-preload loader is the only door)
+        string[] files = { "Worlds/Planetfall/Liftoff.cs", "Worlds/Planetfall/Planetfall.cs", "Worlds/Planetfall/PlanetfallArt.cs", "Worlds/WorldPainter.cs", "Worlds/WorldManager.cs", "Worlds/WorldEntry.cs" };
+        foreach (var f in files)
+            Check(f + ": no synchronous Resources.Load (the swap loads through WorldArtPreload.Load)", !syncLoad.IsMatch(Src(f)));
+        Check("WorldMusic.Apply / the lift-off / the painter ask the preload for the rails, lift-off art and Space interlude",
+              Src("Core/WorldArtPreload.cs").Contains("LiftoffCatalog.For(from, to, loop)") && Src("Core/WorldArtPreload.cs").Contains("QueueRails(") &&
+              Src("Worlds/Planetfall/Liftoff.cs").Contains("WorldArtPreload.Load<Shader>(Planetfall.ShaderPath)") &&
+              Src("Worlds/WorldPainter.cs").Contains("WorldArtPreload.Load<Texture2D>(RailPath(theme))"));
+        // the destination's set pieces are built ahead, a few a frame, and only taken at the swap
+        string parts = Src("Worlds/Backdrop/BackdropParts.cs");
+        string pool = Body(parts, "public BackdropPool(");
+        Check("BackdropPool takes pre-built pieces from the stock and only creates what the stock lacks",
+              pool.Contains("BackdropPieceStock.Take(blend)") && pool.Contains("BackdropPieceStock.Make(blend)") && !pool.Contains("new GameObject(name + i)"));
+        Check("the stock is built a bounded few a frame, inactive, skips low-end phones and out of play",
+              BackdropPieceStock.PerFrame <= 12 && Body(parts, "public static void Pump()").Contains("i < PerFrame") &&
+              Body(parts, "public static BackdropPiece Make(").Contains("p.Show(false)") &&
+              Body(parts, "public static void Want(").Contains("PerfTier.LowEnd") && Body(parts, "public static void Want(").Contains("!Application.isPlaying"));
+        Check("WorldArtPreload.Next wants the destination's pieces and pumps the stock each frame (the runner stays on until it is full)",
+              Src("Core/WorldArtPreload.cs").Contains("BackdropPieceStock.Want(spec.world)") && Body(Src("Core/WorldArtPreload.cs"), "public static void Pump()").Contains("BackdropPieceStock.Pump()") &&
+              Src("Core/WorldArtPreload.cs").Contains("!BackdropPieceStock.Filling"));
+        Check("the swap learns the piece count and the leftovers drain a few a frame (never one frame's Destroy burst)",
+              show.Contains("BackdropPieceStock.Learn(") && step.Contains("BackdropPieceStock.Tick()") && Body(parts, "static void Drain()").Contains("DrainPerFrame"));
+        Check("PlanetFlipbooks' in-flight fallback reads through the preload cache, not a bare Resources.Load",
+              Body(Src("Worlds/PlanetFlipbooks.cs"), "public static Sprite[] Acquire(").Contains("WorldArtPreload.Load<Texture2D>"));
+        Check("a theme with no song asks for nothing (and nothing is requested out of play)",
+              Body(music, "public static void PreloadNext(").Contains("!Application.isPlaying || string.IsNullOrEmpty(theme.musicResource)"));
     }
 
     // ---- the ship attachers: no scene scan, they wait for the ship's announcement ----

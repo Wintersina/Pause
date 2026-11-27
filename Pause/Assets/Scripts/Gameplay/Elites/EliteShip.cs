@@ -149,8 +149,15 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint, I
     public EliteAttack Attack { get; private set; }
     public EliteState State { get; private set; }
     int heartQuarters;
-    public int Hearts { get { return HeartDamage.WholeHearts(heartQuarters); } private set { heartQuarters = Mathf.Max(0, value) * HeartDamage.PerHeart; } }
+    public int Hearts { get { return HeartDamage.WholeHearts(heartQuarters); } private set { heartQuarters = Mathf.Max(0, value) * HeartDamage.PerHeart; if (value <= 0) Shell = default(HeartShell); } }
     public int QuartersLeft => heartQuarters;
+    // The blue / crystal bars in front of the red hearts (none: red only). Chosen once when it is built (HeartTiers.cs); the red
+    // hearts above are untouched by it, so the fight script (ScriptHearts, phases) only ever reads the red bar.
+    public HeartShell Shell;
+    public int TotalQuarters => heartQuarters + Shell.QuartersLeft;
+    public int ShownQuarters => Shell.Any ? Shell.DisplayQuarters : heartQuarters;
+    public bool HasCrystal => Shell.Tier >= 2;   // PUBLIC for the enemy-threat code
+    public int LayersBroken { get; private set; }
     public float Health => HeartDamage.Hearts(heartQuarters);
     // The hearts the fight script thinks in: the authored count (EliteDef.hearts), a lost authored heart being EliteDef.Scale real ones.
     public int ScriptHearts { get { int s = EliteDef.Scale; return (Hearts + s - 1) / s; } }
@@ -323,6 +330,7 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint, I
         def = def.Instance();
         Def = def;
         Hearts = def.MaxHearts;
+        Shell = HeartTierRun.Plan(HeartTierKind.Elite, def.MaxHearts);
         Brain = EliteBrains.Create(def.brain);
         Attack = EliteAttacks.Create(def.attack);
         Script = new EliteScriptRunner(this, def);
@@ -1482,7 +1490,14 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint, I
         // (a shield link or an armour plate soaks it: no heart)
         if (Attack != null && Attack.Absorbs(cause, at)) return false;
         int before = Hearts;
-        heartQuarters = Mathf.Max(0, heartQuarters - HeartDamage.Units(amount));
+        int units = HeartDamage.Units(amount);
+        if (Shell.Any)
+        {
+            int broken;
+            units = Shell.Absorb(units, out broken);   // the outer bar first; overflow carries inward
+            LayersBroken += broken;
+        }
+        heartQuarters = Mathf.Max(0, heartQuarters - units);
         LastHitCause = cause;
         LastHitBy = by;
         impactPending = true;
@@ -1629,7 +1644,11 @@ public class EliteShip : MonoBehaviour, IShipAttackTarget, IMovementFootprint, I
     {
         if (!InPlay || damage <= 0f) return;
         Vector3 blast = Vector3.Lerp(transform.position, at, .5f);
-        if (TakeHeartDamage(EliteDamage.PlayerWeapon, at, damage))
+        DroneScoring.InProgress = true;   // (a kill by this shot pays as a drone kill: DroneScoring)
+        bool landed;
+        try { landed = TakeHeartDamage(EliteDamage.PlayerWeapon, at, damage); }
+        finally { DroneScoring.InProgress = false; }
+        if (landed)
             TargetExplosion.Spawn(blast, TargetExplosion.KindForWorld(Def != null ? Def.world : null), TargetExplosion.Size.Small, ship);
     }
 

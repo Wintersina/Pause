@@ -320,6 +320,30 @@ public class EnemyBrain : MonoBehaviour
         PilotAirspace.Register(this);
     }
 
+    // The heart tier this enemy spawned with (0 red, 1 blue, 2 crystal; EnemyTierThreat.cs).
+    public int Tier { get; private set; }
+    EnemyBehaviour tableBehaviour;
+
+    // Called once, when the enemy's hearts are attached (Toughness.Attach): a blue or crystal enemy flies a tuned copy of its row, so it
+    // fires oftener and faster, dives harder and (crystal) throws one more shot. Red keeps the table's own behaviour untouched.
+    public void SetTier(int tier)
+    {
+        if (Behaviour == null) return;
+        if (tableBehaviour == null) tableBehaviour = Behaviour;
+        Tier = Mathf.Clamp(tier, 0, 2);
+        var tuned = EnemyTierThreat.Tuned(Def, tableBehaviour, Tier, EnemyTierThreat.LoopIndex);
+        if (tuned == Behaviour) return;
+        bool wasArmed = Armed;
+        Behaviour = tuned;
+        cooldown = tuned.firstDelay;
+        if (!wasArmed && tuned.Attacks && !tableBehaviour.Attacks)
+        {
+            Armed = true;   // crystal: an enemy that never shot gets its one simple shot
+            if (flipbook != null && !onRail) flipbook.SetBrainDriven(true);
+        }
+        if (Armed && tuned.Shoots && charge == null) BuildChargeLight();
+    }
+
     // Told to clear out (a boss or a portal is coming): it Climbs away.
     public void Order()
     {
@@ -574,7 +598,11 @@ public class EnemyBrain : MonoBehaviour
         reserved = 0;
     }
 
-    void OnDisable()
+    void OnDisable() { Teardown(); }
+
+    // Lets go of everything the brain holds in the shared budgets: its reserved volley, its area hazards, its mine beam. Runs on
+    // disable; edit-mode fixtures that DestroyImmediate an enemy call it first (OnDisable does not run for them).
+    public void Teardown()
     {
         ReleaseReservation();
         CancelHazards();
@@ -1172,14 +1200,23 @@ public static class EnemyThreat
     {
         get
         {
-            return Mathf.Min(Mathf.Max(MaxEnemyShots, PortalPressure.ShotCap),
-                             MaxEnemyShots + LoopRules.ShotBonus(RunLoop.Index) + PortalPressure.ShotBonus);
+            int budget = Mathf.Min(Mathf.Max(MaxEnemyShots, PortalPressure.ShotCap),
+                                   MaxEnemyShots + LoopRules.ShotBonus(RunLoop.Index) + PortalPressure.ShotBonus + LoopDifficulty.ShotBonus(RunLoop.Index));
+            // (a later loop never has more than ShotAliveCap shots alive, and never fewer than the first pass)
+            return RunLoop.Index > 0 ? Mathf.Max(MaxEnemyShots, Mathf.Min(budget, HeartTierTuning.ShotAliveCap)) : budget;
         }
     }
 
     public static float Gap
     {
-        get { return VolleyGap * LoopRules.VolleyGapScale(RunLoop.Index) * PortalPressure.VolleyGapScale; }
+        get
+        {
+            float gap = VolleyGap * LoopRules.VolleyGapScale(RunLoop.Index) * PortalPressure.VolleyGapScale;
+            if (RunLoop.Index > 0) gap = Mathf.Max(Mathf.Min(gap, HeartTierTuning.MinVolleyGap), gap * LoopDifficulty.VolleyGapScale(RunLoop.Index));   // exponential, never under MinVolleyGap
+            // the pilot's power: T^P (PlayerPower.ThreatScale), capped; 1 for a fresh ship
+            float threat = Mathf.Min(PlayerPower.ThreatScale, HeartTierTuning.ThreatFireCap);
+            return threat <= 1f ? gap : Mathf.Max(Mathf.Min(gap, HeartTierTuning.MinVolleyGap), gap / threat);
+        }
     }
 
     // Tests: allow firing with no EliteDirector stepping the shots.
@@ -1311,7 +1348,7 @@ public static class EnemyVolley
     static int One(EliteShots pool, EliteDef style, EnemyBehaviour b, GameObject source, Vector2 at, Vector2 direction)
     {
         float speed = pilotVolley ? b.shotSpeed * PilotShotSpeed * pilotView : b.shotSpeed;
-        speed *= PortalPressure.ShotSpeedScale;   // x1 unless a portal has been kept waiting into overdrive
+        speed *= PortalPressure.ShotSpeedScale * LoopDifficulty.ShotSpeedScale * PlayerPower.ShotSpeedScale;   // x1 unless a portal has been kept waiting into overdrive
         var s = pool.Fire(null, style, b.shotKind, at, direction * speed, true, source.GetInstanceID());
         if (s == null) return 0;
         s.AsRosterShot(source, pilotVolley ? 0f : b.ride);

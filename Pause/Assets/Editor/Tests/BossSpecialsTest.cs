@@ -33,11 +33,12 @@ public static class BossSpecialsTest
     {
         fails = 0;
         var oldNow = BeatClock.Now;
-        bool wasEnabled = BossSpecials.Enabled;
+        bool wasEnabled = BossSpecials.Enabled, wasSignatures = BossSignatureTuning.Enabled;
         var savedBars = (int[])BossSpecials.Bars.Clone();
         try
         {
             BossSpecials.Enabled = true;
+            BossSignatureTuning.Enabled = false;   // this suite measures the legacy specials' own cadence (the signature patterns have BossSignatureTest)
             Tables();
             Scheduler();
             Director();
@@ -49,6 +50,7 @@ public static class BossSpecialsTest
         {
             BeatClock.Now = oldNow;
             BossSpecials.Enabled = wasEnabled;
+            BossSignatureTuning.Enabled = wasSignatures;
             for (int i = 0; i < savedBars.Length; i++) BossSpecials.Bars[i] = savedBars[i];
         }
         Debug.Log("[SPECIALS] failures: " + fails);

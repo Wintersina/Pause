@@ -16,13 +16,14 @@ public class musicControl : MonoBehaviour {
     void Start () {
         backgroundSound = GameObject.Find("MovingMusic").GetComponent<AudioSource>();
         level = Mathf.Clamp01(backgroundSound.volume);
+        WorldMusic.ResetFade();
         SoundSettings.MarkMusic(backgroundSound);
         KillCamMusic.Attach(backgroundSound);   // the kill cam's rewind plays the last of the song backwards
     }
 
     void Update () {
         UpdateMix();
-        backgroundSound.volume = level * SoundSettings.MusicGain;
+        backgroundSound.volume = level * SoundSettings.MusicGain * WorldMusic.FadeGain;
     }
 
     void UpdateMix() {

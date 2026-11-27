@@ -16,6 +16,8 @@ public static class BossWaveTest
     {
         fails = 0;
         var oldNow = BeatClock.Now;
+        bool wasSignatures = BossSignatureTuning.Enabled;
+        BossSignatureTuning.Enabled = false;   // legacy specials order (the signature patterns have BossSignatureTest)
         try
         {
             GapChains();
@@ -43,7 +45,7 @@ public static class BossWaveTest
             DrakePoses();
             TimedOrigins();
         }
-        finally { BeatClock.Now = oldNow; }
+        finally { BeatClock.Now = oldNow; BossSignatureTuning.Enabled = wasSignatures; }
         Debug.Log("[WAVES] failures: " + fails);
         return fails;
     }

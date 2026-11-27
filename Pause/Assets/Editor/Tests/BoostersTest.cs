@@ -810,7 +810,7 @@ public static class BoostersTest
         string cd = System.IO.File.ReadAllText("Assets/Scripts/Ship/collisionDetection.cs");
         Check("the hook sits in the one place a heart is lost (the hit branch of collisionDetection, before `fatal` is decided)",
               cd.Contains("HazardClear.AutoSave(") && cd.IndexOf("HazardClear.AutoSave(", StringComparison.Ordinal) < cd.IndexOf("bool fatal =", StringComparison.Ordinal) &&
-              cd.Split(new[] { "lifeCounter += 1" }, StringSplitOptions.None).Length == 2);
+              cd.Split(new[] { "lifeCounter += heartCost" }, StringSplitOptions.None).Length == 2);
     }
 
     // ---- 9 ----

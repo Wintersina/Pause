@@ -45,7 +45,7 @@ public static class WorldArtPreload
     public static int Queued { get { return queue.Count; } }
     public static int InFlight { get { return inFlight.Count; } }
     public static int HeldCount { get { return held.Count; } }
-    public static bool Done { get { return queue.Count == 0 && inFlight.Count == 0 && !warmProc; } }
+    public static bool Done { get { return queue.Count == 0 && inFlight.Count == 0 && !warmProc && !BackdropPieceStock.Filling; } }
     public static bool Holds(string path, System.Type type) { return held.ContainsKey(K(type, path)); }
 
     static string K(System.Type t, string path) { return t.Name + ":" + path; }
@@ -82,6 +82,7 @@ public static class WorldArtPreload
     // One frame: collect finished requests, keep MaxInFlight going.
     public static void Pump()
     {
+        BackdropPieceStock.Pump();   // the destination's pooled set pieces, a few a frame, inactive
         if (CloudShadowArt.Pending) CloudShadowArt.Pump(Application.isPlaying ? 1.5f : float.MaxValue);
         for (int i = inFlight.Count - 1; i >= 0; i--)
         {
@@ -302,17 +303,26 @@ public static class WorldArtPreload
         }
     }
 
-    public static void QueuePlanetfall(PlanetfallDef def)
+    public static void QueuePlanetfall(PlanetfallDef def, bool staticPlanet = false)
     {
         warmProc = true;   // the ring / reticle / vignette / plume textures, drawn in slices alongside the loads
         string f = def.folder;
-        bool turns = def.world >= 1 && def.world < PlanetFlipbooks.PlanetfallRotates.Length && PlanetFlipbooks.PlanetfallRotates[def.world];
+        bool turns = !staticPlanet && def.world >= 1 && def.world < PlanetFlipbooks.PlanetfallRotates.Length && PlanetFlipbooks.PlanetfallRotates[def.world];
         foreach (var n in new[] { turns ? null : def.planet, def.limb, def.deck, def.deckDark, def.entryFx, def.burst, def.streaks })
             if (n != null) Request<Texture2D>(f + n);
         Request<Shader>(Planetfall.ShaderPath);
         // the planet's rotation sheet (every planetfall turns it; PlanetFlipbooks takes it from the hold)
-        if (def.world >= 1 && def.world < PlanetFlipbooks.PlanetfallRotates.Length && PlanetFlipbooks.PlanetfallRotates[def.world])
+        if (turns)
             Request<Texture2D>(PlanetFlipbooks.PathOf(def.world));
+    }
+
+    // The reinforced rails WorldPainter.Apply draws at the swap (texture + shader), held so the swap does not load them.
+    static void QueueRails(WorldTheme theme)
+    {
+        string rail = WorldPainter.RailPath(theme);
+        if (rail == null) return;
+        Request<Texture2D>(rail);
+        Request<Shader>(WorldPainter.RailShader);
     }
 
     // WorldManager.OpenPortal: leaving `from` for `to` (loop: the way round to Space).
@@ -320,16 +330,35 @@ public static class WorldArtPreload
     {
         if (!Application.isPlaying) return;   // edit-mode suites drive Begin / QueueBackdrop themselves
         var def = PlanetfallCatalog.For(from, to, loop);
+        var lift = LiftoffCatalog.For(from, to, loop);
         string key = "next:" + to + (def != null ? ":pf" : "");
         Begin(key, () =>
         {
             var spec = BackdropCatalog.For(toDisplayName);
             Target = spec.world;
+            // the lift-off (the planet being LEFT) and its interlude: its art, its Space backdrop and the rails are
+            // asked for first, because they are the first things the transition shows and swaps in
+            if (lift != null && lift.planet != null) QueuePlanetfall(lift.planet, true);
+            if (lift != null && lift.interludeWorld >= 0 && lift.interludeWorld < WorldManager.Worlds.Length)
+            {
+                var interlude = WorldManager.Worlds[lift.interludeWorld];
+                if (interlude.displayName != toDisplayName)
+                {
+                    var ispec = BackdropCatalog.For(interlude.displayName);
+                    QueueBackdrop(ispec);
+                    // Space's sky is the run's pick (SpaceSkySelection), skipped by QueueBackdrop: ask for the chosen one
+                    if (ispec.world == "Space" && ispec.variantSets == 0)
+                        Request<Sprite>(BackdropCatalog.Folder("Space") + SpaceSkySelection.Texture);
+                }
+                QueueRails(interlude);
+            }
+            QueueRails(WorldManager.Worlds[Mathf.Clamp(to, 0, WorldManager.Worlds.Length - 1)]);
             if (def != null) QueuePlanetfall(def);
             // the Space sky's next-world planet (SpaceDirector: after a boss the planet turning there is the next
             // world's): its sheet is held before the director asks for it, so the first spawn is not a load
             if (!loop && to >= 1) Request<Texture2D>(PlanetFlipbooks.PathOf(to));
             QueueBackdrop(spec);
+            BackdropPieceStock.Want(spec.world);   // its director pools' pieces are built under the boss fight, not at the swap
         });
     }
 }

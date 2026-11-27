@@ -222,6 +222,7 @@ public partial class SpaceDirector : BackdropDirector
     Sprite[] giant, rocky, moonArt, station, ringStation, miniRocky, miniStation, miniRingStation;
     Sprite[] haloPlanets, asteroids;
     Sprite[] neonPlanets, referencePlanet;
+    Sprite luna, lunaMini;  // the cratered moon with a base on it (luna_moon[_mini].png): orbits a random planet now and then
     Sprite[] detailedStationFrames;
     Sprite[][] asteroidEffects;
     readonly List<BackdropPool> bodies = new List<BackdropPool>();
@@ -235,7 +236,7 @@ public partial class SpaceDirector : BackdropDirector
     int planetsSinceHero;
 
     // The next body of each depth class waits here until the sky has room.
-    struct Plan { public int kind, tier, companion; public float size, companionSize, reach; public bool ring, edge; }
+    struct Plan { public int kind, tier, companion; public float size, companionSize, reach; public bool ring, edge, luna; }
     Plan nextPlanet, nextStructure;
     float planetWait, structureWait;
     int planetSide = 1, structureSide = -1;
@@ -285,6 +286,8 @@ public partial class SpaceDirector : BackdropDirector
         for (int i = 0; i < asteroidEffects.Length; i++)
             asteroidEffects[i] = set.AsteroidFx != null
                 ? set.AsteroidFx.Frames("asteroidfx" + i) : new Sprite[0];
+        luna = Resources.Load<Sprite>(spaceFolder + LunaCell);
+        lunaMini = Resources.Load<Sprite>(spaceFolder + LunaCell + "_mini");
         var m = new List<Sprite>(rocky);
         if (fx.Has("moon")) m.Add(fx.Get("moon"));
         moonArt = m.ToArray();
@@ -535,6 +538,7 @@ public partial class SpaceDirector : BackdropDirector
         if (p.companion >= 0)
         {
             p.companionSize = SizeOf(p.companion, tier);
+            if (p.companion == Moon && LunaRoll()) { p.luna = true; p.companionSize *= LunaScale; }
             p.reach = OrbitRadius(p.size, p.companionSize) + p.companionSize * 0.75f;
         }
         return p;
@@ -556,6 +560,7 @@ public partial class SpaceDirector : BackdropDirector
         var p = PlanPlanet(Tiers.Length - 1);
         p.companion = -1;
         p.companionSize = 0f;
+        p.luna = false;
         p.reach = p.size * 0.55f;
         return p;
     }
@@ -682,7 +687,9 @@ public partial class SpaceDirector : BackdropDirector
         if (c == null) return true;
         art = n.companion == Moon ? MoonArt(n.companionSize) : StationArt(n.ring, n.companionSize);
         if (art.Length == 0) { c.Show(false); return true; }
-        Dress(c, Pick(art), n.companion, n.tier, n.companionSize, 2, true);
+        Sprite cell = Pick(art);
+        if (n.luna) cell = LunaArt(n.companionSize);
+        Dress(c, cell, n.companion, n.tier, n.companionSize, 2, true);
         c.parent = p;
         c.phase = Rand(0f, 6.283f);
         c.spin = Rand(0.10f, 0.20f) * (Chance(0.5) ? 1f : -1f);    // orbit, rad/s
@@ -728,7 +735,8 @@ public partial class SpaceDirector : BackdropDirector
                n.StartsWith(OutpostPrefix, System.StringComparison.Ordinal) ||
                n.StartsWith("neon_planet_", System.StringComparison.Ordinal) ||
                n.StartsWith("rocky_", System.StringComparison.Ordinal) ||
-               n.StartsWith("mini_rocky_", System.StringComparison.Ordinal);
+               n.StartsWith("mini_rocky_", System.StringComparison.Ordinal) ||
+               n.StartsWith(LunaCell, System.StringComparison.Ordinal);
     }
 
     // The drawn disc in atlas uv: Space's cuts are centred on their art
@@ -800,6 +808,28 @@ public partial class SpaceDirector : BackdropDirector
 
     Sprite[] RockArt(float size) { return size < MiniBelow ? miniRocky : rocky; }
     Sprite[] MoonArt(float size) { return size < MiniBelow ? miniRocky : moonArt; }
+
+    // The luna moon (the app icon's cratered moon with the base on it) takes the place of an orbiting rock moon
+    // LunaShare of the time, LunaScale times a rock moon's size so it reads, and it turns on the sphere shader like
+    // the rocks. Like RunPlanetCell, the roll comes from the per-run stream, so the seeded sky is unchanged (every
+    // seeded draw is still taken); edit mode (tests, previews) never rolls it unless ForceLuna.
+    public const string LunaCell = "luna_moon";
+    public const float LunaShare = 0.4f, LunaScale = 2.2f;
+    public static bool ForceLuna;   // tests, previews
+    public Sprite Luna { get { return luna; } }
+    public Sprite LunaMini { get { return lunaMini; } }
+    bool LunaRoll()
+    {
+        if (luna == null) return false;
+        if (ForceLuna) return true;
+        if (!Application.isPlaying) return false;
+        if (runCells == null) runCells = new System.Random(System.Environment.TickCount ^ GetHashCode());
+        return runCells.NextDouble() < LunaShare;
+    }
+    // The 128 px copy holds up to ~1.2 u on a phone (about 108 px a unit); past that the 512 px one, which a
+    // smaller draw would shimmer (no mips).
+    public const float LunaMiniBelow = 1.2f;
+    Sprite LunaArt(float size) { return size < LunaMiniBelow && lunaMini != null ? lunaMini : luna; }
 
     Color Lit(Color c, Tier t)
     {

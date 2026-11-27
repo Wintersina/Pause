@@ -32,7 +32,7 @@ public class BossHearts : HeartOrbit
     public const string SpritePath = EliteHearts.SpritePath;
 
     BossActor actor;
-    int left, quartersLeft;
+    int left, quartersLeft, layer, top;
     bool impactPending;
     Vector3 impactAt;
 
@@ -82,6 +82,8 @@ public class BossHearts : HeartOrbit
         actor = owner;
         left = count;
         quartersLeft = count * HeartDamage.PerHeart;
+        var enc = BossEncounter.Instance;
+        if (enc != null && enc.Shell.Any) { top = enc.Shell.Tier; layer = enc.ShownLayer; quartersLeft = enc.ShownQuarters; }   // (HeartTiers: the bar showing first)
         heartSize = BossConfig.HeartSize;
         BuildHearts(count);
         PopInAll();
@@ -94,11 +96,12 @@ public class BossHearts : HeartOrbit
     // BossEncounter: the hearts left now, and where the hit that cost them landed.
     public void SetLeft(int n, Vector3 at) => SetQuarterHealth(Mathf.Max(0, n) * HeartDamage.PerHeart, at);
 
-    public void SetQuarterHealth(int quarters, Vector3 at)
+    public void SetQuarterHealth(int quarters, Vector3 at, int newLayer = 0)
     {
         quarters = Mathf.Max(0, quarters);
-        if (quarters == quartersLeft) return;
+        if (quarters == quartersLeft && newLayer == layer) return;
         quartersLeft = quarters;
+        layer = newLayer;
         left = HeartDamage.WholeHearts(quarters);
         impactPending = true;
         impactAt = at;
@@ -128,6 +131,8 @@ public class BossHearts : HeartOrbit
     protected override int RemainingHearts() { return left; }
     protected override bool UsesQuarterHearts => true;
     protected override int RemainingQuarterUnits() => quartersLeft;
+    protected override int CurrentLayer => layer;
+    protected override int TopLayer => top;
 
     protected override bool TakeImpact(out Vector3 at)
     {

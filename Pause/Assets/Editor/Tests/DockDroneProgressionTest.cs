@@ -58,17 +58,17 @@ public static class DockDroneProgressionTest
     {
         EditorSceneLoader.Open("gameS1"); ShotAtoms.BeginRun(3);
         var rig = ShotFeelTest.MakeShip(1, 4, activate: true);
-        while (DroneSquad.Slots < 12) DroneSquad.AddBossDrone(); rig.battery.Refresh();
-        for (int drone = 0; drone < 12; drone++) ShotAtoms.SetLevel(drone, ShotAtom.Twin, drone % 10 + 1);
+        while (DroneSquad.Slots < DroneSquad.MaxSlots) DroneSquad.AddBossDrone(); rig.battery.Refresh();
+        for (int drone = 0; drone < DroneSquad.MaxSlots; drone++) ShotAtoms.SetLevel(drone, ShotAtom.Twin, drone % 10 + 1);
         var hud = new GameObject(ShotAtomHud.HostName).AddComponent<ShotAtomHud>();
         TouchInput.PressedOverride = () => false; score.pauseCounter = 5;
         hud.SendMessage("Update"); hud.AdvancePausedReview(2f);
         bool levels = true;
-        for (int drone = 0; drone < 12; drone++) levels &= hud.PausedLevelLabel(drone, ShotAtom.Twin) == "x" + (drone % 10 + 1);
-        Check("pause expands all twelve individual drone modifier rows", hud.PauseExpanded && hud.ExpandedRowsVisible == 12 && levels);
+        for (int drone = 0; drone < DroneSquad.MaxSlots; drone++) levels &= hud.PausedLevelLabel(drone, ShotAtom.Twin) == "x" + (drone % 10 + 1);
+        Check("pause expands all six individual drone modifier rows", hud.PauseExpanded && hud.ExpandedRowsVisible == DroneSquad.MaxSlots && levels);
         bool separated = true;
-        for (int drone = 1; drone < 12; drone++) separated &= hud.PausedRowRect(drone).yMax <= hud.PausedRowRect(drone - 1).yMin;
-        Check("all expanded rows remain distinct and inside the screen", separated && hud.PausedRowRect(11).yMin >= ScreenInfo.SafeArea.yMin);
+        for (int drone = 1; drone < DroneSquad.MaxSlots; drone++) separated &= hud.PausedRowRect(drone).yMax <= hud.PausedRowRect(drone - 1).yMin;
+        Check("all expanded rows remain distinct and inside the screen", separated && hud.PausedRowRect(DroneSquad.MaxSlots - 1).yMin >= ScreenInfo.SafeArea.yMin);
         foreach (var image in hud.GetComponentsInChildren<Image>(true)) levels &= !image.raycastTarget;
         ShotAtoms.SetLevel(0, ShotAtom.Twin, 0);
         ShotAtoms.SetLevel(1, ShotAtom.Arc, 2);

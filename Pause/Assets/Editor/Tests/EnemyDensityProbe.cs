@@ -139,10 +139,19 @@ public static class EnemyDensityProbe
         EliteSystem.Clear();
         EnemyThreat.Reset();
         PilotAirspace.Clear();
-        foreach (var f in Object.FindObjectsByType<SpawnFootprint>(FindObjectsSortMode.None)) Object.DestroyImmediate(f.gameObject);
+        foreach (var f in Object.FindObjectsByType<SpawnFootprint>(FindObjectsSortMode.None)) Destroy(f.gameObject);
         foreach (var r in Object.FindObjectsByType<RailLaneScroller>(FindObjectsSortMode.None)) Object.DestroyImmediate(r.gameObject);
         foreach (var b in Object.FindObjectsByType<enmiesOnBoard>(FindObjectsSortMode.None)) Object.DestroyImmediate(b.gameObject);
-        foreach (var e in Object.FindObjectsByType<EnemyIdentity>(FindObjectsSortMode.None)) Object.DestroyImmediate(e.gameObject);
+        foreach (var e in Object.FindObjectsByType<EnemyIdentity>(FindObjectsSortMode.None)) Destroy(e.gameObject);
+        RailMineLasers.Clear();   // (a beam, a hazard or a reservation must never outlive the board that made it)
+    }
+
+    // DestroyImmediate does not run OnDisable: the brain gives its beam, hazards and reserved volley back first.
+    static void Destroy(GameObject go)
+    {
+        if (go == null) return;
+        foreach (var brain in go.GetComponentsInChildren<EnemyBrain>(true)) brain.Teardown();
+        Object.DestroyImmediate(go);
     }
 
     static readonly List<SpawnFootprint> buffer = new List<SpawnFootprint>(128);
@@ -190,7 +199,7 @@ public static class EnemyDensityProbe
             RailMineMount mount;
             // (a mine's laser may have burnt it during the brains' step)
             if (f == null || !f.TryGetComponent(out mount)) continue;
-            if (mount.rail == null) Object.DestroyImmediate(f.gameObject);
+            if (mount.rail == null) Destroy(f.gameObject);
             else mount.SendMessage("LateUpdate");
         }
         buffer.Clear();
@@ -205,7 +214,7 @@ public static class EnemyDensityProbe
         foreach (var f in buffer)
         {
             float y = f.transform.position.y;
-            if (y < -ViewHalfHeight - 3f || y > ViewHalfHeight + 15f) Object.DestroyImmediate(f.gameObject);   // off the board (departed pilots park at +/-60)
+            if (y < -ViewHalfHeight - 3f || y > ViewHalfHeight + 15f) Destroy(f.gameObject);   // off the board (departed pilots park at +/-60)
         }
         EliteSystem.Step(Dt);
     }
@@ -295,6 +304,22 @@ public static class EnemyDensityProbe
                 peak = Mathf.Max(peak, n);
                 shots += ShotsOnScreen();
                 pilots += PilotsOnScreen();
+            }
+            if (seed == 0 && hud >= 20)
+            {
+                // fire-gate diagnostics (why a pilot would not fire): the volley gap, the shot budget, what is live / reserved, the pilots' own state
+                int armed = 0, volleys = 0, fired = 0;
+                var live = PilotAirspace.Live;
+                for (int i = 0; i < live.Count; i++) { if (live[i].Armed) armed++; volleys += live[i].Volleys; fired += live[i].ShotsFired; }
+                Debug.Log(string.Format("[DENSITY] fire gate hud {0}: Gap {1:F2} Budget {2} Live {3} Pending {4} Threat {5:F2} ShotSpeed {6:F2} | pilots {7} armed {8} volleys {9} shots {10} | launched {11}",
+                                        hud, EnemyThreat.Gap, EnemyThreat.ShotBudget, EnemyThreat.LiveShots, EnemyThreat.PendingShots, PlayerPower.ThreatScale,
+                                        PlayerPower.ShotSpeedScale, live.Count, armed, volleys, fired, EliteSystem.Shots.Launched));
+                // what LiveShots is made of: roster shots Active in the pool, every Active pooled shot, mine-laser beams, area-hazard threat
+                int rosterActive = 0, anyActive = 0, poolSize = 0;
+                var pool = EliteSystem.Shots.All;
+                for (int i = 0; i < pool.Count; i++) { poolSize++; if (pool[i] != null && pool[i].Active) { anyActive++; if (pool[i].RosterShot) rosterActive++; } }
+                Debug.Log(string.Format("[DENSITY] live terms hud {0}: roster active {1} | all active pooled shots {2} of {3} | mine-laser beams {4} (active lasers {5}) | hazard threat {6} (hazards {7})",
+                                        hud, rosterActive, anyActive, poolSize, RailMineLasers.LiveBeams, RailMineLasers.ActiveCount, AttackHazard.LiveThreat, AttackHazard.ActiveCount));
             }
             total.spawnsPerSecond += (board.SpawnedCount - before) / WindowSeconds;
             total.pilots += pilots / frames;

@@ -185,8 +185,9 @@ public static class ScoreRules
     // on the world's clock, so a pause neither drops nor extends a chain.
     public static bool ComboEnabled = true;
     public static float ComboWindowSeconds = 2f;
-    // Chain length needed for x2, x3, x4.
-    public static readonly int[] ComboThresholds = { 3, 6, 10 };
+    // Chain length needed for x2, x3, x4. (x4 was 10 kills; 25 since 2026-11-27, "much harder to get the 4x". The elite
+    // multiplier follows it: EliteMultiplier reads MultiplierFor.)
+    public static readonly int[] ComboThresholds = { 3, 6, 25 };
 
     public static int MultiplierFor(int chain)
     {
@@ -216,7 +217,7 @@ public static class ScoreRules
     // how the pilot flies. Boss and world bonuses are fixed rewards for
     // getting there (they scale with the loop instead, LoopRules.BonusScale),
     // and pickups stay flat. On kills it stacks with the chain multiplier
-    // (x4 chain at x2.5 speed = x10), capped at MaxTotalMultiplier. Flight
+    // (x4 chain at x2.5 speed = x10, so the 8 cap bites; a x4 chain now needs 25 kills), capped at MaxTotalMultiplier. Flight
     // and kill points are then worth LoopRules.ScoreScale(loop) more on each
     // loop (applied after that cap: it is the loop's reward, not a
     // multiplier to chain).

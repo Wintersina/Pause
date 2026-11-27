@@ -45,6 +45,7 @@ public static class ArtWarm
         EliteCatalog.ForWorld(world, elites);
         foreach (var d in elites) EliteArt.WarmPaths(d, into);
         CoverBoulderArt.WarmPaths(world, into);
+        EnemyArt.WarmPaths(world, into);   // the roster's strips last: they are wanted as the calm start ends, after the boss's and elites'
     }
 
     // World `world` begins: drop the last world's hold and queue this one's art.

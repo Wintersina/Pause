@@ -11,6 +11,8 @@ public static class BossMusicDirectorTest
     {
         fails = 0;
         var oldNow = BeatClock.Now;
+        bool wasSignatures = BossSignatureTuning.Enabled;
+        BossSignatureTuning.Enabled = false;   // legacy specials order (the signature patterns have BossSignatureTest)
         try
         {
             Maps();
@@ -23,7 +25,7 @@ public static class BossMusicDirectorTest
             finally { BossDifficulty.Enabled = ladder; }
             Actor();
         }
-        finally { BeatClock.Now = oldNow; }
+        finally { BeatClock.Now = oldNow; BossSignatureTuning.Enabled = wasSignatures; }
         Debug.Log("[MUSIC] failures: " + fails);
         return fails;
     }

@@ -147,7 +147,10 @@ public class FloatieCompanion : MonoBehaviour
     public void Place()
     {
         if (hull == null) return;
-        Vector3 target = rest + Hover();
+        bool orbit = FloatieBattery.Orbiting(slot + 1);
+        Vector3 target = orbit ? (Vector3)DroneOrbit.Local(slot + 1) + Hover() : rest + Hover();
+        target.z = .02f;
+        if (sr != null) sr.enabled = DroneOrbit.Ready ? orbit || DroneOrbit.IsMember(slot + 1) : true;   // a knocked-out drone is gone from the ring until it returns
         if (ShipUiSlots.Spins(ship))
         {
             // Ninja and UFO spin their whole hull: stay upright beside it, as the main floatie does.
@@ -155,7 +158,11 @@ public class FloatieCompanion : MonoBehaviour
             transform.rotation = Quaternion.identity;
         }
         else transform.localPosition = target;
-        if (sr != null) transform.position = DroneFormation.KeepVisible(hull, transform.position, sr.bounds, out folded);
+        if (sr != null)
+        {
+            if (orbit) { folded = false; transform.position = DroneOrbit.Clamp(transform.position, sr.bounds, ShipTargets.View()); }
+            else transform.position = DroneFormation.KeepVisible(hull, transform.position, sr.bounds, out folded);
+        }
         if (arrivalAge < .7f)
         {
             arrivalAge += Time.deltaTime;
@@ -237,6 +244,7 @@ public class FloatieBattery : MonoBehaviour
         ship = shipId;
         gun = companion;
         tint = WeaponStyleTable.For(shipId).energy;
+        DroneOrbit.Reset();
         FloatieBullets.Prebuild(FloatieTuning.PoolSize);
         FloatieFx.Prebuild();
         GunImpactFeedback.Prewarm();   // the three hit clips and their voices, built now, not on the first hit of a fight
@@ -340,6 +348,8 @@ public class FloatieBattery : MonoBehaviour
         if (gone) { FloatieBullets.ReleaseAll(this); return; }
 
         FloatieFx.Tick(dt);
+        DroneSquad.TickKnockOuts(dt);
+        StepOrbit(dt);
         // bullets already in the air fly on (not while the world is frozen: dt is 0 then)
         var all = FloatieBullets.All;
         for (int i = 0; i < all.Count; i++)
@@ -379,6 +389,26 @@ public class FloatieBattery : MonoBehaviour
             else timer[i] = .15f;   // no bullet free right now: try again in a moment
         }
     }
+
+
+    // The squad's slow orbit (DroneOrbit): who is on the ring, and the hull's size and place, once a frame.
+    HeartOrbit hearts;
+    void StepOrbit(float dt)
+    {
+        if (!DroneOrbit.Enabled) return;
+        int mask = 0;
+        for (int i = 0; i < count; i++) if (i == 0 || !DroneSquad.IsKnockedOut(i)) mask |= 1 << i;
+        var hr = GetComponent<SpriteRenderer>();
+        Vector2 e = hr != null && hr.sprite != null ? (Vector2)hr.sprite.bounds.extents : new Vector2(.4f, .5f);
+        float scale = Mathf.Max(.0001f, Mathf.Abs(transform.lossyScale.x));
+        if (hearts == null) hearts = GetComponentInChildren<HeartOrbit>(true);
+        if (hearts == null && Time.frameCount % 30 == 0) hearts = FindFirstObjectByType<ShipLivesIndicator>();   // (found once; the lives indicator may be built after the battery)
+        // the hearts' live outer reach (their orbit, a loop and half a heart), in the hull's local units: the drone ring stays outside it
+        float heartClear = hearts != null && hearts.isActiveAndEnabled ? (hearts.OrbitRadius + HeartOrbit.LoopRadius + hearts.heartSize * .5f) / scale : 0f;
+        DroneOrbit.Advance(dt, mask, count, e, e.y * .72f, heartClear, transform.position, scale, ShipTargets.View());
+    }
+
+    public static bool Orbiting(int slot) { return DroneOrbit.Ready && DroneOrbit.IsMember(slot); }
 
     // Floatie #2 tilts to its next random angle just before the shot; the seeker tracks its nearest target all the time (and eases
     // back to straight up with none).
@@ -428,6 +458,8 @@ public class FloatieBattery : MonoBehaviour
     }
 
     public Vector3 MuzzleFor(int index) => MuzzleOf(index);
+    // Where drone `index`'s body is now (a hunter's bolt tests against it).
+    public Vector3 BodyAt(int index) => index > 0 && index - 1 < extras.Length && extras[index - 1] != null ? extras[index - 1].transform.position : (gun != null && gun.BarrelRenderer != null ? gun.BarrelRenderer.transform.position : transform.position);
     public void PreviewDrone(int index) { previewSlot = index; previewUntil = Time.unscaledTime + .15f; }
 
     Vector3 MuzzleOf(int index)

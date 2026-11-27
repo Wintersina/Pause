@@ -138,7 +138,8 @@ public class collisionDetection : MonoBehaviour {
         RunScore.OnKill(target, bonusPoints);   // run score (ScoreRules), with the kill chain
         AdaptiveDifficulty.OnKill();
         Codex.Discover(target);   // ultimate kills count as meeting it too
-        SecretPowerController.OnKill();   // kills fill the secret power's meter
+        // kills fill the secret power's meter (its cooldown) -- but not a drone's: only the pilot's own kills count (DroneScoring)
+        if (!DroneScoring.InProgress) SecretPowerController.OnKill();
         RecordKillAchievement(target, bonusPoints);
         // Cached: a death combo or shockwave pays several kills in one frame.
         if (killPayer == null) killPayer = Object.FindFirstObjectByType<collisionDetection>();
@@ -366,7 +367,9 @@ public class collisionDetection : MonoBehaviour {
             // (DeathCrash), and the killer with it -- a mine tumbles into a
             // rail rather than bursting here.
             // (the tutorial can never be lost: TutorialCannotDie)
-            bool lastHeart = !safe && lifeCounter + 1 >= MAXLIFE && !TutorialCannotDie(gameObject);
+            // a hazard hits harder as the run's power rises (HazardDamage: 1 heart at no power, up to ~1.75 on average)
+            int heartCost = safe ? 1 : HazardDamage.Cost(hit.gameObject);
+            bool lastHeart = !safe && lifeCounter + heartCost >= MAXLIFE && !TutorialCannotDie(gameObject);
             // A banked green atom (HealBank) is the safety net: the healing drone spends it on this hit. The last heart is
             // absorbed outright; any other comes back after a short beat (ShipDamageFx restores it). Only an unshielded hit spends one.
             HealBank.Hit bankHit = safe ? HealBank.Hit.None : HealBank.OnHit(lastHeart);
@@ -412,7 +415,7 @@ public class collisionDetection : MonoBehaviour {
                 // The target still breaks on an unshielded collision, even
                 // though the player's own explosion is the visual focus.
                 if (!PrefabName.Is(hit.gameObject, "mine")) EnemyDeathAudio.Play(hit.gameObject);
-                lifeCounter += 1;
+                lifeCounter += heartCost;
                 if (bankHit == HealBank.Hit.Absorb) lifeCounter = MAXLIFE - 1;   // the banked atom took the last heart's hit
                 // the tutorial keeps its last heart whatever hits it
                 if (TutorialCannotDie(gameObject)) { Hints.NoteCrash(lifeCounter >= MAXLIFE); lifeCounter = Mathf.Min(lifeCounter, MAXLIFE - 1); }

@@ -68,6 +68,7 @@ public static class EnemyDeathAudioTest
             Import();
             Elite();
             Bosses();
+            BossWarm();
         }
         finally
         {
@@ -80,6 +81,26 @@ public static class EnemyDeathAudioTest
         }
         Debug.Log("[EDA] failures: " + fails);
         return fails;
+    }
+
+    // The boss's death scream and heart-loss blows are warmed during the level (FirstUseWarm), not loaded on the frame it dies.
+    static void BossWarm()
+    {
+        foreach (var b in BossCatalog.All)
+        {
+            string key = EnemyDeathAudio.BossKey(b.artKey);
+            FirstUseWarm.Release(BossArt.WarmKey(b));
+            EnemyDeathAudio.ClearCache();
+            BossArt.QueueWarm(b);
+            Check(key + " queues a death clip warm step", FirstUseWarm.Asked(BossArt.WarmKey(b) + "deathclip"));
+            Check(key + " queues a hurt clip warm step", FirstUseWarm.Asked(BossArt.WarmKey(b) + "hurtclip"));
+            Check(key + " death clip path resolves a real clip", Resources.Load<AudioClip>(EnemyDeathAudio.FirstClipPath(key)) != null);
+            int guard = 0;
+            while (FirstUseWarm.Pump() && guard++ < 200) { }
+            Check(key + " warm leaves its clips resolved in the cache", EnemyDeathAudio.Variants(key) > 0 && EnemyDeathAudio.AuthoredClip(key, 0) != null);
+        }
+        string src = System.IO.File.ReadAllText("Assets/Scripts/Bosses/BossArt.cs");
+        Check("BossArt.QueueWarm asks EnemyDeathAudio to warm the clips", src.Contains("EnemyDeathAudio.QueueBossWarm(boss.artKey, k)"));
     }
 
     // Every roster enemy and elite resolves clips: rocks their own (3 variants), everything else its shared category.

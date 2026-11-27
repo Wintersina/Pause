@@ -285,6 +285,35 @@ public static class EnemyDeathAudio
         return key != null && PlayAuthored(key, BossHurtVolume);
     }
 
+    // FirstUseWarm: a boss's death scream and heart-loss blows are read off-thread while the level plays, then cached
+    // (Clips) with their audio decoded, so the boss's last heart does not stall the frame it breaks on (the clip used
+    // to be loaded and decoded synchronously from Resources inside BeginOutro / SetHearts).
+    public static void QueueBossWarm(string artKey, string stepPrefix)
+    {
+        string death = BossKey(artKey);
+        if (death == null) return;
+        FirstUseWarm.Add(stepPrefix + "deathclip", FirstClipPath(death), typeof(AudioClip), () => Preload(death));
+        FirstUseWarm.Add(stepPrefix + "hurtclip", FirstClipPath(BossHurtKey(artKey)), typeof(AudioClip), () => Preload(BossHurtKey(artKey)));
+    }
+
+    // The Resources path of a key's first variant (the file the async warm step reads).
+    public static string FirstClipPath(string key)
+    {
+        string[] row;
+        if (ownByKey.TryGetValue(key, out row)) return OwnClipPath(key);
+        if (sharedByKey.TryGetValue(key, out row)) return ResourceFolder + SharedPrefix + row[1] + "_0";
+        return ResourceFolder + key + "_0";
+    }
+
+    // Resolves a key's clips into the cache and decodes their audio now (main thread, one small step).
+    public static void Preload(string key)
+    {
+        if (string.IsNullOrEmpty(key)) return;
+        var k = Clips(key);
+        foreach (var c in k.deaths) if (c != null && c.loadState == AudioDataLoadState.Unloaded) c.LoadAudioData();
+        foreach (var c in k.wet) if (c != null && c.loadState == AudioDataLoadState.Unloaded) c.LoadAudioData();
+    }
+
     // Editor safety net: a roster / elite key that resolves no clip is a
     // content bug (a new enemy added without a sound pass). Warn once per key.
     static readonly HashSet<string> warned = new HashSet<string>();

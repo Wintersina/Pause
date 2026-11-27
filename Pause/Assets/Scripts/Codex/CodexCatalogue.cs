@@ -144,14 +144,22 @@ public static class CodexCatalogue
             // PickupFlipbook in flight. The green atom keeps its original.
             new CodexEntry("atom_stardust", "Star Dust", CodexCategory.Atoms,
                 () => Pickup(PickupKind.DustSmall, "prefabs/smStar_1"),
-                "Glittering crumbs of collapsed stars, scattered in long trails (small, medium and big ones). Scoop them up - star dust buys " +
+                "Glittering crumbs of collapsed stars, scattered in long trails - most of them small. Scoop them up: " +
+                "+" + ScoreRules.SmallDust + " point each. Star dust buys " +
                 "new ships and colours, and every crumb shaves a moment off your weapon's charge and feeds your " +
                 "secret power.",
-                new[] { "smstar", "medstar" }),
+                new[] { "smstar" }),
+            new CodexEntry("atom_medstar", "Medium Star", CodexCategory.Atoms,
+                () => Pickup(PickupKind.DustMedium, PickupArt.MediumStarPrefab),
+                "A plumper crumb of star dust that turns up now and then in the trails. Worth +" + ScoreRules.MediumDust +
+                " points and more dust than a small one, and it charges your weapon and your secret power " +
+                "a little harder too.",
+                new[] { "medstar" }),
             new CodexEntry("atom_bigstar", "Bright Star", CodexCategory.Atoms,
                 () => Pickup(PickupKind.Dust, "prefabs/LargeStar_1"),
-                "A fat, bright clump of star dust worth twice a small one. It charges your weapon and your secret " +
-                "power just the same, so it's worth a swerve.",
+                "A fat, bright clump of star dust: +" + ScoreRules.LargeDust + " points and twice the dust of a small one. " +
+                "It charges your weapon and your secret " +
+                "power the most, so it's worth a swerve.",
                 new[] { "largestar" }),
             new CodexEntry("atom_blue", "Blue Atom", CodexCategory.Atoms,
                 () => Pickup(PickupKind.Shield, "prefabs/atom3a"),
@@ -201,7 +209,7 @@ public static class CodexCatalogue
                 "BOSS REWARD  Every destroyed boss drops one drone recruit instead of upgrade coins.\n" +
                 "SQUAD  Dock colours unlock 1 / 1 / 1 / 2 / 3 starting slots; the opening directional core activates the first.\n" +
                 "RECRUIT  Joins active in your latest chosen firing mode, with half the squad's average modifier levels.\n" +
-                "CAP  Twelve drones; an extra recruit pays five dust.", new[] { Codex.Normalise("bossDroneReward") }),
+                "CAP  Six drones; an extra recruit pays five dust.", new[] { Codex.Normalise("bossDroneReward") }),
 
             // ------------------------------------------------------------- Worlds
             new CodexEntry(PortalId, "Wormhole Portal", CodexCategory.Worlds, () => TeleportPortalSprites.FrameAt(0),
@@ -316,6 +324,7 @@ public static class CodexCatalogue
             ? "EACH COIN  speeds up ALL your drones at once (one shared level)"
             : "EACH COIN  activates an empty drone in the current mode, or upgrades the weakest eligible drone; preview the labelled recipient");
         lines.Add("HEART DAMAGE  25% = one quarter, 50% = half, 75% = three quarters, 100% = one heart; same for enemies, elites and bosses");
+        lines.Add("LAYERED HEARTS  strong runs meet BLUE and CRYSTAL hearts in front of the red ones: crystal breaks first, then blue, then red. It only dies when the red hearts are gone");
         // the range of the effect: the first level and the last (ten levels would be a wall of text)
         lines.Add("LEVEL 1  " + ShotAtomLevelText(atom, 1));
         lines.Add("LEVEL " + ShotAtomTuning.MaxLevel + "  " + ShotAtomLevelText(atom, ShotAtomTuning.MaxLevel));

@@ -90,11 +90,14 @@ public class RailMineLaser : MonoBehaviour
     public enum Phase { Off, Aim, Beam, Cool }
 
     // ---- tunables ----
-    public const float AimSeconds = .7f;       // the aim line: the last this-many seconds of the windup
-    public const float BeamSeconds = .4f;      // the sustained beam: the only harmful phase
+    // (the aim line, beam time, drawn and hit width follow the pilot's power: MineScaling, a snapshot taken when a mine spawns; x1 / .7 s at no power)
+    public static float AimSeconds { get { return MineScaling.Aim; } }   // the aim line: the last this-many seconds of the windup (never under .5 s)
+    public static float BeamSeconds { get { return BaseBeamSeconds * MineScaling.Duration; } }   // the sustained beam: the only harmful phase
+    public const float BaseBeamSeconds = .4f;
     public const float CoolSeconds = .2f;      // the flicker out
-    public const float DrawWidth = .4f;        // drawn beam (the art cell's width)
-    public const float HitThickness = .28f;    // hitbox across the beam (DrawWidth x BossConfig.BeamHitFraction)
+    public const float BaseDrawWidth = .4f, BaseHitThickness = .28f;
+    public static float DrawWidth { get { return BaseDrawWidth * MineScaling.Width; } }        // drawn beam (the art cell's width)
+    public static float HitThickness { get { return BaseHitThickness * MineScaling.Width; } } // hitbox across the beam (DrawWidth x BossConfig.BeamHitFraction)
     public const float SightWidth = .12f;      // the aim line (DrawWidth x BossConfig.BeamSightWidth)
     public const float SightVisible = SightWidth * .5f;   // the painted aim cell's visible line, between its dark keylines (BeamKeyline)
     public const float FlashAlong = .19f;      // muzzle flash: this far along from the core (the sphere's lane-side rim)
@@ -943,20 +946,34 @@ public sealed class MineLaserArt
 // (so a later fire never allocates), reused.
 public static class RailMineLasers
 {
-    public const int Max = 6;
+    // The pool is never smaller than the most laser mines that can be alive at once (HeartTierTuning.MineAliveCap, 8 at full power).
+    public const int Max = HeartTierTuning.MineAliveCap;
     static readonly List<RailMineLaser> all = new List<RailMineLaser>(Max);
     static GameObject root;
 
     public static IReadOnlyList<RailMineLaser> All => all;
     public static int Created => all.Count;
 
-    // A free laser, or null when all Max are busy (a busy screen skips one).
+    // A beam can never outlive its mine: one whose owner is gone (a mine destroyed without its brain's OnDisable running, or
+    // culled mid-beam) is recycled, so it stops counting as a live shot and its pool slot comes back.
+    public static void Sweep()
+    {
+        for (int i = 0; i < all.Count; i++)
+            if (all[i] != null && all[i].Active && all[i].Owner == null) all[i].Recycle();
+    }
+
+    // A free laser. Never null once the scene has a pool: if every pooled beam is busy (a pool smaller than a burst of mines),
+    // one more is built and kept, so a telegraphed shot is never skipped and nothing throws. (Normally never reached: Max is the alive cap.)
     public static RailMineLaser Take()
     {
         Prewarm();
+        Sweep();
         for (int i = 0; i < all.Count; i++)
             if (all[i] != null && !all[i].Active) return all[i];
-        return null;
+        if (root == null) return null;
+        var extra = RailMineLaser.Create(root.transform);
+        all.Add(extra);
+        return extra;
     }
 
     // Builds the pool (once per scene).
@@ -976,6 +993,7 @@ public static class RailMineLasers
     {
         get
         {
+            Sweep();
             int n = 0;
             for (int i = 0; i < all.Count; i++) if (all[i] != null && all[i].State == RailMineLaser.Phase.Beam) n++;
             return n;
@@ -986,6 +1004,7 @@ public static class RailMineLasers
     {
         get
         {
+            Sweep();
             int n = 0;
             for (int i = 0; i < all.Count; i++) if (all[i] != null && all[i].Active) n++;
             return n;

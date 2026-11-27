@@ -46,10 +46,22 @@ public interface ISceneryTarget { }
 // fires -- ion laser, frost nova, sentries, nuke, rail, spark, eye, heat wave, star, mines, abduct, gale, blowtorch, disc) kills an ordinary
 // enemy outright whatever hearts it has left. Drone hits carry actual quarter-heart damage.
 // Other normal hits (secret powers, fusions) remove one ordinary-enemy heart.
-public enum HitKind { Normal, Ultimate, Drone }
+public enum HitKind { Normal, Ultimate, Drone, Power }   // Power: a secret power's strike (as Normal, but the boss takes it like an ultimate)
 
 public static class ShipAttackHits
 {
+    // Share of its damage an ULTIMATE (and a secret power's strike) deals to the end-of-level BOSS. 0.75: scaled back a quarter
+    // (user, 2026-11-27: "a little"). Bosses only: ordinary enemies, elites, drone fire and rams are untouched, and the
+    // boss's own hit rules stay as they were (no per-firing cap; weights bank into hearts). The attack still reports its
+    // nominal weight; the real boss (BossTarget.Strike) takes BossScale of it.
+    public const float UltimateBossDamageScale = 0.75f;
+
+    // The share of a hit's weight the boss takes right now: UltimateBossDamageScale while an ultimate / power hit is being
+    // handed over (Hit, HitBoss), else 1 (rams, drones, the tests' direct strikes).
+    public static float BossScale = 1f;
+
+    public static float ScaleFor(HitKind kind) { return kind == HitKind.Ultimate || kind == HitKind.Power ? UltimateBossDamageScale : 1f; }
+
     // Counters for tests and previews.
     public static int Kills;
     public static int AttackTargetHits;
@@ -81,7 +93,10 @@ public static class ShipAttackHits
             {
                 AttackTargetHits++;
                 AttackTargetWeight += weight;
-                special.TakeShipAttack(ship, weight, target.transform.position);
+                float was = BossScale;
+                BossScale = ScaleFor(kind);
+                try { special.TakeShipAttack(ship, weight, target.transform.position); }
+                finally { BossScale = was; }
                 return false;
             }
             float w = Mathf.Min(weight, budget);
@@ -96,7 +111,9 @@ public static class ShipAttackHits
         // to the ordinary kill. Hazards and plain bodies (and the tests' bare targets) die in one hit.
         // An ultimate hit skips the hearts: it kills the enemy outright (paid once, in Kill).
         if (kind != HitKind.Ultimate && Toughness.Absorb(target, kind == HitKind.Drone ? weight : 1f)) return false;
-        Kill(target, ship);
+        DroneScoring.InProgress = kind == HitKind.Drone;   // (a squad's kill pays less: DroneScoring)
+        try { Kill(target, ship); }
+        finally { DroneScoring.InProgress = false; }
         return true;
     }
 
@@ -104,7 +121,12 @@ public static class ShipAttackHits
     // window blocked it, so the caller keeps it pending and calls again.
     public static bool HitBoss(IBossAttackTarget boss, int ship, float weight, Vector3 at)
     {
-        if (!boss.TryStrike(ship, weight, at)) return false;
+        float was = BossScale;
+        BossScale = UltimateBossDamageScale;
+        bool landed;
+        try { landed = boss.TryStrike(ship, weight, at); }
+        finally { BossScale = was; }
+        if (!landed) return false;
         AttackTargetHits++;
         AttackTargetWeight += weight;
         return true;

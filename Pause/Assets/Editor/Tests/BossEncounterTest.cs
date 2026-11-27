@@ -66,6 +66,7 @@ public static class BossEncounterTest
     {
         EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
         BossEncounter.ResetRun();
+        RunLoop.Reset();   // a loop left by an earlier test would give the boss a blue / crystal bar (HeartTierRun.Plan)
         var camGo = new GameObject("Main Camera", typeof(Camera));
         camGo.tag = "MainCamera";
         var cam = camGo.GetComponent<Camera>();

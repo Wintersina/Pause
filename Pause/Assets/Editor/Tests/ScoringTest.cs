@@ -267,10 +267,11 @@ public static class ScoringTest
         RunScore.BeginRun(true, true);
         var rock = EnemyRoster.One(0, EnemyRole.Rock);
 
-        Check("multiplier table: 1,1,2,2,2,3,3,3,3,4 for chains 1..10",
+        Check("multiplier table: x2 at 3, x3 at 6, x4 only at 25 (it was 10)",
               ScoreRules.MultiplierFor(1) == 1 && ScoreRules.MultiplierFor(2) == 1 && ScoreRules.MultiplierFor(3) == 2 &&
               ScoreRules.MultiplierFor(5) == 2 && ScoreRules.MultiplierFor(6) == 3 && ScoreRules.MultiplierFor(9) == 3 &&
-              ScoreRules.MultiplierFor(10) == 4 && ScoreRules.MultiplierFor(40) == 4);
+              ScoreRules.MultiplierFor(10) == 3 && ScoreRules.MultiplierFor(24) == 3 && ScoreRules.MultiplierFor(25) == 4 && ScoreRules.MultiplierFor(40) == 4 &&
+              ScoreRules.ComboThresholds[2] == 25);
 
         long a = Kill(Enemy(rock));
         RunScore.Tick(.5f, 0f);
@@ -280,7 +281,10 @@ public static class ScoringTest
         Check("chain: kills 1-2 at x1, the 3rd at x2 (" + a + ", " + b + ", " + c + ")",
               a == 5 && b == 5 && c == 10 && RunScore.Multiplier == 2);
         for (int i = 0; i < 7; i++) Kill(Enemy(rock));
-        Check("ten chained kills reach x4", RunScore.Multiplier == 4 && RunScore.Chain == 10);
+        Check("ten chained kills are only x3 now", RunScore.Multiplier == 3 && RunScore.Chain == 10);
+        for (int i = 0; i < 14; i++) Kill(Enemy(rock));
+        Check("24 chained kills are still x3", RunScore.Multiplier == 3 && RunScore.Chain == 24);
+        Check("the 25th chained kill reaches x4 and pays it", Kill(Enemy(rock)) == 20 && RunScore.Multiplier == 4 && RunScore.Chain == 25);
         Check("x4 is the cap", Kill(Enemy(rock)) == 20);
 
         RunScore.Tick(0f, 0f);
@@ -290,7 +294,7 @@ public static class ScoringTest
         RunScore.Tick(ScoreRules.ComboWindowSeconds * .6f, 0f);
         Check("decays to x1 after ~2s without a kill", RunScore.Multiplier == 1 && RunScore.Chain == 0);
         Check("the next kill starts over at x1", Kill(Enemy(rock)) == 5);
-        Check("the best chain is recorded", RunScore.Parts.bestChain == 11);
+        Check("the best chain is recorded", RunScore.Parts.bestChain == 26);
         Check("dust and atoms are never multiplied", RunScore.OnDust(true) == ScoreRules.LargeDust);
 
         bool was = ScoreRules.ComboEnabled;
@@ -924,9 +928,9 @@ public static class ScoringTest
 
             for (int i = 0; i < 3; i++) RunLoop.Advance();   // Index 4: the cap
             long k4 = Kill(Enemy(rock));
-            Check("kills: a rock pays " + k0 + " / " + k1 + " / " + k4 + " on loops 1 / 2 / 5 (5 x1, x1.15, x1.6)",
-                  k0 == ScoreRules.Rock && k1 == Mathf.RoundToInt(ScoreRules.Rock * LoopRules.ScoreScale(1)) &&
-                  k4 == Mathf.RoundToInt(ScoreRules.Rock * LoopRules.ScoreScale(4)));
+            Check("kills: a rock pays " + k0 + " / " + k1 + " / " + k4 + " on loops 1 / 2 / 5 (5 x1, x1.5, x3: LoopDifficulty.KillScale, kills no longer use the flight scale)",
+                  k0 == ScoreRules.Rock && k1 == Mathf.RoundToInt(ScoreRules.Rock * LoopDifficulty.KillScale(1)) &&
+                  k4 == Mathf.RoundToInt(ScoreRules.Rock * LoopDifficulty.KillScale(4)));
         }
         finally
         {

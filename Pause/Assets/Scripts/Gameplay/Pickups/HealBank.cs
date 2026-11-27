@@ -39,7 +39,7 @@ public static class HealBank
     public static Catch OnCatch(bool damaged, bool tutorial)
     {
         if (damaged) return Catch.Heal;
-        if (tutorial || Count >= Max) return Catch.Wasted;
+        if (tutorial || Count >= HealScaling.BankMax(Max, RunPower.Score01)) return Catch.Wasted;   // the bank shrinks as power rises (HealScaling)
         Count++;
         Banked++;
         return Catch.Bank;
@@ -55,7 +55,7 @@ public static class HealBank
         SprayRequests++;
         sprayLeft = SprayRequestSeconds;
         if (fatal) return Hit.Absorb;
-        if (Pending == 0) restoreIn = RestoreDelay;
+        if (Pending == 0) restoreIn = RestoreDelay * HealScaling.DelayScale;
         Pending++;
         return Hit.Restore;
     }
@@ -72,7 +72,7 @@ public static class HealBank
         restoreIn -= dt;
         if (restoreIn > 0f) return false;
         Pending--;
-        restoreIn = Pending > 0 ? RestoreDelay : 0f;
+        restoreIn = Pending > 0 ? RestoreDelay * HealScaling.DelayScale : 0f;
         return true;
     }
 }

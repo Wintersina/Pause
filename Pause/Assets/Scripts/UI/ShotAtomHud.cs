@@ -3,7 +3,7 @@ using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 // Read-only squad HUD under the scoreboard: collected modifiers for the selected drone in first-catch order,
-// including shared RAPID, then compact mode pips for all twelve possible slots. Paused rows use the same ordering.
+// including shared RAPID, then compact mode pips for all six possible slots. Paused rows use the same ordering.
 // Nearby pickup previews select their recipient; dormant slots remain visible from run start.
 // All graphics ignore raycasts so the pilot can press anywhere to pause. Geometry follows
 // the scoreboard's painted bottom edge, rails, quick actions and safe-area bounds.

@@ -208,6 +208,7 @@ public static class CodexAnimations
             case "drone_core_aimed": kind = PickupKind.CoreAimed; return true;
             case "boss_drone": kind = PickupKind.DroneRecruit; return true;
             case "atom_stardust": kind = PickupKind.DustSmall; return true;
+            case "atom_medstar": kind = PickupKind.DustMedium; return true;
             case "atom_bigstar": kind = PickupKind.Dust; return true;
             case "atom_blue": kind = PickupKind.Shield; return true;
             case "atom_red": kind = PickupKind.Pause; return true;

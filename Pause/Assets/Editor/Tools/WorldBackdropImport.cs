@@ -175,7 +175,8 @@ public class WorldBackdropImport : AssetPostprocessor
     static bool IsStandaloneSprite(string file)
     {
         return file.StartsWith("asteroid_", System.StringComparison.Ordinal) ||
-               file == "reference_planet" || file == "station_ring_v2";
+               file == "reference_planet" || file == "station_ring_v2" ||
+               file.StartsWith(SpaceDirector.LunaCell, System.StringComparison.Ordinal);   // luna_moon, luna_moon_mini
     }
 
     public static void ReimportSpaceStandaloneSprites()
@@ -186,6 +187,8 @@ public class WorldBackdropImport : AssetPostprocessor
                                       ImportAssetOptions.ForceUpdate);
         AssetDatabase.ImportAsset(folder + "reference_planet.png", ImportAssetOptions.ForceUpdate);
         AssetDatabase.ImportAsset(folder + "station_ring_v2.png", ImportAssetOptions.ForceUpdate);
+        AssetDatabase.ImportAsset(folder + SpaceDirector.LunaCell + ".png", ImportAssetOptions.ForceUpdate);
+        AssetDatabase.ImportAsset(folder + SpaceDirector.LunaCell + "_mini.png", ImportAssetOptions.ForceUpdate);
         foreach (string atlas in new[] { "extras", "neon_frames", "asteroid_fx" })
             AssetDatabase.ImportAsset(folder + atlas + ".png", ImportAssetOptions.ForceUpdate);
     }

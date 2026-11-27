@@ -17,7 +17,7 @@ public static class ShotAtomTuning
     public const int MaxLevel = 10;
 
     // ---- drops ----
-    public const float EliteDropChance = 1f;      // a killed elite: every one drops (there are up to 12 drones x 5 atoms to fill)
+    public const float EliteDropChance = 1f;      // a killed elite: every one drops (there are up to 6 drones x 5 atoms to fill)
     public const float EnemyDropChance = .08f;    // an ordinary enemy kill (not a hazard, elite or boss)
     public const float StartingLevelDropChance = .18f; // the world the run began on, not hard-coded to Space
     public const float EnemyDropCooldown = 12f;   // s: at most one drop from ordinary enemies per this (the atom spacing still applies)
