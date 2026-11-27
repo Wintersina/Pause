@@ -45,7 +45,7 @@ public static class WorldArtPreload
     public static int Queued { get { return queue.Count; } }
     public static int InFlight { get { return inFlight.Count; } }
     public static int HeldCount { get { return held.Count; } }
-    public static bool Done { get { return queue.Count == 0 && inFlight.Count == 0 && !warmProc; } }
+    public static bool Done { get { return queue.Count == 0 && inFlight.Count == 0 && !warmProc && !BackdropPieceStock.Filling; } }
     public static bool Holds(string path, System.Type type) { return held.ContainsKey(K(type, path)); }
 
     static string K(System.Type t, string path) { return t.Name + ":" + path; }
@@ -82,6 +82,7 @@ public static class WorldArtPreload
     // One frame: collect finished requests, keep MaxInFlight going.
     public static void Pump()
     {
+        BackdropPieceStock.Pump();   // the destination's pooled set pieces, a few a frame, inactive
         if (CloudShadowArt.Pending) CloudShadowArt.Pump(Application.isPlaying ? 1.5f : float.MaxValue);
         for (int i = inFlight.Count - 1; i >= 0; i--)
         {
@@ -357,6 +358,7 @@ public static class WorldArtPreload
             // world's): its sheet is held before the director asks for it, so the first spawn is not a load
             if (!loop && to >= 1) Request<Texture2D>(PlanetFlipbooks.PathOf(to));
             QueueBackdrop(spec);
+            BackdropPieceStock.Want(spec.world);   // its director pools' pieces are built under the boss fight, not at the swap
         });
     }
 }

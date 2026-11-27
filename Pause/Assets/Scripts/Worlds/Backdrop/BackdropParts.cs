@@ -292,20 +292,14 @@ public class BackdropPool
         holder.localPosition = new Vector3(0f, 0f, z);
         for (int i = 0; i < capacity; i++)
         {
-            var p = new BackdropPiece();
-            p.root = new GameObject(name + i).transform;
+            // A piece the next-world preload already built (BackdropPieceStock, a few a frame) is only re-parented:
+            // no GameObject / SpriteRenderer is created inside the swap frame.
+            var p = BackdropPieceStock.Take(blend);
+            if (p == null) p = BackdropPieceStock.Make(blend);
+            p.root.name = name + i;
             p.root.SetParent(holder, false);
-            p.body = new GameObject("body").transform;
-            p.body.SetParent(p.root, false);
-            p.sr = p.body.gameObject.AddComponent<SpriteRenderer>();
             p.sr.sortingOrder = order;
-            if (blend)
-            {
-                var b = new GameObject("blend");
-                b.transform.SetParent(p.body, false);
-                p.blend = b.AddComponent<SpriteRenderer>();
-                p.blend.sortingOrder = order + 1;
-            }
+            if (p.blend != null) p.blend.sortingOrder = order + 1;
             p.Show(false);
             items.Add(p);
         }
@@ -352,5 +346,133 @@ public class BackdropPool
             return p;
         }
         return null;
+    }
+}
+
+// Backdrop set pieces built AHEAD of a world swap. A BackdropSet's directors create a few hundred pooled pieces (three
+// GameObjects each) in the frame of the swap; on a plain portal crossfade nothing covers that burst. While the boss
+// fight runs, WorldArtPreload.Next asks for the destination's pieces (Want) and Pump builds a small budget of them a frame,
+// inactive and parked under one staging object; BackdropPool takes them (Take) instead of creating. The count wanted is
+// what the world's last set actually used (Learn), else a default; leftovers are destroyed a few a frame after the swap
+// (Trim / Drain). A swap that finds the stock short just creates the rest, as it always did.
+public static class BackdropPieceStock
+{
+    public const int PerFrame = 10;           // pieces built per Pump (30 GameObjects)
+    public const int DefaultPlain = 150, DefaultBlend = 3, MaxTotal = 320;
+    const int DrainPerFrame = 6;
+
+    static readonly Stack<BackdropPiece> plain = new Stack<BackdropPiece>();
+    static readonly Stack<BackdropPiece> blend = new Stack<BackdropPiece>();
+    static readonly Dictionary<string, int[]> learned = new Dictionary<string, int[]>();
+    static Transform staging;
+    static int wantPlain, wantBlend;
+    static string world;
+    static bool draining;
+
+    public static int Built { get; private set; }
+    public static int Taken { get; private set; }
+    public static string World { get { return world; } }
+    public static int Count { get { return plain.Count + blend.Count; } }
+    public static bool Filling { get { return Application.isPlaying && (plain.Count < wantPlain || blend.Count < wantBlend); } }
+
+    // Asks for `worldName`'s pieces (WorldArtPreload.Next). Out of play nothing is built.
+    public static void Want(string worldName)
+    {
+        if (!Application.isPlaying || PerfTier.LowEnd) return;   // low-end phones hold nothing ahead of time
+        int[] n;
+        if (!learned.TryGetValue(worldName, out n)) n = new[] { DefaultPlain, DefaultBlend };
+        world = worldName;
+        draining = false;
+        wantPlain = Mathf.Min(n[0] + 2, MaxTotal);
+        wantBlend = n[1];
+    }
+
+    // One frame: build up to PerFrame pieces towards the wanted counts (and, after the swap, destroy leftovers).
+    public static void Pump()
+    {
+        if (draining) { Drain(); return; }
+        if (!Filling) return;
+        EnsureStaging();
+        for (int i = 0; i < PerFrame && Filling; i++)
+        {
+            if (blend.Count < wantBlend) blend.Push(Make(true, staging));
+            else plain.Push(Make(false, staging));
+            Built++;
+        }
+    }
+
+    // A piece for a pool of this kind from the stock, or null.
+    public static BackdropPiece Take(bool wantBlendKind)
+    {
+        var from = wantBlendKind ? blend : plain;
+        while (from.Count > 0)
+        {
+            var p = from.Pop();
+            if (p != null && p.root != null) { Taken++; return p; }
+        }
+        return null;
+    }
+
+    public static BackdropPiece Make(bool withBlend, Transform parent = null)
+    {
+        var p = new BackdropPiece();
+        p.root = new GameObject("piece").transform;
+        if (parent != null) p.root.SetParent(parent, false);
+        p.body = new GameObject("body").transform;
+        p.body.SetParent(p.root, false);
+        p.sr = p.body.gameObject.AddComponent<SpriteRenderer>();
+        if (withBlend)
+        {
+            var b = new GameObject("blend");
+            b.transform.SetParent(p.body, false);
+            p.blend = b.AddComponent<SpriteRenderer>();
+        }
+        p.Show(false);
+        return p;
+    }
+
+    // The set for `worldName` was built: remember how many pieces it used, and let the leftovers go.
+    public static void Learn(string worldName, BackdropSet set)
+    {
+        if (!Application.isPlaying || set == null || set.Director == null) return;
+        int a = 0, b = 0;
+        foreach (var pool in set.Director.Pools)
+        {
+            if (pool.items.Count == 0) continue;
+            if (pool.items[0].blend != null) b += pool.Capacity; else a += pool.Capacity;
+        }
+        learned[worldName] = new[] { a, b };
+        if (worldName == world) { draining = true; wantPlain = wantBlend = 0; }
+    }
+
+    static void Drain()
+    {
+        for (int i = 0; i < DrainPerFrame && Count > 0; i++)
+        {
+            var p = plain.Count > 0 ? plain.Pop() : blend.Pop();
+            if (p != null && p.root != null) Object.Destroy(p.root.gameObject);
+        }
+        if (Count == 0)
+        {
+            draining = false;
+            world = null;
+            if (staging != null) { Object.Destroy(staging.gameObject); staging = null; }
+        }
+    }
+
+    // Called each frame by WorldBackdrop.Step: leftovers go a few at a time, never in one frame.
+    public static void Tick() { if (draining) Drain(); }
+
+    static void EnsureStaging()
+    {
+        if (staging != null) return;
+        staging = new GameObject("~BackdropStock").transform;
+    }
+
+    // Tests.
+    public static void Reset()
+    {
+        plain.Clear(); blend.Clear(); learned.Clear();
+        wantPlain = wantBlend = 0; world = null; draining = false; Built = Taken = 0;
     }
 }

@@ -195,6 +195,22 @@ public static class PerfWarmupTest
               Src("Core/WorldArtPreload.cs").Contains("LiftoffCatalog.For(from, to, loop)") && Src("Core/WorldArtPreload.cs").Contains("QueueRails(") &&
               Src("Worlds/Planetfall/Liftoff.cs").Contains("WorldArtPreload.Load<Shader>(Planetfall.ShaderPath)") &&
               Src("Worlds/WorldPainter.cs").Contains("WorldArtPreload.Load<Texture2D>(RailPath(theme))"));
+        // the destination's set pieces are built ahead, a few a frame, and only taken at the swap
+        string parts = Src("Worlds/Backdrop/BackdropParts.cs");
+        string pool = Body(parts, "public BackdropPool(");
+        Check("BackdropPool takes pre-built pieces from the stock and only creates what the stock lacks",
+              pool.Contains("BackdropPieceStock.Take(blend)") && pool.Contains("BackdropPieceStock.Make(blend)") && !pool.Contains("new GameObject(name + i)"));
+        Check("the stock is built a bounded few a frame, inactive, skips low-end phones and out of play",
+              BackdropPieceStock.PerFrame <= 12 && Body(parts, "public static void Pump()").Contains("i < PerFrame") &&
+              Body(parts, "public static BackdropPiece Make(").Contains("p.Show(false)") &&
+              Body(parts, "public static void Want(").Contains("PerfTier.LowEnd") && Body(parts, "public static void Want(").Contains("!Application.isPlaying"));
+        Check("WorldArtPreload.Next wants the destination's pieces and pumps the stock each frame (the runner stays on until it is full)",
+              Src("Core/WorldArtPreload.cs").Contains("BackdropPieceStock.Want(spec.world)") && Body(Src("Core/WorldArtPreload.cs"), "public static void Pump()").Contains("BackdropPieceStock.Pump()") &&
+              Src("Core/WorldArtPreload.cs").Contains("!BackdropPieceStock.Filling"));
+        Check("the swap learns the piece count and the leftovers drain a few a frame (never one frame's Destroy burst)",
+              show.Contains("BackdropPieceStock.Learn(") && step.Contains("BackdropPieceStock.Tick()") && Body(parts, "static void Drain()").Contains("DrainPerFrame"));
+        Check("PlanetFlipbooks' in-flight fallback reads through the preload cache, not a bare Resources.Load",
+              Body(Src("Worlds/PlanetFlipbooks.cs"), "public static Sprite[] Acquire(").Contains("WorldArtPreload.Load<Texture2D>"));
         Check("a theme with no song asks for nothing (and nothing is requested out of play)",
               Body(music, "public static void PreloadNext(").Contains("!Application.isPlaying || string.IsNullOrEmpty(theme.musicResource)"));
     }

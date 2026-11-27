@@ -152,7 +152,7 @@ public static class PlanetFlipbooks
         if (e.sprites == null && e.tex == null)
         {
             // an async load in flight: the synchronous load returns the same asset
-            e.tex = Resources.Load<Texture2D>(PathOf(world));
+            e.tex = WorldArtPreload.Load<Texture2D>(PathOf(world));   // the held preload when there is one
             e.req = null;
         }
         Finish(e);
