@@ -3,7 +3,7 @@ using System.IO;
 using System.Linq;
 using UnityEngine;
 
-// The 68-achievement table: counts, uniqueness, limits, points, targets, the
+// The 69-achievement table: counts, uniqueness, limits, points, targets, the
 // Tide / Storm / Desert additions, store ids, badge art (painted or placeholder) and the CSV export.
 public static class AchievementCatalogTest
 {
@@ -37,10 +37,10 @@ public static class AchievementCatalogTest
     static void Catalogue()
     {
         var all = AchievementCatalog.All;
-        Check("68 achievements", all.Length == 68 && AchievementCatalog.Count == 68);
-        Check("unique ids", all.Select(d => d.id).Distinct().Count() == 68);
+        Check("69 achievements", all.Length == 69 && AchievementCatalog.Count == 69);
+        Check("unique ids", all.Select(d => d.id).Distinct().Count() == 69);
         Check("ids are snake_case", all.All(d => d.id.All(c => (c >= 'a' && c <= 'z') || (c >= '0' && c <= '9') || c == '_')));
-        Check("titles <= 24 chars and unique", all.All(d => d.title.Length > 0 && d.title.Length <= 24) && all.Select(d => d.title).Distinct().Count() == 68);
+        Check("titles <= 24 chars and unique", all.All(d => d.title.Length > 0 && d.title.Length <= 24) && all.Select(d => d.title).Distinct().Count() == 69);
         Check("descriptions <= 100 chars", all.All(d => d.description.Length > 0 && d.description.Length <= 100));
         Check("points are multiples of 5 within 5..40", all.All(d => d.points % 5 == 0 && d.points >= 5 && d.points <= 40));
         Check("points total exactly " + AchievementCatalog.TotalPoints + " and never above the Play Games cap of 1000 (" + all.Sum(d => d.points) + ")", all.Sum(d => d.points) == AchievementCatalog.TotalPoints && AchievementCatalog.TotalPoints <= 1000);
@@ -48,14 +48,14 @@ public static class AchievementCatalogTest
         string[] hard =
         {
             "loop_1", "loop_2", "loop_5", "boss_ember", "boss_tide", "boss_storm", "boss_desert", "boss_no_hit", "boss_all", "elite_50", "elite_ember_all",
-            "kills_5000", "codex_complete", "ship_all", "skin_full_set", "stars_5000", "score_150k", "speed_super_sonic", "pause_perfect_dodge", "escape_danger_10",
+            "kills_5000", "codex_complete", "ship_all", "skin_full_set", "stars_5000", "score_150k", "score_1m", "speed_super_sonic", "pause_perfect_dodge", "escape_danger_10",
         };
         Check("every achievement pays exactly 5 or 25 star dust", all.All(d => d.Reward == 5 || d.Reward == 25));
-        Check("20 pay 25 and 48 pay 5 (" + all.Count(d => d.Reward == 25) + " / " + all.Count(d => d.Reward == 5) + ")", all.Count(d => d.Reward == 25) == 20 && all.Count(d => d.Reward == 5) == 48);
+        Check("21 pay 25 and 48 pay 5 (" + all.Count(d => d.Reward == 25) + " / " + all.Count(d => d.Reward == 5) + ")", all.Count(d => d.Reward == 25) == 21 && all.Count(d => d.Reward == 5) == 48);
         Check("the 25-dust set is exactly the hard list: " + string.Join(",", all.Where(d => d.Reward == 25).Select(d => d.id)),
               all.Where(d => d.Reward == 25).Select(d => d.id).OrderBy(x => x).SequenceEqual(hard.OrderBy(x => x)));
         Check("25 is exactly the Gold and Platinum badges, 5 the Bronze and Silver ones", all.All(d => (d.tier >= AchievementTier.Gold) == (d.Reward == 25)));
-        Check("the total reward is 48 x 5 + 20 x 25 = 740", AchievementCatalog.TotalReward == 740);
+        Check("the total reward is 48 x 5 + 21 x 25 = 765", AchievementCatalog.TotalReward == 765);
         Check("3 hidden", all.Count(d => d.hidden) == 3 && all.Where(d => d.hidden).All(d => d.id == "mega_domino" || d.id == "deaths_100" || d.id == "pause_perfect_dodge"));
         Check("every achievement names its tracking hook", all.All(d => !string.IsNullOrEmpty(d.hook)));
         Check("counter achievements have a target, one-shots none",
@@ -84,7 +84,7 @@ public static class AchievementCatalogTest
                       "elite_space_all", "elite_frost_all", "elite_verdant_all", "elite_ember_all", "elite_tide_all", "elite_storm_all", "elite_desert_all" }
                 .All(id => AchievementCatalog.Find(id) != null) && WorldManager.LiveWorldCount == 7 && AchievementCatalog.EliteWorlds == WorldManager.LiveWorldCount);
         Check("score thresholds ascend and sit inside what a run scores (ScoreRules: ~6,600 a first pass before the 2x streak)",
-              Target("score_10k") < Target("score_50k") && Target("score_50k") < Target("score_150k") && Target("score_10k") == 5000 && Target("score_50k") == 20000 && Target("score_150k") == 80000);
+              Target("score_10k") < Target("score_50k") && Target("score_50k") < Target("score_150k") && Target("score_150k") < Target("score_1m") && Target("score_1m") == 1000000 && Target("score_10k") == 5000 && Target("score_50k") == 20000 && Target("score_150k") == 80000);
         Check("the Codex is big enough for Cartographer (" + Codex.Entries.Length + " entries)", Codex.Entries.Length > 50);
         Check("Find works for every id and not for junk", all.All(d => AchievementCatalog.Find(d.id) == d) && AchievementCatalog.Find("nope") == null && AchievementCatalog.Find(null) == null);
         Check("counters are shared (kills feeds 3)", AchievementCatalog.ForCounter("kills").Length == 3 && AchievementCatalog.ForCounter("stars").Length == 3);
@@ -100,9 +100,9 @@ public static class AchievementCatalogTest
 
     static void AllLive()
     {
-        Check("all 68 achievements are live and listed in the Codex tab (Tide, Storm and Desert included)",
-              AchievementCatalog.All.Length == 68 && AchievementCatalog.ActiveCount == 68 &&
-              CodexAchievementsView.BuildSections().Sum(s => s.defs.Count) == 68);
+        Check("all 69 achievements are live and listed in the Codex tab (Tide, Storm and Desert included)",
+              AchievementCatalog.All.Length == 69 && AchievementCatalog.ActiveCount == 69 &&
+              CodexAchievementsView.BuildSections().Sum(s => s.defs.Count) == 69);
         AchievementStore.ResetAll();
         var tideWorld = AchievementCatalog.Find("world_tide_reached");
         PlayerPrefs.SetInt(tideWorld.unlockedKey, 1);   // e.g. restored from the cloud
@@ -112,7 +112,7 @@ public static class AchievementCatalogTest
         AchievementStore.ResetAll();
     }
 
-    // The 68 pixel-art badges: Art/Resources/Achievements/<id>.png, 128 x 128 RGBA with real transparency,
+    // The 69 pixel-art badges: Art/Resources/Achievements/<id>.png, 128 x 128 RGBA with real transparency,
     // imported as point-filtered sprites, and nothing in the folder that is not an achievement.
     static void Icons()
     {
@@ -135,14 +135,14 @@ public static class AchievementCatalogTest
                 imp.mipmapEnabled || !imp.alphaIsTransparency || imp.textureCompression != UnityEditor.TextureImporterCompression.Uncompressed)
                 badImport.Add(id);
         }
-        Check("every one of the 68 ids has an icon (missing: " + string.Join(",", missing) + ")", missing.Count == 0 && ids.Count == 68);
+        Check("every one of the 69 ids has an icon (missing: " + string.Join(",", missing) + ")", missing.Count == 0 && ids.Count == 69);
         Check("all icons are 128 x 128 (bad: " + string.Join(",", badSize) + ")", badSize.Count == 0);
         Check("all icons have a transparent corner area and an opaque body (bad: " + string.Join(",", noAlpha) + ")", noAlpha.Count == 0);
         Check("all icons import as point-filtered, uncompressed, mip-less sprites (bad: " + string.Join(",", badImport) + ")", badImport.Count == 0);
         var orphans = Directory.GetFiles(folder, "*.png").Select(f => Path.GetFileNameWithoutExtension(f)).Where(n => !ids.Contains(n)).ToList();
         Check("no icon without an achievement (orphans: " + string.Join(",", orphans) + ")", orphans.Count == 0);
         AchievementArt.Reload();
-        Check("AchievementArt.HasArt for all 68", ids.All(AchievementArt.HasArt));
+        Check("AchievementArt.HasArt for all 69", ids.All(AchievementArt.HasArt));
         string setup = File.ReadAllText("../docs/achievements-store-setup.md");
         Check("docs/achievements-store-setup.md documents installing the icons", setup.Contains("Art/Resources/Achievements") && setup.Contains("play-icons-512"));
     }
@@ -152,12 +152,12 @@ public static class AchievementCatalogTest
         var defs = AchievementCatalog.All;
         var android = defs.Select(AchievementIds.AndroidId).ToList();
         var ios = defs.Select(AchievementIds.IosId).ToList();
-        Check("store ids: 68 unique Android ids", android.Distinct().Count() == 68 && android.All(s => !string.IsNullOrEmpty(s)));
-        Check("store ids: 68 unique iOS ids", ios.Distinct().Count() == 68);
-        string[] pending = { "world_storm_reached", "world_desert_reached", "boss_storm", "boss_desert", "elite_tide_all", "elite_storm_all", "elite_desert_all", "escape_danger_10" };
+        Check("store ids: 69 unique Android ids", android.Distinct().Count() == 69 && android.All(s => !string.IsNullOrEmpty(s)));
+        Check("store ids: 69 unique iOS ids", ios.Distinct().Count() == 69);
+        string[] pending = { "world_storm_reached", "world_desert_reached", "boss_storm", "boss_desert", "elite_tide_all", "elite_storm_all", "elite_desert_all", "escape_danger_10", "score_1m" };
         Check("store ids: the 60 original achievements have a real Android id from AchievementStoreIds.csv",
               defs.Where(d => !pending.Contains(d.id)).All(d => AchievementIds.AndroidId(d).StartsWith("CgkI")));
-        Check("store ids: the 8 new ones are still placeholders (not yet created in Play Console) and are never reported from Android",
+        Check("store ids: the 9 new ones are still placeholders (not yet created in Play Console) and are never reported from Android",
               pending.All(id => AchievementIds.IsPlaceholder(AchievementIds.AndroidId(AchievementCatalog.Find(id))) && !AchievementIds.IsReportable(AchievementCatalog.Find(id), false)));
         Check("store ids: the override table fills in real ids and ignores junk",
               Override("loop_1,CgkIfake\nunknown_id,CgkIx\n#c\nloop_2,TODO_x\n").Equals("CgkIfake|" + AchievementIds.Placeholder("loop_2")));
@@ -201,8 +201,8 @@ public static class AchievementCatalogTest
         string play = AchievementStoreExport.PlayConsoleCsv(), gc = AchievementStoreExport.GameCenterCsv();
         var playLines = play.Split('\n').Where(l => l.Length > 0).ToArray();
         var gcLines = gc.Split('\n').Where(l => l.Length > 0).ToArray();
-        Check("export: Play CSV has a header and 68 rows", playLines.Length == 69 && playLines[0].StartsWith("Order,Name,Description,Points"));
-        Check("export: Game Center CSV has a header and 68 rows", gcLines.Length == 69 && gcLines[0].StartsWith("Reference name,Achievement ID"));
+        Check("export: Play CSV has a header and 69 rows", playLines.Length == 70 && playLines[0].StartsWith("Order,Name,Description,Points"));
+        Check("export: Game Center CSV has a header and 69 rows", gcLines.Length == 70 && gcLines[0].StartsWith("Reference name,Achievement ID"));
         Check("export: no commas inside store text (Play import forbids them)", play.Contains(",Hundredfold,Destroy 2000 enemies.,") && play.Contains(",Rookie Score,Score 5000 points in a run.,") &&
               playLines.Skip(1).All(l => l.Split(',').Length == 7) && gcLines.Skip(1).All(l => l.Split(',').Length == 9));
         Check("in-game text keeps the separator", AchievementCatalog.Find("score_10k").description == "Score 5,000 points in a run.");
@@ -215,7 +215,7 @@ public static class AchievementCatalogTest
               File.ReadAllText(Path.Combine(dir, "play-console.csv")) == play);
         var csvIds = File.ReadAllLines(Path.Combine(dir, "game-center.csv")).Skip(1).Where(l => l.Length > 0).Select(l => l.Split(',')[1]).ToList();
         var catIds = AchievementCatalog.All.Select(AchievementIds.IosId).ToList();
-        Check("export: committed game-center.csv ids == catalog iOS ids (68, none extra or missing)",
-              csvIds.Count == 68 && catIds.Count == 68 && csvIds.Distinct().Count() == 68 && !csvIds.Except(catIds).Any() && !catIds.Except(csvIds).Any());
+        Check("export: committed game-center.csv ids == catalog iOS ids (69, none extra or missing)",
+              csvIds.Count == 69 && catIds.Count == 69 && csvIds.Distinct().Count() == 69 && !csvIds.Except(catIds).Any() && !catIds.Except(csvIds).Any());
     }
 }

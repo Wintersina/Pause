@@ -129,7 +129,7 @@ public static class EscapeWaveTest
         try
         {
             var def = AchievementCatalog.Find("escape_danger_10");
-            Check("Hot Escape is in the catalogue (Skill group, 10 points, one-shot)", def != null && def.group == AchievementGroup.Skill && def.points == 10 && !def.IsCounter);
+            Check("Hot Escape is in the catalogue (Skill group, 5 points, one-shot)", def != null && def.group == AchievementGroup.Skill && def.points == 5 && !def.IsCounter);
             Check("its store id is a placeholder until it is created in Play Console", AchievementIds.IsPlaceholder(AchievementIds.AndroidId(def)));
 
             Achievements.ForceReal = true;

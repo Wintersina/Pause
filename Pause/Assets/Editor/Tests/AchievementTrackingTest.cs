@@ -276,7 +276,11 @@ public static class AchievementTrackingTest
         AchievementTracker.OnScore(20000);
         Check("20,000: Ace Score", U("score_50k") && !U("score_150k"));
         AchievementTracker.OnScore(80000);
-        Check("80,000: Legend Score", U("score_150k"));
+        Check("80,000: Legend Score", U("score_150k") && !U("score_1m"));
+        AchievementTracker.OnScore(999999);
+        Check("999,999: Million Score not yet", !U("score_1m"));
+        AchievementTracker.OnScore(1000000);
+        Check("1,000,000: Million Score", U("score_1m"));
         // the real event path: RunScore raises Scored while a scoring run is live
         AchievementStore.ResetAll();
         AchievementTracker.Enable();

@@ -12,7 +12,7 @@ using UnityEngine;
 //            (internal_id,CgkI...), which overrides this table at runtime; no
 //            code edit needed.
 //   iOS      me.hapticgate.pause.ach_<id> (the scheme the exported Game Center
-//            CSV uses). All 68 were created in App Store Connect on
+//            CSV uses). The first 68 were created in App Store Connect on
 //            2026-11-20, so IosIdsConfirmed is on and iOS reports.
 //
 // A placeholder (or an unconfirmed iOS id) is never sent anywhere

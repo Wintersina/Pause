@@ -115,13 +115,13 @@ public static class CodexAchievementsTabTest
         panel.SkipAnimations();
         var v = panel.Achievements;
         Check("the tab opens the achievements view and hides the entry grid", panel.AchievementsOpen && v.Active);
-        Check("68 cards in 7 sections", v.VisibleCards == 68 && v.SectionCount == 7);
+        Check("69 cards in 7 sections", v.VisibleCards == 69 && v.SectionCount == 7);
         Check("sections: JOURNEY, BOSSES, ELITES, COMBAT, PAUSE, CODEX, COLLECTION",
               string.Join(",", Enumerable.Range(0, v.SectionCount).Select(i => v.SectionAt(i).label)) == "JOURNEY,BOSSES,ELITES,COMBAT,PAUSE,CODEX,COLLECTION");
         Check("section counters read 0/n", v.SectionAt(0).counter == "0/" + v.SectionAt(0).defs.Count);
-        Check("the header counter reads 0 / 68 UNLOCKED", panel.Counter.text.StartsWith("0 / 68"));
-        Check("strip: 0/68 UNLOCKED, nothing to collect, COLLECT ALL off",
-              v.StripCount.text == "0/68 UNLOCKED" && v.StripLine.text.StartsWith("NOTHING TO COLLECT") && !v.CollectAll.button.interactable);
+        Check("the header counter reads 0 / 69 UNLOCKED", panel.Counter.text.StartsWith("0 / 69"));
+        Check("strip: 0/69 UNLOCKED, nothing to collect, COLLECT ALL off",
+              v.StripCount.text == "0/69 UNLOCKED" && v.StripLine.text.StartsWith("NOTHING TO COLLECT") && !v.CollectAll.button.interactable);
         bool allLocked = true;
         for (int i = 0; i < v.VisibleCards; i++)
             allLocked &= v.CardLock(i).gameObject.activeSelf && !v.CardCollectVisible(i) && !v.CardCollected(i).gameObject.activeSelf && v.CardBadge(i).sprite != null;
@@ -167,9 +167,9 @@ public static class CodexAchievementsTabTest
               v.CardEdge(claimed).color == CodexUi.Accent && !v.CardLock(claimed).gameObject.activeSelf);
         Check("a hidden one shows its real name once earned", v.CardName(secret).text == "MEGA DOMINO" && v.CardCollectVisible(secret));
         Check("strip counts 3 unlocked, 2 to collect, COLLECT ALL +30",
-              v.StripCount.text == "3/68 UNLOCKED" && v.StripLine.text.StartsWith("2 TO COLLECT") && v.CollectAll.button.interactable &&
+              v.StripCount.text == "3/69 UNLOCKED" && v.StripLine.text.StartsWith("2 TO COLLECT") && v.CollectAll.button.interactable &&
               v.CollectAll.label.text == "COLLECT ALL +30");
-        Check("the sticky/section counters follow", v.SectionAt(0).counter.StartsWith("1/") && panel.Counter.text.StartsWith("3 / 68"));
+        Check("the sticky/section counters follow", v.SectionAt(0).counter.StartsWith("1/") && panel.Counter.text.StartsWith("3 / 69"));
 
         panel.ShowAchievements();   // already open: closes a detail, never re-enters
         v.ShowDetail(AchievementCatalog.Find("loop_1"));
@@ -432,10 +432,10 @@ public static class CodexAchievementsTabTest
     static void TideListed(CodexPanel panel)
     {
         var v = panel.Achievements;
-        Check("Tide, Storm and Desert achievements are on a card: 68 cards, x/68", v.CardIndexOf("world_tide_reached") >= 0 && v.CardIndexOf("boss_tide") >= 0 &&
+        Check("Tide, Storm and Desert achievements are on a card: 69 cards, x/69", v.CardIndexOf("world_tide_reached") >= 0 && v.CardIndexOf("boss_tide") >= 0 &&
               v.CardIndexOf("boss_storm") >= 0 && v.CardIndexOf("boss_desert") >= 0 &&
               v.CardIndexOf("world_storm_reached") >= 0 && v.CardIndexOf("world_desert_reached") >= 0 &&
-              v.VisibleCards == 68 && v.StripCount.text.EndsWith("/68 UNLOCKED"));
+              v.VisibleCards == 69 && v.StripCount.text.EndsWith("/69 UNLOCKED"));
     }
 
     // ---- no per-frame allocation, pulse only where visible ----

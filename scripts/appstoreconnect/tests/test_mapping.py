@@ -12,7 +12,7 @@ class AchievementMapping(unittest.TestCase):
         cls.rows = M.load_achievements()
 
     def test_count_and_points(self):
-        self.assertEqual(len(self.rows), 68)
+        self.assertEqual(len(self.rows), 69)
         self.assertEqual(sum(r["points"] for r in self.rows), 1000)
 
     def test_no_problems_all_images_exist(self):
@@ -28,6 +28,8 @@ class AchievementMapping(unittest.TestCase):
         self.assertIn("5000", by["score_10k"]["beforeEarnedDescription"])
         self.assertIn("20000", by["score_50k"]["beforeEarnedDescription"])
         self.assertIn("80000", by["score_150k"]["beforeEarnedDescription"])
+        self.assertIn("1000000", by["score_1m"]["beforeEarnedDescription"])
+        self.assertEqual(by["score_1m"]["points"], 35)
 
     def test_attrs_shape(self):
         a = M.achievement_attrs(self.rows[0])

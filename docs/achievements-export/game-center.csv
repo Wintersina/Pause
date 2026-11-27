@@ -5,8 +5,8 @@ Pause world_frost_reached,me.hapticgate.pause.ach_world_frost_reached,5,No,No,Co
 Pause world_verdant_reached,me.hapticgate.pause.ach_world_verdant_reached,5,No,No,Into the Green,Reach the Verdant world.,Reach the Verdant world.,world_verdant_reached_1024.png
 Pause world_ember_reached,me.hapticgate.pause.ach_world_ember_reached,10,No,No,Trial by Fire,Reach the Ember world.,Reach the Ember world.,world_ember_reached_1024.png
 Pause world_tide_reached,me.hapticgate.pause.ach_world_tide_reached,20,No,No,Deep Water,Reach the Tide world.,Reach the Tide world.,world_tide_reached_1024.png
-Pause world_storm_reached,me.hapticgate.pause.ach_world_storm_reached,10,No,No,Eye of the Storm,Reach the Storm world.,Reach the Storm world.,world_storm_reached_1024.png
-Pause world_desert_reached,me.hapticgate.pause.ach_world_desert_reached,10,No,No,Shifting Sands,Reach the Desert world.,Reach the Desert world.,world_desert_reached_1024.png
+Pause world_storm_reached,me.hapticgate.pause.ach_world_storm_reached,5,No,No,Eye of the Storm,Reach the Storm world.,Reach the Storm world.,world_storm_reached_1024.png
+Pause world_desert_reached,me.hapticgate.pause.ach_world_desert_reached,5,No,No,Shifting Sands,Reach the Desert world.,Reach the Desert world.,world_desert_reached_1024.png
 Pause loop_1,me.hapticgate.pause.ach_loop_1,25,No,No,Full Circle,Complete a full loop of every world.,Complete a full loop of every world.,loop_1_1024.png
 Pause loop_2,me.hapticgate.pause.ach_loop_2,25,No,No,Second Lap,Complete two loops in a single run.,Complete two loops in a single run.,loop_2_1024.png
 Pause loop_5,me.hapticgate.pause.ach_loop_5,40,No,No,Orbit Lifer,Complete five loops in a single run.,Complete five loops in a single run.,loop_5_1024.png
@@ -16,7 +16,7 @@ Pause boss_verdant,me.hapticgate.pause.ach_boss_verdant,20,No,No,Bloom Queen Fel
 Pause boss_ember,me.hapticgate.pause.ach_boss_ember,25,No,No,Drake Slayer,Defeat the Cinder Drake.,Defeat the Cinder Drake.,boss_ember_1024.png
 Pause boss_tide,me.hapticgate.pause.ach_boss_tide,25,No,No,Tide Turner,Defeat the Tide boss.,Defeat the Tide boss.,boss_tide_1024.png
 Pause boss_storm,me.hapticgate.pause.ach_boss_storm,25,No,No,Engine Stalled,Defeat the Tempest Engine.,Defeat the Tempest Engine.,boss_storm_1024.png
-Pause boss_desert,me.hapticgate.pause.ach_boss_desert,25,No,No,Dune Breaker,Defeat the Dune-Eater.,Defeat the Dune-Eater.,boss_desert_1024.png
+Pause boss_desert,me.hapticgate.pause.ach_boss_desert,20,No,No,Dune Breaker,Defeat the Dune-Eater.,Defeat the Dune-Eater.,boss_desert_1024.png
 Pause boss_no_hit,me.hapticgate.pause.ach_boss_no_hit,25,No,No,Untouchable,Defeat a boss without losing a heart.,Defeat a boss without losing a heart.,boss_no_hit_1024.png
 Pause boss_all,me.hapticgate.pause.ach_boss_all,35,No,No,Boss Collector,Defeat every live world's boss.,Defeat every live world's boss.,boss_all_1024.png
 Pause elite_first,me.hapticgate.pause.ach_elite_first,5,No,No,Elite Hunter,Destroy 5 elite ships.,Destroy 5 elite ships.,elite_first_1024.png
@@ -26,9 +26,9 @@ Pause elite_space_all,me.hapticgate.pause.ach_elite_space_all,10,No,No,Space Eli
 Pause elite_frost_all,me.hapticgate.pause.ach_elite_frost_all,20,No,No,Frost Elites,Down every Frost elite.,Down every Frost elite.,elite_frost_all_1024.png
 Pause elite_verdant_all,me.hapticgate.pause.ach_elite_verdant_all,10,No,No,Verdant Elites,Down every Verdant elite.,Down every Verdant elite.,elite_verdant_all_1024.png
 Pause elite_ember_all,me.hapticgate.pause.ach_elite_ember_all,25,No,No,Ember Elites,Down every Ember elite.,Down every Ember elite.,elite_ember_all_1024.png
-Pause elite_tide_all,me.hapticgate.pause.ach_elite_tide_all,10,No,No,Tide Elites,Down every Tide elite.,Down every Tide elite.,elite_tide_all_1024.png
-Pause elite_storm_all,me.hapticgate.pause.ach_elite_storm_all,10,No,No,Storm Elites,Down every Storm elite.,Down every Storm elite.,elite_storm_all_1024.png
-Pause elite_desert_all,me.hapticgate.pause.ach_elite_desert_all,10,No,No,Desert Elites,Down every Desert elite.,Down every Desert elite.,elite_desert_all_1024.png
+Pause elite_tide_all,me.hapticgate.pause.ach_elite_tide_all,5,No,No,Tide Elites,Down every Tide elite.,Down every Tide elite.,elite_tide_all_1024.png
+Pause elite_storm_all,me.hapticgate.pause.ach_elite_storm_all,5,No,No,Storm Elites,Down every Storm elite.,Down every Storm elite.,elite_storm_all_1024.png
+Pause elite_desert_all,me.hapticgate.pause.ach_elite_desert_all,5,No,No,Desert Elites,Down every Desert elite.,Down every Desert elite.,elite_desert_all_1024.png
 Pause elite_blink,me.hapticgate.pause.ach_elite_blink,5,No,No,Blink Strike,Destroy an elite with a pause blink.,Destroy an elite with a pause blink.,elite_blink_1024.png
 Pause kills_100,me.hapticgate.pause.ach_kills_100,5,No,No,Gunner,Destroy 250 enemies.,Destroy 250 enemies.,kills_100_1024.png
 Pause kills_1000,me.hapticgate.pause.ach_kills_1000,5,No,No,Hundredfold,Destroy 2000 enemies.,Destroy 2000 enemies.,kills_1000_1024.png
@@ -55,6 +55,7 @@ Pause dust_spent_10000,me.hapticgate.pause.ach_dust_spent_10000,15,No,No,Big Spe
 Pause score_10k,me.hapticgate.pause.ach_score_10k,5,No,No,Rookie Score,Score 5000 points in a run.,Score 5000 points in a run.,score_10k_1024.png
 Pause score_50k,me.hapticgate.pause.ach_score_50k,20,No,No,Ace Score,Score 20000 points in a run.,Score 20000 points in a run.,score_50k_1024.png
 Pause score_150k,me.hapticgate.pause.ach_score_150k,35,No,No,Legend Score,Score 80000 points in a run.,Score 80000 points in a run.,score_150k_1024.png
+Pause score_1m,me.hapticgate.pause.ach_score_1m,35,No,No,Million Score,Score 1000000 points in a run.,Score 1000000 points in a run.,score_1m_1024.png
 Pause speed_flash,me.hapticgate.pause.ach_speed_flash,15,No,No,Flash,Reach the speed cap.,Reach the speed cap.,speed_flash_1024.png
 Pause speed_speedster,me.hapticgate.pause.ach_speed_speedster,20,No,No,Speedster,Break the speed limit.,Break the speed limit.,speed_speedster_1024.png
 Pause speed_super_sonic,me.hapticgate.pause.ach_speed_super_sonic,35,No,No,Super Sonic,Max out the limit break.,Max out the limit break.,speed_super_sonic_1024.png
@@ -66,4 +67,4 @@ Pause pause_blink_100,me.hapticgate.pause.ach_pause_blink_100,5,No,No,Blink Mast
 Pause pause_no_pause_world,me.hapticgate.pause.ach_pause_no_pause_world,20,No,No,Hold Your Breath,Clear a world without spending a pause.,Clear a world without spending a pause.,pause_no_pause_world_1024.png
 Pause pause_hoarder,me.hapticgate.pause.ach_pause_hoarder,10,No,No,Time Banker,Hold 15 pauses at once.,Hold 15 pauses at once.,pause_hoarder_1024.png
 Pause pause_perfect_dodge,me.hapticgate.pause.ach_pause_perfect_dodge,25,Yes,No,Perfect Pause,Blink out of a hostile shot's path.,Blink out of a hostile shot's path.,pause_perfect_dodge_1024.png
-Pause escape_danger_10,me.hapticgate.pause.ach_escape_danger_10,10,No,No,Hot Escape,Survive 10 portal danger levels in a single escape.,Survive 10 portal danger levels in a single escape.,escape_danger_10_1024.png
+Pause escape_danger_10,me.hapticgate.pause.ach_escape_danger_10,5,No,No,Hot Escape,Survive 10 portal danger levels in a single escape.,Survive 10 portal danger levels in a single escape.,escape_danger_10_1024.png

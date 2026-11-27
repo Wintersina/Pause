@@ -1,4 +1,4 @@
-"""Build 60 native 128 px gear-lens badges from drawn hardware and game sprites."""
+"""Build 61 native 128 px gear-lens badges from drawn hardware and game sprites."""
 from __future__ import annotations
 
 import math
@@ -38,7 +38,8 @@ BADGES = [
  ("stars_150","bronze","general"),("stars_1000","silver","general"),
  ("stars_5000","gold","general"),("dust_spent_10000","silver","general"),
  ("score_10k","bronze","general"),("score_50k","silver","general"),
- ("score_150k","platinum","general"),("speed_flash","silver","space"),
+ ("score_150k","platinum","general"),("score_1m","diamond","general"),
+ ("speed_flash","silver","space"),
  ("speed_speedster","silver","space"),("speed_super_sonic","platinum","space"),
  ("deaths_10","bronze","general"),("deaths_100","silver","general"),
  ("pause_first","bronze","space"),("pause_blink_kill","bronze","space"),
@@ -51,6 +52,7 @@ TIERS = {
  "silver": ((43,59,68),(97,139,154),(171,211,219),(233,249,247)),
  "gold": ((74,48,22),(163,110,34),(230,177,58),(255,230,129)),
  "platinum": ((78,73,61),(164,158,125),(231,222,171),(255,252,221)),
+ "diamond": ((22,56,75),(59,154,176),(171,236,235),(255,255,242)),
 }
 ACCENTS = {
  "general": ((80,54,18),(213,139,43),(255,218,107)),
@@ -64,7 +66,8 @@ INK=(5,10,20,255); STEEL=(66,90,105,255); LIGHT=(160,198,204,255)
 NEON={"bronze":((105,56,18),(255,159,50),(255,228,121)),
       "silver":((13,73,92),(47,220,241),(207,255,255)),
       "gold":((104,63,13),(255,193,54),(255,244,142)),
-      "platinum":((91,34,83),(255,86,218),(255,241,255))}
+      "platinum":((91,34,83),(255,86,218),(255,241,255)),
+      "diamond":((10,69,91),(52,224,236),(224,255,250))}
 GROUPS={"world":"world","loop":"world","boss":"boss","elite":"elite",
         "kills":"enemy","rocks":"enemy","mines":"enemy","chain":"enemy",
         "mega":"enemy","deaths":"enemy","ship":"collection","skin":"collection",
@@ -153,6 +156,16 @@ def frame(tier):
   for ang in range(15,360,45):
    x=round(63.5+42*math.cos(math.radians(ang)));y=round(63.5+42*math.sin(math.radians(ang)))
    d.rectangle((x-1,y-1,x+1,y+1),fill=rgba(hot))
+ if tier=="diamond":
+  # A prismatic outer circuit distinguishes the top tier without introducing pink.
+  prism=[(15,(119,239,244)),(60,(255,255,242)),(105,(244,219,123)),
+         (150,(119,239,244)),(195,(255,255,242)),(240,(126,222,255)),
+         (285,(255,241,158)),(330,(171,245,239))]
+  for start,col in prism:
+   d.arc((24,24,103,103),start,start+24,fill=rgba(col),width=1)
+  for ang,col in zip(range(15,360,45),[h,hot,(255,240,157),h,h,(255,240,157),hot,h]):
+   x=round(63.5+42*math.cos(math.radians(ang)));y=round(63.5+42*math.sin(math.radians(ang)))
+   d.polygon([(x,y-2),(x+2,y),(x,y+2),(x-2,y)],fill=rgba(col))
  # A sealed lamp at twelve o'clock and a riveted blank nameplate.
  d.rectangle((55,12,72,22),fill=INK);d.rectangle((57,14,70,20),fill=rgba(b))
  d.rectangle((59,15,68,18),fill=rgba(mid));d.line((60,15,66,15),fill=rgba(hot))
@@ -566,19 +579,52 @@ def subject(im,ident,world):
               (64,87),(58,90),(59,84),(54,80),(61,79)],(255,242,145),None)
  elif ident.startswith("score_"):
   d=ImageDraw.Draw(im)
+  if ident=="score_1m":
+   # Million Score: a diamond-tier odometer lens with a compact, glowing 1M readout.
+   d.rectangle((32,45,96,86),fill=INK)
+   d.rectangle((35,48,93,83),fill=(16,49,62,255),outline=(171,236,235,255),width=2)
+   d.rectangle((39,53,89,78),fill=(7,24,37,255),outline=(59,154,176,255),width=2)
+   # A five-row pixel font remains legible after the 128 -> 48 px reduction.
+   font={"1":["110","010","010","010","111"],
+         "M":["10001","11011","10101","10001","10001"]}
+   scale=3; x0=50; y0=56
+   for char,offset in (("1",0),("M",4)):
+    for row,line_bits in enumerate(font[char]):
+     for col,bit in enumerate(line_bits):
+      if bit=="1":
+       px=x0+(offset+col)*scale;py=y0+row*scale
+       d.rectangle((px-1,py-1,px+3,py+3),fill=(26,112,127,255))
+       d.rectangle((px,py,px+2,py+2),fill=(205,255,248,255))
+       d.point((px,py),fill=(255,255,242,255))
+   # Three-point crown above the display.
+   polygon(d,[(43,46),(43,36),(52,41),(64,29),(76,41),(85,36),(85,46)],(59,154,176))
+   polygon(d,[(47,44),(47,40),(54,44),(64,34),(74,44),(81,40),(81,44)],(171,236,235),None)
+   d.rectangle((43,45,85,49),fill=INK)
+   d.rectangle((46,45,82,47),fill=(255,255,242,255))
+   # Small laurel branches frame the readout and keep the badge grounded at 48 px.
+   for side in (-1,1):
+    pts=[(64+side*x,y) for x,y in [(19,91),(25,86),(29,79),(31,71)]]
+    line(d,pts,INK,5);line(d,pts,(119,239,244),2)
+    for x,y,dx in [(23,86,6),(28,79,6),(30,72,5)]:
+     polygon(d,[(64+side*(x-2),y+2),(64+side*(x+dx),y-3),
+                (64+side*(x+2),y-6)],(244,219,123))
+   diamond_spark(d,30,48,4,(171,236,235))
+   diamond_spark(d,98,48,4,(255,240,157))
+   star(d,35,88,(255,255,242),True);star(d,93,88,(255,255,242),True)
+  else:
   # Three geared odometer drums, with a different count of engaged stops.
-  d.rectangle((35,47,93,83),fill=INK)
-  d.rectangle((38,50,90,80),fill=(104,70,39,255),outline=(238,177,75,255),width=2)
-  n={"score_10k":1,"score_50k":2,"score_150k":3}[ident]
-  slots=([(48,28)] if n==1 else [(43,19),(67,19)] if n==2 else [(43,11),(59,11),(75,11)])
-  for j,(x,w) in enumerate(slots):
-   d.rectangle((x,54,x+w,75),fill=(21,35,47,255),outline=(201,164,82,255))
-   d.line((x+3,59,x+w-3,59),fill=(119,229,224,255),width=2)
-   d.line((x+3,69,x+w-3,69),fill=(119,229,224,255),width=2)
-   for yy in range(62,67):d.point((x+4+(j+yy)%(w-7),yy),fill=(255,226,129,255))
-  for i in range(n):
-   star(d,round(64+(i-(n-1)/2)*13),43,(255,220,110),True)
-  if n==3:polygon(d,[(47,42),(47,33),(57,37),(64,29),(71,37),(81,33),(81,42)],(245,201,76))
+   d.rectangle((35,47,93,83),fill=INK)
+   d.rectangle((38,50,90,80),fill=(104,70,39,255),outline=(238,177,75,255),width=2)
+   n={"score_10k":1,"score_50k":2,"score_150k":3}[ident]
+   slots=([(48,28)] if n==1 else [(43,19),(67,19)] if n==2 else [(43,11),(59,11),(75,11)])
+   for j,(x,w) in enumerate(slots):
+    d.rectangle((x,54,x+w,75),fill=(21,35,47,255),outline=(201,164,82,255))
+    d.line((x+3,59,x+w-3,59),fill=(119,229,224,255),width=2)
+    d.line((x+3,69,x+w-3,69),fill=(119,229,224,255),width=2)
+    for yy in range(62,67):d.point((x+4+(j+yy)%(w-7),yy),fill=(255,226,129,255))
+   for i in range(n):
+    star(d,round(64+(i-(n-1)/2)*13),43,(255,220,110),True)
+   if n==3:polygon(d,[(47,42),(47,33),(57,37),(64,29),(71,37),(81,33),(81,42)],(245,201,76))
  elif ident.startswith("loop_"):
   d=ImageDraw.Draw(im)
   if ident=="loop_1":
@@ -661,7 +707,7 @@ def subject(im,ident,world):
   raise ValueError(f"No subject for {ident}")
 
 def build():
- assert len(BADGES)==60 and len({b[0] for b in BADGES})==60
+ assert len(BADGES)==61 and len({b[0] for b in BADGES})==61
  OUT.mkdir(parents=True,exist_ok=True);(SRC/"frames").mkdir(exist_ok=True)
  frames={tier:frame(tier) for tier in TIERS}
  for tier,im in frames.items():im.save(SRC/"frames"/f"{tier}_frame_128.png")
@@ -669,20 +715,26 @@ def build():
  for group,im in groups.items():im.save(SRC/"frames"/f"{group}_accessory_128.png")
  cells=[]
  for ident,tier,world in BADGES:
-  im=frames[tier].copy();subject(im,ident,world);glass(im)
-  im.alpha_composite(groups[GROUPS[ident.split('_')[0]]])
-  # Preserve the round hard alpha edge even for large imported effects.
-  mask=frames[tier].getchannel("A")
-  a=im.getchannel("A");im.putalpha(Image.composite(a,Image.new("L",(128,128)),mask))
-  im.save(OUT/f"{ident}.png")
-  master=Image.new("RGB",(128,128),BG);master.paste(im,(0,0),im)
-  master.resize((1024,1024),N).save(SRC/f"{ident}_1024.png")
+  # Existing shipped art is authoritative: adding a badge must not rewrite old pixels
+  # when imported source art or Pillow changes. New IDs are still rendered here.
+  if ident != "score_1m" and (OUT/f"{ident}.png").exists():
+   im=Image.open(OUT/f"{ident}.png").convert("RGBA")
+  else:
+   im=frames[tier].copy();subject(im,ident,world);glass(im)
+   im.alpha_composite(groups[GROUPS[ident.split('_')[0]]])
+   # Preserve the round hard alpha edge even for large imported effects.
+   mask=frames[tier].getchannel("A")
+   a=im.getchannel("A");im.putalpha(Image.composite(a,Image.new("L",(128,128)),mask))
+   im.save(OUT/f"{ident}.png")
+   master=Image.new("RGB",(128,128),BG);master.paste(im,(0,0),im)
+   master.resize((1024,1024),N).save(SRC/f"{ident}_1024.png")
   cells.append((ident,im))
  for size,filename,cols in [(128,"sheet_128.png",10),(48,"sheet_48.png",10),(1024,"sheet_1024.png",10)]:
   # The large sheet is intentionally a 10-column index, suitable for zooming.
   gap=8 if size<1024 else 20
   row_height=size+gap+(18 if size==128 else 0)
-  sheet=Image.new("RGB",((size+gap)*cols+gap,row_height*6+gap),(12,16,24))
+  rows=math.ceil(len(cells)/cols)
+  sheet=Image.new("RGB",((size+gap)*cols+gap,row_height*rows+gap),(12,16,24))
   draw=ImageDraw.Draw(sheet)
   for i,(ident,im) in enumerate(cells):
    tile=Image.new("RGB",(128,128),BG);tile.paste(im,(0,0),im)
@@ -691,11 +743,29 @@ def build():
    sheet.paste(tile,(x,y))
    if size==128:draw.text((x+2,y+129),ident[:20],fill=(225,231,230))
   sheet.save(SRC/filename)
- print(f"built {len(cells)} badges, four tier frames, and {len(groups)} group accessories")
+ build_score_preview()
+ print(f"built {len(cells)} badges, five tier frames, and {len(groups)} group accessories")
+
+def build_score_preview():
+ """Write a focused 128px/48px comparison for the score badge progression."""
+ ids=["score_10k","score_50k","score_150k","score_1m"]
+ gap=10; top_y=22; bottom_y=174
+ sheet=Image.new("RGB",(4*128+5*gap,238),(12,16,24));d=ImageDraw.Draw(sheet)
+ d.text((gap,6),"SCORE BADGES · 128 PX",fill=(225,231,230))
+ d.text((gap,158),"SCORE BADGES · 48 PX",fill=(225,231,230))
+ for i,ident in enumerate(ids):
+  im=Image.open(OUT/f"{ident}.png").convert("RGBA")
+  tile=Image.new("RGB",(128,128),BG);tile.paste(im,(0,0),im)
+  x=gap+i*(128+gap);sheet.paste(tile,(x,top_y));d.text((x+2,top_y+129),ident,fill=(198,212,212))
+  small=tile.resize((48,48),Image.Resampling.BOX)
+  sheet.paste(small,(gap+i*(48+gap),bottom_y))
+ sheet.save(SRC/"score_1m_preview.png")
 
 def build_hot_escape():
  """escape_danger_10 (Hot Escape): Codex-painted lens art in raw/escape_danger_10_raw.png (1024, flat navy),
  nearest-reduced to 128, pasted into the gold frame's glass lens, then glass + skill accessory + round alpha."""
+ if (OUT/"escape_danger_10.png").exists():
+  return
  raw=Image.open(SRC/"raw"/"escape_danger_10_raw.png").convert("RGB").resize((128,128),N).convert("RGBA")
  frame_im=Image.open(SRC/"frames"/"gold_frame_128.png").convert("RGBA")
  lens=Image.new("L",(128,128));ImageDraw.Draw(lens).ellipse((29,29,98,98),fill=255)
