@@ -3,11 +3,13 @@
 
 The approved props are 8-cell strips of 128 px cells, already graded to the landmark rules (forms value p90 ~.46, lamps capped
 at .92, no pink as drawn): round 1 (2026-11-28) strips/<name>.png, one drawing each; round 2 (props_more, 2026-11-28: snowcat,
-radar, fishcamp, flares, tanker, bears, narwhal, sonde, and the crashed heli and airlift -- four colour / pose variants each -- and seals, one) strips/<name>_<v>.png.
-This only lays them out, two strips to a row (frames left to right), in NAMES order, variants in order. A one-drawing prop's
+radar, fishcamp, flares, tanker, bears, narwhal, sonde, and the crashed heli -- four colour / pose variants each -- and seals, one) strips/<name>_<v>.png;
+the crashed STARSHIP (user-approved 2026-11-28, replacing the belly-landed airlift: "massive in the backdrop as a prop") is four
+8-cell strips of 256 px cells (CELLS). This only lays them out: the 128 px strips two to a row (frames left to right), in NAMES
+order, variants in order, then the 256 px strips one to a row. A one-drawing prop's
 cells are <name>_00 .. <name>_07, a variant's <name>_<v>_00 .. _07, so BackdropAtlas.Frames(FrostPropsTuning.Strip(kind, v))
 returns its strip. The manifest is the landmarks' Unity-rect JSON (n, x, y, w, h; y measured from the BOTTOM of the sheet).
-The sheet is 2048 x 3072 (47 strips; WorldBackdropImport.IsFrostProps never clamps it).
+The sheet is 2048 x 3840 (43 strips of 128 px cells in 22 rows, then 4 of 256 px; WorldBackdropImport.IsFrostProps never clamps it).
 
     python3 build_props_atlas.py            # writes Art/Backgrounds/Resources/Worlds/Frost/Backdrop3/props.{png,json}
     python3 build_props_atlas.py --check    # verifies the installed sheet matches the strips
@@ -29,11 +31,16 @@ from PIL import Image
 HERE = Path(__file__).resolve().parent
 OUT = Path(sys.argv[sys.argv.index("--out") + 1]) if "--out" in sys.argv else HERE.parents[5] / "Backgrounds" / "Resources" / "Worlds" / "Frost" / "Backdrop3"
 NAMES = ["whale", "orca", "station", "lab", "icebreaker", "plane",
-         "snowcat", "radar", "fishcamp", "flares", "tanker", "bears", "narwhal", "sonde", "seals", "heli", "airlift"]
+         "snowcat", "radar", "fishcamp", "flares", "tanker", "bears", "narwhal", "sonde", "seals", "heli", "starship"]
 VARIANTS = [1, 1, 1, 1, 1, 1, 4, 4, 4, 4, 4, 4, 4, 4, 1, 4, 4]
+CELLS = {"starship": 256}                   # per-kind cell size (FrostPropsTuning.Cell); the rest 128
 CELL, FRAMES, PER_ROW = 128, 8, 2
-STRIPS = [(n, v) for n, k in zip(NAMES, VARIANTS) for v in range(k)]
-W, H = CELL * FRAMES * PER_ROW, CELL * ((len(STRIPS) + PER_ROW - 1) // PER_ROW)
+STRIPS = [(n, v) for n, k in zip(NAMES, VARIANTS) for v in range(k) if n not in CELLS]
+BIG = [(n, v) for n, k in zip(NAMES, VARIANTS) for v in range(k) if n in CELLS]
+W = CELL * FRAMES * PER_ROW
+SMALL_H = CELL * ((len(STRIPS) + PER_ROW - 1) // PER_ROW)
+H = SMALL_H + sum(CELLS[n] for n, _ in BIG)
+assert all(CELLS[n] * FRAMES == W for n, _ in BIG)
 
 
 def base(name, v):
@@ -70,6 +77,16 @@ def build():
         sheet.paste(strip, (x0, r * CELL))
         for f in range(FRAMES):
             sprites.append({"n": f"{b}_{f:02d}", "x": x0 + f * CELL, "y": H - (r + 1) * CELL, "w": CELL, "h": CELL})
+    top = SMALL_H
+    for name, v in BIG:
+        b, c = base(name, v), CELLS[name]
+        strip = Image.open(HERE / "strips" / f"{b}.png").convert("RGBA")
+        assert strip.size == (c * FRAMES, c), (b, strip.size)
+        depink(strip)
+        sheet.paste(strip, (0, top))
+        for f in range(FRAMES):
+            sprites.append({"n": f"{b}_{f:02d}", "x": f * c, "y": H - top - c, "w": c, "h": c})
+        top += c
     return sheet, {"sprites": sprites}
 
 

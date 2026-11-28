@@ -5,11 +5,13 @@ using UnityEngine;
 
 // Frost's living props (FrostProps.cs: whales, orcas, an icebreaker, a research station, an abandoned lab, a crashed plane;
 // round 2: snowcats, a radar mast, an ice-fishing camp, a flare strip, a frozen-in tanker, polar bears, narwhals, a sonde,
-// seals, a crashed heli and a belly-landed airlift -- most in four variants, each copy picking one by hash):
+// seals, a crashed heli and -- replacing the belly-landed airlift -- a MASSIVE crashed starship -- most in four variants, each
+// copy picking one by hash):
 //   * LOAD: the props atlas resolves with every kind's every 8-cell variant strip, the director builds its pool and lights;
 //   * PLACED where they make sense (the user, 2026-11-28): whales, orcas, narwhals and the icebreaker on open water (mask W,
 //     whole footprint and a clear rim); bears and seals on an ice edge (water with ice beside); the fishing camp on a flat top
-//     by open water; the tanker frozen into the ice by a lead; the crashed heli / airlift on a snow field with no water near;
+//     by open water; the tanker frozen into the ice by a lead; the crashed heli on a snow field with little water near; the
+//     starship's crater mostly on ice (a broken edge allowed), placed ahead of the landmarks and drawn ~400 px wide;
 //     the snowcat, radar and sonde only beside a station or lab; the structures on a flat top like the landmarks; nothing
 //     wet on the glacier (v4); pinned to their spot of the ground;
 //   * KEEP-OUT / OVERLAP: no prop overlaps a landmark, a dock or another prop, nor their keep-out margins (KeepOut); no
@@ -48,6 +50,7 @@ public static class FrostPropsTest
             for (int v = 1; v <= 4; v++) Live(v);
             Forced();
             ForcedOverlap();
+            StarshipAhead();
         }
         finally
         {
@@ -88,7 +91,7 @@ public static class FrostPropsTest
     {
         var names = FrostPropsTuning.Names;
         string[] want = { "whale", "orca", "station", "lab", "icebreaker", "plane", "snowcat", "radar", "fishcamp", "flares", "tanker",
-                          "bears", "narwhal", "sonde", "seals", "heli", "airlift" };
+                          "bears", "narwhal", "sonde", "seals", "heli", "starship" };
         bool picks = names.Length == want.Length;
         foreach (string n in want) picks &= System.Array.IndexOf(names, n) >= 0;
         Check("seventeen props, the approved picks: " + string.Join(", ", names), picks);
@@ -104,7 +107,7 @@ public static class FrostPropsTest
             { "whale", FrostPropsTuning.Place.OpenWater }, { "orca", FrostPropsTuning.Place.OpenWater }, { "icebreaker", FrostPropsTuning.Place.OpenWater },
             { "narwhal", FrostPropsTuning.Place.OpenWater }, { "bears", FrostPropsTuning.Place.IceEdge }, { "seals", FrostPropsTuning.Place.IceEdge },
             { "fishcamp", FrostPropsTuning.Place.ByHole }, { "tanker", FrostPropsTuning.Place.FrozenIn }, { "heli", FrostPropsTuning.Place.SnowField },
-            { "airlift", FrostPropsTuning.Place.SnowField }, { "station", FrostPropsTuning.Place.Flat }, { "lab", FrostPropsTuning.Place.Flat },
+            { "starship", FrostPropsTuning.Place.Crater }, { "station", FrostPropsTuning.Place.Flat }, { "lab", FrostPropsTuning.Place.Flat },
             { "plane", FrostPropsTuning.Place.Flat }, { "flares", FrostPropsTuning.Place.Flat }, { "snowcat", FrostPropsTuning.Place.Outfit },
             { "radar", FrostPropsTuning.Place.Outfit }, { "sonde", FrostPropsTuning.Place.Outfit },
         };
@@ -123,7 +126,10 @@ public static class FrostPropsTest
                 case FrostPropsTuning.Place.ByHole: ok &= r.on == GroundClass.Open && r.need >= .999f && r.near == GroundClass.Water; break;
                 case FrostPropsTuning.Place.FrozenIn: ok &= r.on == ice && r.need >= .999f && r.near == GroundClass.Water; break;
                 case FrostPropsTuning.Place.IceEdge: ok &= r.on == GroundClass.Water && r.need >= .5f && r.need < 1f && (r.near & ice) == ice; break;
-                case FrostPropsTuning.Place.SnowField: ok &= r.on == ice && r.need >= .999f && r.rim >= 2f && r.rimNeed >= .999f; break;
+                // relaxed in round 2 so the crash sites appear on every layout: mostly snow in a ring FarRim x the footprint
+                case FrostPropsTuning.Place.SnowField: ok &= r.on == ice && r.need >= .999f && Mathf.Approximately(r.rim, FrostPropsTuning.FarRim) &&
+                                                             Mathf.Approximately(r.rimNeed, FrostPropsTuning.FarRimNeed) && r.rim > 1f && r.rimNeed >= .8f; break;
+                case FrostPropsTuning.Place.Crater: ok &= r.on == ice && r.need >= .6f && r.need < 1f && r.near == GroundClass.None; break;
                 case FrostPropsTuning.Place.Outfit: ok &= r.on == ice && r.need >= .999f && r.rim > 1f && r.rimNeed >= .7f; break;
             }
             bool wet = w != FrostPropsTuning.Place.Flat && w != FrostPropsTuning.Place.SnowField && w != FrostPropsTuning.Place.Outfit;
@@ -134,7 +140,7 @@ public static class FrostPropsTest
             classes &= ok;
         }
         Check("each prop where it makes sense: sea life / icebreaker on open water, bears and seals on an ice edge, the fishing camp by a hole, " +
-              "the tanker frozen in, the crashed heli / airlift on a snow field away from water, the snowcat / radar / sonde beside a station; " +
+              "the tanker frozen in, the crashed heli on a snow field away from water, the starship's crater mostly on ice, the snowcat / radar / sonde beside a station; " +
               "nothing wet on the glacier (" + (wrongRule.Length > 0 ? "wrong: " + wrongRule : "all") + ")", classes);
         bool vars = true;
         for (int k = 0; k < names.Length; k++)
@@ -157,10 +163,25 @@ public static class FrostPropsTest
         Check("keep-out margins: KeepOut " + FrostPropsTuning.KeepOut + " of a prop's width, SiteKeepOut " + FrostPropsTuning.SiteKeepOut + " of a dock's",
               FrostPropsTuning.KeepOut >= .2f && FrostPropsTuning.SiteKeepOut >= .3f);
         float min = float.MaxValue, max = 0f;
-        for (int k = 0; k < names.Length; k++) { min = Mathf.Min(min, FrostPropsTuning.Size(k)); max = Mathf.Max(max, FrostPropsTuning.Size(k) * (1f + FrostPropsTuning.SizeJitter)); }
+        for (int k = 0; k < names.Length; k++)
+        {
+            if (FrostPropsTuning.Massive(k)) continue;
+            min = Mathf.Min(min, FrostPropsTuning.Size(k)); max = Mathf.Max(max, FrostPropsTuning.Size(k) * (1f + FrostPropsTuning.SizeJitter));
+        }
         Check("drawn at the landmarks' scale (" + min.ToString("F2") + " .. " + max.ToString("F2") + " u, landmarks " + FrostTuning.LandmarkMin.ToString("F2") +
               " .. " + FrostTuning.LandmarkMax.ToString("F2") + ", scaled by the ground zoom)",
               min >= .7f * FrostTuning.LandmarkMin && max <= FrostTuning.LandmarkMax && Mathf.Approximately(FrostPropsTuning.Size(0), FrostPropsTuning.SizeK[0] * FrostTuning.PieceScale));
+        // MASSIVE: the starship ~1/3 .. 1/2 of a 1080 px phone's width (the view ~2 x 3.71 u wide), far bigger than the station /
+        // tanker, under its own cap (above the landmarks'), from a 256 px cell (~1.5 px a texel: crisp, point-sampled)
+        {
+            int s = FrostPropsTuning.Starship;
+            float pxu = 1080f / (2f * 3.71f), lo = FrostPropsTuning.Size(s) * (1f - FrostPropsTuning.SizeJitter) * pxu, hi = FrostPropsTuning.Size(s) * (1f + FrostPropsTuning.SizeJitter) * pxu;
+            Check("the starship is MASSIVE: " + lo.ToString("F0") + " .. " + hi.ToString("F0") + " px on a 1080 px phone (320 .. 480), >= 4 x the station / tanker, " +
+                  "capped at " + FrostPropsTuning.MaxSize(s) + " u (> the landmarks' " + BackdropCatalog.MaxLandmarkSize + "), 256 px cells",
+                  lo >= 320f && hi <= 480f && FrostPropsTuning.Size(s) >= 4f * FrostPropsTuning.Size(FrostPropsTuning.Tanker) &&
+                  FrostPropsTuning.Size(s) * (1f + FrostPropsTuning.SizeJitter) <= FrostPropsTuning.MaxSize(s) && FrostPropsTuning.MaxSize(s) > BackdropCatalog.MaxLandmarkSize &&
+                  Mathf.Approximately(FrostPropsTuning.Cell(s), 256f) && FrostPropsTuning.Massive(s) && !FrostPropsTuning.Wet(s));
+        }
         Check("rare: a pool of at most two (" + FrostPropsTuning.Pool + "), " + FrostPropsTuning.GapMin + " .. " + FrostPropsTuning.GapMax + " u of ground between two",
               FrostPropsTuning.Pool <= 2 && FrostPropsTuning.GapMin >= 6f);
         Check("a whale waits 3 .. 8 s between surfacings (" + FrostPropsTuning.WaitMin + " .. " + FrostPropsTuning.WaitMax + ")",
@@ -173,7 +194,7 @@ public static class FrostPropsTest
             pink |= WorldCue.IsPink(FrostPropsTuning.ColorOf(l.kind));
             known &= "xws".IndexOf(l.kind) >= 0 && l.prop >= 0 && l.prop < names.Length && !FrostPropsTuning.OneShot[l.prop];
             known &= l.variants >= 0 && l.variants < (1 << FrostPropsTuning.Variants[l.prop]) || l.variants == 0;
-            known &= l.at.x >= 0f && l.at.x < 128f && l.at.y >= 0f && l.at.y < 128f;
+            known &= l.at.x >= 0f && l.at.x < FrostPropsTuning.Cell(l.prop) && l.at.y >= 0f && l.at.y < FrostPropsTuning.Cell(l.prop);
             per[l.prop]++;
             if (l.kind == 'x')
             {
@@ -193,10 +214,10 @@ public static class FrostPropsTest
             }
         Check("lamps: the station's red mast beacon and amber windows, the lab's mast tip, the plane's red tail beacon, the icebreaker's deck lights; " +
               "round 2: the snowcats' headlights, the radar's and tanker's red beacons, the camp's windows, the flare pots, the sonde's beacon and strobe, " +
-              "the crashed heli's and airlift's distress beacons (at most " + FrostPropsTuning.MaxLights + " a variant)",
+              "the crashed heli's and the starship's distress beacons (at most " + FrostPropsTuning.MaxLights + " a variant)",
               per[FrostPropsTuning.Station] >= 2 && per[FrostPropsTuning.Lab] >= 1 && per[FrostPropsTuning.Plane] >= 1 && per[FrostPropsTuning.Icebreaker] >= 2 &&
               per[FrostPropsTuning.Snowcat] >= 1 && per[FrostPropsTuning.Radar] >= 1 && per[FrostPropsTuning.Fishcamp] >= 2 && per[FrostPropsTuning.Flares] >= 2 &&
-              per[FrostPropsTuning.Tanker] >= 1 && per[FrostPropsTuning.Sonde] >= 2 && per[FrostPropsTuning.Heli] >= 1 && per[FrostPropsTuning.Airlift] >= 1 && fit && known);
+              per[FrostPropsTuning.Tanker] >= 1 && per[FrostPropsTuning.Sonde] >= 2 && per[FrostPropsTuning.Heli] >= 1 && per[FrostPropsTuning.Starship] >= 3 && fit && known);
         Check("no lamp is pink, beacons blink no faster than " + FrostGroundLightsTuning.MaxHz + " Hz, peak alpha <= .9", !pink && lit && FrostPropsTuning.Peak <= .9f);
     }
 
@@ -230,16 +251,18 @@ public static class FrostPropsTest
         bool all = atlas.Count == strips * FrostPropsTuning.Frames;
         var stripRects = new List<Rect>();
         var stripNames = new List<string>();
+        var stripCells = new List<int>();
         for (int k = 0; k < FrostPropsTuning.Names.Length; k++)
             for (int v = 0; v < FrostPropsTuning.Variants[k]; v++)
             {
                 var f = atlas.Frames(FrostPropsTuning.Strip(k, v));
                 all &= f.Length == FrostPropsTuning.Frames;
-                foreach (var s in f) all &= s != null && Mathf.Approximately(s.rect.width, 128f) && Mathf.Approximately(s.rect.height, 128f) &&
+                float cell = FrostPropsTuning.Cell(k);
+                foreach (var s in f) all &= s != null && Mathf.Approximately(s.rect.width, cell) && Mathf.Approximately(s.rect.height, cell) &&
                                           FrostPropsTuning.KindOf(s.name) == k && FrostPropsTuning.VariantOf(s.name) == v;
-                if (f.Length > 0 && f[0] != null) { stripRects.Add(f[0].rect); stripNames.Add(FrostPropsTuning.Strip(k, v)); }
+                if (f.Length > 0 && f[0] != null) { stripRects.Add(f[0].rect); stripNames.Add(FrostPropsTuning.Strip(k, v)); stripCells.Add((int)FrostPropsTuning.Cell(k)); }
             }
-        Check("the props atlas loads: " + strips + " strips (every kind's every variant) of 8 x 128 px cells (" + atlas.Count + " sprites), each cell naming its kind and variant", all);
+        Check("the props atlas loads: " + strips + " strips (every kind's every variant) of 8 x 128 px cells, the starship's 256 (" + atlas.Count + " sprites), each cell naming its kind and variant", all);
         atlas.Destroy();
 
         var spec = BackdropCatalog.For("Frost");
@@ -274,11 +297,11 @@ public static class FrostPropsTest
         bool rowsOk = true;
         for (int k = 0; k < stripRects.Count; k++)
         {
-            int y0 = (int)stripRects[k].y, x0 = (int)stripRects[k].x;
+            int y0 = (int)stripRects[k].y, x0 = (int)stripRects[k].x, cp = stripCells[k];
             var vals = new List<float>();
             double sw = 0, sl = 0;
-            for (int y = y0; y < y0 + 128 && y < h; y++)
-                for (int x = x0; x < x0 + 128 * FrostPropsTuning.Frames && x < w; x++)
+            for (int y = y0; y < y0 + cp && y < h; y++)
+                for (int x = x0; x < x0 + cp * FrostPropsTuning.Frames && x < w; x++)
                 {
                     var c = drawn[y * w + x];
                     if (c.a > .5f) vals.Add(Mathf.Max(c.r, Mathf.Max(c.g, c.b)));
@@ -498,6 +521,64 @@ public static class FrostPropsTest
               bad + " keep-out / plume / dock violations " + where, tried >= FrostPropsTuning.Names.Length - 4 && bad == 0);
     }
 
+    // MASSIVE, placed first: the starship dealt the regular way (SpawnProp ahead) on every layout lands above the landmarks'
+    // spawn band (out of sight, its keep-out clear of it), mostly on ice, and as it scrolls into view the landmarks, docks and
+    // other props are dealt round it: nothing in its keep-out, no plume through it, no dock by it; drawn 320 .. 480 px wide.
+    static void StarshipAhead()
+    {
+        const int Seeds = 4;
+        int s = FrostPropsTuning.Starship, total = 0, bad = 0, notAhead = 0, seen = 0;
+        float minPx = float.MaxValue, maxPx = 0f;
+        string per = "";
+        bool every = true;
+        for (int v = 1; v <= 4; v++)
+        {
+            int placed = 0;
+            for (int seed = 0; seed < Seeds; seed++)
+            {
+                FrostDirector.SeedOverride = 401 + seed * 17 + v;
+                var wb = Fresh(v, 2f);
+                var d = Director(wb);
+                if (d == null || d.Props == null) { if (wb != null) Object.DestroyImmediate(wb.gameObject); continue; }
+                d.ClearProps();
+                var set = wb.Current;
+                double lo = d.Planner.Travel + set.HalfHeight + FrostTuning.SpawnAbove, hi = lo + FrostTuning.SpawnBand;
+                BackdropPiece p = null;
+                if (d.SpawnProp(s, lo, hi, FrostPropsTuning.Tries, true))
+                    for (int i = 0; i < d.Props.items.Count; i++) if (d.Props.items[i].active && d.PropKind(i) == s) p = d.Props.items[i];
+                if (p == null) { Object.DestroyImmediate(wb.gameObject); continue; }
+                placed++;
+                if (p.gy - FrostPropsTuning.ClaimHalf(p.size) * .8f < hi || p.y - p.size * .5f < set.HalfHeight) notAhead++;
+                float pxu = 1080f / (2f * set.HalfWidth);
+                bool inView = false;
+                for (float t = 0f; t < 40f && p.active && p.y > -set.HalfHeight * .2f; t += Dt)
+                {
+                    wb.Step(Dt);
+                    if (!p.active) break;
+                    if (p.y < set.HalfHeight * .5f) inView = true;
+                    for (int i = 0; i < d.Props.items.Count; i++)
+                    {
+                        var q = d.Props.items[i];
+                        if (q.active) bad += KeptOut(d, q) + PlumesThrough(d, q) + DocksBy(d, q);
+                    }
+                }
+                if (inView) seen++;
+                float w = p.size * pxu;
+                minPx = Mathf.Min(minPx, w); maxPx = Mathf.Max(maxPx, w);
+                Object.DestroyImmediate(wb.gameObject);
+            }
+            total += placed;
+            every &= placed >= 1;
+            per += "v" + v + " " + placed + "/" + Seeds + " ";
+        }
+        FrostDirector.SeedOverride = 0;
+        Check("STARSHIP placed ahead on every layout (" + per + "), above the landmarks' band out of sight (" + notAhead + " not), " + seen + " scrolled into view",
+              every && total >= 2 * Seeds && notAhead == 0 && seen == total);
+        Check("STARSHIP: the ground is dealt round its keep-out as it scrolls in (" + bad + " keep-out / plume / dock violations), drawn " +
+              minPx.ToString("F0") + " .. " + maxPx.ToString("F0") + " px wide on a 1080 px phone (320 .. 480)",
+              bad == 0 && total > 0 && minPx >= 320f && maxPx <= 480f);
+    }
+
     // Each kind forced into view: it animates (a loop through its cells; a whale / orca's wait then surfacing), its lamps
     // light up (never pink, alpha-capped, a readable size), dt 0 freezes it all, no allocation per frame.
     static void Forced()
@@ -515,12 +596,26 @@ public static class FrostPropsTest
             foreach (int vv in order)
             {
                 FrostDirector.SeedOverride = 77 + k;
-                wb = Fresh(v = vv, .25f);
+                bool massive = FrostPropsTuning.Massive(k);
+                wb = Fresh(v = vv, massive ? 2f : .25f);
                 d = Director(wb);
                 if (d == null || d.Props == null) break;
                 d.ClearProps();
                 double tr = d.Planner.Travel;
                 float hh = wb.Current.HalfHeight;
+                if (massive)
+                {
+                    // the starship is dealt ahead of the ground (the view is full of landmarks): placed above the landmarks'
+                    // band, then scrolled into view
+                    double lo = tr + hh + FrostTuning.SpawnAbove;
+                    if (d.SpawnProp(k, lo, lo + FrostTuning.SpawnBand, 800, true))
+                        for (int i = 0; i < d.Props.items.Count; i++) if (d.Props.items[i].active && d.PropKind(i) == k) slot = i;
+                    for (float t = 0f; slot >= 0 && t < 40f && d.Props.items[slot].y > hh * .3f; t += Dt) wb.Step(Dt);
+                    if (slot >= 0) break;
+                    Object.DestroyImmediate(wb.gameObject);
+                    wb = null;
+                    continue;
+                }
                 // a station's outfit needs its station on the ground first
                 if (FrostPropsTuning.NeedsHost(k)) d.SpawnProp(FrostPropsTuning.Station, tr - hh * .4f, tr + hh * .4f, 800);
                 for (int a = 0; a < 6 && slot < 0; a++)

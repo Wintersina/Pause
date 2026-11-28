@@ -21,7 +21,13 @@ using UnityEngine;
 //   tanker                 frozen into the ice: on ice with a lead beside it
 //   bears, seals           on an ice edge: mostly water, with ice in the ring round them
 //   narwhal                a pod surfacing in open water (one-shot, like the orcas)
-//   heli, airlift          crashed / belly-landed on a snow field well away from water (no water inside FarRim)
+//   heli                   crashed on a snow field well away from water (mostly ice inside FarRim)
+//   starship               (user-approved 2026-11-28, replacing the belly-landed airlift: "the starship crashed in is good as
+//                          long as they are massive in the backdrop as a prop") a MOUNTAIN-SIZED wreck ploughed into the ice:
+//                          256 px cells (Cell), drawn ~400 px wide on a 1080 px phone (over a third of the view; MaxSize lifts
+//                          it past BackdropCatalog.MaxLandmarkSize), on ice / snow with up to a third of its crater over a broken
+//                          edge (a lead beside it is preferred), PLACED AHEAD of the ground being dealt (above the landmarks'
+//                          spawn band) so the landmarks, docks and smaller props are dealt round its keep-out afterwards
 // KEEP-OUT (the user, 2026-11-28: nothing that moves may pass through or touch a prop): a prop claims its whole drawing plus
 // KeepOut of its width all round, so no landmark, dock or other prop (whales / orcas / narwhals surfacing) is placed in that
 // margin; no prop stands under a landmark's rising smoke / steam column (PlumeBox) and no landmark is placed whose column
@@ -30,7 +36,7 @@ using UnityEngine;
 // RARE: an accent, not clutter. At most Pool (2) stand on the ground at once (in view or just above it), one every
 // GapMin..GapMax of scrolled ground (the view is ~16.5 u tall), so one or two are in view and often none. Nothing that
 // floats comes to the glacier (v4: its dark mask class is the crevasses).
-// Art: Backdrop3/props (128 px cells, <name>_00..07 or <name>_<v>_00..07 for a variant, two strips a row, 2048 x 3072;
+// Art: Backdrop3/props (128 px cells -- the starship's 256 --, <name>_00..07 or <name>_<v>_00..07 for a variant, 2048 x 3840;
 // frost_redraw/props/build_props_atlas.py from the approved strips).
 // Animated from each piece's own age (scaled dt): a paused game is a still frame. Nothing is allocated per frame.
 public static class FrostPropsTuning
@@ -38,15 +44,22 @@ public static class FrostPropsTuning
     public const string Atlas = "props";
     public const string Layer = "props";
     public static readonly string[] Names = { "whale", "orca", "station", "lab", "icebreaker", "plane",
-                                              "snowcat", "radar", "fishcamp", "flares", "tanker", "bears", "narwhal", "sonde", "seals", "heli", "airlift" };
+                                              "snowcat", "radar", "fishcamp", "flares", "tanker", "bears", "narwhal", "sonde", "seals", "heli", "starship" };
     public const int Whale = 0, Orca = 1, Station = 2, Lab = 3, Icebreaker = 4, Plane = 5,
-                     Snowcat = 6, Radar = 7, Fishcamp = 8, Flares = 9, Tanker = 10, Bears = 11, Narwhal = 12, Sonde = 13, Seals = 14, Heli = 15, Airlift = 16;
+                     Snowcat = 6, Radar = 7, Fishcamp = 8, Flares = 9, Tanker = 10, Bears = 11, Narwhal = 12, Sonde = 13, Seals = 14, Heli = 15, Starship = 16;
     // colour / pose variants per kind (1: one drawing, cells <name>_00..07; else <name>_<v>_00..07)
     public static readonly int[] Variants = { 1, 1, 1, 1, 1, 1, 4, 4, 4, 4, 4, 4, 4, 4, 1, 4, 4 };
     // the atlas strip of kind `kind`, variant `v` (BackdropAtlas.Frames)
     public static string Strip(int kind, int v) { return Variants[kind] <= 1 ? Names[kind] : Names[kind] + "_" + v; }
     public const int Frames = 8;
     public const float CellPx = 128f;
+    // a kind's cell size in the atlas (px): the starship's drawing is 256 px, so it stays crisp drawn ~400 px wide
+    public static float Cell(int kind) { return kind == Starship ? 256f : CellPx; }
+    // MASSIVE kinds (the starship): drawn far past the landmarks' cap, placed ahead of the ground being dealt
+    public static bool Massive(int kind) { return kind == Starship; }
+    // a kind's drawn-size cap (world units): BackdropCatalog.MaxLandmarkSize, the starship's own above it
+    public const float MassiveMax = 3.2f;
+    public static float MaxSize(int kind) { return Massive(kind) ? MassiveMax : BackdropCatalog.MaxLandmarkSize; }
 
     // WHERE each may stand (Rule):
     //   OpenWater  open water (mask W), its whole footprint and a clear rim -- whale, orca, icebreaker, narwhal
@@ -55,12 +68,13 @@ public static class FrostPropsTuning
     //   ByHole     a flat top with open water in the ring just round it (an ice-fishing hole / lead) -- fishcamp
     //   FrozenIn   on ice (O / C), with a lead in the ring round it -- tanker
     //   IceEdge    mostly water, with ice in the ring round it -- bears, seals
-    //   SnowField  on snow (O / C) with no water anywhere inside FarRim x its footprint -- heli, airlift
-    public enum Place { OpenWater, Flat, ByHole, FrozenIn, IceEdge, SnowField, Outfit }
+    //   SnowField  on snow (O / C), its ring at FarRim x its footprint mostly so (FarRimNeed) -- heli
+    //   Crater     ice / snow (O / C) under CraterNeed of its (wide) footprint, the rest may be a broken edge -- the starship
+    public enum Place { OpenWater, Flat, ByHole, FrozenIn, IceEdge, SnowField, Outfit, Crater }
     public static readonly Place[] Where =
     {
         Place.OpenWater, Place.OpenWater, Place.Flat, Place.Flat, Place.OpenWater, Place.Flat,
-        Place.Outfit, Place.Outfit, Place.ByHole, Place.Flat, Place.FrozenIn, Place.IceEdge, Place.OpenWater, Place.Outfit, Place.IceEdge, Place.SnowField, Place.SnowField,
+        Place.Outfit, Place.Outfit, Place.ByHole, Place.Flat, Place.FrozenIn, Place.IceEdge, Place.OpenWater, Place.Outfit, Place.IceEdge, Place.SnowField, Place.Crater,
     };
     // stands in / at the water (never on the glacier, v4: its dark mask class is the crevasses)
     public static bool Wet(int kind) { var w = Where[kind]; return w == Place.OpenWater || w == Place.IceEdge || w == Place.ByHole || w == Place.FrozenIn; }
@@ -90,22 +104,22 @@ public static class FrostPropsTuning
         new[] { 125, 125, 125, 125, 125, 125, 125, 125 },     // sonde
         new[] { 180, 180, 180, 180, 180, 180, 180, 180 },     // seals
         new[] { 125, 125, 125, 125, 125, 125, 125, 125 },     // heli: tail distress beacon
-        new[] { 125, 125, 125, 125, 125, 125, 125, 125 },     // airlift: distress beacon, cabin light
+        new[] { 125, 125, 125, 125, 125, 125, 125, 125 },     // starship: staggered red distress lamps, a strobe, steam
     };
     public static float WaitMin = 3f, WaitMax = 8f;
 
     // Drawn width (a 128 cell) x FrostTuning.PieceScale: the approved previews' sizes on a 1080 px phone (whale 54 px,
     // orca 46, station 62, lab 58, icebreaker 58, plane 56; a 256 landmark cell is ~65 px), ~.75-1 x the landmarks' range.
     // round 2 (px on a 1080 px phone / 41.6): snowcat 60, radar 62, fishcamp 64, flares 64, tanker 68 (capped: max <= LandmarkMax),
-    // bears 50, narwhal 52, sonde 66, seals 48, heli 64, airlift 68
+    // bears 50, narwhal 52, sonde 66, seals 48, heli 64; the starship 400 (a 256 cell: ~1.56 px a texel, point-sampled)
     public static readonly float[] SizeK = { 1.30f, 1.10f, 1.49f, 1.39f, 1.39f, 1.34f,
-                                             1.44f, 1.49f, 1.54f, 1.54f, 1.64f, 1.20f, 1.25f, 1.58f, 1.15f, 1.54f, 1.64f };
+                                             1.44f, 1.49f, 1.54f, 1.54f, 1.64f, 1.20f, 1.25f, 1.58f, 1.15f, 1.54f, 9.6f };
     public const float SizeJitter = .06f;
     public static float Size(int kind) { return SizeK[kind] * FrostTuning.PieceScale; }
     // where the slab / ripples sit (share of the drawn width from the centre, y up): measured on the strips (rows >= 70% of
     // the widest, all frames)
     public static readonly float[] Feet = { 0f, 0f, -.06f, -.08f, 0f, .02f,
-                                            -.05f, -.17f, -.06f, -.02f, -.07f, 0f, 0f, 0f, 0f, -.09f, -.02f };
+                                            -.05f, -.17f, -.06f, -.02f, -.07f, 0f, 0f, 0f, 0f, -.09f, 0f };
     // footprint half-size as a share of the drawn width: the whales' ripple rings and the icebreaker's wake fill most of the
     // cell, so the water they need is wider than a landmark's slab; the structures stand on their slab like a landmark
     public const float WaterCore = .42f, LandCore = .34f;
@@ -118,8 +132,14 @@ public static class FrostPropsTuning
     public const float SiteKeepOut = .4f, PlumeKeepOut = .1f;
     // IceEdge: the footprint share that must be water; SnowField: the ring (x footprint) that must hold no water
     public const float EdgeWater = .6f, FarRim = 1.3f, FarRimNeed = .85f;
+    // Crater (the starship): the ice share of its footprint (core CraterCore of its width); the rest may be water / a lead
+    public const float CraterNeed = .65f, CraterCore = .3f;
+    // a massive kind is looked for in a band this tall just above the landmarks' spawn band (its keep-out clear of it), in
+    // MassiveTries tries, the best ice match with a lead beside it preferred
+    public const float MassiveBand = 2.5f;
+    public const int MassiveTries = 80;
     public static readonly int[] Weights = { 3, 2, 2, 2, 2, 2,
-                                             2, 2, 2, 2, 2, 2, 2, 1, 1, 2, 2 };
+                                             2, 2, 2, 2, 2, 2, 2, 1, 1, 2, 5 };
     public const int Pool = 2;
     public static float GapMin = 9f, GapMax = 16f;        // scrolled ground (world units) between two props
     public const int Tries = 40;
@@ -135,6 +155,7 @@ public static class FrostPropsTuning
             case Place.FrozenIn: r = new PieceRule(Ice, FrostTuning.LandNeed, LandCore, GroundClass.Water); break;
             case Place.IceEdge: r = new PieceRule(GroundClass.Water, EdgeWater, WaterCore, Ice); break;
             case Place.SnowField: r = new PieceRule(Ice, FrostTuning.LandNeed, LandCore).WithRim(FarRim, FarRimNeed); break;
+            case Place.Crater: r = new PieceRule(Ice, CraterNeed, CraterCore); break;
             case Place.Outfit: r = new PieceRule(Ice, FrostTuning.LandNeed, LandCore).WithRim(FrostTuning.RimScale, FrostTuning.RimRelaxed); break;
             default: r = new PieceRule(GroundClass.Open, FrostTuning.LandNeed, LandCore).WithRim(FrostTuning.RimScale, FrostTuning.RimNeed); break;
         }
@@ -185,7 +206,7 @@ public static class FrostPropsTuning
     public struct Light
     {
         public int prop;
-        public Vector2 at;        // cell pixels from the top-left of the 128 cell
+        public Vector2 at;        // cell pixels from the top-left of the kind's cell (Cell: 128, the starship's 256)
         public char kind;
         public float px;          // glow width in cell pixels
         public int litMask;       // 'x': frames the drawing shows its lamp lit
@@ -226,8 +247,14 @@ public static class FrostPropsTuning
         L(Sonde, 110, 101, 'x', 16, 0x03, 0xC),  // (drawing B)
         L(Sonde, 114, 115, 's', 14, 0, 0xC),
         L(Heli, 32, 25, 'x', 16, 0x03),          // the crashed heli's tail distress beacon
-        L(Airlift, 85, 12, 'x', 16, 0x03),       // the airlift's distress beacon ...
-        L(Airlift, 74, 58, 'w', 13),             // ... and its cabin light
+        // the starship (256 cells): three staggered red distress lamps per drawing (try_a: variants 0, 1; try_b: 2, 3); its
+        // white strobe and steam are baked in
+        L(Starship, 106, 174, 'x', 9, 0x03, 0x3),
+        L(Starship, 186, 104, 'x', 9, 0x30, 0x3),
+        L(Starship, 78, 195, 'x', 9, 0x0C, 0x3),
+        L(Starship, 126, 94, 'x', 9, 0x03, 0xC),
+        L(Starship, 160, 72, 'x', 9, 0x18, 0xC),
+        L(Starship, 146, 112, 'x', 9, 0x60, 0xC),
     };
     static Light L(int prop, float x, float y, char kind, float px, int mask = 0, int variants = 0)
     {
@@ -281,6 +308,9 @@ public partial class FrostDirector
     float propTravel, propGap;
     int lastProp = -1;
     System.Random propRng;                 // its own stream: a prop never shifts the landmarks' or the weather's dice
+    // the ground drawings that carry a smoke / steam column, by sprite (Object.name allocates a string every call, and the
+    // keep-out test runs per placement try: no allocation per frame)
+    readonly System.Collections.Generic.Dictionary<Sprite, string> plumeKey = new System.Collections.Generic.Dictionary<Sprite, string>();
 
     public BackdropPool Props => props;
     public int PropsSpawned { get; private set; }
@@ -340,7 +370,17 @@ public partial class FrostDirector
             }
         }
         Grade(props, FrostPropsTuning.Layer);
+        plumeKey.Clear();
+        foreach (var fam in FrostTuning.Families)
+            if (fam != null) foreach (var name in fam) KeyPlume(landmarkArt != null ? landmarkArt.Get(name) : null, name);
+        if (siteClosed != null) foreach (var s in siteClosed) KeyPlume(s, s != null ? s.name : null);
+        if (siteOpen != null) foreach (var s in siteOpen) KeyPlume(s, s != null ? s.name : null);
         propGap = PRand(FrostPropsTuning.GapMin, FrostPropsTuning.GapMax);
+    }
+
+    void KeyPlume(Sprite s, string name)
+    {
+        if (s != null && !string.IsNullOrEmpty(name) && FrostAmbientCatalog.For(name) != null) plumeKey[s] = name;
     }
 
     void TeardownProps()
@@ -428,10 +468,11 @@ public partial class FrostDirector
         for (int pi = 0; pi < pools.Count; pi++)
             foreach (var q in pools[pi].items)
             {
-                if (!q.active || q.sr.sprite == null) continue;
+                string piece;
+                if (!q.active || q.sr.sprite == null || !plumeKey.TryGetValue(q.sr.sprite, out piece)) continue;
                 bool mirror = q.body.localScale.x < 0f;
                 float cx, bhx, bhy; double cy;
-                for (int e = 0; PlumeBox(q.sr.sprite.name, e, q.size, mirror, q.x, q.gy, out cx, out cy, out bhx, out bhy); e++)
+                for (int e = 0; PlumeBox(piece, e, q.size, mirror, q.x, q.gy, out cx, out cy, out bhx, out bhy); e++)
                     if (Hit(x, gy, hx, hy, cx, cy, bhx, bhy)) return false;
             }
         if (sites != null)
@@ -493,7 +534,8 @@ public partial class FrostDirector
     // A prop (kind < 0: one picked) with its centre in the ground band [lo, hi] (the outfit: beside its host) where the ground
     // suits it, nothing stands on its whole drawing and its keep-out, and no plume column or dock margin reaches it. A kind
     // that fits nowhere is swapped for another (up to three). False: nothing placed.
-    public bool SpawnProp(int kind, double lo, double hi, int tries = FrostPropsTuning.Tries)
+    // ahead: the regular deal at the top of the view -- a massive kind is then looked for above the landmarks' spawn band.
+    public bool SpawnProp(int kind, double lo, double hi, int tries = FrostPropsTuning.Tries, bool ahead = false)
     {
         if (props == null || !planner.Ready || props.ActiveCount >= props.Capacity) return false;
         int tried = -1;
@@ -508,13 +550,29 @@ public partial class FrostDirector
             var rule = FrostPropsTuning.Rule(kd);
             float rx = FrostPropsTuning.ClaimHalf(size), ry = rx * .8f;
             float x = 0f; double gy = 0.0; bool found = false;
-            for (int t = 0; t < tries && !found; t++)
+            bool massive = FrostPropsTuning.Massive(kd);
+            double blo = lo, bhi = hi;
+            int n = tries;
+            if (massive)
+            {
+                // placed before the smaller pieces: above the band the landmarks are being dealt in (its keep-out clear of it,
+                // its drawing out of sight), so they and the docks are dealt round it afterwards
+                if (ahead) { blo = System.Math.Max(lo, hi + ry + .05); bhi = blo + FrostPropsTuning.MassiveBand; }
+                n = Mathf.Max(tries, FrostPropsTuning.MassiveTries);
+            }
+            float best = -1f;
+            for (int t = 0; t < n && !found; t++)
             {
                 float cx; double cy;
-                if (!PropCandidate(kd, size, host, lo, hi, out cx, out cy)) continue;
+                if (!PropCandidate(kd, size, host, blo, bhi, out cx, out cy)) continue;
                 if (!planner.Free(cx, cy, rx, ry) || !planner.Accepts(rule, cx, cy, size) || !PropClear(cx, cy, rx, ry)) continue;
-                x = cx; gy = cy; found = true;
+                if (!massive) { x = cx; gy = cy; found = true; break; }
+                // the wreck: the most ice under it, a lead / broken edge beside it preferred
+                float hx = GroundPlanner.HalfX(rule, size), hy = GroundPlanner.HalfY(rule, size);
+                float score = planner.Match(cx, cy + rule.foot * size, hx, hy, rule.on) + (planner.Near(cx, cy + rule.foot * size, hx, hy, GroundClass.Water) ? .25f : 0f);
+                if (score > best) { best = score; x = cx; gy = cy; }
             }
+            found |= best >= 0f;
             if (!found) { if (kind >= 0) return false; continue; }
             int foot = planner.Claim(x, gy, rx, ry);
             if (foot < 0) return false;
@@ -529,7 +587,7 @@ public partial class FrostDirector
             propVar[i] = v;
             propSeed[i] = (uint)propRng.Next() | 1u;
             propSurface[i] = FrostPropsTuning.OneShot[kd] ? PRand(FrostPropsTuning.WaitMin, FrostPropsTuning.WaitMax) : 0f;
-            SetSprite(p, propFrames[kd][v][0], Mathf.Min(size, BackdropCatalog.MaxLandmarkSize));
+            SetSprite(p, propFrames[kd][v][0], Mathf.Min(size, FrostPropsTuning.MaxSize(kd)));
             p.body.localScale = propRng.NextDouble() < .5 ? new Vector3(-1f, 1f, 1f) : Vector3.one;
             p.footprint = foot;
             p.core = FrostPropsTuning.ClaimCore + FrostPropsTuning.KeepOut;
@@ -590,7 +648,8 @@ public partial class FrostDirector
         {
             var li = FrostPropsTuning.Lights[l];
             if (li.prop != kind || !FrostPropsTuning.On(li, variant)) continue;
-            const float ppu = BackdropAtlas.PixelsPerUnit, half = FrostPropsTuning.CellPx * .5f;
+            const float ppu = BackdropAtlas.PixelsPerUnit;
+            float half = FrostPropsTuning.Cell(kind) * .5f;
             rs[j].transform.localPosition = new Vector3((li.at.x - half) / ppu, (half - li.at.y) / ppu, 0f);
             float s = li.px / ppu;
             rs[j].transform.localScale = new Vector3(s, s, 1f);
@@ -634,7 +693,7 @@ public partial class FrostDirector
         if (planner.Ready && propTravel >= propGap && props.ActiveCount < props.Capacity)
         {
             double lo = planner.Travel + HalfH + FrostTuning.SpawnAbove, hi = lo + FrostTuning.SpawnBand;
-            if (SpawnProp(-1, lo, hi)) { propTravel = 0f; propGap = PRand(FrostPropsTuning.GapMin, FrostPropsTuning.GapMax); }
+            if (SpawnProp(-1, lo, hi, FrostPropsTuning.Tries, true)) { propTravel = 0f; propGap = PRand(FrostPropsTuning.GapMin, FrostPropsTuning.GapMax); }
             else propGap = propTravel + FrostTuning.SpawnRetry;
         }
         StepPinned(props, propRules, dt);
