@@ -33,7 +33,8 @@ public static class RailMineArtTest
     static bool StormOwn => true;   // (Storm's own atlas is installed: the temporary Tide fallback is gone)
     static string AssetFor(int world) =>
         world == RailMineArt.DesertWorld ? DesertAtlasAsset : world == RailMineArt.StormWorld && StormOwn ? StormAtlasAsset : world >= RailMineArt.OriginalWorlds ? TideAtlasAsset : AtlasAsset;
-    // Desert's own atlas is Codex's colour, not one of the hues below (its readability is ReadabilitySweep's)
+    // Desert's redraw is a sand-and-brass shell round a DARK lens (the user's ask): its sun-gold glint is too small to count as a row
+    // neon, so its colour is exempt (its readability is ReadabilitySweep's)
     static bool OwnColour(int w) => w == RailMineArt.DesertWorld;
     // The Paragon-standard redraws of Tide and Storm sleep in the drawing's own colours (brass, gunmetal); their cue shows once they wake
     static bool DormantOwnColour(int w, int column) => column == RailMineArt.Dormant && (w == 4 || w == RailMineArt.StormWorld);
@@ -106,8 +107,8 @@ public static class RailMineArtTest
             Check("Storm " + RailMineArt.ColumnName(c) + " frame rect is Tide's (the same cuts)", RailMineArt.PixelRect(w, c).Equals(RailMineArt.PixelRect(4, c)));
     }
 
-    // Desert's Mirage Mine is the fourth atlas file (rail_mines_neon_desert.png, 1254x314, panels cut at 0 / 313 / 627 / 940, the lens
-    // centre (215, 158) inside every panel as the pivot).
+    // Desert's Mirage Mine is the fourth atlas file (rail_mines_neon_desert.png, 1254x314, one row of four panels; the redraw's pivot
+    // is its dormant body's centre, like every row's).
     static void DesertMineHasItsOwnAtlas()
     {
         int w = RailMineArt.DesertWorld;
@@ -118,15 +119,15 @@ public static class RailMineArtTest
         Check("... routed by AtlasPathFor, a different file from Storm's, Tide's and the original",
               RailMineArt.AtlasPathFor(w) == RailMineArt.DesertAtlasPath && tex != RailMineArt.AtlasFor(RailMineArt.StormWorld) &&
               tex != RailMineArt.AtlasFor(RailMineArt.OriginalWorlds) && tex != RailMineArt.Atlas);
-        int[] edges = { 0, 313, 627, 940, 1254 };
+        int x = 0;
         for (int c = 0; c < RailMineArt.Columns; c++)
         {
             var r = RailMineArt.PixelRect(w, c);
-            Check("Desert " + RailMineArt.ColumnName(c) + " frame rect is its panel (" + edges[c] + " .. " + edges[c + 1] + ")", r.x == edges[c] && r.xMax == edges[c + 1] && r.y == 0 && r.height == 314);
-            var p = RailMineArt.PixelPivot(w, c);
-            Check("Desert " + RailMineArt.ColumnName(c) + " pivot is the lens centre (215, 158) of its panel", Mathf.Approximately(p.x - r.x, 215f) && Mathf.Approximately(p.y - r.y, 158f));
+            Check("Desert " + RailMineArt.ColumnName(c) + " frame rect is the next full-height panel of the row", r.x == x && r.y == 0 && r.height == 314);
+            x = r.xMax;
         }
-        Check("Desert's heat-lance leaves the lens centre (the bright core's centroid is the pivot)", RailMineArt.CoreOffset(w) == Vector2.zero);
+        Check("... and the four panels span the row (to " + x + ")", x == RailMineArt.AtlasSize);
+        Check("Desert's heat-lance leaves the lens's focal point, lane-ward of the pivot", RailMineArt.CoreOffset(w).x > 0f);
     }
 
     static void ImportedCrisp()
@@ -276,9 +277,7 @@ public static class RailMineArtTest
             for (int c = 1; c < RailMineArt.Columns; c++)
             {
                 float off = ClampOffset(w, c);
-                // (Desert's burst frame: the lens rupture's rays reach 29 px left of the clamp, so the leftmost solid pixel moves; the clamp itself
-                // is where it was. Allowed 40 px for that one frame, tracked art delta.)
-                float tol = w == RailMineArt.DesertWorld && c == RailMineArt.Burst ? 40f : 8f;
+                float tol = 8f;
                 Check(string.Format("{0} {1}: the clamp stays put ({2:F0} px vs dormant {3:F0} px from the pivot)",
                                     EnemyRoster.WorldKeys[w], RailMineArt.ColumnName(c), off, dormant),
                       Mathf.Abs(off - dormant) <= tol);

@@ -51,7 +51,7 @@
   "attack": "rod_strikes",
   "lore": "A rod-armed dancer that weaves a figure of eight across the top and calls the lightning down. A glyph blooms under every column at once, then the columns strike from the outside in, your own lane last. Hurt, it flees off the screen and returns.",
   "hullRadius": 0.377,
-  "silhouetteShare": 0.4671,
+  "silhouetteShare": 0.4581,
   "turnsToFace": true,
   "speed": 2.7,
   "accel": 8.0,
@@ -72,44 +72,44 @@
   "muzzles": [
     {
       "name": "fan",
-      "x": 190,
-      "y": 138,
+      "x": 193,
+      "y": 54,
       "dir": -1.0
     },
     {
       "name": "portrod",
-      "x": 133,
-      "y": 48,
+      "x": 168,
+      "y": 72,
       "dir": -1.0
     },
     {
       "name": "starrod",
-      "x": 251,
-      "y": 48,
+      "x": 218,
+      "y": 72,
       "dir": -1.0
     }
   ],
   "nozzles": [
     {
       "name": "l",
-      "x": 169,
-      "y": 290,
+      "x": 156,
+      "y": 300,
       "dir": -1.0,
-      "offsets": [0, 0, 0, 0, 0, -4, 0, 0, 2, -4, -4, -4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+      "offsets": [0, 0, 0, 0, 0, 0, 0, 0, 5, 0, -2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
     },
     {
       "name": "c",
-      "x": 192,
-      "y": 295,
+      "x": 188,
+      "y": 285,
       "dir": -1.0,
-      "offsets": [0, 0, 0, 0, 0, 0, 0, 0, 2, 0, -2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+      "offsets": [0, 0, 0, 0, 0, 0, 0, 0, 3, 0, -3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
     },
     {
       "name": "r",
-      "x": 219,
-      "y": 287,
+      "x": 229,
+      "y": 298,
       "dir": -1.0,
-      "offsets": [0, 0, 0, 0, 2, -4, 0, 0, 6, -4, 0, -4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+      "offsets": [0, 0, 0, 0, 0, 0, 0, 0, 2, 0, -5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
     }
   ],
   "keepDistance": 2.6,

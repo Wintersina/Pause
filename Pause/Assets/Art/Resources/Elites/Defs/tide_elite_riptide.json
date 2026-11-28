@@ -52,7 +52,7 @@
   "launchFrom": "carrierpad,trenchhatch",
   "lore": "A needle-nosed rider that sleeps in the trench hatches. It carves a wave line across the top of the board, rings the water behind it, then lobs banks of foam onto the rings: keep off them, a shot pops a bank. Hurt, it dives away and returns riding the other way.",
   "hullRadius": 0.343,
-  "silhouetteShare": 0.4405,
+  "silhouetteShare": 0.4508,
   "turnsToFace": true,
   "speed": 3.0,
   "accel": 6.5,
@@ -75,23 +75,23 @@
   "muzzles": [
     {
       "name": "lance",
-      "x": 192,
-      "y": 39,
+      "x": 198,
+      "y": 50,
       "dir": -1.0
     }
   ],
   "nozzles": [
     {
       "name": "l",
-      "x": 175,
-      "y": 286,
+      "x": 162,
+      "y": 284,
       "dir": -1.0,
       "offsets": [0, 0, 0, 0, 0, 0, 0, 0, 4, 0, -2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
     },
     {
       "name": "r",
-      "x": 210,
-      "y": 286,
+      "x": 224,
+      "y": 284,
       "dir": -1.0,
       "offsets": [0, 0, 0, 0, 0, 0, 0, 0, 2, 0, -4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
     }

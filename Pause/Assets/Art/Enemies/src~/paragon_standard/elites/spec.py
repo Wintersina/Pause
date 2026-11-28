@@ -26,6 +26,7 @@ SPEC = {
                                         muzzles={"fan": (64, 6), "portrod": (30, 30), "starrod": (98, 30)}),
     "desert_elite_mirror_bastion": dict(engines=[(47, 8), (81, 8)], flames=False,
                                         muzzles={"core": (64, 10), "portcap": (40, 12), "starcap": (88, 12)}),
+    "desert_elite_scorpion_walker": dict(engines=[(48, 5), (79, 5)], flames=True, muzzles={"claw": (64, 10)}),
     # ---- Ember -----------------------------------------------------------------------------------------------------------
     "ember_elite_ash_wraith": dict(engines=[(44, 5), (85, 5)], flames=True, root=105, cut=[(75, 105, 76, 128)], muzzles={"beak": (64, 30)}),
     "ember_elite_brass_vulture": dict(engines=[(44, 7), (84, 7)], flames=False, muzzles={"claw": (64, 26)}),
@@ -55,6 +56,8 @@ SPEC = {
     # ---- Storm -----------------------------------------------------------------------------------------------------------
     "storm_elite_anvil_cloud": dict(engines=[(48, 5), (80, 5)], flames=False, muzzles={"cannon": (64, 20)}),
     "storm_elite_skyhook_harrier": dict(engines=[(54, 4), (74, 4)], flames=False, muzzles={"hook": (64, 22)}),
+    "storm_elite_rod_dancer": dict(engines=[(48, 4), (62, 5), (80, 4)], flames=False,
+                                   muzzles={"fan": (64, 8), "portrod": (53, 16), "starrod": (75, 16)}),
     # ---- Tide ------------------------------------------------------------------------------------------------------------
     "tide_elite_bathyscaphe": dict(engines=[(36, 5), (92, 5)], flames=False,
                                    muzzles={"portclaw": (14, 44), "starclaw": (114, 44), "rack": (64, 100)}),
@@ -64,6 +67,7 @@ SPEC = {
                                   muzzles={"rod": (64, 6), "coilp": (46, 62), "coils": (78, 62)}),
     "tide_elite_trawler": dict(engines=[(34, 5), (92, 5)], flames=True,
                                muzzles={"port": (14, 60), "star": (114, 60), "winch": (64, 84)}),
+    "tide_elite_riptide": dict(engines=[(49, 4), (77, 4)], flames=True, muzzles={"lance": (64, 10)}),
     # ---- Verdant ---------------------------------------------------------------------------------------------------------
     "verdant_elite_leafblade": dict(engines=[(47, 4), (78, 4)], flames=True, root=107,
                                     muzzles={"nose": (64, 4), "lblade": (24, 70), "rblade": (104, 70)}),
@@ -73,4 +77,5 @@ SPEC = {
                                     muzzles={"lroot": (38, 40), "rroot": (90, 40)}),
     "verdant_elite_timber_hauler": dict(engines=[(39, 4), (50, 4), (76, 4), (86, 4)], flames=True,
                                         muzzles={"lgrab": (40, 12), "rgrab": (88, 12)}),
+    "verdant_elite_resin_warden": dict(engines=[(45, 5), (83, 5)], flames=True, muzzles={"lpod": (28, 68), "rpod": (100, 68)}),
 }

@@ -19,7 +19,7 @@
   "lore": "A black-armoured skiff that guards a flank and scuttles across the top after every throw. It hurls rolling boulders along a drawn path that glances off the far rail and out the bottom. Step off the lane; shoot the boulder if it is in your way.",
   "cellWorldSize": 1.617,
   "hullRadius": 0.327,
-  "silhouetteShare": 0.4888,
+  "silhouetteShare": 0.5115,
   "noseDeg": 90,
   "turnsToFace": true,
   "speed": 2.6,
@@ -42,25 +42,25 @@
   "muzzles": [
     {
       "name": "claw",
-      "x": 192,
-      "y": 38,
+      "x": 194,
+      "y": 32,
       "dir": -1.0
     }
   ],
   "nozzles": [
     {
       "name": "a",
-      "x": 164,
-      "y": 284,
+      "x": 149,
+      "y": 291,
       "dir": -1.0,
-      "offsets": [0, 0, 0, 0, 0, 0, 0, 0, 11, 2, -9, -4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+      "offsets": [0, 0, 0, 0, 0, 0, 0, 0, 4, 0, -2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
     },
     {
       "name": "b",
-      "x": 220,
-      "y": 284,
+      "x": 235,
+      "y": 294,
       "dir": -1.0,
-      "offsets": [0, 0, 0, 0, 0, 0, 0, 0, 9, -4, -11, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+      "offsets": [0, 0, 0, 0, 0, 0, 0, 0, 2, 0, -5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
     }
   ],
   "codexId": "elite_desert_scorpion_walker",

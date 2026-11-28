@@ -11,7 +11,8 @@ using UnityEngine;
 // brighter core, halo, arcs; Burst: a radial flare from the core). Nothing of
 // the glow reaches past the clamp's outer face. Build script, approved
 // drawings and the old atlases: Art/Enemies/src~/paragon_standard/mines/.
-// Desert's atlas is still the Codex one.
+// Desert's Mirage Mine was redrawn the same way (desert_mine_codex.png, its
+// codex still, is still the Codex one).
 //
 //   rows    = worlds (Space, Frost, Verdant, Ember), top to bottom
 //   columns = Dormant, Waking, Charging, Burst, left to right
@@ -23,9 +24,9 @@ using UnityEngine;
 // routes; PixelRect / PixelPivot are in the world's own atlas. Storm's Rod Mine
 // is the third file, rail_mines_neon_storm.png (1254x314, one row, Tide's
 // frame rects, its own pivots). Desert's Mirage Mine is the FOURTH file,
-// rail_mines_neon_desert.png (1254x314, one row, panels cut at x 0 / 313 / 627 /
-// 940 / 1254); every frame's pivot is the lens centre, 215 px into its panel at
-// y 158 (the lens the heat-lance leaves from: its bright core IS the pivot).
+// rail_mines_neon_desert.png (1254x314, one row, Tide's cuts but a 305 px
+// charging panel). Its lens centre stays DARK (the user's ask): waking lights
+// the brass rim and a small sun-glint focal point the heat-lance leaves from.
 //
 // Each frame has its own rect (the rows keep the old bands; the columns are
 // cut to each state's reach: dormant and waking tight, charging wider for the
@@ -71,9 +72,9 @@ public static class RailMineArt
     // drawn inner edge is at `railInnerEdge`.
     public static float MountX(float railInnerEdge) { return railInnerEdge + ClampBite - ClampReach; }
 
-    // The Mirage Mine's clamp is a deeper one: its dormant drawing's solid left edge sits 157 px (0.409 u) from the pivot, not the
-    // other rows' ~128 (.33 u). The same bite into the rail, so its centre is put that much further out.
-    public const float DesertClampReach = .409f;
+    // The Mirage Mine's clamp: the redrawn mine's sits 127.5 px (0.332 u) from the pivot, like the other rows' (the Codex drawing's
+    // was a deeper 0.409 u), so it is ClampReach again; kept as its own constant for ClampReachFor.
+    public const float DesertClampReach = ClampReach;
     public static float ClampReachFor(int world) { return world == DesertWorld ? DesertClampReach : ClampReach; }
     public static float MountX(float railInnerEdge, int world) { return railInnerEdge + ClampBite - ClampReachFor(world); }
 
@@ -94,8 +95,8 @@ public static class RailMineArt
         new RectInt(0, 0, 265, 314), new RectInt(265, 0, 265, 314), new RectInt(530, 0, 304, 314), new RectInt(834, 0, 420, 314),
         // Storm (the third atlas, one row, the same cuts as Tide's)
         new RectInt(0, 0, 265, 314), new RectInt(265, 0, 265, 314), new RectInt(530, 0, 304, 314), new RectInt(834, 0, 420, 314),
-        // Desert (the fourth atlas, one row): the panels' own gaps, 313 / 314 / 313 / 314 wide
-        new RectInt(0, 0, 313, 314), new RectInt(313, 0, 314, 314), new RectInt(627, 0, 313, 314), new RectInt(940, 0, 314, 314),
+        // Desert (the fourth atlas, one row)
+        new RectInt(0, 0, 265, 314), new RectInt(265, 0, 265, 314), new RectInt(530, 0, 305, 314), new RectInt(835, 0, 419, 314),
     };
 
     // Each frame's pivot in image pixels (top-left origin): where the rail is. Space .. Storm: the dormant drawing's centre (its
@@ -111,8 +112,8 @@ public static class RailMineArt
         new Vector2(126f, 156.5f), new Vector2(391f, 156.5f), new Vector2(656f, 156.5f), new Vector2(960f, 156.5f),
         // Storm: 127.5 px
         new Vector2(133.5f, 157f), new Vector2(398.5f, 157f), new Vector2(663.5f, 157f), new Vector2(967.5f, 157f),
-        // Desert: the lens centre, (215, 158) inside every panel (the user-approved pivot)
-        new Vector2(215f, 158f), new Vector2(528f, 158f), new Vector2(842f, 158f), new Vector2(1155f, 158f),
+        // Desert: 127.5 px
+        new Vector2(133.5f, 157.5f), new Vector2(398.5f, 157.5f), new Vector2(663.5f, 157.5f), new Vector2(968.5f, 157.5f),
     };
 
     // The core: where the mine's laser leaves it (RailMineLaser.MuzzleOf).
@@ -130,7 +131,7 @@ public static class RailMineArt
         new Vector2(46.3f, 2.9f),    // Ember: the lens
         new Vector2(42f, 7.5f),      // Tide: the eye
         new Vector2(23.9f, -1.1f),   // Storm: the coil (the white-hot point at its centre, the same top-25 rule as the others)
-        new Vector2(0f, 0f),         // Desert: the heat-lance leaves the lens centre = the pivot (the bright core's centroid in the waking / charging frames is exactly (0, 0))
+        new Vector2(32.2f, 1.9f),    // Desert: the sun-glint focal point at the dark lens's centre
     };
 
     // The core's offset from the mine's centre in world units (unscaled,

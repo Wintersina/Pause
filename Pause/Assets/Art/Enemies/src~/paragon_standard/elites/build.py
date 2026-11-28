@@ -38,6 +38,7 @@ SRC = ART / "Enemies/src~"
 OLD = HERE / "old"
 OUT = HERE / "strips"
 MOUTHS = SRC / "elite_engine_fire/engine_mouths.txt"
+APPROVED = Path(__file__).resolve().parent / "approved"   # the user-approved drawings, one <key>.png each
 PICKS = Path("/private/tmp/claude-501/-Users-sina-Developer/50b8c9d7-da6c-44fe-8c92-736a84a1fed0/scratchpad/picks_all.json")
 CELL = 384
 CUE = Hm.CUE
@@ -354,6 +355,7 @@ DESERT_PAL = {
     "glass_cannon": ((255, 235, 160), (255, 190, 70), [(255, 255, 255), (255, 225, 120), (120, 215, 220)], "ice"),
     "lens_matriarch": ((190, 255, 225), (80, 215, 170), [(255, 255, 255), (150, 235, 255), (230, 200, 120)], "ice"),
     "mirror_bastion": ((200, 225, 255), (120, 130, 255), [(255, 255, 255), (150, 225, 255), (235, 200, 110)], "ice"),
+    "scorpion_walker": ((255, 225, 140), (255, 150, 50), [(255, 255, 255), (255, 210, 90), (255, 170, 60)], "plasma"),
 }
 FROST_DEFAULT = D.WORLDS["frost"]
 
@@ -560,8 +562,7 @@ def write_mouths(rows_by_key):
 
 
 def main(argv):
-    picks = json.load(open(PICKS))["approved"]
-    keys = sorted(k for k, v in picks.items() if v["group"] == "elite")
+    keys = sorted(p.stem for p in APPROVED.glob("*.png"))
     sel = [a for a in argv if not a.startswith("--")]
     if sel: keys = [k for k in keys if any(s in k for s in sel)]
     do_install = "--no-install" not in argv
@@ -572,7 +573,7 @@ def main(argv):
             p = ln.split()
             if p and p[0] in SPEC and p[0] not in keys: mouths_rows.setdefault(p[0], []).append(ln)
     for key in keys:
-        b = build(key, picks[key]["src"])
+        b = build(key, APPROVED / f"{key}.png")
         dth = death(b)
         mz, nz = points(b)
         sil = share(b["cells"])

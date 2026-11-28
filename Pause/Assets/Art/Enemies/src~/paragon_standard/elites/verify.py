@@ -276,8 +276,7 @@ def seats(keys):
 
 if __name__ == "__main__":
     sel = sys.argv[1:]
-    picks = json.load(open("/private/tmp/claude-501/-Users-sina-Developer/50b8c9d7-da6c-44fe-8c92-736a84a1fed0/scratchpad/picks_all.json"))["approved"]
-    keys = sorted(k for k, v in picks.items() if v["group"] == "elite")
+    keys = sorted(p.stem for p in (HERE / "approved").glob("*.png"))
     if sel: keys = [k for k in keys if any(s in k for s in sel)]
     for k in keys:
         print(k, check(k))

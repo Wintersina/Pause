@@ -42,13 +42,17 @@ W = {
     "ember":   dict(cue=32,  core=(64.5, 47.5), rc=7.0, width=258, emis=("hue", 0, 50, .6, .55)),
     "tide":    dict(cue=188, core=(64.0, 47.0), rc=8.0, width=240, emis=("hue", 160, 200, .3, .36)),
     "storm":   dict(cue=258, core=(57.5, 49.0), rc=7.5, width=255, emis=("storm",)),
+    # Desert's Mirage Mine: the user wants its lens centre DARK. Dormant is the drawing as approved; once it wakes only the lens's
+    # brass rim lights and a small sun-glint focal point burns at the centre (the laser's origin), the glass round it stays dark.
+    "desert":  dict(cue=45, core=(59.5, 47.5), rc=2.6, width=255, emis=("ring", 14.5, 19.5, 20, 70, .2, .42), dark=True),
 }
-ORDER = ["space", "frost", "verdant", "ember", "tide", "storm"]
+ORDER = ["space", "frost", "verdant", "ember", "tide", "storm", "desert"]
 
 # Row bands (unchanged from the old atlases): y, height in each file.
-BANDS = {"space": (0, 308), "frost": (308, 286), "verdant": (594, 298), "ember": (892, 362), "tide": (0, 314), "storm": (0, 314)}
+BANDS = {"space": (0, 308), "frost": (308, 286), "verdant": (594, 298), "ember": (892, 362), "tide": (0, 314), "storm": (0, 314),
+         "desert": (0, 314)}
 FILES = {"space": "rail_mines_neon", "frost": "rail_mines_neon", "verdant": "rail_mines_neon", "ember": "rail_mines_neon",
-         "tide": "rail_mines_neon_tide", "storm": "rail_mines_neon_storm"}
+         "tide": "rail_mines_neon_tide", "storm": "rail_mines_neon_storm", "desert": "rail_mines_neon_desert"}
 ATLAS_W = 1254
 MARGIN = 6          # transparent gutter left of the clamp face inside every rect
 FADE = 14           # atlas px over which glow fades out toward a rect edge
@@ -114,6 +118,11 @@ def key_drawing(path):
 def emissive_mask(d, rule, core):
     rgb, a = d[..., :3], d[..., 3] > 0
     h, s, v = hsv_arr(rgb)
+    if rule[0] == "ring":
+        _, r0, r1, lo, hi, smin, vmin = rule
+        yy, xx = np.mgrid[0:d.shape[0], 0:d.shape[1]]
+        dd = np.hypot(xx + .5 - core[0], yy + .5 - core[1])
+        return a & (dd >= r0) & (dd <= r1) & (h >= lo) & (h <= hi) & (s >= smin) & (v >= vmin)
     if rule[0] == "hue":
         _, lo, hi, smin, vmin = rule
         m = a & (h >= lo) & (h <= hi) & (s >= smin) & (v >= vmin)
@@ -162,7 +171,8 @@ def build_states(world, cfg, drawing, P, lit=False):
 
     C = hsv(cue, .85, 1.0); C2 = hsv(cue, .66, 1.0); HOT = hsv(cue, .22, 1.0); WHITE = np.ones(3)
     deep = hsv(cue, .9, .75)
-    rng = np.random.default_rng({"space": 1, "frost": 2, "verdant": 3, "ember": 4, "tide": 5, "storm": 6}[world])
+    rng = np.random.default_rng({"space": 1, "frost": 2, "verdant": 3, "ember": 4, "tide": 5, "storm": 6, "desert": 7}[world])
+    dark = cfg.get("dark", False)
 
     # lit veins (Verdant's lit variant): the vines, any green, glow cue green
     veins = np.zeros(canvas, bool)
@@ -227,7 +237,8 @@ def build_states(world, cfg, drawing, P, lit=False):
             body = core(body, rc, .55)
             halo = (out_d > 0) & (out_d <= 2) & ndimage.binary_dilation(em | (dist < rc), iterations=3)
             back = over(back, glow(halo * .5, C))
-            front = over(front, glow(np.clip(1 - dist / (rc * 1.9), 0, 1) * .5 * (dist > rc * .95), C))
+            if not dark:
+                front = over(front, glow(np.clip(1 - dist / (rc * 1.9), 0, 1) * .5 * (dist > rc * .95), C))
         elif state == 2:   # CHARGING: brighter core, glow halo, arcs
             body = light(body, em, .85, .5)
             if lit:
@@ -235,7 +246,8 @@ def build_states(world, cfg, drawing, P, lit=False):
             body = core(body, rc * 1.3, .8)
             halo = np.clip(1 - out_d / 11.0, 0, 1) * .62 * (out_d > 0)
             back = over(back, glow(halo, C))
-            front = over(front, glow(np.clip(1 - dist / (rc * 2.4), 0, 1) * .55 * (dist > rc * 1.25), C))
+            if not dark:
+                front = over(front, glow(np.clip(1 - dist / (rc * 2.4), 0, 1) * .55 * (dist > rc * 1.25), C))
             # arcs: jagged loops of charge round the body, off the clamp side
             for (r0, a0, a1) in [(body_r + 3, -1.9, -.5), (body_r + 5, .25, 1.7), (body_r + 2.5, -.25, .45),
                                  (body_r + 7, -1.2, -.2), (body_r + 6, .9, 1.95)]:
@@ -292,7 +304,7 @@ def build_states(world, cfg, drawing, P, lit=False):
             sm = lay[..., :3].sum(-1, keepdims=True)
             lay[..., :3] *= np.where(sm > 2.82, 2.82 / np.maximum(sm, 1e-6), 1.0)
         if state > 0:
-            ring = dist <= (1.6 if state == 1 else 2.2)
+            ring = dist <= ((1.6 if state == 1 else 2.2) if not dark else 1.6)
             front[ring, :3] = hsv(cue, .05, 1.0); front[ring, 3] = 1.0
             front[dist <= 1.2, :3] = WHITE; front[dist <= 1.2, 3] = 1.0
         # nothing of the glow reaches left of the clamp's face
@@ -461,7 +473,8 @@ def main():
 
     # ---- write atlases
     for fname, size in [("rail_mines_neon", (1254, 1254)), ("rail_mines_neon_tide", (1254, 314)),
-                        ("rail_mines_neon_storm", (1254, 314)), ("rail_mines_neon_verdant_lit", (1254, 298))]:
+                        ("rail_mines_neon_storm", (1254, 314)), ("rail_mines_neon_verdant_lit", (1254, 298)),
+                        ("rail_mines_neon_desert", (1254, 314))]:
         atlases[fname] = np.zeros((size[1], size[0], 4))
     for world in ORDER:
         A = atlases[FILES[world]]
