@@ -10,9 +10,9 @@ The other v2 layers and v3 / v4 are not part of this redraw.
 Per layer, all in the 224-wide source grid (one source pixel = one 4 x 4 cell of the 896 x 1792 tile):
   1. CROP   v1_mid is a 224 x 224 drawing letterboxed in white: its content band is cut out and repeated twice
             down the tile (period 896 px) after step 2. Everything else uses the full 224 x 448.
-  2. SEAM   the last O rows are replaced, column by column below a minimum-error path, by the top rows mirrored
-            (out[h-1-i] = src[i]), so the bottom row equals the top row and the wrap reads as a reflection
-            through row 0. The path runs where the original and the mirror agree best (hard cut, no blur).
+  2. SEAM   two-cut quilt (seamless()): a 2 x O row strip found elsewhere in the same drawing is spliced over the
+            wrap, cut in and out along minimum-error paths (hard cuts where the pieces already agree: no mirror, no
+            blur), so the last row and the first row are rows that were neighbours in the drawing.
   3. GRADE  HSV-value remap, hue and saturation kept: v' = hi * v^g, fitted so the layer's median and p90 land
             on the painted targets below (the art is painted dark and lifted ~1.95x at draw time by
             BackdropGrade / FrostTuning.Brightness; the targets keep WorldBackdropTest's as-drawn caps, the
@@ -21,8 +21,9 @@ Per layer, all in the 224-wide source grid (one source pixel = one 4 x 4 cell of
   4. PIXEL  <= 96 colours (the drawings have 23-43, so this is a no-op guard), nearest 4x to 896 x 1792 (4 px
             cells, the Desert pixel-pass grid), then a per-texel grain: every opaque texel's RGB moves by the same
             -1 / 0 / +1 (seeded), so no 2x2 / 3x3 / 4x4 block is uniform (BackdropResolutionTest rejects nearest
-            upscales at >= .97) while the look stays the crisp 4 px pixel art. The grain of the last row copies
-            the first, so the wrap stays exact.
+            upscales at >= .97) while the look stays the crisp 4 px pixel art. The tile is rolled down by half a
+            cell (2 px) so its top and bottom rows are the two halves of one cell row, and the grain of the last
+            row copies the first: WorldBackdropTest's seam (top row vs bottom row) measures ~0.
 check_tiles.py holds the installed files to the ported test rules; ground_masks.py (here) regenerates v1 / v2 mask.txt.
 """
 import argparse
@@ -35,7 +36,9 @@ HERE = Path(__file__).resolve().parent
 DEFAULT_OUT = HERE.parents[4] / "Backgrounds/Resources/Worlds/Frost/Backdrop3"
 W, H, CELL = 896, 1792, 4
 COLORS = 96
-SEAM_ROWS = {448: 40, 224: 24}            # mirror band height (source rows) per block height
+SEAM_ROWS = {448: 28, 224: 12}            # quilt band height (source rows) per block height
+DETAIL_WEIGHT = .5                        # quilt: cost of repeating a busy strip vs a plain one
+ROLL = CELL // 2                          # output rows the tile is rolled by: the wrap falls inside one 4 px cell
 # painted HSV-value targets (median, p90, max) of the opaque texels; drawn ~1.8x brighter (mid lift 1.95)
 TARGET = {
     "v1/sky": (.110, .185, .27),
@@ -78,24 +81,57 @@ def min_cut(err):
     return r
 
 
+def pair_err(A, B):
+    """Per-texel disagreement of two RGBA row stacks (alpha-weighted colour + alpha)."""
+    A = A.astype(np.float32)
+    B = B.astype(np.float32)
+    e = np.abs(A[..., :3] - B[..., :3]).sum(-1) * (A[..., 3] + B[..., 3] + 1) / 511 + np.abs(A[..., 3] - B[..., 3])
+    k = np.ones(3) / 3
+    return np.apply_along_axis(lambda v: np.convolve(v, k, "same"), 1, e)
+
+
+def cut(err, lo, hi):
+    """Min-error path restricted to rows [lo, hi) of the band; returns (rows, cost)."""
+    e = err.copy()
+    e[:lo] += 1e6
+    e[hi:] += 1e6
+    r = min_cut(e)
+    return r, float(err[r, np.arange(err.shape[1])].sum())
+
+
 def seamless(a):
-    """Bottom band -> the top rows mirrored, below a min-error path: a[h-1] == a[0] afterwards."""
+    """Two-cut quilt: a strip src[k : k + 2O] found elsewhere in the drawing is spliced in at the wrap.
+
+    Its upper half replaces the bottom band (cut in below a min-error path where it agrees with the original), its
+    lower half replaces the top band (cut out above a min-error path); the wrap itself then joins src[k+O-1] to
+    src[k+O], two rows that were neighbours in the drawing. No mirror, no blend: every join is a hard cut along the
+    texels where the two pieces already agree. k is the offset with the least total cut error plus a penalty for
+    the strip's own detail (a strip of plain ice or water repeats unnoticed, a building does not), searched at least
+    3 O rows away from both bands so the repeated strip never sits next to its original.
+    """
     h = a.shape[0]
     O = SEAM_ROWS[h]
-    band = a[h - O:].astype(np.float32)
-    mirror = a[:O][::-1].astype(np.float32)            # mirror[j] is src[O-1-j]: band row j -> out row h-O+j
-    err = np.abs(band - mirror)
-    err = err[..., :3].sum(-1) * (band[..., 3] + mirror[..., 3] + 1) / 511 + np.abs(band[..., 3] - mirror[..., 3])
-    k = np.ones(3) / 3
-    err = np.apply_along_axis(lambda v: np.convolve(v, k, "same"), 1, err)
-    # keep the cut away from the band's first rows (room to blend) and force the last row to the mirror
-    err[:4] += 1e6
-    r = min_cut(err)
-    use = np.arange(O)[:, None] >= r[None, :]
+    bottom, top = a[h - O:], a[:O]
+    best = None
+    f = a.astype(np.float32)
+    detail = (np.abs(np.diff(f[..., :3], axis=0)).sum(-1) * (f[1:, :, 3] + 1) / 256).sum(1)   # per row pair
+    for k in range(3 * O, h - 5 * O):
+        e1 = pair_err(bottom, a[k:k + O])            # bottom band: original above the cut, patch below
+        e2 = pair_err(a[k + O:k + 2 * O], top)       # top band: patch continuation above the cut, original below
+        penalty = DETAIL_WEIGHT * detail[k:k + 2 * O - 1].sum() / (2 * O)
+        quick = e1.min(0).sum() + e2.min(0).sum() + penalty
+        if best is not None and quick >= best[0]:
+            continue
+        r1, c1 = cut(e1, 2, O)                       # >= 2 original rows kept at the band's top; last row is patch
+        r2, c2 = cut(e2, 1, O - 1)                   # row 0 is patch continuation; last row original
+        if best is None or c1 + c2 + penalty < best[0]:
+            best = (c1 + c2 + penalty, k, r1, r2)
+    _, k, r1, r2 = best
+    rows = np.arange(O)[:, None]
     out = a.copy()
-    out[h - O:] = np.where(use[..., None], a[:O][::-1], a[h - O:])
-    out[h - 1] = a[0]
-    return out
+    out[h - O:] = np.where((rows >= r1[None, :])[..., None], a[k:k + O], bottom)
+    out[:O] = np.where((rows < r2[None, :])[..., None], a[k + O:k + 2 * O], top)
+    return out, k
 
 
 def value(rgb):
@@ -166,7 +202,7 @@ def limit_colors(a):
 
 
 def pixel_pass(a, seed):
-    big = np.repeat(np.repeat(a, CELL, 0), CELL, 1).astype(np.int16)
+    big = np.roll(np.repeat(np.repeat(a, CELL, 0), CELL, 1), ROLL, 0).astype(np.int16)
     rng = np.random.default_rng(seed)
     grain = rng.integers(-1, 2, size=big.shape[:2]).astype(np.int16)
     grain[-1] = grain[0]
@@ -185,7 +221,7 @@ def build(key):
         a = a[y0:y1]
         if a.shape[0] != 224:
             raise SystemExit(f"v1_mid content band is {a.shape[0]} rows, expected 224")
-    a = seamless(a)
+    a, k = seamless(a)
     if layer == "flow":
         a, info = grade(a, FLOW_TARGET[key], FLOW_ALPHA)
     else:
@@ -197,6 +233,7 @@ def build(key):
     assert a.shape[:2] == (H // CELL, W // CELL), a.shape
     out = pixel_pass(a, seed=sum(map(ord, key)) * 7919)
     info["colors"] = ncol
+    info["quilt_k"] = k
     return out, info
 
 

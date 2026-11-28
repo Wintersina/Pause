@@ -6,7 +6,7 @@
 The method is Frost's own (../ground_masks.py: colour + edge statistics ranked by percentile per variant, majority
 vote per cell, 3x3 mode filter), unchanged; that script measures a 512 x 1024 tile in 16 px cells, so the 896 x 1792 mid
 is resized to 512 x 1024 (Lanczos) first, which gives the same 32 x 64 grid and the same blur radii per cell.
-Only the per-variant class shares are retuned to the new drawings (OVERRIDES below); v3 / v4 are not touched.
+The per-variant rules are the original ones (OVERRIDES is the hook to retune them); v3 / v4 are not touched.
 """
 import importlib.util
 import os
@@ -17,6 +17,7 @@ from pathlib import Path
 import numpy as np
 from PIL import Image
 
+sys.dont_write_bytecode = True     # no __pycache__ in the Unity tree
 HERE = Path(__file__).resolve().parent
 DEFAULT = HERE.parents[4] / "Backgrounds/Resources/Worlds/Frost/Backdrop3"
 
@@ -24,10 +25,9 @@ spec = importlib.util.spec_from_file_location("frost_ground_masks", HERE.parent 
 gm = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(gm)
 
-# the redrawn tiles: v1 is now a cliff-and-gorge ice field with a domed fort (painted structure), v2 the harbour
-OVERRIDES = {
-    1: dict(built=lambda f: f['dark_tex'] + f['lum'] * .5, bshare=.12),
-}
+# Per-variant overrides of ../ground_masks.py's class shares. None: tried for v1 (built = dark_tex + lum, bshare .12 / .16)
+# and it marks the gorge rims, not the domed fort, so the original rules stand.
+OVERRIDES = {}
 
 
 def main():
