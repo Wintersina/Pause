@@ -81,6 +81,20 @@ public class WorldBackdropImport : AssetPostprocessor
 
     public static bool IsBackdrop3(string path) { return path.Contains("/Backdrop3/"); }
 
+    // Storm's r3 ground (2026-11-28): 896 x 4096 tiles drawn at StormTuning.TileZoom (.82) of the view, ~1 texel per screen px:
+    // never clamped (a 2048 cap would halve them), bilinear (a soft painted deck, minified a little on small phones), repeating
+    // across as well as down (BackdropTile columns). The vapour strip (flow, 512 x 2048) is drawn at the same width: 512 / 6 px a unit.
+    public static bool IsStormR3Tile(string path, bool tile) { return tile && path.Contains("/Worlds/Storm/Backdrop3/v"); }
+    public const float StormFlowPixelsPerUnit = 512f / 6f;
+    // Storm's living props (StormProps.cs): props (ground, ASTC 4x4) and aloft (hazed, ASTC 6x6). Painted, soft: bilinear; their
+    // sheets are 2040 / 2016 px wide and up to 2424 tall, never clamped (the JSON carries sheetW / sheetH, so the rects hold).
+    public static bool IsStormProps(string path)
+    {
+        if (!path.Contains("/Worlds/Storm/Backdrop3/")) return false;
+        string f = System.IO.Path.GetFileNameWithoutExtension(path);
+        return f == "props" || f == "aloft";
+    }
+
     // Backdrop3 art is pixel art drawn near 1:1 (landmarks, sites, lights)
     // or ~2x (tiles): point-sampled so it stays crisp. Its soft atlases
     // (clouds, mist, snow sheets, smoke, steam, aurora) are drawn several
@@ -218,12 +232,13 @@ public class WorldBackdropImport : AssetPostprocessor
         if (planetSheet) ti.mipmapFilter = TextureImporterMipFilter.KaiserFilter;
         bool crisp = sharpSpaceSky || (IsBackdrop3(assetPath) && (!IsSoftAtlas(file) || IsTidePixelLoop(assetPath, file)));
         bool frostGround = tile && IsFrostHdTile(assetPath);     // seen from high up: halved, bilinear (FrostHdPixelsPerUnit)
-        ti.filterMode = sun ? (sunDisc ? FilterMode.Point : FilterMode.Bilinear) : frostGround ? FilterMode.Bilinear : crisp ? FilterMode.Point : planetSheet ? FilterMode.Trilinear : FilterMode.Bilinear;
+        bool stormR3 = IsStormR3Tile(assetPath, tile), stormProps = IsStormProps(assetPath);
+        ti.filterMode = sun ? (sunDisc ? FilterMode.Point : FilterMode.Bilinear) : frostGround || stormR3 || stormProps ? FilterMode.Bilinear : crisp ? FilterMode.Point : planetSheet ? FilterMode.Trilinear : FilterMode.Bilinear;
         ti.alphaIsTransparency = true;
         ti.isReadable = false;
         ti.npotScale = TextureImporterNPOTScale.None;
         bool stormHd = IsStormHdTile(assetPath, tile);
-        ti.maxTextureSize = sun ? PlanetSheetMaxSize : planetSheet ? PlanetSheetMaxSize : file == "station_ring_v2" ? 1024 : file == "reference_planet" ? 1024 :
+        ti.maxTextureSize = sun || stormR3 || stormProps ? PlanetSheetMaxSize : planetSheet ? PlanetSheetMaxSize : file == "station_ring_v2" ? 1024 : file == "reference_planet" ? 1024 :
             sharpSpaceSky || stormHd || (!tile && assetPath.Contains("/Worlds/Space/")) || IsDesertWormSheet(assetPath, file) || IsFrostLaunchSites(assetPath) || IsFrostSoftWeather(assetPath) || file == "docks" ? 2048 : 1024;   // (docks: the launch-strip sites atlas, 1578 px wide, keeps every pixel)
         ti.textureCompression = sunDisc ? TextureImporterCompression.Uncompressed : TextureImporterCompression.Compressed;
         ti.sRGBTexture = true;
@@ -232,13 +247,13 @@ public class WorldBackdropImport : AssetPostprocessor
         {
             ti.textureType = TextureImporterType.Sprite;
             ti.spriteImportMode = SpriteImportMode.Single;
-            ti.spritePixelsPerUnit = frostGround ? FrostHdPixelsPerUnit : IsTideHdTile(assetPath) || IsVerdantHdTile(assetPath) || IsEmberHdTile(assetPath) ? TideHdPixelsPerUnit : stormHd ? 1024f / 6f : tile ? TilePixelsPerUnit : BackdropAtlas.PixelsPerUnit;
+            ti.spritePixelsPerUnit = stormR3 && file == "flow" ? StormFlowPixelsPerUnit : frostGround ? FrostHdPixelsPerUnit : IsTideHdTile(assetPath) || IsVerdantHdTile(assetPath) || IsEmberHdTile(assetPath) ? TideHdPixelsPerUnit : stormHd ? 1024f / 6f : tile ? TilePixelsPerUnit : BackdropAtlas.PixelsPerUnit;
             var settings = new TextureImporterSettings();
             ti.ReadTextureSettings(settings);
             settings.spriteMeshType = file == "sky" || sharpSpaceSky || stormHd ? SpriteMeshType.FullRect : SpriteMeshType.Tight;
             settings.spriteAlignment = (int)SpriteAlignment.Center;
             settings.spriteExtrude = 1;
-            settings.wrapModeU = frostGround ? TextureWrapMode.Repeat : TextureWrapMode.Clamp;   // (Frost's ground repeats across)
+            settings.wrapModeU = frostGround || stormR3 ? TextureWrapMode.Repeat : TextureWrapMode.Clamp;   // (Frost's and Storm's ground repeat across)
             settings.wrapModeV = tile ? TextureWrapMode.Repeat : TextureWrapMode.Clamp;
             ti.SetTextureSettings(settings);
             ti.alphaSource = file == "sky" || sharpSpaceSky ? TextureImporterAlphaSource.None
@@ -265,9 +280,9 @@ public class WorldBackdropImport : AssetPostprocessor
         {
             var ps = ti.GetPlatformTextureSettings(platform);
             ps.overridden = true;
-            ps.maxTextureSize = sun ? PlanetSheetMaxSize : planetSheet ? PlanetSheetMaxSize : file == "station_ring_v2" ? 1024 : file == "reference_planet" ? 1024 :
+            ps.maxTextureSize = sun || stormR3 || stormProps ? PlanetSheetMaxSize : planetSheet ? PlanetSheetMaxSize : file == "station_ring_v2" ? 1024 : file == "reference_planet" ? 1024 :
                 sharpSpaceSky || stormHd || (!tile && assetPath.Contains("/Worlds/Space/")) || IsDesertWormSheet(assetPath, file) || IsFrostLaunchSites(assetPath) || IsFrostSoftWeather(assetPath) || file == "docks" ? 2048 : 1024;   // (docks: the launch-strip sites atlas, 1578 px wide, keeps every pixel)
-            ps.format = sunDisc ? TextureImporterFormat.RGBA32 : stormHd ? TextureImporterFormat.ASTC_6x6 : sun || planetSheet || IsContinuousTone(assetPath) ? TextureImporterFormat.ASTC_4x4 : TextureImporterFormat.ASTC_6x6;
+            ps.format = sunDisc ? TextureImporterFormat.RGBA32 : stormProps ? (file == "aloft" ? TextureImporterFormat.ASTC_6x6 : TextureImporterFormat.ASTC_4x4) : stormHd ? TextureImporterFormat.ASTC_6x6 : sun || planetSheet || IsContinuousTone(assetPath) ? TextureImporterFormat.ASTC_4x4 : TextureImporterFormat.ASTC_6x6;
             ps.textureCompression = sunDisc ? TextureImporterCompression.Uncompressed : TextureImporterCompression.Compressed;
             ti.SetPlatformTextureSettings(ps);
         }

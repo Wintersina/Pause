@@ -122,6 +122,14 @@ public static class StormBackdropTest
               System.IO.File.Exists(Art + "v3/mid.png") && System.IO.File.Exists(Art + "v4/mid.png") &&
               StormTuning.ClusterWeights.Length == 5 && StormTuning.VariantBrightness.Length == 5 && StormTuning.Night.Length == 5);
         Check("the art is dark: Storm is drawn below the bright-world lift, so shots keep the thin outline", !spec.Bright);
+        // ALTITUDE (2026-11-28, the user-approved r3 ground): the 896 px tiles drawn at TileZoom (.82) hold two .41 columns, so the
+        // ground reads at GroundZoom (.41); the pieces, the rates and the cover boulders follow .41, never .82
+        Check("Storm's ground is seen from Frost's height: tiles drawn at " + spec.groundZoom + " of the view (two .41 columns a tile), pieces keyed to " + spec.PieceZoom +
+              ", the ground's rate .024 x " + StormTuning.GroundZoom + ", the landmarks " + StormTuning.LandmarkMin.ToString("F2") + " .. " + StormTuning.LandmarkMax.ToString("F2") + " u",
+              Mathf.Approximately(spec.groundZoom, StormTuning.TileZoom) && Mathf.Approximately(spec.PieceZoom, StormTuning.GroundZoom) &&
+              Mathf.Approximately(StormTuning.TileZoom, 2f * StormTuning.GroundZoom) && Mathf.Approximately(spec.Rate("mid"), .024f * StormTuning.GroundZoom) &&
+              Mathf.Approximately(CoverBoulders.GroundZoom("Storm"), StormTuning.GroundZoom) &&
+              Mathf.Approximately(StormTuning.LandmarkMin, 1.5f * StormTuning.PieceScale) && StormTuning.LandmarkMax <= BackdropCatalog.MaxLandmarkSize);
         var set = new BackdropSet("Storm", new GameObject("~root").transform, 3f, 5f);
         Check("a Storm backdrop is built by the StormDirector (not TideDirector)", set.Director is StormDirector && !(set.Director is TideDirector));
         Check("every layer sits behind gameplay (order < 0)", spec.Order("rain") < 0 && spec.Order("sky") < spec.Order("rain"));
@@ -454,7 +462,10 @@ public static class StormBackdropTest
                 }
             float dh = hN > 0 ? (float)hSame / hN : 0f, dv = vN > 0 ? (float)vSame / vN : 0f;
             bool flow = f.EndsWith("flow.png");
-            bool size = f.StartsWith("v") ? (Hd(f) ? (w == 1024 && h == 2048) : (w == 512 && h == 1024)) : (w == 1024 && h == 1024);
+            // r3 (2026-11-28): the mid is the stitched 896 x 4096 ground (two .41 columns), the vapour strip a soft 512 x 2048 painting
+            // drawn at the tile's width; sky / far (hidden under the opaque mid) stay 1024 x 2048
+            bool size = f.EndsWith("mid.png") ? (w == 896 && h == 4096) : f.EndsWith("flow.png") ? (w == 512 && h == 2048) :
+                        f.StartsWith("v") ? (w == 1024 && h == 2048) : (w == 1024 && h == 1024);
             Check("Storm " + f + " is native " + w + "x" + h + " with real detail: identical texel pairs " + (dh * 100f).ToString("F0") + "% across, " +
                   (dv * 100f).ToString("F0") + "% down (<= " + MaxDupPairs * 100f + "%" + (flow ? ", down exempt: rain streaks" : "") + ")",
                   size && dh <= MaxDupPairs && (flow || dv <= MaxDupPairs));
@@ -624,7 +635,8 @@ public static class StormBackdropTest
 
     static void Sites()
     {
-        var wb = Fresh(2);
+        // (the ground creeps by at .024 x GroundZoom: flown faster, so the same ground (and as many sites) goes by in 240 s as before the zoom)
+        var wb = Fresh(2, (.2f + .25f) / StormTuning.GroundZoom - .2f);
         var d = Director(wb);
         if (d == null) return;
         var sites = new List<LandingSite>();

@@ -297,7 +297,7 @@ public static class WorldArtPreload
             case "Verdant": return new[] { "landmarks", "pipes", "fires", "sites", "weather", "lights", "smoke", "wildfire", "firesmoke", "leaks" };
             case "Ember": return new[] { "landmarks", "pipes", "fires", "sites", "weather", "lights", "smoke", "lavafire", "eruption", "leaks", "docks" };
             case "Tide": return new[] { "landmarks", "pipes", "fires", "sites", "weather", "smoke", "smoke_2", "flames", "flames_2", "leaks", "leaks_2", "lights", "lights_2", "surf", "surf_2", "surf_3", "surf_4", "docks" };
-            case "Storm": return new[] { "landmarks", "sites", "weather", "lightning", "docks", "rotors", "thunder" };
+            case "Storm": return new[] { "landmarks", "sites", "weather", "lightning", "docks", "rotors", "thunder", StormPropsTuning.Atlas, StormPropsTuning.AloftAtlas };
             case "Desert": return new[] { "landmarks", "pipes", "fires", "sites", "docks", "weather", "smoke", "dust", "dust_2", "dust_3", "shimmer", "shimmer_2", "leaks", "lights", "lights_2", "worm", "worm_giant" };
             default: return new string[0];
         }

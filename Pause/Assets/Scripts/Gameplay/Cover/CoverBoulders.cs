@@ -105,7 +105,7 @@ public static class CoverBoulders
     public static float GroundZoom(string world)
     {
         var spec = BackdropCatalog.For(world);
-        return spec != null && spec.groundZoom > 0f ? Mathf.Min(spec.groundZoom, 1f) : 1f;
+        return spec != null && spec.PieceZoom > 0f ? Mathf.Min(spec.PieceZoom, 1f) : 1f;   // (the pieces' altitude: Storm's tiles are drawn at .82, its ground reads at .41)
     }
 
     // How fast the world's ground scrolls (u/s) -- the pace of a landform with no backdrop to be pinned to.

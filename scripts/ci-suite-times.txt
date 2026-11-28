@@ -227,6 +227,7 @@ StartGlideTest 0.1
 StormBackdropTest 5.7
 StormFramingTest 0.3
 StormLifeTest 0.4
+StormPropsTest 14.0
 StormSoundTest 0.2
 TallScreenTest 3.5
 TeleportKillTest 3.4

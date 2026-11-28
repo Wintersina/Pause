@@ -35,12 +35,31 @@ public static class StormTuning
     public static readonly float[] VariantBrightness = { 1f, .6f, .6f, .6f, .6f };   // index = variant (0 none)
     public static readonly bool[] Night = { false, false, false, true, false };
 
+    // ---- ALTITUDE (2026-11-28, user-approved r3 ground: "those are good", then "go storm") ----
+    // The ground is seen from Frost's height: .41 of the old view (GroundZoom). The r3 ground tiles (896 x 4096, stitched from
+    // the approved painting, pl/storm/r3/stitch.py) hold TWO .41 columns side by side, so they are drawn at TileZoom (.82) of
+    // the view's width (BackdropCatalog.Spec.groundZoom): ~1 texel per screen px, one repeat every ~1.7 screens down and none
+    // inside a screen across. Everything that stands on the ground is keyed to GroundZoom (Spec.pieceZoom), never TileZoom:
+    // the ground layers' rates, the pinned pieces' sizes, gaps and spawn bands, the sites, the cover boulders.
+    public const float GroundZoom = .41f, TileZoom = .82f;
+    public const float GroundRate = .024f * GroundZoom;               // the mid tile's (and everything pinned to it) parallax rate
+    public const float FlowRate = .025f * GroundZoom, FlowDrift = .30f * GroundZoom;   // the vapour strip: a touch faster than the ground (wind)
+    // Pinned pieces at the zoom, x PieceFit on top: 1 (Frost needs .7 for its plate tops; Storm's pieces float on the deck) keeps
+    // the landmarks (~105 px a 256 cell on a 1080 px phone) at the size of the approved ground props (92 - 128 px).
+    public const float PieceFit = 1f;
+    public const float PieceScale = GroundZoom * PieceFit;
+
     // ---- ground pieces -----------------------------------------------------------
-    public static float LandmarkMin = 1.5f, LandmarkMax = 1.75f;
-    public static float TowerMin = 1.6f, TowerMax = 1.8f;
-    public static float ClusterGapMin = 1.6f, ClusterGapMax = 3.2f;
-    public static float LoneGapMin = .8f, LoneGapMax = 1.5f;
-    public static float NeighbourGapMin = .1f, NeighbourGapMax = .5f;
+    public static float LandmarkMin = 1.5f * PieceScale, LandmarkMax = 1.75f * PieceScale;
+    public static float TowerMin = 1.6f * PieceScale, TowerMax = 1.8f * PieceScale;
+    // scrolled ground between spawns, x GroundZoom: the same ground of the tile between two tries as before the zoom
+    public static float ClusterGapMin = 1.6f * GroundZoom, ClusterGapMax = 3.2f * GroundZoom;
+    public static float LoneGapMin = .8f * GroundZoom, LoneGapMax = 1.5f * GroundZoom;
+    public static float NeighbourGapMin = .1f * PieceScale, NeighbourGapMax = .5f * PieceScale;
+    public const int GroundPool = 24;                                  // landmarks alive at once (~6x the old ground in view)
+    // where a new piece is looked for: a band SpawnBand tall starting SpawnAbove over the top of the view
+    public static float SpawnAbove = .95f * PieceScale, SpawnBand = .9f * GroundZoom, SpawnRetry = .25f * GroundZoom;
+    public static float OpeningStepMin = 2.6f * GroundZoom, OpeningStepMax = 3.6f * GroundZoom, OpeningBand = 1.2f * GroundZoom;
     public static float Wind = 1f;                    // +1: gusts and rain lean right
 
     static readonly PieceRule Platform = new PieceRule(GroundClass.Open, .55f, .3f);
@@ -82,8 +101,8 @@ public static class StormTuning
     public const float StrikeEndY = 226f;
 
     // ---- launch sites ------------------------------------------------------------
-    public static float SiteMin = 1.5f, SiteMax = 1.7f, SiteFirst = 3f, SiteGapMin = 5f, SiteGapMax = 8.5f;
-    public static float SiteCloseDelay = .9f, SiteMinSize = 1.2f;
+    public static float SiteMin = 1.5f * PieceScale, SiteMax = 1.7f * PieceScale, SiteFirst = 3f * GroundZoom, SiteGapMin = 5f * GroundZoom, SiteGapMax = 8.5f * GroundZoom;
+    public static float SiteCloseDelay = .9f, SiteMinSize = 1.2f * PieceScale;
     // Entries 0-4 are the old two-drawing sites (sites atlas, kept as the elites' fallback homes); 5-8 the launch-strip ones (docks atlas:
     // <name>_00..05, DocksAtlas), for which SiteClosed / SiteOpen name the idle and the open cell (Rule picks the ground by the name).
     public static readonly string[] SiteNames = { "skyhook_dock", "refinery_pad", "balloon_hangar", "gantry_hatch", "cloud_bay", "airshipdock", "rodsilo", "skyhookcradle", "refinerybay" };
@@ -130,7 +149,8 @@ public static class StormTuning
     }
     public static Vector2 LampsAt = new Vector2(128f, 128f);
     public static float LampsScale = .5f;
-    public const float EmergeScalePerUnit = .22f, EmergeScaleMin = .26f, EmergeScaleMax = .4f;
+    // the elite's size as it comes out of the pad: x the pad's drawn width, its floor x PieceScale (as Frost's)
+    public const float EmergeScalePerUnit = .22f, EmergeScaleMin = .26f * PieceScale, EmergeScaleMax = .4f;
     public const int SiteIdBase = 900;
 
     // ---- weather -------------------------------------------------------------------
@@ -282,7 +302,7 @@ public sealed class StormLightning
     static float Smooth(float x) { x = Mathf.Clamp01(x); return x * x * (3f - 2f * x); }
 }
 
-public class StormDirector : PlanetDirector
+public partial class StormDirector : PlanetDirector
 {
     BackdropPool ground, sites, glow, bloom, bolts, debris, mist, wisps, ceiling, gusts, rain;
     readonly SpriteRenderer[] lamps = new SpriteRenderer[3];
@@ -390,7 +410,7 @@ public class StormDirector : PlanetDirector
         debrisArt = lightning.Frames("debris");
 
         // ground plane
-        ground = LandmarkPool("ground", 12);
+        ground = LandmarkPool("ground", StormTuning.GroundPool);
         sites = LandmarkPool("ground", 3);
         for (int i = 0; i < sites.items.Count; i++)
         {
@@ -427,11 +447,13 @@ public class StormDirector : PlanetDirector
 
         groundGap = Rand(StormTuning.LoneGapMin, StormTuning.LoneGapMax);
         siteGap = StormTuning.SiteFirst;
+        BuildProps();
+        OpeningProps();
         if (planner.Ready)
         {
             double t = planner.Travel;
-            for (float y = -HalfH * .85f; y < HalfH * .8f; y += Rand(2.6f, 3.6f))
-                SpawnCluster(t + y, t + y + 1.2f);
+            for (float y = -HalfH * .85f; y < HalfH * .8f; y += Rand(StormTuning.OpeningStepMin, StormTuning.OpeningStepMax))
+                SpawnCluster(t + y, t + y + StormTuning.OpeningBand);
         }
         BuildCeiling();
         BuildRain();
@@ -479,7 +501,7 @@ public class StormDirector : PlanetDirector
         {
             float gap = SpawnGround();
             if (gap > 0f) { groundTravel = 0f; groundGap = gap; }
-            else groundGap = groundTravel + .25f;
+            else groundGap = groundTravel + StormTuning.SpawnRetry;
         }
         ceilingTravel += set.Spec.Rate("ceiling") * v * dt;
         float density = set.Spec.CeilingDensity(clock);
@@ -504,6 +526,7 @@ public class StormDirector : PlanetDirector
         life.Step(dt);
         StepPinned(sites, dt);
         StepSites(dt);
+        StepProps(dt, v, scrolled);
         StepLightning(dt, v);
 
         foreach (var m in mist.items)
@@ -727,7 +750,7 @@ public class StormDirector : PlanetDirector
     float SpawnGround()
     {
         double t = planner.Travel;
-        double lo = t + HalfH + .95f, hi = lo + .9f;
+        double lo = t + HalfH + StormTuning.SpawnAbove, hi = lo + StormTuning.SpawnBand;
         if (siteTravel >= siteGap && SpawnSite(float.NaN))
         {
             siteTravel = 0f;
@@ -813,7 +836,7 @@ public class StormDirector : PlanetDirector
             string name = Pick(StormTuning.Towers);
             float s = Rand(StormTuning.TowerMin, StormTuning.TowerMax);
             float x; double gy;
-            if (!Spot(name, s, lo, hi + .6f, out x, out gy)) continue;
+            if (!Spot(name, s, lo, hi + .6f * StormTuning.GroundZoom, out x, out gy)) continue;
             if (Put(ground, landmarkArt, name, s, x, gy, Chance(.5)) != null) n++;
         }
         return n;
@@ -839,8 +862,8 @@ public class StormDirector : PlanetDirector
                 float side = (xa > 0f) == (attempt == 0) ? -1f : 1f;
                 float gap = Rand(StormTuning.NeighbourGapMin, StormTuning.NeighbourGapMax);
                 float xb = xa + side * (plateA + gap + plateB);
-                double gb = ga + Rand(-.12f, .12f);
-                if (xb < XMin(sb) - .2f || xb > XMax(sb) + .2f) continue;
+                double gb = ga + Rand(-.12f, .12f) * StormTuning.PieceScale;
+                if (xb < XMin(sb) - .2f * StormTuning.PieceScale || xb > XMax(sb) + .2f * StormTuning.PieceScale) continue;
                 var rule = StormTuning.Rule(nb);
                 if (!planner.Accepts(rule, xb, gb, sb) || !planner.Free(xb, gb, GroundPlanner.HalfX(rule, sb), GroundPlanner.HalfY(rule, sb))) continue;
                 if (Put(ground, landmarkArt, nb, sb, xb, gb, Chance(.5)) == null) break;
@@ -903,8 +926,8 @@ public class StormDirector : PlanetDirector
         var closed = siteClosed[kind];
         if (closed == null || siteOpen[kind] == null) return false;
         float size = Rand(StormTuning.SiteMin, StormTuning.SiteMax) * StormTuning.SiteWidthK[kind];
-        double lo = float.IsNaN(y) ? planner.Travel + HalfH + .95f : planner.GroundY(y) - .3f;
-        double hi = lo + (float.IsNaN(y) ? .9f : .6f);
+        double lo = float.IsNaN(y) ? planner.Travel + HalfH + StormTuning.SpawnAbove : planner.GroundY(y) - .3f;
+        double hi = lo + (float.IsNaN(y) ? StormTuning.SpawnBand : .6f);
         float x; double gy;
         if (!planner.Find(StormTuning.Rule(StormTuning.SiteClosed[kind]), size, XMin(size), XMax(size), lo, hi, rng, out x, out gy) &&
             (DockGrade.Strict || !planner.Find(new PieceRule(GroundClass.Any, 0f), size, XMin(size), XMax(size), lo, hi, rng, out x, out gy))) return false;   // (no 'anywhere' fallback)

@@ -49,7 +49,9 @@ public static class WorldBackdropTest
     // Storm's HD tiles use ASTC 6x6; its painted atlases use 4x4. The launch-strip docks
     // added in cd2db99ec are 1578x1054 (1,668,480 bytes at 4x4): the existing ~8049 KiB
     // plus those ~1629 KiB totals ~9678 KiB. Keep a 10 MiB cap for this installed set.
-    public const long StormTextureBudgetBytes = 10L * 1024 * 1024;
+    // 2026-11-28 r3: the stitched ground tile (896 x 4096, ASTC 6x6: +~0.7 MB a set over the old 1024 x 2048 mid), the soft vapour strip
+    // (512 x 2048, -0.7 MB), the living props (props 2040 x 1424 ASTC 4x4 ~2.8 MB; aloft 2016 x 2424 ASTC 6x6 ~2.1 MB): ~14.6 MB.
+    public const long StormTextureBudgetBytes = 16L * 1024 * 1024;
     const float SeamTolerance = 0.02f;          // mean |top row - bottom row|, premultiplied RGBA
     // 2026-10: the Desert hi-res pixel-art ground tiles (4 px cells, build_tiles.py) are seamless by construction, but the top and bottom
     // rows are two different CELLS, so their difference is a cell-boundary difference: measured .018-.041 on the shipped tiles, the same as the
@@ -57,8 +59,13 @@ public static class WorldBackdropTest
     const float PixelGridSeamTolerance = 0.06f;
     static float SeamLimit(string asset)
     {
+        if (System.Text.RegularExpressions.Regex.IsMatch(asset.Replace('\\', '/'), "/Storm/Backdrop3/v[1234]/mid\\.png$")) return StormR3SeamTolerance;
         return System.Text.RegularExpressions.Regex.IsMatch(asset.Replace('\\', '/'), "/Desert/Backdrop3/v[1234]/(sky|far|mid)\\.png$") ? PixelGridSeamTolerance : SeamTolerance;
     }
+    // 2026-11-28 Storm's r3 ground (896 x 4096, quilted from the approved painting and wrapped by construction, pl/storm/r3/stitch.py):
+    // a fine-grained cloud deck whose OWN neighbouring rows differ by .024 - .031 on average (p95 .037 - .045); the wrap rows differ
+    // .012 - .032, inside that. The limit is the worst interior p95.
+    const float StormR3SeamTolerance = .045f;
     // The guide's sky ramps (docs/art-style.md 1.3) peak at ~#123248 / #143430,
     // so the opaque sky averages up to ~0.12 relative luminance.
     const float SkyMaxLuminance = 0.13f;        // opaque far layer
@@ -247,7 +254,8 @@ public static class WorldBackdropTest
     static Color[] StormAtlasAsDrawn(BackdropCatalog.Spec spec, string atlas, Color[] px)
     {
         float lift = 1f, alphaLift = 1f, sat = 1f;
-        if (atlas == "landmarks" || atlas == "sites") lift = BackdropGrade.Lift(spec, spec.Find("ground"), 1);
+        if (atlas == "landmarks" || atlas == "sites" || atlas == StormPropsTuning.Atlas) lift = BackdropGrade.Lift(spec, spec.Find("ground"), 1);
+        else if (atlas == StormPropsTuning.AloftAtlas) lift = BackdropGrade.Lift(spec, spec.Find(StormPropsTuning.AloftLayer), 1);
         else if (atlas == "weather") alphaLift = StormTuning.CeilingThicken;
         return BackdropGrade.Apply(px, lift, sat, alphaLift);
     }
@@ -371,6 +379,9 @@ public static class WorldBackdropTest
                            "gantry_hatch_closed", "gantry_hatch_open", "cloud_bay_closed", "cloud_bay_open", "lights_off", "lights_on" } },
         { "weather", new[] { "cloud_bank_00", "cloud_bank_03", "cloud_wisp_00", "cloud_wisp_02", "mist_00", "mist_01", "gust_00", "gust_01", "pall_00", "rain_00", "rain_03" } },
         { "lightning", new[] { "bolt_00", "bolt_05", "strike_00", "strike_01", "flash_00", "flash_01", "arc_00", "debris_00", "debris_04" } },
+        // the living props (StormProps.cs): first and last cell of a livery of every kind
+        { StormPropsTuning.Atlas, new[] { "refinery_0_00", "refinery_3_07", "mast_0_00", "mast_3_07", "wreck_0_00", "wreck_3_07", "vortex_0_00", "vortex_2_07", "cell_0_00", "cell_2_07" } },
+        { StormPropsTuning.AloftAtlas, new[] { "aerostat_0_00", "aerostat_3_07", "skimmer_0_00", "skimmer_3_07", "convoy_0_00", "convoy_2_07", "jelly_0_00", "jelly_6_07" } },
     };
 
     // Desert's shared atlases and the drawings the director relies on (ordered like the art:
@@ -512,7 +523,9 @@ public static class WorldBackdropTest
             // Space carries two runs of body tiers (planets, structures).
             // Space carries two runs of body tiers (planets, structures);
             // Frost its weather at several depths.
-            int maxLayers = spec.world == "Space" || V3(spec) ? 14 : 10;
+            // Storm (2026-11-28) 15: its own aloft layer (StormProps.cs: the props seen closer than the ground) between the vapour
+            // strip and the lightning; still far under gameplay (BaseOrder -500 + 14 x 10 = -360).
+            int maxLayers = spec.world == "Storm" ? 15 : spec.world == "Space" || V3(spec) ? 14 : 10;
             Check(theme.displayName + " has 4-" + maxLayers + " depth layers (" + spec.layers.Length + ")",
                   spec.layers.Length >= 4 && spec.layers.Length <= maxLayers);
 

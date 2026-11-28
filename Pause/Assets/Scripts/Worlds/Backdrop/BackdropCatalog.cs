@@ -85,6 +85,12 @@ public static class BackdropCatalog
         // as well as down (BackdropTile.Layout; the art must be seamless across). Whatever stands on the ground (pinned pieces,
         // their placement) and the ground layers' rates are scaled by the world itself, by the same number (FrostTuning.GroundZoom).
         public float groundZoom = 1f;
+        // The ALTITUDE the pieces on the ground are keyed to, when it differs from the tiles' drawn share (0: groundZoom). Storm draws
+        // its 896 px ground tile at .82 of the view (StormTuning.TileZoom): one tile holds two of the approved .41 columns side by
+        // side, so the ground reads at .41 (StormTuning.GroundZoom) and everything standing on it (pinned pieces, cover boulders) is
+        // scaled by .41, never by .82.
+        public float pieceZoom;
+        public float PieceZoom { get { return pieceZoom > 0f ? pieceZoom : groundZoom; } }
         // The atlas whose presence makes the set complete (null: fx).
         public string keyAtlas;
         // > 0: the tile layers come from one of these many variant folders
@@ -377,17 +383,22 @@ public static class BackdropCatalog
         // The art is painted dark slate with storm-white light (value p90 ~.40-.50) and drawn as
         // painted (brightness 1: not Spec.Bright), so the dark worlds' shot outlines apply.
         new Spec { world = "Storm", folder = "Worlds/Storm/Backdrop3/", keyAtlas = "landmarks",
-                   variantSets = StormTuning.Variants,
+                   variantSets = StormTuning.Variants, groundZoom = StormTuning.TileZoom, pieceZoom = StormTuning.GroundZoom,
                    brightness = () => StormTuning.Brightness, saturation = () => 1f,
                    variantBrightness = StormTuning.VariantBrightness, variantNight = StormTuning.Night,
                    cloudDensity = () => StormTuning.CloudDensity, ceilingHold = () => StormTuning.CeilingHold,
                    ceilingClearSeconds = () => StormTuning.CeilingClearSeconds, layers = new[] {
-            Layer.Tile("sky", 0.006f, W).Graded(.6f),
-            Layer.Tile("far", 0.014f, W).Graded(.8f),
-            Layer.Tile("mid", 0.024f, W).Graded(1f),
-            // masts, towers, skyhooks, refineries and the elite sites: one ground plane pinned to the mid tile
-            Layer.Pieces("ground", 0.024f, Role.Landmark).PinnedTo("mid", 0.024f).Graded(1f),
-            Layer.Strip("flow", 0.025f, 0.30f, 0.01f, new Color(1f, 1f, 1f, 0.85f)).Graded(1f),
+            // (sky / far lie under the opaque mid: kept as they were, their rates scaled with the altitude like Frost's)
+            Layer.Tile("sky", 0.006f * StormTuning.GroundZoom, W).Graded(.6f),
+            Layer.Tile("far", 0.014f * StormTuning.GroundZoom, W).Graded(.8f),
+            Layer.Tile("mid", StormTuning.GroundRate, W).Graded(1f),
+            // masts, towers, skyhooks, refineries, the elite sites and the ground props (StormProps.cs): one ground plane pinned to the mid tile
+            Layer.Pieces("ground", StormTuning.GroundRate, Role.Landmark).PinnedTo("mid", StormTuning.GroundRate).Graded(1f),
+            // soft wind-sheared vapour streaks drifting over the deck (a little faster than the ground: the wind)
+            Layer.Strip("flow", StormTuning.FlowRate, StormTuning.FlowDrift, 0.004f, new Color(1f, 1f, 1f, 0.85f)).Graded(1f),
+            // the ALOFT props (StormProps.cs: aerostats, skimmers, convoys, sky jellies): closer to the camera than the ground,
+            // drawn larger and scrolling faster (StormPropsTuning.AloftRateK x the ground's), hazed, under every weather layer
+            Layer.Pieces(StormPropsTuning.AloftLayer, StormPropsTuning.AloftRate, Role.Atmosphere).Graded(StormPropsTuning.AloftGrade),
             // lightning's light spilling over the cloud sea, and its bolts
             Layer.Pieces("glow", 0.027f, Role.Atmosphere),
             Layer.Pieces("bolts", 0.030f, Role.Atmosphere),
