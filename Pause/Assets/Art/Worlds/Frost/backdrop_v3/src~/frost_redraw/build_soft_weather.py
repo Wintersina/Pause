@@ -24,6 +24,9 @@ What this builds (no new art: every drawing is the approved pick's, found by its
   * animated loops are built from ONE drawing so consecutive frames differ only a little and frame 5 -> frame 0 closes the loop:
     the front "boils" (three soft noise fields breathe in and out on 6 phases), the eddy twists (inner arms lead, outer lag, on 6
     phases); nothing pops.
+  * wx_hazard rows 0 - 1 (2026-11, user-approved): the storm front and the snow eddy are now the PAINTED loops sources/wxp_front.png /
+    sources/wxp_eddy.png (6 frames each, see loop_frames), toned with the same ice ramp at the same peak alpha 144; row 2's front / eddy
+    warnings are derived from those frames. front_tile / boil_frames / eddy_base / twist (the pick-derived loops) are kept for reference.
 
 Sheet layouts (wx_hazard / wx_ambient keep their sizes: WeatherArtTest / HazardArt / WeatherArt address them; weather doubles to
 2048, imported uncapped there by WorldBackdropImport.IsFrostSoftWeather; WeatherArtTest.FrostSoftSheets guards the gutters):
@@ -348,9 +351,61 @@ def ring(H, W, radius, width):
 # stronger (96) to stay as readable (HazardVisuals still draws it at .35 - .9 of that, rising as the hazard nears)
 WARN_PEAK = 96 / 255
 
+# The user-approved painted loops (2026-11, PixelLab paintings finished soft; scratchpad provenance wxp/made.json): each a 2880 x 480 strip
+# of 6 frames of 480 px side by side, straight RGBA. The storm front's frames are each horizontally seamless (column 479 continues into
+# column 0) and loop 5 -> 0; the snow eddy's frames are one swirl turning, centred, loop 5 -> 0.
+#   sources/wxp_front.png  <- out2/bd_frost_wxp_front/r1_0.png
+#   sources/wxp_eddy.png   <- out2/bd_frost_wxp_eddy/r1_1.png
+FRONT_VSCALE = 1.0      # the painted band's height as painted (its half-opacity body measures about the old front's: see the report)
+
+
+def loop_frames(name, n=6):
+    """The 6 frames of an approved loop strip, premultiplied float, each 480 x 480."""
+    a = np.asarray(Image.open(HERE / "sources" / f"{name}.png").convert("RGBA")).astype(np.float64) / 255.0
+    w = a.shape[1] // n
+    return [premul(a[:, k * w:(k + 1) * w]) for k in range(n)]
+
+
+def front_loop(C):
+    """The storm front's 6 frames at the content size `C` (width untouched: each frame stays seamless), scaled vertically by
+    FRONT_VSCALE about its centre. Returns (frames, band top, band bottom) - the band = the rows any frame draws in."""
+    frames = []
+    for f in loop_frames("wxp_front"):
+        if f.shape[1] != C:
+            raise ValueError(f"front frame is {f.shape[1]} px wide, the content is {C}")
+        h = int(round(f.shape[0] * FRONT_VSCALE))
+        if h != f.shape[0]:
+            f = resize(f, C, h)
+            out = np.zeros((C, C, 4))
+            if h >= C:
+                y = (h - C) // 2
+                out = f[y:y + C]
+            else:
+                y = (C - h) // 2
+                out[y:y + h] = f
+            f = out
+        frames.append(f)
+    on = np.nonzero(np.max([f[..., 3].max(1) for f in frames], 0) > 1.0 / 255)[0]
+    return frames, int(on.min()), int(on.max()) + 1
+
+
+def eddy_loop(C, D):
+    """The snow eddy's 6 frames, all scaled by one factor so the swirl (its widest extent over the loop) is `D` px across, centred
+    in the `C` px content area (the same centre on every frame: the loop does not wobble)."""
+    frames = loop_frames("wxp_eddy")
+    m = np.max([f[..., 3] for f in frames], 0) > 1.0 / 255
+    ys, xs = np.nonzero(m)
+    side = max(ys.max() + 1 - ys.min(), xs.max() + 1 - xs.min())
+    k = D / side
+    out = []
+    for f in frames:
+        n = int(round(f.shape[0] * k))
+        out.append(place_centre(resize(f, n, n), C, C))
+    return out
+
 
 def build_wx_hazard():
-    pick = src("wx_hazard")
+    pick = src("wx_hazard")       # row 2's gust curls (cols 4-5) still come from the PixelLab pick
     P, g = 512, GUTTER
     C = P - 2 * g
     sheet = np.zeros((1536, 3072, 4))
@@ -364,41 +419,41 @@ def build_wx_hazard():
             sheet[y0:y0 + C, x0 - g:x0] = straight[:, C - g:]
             sheet[y0:y0 + C, x0 + C:x0 + C + g] = straight[:, :g]
 
-    # row 0: the blizzard front loop (seamless horizontal tiles, boiling on 6 phases); peak alpha 144 as before
-    front = front_tile(pick, C)
-    hh = int(round(C * .47))
-    top = (C - hh) // 2
+    # row 0: the storm front loop (the approved painting: 6 seamless horizontal tiles); peak alpha 144 as before
+    fronts, b0, b1 = front_loop(C)
+    top, hh = b0, b1 - b0
     yy = np.arange(C).astype(float)
-    rim = (smoothstep(top - 10, top + hh * .3, yy) * smoothstep(top + hh + 10, top + hh * .7, yy))[:, None]   # soft top / bottom
-    for k, f in enumerate(boil_frames(front)):
+    # soft top / bottom: the painting's own soft edges kept (full from 24 px inside the band), a safety fade to 0 just past it, so a
+    # tile's top / bottom content rows are always clear
+    rim = (smoothstep(top - 12, top + 24, yy) * smoothstep(top + hh + 12, top + hh - 24, yy))[:, None]
+    for k, f in enumerate(fronts):
         d = ice(f, 144 / 255, lo=.04, hi=.70, shade=(122, 156, 206), light=(232, 244, 255), lift=.25)
         d[..., 3] *= rim
         put(0, k, d, wrap=True)
 
-    # row 1: the whiteout eddy loop (the code turns it continuously; the frames add an inner twist on 6 phases), 0.70 of the unit
+    # row 1: the snow eddy loop (the approved painting; the code turns it continuously on top), 0.70 of the unit
     D = int(round(C * .70))
-    eddy = place_centre(eddy_base(pick, D), C, C)
-    for k in range(6):
-        e = twist(eddy, 14, k)
+    eddies = eddy_loop(C, D)
+    for k, e in enumerate(eddies):
         d = ice(e, 144 / 255, lo=.04, hi=.72, shade=(118, 150, 200), light=(230, 242, 255), lift=.2)
         d[..., 3] *= edge_window(C, C, 12)
         put(1, k, d)
 
     # row 2: the warnings (WARN_PEAK: faint and readable, a ghost of the body with a brighter leading edge / rim)
-    #   cols 0-1: the front's warning (tiles across the top of the view), two phases of the boil
-    #   cols 2-3: the eddy's warning (a soft ring where it forms, around a faint eddy), two angles
+    #   cols 0-1: the front's warning (tiles across the top of the view), loop frames 0 and 3
+    #   cols 2-3: the eddy's warning (a soft ring where it forms, around a faint eddy), loop frames 0 and 3 at two angles
     #   cols 4-5: the pick's two gust curls (not used by Frost's hazards; drawn soft for completeness)
     yy = np.arange(C)[:, None].astype(float)
     lead = np.exp(-((yy - (top + hh * .76)) / 16.0) ** 2)                 # the wall's leading (lower) edge
     for k in range(2):
-        f = boil_frames(front)[k * 3].copy()
+        f = fronts[k * 3].copy()
         f[..., 3] = np.clip(f[..., 3] * .75 + lead * .55 * (f[..., 3] > .02), 0, 1)
         f[..., :3] = np.clip(f[..., :3] * .75 + lead[..., None] * .55 * (f[..., 3:4] > .02), 0, 1)
         d = ice(f, WARN_PEAK, lo=.04, hi=.6, shade=(150, 184, 226), light=(240, 248, 255), lift=.35)
         d[..., 3] *= rim
         put(2, k, d, wrap=True)
     for k in range(2):
-        e = rotate(eddy, -18 * (k + 1)).copy()
+        e = rotate(eddies[k * 3], -18 * (k + 1)).copy()
         rg = ring(C, C, D * .47, 12.0)
         e[..., 3] = np.clip(e[..., 3] * .7 + rg * .6, 0, 1)
         e[..., :3] = np.clip(e[..., :3] * .7 + rg[..., None] * .6, 0, 1)
