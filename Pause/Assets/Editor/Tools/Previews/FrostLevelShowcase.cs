@@ -477,8 +477,10 @@ public static class FrostLevelShowcase
             foreach (var p in director.Props.items)
             {
                 if (!p.active) continue;
-                var sp = cam.WorldToScreenPoint(p.root.position);
-                Debug.Log("[SHOWCASE] prop " + p.sr.sprite.name + " at screen px " + Mathf.RoundToInt(sp.x) + "," + Mathf.RoundToInt(H - sp.y) +
+                // (the camera renders into a W x H target only inside Capture: map world -> capture pixels by hand)
+                Vector3 rel = p.root.position - cam.transform.position;
+                float ppu = H / (2f * cam.orthographicSize);
+                Debug.Log("[SHOWCASE] prop " + p.sr.sprite.name + " at capture px " + Mathf.RoundToInt(W * .5f + rel.x * ppu) + "," + Mathf.RoundToInt(H * .5f - rel.y * ppu) +
                           " size " + Mathf.RoundToInt(p.size * W / (2f * cam.orthographicSize * cam.aspect)) + " px");
             }
             string frames = Path.Combine(dir, "props_" + tag.Replace('-', '_') + "_frames");
