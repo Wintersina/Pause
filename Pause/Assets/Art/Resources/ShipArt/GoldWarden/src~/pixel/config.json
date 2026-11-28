@@ -1,0 +1,8 @@
+{
+  "drawing": "approved.png",
+  "source": "PixelLab drawing ship_GoldWarden/r2_0.png (160 px), approved Nov 2026",
+  "canopy": [[80, 91, 7.5, 7.5]],
+  "nozzles": [[60, 144, 0.9], [102, 144, 0.9]],
+  "damageNote": "1) left shoulder plate blown, sparking wires, right flank scorched; 2) right wing plate blown and burning, engine block on fire, left cannon housing holed, soot everywhere, reactor glass cracked",
+  "seed": 7
+}

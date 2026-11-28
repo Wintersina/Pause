@@ -599,13 +599,17 @@ def contour_polygon(S, w, h, pivot, ppu):
 
 
 def point_in_polygon_grid(poly, qx, qy):
-    """vectorised float32 PointInPolygon for arrays of query points"""
+    """vectorised PointInPolygon for arrays of query points. The crossing x is evaluated in DOUBLE precision
+    on the float32 inputs: Unity's Mono keeps this expression's intermediates wide (SolarFang's bake only
+    matches this way; float32 rounding flips 5 boundary cells)."""
     inside = np.zeros(qx.shape, bool)
+    qx = qx.astype(np.float64)
+    qy = qy.astype(np.float64)
     n = len(poly)
     j = n - 1
     for i in range(n):
-        pix, piy = F32(poly[i][0]), F32(poly[i][1])
-        pjx, pjy = F32(poly[j][0]), F32(poly[j][1])
+        pix, piy = float(poly[i][0]), float(poly[i][1])
+        pjx, pjy = float(poly[j][0]), float(poly[j][1])
         cond = (piy > qy) != (pjy > qy)
         with np.errstate(divide="ignore", invalid="ignore"):
             xs = (pjx - pix) * (qy - piy) / (pjy - piy) + pix
@@ -644,8 +648,6 @@ def grow(poly, margin_px, pivot, ppu, max_points):
         ox, oy = int(np.floor(minx)) - pad, int(np.floor(miny)) - pad
         W, H = int(np.ceil(maxx)) + pad - ox, int(np.ceil(maxy)) + pad - oy
         yy, xx = np.mgrid[0:H, 0:W]
-        qx = (F32(ox) + xx.astype(np.float32)) + F32(.5)
-        qy = (F32(oy) + yy.astype(np.float32)) + F32(.5)
         qx = (xx + ox).astype(np.float32) + F32(.5)
         qy = (yy + oy).astype(np.float32) + F32(.5)
         inside = point_in_polygon_grid(p, qx.astype(np.float32), qy.astype(np.float32))
@@ -702,7 +704,7 @@ def compute(key):
 
 def main():
     args = [a for a in sys.argv[1:] if not a.startswith("--")]
-    keys = shiplib.all_keys()[1:] if "--all" in sys.argv else [shiplib.resolve(a) for a in args]
+    keys = shiplib.all_keys() if "--all" in sys.argv else [shiplib.resolve(a) for a in args]
     check = "--check" in sys.argv
     bad = 0
     for key in keys:

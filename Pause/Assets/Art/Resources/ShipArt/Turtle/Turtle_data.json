@@ -3,11 +3,11 @@
   "key": "Turtle",
   "painted": true,
   "rect": {
-    "x": 40,
-    "y": 7,
-    "w": 176,
-    "h": 241,
-    "ppu": 800.0
+    "x": 27,
+    "y": 2,
+    "w": 202,
+    "h": 252,
+    "ppu": 893.2348
   },
   "hue": [
     "#A87A3E",
@@ -16,85 +16,129 @@
   ],
   "nozzles": [
     {
-      "x": 88.5,
-      "y": 8.5,
-      "scale": 1.0,
-      "offsets": [0.0, -0.0, 0, 4, 0, 4, 0, 0, 0, 0, 0, -4, -2.0, -0.0, 3.0, -0.0, 0, 0]
+      "x": 67.5,
+      "y": 44.5,
+      "scale": 0.85,
+      "offsets": [
+        0.0,
+        0.0,
+        0.0,
+        4.0,
+        0.0,
+        4.0,
+        0.0,
+        -0.0,
+        0.0,
+        -0.0,
+        0.0,
+        -4.0,
+        3.7,
+        -0.7,
+        4.7,
+        0.3,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "x": 135.5,
+      "y": 44.5,
+      "scale": 0.85,
+      "offsets": [
+        0.0,
+        0.0,
+        0.0,
+        4.0,
+        0.0,
+        4.0,
+        0.0,
+        -0.0,
+        0.0,
+        -0.0,
+        0.0,
+        -4.0,
+        -4.7,
+        0.3,
+        -3.9,
+        -0.7,
+        0.0,
+        0.0
+      ]
     }
   ],
-  "damageNote": "1) shell plate blown, scute cracked; tail smoking; 2) rear scute shattered and arcing, front flipper bent, shell torn, canopy cracked",
+  "damageNote": "1) left shell plate blown, sparking wires, right shell scorched; 2) right shell blown and burning, tail on fire, upper dome holed, soot over the shell, core lens cracked",
   "emitters": [
     {
       "state": 1,
       "kind": "Sparks",
-      "u": 45.7,
-      "v": 72.6
+      "u": 32.4,
+      "v": 83.1
     },
     {
       "state": 1,
       "kind": "Smoke",
-      "u": 64.0,
-      "v": 110.4
+      "u": 94.1,
+      "v": 51.9
     },
     {
       "state": 1,
       "kind": "Smolder",
-      "u": 45.7,
-      "v": 72.6
+      "u": 30.8,
+      "v": 81.4
     },
     {
       "state": 2,
       "kind": "Arc",
-      "u": 64.0,
-      "v": 88.8
+      "u": 93.4,
+      "v": 72.7
     },
     {
       "state": 2,
       "kind": "Flame",
-      "u": 87.4,
-      "v": 78.0
+      "u": 61.6,
+      "v": 85.0
     },
     {
       "state": 2,
       "kind": "Leak",
-      "u": 49.7,
-      "v": 103.9
+      "u": 52.6,
+      "v": 52.6
     },
     {
       "state": 2,
       "kind": "Smolder",
-      "u": 64.5,
-      "v": 88.8
+      "u": 94.1,
+      "v": 51.9
     },
     {
       "state": 2,
       "kind": "Smolder",
-      "u": 88.5,
-      "v": 79.1
+      "u": 32.4,
+      "v": 83.1
     },
     {
       "state": 2,
       "kind": "Smolder",
-      "u": 41.1,
-      "v": 44.8
+      "u": 60.0,
+      "v": 83.4
     },
     {
       "state": 2,
       "kind": "Smolder",
-      "u": 73.0,
-      "v": 20.3
+      "u": 91.8,
+      "v": 71.0
     },
     {
       "state": 2,
       "kind": "Smolder",
-      "u": 50.1,
-      "v": 19.2
+      "u": 50.9,
+      "v": 50.9
     },
     {
       "state": 2,
       "kind": "Smolder",
-      "u": 55.0,
-      "v": 109.6
+      "u": 92.5,
+      "v": 50.3
     }
   ],
   "skins": [
