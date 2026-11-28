@@ -191,6 +191,23 @@ def recolour(rgb, d, ramp, mask=None):
     return np.clip(out + .5, 0, 255).astype(np.uint8)
 
 
+def remap_hue(img, spec):
+    """config "hue_remap": [[h_lo, h_hi, new_lo, new_hi, s_min], ...]: texels whose hue lies in [h_lo, h_hi]
+    (and saturation >= s_min) get their hue mapped linearly onto [new_lo, new_hi]; saturation and value (the
+    shading ramp) are kept. Used to pull a glass colour away from the no-pink band (WorldCue.IsPink)."""
+    out = img.copy()
+    rgb = img[..., :3].astype(np.float64) / 255.0
+    h, s, v = hsv_arrays(img[..., :3])
+    a = img[..., 3] > 0
+    for lo, hi, nlo, nhi, smin in spec:
+        m = a & (h >= lo) & (h <= hi) & (s >= smin)
+        nh = nlo + (h[m] - lo) * (nhi - nlo) / max(1e-9, hi - lo)
+        res = np.array([colorsys.hsv_to_rgb((hh % 360) / 360.0, ss, vv) for hh, ss, vv in zip(nh, s[m], v[m])])
+        if len(res):
+            out[m, :3] = np.clip(res * 255 + .5, 0, 255).astype(np.uint8)
+    return out
+
+
 def ramp_of(base, shadow, high):
     b, s, h = hex_rgb(base), hex_rgb(shadow), hex_rgb(high)
     deep = s * .45
@@ -655,6 +672,8 @@ def main():
     src = os.path.join(shiplib.src_dir(key), "pixel")
     cfg = json.load(open(os.path.join(src, "config.json")))
     img = np.array(Image.open(os.path.join(src, cfg["drawing"])).convert("RGBA"))
+    if cfg.get("hue_remap"):
+        img = remap_hue(img, cfg["hue_remap"])
     d = Drawing(cfg, img)
     geo = Geometry(d, cfg, sid)
     dmg = Damage(d, cfg.get("seed", sid))
@@ -670,15 +689,23 @@ def main():
     Image.fromarray(sheet, "RGBA").save(shiplib.hull_path(key), optimize=True)
     flash = [rows[st][8] for st in range(3)]
 
-    # skins
+    # skins (config "skin_ramps": {name: [deep, shadow, base, light, top]} overrides the ramp built from the data
+    # file's three skin colours, e.g. to give a pale skin real shadows; "skin_tints": {name: [[h_lo, h_hi, s_min,
+    # "#RRGGBB"], ...]} multiplies non-armour trim of that hue toward a deeper accent so it reads on the new ramp)
     skins = data["skins"]
     for sk in skins[1:]:
-        if sk["kind"] == "Special":
+        if sk["name"] in cfg.get("skin_ramps", {}):
+            rgb = recolour(stock_rgb, d, [hex_rgb(c) for c in cfg["skin_ramps"][sk["name"]]])
+        elif sk["kind"] == "Special":
             rgb = recolour(stock_rgb, d, ramp_of(sk["hue"], sk["shadow"], sk["highlight"]))
             lm = livery_mask(d, sk["pattern"])
             rgb = recolour(rgb, d, ramp_of(sk["accent"], sk["accentShadow"], sk["accentHighlight"]), lm)
         else:
             rgb = recolour(stock_rgb, d, ramp_of(sk["hue"], sk["shadow"], sk["highlight"]))
+        for lo, hi, smin, col in cfg.get("skin_tints", {}).get(sk["name"], []):
+            m = d.sil & ~d.armour & ~d.canopy & ~d.lights & (hue_dist(d.h, (lo + hi) / 2.0) <= (hi - lo) / 2.0) & (d.s >= smin)
+            f = rgb[m].astype(np.float64) / 255.0
+            rgb[m] = np.clip(f * hex_rgb(col) + .5, 0, 255).astype(np.uint8)
         sk_sheet = sheet_of(build_rows(geo, d, rgb, dmg, flash))
         assert (sk_sheet[..., 3] == sheet[..., 3]).all()
         with open(shiplib.skin_path(key, sk["name"]), "wb") as fh:
