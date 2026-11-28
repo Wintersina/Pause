@@ -54,6 +54,7 @@
   "shotSpread": 12,
   "shotSize": 0.34,
   "shotKind": "shard",
+  "boldShots": true,
   "heartColor": "#5CE8FF",
   "shotColor": "#9FE4FF",
   "shotCore": "#F2FCFF",

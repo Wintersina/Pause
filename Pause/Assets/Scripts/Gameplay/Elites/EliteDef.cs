@@ -242,6 +242,8 @@ public class EliteDef
     public float heartOrbit = .85f;     // orbit radius, x the hull's half-size
     public string heartStyle = "Atom";  // (legacy field, ignored: EliteHearts spins every elite's hearts in the player's own Atom style)
     public bool boldHearts;             // pale-hulled elite: its hearts wear the bold outline in every world (BossHeartsTest 3:1 over the hull)
+    public bool boldShots;              // pale shot over its own pale world: the shots wear the bold outline (a solid dark keyline) in every world
+                                        // (HostileProjectileTest 3:1; Frost's whiteout sentinel: pale-cyan shards over Frost's lit ice)
 
     // ---- exhaust ----
     public int exhaustShip = 3;         // ShipExhaustStyle row whose plume drawings it borrows (3: Solar Fang tongues)

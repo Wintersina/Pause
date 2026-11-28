@@ -164,6 +164,7 @@ public class EliteShot : MonoBehaviour, IHostileShot
     SpriteRenderer body, core, mark;
     SpriteRenderer glow;      // the visibility outline (ShotOutline): hugs the drawing, never a round halo
     Color glowTint;
+    bool bold;           // this shot's outline style (ShotOutline.UseBold, or EliteDef.boldShots), set at launch
     // the shot's colours: the def's, pulled into the hostile family (HostileShotPalette)
     Color tint = Color.white, coreTint = Color.white;
     int ownerId;
@@ -465,12 +466,14 @@ public class EliteShot : MonoBehaviour, IHostileShot
         // planet reads hot pink, never lilac
         // (bold, on a bright world: paled further, ShotOutline.BoldTrace, so the
         // light ring reads over the mid-dark patches the dark keyline can't)
-        glowTint = ShotOutline.UseBold ? ShotOutline.BoldTrace(HostileShotPalette.Trace(tint)) : HostileShotPalette.Trace(tint);
+        // (or forced bold by its def, EliteDef.boldShots: a pale shot over its own pale world)
+        bold = ShotOutline.UseBold || d.boldShots;
+        glowTint = bold ? ShotOutline.BoldTrace(HostileShotPalette.Trace(tint)) : HostileShotPalette.Trace(tint);
         rimA = Outline(sprite, k);
         framed = skin.TwoFrames;
         frameA = skin.a;
         frameB = skin.b;
-        rimB = framed ? ShotOutline.For(frameB, frameB.bounds.size.y * k) : null;
+        rimB = framed ? ShotOutline.For(frameB, frameB.bounds.size.y * k, bold) : null;
         Pulse();
         SetupMotion(k);
         Active = true;
@@ -730,7 +733,7 @@ public class EliteShot : MonoBehaviour, IHostileShot
         frameA = pool;
         frameB = poolB;
         framed = poolB != null;
-        rimB = framed ? ShotOutline.For(poolB, poolB.bounds.size.y * k) : null;
+        rimB = framed ? ShotOutline.For(poolB, poolB.bounds.size.y * k, bold) : null;
         Pulse();
         mark.enabled = false;
         velocity = new Vector2(0f, -EliteSystem.Scroll);
@@ -768,7 +771,7 @@ public class EliteShot : MonoBehaviour, IHostileShot
     // per drawing and size: nothing is built per shot after the first).
     Sprite Outline(Sprite art, float k)
     {
-        var rim = ShotOutline.For(art, art.bounds.size.y * k);
+        var rim = ShotOutline.For(art, art.bounds.size.y * k, bold);
         glow.sprite = rim;
         glow.enabled = rim != null;
         glow.transform.localScale = Vector3.one;

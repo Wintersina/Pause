@@ -121,6 +121,12 @@ public static class BackdropCatalog
         // later (Ember) gets every bold treatment at once.
         public const float BrightLift = 1.2f;
         public bool Bright => !darkArt && (brightArt || brightness != null && brightness() >= BrightLift);
+        // The hearts' outline only goes bold over this world too (HeartOutline.UseBold), its shots keeping their standard trace:
+        // Frost seen from high up (FrostTuning.GroundZoom) is a fine-grained mid-tone ground under the lane, where the standard
+        // trace's thin keyline and light core both lose their 3:1 (BossHeartsTest, 2026-11-28). (Its shots stay standard:
+        // the bold keyline softens Frost's small bolts past AtomClarityTest's hard-edge cap -- darkArt above.)
+        public bool boldHearts;
+        public bool HeartsBold => Bright || boldHearts;
 
         // CLOUD COVER (CloudCover): this world's knobs, read when a set is
         // built and every frame. Null: the shared defaults (CloudCover.*), so
@@ -234,7 +240,7 @@ public static class BackdropCatalog
         // depth haze holds. Tints can only darken (white = as graded).
         new Spec { world = "Frost", folder = "Worlds/Frost/Backdrop3/", keyAtlas = "landmarks",
                    variantSets = BackdropVariants.MaxVariants, groundZoom = FrostTuning.GroundZoom,
-                   brightness = () => FrostTuning.Brightness, saturation = () => FrostTuning.Saturation, darkArt = true,
+                   brightness = () => FrostTuning.Brightness, saturation = () => FrostTuning.Saturation, darkArt = true, boldHearts = true,
                    cloudDensity = () => FrostTuning.CloudDensity, ceilingHold = () => FrostTuning.CeilingHold,
                    ceilingClearSeconds = () => FrostTuning.CeilingClearSeconds, layers = new[] {
             Layer.Tile("sky", 0.006f * FrostTuning.GroundZoom, W).Graded(.55f),
@@ -429,6 +435,12 @@ public static class BackdropCatalog
     public static bool CurrentIsBright
     {
         get { var spec = For(WorldManager.Current.displayName); return spec != null && spec.Bright; }
+    }
+
+    // Do the current world's hearts wear the bold outline (Spec.HeartsBold)?
+    public static bool CurrentHeartsBold
+    {
+        get { var spec = For(WorldManager.Current.displayName); return spec != null && spec.HeartsBold; }
     }
 
     public static Spec For(string displayName)

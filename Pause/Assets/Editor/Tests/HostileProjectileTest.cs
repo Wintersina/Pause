@@ -438,9 +438,11 @@ public static class HostileProjectileTest
         {
             Fresh(w);
             bool bright = BackdropCatalog.For(worlds[w]).Bright;
+            // (the hearts also go bold where the world asks for it alone: Frost from up high, Spec.boldHearts)
+            bool heartsBold = BackdropCatalog.For(worlds[w]).HeartsBold;
             Check(worlds[w] + ": the shots' outline and the boss rims are " + (bright ? "BOLD" : "standard") +
-                  " by the hearts' own predicate (bright " + bright + ", hearts bold " + HeartOutline.UseBold + ")",
-                  ShotOutline.UseBold == bright && BossArt.ShotRimUseBold == bright && HeartOutline.UseBold == bright);
+                  " by the bright predicate, the hearts bold where bright or the world asks (bright " + bright + ", hearts bold " + HeartOutline.UseBold + ")",
+                  ShotOutline.UseBold == bright && BossArt.ShotRimUseBold == bright && HeartOutline.UseBold == heartsBold && (!bright || heartsBold));
             // (Frost was a bright world -- lifted ice, a pale cloud ceiling -- until its v3 night redraw: the art is painted dark and,
             //  even lifted x1.95, reads dark (Spec.darkArt), so it keeps the standard look like Space and Ember; the bold keyline over
             //  it measured 36-38% soft in AtomClarityTest, over the 36% hard-edge cap)

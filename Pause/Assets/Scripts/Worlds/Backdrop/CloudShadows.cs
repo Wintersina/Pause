@@ -83,7 +83,10 @@ public sealed class CloudShadowLayer
 
     public static readonly Look[] Looks =
     {
-        new Look { world = "Frost",   color = new Color(.01f, .04f, .12f), cap = .50f, nightCapMul = .6f,  count = 3, big = true, budget = 1.3f, speed = .08f, dir = 200f, soft = true },
+        // Frost's budget 1.3 -> 1.4 (2026-11-28): seen from high up (FrostTuning.GroundZoom .41) the ground, and the shadows riding
+        // it, creep by slower, so each shadow spends longer half out of the view while still holding its full share of the budget:
+        // the mean cover in view fell .37 -> .33 (CloudShadowTest wants >= .34 for Frost); the peak stays under the .6 veil line.
+        new Look { world = "Frost",   color = new Color(.01f, .04f, .12f), cap = .50f, nightCapMul = .6f,  count = 3, big = true, budget = 1.4f, speed = .08f, dir = 200f, soft = true },
         new Look { world = "Verdant", color = new Color(.00f, .07f, .02f), cap = .48f, nightCapMul = .5f,  count = 3, budget = .95f, speed = .07f, dir = 330f },
         // Ember: no baked centre band in the ground any more (2026-10-27), so its clouds carry the shade: big shapes only, Frost-like cover,
         // a very dark red-brown umber core up to .55 (the layer sorts below every enemy, shot, the ship and the HUD), night side a bit dimmer.

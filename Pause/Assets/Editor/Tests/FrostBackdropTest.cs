@@ -428,7 +428,9 @@ public static class FrostBackdropTest
                 };
                 audit();
                 // as much ground as before the zoom went by (it creeps by at GroundZoom of its old rate)
-                for (int i = 0; i < Mathf.CeilToInt(14 / FrostTuning.GroundZoom); i++) { Run(wb, 2f); audit(); }
+                // (v2's busy harbour has few flat tops: it flies on, up to 3x as far, until this run has dealt its 4 pieces)
+                int before = pieces, steps = Mathf.CeilToInt(14 / FrostTuning.GroundZoom);
+                for (int i = 0; i < steps * 3 && (i < steps || pieces - before < 4); i++) { Run(wb, 2f); audit(); }
                 Object.DestroyImmediate(wb.gameObject);
             }
             FrostDirector.SeedOverride = 0;

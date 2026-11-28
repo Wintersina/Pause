@@ -90,10 +90,11 @@ public static class FrostTuning
     // bands, the sites' launch size, the cover boulders (CoverBoulders.GroundZoom).
     public const float GroundZoom = .41f;
     // The ground (far / mid tiles, the floe strip) drawn this much darker than graded: a tint, a step of its own on top of the
-    // art and its grade (FrostTuning.Brightness), so a colour regrade of the tiles can drop or retune it. Seen from up here the
-    // ground is finer and busier behind the play layer: the light elite shots (the whiteout sentinel's shard) and the boss
-    // hearts' outlines lost their 3:1 against it (HostileProjectileTest, BossHeartsTest). The pieces on it are not shaded.
-    public const float GroundShade = .85f;
+    // art and its grade (FrostTuning.Brightness), so a colour regrade of the tiles can drop or retune it. .85 (2026-11-28) did
+    // not rescue the pale shots over the finer ground (HostileProjectileTest's worst moved 8 -> 4 px) and the render read
+    // dim / muddy: the shots and hearts are fixed on their own side now (EliteDef.boldShots on the whiteout sentinel's
+    // shard, Spec.boldHearts), and the ground is only a touch shaded.
+    public const float GroundShade = .92f;
     public const float GroundRate = .024f * GroundZoom;                // the mid tile's (and everything pinned to it) parallax rate
     // The pieces standing on the ground (landmarks, launch sites, with their lamps and loops, which ride them) are drawn at
     // this share of their old size against the ground art on top of the zoom: a slab must fit a flat plate top of the redrawn
