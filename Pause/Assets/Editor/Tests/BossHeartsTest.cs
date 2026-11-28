@@ -592,9 +592,10 @@ public static class BossHeartsTest
         var bold = new bool[WorldManager.LiveWorldCount];
         for (int wi = 0; wi < bold.Length; wi++) { PlayerPrefs.SetInt(WorldManager.PrefsCurrentWorld, wi); bold[wi] = HeartOutline.UseBold; }
         PlayerPrefs.SetInt(WorldManager.PrefsCurrentWorld, savedWorld);
-        // Verdant's v3 jungle is painted bright (Spec.brightArt), so it wears the bold one too
-        Check("brightened Frost and bright-painted Verdant wear the bold outline, Space / Ember and the later worlds the standard one (" + string.Join(",", bold) + ")",
-              bold.Length == 7 && !bold[0] && bold[1] && bold[2] && !bold[3] && !bold[4] && !bold[5] && !bold[6]);
+        // Verdant's v3 jungle is painted bright (Spec.brightArt), so it wears the bold one; Frost's v3 night redraw is painted dark
+        // (Spec.darkArt: lifted, it still reads as a dark sky), so since then it wears the standard one with the other dark worlds
+        Check("bright-painted Verdant wears the bold outline, Space / dark-painted Frost / Ember and the later worlds the standard one (" + string.Join(",", bold) + ")",
+              bold.Length == 7 && !bold[0] && !bold[1] && bold[2] && !bold[3] && !bold[4] && !bold[5] && !bold[6]);
         Color c = HeartOutline.Core;
         Check("the light line is not red (it's amber-white: saturation " + Saturation(c).ToString("F2") + ")", Saturation(c) < .25f);
         // no halo objects anywhere on a boss's or an elite's hearts

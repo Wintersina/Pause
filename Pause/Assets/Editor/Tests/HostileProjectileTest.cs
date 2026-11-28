@@ -426,11 +426,11 @@ public static class HostileProjectileTest
 
     // ---- 2b. the bold outline on bright worlds ---------------------------------
     //
-    // The bright backdrops (BackdropCatalog.Spec.Bright: Frost's lifted ice
-    // and cloud ceiling, Verdant's lit jungle) switch the hostile shots'
-    // outline and the boss shots' rim to the bold style -- a solid dark
-    // keyline -- by the same predicate as the hearts (HeartOutline.UseBold);
-    // Space and Ember keep the standard trace.
+    // The bright backdrops (BackdropCatalog.Spec.Bright: Verdant's lit
+    // jungle; Frost's lifted ice until its dark v3 night redraw, Spec.darkArt)
+    // switch the hostile shots' outline and the boss shots' rim to the bold
+    // style -- a solid dark keyline -- by the same predicate as the hearts
+    // (HeartOutline.UseBold); Space, Frost and Ember keep the standard trace.
     static void BoldOnBrightWorlds()
     {
         string[] worlds = { "Space", "Frost", "Verdant", "Ember" };
@@ -441,8 +441,11 @@ public static class HostileProjectileTest
             Check(worlds[w] + ": the shots' outline and the boss rims are " + (bright ? "BOLD" : "standard") +
                   " by the hearts' own predicate (bright " + bright + ", hearts bold " + HeartOutline.UseBold + ")",
                   ShotOutline.UseBold == bright && BossArt.ShotRimUseBold == bright && HeartOutline.UseBold == bright);
-            if (w == 0 || w == 3) Check(worlds[w] + " is not brightened: its shots keep the standard look", !bright);
-            if (w == 1 || w == 2) Check(worlds[w] + " is brightened: its shots wear the bold keyline", bright);
+            // (Frost was a bright world -- lifted ice, a pale cloud ceiling -- until its v3 night redraw: the art is painted dark and,
+            //  even lifted x1.95, reads dark (Spec.darkArt), so it keeps the standard look like Space and Ember; the bold keyline over
+            //  it measured 36-38% soft in AtomClarityTest, over the 36% hard-edge cap)
+            if (w == 0 || w == 1 || w == 3) Check(worlds[w] + " is not brightened: its shots keep the standard look", !bright);
+            if (w == 2) Check(worlds[w] + " is brightened: its shots wear the bold keyline", bright);
         }
         // the bold outline: the same light trace at the drawing, a wider dark keyline, within the reach rule
         var art = EliteFxArt.Bolt;

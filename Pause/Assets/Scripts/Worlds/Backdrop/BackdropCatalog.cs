@@ -100,6 +100,14 @@ public static class BackdropCatalog
         // The art itself is painted bright (not lifted): what reads over it
         // needs the bold treatment too (HeartOutline's bold outline).
         public bool brightArt;
+        // The art is painted DARK and only lifted for its own depth (Frost's
+        // v3 night redraw: art value ~.1, lifted x1.95 it still reads as a
+        // dark sky / ground): it never counts as bright, whatever its lift.
+        // (Over it the bold near-black keyline barely changes the pixels --
+        // AtomClarityTest measured Frost's small bolts 36-38% soft against
+        // the 36% hard-edge cap -- while the dark worlds' thin trace keeps
+        // their bolts near 20%, Space / Ember.)
+        public bool darkArt;
         // A world's backdrop counts as BRIGHT (drawn lifted by at least
         // BrightLift, or painted bright): what must read over it -- the
         // hearts' outline (HeartOutline), the hostile shots' outline and rim
@@ -107,7 +115,7 @@ public static class BackdropCatalog
         // style. The one predicate for all of them, so a world that is lifted
         // later (Ember) gets every bold treatment at once.
         public const float BrightLift = 1.2f;
-        public bool Bright => brightArt || brightness != null && brightness() >= BrightLift;
+        public bool Bright => !darkArt && (brightArt || brightness != null && brightness() >= BrightLift);
 
         // CLOUD COVER (CloudCover): this world's knobs, read when a set is
         // built and every frame. Null: the shared defaults (CloudCover.*), so
@@ -216,7 +224,7 @@ public static class BackdropCatalog
         // depth haze holds. Tints can only darken (white = as graded).
         new Spec { world = "Frost", folder = "Worlds/Frost/Backdrop3/", keyAtlas = "landmarks",
                    variantSets = BackdropVariants.MaxVariants,
-                   brightness = () => FrostTuning.Brightness, saturation = () => FrostTuning.Saturation,
+                   brightness = () => FrostTuning.Brightness, saturation = () => FrostTuning.Saturation, darkArt = true,
                    cloudDensity = () => FrostTuning.CloudDensity, ceilingHold = () => FrostTuning.CeilingHold,
                    ceilingClearSeconds = () => FrostTuning.CeilingClearSeconds, layers = new[] {
             Layer.Tile("sky", 0.006f, W).Graded(.55f),
