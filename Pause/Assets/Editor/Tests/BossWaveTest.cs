@@ -607,18 +607,19 @@ public static class BossWaveTest
             sides &= l.x < -.4f && r.x > .4f && Mathf.Abs(l.y - r.y) < .25f && l.y > j.y;
         }
         Check("Cinder Drake: fire cells 28 / 31 / 34 (breath / slugs / brow) and the twin cannons measured either side of the head in every tell, fire and idle cell", cells && sides);
-        // by pixel (384 reference px): the brow on the gem in the breath cell (the matcher had it ~20 px above), the
-        // maw on the flame's root, and the cannon bores where they are drawn in the breath and slug cells
+        // by pixel (384 reference px), on the v3 redraw (Art/Bosses~/redraw-v3, rig_Ember.json): the brow on the horn
+        // between its eyes in the breath cell, the maw (the flame's root) below it, and the shoulder vents' bores where
+        // they are drawn, the same in the breath and slug cells (the redraw keeps one registration in every drawing)
         int brow = BossEmitters.Part(boss, "Brow");
         var b28 = BossEmitters.Pixel(boss, brow, 28); var j28 = BossEmitters.Pixel(boss, jaw, 28);
         var l20 = BossEmitters.Pixel(boss, cl, 20); var r20 = BossEmitters.Pixel(boss, cr, 20);
-        bool pixels = Mathf.Abs(b28.x - 191) <= 3 && Mathf.Abs(b28.y - 129) <= 3 && Mathf.Abs(j28.x - 192) <= 4 && j28.y > b28.y + 15;
+        bool pixels = Mathf.Abs(b28.x - 193) <= 3 && Mathf.Abs(b28.y - 273) <= 3 && Mathf.Abs(j28.x - 193) <= 4 && j28.y > b28.y + 15;
         foreach (int f in new[] { 28, 31 })
         {
             var l = BossEmitters.Pixel(boss, cl, f); var r = BossEmitters.Pixel(boss, cr, f);
             pixels &= (l - l20).magnitude <= 12f && (r - r20).magnitude <= 12f;
         }
-        pixels &= Mathf.Abs(l20.x - 108) <= 3 && Mathf.Abs(r20.x - 270) <= 3 && Mathf.Abs(l20.y - 141) <= 3;
+        pixels &= Mathf.Abs(l20.x - 114) <= 3 && Mathf.Abs(r20.x - 271) <= 3 && Mathf.Abs(l20.y - 128) <= 3;
         Check("Cinder Drake: brow on its gem in the breath cell 28 (" + b28 + "), maw at the flame root (" + j28 + "), cannon bores at " + l20 + " / " + r20 + " and still on them in cells 28 and 31", pixels);
     }
 

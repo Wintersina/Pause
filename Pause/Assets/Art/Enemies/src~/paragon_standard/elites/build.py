@@ -360,7 +360,7 @@ DESERT_PAL = {
 FROST_DEFAULT = D.WORLDS["frost"]
 
 
-def death(b):
+def death_raw(b):
     key, world = b["key"], b["world"]
     if world == "verdant":
         V = load_mod("verdant_hd", CODEX / "Verdant/new/src~/build_verdant_hd.py")
@@ -385,6 +385,30 @@ def death(b):
     D.PINK = pink; D.WORLDS[world] = pal
     src = b["H"] if base == "bare" else b["cells"][base]
     return D.build_one(key, src, world, CELL)
+
+
+def red_mask(a):
+    """EliteDeathStripTest's "red": s > .6, v > .55, hue within ~4 deg of 0, alpha >= .5."""
+    rgb = a[..., :3].astype(np.float32) / 255; mx = rgb.max(-1); mn = rgb.min(-1)
+    s = np.where(mx > 0, (mx - mn) / np.maximum(mx, 1e-6), 0)
+    r, g, bl = rgb[..., 0], rgb[..., 1], rgb[..., 2]
+    h = np.where(mx == r, ((g - bl) / np.maximum(mx - mn, 1e-6)) % 6, 3) / 6
+    return (a[..., 3] >= 128) & (s > .6) & (mx > .55) & (mx == r) & ((h < .012) | (h > .985))
+
+
+def death(b):
+    """death_raw, then: no more pure red than the hull itself carries (EliteDeathStripTest: red <= hull red x 3 + 2) -- the few red
+    sparks the recipe's warm ramp makes are nudged to orange-red (hue ~6 deg), nothing else changes."""
+    out = death_raw(b)
+    a = np.array(out)
+    lim = int(red_mask(np.asarray(b["cells"][0])).sum()) * 3 + 2
+    m = red_mask(a)
+    if m.sum() > lim:
+        r = a[..., 0].astype(int); lo = np.minimum(a[..., 1], a[..., 2]).astype(int)
+        a[..., 1] = np.where(m, lo + np.ceil((r - lo) * .1).astype(int), a[..., 1])
+        a[..., 2] = np.where(m, lo, a[..., 2])
+        out = Image.fromarray(a, "RGBA")
+    return out
 
 
 # ---------------------------------------------------------------------------------------------------------------- points / def
@@ -478,8 +502,10 @@ def write_def(b, mz, nz, sil, hr):
     t = replace_block(t, "nozzles", fmt_points(nz, ind, True))
     t = re.sub(r'"silhouetteShare":\s*[-0-9.eE]+', f'"silhouetteShare": {sil}', t, 1)
     if hr is not None: t = re.sub(r'"hullRadius":\s*[-0-9.eE]+', f'"hullRadius": {hr}', t, 1)
-    if SPEC[b["key"]].get("edge", 1.0) != 1.0:      # a drawing scaled off the old edge (block-doubling at ~2x): same world size
+    cws = b.get("cws")
+    if cws is None and SPEC[b["key"]].get("edge", 1.0) != 1.0:   # a drawing scaled off the old edge (block-doubling at ~2x): same world size
         cws = round(b["d"]["cellWorldSize"] / SPEC[b["key"]]["edge"], 3)
+    if cws is not None:
         t = re.sub(r'"cellWorldSize":\s*[-0-9.eE]+', f'"cellWorldSize": {cws}', t, 1)
     json.loads(t)
     p.write_text(t)
@@ -561,6 +587,20 @@ def write_mouths(rows_by_key):
     return len(keep) + len(new)
 
 
+HEAVY_BRAINS = {"hauler", "bastion", "siege", "tug", "fortress", "wrecker", "barge", "carrier", "patrol", "logger", "lumber", "abyss", "netter",
+                "pearler", "kiln", "furnace", "caravan", "lenspost", "bulwark", "thunderhead", "airship", "citadel"}
+
+
+def band_target(d):
+    """The drawn long side DesertEliteTest / StormEliteTest / TideEliteTest pin (+-.06 u): 1.6 u heavy, 1.55 u otherwise."""
+    k, w = d["key"], d["world"]
+    if w == "desert": heavy = any(k.endswith(s) for s in ("caravan_hauler", "glass_cannon", "mirror_bastion"))
+    elif w == "storm": heavy = any(k.endswith(s) for s in ("anvil_cloud", "refinery_tender", "static_bastion"))
+    elif w == "tide": heavy = d["brain"] in HEAVY_BRAINS or d["brain"] in ("deep", "trawl", "oyster")
+    else: return None
+    return 1.6 if heavy else 1.55
+
+
 def main(argv):
     keys = sorted(p.stem for p in APPROVED.glob("*.png"))
     sel = [a for a in argv if not a.startswith("--")]
@@ -582,6 +622,10 @@ def main(argv):
         bb = [np.nonzero(np.asarray(f)[..., 3] > 40) for f in flights]
         drawn_px = max(max(ys.max() - ys.min() + 1, xs.max() - xs.min() + 1) for ys, xs in bb)
         drawn = drawn_px / CELL * d["cellWorldSize"] / SPEC[key].get("edge", 1.0)
+        tgt = band_target(d)
+        if tgt is not None:                             # Desert / Storm / Tide size band (the world tests): world size from the new art
+            b["cws"] = round(tgt * CELL / drawn_px, 3)
+            drawn = drawn_px / CELL * b["cws"]
         hr = d["hullRadius"]; ratio = hr / (drawn * .5)
         new_hr = None
         if not .37 <= ratio <= .78:

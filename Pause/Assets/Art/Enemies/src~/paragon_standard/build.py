@@ -217,6 +217,37 @@ def sil_change(a, b):
     u = (pa | pb).sum(); return float((pa != pb).sum()) / max(1, u)
 
 
+def tsfr_diff(a, b):
+    """TideStormFramesTest.Diff: the share of the union (alpha > 40) that differs in alpha or colour (> 40), at the best of 9 shifts (+-3 px)."""
+    A = np.asarray(a).astype(int); B0 = np.asarray(b).astype(int); h = A.shape[0]; best = 9.0
+    for dy in (-3, 0, 3):
+        for dx in (-3, 0, 3):
+            B = np.zeros_like(B0)
+            ys0, ys1 = max(0, -dy), min(h, h - dy); xs0, xs1 = max(0, -dx), min(h, h - dx)
+            B[ys0:ys1, xs0:xs1] = B0[ys0 + dy:ys1 + dy, xs0 + dx:xs1 + dx]
+            ma, mb = A[..., 3] > 40, B[..., 3] > 40; u = ma | mb
+            d = (ma != mb) | (ma & mb & (np.abs(A[..., :3] - B[..., :3]).max(-1) > 40))
+            best = min(best, d[u].sum() / max(1, u.sum()))
+    return float(best)
+
+
+def break_runs(im, cell):
+    """EnemyRosterTest 'one whole pose': no straight vertical silhouette edge as long as 15 % of the cell (reads as art cut by the frame).
+    Every edge run gets a 1 px notch before it reaches the limit -- invisible at play size."""
+    a = np.array(im); op = a[..., 3] > 128; lim = int(np.ceil(.15 * cell)) - 6; h, w = op.shape
+    for side in (-1, 1):
+        for _ in range(3):
+            changed = False
+            for x in range(w):
+                nx = x + side; run = 0
+                for y in range(h):
+                    out = nx < 0 or nx >= w or a[y, nx, 3] == 0
+                    run = run + 1 if (op[y, x] and out) else 0
+                    if run >= lim: a[y, x, 3] = 0; op[y, x] = False; run = 0; changed = True
+            if not changed: break
+    return Image.fromarray(a, "RGBA")
+
+
 def guns_of(key):
     """Shot origins (x offsets in u) from EnemyBehaviours: Twin gap / shot count; centre when there is no twin."""
     import re
@@ -263,8 +294,8 @@ def tell_pair(key, base, cell, world, idle=()):
         for r in range(5, int(cell * .16)):
             for dy in range(0, 7):          # the ship rears back as it charges: keeps the centroid on the pivot
                 f = clip_margin(flare(shift(base, -dy), [(x, yy - dy) for x, yy in pts], r, col, world))
-                c = sil_change(base, f); yc = cy(f); drift = max(0, lo - yc, yc - hi)
-                ok = c >= target and (floor is None or sil_change(floor, f) >= .05) and drift == 0
+                c = min(sil_change(base, f), tsfr_diff(base, f) - .01); yc = cy(f); drift = max(0, lo - yc, yc - hi)
+                ok = c >= target and (floor is None or min(sil_change(floor, f), tsfr_diff(floor, f)) >= .05) and drift == 0
                 if ok: return f
                 score = max(0, target - c) * 100 + drift
                 if score < bscore: best, bscore = f, score
@@ -282,7 +313,7 @@ def recoil(base, cell):
         if sil_change(base, moved) >= .07 or dy >= 6: break      # <= 6 px: the seven cells keep one pivot (<= 8 px with the tell)
     a = np.asarray(moved).astype(np.float32); op = a[..., 3] > 128
     from scipy.ndimage import binary_erosion
-    inner = binary_erosion(op, iterations=2)
+    inner = binary_erosion(op, structure=np.ones((3, 3)), iterations=3)   # RimCheck's band is the 5x5 neighbourhood
     a[inner, :3] = a[inner, :3] * .45 + 255 * .55
     out = Image.fromarray(a.astype(np.uint8), "RGBA").copy(); px = out.load()
     rng = np.random.default_rng(6); ys, xs = np.nonzero(op); cy, cx = ys.mean(), xs.mean()
@@ -322,6 +353,13 @@ def build(key, src_path, install=True):
     else:
         for i, (dy, glow) in enumerate(((0, 0), (-1, .18), (-2, .05), (-1, .28))):
             frames.append(shift(brighten(k, m, glow), dy))
+    # TideStormFramesTest: every idle pair >= .5 % apart even after a +-3 px re-alignment -- widen the pulsing lights until it holds
+    from scipy.ndimage import binary_dilation as _dil
+    for grow in range(1, 6):
+        if role(key) == "rock" or min(tsfr_diff(frames[a], frames[b]) for a in range(4) for b in range(a + 1, 4)) >= .007: break
+        src = cells if afr else [k] * 4
+        frames = [frames[0]] + [brighten(c, _dil(signal_mask(c, world), iterations=grow * 2), min(1, g * (1 + .3 * grow)))
+                                for c, g in zip(src[1:], (.45, .22, .9))]
     if role(key) == "rock":
         # rocks never attack: four genuinely different idle cells (FrameStillsTest: >= 1 % between every pair), a glow tell, a recoil hit
         frames = [shift(brighten(k, m, g), dy) for dy, g in ((0, 0), (-1, .2), (-2, .05), (-1, .35))]
@@ -332,7 +370,7 @@ def build(key, src_path, install=True):
     else:
         frames += list(tell_pair(key, brighten(k, m, .6), cell, world, frames[:4]))
     frames.append(recoil(k, cell))
-    frames = [clip_margin(f) for f in frames]
+    frames = [break_runs(clip_margin(f), cell) for f in frames]
     strip = Image.new("RGBA", (cell * FRAMES, cell))
     for i, f in enumerate(frames): strip.alpha_composite(hard(f), (i * cell, 0))
     strip.save(OUT / f"{key}.png", optimize=True)

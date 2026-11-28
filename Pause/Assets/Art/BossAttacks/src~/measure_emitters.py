@@ -356,7 +356,7 @@ def measure_expanded(world):
 # registration, so build.py writes each part's muzzle per drawing (rig_<World>.json, 384 reference px, on an interior
 # pixel of the drawing). They are read here, checked opaque in every drawing that can fire and snapped if not.
 REDRAW = os.path.normpath(os.path.join(ASSETS, "Art", "Bosses~", "redraw-v3"))
-REDRAWN = ("Space", "Frost", "Verdant", "Ember", "Tide")
+REDRAWN = ("Space", "Frost", "Verdant", "Ember", "Tide", "Desert")
 
 
 def measure_redrawn(world):
@@ -493,6 +493,8 @@ DESERT_KEEP = set(range(12, 17))
 
 
 def apply_overrides(world, table, frames=None):
+    if world in REDRAWN and os.path.exists(os.path.join(REDRAW, "rig_%s.json" % world)):
+        return   # (the hand fixes below were for the old Drake / Dune-Eater art)
     if world == "Desert":
         for name, pts in table:
             for f in range(len(pts)):
@@ -501,8 +503,6 @@ def apply_overrides(world, table, frames=None):
                 pts[f] = DESERT_BOOM[f] if name == "Boom" and f in DESERT_BOOM else DESERT_FIXED[name]
                 if frames is not None:       # the mine hangs a few px differently per drawing: land on its nearest opaque pixel
                     pts[f] = snap_opaque(frames[f], *pts[f])
-    if world in REDRAWN and os.path.exists(os.path.join(REDRAW, "rig_%s.json" % world)):
-        return   # (the hand fixes below were for the old Drake art)
     for name, pts in table:
         for (w, n, f), xy in OVERRIDES.items():
             if w == world and n == name and f < len(pts):

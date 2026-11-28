@@ -17,7 +17,7 @@
   "brain": "flanker",
   "attack": "boulder_roll",
   "lore": "A black-armoured skiff that guards a flank and scuttles across the top after every throw. It hurls rolling boulders along a drawn path that glances off the far rail and out the bottom. Step off the lane; shoot the boulder if it is in your way.",
-  "cellWorldSize": 1.617,
+  "cellWorldSize": 1.672,
   "hullRadius": 0.327,
   "silhouetteShare": 0.5115,
   "noseDeg": 90,

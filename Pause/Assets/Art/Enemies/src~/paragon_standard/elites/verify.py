@@ -15,6 +15,7 @@ ART = HERE.parents[3]
 RES = ART / "Resources/Elites"
 MOUTHS = ART / "Enemies/src~/elite_engine_fire/engine_mouths.txt"
 S = 384
+HULL = .78                       # ShipTierTest.Hull (reference hull x main ship scale)
 RING = [(221, 243, 255), (207, 224, 255), (214, 226, 246), (210, 244, 230), (246, 226, 176), (255, 226, 184), (228, 246, 184)]
 HEAVY = {"hauler", "bastion", "siege", "tug", "fortress", "wrecker", "barge", "carrier", "patrol", "logger", "lumber", "abyss", "netter",
          "pearler", "kiln", "furnace", "caravan", "lenspost", "bulwark", "thunderhead", "airship", "citadel", "deep", "trawl", "oyster"}
@@ -116,6 +117,7 @@ def check(key):
         if not on_hull(f0, m["x"], m["y"], r): F(key, f"muzzle {m['name']} off the art")
         lx = (m["x"] - S / 2) * d["cellWorldSize"] / S; ly = (S / 2 - m["y"]) * d["cellWorldSize"] / S
         if math.hypot(lx, ly) >= d["cellWorldSize"] * .42: F(key, f"muzzle {m['name']} too far out")
+        if math.hypot(lx, ly) <= .2: F(key, f"muzzle {m['name']} only {math.hypot(lx, ly):.2f} u from the centre (EliteTest wants shots > .15 u out)")
         if not (.04 * S <= m["x"] <= .96 * S and .04 * S <= m["y"] <= .96 * S): F(key, f"muzzle {m['name']} near the edge")
     total = len(allc)
     for nz in d["nozzles"]:
@@ -202,6 +204,9 @@ def check(key):
         for i, c in enumerate(death):
             b = bbox(c, 127)
             if b and (b[0] < 12 or b[1] < 12 or b[2] > S - 13 or b[3] > S - 13): F(key, f"death cell {i} inside the 12 px margin")
+        import build as _B
+        red = sum(int(_B.red_mask(c).sum()) for c in death); hred = int(_B.red_mask(main[0]).sum())
+        if red > hred * 3 + 2: F(key, f"death adds red {red} vs hull {hred}")
         if world in ("ember", "frost", "space") and key not in ("frost_elite_cryo_siren", "frost_elite_rimebreaker"):
             h0 = main[0][..., 3] > 127; d0 = death[0][..., 3] > 127
             if (h0 & d0).sum() / h0.sum() < .98: F(key, f"death cell 0 covers {(h0 & d0).sum() / h0.sum():.3f} of the hull")
@@ -220,6 +225,10 @@ def check(key):
     floor = (1.7 if d["brain"] in HEAVY else 1.5) * .78 * .97
     if not floor <= drawn < 2.4: F(key, f"drawn {drawn:.3f} outside [{floor:.3f}, 2.4)")
     if world == "frost" and drawn > 1.7: F(key, f"frost drawn {drawn:.3f} > 1.7")
+    if world in ("space", "frost") and drawn < 1.5 * HULL * .985: F(key, f"drawn {drawn:.3f} under the shrunk band")
+    import build as _B
+    tgt = _B.band_target(d)
+    if tgt is not None and abs(drawn - tgt) >= .06: F(key, f"drawn {drawn:.3f} outside the {tgt} u band")
     rt = d["hullRadius"] / (drawn * .5)
     if not .35 <= rt <= .8: F(key, f"hullRadius ratio {rt:.2f}")
     if d["hullRadius"] * d["heartOrbit"] + d["heartSize"] * 1.05 >= .52: F(key, "heart orbit too wide")

@@ -5,7 +5,7 @@ from pathlib import Path
 import numpy as np
 from PIL import Image
 HERE = Path(__file__).resolve().parent
-EXP = {"Space", "Ember", "Tide"}
+EXP = {"Space", "Ember", "Tide", "Desert"}
 
 def box(a, t=24):
     ys, xs = np.nonzero(a[..., 3] > t)
@@ -96,5 +96,5 @@ def run(w):
         res["pink"] = {s: round(float(pink_share(np.asarray(Image.open(od / f"{w}{s}.png").convert("RGBA")))) * 100, 3) for s in ("", "_damage", "_damage_fx", "_death")}
     return res
 
-for w in (sys.argv[1:] or ["Space", "Frost", "Verdant", "Ember", "Tide"]):
+for w in (sys.argv[1:] or ["Space", "Frost", "Verdant", "Ember", "Tide", "Desert"]):
     print(w, json.dumps(run(w), default=str))

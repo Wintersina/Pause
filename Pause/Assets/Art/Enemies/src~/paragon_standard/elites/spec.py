@@ -37,7 +37,7 @@ SPEC = {
                                  muzzles={"l": (40, 70), "r": (88, 70)}),
     "ember_elite_sunstoke": dict(engines=[(44, 5), (84, 5)], flames=True, muzzles={"lance": (64, 6)}),
     # ---- Frost -----------------------------------------------------------------------------------------------------------
-    "frost_elite_cryo_siren": dict(engines=[(61, 2), (67, 2)], flames=False, muzzles={"outlet": (64, 60)}),
+    "frost_elite_cryo_siren": dict(engines=[(61, 2), (67, 2)], flames=False, muzzles={"outlet": (64, 46)}),
     "frost_elite_floe_harrower": dict(engines=[(58, 3), (70, 3)], flames=False,
                                       muzzles={"chuteL": (52, 100), "chuteR": (76, 100), "keel": (64, 110)}),
     "frost_elite_glacier_tender": dict(engines=[(46, 6), (82, 6)], flames=False,

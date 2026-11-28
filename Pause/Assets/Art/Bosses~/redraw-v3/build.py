@@ -70,11 +70,13 @@ RIG = {
         engines=[(61, 7, 0, -1, 3.4, 6), (98, 5, 0, -1, 3.4, 6)],
         lights=[(61, 15, 10), (98, 14, 10), (80, 50, 14), (70, 113, 5), (89, 113, 5)],
         parts={"Stinger": (80, 122), "PetalUL": (30, 20), "PetalUR": (128, 18), "PetalL": (8, 28), "PetalR": (152, 26),
-               "PetalLL": (20, 78), "PetalLR": (140, 78), "CannonL": (70, 150), "CannonR": (90, 150), "Bulb": (80, 50)},
+               "PetalLL": (20, 78), "PetalLR": (140, 78), "CannonL": (33, 117), "CannonR": (127, 117), "Bulb": (80, 50)},
+        # (acid cannons: the fore-leg joints, as wide apart as the old Queen's cannons -- the mandible tips sat 49 px apart
+        #  and the two swept beams left no way through: ShipReachTest)
         tells={0: ["Stinger"], 1: ["PetalUL", "PetalUR", "PetalL", "PetalR", "PetalLL", "PetalLR"], 2: ["CannonL", "CannonR"]}),
     "Ember": dict(
         core=(80, 50),
-        engines=[(68, 20, 0, -1, 3.4, 9), (92, 20, 0, -1, 3.4, 9)],
+        engines=[(68, 20, 0, -1, 3.4, 7), (92, 20, 0, -1, 3.4, 7)],   # (tips stay under the horns: CalmIdleTest holds the idle box within 3 %),
         lights=[(80, 50, 14), (80, 34, 4), (73, 124, 4), (87, 124, 4), (25, 85, 28), (135, 85, 28), (80, 88, 22)],
         parts={"Jaw": (80, 139), "Furnace": (80, 50), "Brow": (80, 117), "CannonL": (45, 52), "CannonR": (115, 52)},
         tells={0: ["Jaw"], 1: ["Furnace", "CannonL", "CannonR"], 2: ["Brow"]}),
@@ -83,7 +85,9 @@ RIG = {
         engines=[(35, 21, -.6, -.8, 3.2, 5), (53, 7, -.3, -1, 3.2, 5), (107, 7, .3, -1, 3.2, 5), (125, 21, .6, -.8, 3.2, 5)],
         lights=[(38, 27, 10), (55, 15, 10), (105, 15, 10), (123, 27, 10), (80, 83, 11),
                 (12, 78, 7), (148, 78, 7), (22, 132, 7), (140, 132, 7), (56, 150, 7), (102, 150, 7)],
-        parts={"Beak": (80, 99), "LeftA": (14, 78), "LeftB": (22, 131), "RightA": (146, 78), "RightB": (138, 131)},
+        # cannons: the two upper jet arms and the two side spear tips, high on the body like the old Kraken's (the lower
+        # spear tips put the clusters ~1.3 u nearer the ship: BossLadderBotTest's dodge bot took 10.7 hits a minute)
+        parts={"Beak": (80, 90), "LeftA": (38, 28), "LeftB": (14, 78), "RightA": (122, 28), "RightB": (146, 78)},
         tells={0: ["Beak"], 1: ["LeftA", "LeftB"], 2: ["RightA", "RightB"]}),
     # The Dune-Eater: a sand-bleached skull carrier. The crown furnace's flame is its engine, the brass lamp below it the
     # lens (beam, sandstorm wall), the fanged maw the grit fan, the right claw the crane that drops its mines.
@@ -222,6 +226,13 @@ class Boss:
         cell = Image.new("RGBA", (self.C, self.C))
         cell.paste(im, (round(self.ox), round(self.oy)), im)
         c = np.array(cell)
+        # per-texel grain (+-1 a channel, one fixed field for every cell, so registered drawings stay pixel-equal where they
+        # agree): a NEAREST upscale is otherwise all identical neighbours (EnemyResolutionTest: identical pairs <= 0.75)
+        if getattr(self, "_grain", None) is None or self._grain.shape[0] != self.C:
+            self._grain = np.random.default_rng(77).integers(-1, 2, (self.C, self.C, 3))
+        op = c[..., 3] > 0
+        g = np.clip(c[..., :3].astype(int) + self._grain, 0, 255)
+        c[..., :3] = np.where(op[..., None], g, c[..., :3]).astype(np.uint8)
         m = 6                                     # nothing within 6 px of the cell border
         c[:m] = 0; c[-m:] = 0; c[:, :m] = 0; c[:, -m:] = 0
         return c
@@ -270,8 +281,8 @@ class Boss:
             hw = hw * self.FLAME_WIDE * (1.0 if ph % 2 == 0 else .85)
             # the cell's 8 px margin, in source px along the flame
             cap = 1e9
-            for c0, d, lim in ((px, dx, (self.C - 8 - self.ox) / self.f), (py, dy, (self.C - 8 - self.oy) / self.f)):
-                o0 = (8 - (self.ox if c0 is px else self.oy)) / self.f
+            for c0, d, off in ((px, dx, self.ox), (py, dy, self.oy)):
+                o0, lim = (8 - off) / self.f, (self.C - 8 - off) / self.f
                 if d < -1e-6: cap = min(cap, (c0 - o0) / -d)
                 if d > 1e-6: cap = min(cap, (lim - c0) / d)
             Lt = min(Lt, max(1.0, cap - 3.5))
