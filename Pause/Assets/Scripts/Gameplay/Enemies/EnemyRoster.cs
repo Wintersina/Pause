@@ -588,10 +588,10 @@ public static class EnemyRoster
             Def("tide_fighter_2", "Needlefish", F, 4, 2, "enemy_tide_fighter_2", Ice,
                 "Narrow orange dart fighter with a needle-beak cannon, blue wing blades and a rear jet.",
                 "A long beak and a short temper. It lines up above you and spits quick bolts straight down."),
-            Def("tide_fighter_3", "Lantern Angler", F, 4, 3, "enemy_tide_fighter_3", Ice,
+            Scaled(Def("tide_fighter_3", "Lantern Angler", F, 4, 3, "enemy_tide_fighter_3", Ice,
                 "Armoured orange gunship with a toothed maw, blue wings with wingtip thrusters, violet rear jets and a curved stalk carrying a bright lure.",
                 "It hangs in the sky behind its lure. When the lamp flares it has picked you out - move " +
-                "after the light comes on."),
+                "after the light comes on."), 1.04f),   // the redraw sits a little small in its cell: silhouette back within 15 % of 1 u
             Def("tide_fighter_4", "Hammerhead", F, 4, 4, "enemy_tide_fighter_4", Ice,
                 "Broad orange wing-hull with twin tip cannons, blue wingtips and engine vents.",
                 "The deep fleet's heavy: a hammer of plate with a cannon on each end. It parks and rings " +

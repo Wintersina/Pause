@@ -27,7 +27,7 @@ OLD = HERE / "old"; OUT = HERE / "strips"; KEYS = HERE / "keys"; ANIM = HERE / "
 FRAMES = 7
 TIER = 1.2
 FRAME_WORLD = {"fighter": .9 * TIER, "chaser": .95 * TIER, "alien": .67 * TIER, "big": 1.3 * TIER, "rock": .66 * TIER}
-FRAME_SCALE = {"ember_alien": 1.36}
+FRAME_SCALE = {"ember_alien": 1.36, "tide_fighter_3": 1.04}   # mirrors EnemyRoster Scaled(...)
 # The world's cue hue (WorldCue.Hue: the enemy shots' colour); the art's glow is drawn in it, so the band finds the glow.
 CUE = {"space": 318, "frost": 195, "verdant": 135, "ember": 32, "tide": 188, "storm": 258, "desert": 45}
 SIGNAL_HUE = {w: (h - 30, h + 30) for w, h in CUE.items()}
@@ -248,6 +248,16 @@ def break_runs(im, cell):
     return Image.fromarray(a, "RGBA")
 
 
+def no_player_red(im):
+    a = np.array(im); hsv = np.asarray(im.convert("RGB").convert("HSV")).astype(np.float32)
+    h, sat, v = hsv[..., 0] * 360 / 255, hsv[..., 1] / 255, hsv[..., 2] / 255
+    m = ((h < 14) | (h > 346)) & (sat > .55) & (v > .45) & (a[..., 3] > 8)
+    if m.any():
+        hsv2 = hsv.copy(); hsv2[..., 0][m] = 18 * 255 / 360            # nudged to a warm orange-red
+        rgb = np.asarray(Image.fromarray(hsv2.astype(np.uint8), "HSV").convert("RGB")); a[..., :3][m] = rgb[m]
+    return Image.fromarray(a, "RGBA")
+
+
 def guns_of(key):
     """Shot origins (x offsets in u) from EnemyBehaviours: Twin gap / shot count; centre when there is no twin."""
     import re
@@ -371,6 +381,8 @@ def build(key, src_path, install=True):
         frames += list(tell_pair(key, brighten(k, m, .6), cell, world, frames[:4]))
     frames.append(recoil(k, cell))
     frames = [break_runs(clip_margin(f), cell) for f in frames]
+    if world in ("tide", "storm", "desert"):     # EnemyWorldPaletteTest: player red (hue < 12 or > 348, S > .6, V > .5) belongs to the player
+        frames = [no_player_red(f) for f in frames]
     strip = Image.new("RGBA", (cell * FRAMES, cell))
     for i, f in enumerate(frames): strip.alpha_composite(hard(f), (i * cell, 0))
     strip.save(OUT / f"{key}.png", optimize=True)

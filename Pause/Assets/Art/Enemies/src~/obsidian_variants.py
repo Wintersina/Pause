@@ -21,7 +21,7 @@ from PIL import Image
 VARIANTS = {
     'teal':       (178, .62, 1.10, .20),
     'jade':       (128, .58, 1.12, .20),
-    'acid':       (80,  .80, 1.50, .35),
+    'acid':       (70,  .80, 1.50, .35),
     'vermilion':  (14,  .88, 1.55, .35),
 }
 BODY_HUE = 225.0       # the original blade's mean glass hue
