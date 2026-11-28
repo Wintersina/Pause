@@ -80,7 +80,68 @@ public sealed class WaveGaps
     public float ReachLo => reachLo;
     public float ReachHi => reachHi;
 
-    public void Reset() { has = false; Count = 0; shadows = 0; }
+    public void Reset() { has = false; Count = 0; shadows = 0; planned = 0; }
+
+    // ---- the chain in ARRIVAL order: a wave can reach the ship's row BEFORE one fired earlier (a fast fan or ring
+    // after a slow pincer or a thick wall), so each new gap is planned between its neighbours in arrival order -- the
+    // last wave to pass the ship before it (where the ship starts) and the first one after it (where the ship must
+    // still get to) -- not just after the latest arrival. (Planned against the latest alone, an early fan's gap was put
+    // where the ship would be a wave LATER, beside where it must be when the fan passes: no gap for both.)
+    const int MaxPlanned = 12;
+    readonly float[] plArr = new float[MaxPlanned], plThick = new float[MaxPlanned], plLo = new float[MaxPlanned], plHi = new float[MaxPlanned];
+    int planned;
+
+    void ForgetPassed(float now)
+    {
+        for (int i = planned - 1; i >= 0; i--)
+            if (plArr[i] < now - .02f)
+            {
+                planned--;
+                plArr[i] = plArr[planned]; plThick[i] = plThick[planned]; plLo[i] = plLo[planned]; plHi[i] = plHi[planned];
+            }
+    }
+
+    // The planned wave passing the ship last at or before `arrival` (-1: none still to come), and the first after it.
+    int Before(float arrival)
+    {
+        int b = -1;
+        for (int i = 0; i < planned; i++) if (plArr[i] <= arrival && (b < 0 || plArr[i] > plArr[b])) b = i;
+        return b;
+    }
+
+    int After(float arrival)
+    {
+        int a = -1;
+        for (int i = 0; i < planned; i++) if (plArr[i] > arrival && (a < 0 || plArr[i] < plArr[a])) a = i;
+        return a;
+    }
+
+    void Remember(float arrival, float thick, float lo, float hi)
+    {
+        if (planned == MaxPlanned)
+        {
+            // the earliest to arrive is the one dropped
+            int e = 0;
+            for (int i = 1; i < planned; i++) if (plArr[i] < plArr[e]) e = i;
+            planned--;
+            plArr[e] = plArr[planned]; plThick[e] = plThick[planned]; plLo[e] = plLo[planned]; plHi[e] = plHi[planned];
+        }
+        plArr[planned] = arrival; plThick[planned] = thick; plLo[planned] = lo; plHi[planned] = hi;
+        planned++;
+        // the waves after it now start from where this one lets the ship be: narrow each to what the ship can still
+        // reach from its predecessor (in arrival order)
+        // (a leg's travel time is less the LATER wave's passing time, as Pick has it)
+        for (int pass = 0; pass < planned; pass++)
+        {
+            int prev = Before(arrival), cur = After(arrival);
+            if (prev < 0 || cur < 0) break;
+            float e = PlanSpeed * Mathf.Max(0f, plArr[cur] - plArr[prev] - plThick[cur] - Reaction);
+            float lo2 = Mathf.Max(plLo[cur], plLo[prev] - e), hi2 = Mathf.Min(plHi[cur], plHi[prev] + e);
+            if (lo2 > hi2) lo2 = hi2 = Mathf.Clamp(lo2 > plHi[cur] ? plHi[cur] : plLo[cur], plLo[cur], plHi[cur]);
+            plLo[cur] = lo2; plHi[cur] = hi2;
+            arrival = plArr[cur];
+        }
+    }
 
     // ---- ricochet shadows (BossBounce): x ranges (ship-centre x, already padded) a bounced bullet sweeps through the
     // ship's band in a game-time window. Every gap is planned so the ship never has to cross a live shadow, and a bullet
@@ -145,8 +206,9 @@ public sealed class WaveGaps
     public float Choose(float playerX, float now, float arrival, float width, float thick, float lim, float want, WaveFront front = default)
     {
         ExpireShadows(now);
+        ForgetPassed(now);
         float c0 = Pick(playerX, now, arrival, width, thick, lim, want, 0f, out _, out _, out _, out _);
-        float early = front.Early(Lo(playerX, now, lim), Hi(playerX, now, lim), c0);
+        float early = front.Early(Lo(playerX, now, lim, arrival), Hi(playerX, now, lim, arrival), c0);
         float c = c0;
         float el = 0f, eh = 0f, lo = 0f, hi = 0f;
         for (int i = 0; i < 3; i++)
@@ -162,11 +224,13 @@ public sealed class WaveGaps
         float nl = Mathf.Max(el, c - room), nh = Mathf.Min(eh, c + room);
         if (nl > nh) nl = nh = Mathf.Clamp(c, el, eh);
         PathLo = Mathf.Min(Mathf.Min(lo, nl), c); PathHi = Mathf.Max(Mathf.Max(hi, nh), c);
+        Remember(arrival, thick, nl, nh);
         if (!has || arrival >= prevArrival)
         {
             prevCenter = c; prevWidth = width; prevArrival = arrival;
-            reachLo = nl; reachHi = nh;
         }
+        int latest = Before(float.MaxValue);
+        reachLo = plLo[latest]; reachHi = plHi[latest];
         has = true;
         Count++;
         return c;
@@ -174,18 +238,19 @@ public sealed class WaveGaps
 
     public float LastEarly { get; private set; }
 
-    bool Chained(float now) => has && prevArrival >= now - .02f;
-    float Lo(float playerX, float now, float lim) => Chained(now) ? reachLo : Mathf.Clamp(playerX, -lim, lim);
-    float Hi(float playerX, float now, float lim) => Chained(now) ? reachHi : Mathf.Clamp(playerX, -lim, lim);
+    // (the passed waves are forgotten at each Choose: what is left is still to reach the ship)
+    float Lo(float playerX, float now, float lim, float arrival) { int b = Before(arrival); return b >= 0 ? plLo[b] : Mathf.Clamp(playerX, -lim, lim); }
+    float Hi(float playerX, float now, float lim, float arrival) { int b = Before(arrival); return b >= 0 ? plHi[b] : Mathf.Clamp(playerX, -lim, lim); }
 
     float Pick(float playerX, float now, float arrival, float width, float thick, float lim, float want, float early,
                out float el, out float eh, out float lo, out float hi)
     {
         float travel;
-        if (Chained(now))
+        int before = Before(arrival);
+        if (before >= 0)
         {
-            lo = reachLo; hi = reachHi;
-            travel = arrival - early - prevArrival - thick - Reaction;
+            lo = plLo[before]; hi = plHi[before];
+            travel = arrival - early - plArr[before] - thick - Reaction;
         }
         else
         {
@@ -196,6 +261,17 @@ public sealed class WaveGaps
         el = Mathf.Max(-lim, lo - e); eh = Mathf.Min(lim, hi + e);
         if (el > eh) el = eh = Mathf.Clamp(.5f * (lo + hi), -lim, lim);
         if (shadows > 0) ClipToShadows(lo, hi, ref el, ref eh);
+        // ... and from where it passes this wave the ship must still make the next one planned after it
+        int after = After(arrival);
+        if (after >= 0)
+        {
+            float e2 = PlanSpeed * Mathf.Max(0f, plArr[after] - arrival - plThick[after] - Reaction);
+            float al = Mathf.Max(el, plLo[after] - e2), ah = Mathf.Min(eh, plHi[after] + e2);
+            // (out of reach both ways: that later wave is already in the air, its gap fixed -- keep to the nearest
+            // place the ship can still make it from, the estimate of where it starts gives way)
+            if (al <= ah) { el = al; eh = ah; }
+            else el = eh = Mathf.Clamp(al > eh ? al : ah, -lim, lim);
+        }
         float room = Mathf.Max(0f, (width - ShipWidth) * .5f);
         // leave some slack: the ship must be able to overlap the new gap by a few hair widths, not by a single point
         float slack = Mathf.Min(room, Slack);

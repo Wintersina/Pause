@@ -83,6 +83,22 @@ public static class BossWaveTest
         float a = pin.Choose(0f, 0f, 1f, 1f, .2f, 1.9f, 1f);
         float b = pin.Choose(0f, .5f, 1.02f, 1f, .2f, 1.9f, 1f);
         Check("waves squeezed together by slow motion keep (almost) the same gap (" + a.ToString("F2") + " -> " + b.ToString("F2") + ")", Mathf.Abs(b - a) <= (1f - WaveGaps.ShipWidth) + .01f);
+
+        // out of order: a fast wave fired AFTER a slow one but reaching the ship first is planned between its neighbours in
+        // arrival order -- from where the ship is now, and so the ship can still make the slow wave's gap after it (planned
+        // after the slow one alone, its gap went where the ship would be a wave later: out of reach in time)
+        var oo = new WaveGaps();
+        const float ooW = 1f, ooThick = .2f, ooLim = 1.95f, ship0 = -1.5f;
+        float room = (ooW - 2f * PatternSim.ShipRadius) * .5f;      // the ship's centre fits this far either side of a gap's centre
+        float slow = oo.Choose(ship0, 0f, 2.5f, ooW, ooThick, ooLim, 1f);     // a slow wall, its gap as far right as is fair
+        float fast = oo.Choose(ship0, .3f, .8f, ooW, ooThick, ooLim, 1f);     // a fast fan fired after it, in .5 s, also wanting the right
+        float with = oo.Choose(ship0, .4f, 2.5f, ooW, ooThick, ooLim, -1f);   // and a wave reaching the ship with the slow one
+        bool reachFast = Mathf.Abs(fast - ship0) - room <= 5f * (.8f - .3f);
+        bool thenSlow = Mathf.Abs(slow - fast) - 2f * room <= 5f * (2.5f - .8f - ooThick);
+        bool together = Mathf.Abs(with - slow) <= 2f * room + 1e-3f;
+        Check("a wave arriving before one already planned gets a gap the ship makes in time (" + ship0.ToString("F2") + " -> " + fast.ToString("F2") +
+              " in .5 s) and leaves it the later one's (" + slow.ToString("F2") + "); one arriving WITH it shares that gap (" + with.ToString("F2") + ")",
+              reachFast && thenSlow && together);
     }
 
     static void Rhythm()
