@@ -389,8 +389,8 @@ verdant_elite_leafblade 8 153 305 8 3
 verdant_elite_leafblade 8 228 305 8 3
 verdant_elite_leafblade 9 153 305 8 3
 verdant_elite_leafblade 9 228 305 8 3
-verdant_elite_resin_warden 2 152 271 9 4
-verdant_elite_resin_warden 2 235 271 9 4
+verdant_elite_resin_warden 2 152 269 9 4
+verdant_elite_resin_warden 2 235 269 9 4
 verdant_elite_resin_warden 3 152 271 9 4
 verdant_elite_resin_warden 3 235 271 9 4
 verdant_elite_resin_warden 4 152 271 9 4

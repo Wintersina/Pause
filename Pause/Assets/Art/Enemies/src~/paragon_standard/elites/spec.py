@@ -11,6 +11,7 @@ player; every elite strip, def and the game draw the elite nose UP: noseDeg 90, 
   edge      optional multiplier on the old frame-0 edge (cellWorldSize divided by it: same world size)
   nozzles   optional indices into engines: the def's nozzles (the rest are drawn flames only, e.g. engines high on the hull)
   L         optional flame length (engine_fx units, ~2 px each)
+  depink    optional: the drawing's pink-violet glow turned violet (no pink outside Space)
   glow      optional (hue lo, hue hi, s min, v min) for the lights mask when the drawing's glow is not in the world cue band
 """
 
@@ -56,7 +57,7 @@ SPEC = {
     # ---- Storm -----------------------------------------------------------------------------------------------------------
     "storm_elite_anvil_cloud": dict(engines=[(48, 5), (80, 5)], flames=False, muzzles={"cannon": (64, 20)}),
     "storm_elite_skyhook_harrier": dict(engines=[(54, 4), (74, 4)], flames=False, muzzles={"hook": (64, 22)}),
-    "storm_elite_rod_dancer": dict(engines=[(48, 4), (62, 5), (80, 4)], flames=False,
+    "storm_elite_rod_dancer": dict(depink=True, engines=[(48, 4), (62, 5), (80, 4)], flames=False,
                                    muzzles={"fan": (64, 8), "portrod": (53, 16), "starrod": (75, 16)}),
     "storm_elite_refinery_tender": dict(L=27, engines=[(53, 4), (74, 4)], flames=True,
                                         muzzles={"port": (14, 40), "star": (114, 40), "canister": (64, 70)}),

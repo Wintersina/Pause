@@ -238,7 +238,7 @@ def build(key, src_path):
     box = (xs.min(), xs.max())
     my = max(m[1] for m in mouths)
     L = float(SPEC[key].get("L", np.clip((CELL - 8 - my) / (2 * 1.75), 10, 26)))     # engine_fx length unit (flame px ~ 2 L): stays inside the 6 px margin
-    lift_shift = -2 if key in ("frost_elite_cryo_siren", "frost_elite_rimebreaker") else 0
+    lift_shift = -2 if key in FROST_A else 0
 
     def fire(base, ms, lens, seed, ragged=0.0):
         return clip_margin(T.engine_fx(base, ms, lens, cols, seed, ragged))
@@ -400,6 +400,7 @@ def death(b):
     """death_raw, then: no more pure red than the hull itself carries (EliteDeathStripTest: red <= hull red x 3 + 2) -- the few red
     sparks the recipe's warm ramp makes are nudged to orange-red (hue ~6 deg), nothing else changes."""
     out = death_raw(b)
+    if SPEC[b["key"]].get("depink"): out = Hm.depink(out)       # the recipe's flash tints back into pink-violet: violet again
     a = np.array(out)
     lim = int(red_mask(np.asarray(b["cells"][0])).sum()) * 3 + 2
     m = red_mask(a)
@@ -587,6 +588,7 @@ def write_mouths(rows_by_key):
     return len(keep) + len(new)
 
 
+FROST_A = ("frost_elite_cryo_siren", "frost_elite_rimebreaker", "verdant_elite_resin_warden")   # FrostVerdantEliteFramesTest
 HEAVY_BRAINS = {"hauler", "bastion", "siege", "tug", "fortress", "wrecker", "barge", "carrier", "patrol", "logger", "lumber", "abyss", "netter",
                 "pearler", "kiln", "furnace", "caravan", "lenspost", "bulwark", "thunderhead", "airship", "citadel"}
 

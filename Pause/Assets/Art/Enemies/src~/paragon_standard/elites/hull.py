@@ -85,6 +85,23 @@ def cut_flames(src, key):
     return Image.fromarray(a, "RGBA"), roots
 
 
+def depink(im, lo=275, hi=356, to=266):
+    """Turn the drawing's pink-violet glow (hue lo..hi: the band FrameElitesDamagedTest / NoPink count as pink, 280-346 deg, with a
+    margin) to violet (hue `to`), keeping saturation and value: pink is Space's cue only."""
+    a = np.array(im)
+    hh, s, v = hsv_arrays(a)
+    m = (a[..., 3] > 0) & (s > .2) & (hh >= lo) & (hh <= hi)
+    rgb = a[..., :3].astype(np.float32) / 255
+    mx = rgb.max(-1); mn = rgb.min(-1)
+    # rebuild the pixel at hue `to` with the same max / min (same S and V)
+    t = to / 60.0; sec = int(t); fr = t - sec
+    x = mn + (mx - mn) * (1 - fr) if sec % 2 else mn + (mx - mn) * fr
+    chans = {0: (mx, x, mn), 1: (x, mx, mn), 2: (mn, mx, x), 3: (mn, x, mx), 4: (x, mn, mx), 5: (mx, mn, x)}[sec]
+    new = np.stack(chans, -1)
+    a[..., :3] = np.where(m[..., None], np.round(new * 255).astype(np.uint8), a[..., :3])
+    return Image.fromarray(a, "RGBA")
+
+
 def old_frame0(key):
     w = key.split("_")[0].capitalize()
     im = Image.open(OLD / f"{key}.png").convert("RGBA")
@@ -100,6 +117,7 @@ def bbox(im):
 def place(key, src_path):
     src0 = Image.open(src_path).convert("RGBA").transpose(Image.FLIP_TOP_BOTTOM)
     src = P.hard(P.close_cut(src0))
+    if SPEC[key].get("depink"): src = depink(src)
     pad = (src.width - src0.width) // 2
     sp = dict(SPEC[key]); sp["engines"] = [(x + pad, hw) for x, hw in sp["engines"]]
     if "root" in sp: sp["root"] = sp["root"] + pad

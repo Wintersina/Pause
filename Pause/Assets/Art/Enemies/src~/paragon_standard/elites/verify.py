@@ -15,6 +15,7 @@ ART = HERE.parents[3]
 RES = ART / "Resources/Elites"
 MOUTHS = ART / "Enemies/src~/elite_engine_fire/engine_mouths.txt"
 S = 384
+FROST_A = ("frost_elite_cryo_siren", "frost_elite_rimebreaker", "verdant_elite_resin_warden")   # FrostVerdantEliteFramesTest.Keys
 HULL = .78                       # ShipTierTest.Hull (reference hull x main ship scale)
 RING = [(221, 243, 255), (207, 224, 255), (214, 226, 246), (210, 244, 230), (246, 226, 176), (255, 226, 184), (228, 246, 184)]
 HEAVY = {"hauler", "bastion", "siege", "tug", "fortress", "wrecker", "barge", "carrier", "patrol", "logger", "lumber", "abyss", "netter",
@@ -83,6 +84,11 @@ def on_hull(c, x, y, r=4, thr=128):
     return (c[max(0, y - r):y + r + 1, max(0, x - r):x + r + 1, 3] > thr).any()
 
 
+def SPEC_DEPINK(key):
+    sys.path.insert(0, str(HERE)); from spec import SPEC
+    return SPEC.get(key, {}).get("depink", False)
+
+
 def check(key):
     d = json.load(open(RES / "Defs" / f"{key}.json")); world = d["world"]; W = world.capitalize(); cc = d["cells"]
     main = cells_of(RES / W / f"{key}.png"); dm = cells_of(RES / W / f"{key}_damaged.png"); bk = cells_of(RES / W / f"{key}_banks.png")
@@ -125,7 +131,7 @@ def check(key):
         if not on_hull(f0, nz["x"], nz["y"], r): F(key, f"nozzle {nz['name']} off the art")
         if len(nz["offsets"]) != 2 * total: F(key, f"nozzle {nz['name']} offsets {len(nz['offsets'])} != {2 * total}")
         p = main[0][nz["y"], nz["x"]]
-        if world in ("ember", "tide", "space") or key in ("frost_elite_cryo_siren", "frost_elite_rimebreaker"):
+        if world in ("ember", "tide", "space") or key in FROST_A:
             if key != "tide_elite_bathyscaphe" and not (p[3] == 255 and lum(p) < 70): F(key, f"nozzle {nz['name']} not on a dark bell on cell 0 {p}")
         mount_cells = set(flight) | {cc["liftoff"]} | set(cc.get("bankLeftLoop") or [cc["bankLeft"]]) | set(cc.get("bankRightLoop") or [cc["bankRight"]])
         for ci in mount_cells:
@@ -174,6 +180,13 @@ def check(key):
     if ch.sum() / max(1, hullpx.sum()) < .04: F(key, f"damaged changes only {ch.sum() / hullpx.sum():.3f} of the hull")
     fl = (np.arange(S)[:, None] >= ytop + 4) & (dc[..., 3] >= 200) & ((dc[..., :3].max(-1).astype(int) - dc[..., :3].min(-1)) > 90)
     if fl.sum() < 120: F(key, f"damaged flame px {fl.sum()} < 120")
+    if world != "space":                                  # FrameElitesDamagedTest: no pink outside Space
+        def pinkn(c):
+            h, s, vv = hsv(c); return int(((c[..., 3] >= 96) & (s > .35) & (vv > .4) & (h > .78) & (h < .96)).sum())
+        pf, pg = pinkn(main[flight[0]]), pinkn(dc)
+        if pg > pf + 8: F(key, f"damaged pink {pg} > flight {pf} + 8")
+        allp = sum(pinkn(c) for c in allc + lights + death)
+        if allp > 0 and world == "storm" and SPEC_DEPINK(key): F(key, f"{allp} pink px left on a depinked elite")
     # damaged loop
     loop = cc.get("damagedLoop") or []
     if loop:
@@ -208,7 +221,7 @@ def check(key):
         import build as _B
         red = sum(int(_B.red_mask(c).sum()) for c in death); hred = int(_B.red_mask(main[0]).sum())
         if red > hred * 3 + 2: F(key, f"death adds red {red} vs hull {hred}")
-        if world in ("ember", "frost", "space") and key not in ("frost_elite_cryo_siren", "frost_elite_rimebreaker"):
+        if world in ("ember", "frost", "space") and key not in FROST_A:
             h0 = main[0][..., 3] > 127; d0 = death[0][..., 3] > 127
             if (h0 & d0).sum() / h0.sum() < .98: F(key, f"death cell 0 covers {(h0 & d0).sum() / h0.sum():.3f} of the hull")
             pk = sum(((c[..., 0] > 229) & (c[..., 1] < 115) & (c[..., 2] > 178) & (c[..., 3] > 127)).sum() for c in death)
@@ -250,7 +263,7 @@ def check(key):
         if abs(tops[7] - tops[3]) > 16 or abs(cxs[7] - cxs[3]) > 10: F(key, "ember damaged framing")
         if ((np.abs(main[3].astype(int) - main[4].astype(int)).sum(-1) > 40).sum()) < 400: F(key, "ember 3 vs 4")
         if ((np.abs(main[3].astype(int) - main[7].astype(int)).sum(-1) > 40).sum()) < 4000: F(key, "ember 3 vs 7")
-    if key in ("frost_elite_cryo_siren", "frost_elite_rimebreaker"):
+    if key in FROST_A:
         if ptp(tops[:7]) > 10 or ptp(cxs[:7]) > 18 or ptp(wid[:7]) > 40: F(key, "frost A framing")
         hy = d["nozzles"][0]["y"] - 6
         def df(a, b):
@@ -258,6 +271,30 @@ def check(key):
             return ((np.abs(A - B)[..., :3].sum(-1) > 48) | ((A[..., 3] > 128) != (B[..., 3] > 128))).sum()
         for (a, b), mn in {(0, 3): 1200, (2, 3): 600, (3, 7): 1500, (3, 8): 1500, (7, 8): 1500, (3, 9): 3000, (0, 2): 400}.items():
             if df(a, b) < mn: F(key, f"frost A cells {a}/{b} differ {df(a, b)} < {mn}")
+        for ci in (4, 5, 6):
+            A, B = main[3][hy:].astype(int), main[ci][hy:].astype(int)
+            dd = ((np.abs(A - B)[..., :3].sum(-1) > 48) | ((A[..., 3] > 128) != (B[..., 3] > 128))).sum()
+            if dd < 150: F(key, f"frost A burn cell {ci} differs {dd} < 150 under the hull")
+        hb = bbox(main[0], 128)[3]
+        for ci in (0, 3):
+            c = main[ci]; full = c[..., 3] == 255
+            h, s, vv = hsv(c)
+            body = np.zeros_like(full); body[3:hb - 8, 3:S - 3] = True; sol = full & body
+            pk = (sol & (s > .35) & (vv > .4) & (h > .8) & (h < .96)).sum()
+            gr = (sol & (s > .3) & (vv > .25) & (h > .2) & (h < .47)).sum()
+            if pk > sol.sum() * .001: F(key, f"frost A cell {ci} hull pink {pk}")
+            if key.startswith("verdant_") and gr > sol.sum() * .22: F(key, f"cell {ci} {gr / sol.sum():.0%} green")
+            from scipy import ndimage
+            ring = np.full(full.shape, 99)
+            for r in range(7, 0, -1):
+                er = ndimage.binary_erosion(full, structure=np.array([[0, 1, 0], [1, 1, 1], [0, 1, 0]]), iterations=r, border_value=0)
+                ring[~er] = np.minimum(ring[~er], r)
+            pale = (vv > .82) & (s < .28)
+            e = sol & (ring <= 2); i_ = sol & (ring >= 4) & (ring <= 7)
+            pe = (e & pale).sum() / max(1, e.sum()); pi = (i_ & pale).sum() / max(1, i_.sum())
+            if pe - pi >= .30: F(key, f"frost A cell {ci} pale outline ring {pe:.2f} vs {pi:.2f}")
+        dp = sum(((c[..., 0] > 230) & (c[..., 1] < 115) & (c[..., 2] > 178) & (c[..., 3] >= 128)).sum() for c in death)
+        if dp > 20: F(key, f"frost A death pink {dp}")
     return dict(share=round(best, 4), drawn=round(drawn, 3), lights_cov=round(float((lights[3][..., 3] > 0).mean()), 4) if lights else None)
 
 
