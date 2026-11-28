@@ -18,7 +18,7 @@ soft painted weather, written into Resources/Worlds/Desert/Backdrop3.
 """
 import sys, os, json, glob, re, shutil, numpy as np
 from PIL import Image
-from scipy.ndimage import uniform_filter, binary_dilation
+from scipy.ndimage import uniform_filter, binary_dilation, gaussian_filter, distance_transform_edt, shift as nd_shift
 
 SP = sys.argv[1] if len(sys.argv) > 1 and os.path.isdir(sys.argv[1]) else os.path.join(os.path.dirname(os.path.abspath(__file__)), 'src')
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -284,20 +284,125 @@ def kinds_for(v):
     return [k for k in PX if (k not in SHORE_ONLY or v in SHORE_LAYOUTS)]
 
 
+# ---------------------------------------------------------------- the BLEND (user 2026-11-28: "all props should be blended in into the
+# world correctly such that it makes sense and doesnt look out of place")
+# Each layout's props are fitted to ITS ground (the installed mid tile, after the shot line):
+#   * GRADE   pulled BLEND.pull toward the ground's own colour (atmospheric perspective at .49 altitude), highlights eased over a
+#             knee at the ground's bright value x BLEND.knee, saturation held to the ground's + BLEND.sat; lamps / fires (v > .8,
+#             s > .25) keep their colour and blink at full strength
+#   * SHADOW  a soft contact shadow cast down-right like the ground's own (the painting is lit from the upper left), in the ground's
+#             shade, longer under what stands tall or rides its mooring (LIFT)
+#   * DRIFT   wind-blown sand (the ground's colour, a dithered fringe) heaped round the lower rim of the footprint, spilling a few px
+#             up over the rim itself (drawn over the base), so the plate edge is buried in sand rather than cut
+#   * FEATHER the lower rim's alpha eased over ~2 px: no hard cut-out edge where the prop meets the sand
+# The mountains carry their own painted sand aprons (and v4's feathered ones): graded only.
+BLEND = dict(pull=.14, knee=1.15, sat=.15, shadow=.5, sx=.05, sy=.035, blur=.022, drift=.6, ring=.04, spill=.025, feather=3.0)
+LIFT = {'balloon': 2.0, 'zeppelin': 1.35, 'observatory': 1.2, 'wind': 1.25, 'rig': 1.15, 'station': 1.1, 'spaceport': 1.1}
+GROUND = {}
+
+
+def ground_stats(v):
+    """the layout's ground colour (median), bright value (p90), saturation (median) and shade colour, from the installed tile"""
+    if v in GROUND: return GROUND[v]
+    T = load(f'{D}/v{v}/mid.png')[::4, ::4, :3].reshape(-1, 3)
+    val = T.max(-1); sat = (val - T.min(-1)) / np.maximum(val, 1e-3)
+    G = np.median(T, 0)
+    dark = T[val <= np.percentile(val, 12)]
+    GROUND[v] = dict(color=G, bright=float(np.percentile(val, 90)), sat=float(np.median(sat)), shade=np.median(dark, 0) * .55)
+    return GROUND[v]
+
+
+def margin(kind):
+    """the room a cell needs round its painting for the shadow and the drift (px)"""
+    if kind in MOUNTAINS: return 0
+    px = PX[kind]; L = LIFT.get(kind, 1.0)
+    return int(np.ceil(px * (max(BLEND['sx'], BLEND['sy']) * L + 2.5 * BLEND['blur'] + BLEND['ring']))) + 2
+
+
+def lamps(rgb):
+    v = rgb.max(-1); s = (v - rgb.min(-1)) / np.maximum(v, 1e-3)
+    return np.clip((v - .8) / .15, 0, 1) * np.clip((s - .25) / .3, 0, 1)
+
+
+def grade_to_ground(a, v):
+    g = ground_stats(v); rgb = a[..., :3]
+    lit = lamps(rgb)[..., None]
+    o = rgb * (1 - BLEND['pull']) + g['color'] * BLEND['pull']
+    val = o.max(-1, keepdims=True); k = min(1.0, g['bright'] * BLEND['knee'])
+    over = val > k
+    o = np.where(over, o * ((k + (val - k) * .4) / np.maximum(val, 1e-4)), o)
+    val = o.max(-1, keepdims=True); sv = (val - o.min(-1, keepdims=True)) / np.maximum(val, 1e-3)
+    cap = g['sat'] + BLEND['sat']
+    o = np.where(sv > cap, val - (val - o) * (cap / np.maximum(sv, 1e-4)), o)
+    out = a.copy(); out[..., :3] = o * (1 - lit) + rgb * lit
+    return out
+
+
+def base_geometry(al, kind):
+    """from a cell's (union) alpha: the shadow's alpha, the drift's alpha and the rim's feather factor"""
+    px = PX[kind]; L = LIFT.get(kind, 1.0)
+    m = al > .5
+    ys, xs = np.nonzero(m)
+    if len(ys) == 0: return np.zeros_like(al), np.zeros_like(al), np.ones_like(al), np.zeros_like(al)
+    y0, y1 = ys.min(), ys.max(); hgt = max(1, y1 - y0)
+    yy = np.arange(al.shape[0])[:, None] * np.ones((1, al.shape[1]))
+    low = np.clip((yy - (y0 + .5 * hgt)) / (.25 * hgt), 0, 1)                       # the lower half of the painting: its footprint
+    sh = gaussian_filter(nd_shift(al, (BLEND['sy'] * px * L, BLEND['sx'] * px * L), order=1, mode='constant'), BLEND['blur'] * px)
+    sh = np.clip(sh * BLEND['shadow'], 0, 1)
+    r = max(1, int(round(BLEND['ring'] * px)))
+    ring = binary_dilation(m, iterations=r) & ~m
+    d = distance_transform_edt(~m)
+    rng = np.random.default_rng(len(kind) * 7919 + px)
+    dither = (rng.random(al.shape) < .62)
+    drift = np.where(ring, BLEND['drift'] * np.clip(1 - d / (r + .5), 0, 1) * low * dither, 0)
+    din = distance_transform_edt(m)
+    ri = max(1.5, BLEND['spill'] * px)
+    spill = np.where(m, BLEND['drift'] * .85 * np.clip(1 - din / ri, 0, 1) * low * (rng.random(al.shape) < .5), 0)
+    feather = 1 - low * (1 - np.clip(din / BLEND['feather'], 0, 1))
+    return sh, drift, feather, spill
+
+
+def over(top, bottom):
+    """straight-alpha `top` over `bottom`"""
+    at = top[..., 3:4]; ab = bottom[..., 3:4]
+    ao = at + ab * (1 - at)
+    c = np.where(ao > 1e-4, (top[..., :3] * at + bottom[..., :3] * ab * (1 - at)) / np.maximum(ao, 1e-4), 0)
+    return np.concatenate([c, ao], -1)
+
+
+def blend(f, v, kind, geo):
+    f = grade_to_ground(f, v)
+    if kind in MOUNTAINS: return f
+    g = ground_stats(v); sh, drift, feather, spill = geo
+    shadow = np.zeros_like(f); shadow[..., :3] = g['shade']; shadow[..., 3] = sh
+    sand = np.zeros_like(f); sand[..., :3] = np.clip(g['color'] * 1.06, 0, 1); sand[..., 3] = drift
+    heap = sand.copy(); heap[..., 3] = spill * (f[..., 3] > .5)
+    prop = f.copy(); prop[..., 3] = f[..., 3] * feather
+    return over(heap, over(prop, over(sand, shadow)))
+
+
 CUT = {}
 def cut(kind):
     """every cell of `kind` scaled to its drawn px and cut to the kind's union box (+1 px clear)"""
     if kind in CUT: return CUT[kind]
     S = strips(kind); N = S[0][0].shape[0]; px = PX[kind]
-    scaled = [[resize_premul(f, px, px) for f in fr] for fr in S]
-    al = np.zeros((px, px), bool)
+    M = margin(kind); P = px + 2 * M                      # room round the painting for its shadow and drift (BLEND)
+    scaled = [[np.pad(resize_premul(f, px, px), ((M, M), (M, M), (0, 0))) for f in fr] for fr in S]
+    # each variant's ground geometry (shadow, drift, feather) from the union of its frames' alpha, so a blinking lamp never moves it
+    geos = []
     for fr in scaled:
+        u = np.max([f[..., 3] for f in fr], 0)
+        geos.append(base_geometry(u, kind) if kind not in MOUNTAINS else None)
+    al = np.zeros((P, P), bool)
+    for fr, geo in zip(scaled, geos):
         for f in fr: al |= f[..., 3] > 2 / 255
+        if geo is not None: al |= (geo[0] > 2 / 255) | (geo[1] > 2 / 255)
     ys, xs = np.nonzero(al)
-    x0, x1 = max(0, xs.min() - 1), min(px, xs.max() + 2); y0, y1 = max(0, ys.min() - 1), min(px, ys.max() + 2)
+    x0, x1 = max(0, xs.min() - 1), min(P, xs.max() + 2); y0, y1 = max(0, ys.min() - 1), min(P, ys.max() + 2)
     cells = [[f[y0:y1, x0:x1] for f in fr] for fr in scaled]
-    pivot = ((px / 2 - x0) / (x1 - x0), (y1 - px / 2) / (y1 - y0))
-    CUT[kind] = (cells, pivot)
+    geos = [tuple(g[y0:y1, x0:x1] for g in geo) if geo is not None else None for geo in geos]
+    pivot = ((P / 2 - x0) / (x1 - x0), (y1 - P / 2) / (y1 - y0))
+    CUT[kind] = (cells, pivot, geos)
     return CUT[kind]
 
 
@@ -314,11 +419,12 @@ def pack(v):
     """every UNIQUE cell once (a strip's frames that only differ where its lamps blink are often identical: they share one rect)"""
     uniq = {}; names = []
     for k in kinds_for(v):
-        cells, pivot = cut(k)
+        cells, pivot, geos = cut(k)
         for vi, fr in enumerate(cells):
             for fi, f in enumerate(fr):
                 if v == 4: f = night(f, k in MOUNTAINS)
                 elif v == 3: f = golden(f)
+                f = blend(f, v, k, geos[vi])
                 f = f.copy()
                 pk = is_pink(f[..., :3]) & (f[..., 3] > 0)          # (resampling ringing on faint edge texels only: greyed)
                 if pk.any(): g = f[..., :3].mean(-1, keepdims=True); f[..., :3] = np.where(pk[..., None], g, f[..., :3])

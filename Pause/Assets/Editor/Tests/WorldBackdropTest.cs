@@ -52,7 +52,8 @@ public static class WorldBackdropTest
     // 2026-10 painted salt flat: its sky / far / mid / flow are 1024x2048 (ASTC 6x6, ~7.5 MB with mips, was ~2.7 MB at 512x1024), so the largest variant set grew ~5 MB: 26 -> 32 MB.
     // 2026-11-28 r1 (the .41 altitude): the landmarks, pipes, fires, leaks, lights, lights_2, shimmer_2 and dust_3 sheets and the far tiles
     // retired; the worm sheets capped at 1024 (drawn at under half their px now); a set gains the stitched mid (896 x 4096) and its living
-    // props atlas (v<n>/props, cut at the .49 altitude: 4096 x ~3150 ASTC 4x4, ~12.3 MB): ~29.5 MB, inside the old cap.
+    // props atlas (v<n>/props, cut at the .49 altitude with room for the blend's contact shadow and sand drift: 4096 x ~3610 ASTC 4x4,
+    // ~14.1 MB): ~31.3 MB, inside the old cap.
     public const long DesertTextureBudgetBytes = 32L * 1024 * 1024;   // (+1 MB for the docks atlas: four 6-cell launch strips, ~0.7 MB ASTC 4x4)
     // Storm's HD tiles use ASTC 6x6; its painted atlases use 4x4. The launch-strip docks
     // added in cd2db99ec are 1578x1054 (1,668,480 bytes at 4x4): the existing ~8049 KiB

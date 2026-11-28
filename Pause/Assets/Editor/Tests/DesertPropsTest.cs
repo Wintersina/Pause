@@ -41,6 +41,7 @@ public static class DesertPropsTest
         {
             Table();
             for (int v = 1; v <= 4; v++) Art(v);
+            for (int v = 1; v <= 4; v++) Blended(v);
             for (int v = 1; v <= 4; v++) Live(v);
             Forced();
             Balloons();
@@ -157,6 +158,72 @@ public static class DesertPropsTest
     [System.Serializable] class JAtlas { public JRect[] sprites; }
 
     static float dayLum, dayMountain;
+
+    // ---- blended into the ground (user 2026-11-28: "all props should be blended in into the world correctly such that it makes
+    // sense and doesnt look out of place"; build_r1.py BLEND) -------------------------------------------------------------------
+    // Against the layout's own ground (its mid tile): no prop is brighter than the sand round it by more than BlendLum, nor more
+    // saturated by more than BlendSat (lamps / fires, v > .8 and s > .25, excluded: they blink at full strength); every prop
+    // (the mountains carry painted aprons) has sand drifted round its base: at least BlendSand texels in the ground's own colour
+    // (within .07, any alpha > .05) per px of its width. Before the blend: luminance up to 1.35 x, saturation up to +.40, drift
+    // as low as 0 / px.
+    const float BlendLum = 1.2f, BlendSat = .16f, BlendSand = .6f;
+
+    static void Blended(int v)
+    {
+        var g = new Texture2D(2, 2);
+        g.LoadImage(File.ReadAllBytes(ArtDir + "v" + v + "/mid.png"));
+        var gp = g.GetPixels();
+        Object.DestroyImmediate(g);
+        var rs = new List<float>(); var gs = new List<float>(); var bs = new List<float>();
+        double gl = 0, gsat = 0; int gn = 0;
+        for (int i = 0; i < gp.Length; i += 16)
+        {
+            var c = gp[i];
+            rs.Add(c.r); gs.Add(c.g); bs.Add(c.b);
+            float mx = Mathf.Max(c.r, Mathf.Max(c.g, c.b)), mn = Mathf.Min(c.r, Mathf.Min(c.g, c.b));
+            gl += .2126f * c.r + .7152f * c.g + .0722f * c.b; gsat += mx > 1e-3f ? (mx - mn) / mx : 0f; gn++;
+        }
+        rs.Sort(); gs.Sort(); bs.Sort();
+        var sandC = new Color(rs[rs.Count / 2] * 1.06f, gs[gs.Count / 2] * 1.06f, bs[bs.Count / 2] * 1.06f);
+        float groundLum = (float)(gl / gn), groundSat = (float)(gsat / gn);
+
+        string png = ArtDir + "v" + v + "/" + DesertPropsTuning.Atlas + ".png";
+        var tex = new Texture2D(2, 2);
+        tex.LoadImage(File.ReadAllBytes(png));
+        var px = tex.GetPixels();
+        int W = tex.width;
+        Object.DestroyImmediate(tex);
+        var json = JsonUtility.FromJson<JAtlas>(File.ReadAllText(Path.ChangeExtension(png, ".json")));
+        float worstLum = 0f, worstSat = -1f, leastSand = float.MaxValue;
+        string wl = "", ws = "", wd = "";
+        foreach (var r in json.sprites)
+        {
+            if (!r.n.EndsWith("_00")) continue;
+            int kind = DesertPropsTuning.IndexOf(r.n.Substring(0, r.n.IndexOf('_')));
+            if (kind < 0 || DesertPropsTuning.Kinds[kind].mountain) continue;
+            double l = 0, sat = 0; int n = 0, sand = 0;
+            for (int y = r.y; y < r.y + r.h; y++)
+                for (int x = r.x; x < r.x + r.w; x++)
+                {
+                    var c = px[y * W + x];
+                    if (c.a > .05f && Mathf.Abs(c.r - sandC.r) < .07f && Mathf.Abs(c.g - sandC.g) < .07f && Mathf.Abs(c.b - sandC.b) < .07f) sand++;
+                    if (c.a <= .5f) continue;
+                    float mx = Mathf.Max(c.r, Mathf.Max(c.g, c.b)), mn = Mathf.Min(c.r, Mathf.Min(c.g, c.b));
+                    float s = mx > 1e-3f ? (mx - mn) / mx : 0f;
+                    if (mx > .8f && s > .25f) continue;                    // a lamp
+                    l += .2126f * c.r + .7152f * c.g + .0722f * c.b; sat += s; n++;
+                }
+            if (n == 0) continue;
+            float lum = (float)(l / n) / groundLum, ds = (float)(sat / n) - groundSat, drift = sand / (float)r.w;
+            if (lum > worstLum) { worstLum = lum; wl = r.n; }
+            if (ds > worstSat) { worstSat = ds; ws = r.n; }
+            if (drift < leastSand) { leastSand = drift; wd = r.n; }
+        }
+        Check("v" + v + " props sit in their ground's light: brightest " + wl + " " + worstLum.ToString("F2") + " x the sand (<= " + BlendLum + "), most saturated " + ws +
+              " +" + worstSat.ToString("F2") + " (<= " + BlendSat + ")", worstLum <= BlendLum && worstSat <= BlendSat);
+        Check("v" + v + " every prop has sand drifted round its base: least " + wd + " " + leastSand.ToString("F2") + " sand texels / px (>= " + BlendSand + ")",
+              leastSand >= BlendSand);
+    }
 
     static void Art(int v)
     {
