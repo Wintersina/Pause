@@ -16,9 +16,9 @@ SP = sys.argv[1] if len(sys.argv) > 1 and os.path.isdir(sys.argv[1]) else os.pat
 HERE = os.path.dirname(os.path.abspath(__file__))
 D = os.path.normpath(os.path.join(HERE, '../../../Backgrounds/Resources/Worlds/Ember/Backdrop3'))
 R1 = f'{SP}/ember/r1'; OUT = f'{SP}/out2'
-PICK = {1: 'A', 2: 'A', 3: 'A', 4: 'A'}
-PX = dict(geoplant=190, foundry=170, miningrig=150, orehauler=190, bunker=140, quarry=170, stilts=150, domes=150, crawler=120, columns=140,
-          springs=130, vents=130, starship=330, volcano=350, caldera=360, spires=330)
+PICK = {1: 'D', 2: 'D', 3: 'D', 4: 'D'}      # D = the designed tile (pads, roads, lava flows painted into the A tile: ember/r1/design.py)
+PX = dict(geoplant=190, foundry=180, miningrig=170, orehauler=190, bunker=160, quarry=170, stilts=170, domes=180, crawler=140, columns=160,
+          springs=160, vents=150, starship=300, volcano=350, caldera=360, spires=330)
 GROUND_ZOOM, APPROVED_ZOOM = .49, .41
 ALT = GROUND_ZOOM / APPROVED_ZOOM
 PX = {k: int(round(p * ALT)) for k, p in PX.items()}
@@ -122,6 +122,7 @@ def guard(path, low=.18):
 
 # ---------------------------------------------------------------- ground
 GRADE = 'grade'
+EXPOSURE = {1: .78, 2: .78, 3: .80, 4: .90}
 
 
 def haze(v, T):
@@ -135,6 +136,9 @@ def ground():
     for v, o in PICK.items():
         src = f'{R1}/tiles/v{v}{o}'
         Image.open(src + '_mid.png').convert('RGBA').save(f'{D}/v{v}/mid.png', optimize=True)
+        _im = np.asarray(Image.open(f'{D}/v{v}/mid.png').convert('RGBA')).astype(float) / 255
+        _im[..., :3] *= EXPOSURE[v]        # readability (CI: lane body contrast 1.7-1.9 < 2.0): the day grounds drawn darker, lava kept as the accent
+        Image.fromarray((np.clip(_im, 0, 1) * 255 + .5).astype(np.uint8), 'RGBA').save(f'{D}/v{v}/mid.png', optimize=True)
         n = warm_fix(f'{D}/v{v}/mid.png')
         if n: print(f'  v{v}/mid.png: {n} pink texels turned red-orange')
         shutil.copy(src + '_mask.txt', f'{D}/v{v}/mask.txt'); shutil.copy(src + '_ctx.txt', f'{D}/v{v}/ctx.txt')
@@ -198,7 +202,7 @@ LAVA_KINDS_SET = ('orehauler', 'stilts', 'crawler')
 
 
 def kinds_for(v):
-    return [k for k in PX if not (v == 3 and k in LAVA_KINDS_SET)]      # v3's lava is thin threads: no lava pool for the pool kinds
+    return [k for k in PX if not (v in (2, 3) and k in LAVA_KINDS_SET)]      # v3's lava is thin threads: no lava pool for the pool kinds
 
 
 SCALED = {}
@@ -254,16 +258,21 @@ def blend_(f, v, kind, gmean, gdark, vi, fi):
     if kind in MOUNTAINS or kind in LAVA_KINDS:
         if kind in LAVA_KINDS:                                                               # heat bloom: a faint warm halo, under the sprite
             r = np.random.RandomState(7 + vi * 5)
-            hb = np.clip(gaussian_filter(_bd(a > .3, iterations=3).astype(float), 3.5) * .22 - a, 0, 1); hb[hb < .03] = 0
+            hb = np.clip(gaussian_filter(_bd(a > .3, iterations=3).astype(float), 3.5) * .12 - a, 0, 1); hb[hb < .03] = 0
             out = over_straight(out, np.dstack([np.broadcast_to(np.array([.62, .26, .08]), (h, w, 3)), hb]))
         return out
-    r = np.random.RandomState(31 * vi + 5)
-    ap = np.clip(gaussian_filter(_bd(a > .3, iterations=3).astype(float), 3.5) * .62, 0, .6); ap[ap < .05] = 0                 # scorch apron
-    fl = (r.rand(h, w) > .985) & (ap > .12) & (a < .2)                                                   # ash flecks
-    ap = np.maximum(ap, gaussian_filter(fl.astype(float), .8) * .7)
-    col = np.broadcast_to(gdark * .55, (h, w, 3)).copy(); col[fl] = gmean * 1.35
-    under = np.dstack([col, ap * (1 - a)])
-    return over_straight(out, under, under_it=True)
+    return foot_feather(out)
+
+
+def foot_feather(o, F=18):
+    """the drawing's own dark rock FOOT (scorched basalt round the building, painted by the generator) fades out over F texels toward the
+    outline, so it dissolves into the pad / ground under it instead of reading as a cut-out; the structure itself keeps its edge"""
+    from scipy.ndimage import distance_transform_edt as edt
+    a = o[..., 3]; rgb = o[..., :3]; mx = rgb.max(-1); mn = rgb.min(-1); s = (mx - mn) / np.maximum(mx, 1e-3)
+    dark = gaussian_filter(((mx < .34) & (s < .55)).astype(float), 2.5) > .55
+    d = edt(a > .3)
+    k = np.where(dark, np.clip(d / F, 0, 1) ** 1.3, 1.0)
+    o = o.copy(); o[..., 3] = a * k; return o
 
 
 def over_straight(top, bot, under_it=False):
