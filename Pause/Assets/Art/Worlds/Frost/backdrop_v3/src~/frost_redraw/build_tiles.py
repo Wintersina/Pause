@@ -316,7 +316,7 @@ def build(key):
     else:
         a[..., 3] = 255
         a, info = grade(a, TARGET[key])
-    if a.shape[0] == 224:
+    if a.shape[0] == a.shape[1]:                  # a square drawing (224 band, or a 448 full-detail flow half): repeated twice
         a = np.concatenate([a, a], 0)
     a, ncol = limit_colors(a)
     cell = W // a.shape[1]                        # 4: the 224-wide drawings; 2: the full-detail redraws

@@ -39,6 +39,10 @@ OVERRIDES = {}
 PROP_MIN = 6        # warm pixels (of the 896 x 1792 tile) that make a cell hold a painted prop
 
 
+PROP_VARIANTS = (1, 4)   # the ice-field tiles with lone painted props; v2's quays / v3's plant are lit everywhere and the
+                         # classifier already marks them B (marking every lit window there leaves too little land)
+
+
 def mark_props(mid_rgb, grid):
     """B on every cell with a painted prop (warm lit pixels), grown by one cell; grid rows x cols, row 0 = top."""
     a = np.asarray(mid_rgb.convert("RGB")).astype(int)
@@ -68,7 +72,7 @@ def main():
         args.remove("--props-only")
     base = Path(args[0]) if args else DEFAULT
     if props_only:
-        for v in (1, 2, 3, 4):
+        for v in PROP_VARIANTS:
             path = base / f"v{v}" / "mask.txt"
             grid = [l for l in path.read_text().split("\n") if l]
             grid, n = mark_props(Image.open(base / f"v{v}" / "mid.png"), grid)
@@ -84,7 +88,9 @@ def main():
             mid.save(p)
             im, grid = gm.classify(p, cfg)
         assert grid.shape == (64, 32), grid.shape
-        rows, _ = mark_props(Image.open(base / f"v{v}" / "mid.png"), ["".join(gm.CLASSES[c] for c in row) for row in grid])
+        rows = ["".join(gm.CLASSES[c] for c in row) for row in grid]
+        if v in PROP_VARIANTS:
+            rows, _ = mark_props(Image.open(base / f"v{v}" / "mid.png"), rows)
         (base / f"v{v}" / "mask.txt").write_text("\n".join(rows) + "\n")
         print(f"v{v}", " ".join(f"{gm.CLASSES[k]} {(grid == k).mean():.2f}" for k in range(4)))
         if dbg:
