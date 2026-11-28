@@ -297,7 +297,10 @@ public static class StormBackdropTest
                     // the strike cell's lower end (bottom centre, y 226 of 256) vs the mast's rod tip (y 40 of 256)
                     float end = b.root.localPosition.y - (StormTuning.StrikeEndY - 128f) / 256f * b.size;
                     float tip = b.parent.root.localPosition.y + (128f - StormTuning.RodTipY) / 256f * b.parent.size;
-                    float off = Mathf.Abs(end - tip);
+                    // (2026-11-28 the mast is the RODS prop: its tallest rod stands off the cell's centre, mirrored with the piece)
+                    float tipX = b.parent.root.localPosition.x + (StormTuning.RodTipX - 128f) / 256f * b.parent.size * (b.parent.body.localScale.x < 0f ? -1f : 1f);
+                    if (b.parent.kind != StormPropsTuning.Rods) bad++;
+                    float off = Mathf.Max(Mathf.Abs(end - tip), Mathf.Abs(b.root.localPosition.x - tipX));
                     worstOff = Mathf.Max(worstOff, off);
                     if (off > .02f) bad++;
                     checkedStrikes++;
@@ -306,7 +309,7 @@ public static class StormBackdropTest
             Object.DestroyImmediate(wb.gameObject);
         }
         StormDirector.SeedOverride = 0;
-        Check("strikes happen on the thunderhead field (" + checkedStrikes + " frames sampled)", checkedStrikes > 0);
+        Check("strikes happen on the thunderhead field, onto the rods platform (" + checkedStrikes + " frames sampled)", checkedStrikes > 0);
         Check("a strike bolt's lower end sits on its mast's rod tip (worst " + worstOff.ToString("F3") + " units)", bad == 0);
     }
 
@@ -336,7 +339,8 @@ public static class StormBackdropTest
         Object.DestroyImmediate(wb.gameObject);
 
         // no overlap, distinct pieces, towers where the storm is thick
-        int seeds = 40, bad = 0, towers = 0, spires = 0, pieces = 0;
+        int seeds = 40, bad = 0, pieces = 0, retired = 0;
+        var kinds = new HashSet<string>();
         for (int v = 1; v <= StormTuning.Variants; v++)
             for (int s = 1; s <= seeds / 4; s++)
             {
@@ -348,8 +352,8 @@ public static class StormBackdropTest
                 {
                     if (!p.active) continue;
                     pieces++;
-                    if (p.kind == StormDirector.KindTower) towers++;
-                    if (p.kind == StormDirector.KindSpire) spires++;
+                    string n = p.sr.sprite != null ? p.sr.sprite.name : "";
+                    if (System.Array.IndexOf(StormTuning.AllPieces(), n) >= 0) kinds.Add(n); else retired++;
                     foreach (var q in d2.Ground.items)
                         if (q != p && q.active && Mathf.Abs(q.x - p.x) < p.size * .22f && Mathf.Abs((float)(q.gy - p.gy)) < p.size * .18f) bad++;
                 }
@@ -357,7 +361,8 @@ public static class StormBackdropTest
             }
         StormDirector.SeedOverride = 0;
         Check("no two pieces sit on top of each other over " + seeds + " seeded runs (" + bad + ")", bad == 0);
-        Check("the storm's pieces turn up: " + towers + " thunderhead towers and " + spires + " lightning-rod masts among " + pieces, towers > 5 && spires > 3);
+        Check("only the kept landmarks turn up (" + string.Join(", ", kinds) + " among " + pieces + "; " + retired + " retired drawings)",
+              retired == 0 && kinds.Count == StormTuning.AllPieces().Length);
     }
 
     // ---- the removed eye-of-the-storm deck stays gone ----------------------------------------------------------
@@ -497,12 +502,8 @@ public static class StormBackdropTest
         var set = wb.Current;
         var land = set.Atlas("landmarks"); var sites = set.Atlas("sites"); var weather = set.Atlas("weather"); var light = set.Atlas("lightning");
         bool names = true;
-        foreach (string n in StormTuning.Towers) names &= land.Has(n);
-        foreach (string n in StormTuning.Spires) names &= land.Has(n);
-        foreach (string n in StormTuning.Skyhooks) names &= land.Has(n);
-        foreach (string n in StormTuning.Refineries) names &= land.Has(n);
-        foreach (string n in StormTuning.Neighbours) names &= land.Has(n);
-        foreach (string n in StormTuning.Dishes) names &= land.Has(n);
+        foreach (string n in StormTuning.AllPieces()) names &= land.Has(n);
+        Check("the landmarks atlas holds only the kept drawings (" + land.Count + ")", land.Count == StormTuning.AllPieces().Length);
         for (int k = 0; k < StormTuning.FirstLaunchSite; k++) names &= sites.Has(StormTuning.SiteClosed[k]) && sites.Has(StormTuning.SiteOpen[k]);   // (the strip sites are in the docks atlas: StormDockTest)
         names &= sites.Has("lights_off") && sites.Has("lights_on");
         Check("every piece the director draws is in the landmarks / sites atlases", names);
@@ -540,18 +541,21 @@ public static class StormBackdropTest
         Check("a strike bolt reaches the strike end point (128, " + StormTuning.StrikeEndY + ")", strikeEnd);
         Check("bolt cores are white-hot (brightest pixel value >= .85)", boltsBright);
 
-        var lm = Load(Art + "landmarks.png");
-        var jl = JsonUtility.FromJson<Cells>(File.ReadAllText(Art + "landmarks.json"));
-        bool tipOk = true; string tipDetail = "";
+        // strikes come down on the RODS prop (the retired spires' job): its tallest rod's tip, every livery's first cell
+        var lm = Load(Art + StormPropsTuning.Atlas + ".png");
+        var jl = JsonUtility.FromJson<Cells>(File.ReadAllText(Art + StormPropsTuning.Atlas + ".json"));
+        bool tipOk = true; string tipDetail = ""; int tips = 0;
         foreach (var c in jl.sprites)
-            if (StormTuning.IsSpire(c.n))
+            if (c.n.StartsWith("rods_") && c.n.EndsWith("_00"))
             {
-                float a = MaxAlpha(lm, c, c.w / 2 - 14, (int)StormTuning.RodTipY - 14, 28, 28);
-                float above = MaxAlpha(lm, c, 0, 0, c.w, (int)StormTuning.RodTipY - 22);
-                tipDetail += " " + c.n + " tip " + a.ToString("F2") + " above " + above.ToString("F2");
-                if (a < .6f || above > .35f) tipOk = false;
+                float k = c.w / 256f;
+                int tx = Mathf.RoundToInt(StormTuning.RodTipX * k), ty = Mathf.RoundToInt(StormTuning.RodTipY * k);
+                float a = MaxAlpha(lm, c, tx - 4, Mathf.Max(0, ty - 4), 8, 8);
+                tipDetail += " " + c.n + " tip " + a.ToString("F2");
+                if (a < .5f) tipOk = false;
+                tips++;
             }
-        Check("the lightning-rod masts' rod tips are at (128, " + StormTuning.RodTipY + ")" + tipDetail, tipOk);
+        Check("the rods platform's rod tip is at (" + StormTuning.RodTipX + ", " + StormTuning.RodTipY + ") of its cell" + tipDetail, tipOk && tips == 4);
         Object.DestroyImmediate(lt); Object.DestroyImmediate(lm);
     }
 

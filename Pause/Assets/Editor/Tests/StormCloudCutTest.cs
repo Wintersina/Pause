@@ -24,8 +24,8 @@ public static class StormCloudCutTest
 
     const string Dir = "Assets/Art/Backgrounds/Resources/Worlds/Storm/Backdrop3/";
     const int Border = 8, FlatRun = 20;
-    static readonly string[] BorderAtlases = { "landmarks", "thunder", "lightning", "weather", "sites", "rotors" };
-    static readonly string[] CutAtlases = { "landmarks", "thunder", "weather" };
+    static readonly string[] BorderAtlases = { "landmarks", "lightning", "weather", "sites", "rotors" };   // ("thunder" retired 2026-11-28 with the towers)
+    static readonly string[] CutAtlases = { "landmarks", "weather" };
 
     [System.Serializable] class Cell { public string n; public int x, y, w, h; }
     [System.Serializable] class Sheet { public Cell[] sprites; }

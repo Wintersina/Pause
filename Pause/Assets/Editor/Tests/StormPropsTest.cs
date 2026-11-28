@@ -229,6 +229,8 @@ public static class StormPropsTest
         return new Stat { mean = sw > 0 ? (float)(sl / sw) : 0f, p90 = vals.Count > 0 ? vals[(int)(vals.Count * .9f)] : 0f, peak = peak };
     }
 
+    const float ApprovedDeckLum = .29f, ApprovedDeckP90 = .66f;
+
     static void Art()
     {
         var spec = BackdropCatalog.For("Storm");
@@ -280,6 +282,10 @@ public static class StormPropsTest
                 land.mean = sw > 0 ? (float)(sl / sw) : 0f;
                 land.p90 = lv.Count > 0 ? lv[(int)(lv.Count * .9f)] : 0f;
             }
+            // 2026-11-28 the landmark sheet shrank to the three kept (darker) drawings: the reference stays the approved deck level
+            // the whole landmark set measured as drawn before the retirement (lum .29, p90 .66), never below what the kept ones measure
+            land.mean = Mathf.Max(land.mean, ApprovedDeckLum);
+            land.p90 = Mathf.Max(land.p90, ApprovedDeckP90);
             string rows = "";
             bool ok = true;
             for (int k = 0; k < kinds.Length; k++)

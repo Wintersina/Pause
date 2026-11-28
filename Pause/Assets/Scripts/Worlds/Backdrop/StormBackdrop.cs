@@ -9,14 +9,14 @@ using UnityEngine;
 //              (wind-sheared slate bands and cyclone scars), v2 the thunderhead field
 //              (towering lit cumulonimbus tops with lightning in the canyons), v3 the
 //              NIGHT side, v4 gust-front shelf arcs.
-//   PIECES     landmarks pinned to the mid tile (GroundPlanner): anvil thunderhead towers,
-//              lightning-rod masts, skyhook anchors, floating refineries, siphon towers, an
-//              airship dock, a gantry, a turbine raft, a relay dish; clusters (a storm
-//              front of towers, a refinery with its neighbour, a mast with a dish, a
-//              skyhook) with long calm gaps. Elite launch sites on the same plane.
+//   PIECES     landmarks pinned to the mid tile (GroundPlanner): a crane gantry, a turbine raft
+//              and a relay dish, alone or as a pair, far apart -- the living ground PROPS
+//              (StormProps.cs) are the deck's main content. (2026-11-28 the towers, spires,
+//              skyhooks, floating refineries, siphon tower and airship dock were retired: the
+//              new props replace them; pl/storm_keep_retire.txt.) Elite launch sites on the same plane.
 //   LIGHTNING  StormLightning schedules the weather: sheet flashes that light the cloud
 //              layers (soft glow sprites, a faint bloom over the ceiling), forked
-//              cloud-to-cloud bolts and strikes down onto a lightning-rod mast. It is
+//              cloud-to-cloud bolts and strikes down onto a lightning-rod platform (the RODS prop). It is
 //              deliberately gentle (photosensitivity): see StormTuning's limits, held
 //              by StormBackdropTest. No sound: the user authors the world's ambience.
 //   WEATHER    the CEILING of storm cloud (continuing the planetfall deck) held
@@ -753,7 +753,7 @@ public partial class StormDirector : PlanetDirector
             b.vx = RodTipDx(mast);                     // (a parented bolt keeps its x offset here: the rod tip is off the cell's centre)
             b.x = mast.x + b.vx; b.y = mast.y + b.phase;
         }
-        else { b.x = x; b.y = y; b.phase = 0f; }
+        else { b.parent = null; b.vx = 0f; b.x = x; b.y = y; b.phase = 0f; }
         Place(b);
         b.sr.color = new Color(1f, 1f, 1f, 0f);
     }

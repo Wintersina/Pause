@@ -110,10 +110,8 @@ public static class StormBackdropPreview
             moveBackGround.speed = .03f;
             while (d.Clock < 17f) wb.Step(Dt);   // past the cloud ceiling, which hides the ground for the first ~14 s
             d.Showcase(StormLifeTuning.TurbinePiece, 1.9f, -.9f, 1.5f);
-            d.Showcase("anvil_tower_00", 1.9f, .95f, .3f, false, true);
-            d.Showcase("spire_00", 1.7f, -.95f, -1.0f, false, true);
+            d.Showcase("gantry_00", 1.7f, .95f, .3f, false, true);
             d.Showcase(StormLifeTuning.DishPiece, 1.7f, .95f, 1.6f, false, true);
-            d.Showcase("skyhook_00", 1.7f, .9f, -1.7f, true, true);
             string sub = Path.Combine(dir, still ? "before" : "after");
             Directory.CreateDirectory(sub);
             int frames = int.TryParse(System.Environment.GetEnvironmentVariable("STORM_LIFE_FRAMES"), out var nf) ? nf : 120, stepsPer = int.TryParse(System.Environment.GetEnvironmentVariable("STORM_LIFE_STEPS"), out var ns) ? ns : 4;
@@ -197,8 +195,7 @@ public static class StormBackdropPreview
         var d = (StormDirector)wb.Current.Director;
         while (d.Clock < 16f) wb.Step(Dt);
         var names = new List<string>();
-        names.AddRange(StormTuning.Towers); names.AddRange(StormTuning.Spires); names.AddRange(StormTuning.Skyhooks);
-        names.AddRange(StormTuning.Refineries); names.AddRange(StormTuning.Neighbours); names.Add("relay_dish_00");
+        names.AddRange(StormTuning.AllPieces());
         names.AddRange(StormTuning.SiteClosed); names.AddRange(StormTuning.SiteOpen);
         var seen = new HashSet<string>();
         int i = 0;
