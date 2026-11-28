@@ -69,7 +69,7 @@ public class UltimateGun : MonoBehaviour
         var barrelGo = new GameObject("Barrel", typeof(SpriteRenderer));
         barrelGo.transform.SetParent(transform, false);
         barrelRenderer = barrelGo.GetComponent<SpriteRenderer>();
-        barrelRenderer.sprite = GunSpriteFor(shipIndex);
+        barrelRenderer.sprite = CompanionSprite(shipIndex, 0);   // drone slot 0: the ship's T1 drone (or the roster tile)
         barrelRenderer.color = Color.white;
         barrelRenderer.sortingOrder = (hull != null ? hull.sortingOrder : 0) + 1;
         if (barrelRenderer.sprite != null)
@@ -182,6 +182,8 @@ public class UltimateGun : MonoBehaviour
         float scale = 1f + extend * ExtendGrow + firePop * FirePopGrow + startlePop;
         transform.localScale = Vector3.one * scale;
         Reposition(extend, unscaledDt);
+        // the drone's idle light pulse (its own art only; same rect every frame, so nothing re-sizes)
+        if (barrelRenderer != null && DroneArt.Has(shipIndex, DroneTier.T1)) barrelRenderer.sprite = CompanionSprite(shipIndex, 0);
 
         if (flashT >= 0f && muzzleRenderer != null)
         {
@@ -402,7 +404,18 @@ public class UltimateGun : MonoBehaviour
     }
 
     // For the extra floaties (FloatieCompanion): the same companion art and the same hover.
-    public static Sprite CompanionSprite(int shipIndex) { return GunSpriteFor(shipIndex); }
+    // The drawing of drone slot `droneSlot` (DroneSquad slot: 0 = this gun, the main floatie): the ship's own drone
+    // art for that slot's tier (DroneArt, in the shown skin, at the pulse frame now), else the ship's roster tile.
+    public static Sprite CompanionSprite(int shipIndex) { return CompanionSprite(shipIndex, 0); }
+    public static Sprite CompanionSprite(int shipIndex, int droneSlot)
+    {
+        var art = DroneArt.Current(shipIndex, DroneArt.TierForSlot(droneSlot), Time.time, droneSlot);
+        return art != null ? art : GunSpriteFor(shipIndex);
+    }
+    // The ship's own healing-drone drawing, or null when it has none (HealDrone then tints the companion green).
+    public static Sprite HealSprite(int shipIndex) { return DroneArt.Current(shipIndex, DroneTier.Heal, Time.time); }
+    // The roster tile itself (the fallback drawing, tests).
+    public static Sprite RosterSprite(int shipIndex) { return GunSpriteFor(shipIndex); }
     public static Vector3 HoverAt(int index, float time) { return HoverOffset(index, time); }
     public int ShipIndex => shipIndex;
 
@@ -511,6 +524,7 @@ public class UltimateGun : MonoBehaviour
     public static void QueueWarm(int ship)
     {
         FirstUseWarm.Add("gun:" + ship, "ShipArt/Guns/ship_gun_roster", typeof(Texture2D), () => GunSpriteFor(ship));
+        FirstUseWarm.Add("drones:" + ship, () => DroneArt.Warm(ship));
     }
 
     public static bool GunReady(int ship)

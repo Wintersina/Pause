@@ -1,0 +1,18 @@
+{
+  "heal": {
+    "candidate": "r1_3.png",
+    "pick": "s/drone_VoltViper_heal__nr1.png#3"
+  },
+  "t1": {
+    "candidate": "r1_1.png",
+    "pick": "s/drone_VoltViper_t1__nr1.png#1"
+  },
+  "t2": {
+    "candidate": "r1_1.png",
+    "pick": "s/drone_VoltViper_t2__nr1.png#1"
+  },
+  "t3": {
+    "candidate": "r1_1.png",
+    "pick": "s/drone_VoltViper_t3__nr1.png#1"
+  }
+}

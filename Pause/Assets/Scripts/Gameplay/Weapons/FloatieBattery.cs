@@ -1,6 +1,7 @@
 using UnityEngine;
 
-// Extra companions use the ship's own gun art in wings outside the central heart orbit.
+// Extra companions use the ship's own drone art (DroneArt: DroneSquad slot 1 = its T2 drawing, slot 2 = T3, slots 3-5
+// cycle T1-T3; the roster tile when the ship has none) in wings outside the central heart orbit.
 // Both the resting bodies and their full hover ranges need that clearance: otherwise
 // several heart styles can never find room for a loop or turn-back. Recruits occupy
 // outer columns; DroneFormation folds them inside the view near screen edges.
@@ -20,7 +21,7 @@ public class FloatieCompanion : MonoBehaviour
     float aim, aimTarget;     // degrees off straight up (+ is to the left), as the bullet's angle
     float bodyScale, kick, arrivalAge = 1f;
     Vector3 arrivalFrom;
-    bool folded;
+    bool folded, ownArt;
     Vector3 rest;
 
     public int Slot => slot;
@@ -62,7 +63,8 @@ public class FloatieCompanion : MonoBehaviour
         var body = new GameObject("Body", typeof(SpriteRenderer));
         body.transform.SetParent(transform, false);
         sr = body.GetComponent<SpriteRenderer>();
-        sr.sprite = UltimateGun.CompanionSprite(ship);
+        sr.sprite = UltimateGun.CompanionSprite(ship, slot + 1);   // DroneSquad slot slot+1 (slot 0 is the UltimateGun)
+        ownArt = DroneArt.Has(ship, DroneArt.TierForSlot(slot + 1));
         sr.sortingOrder = (hr != null ? hr.sortingOrder : 0) + 1;
         bodyScale = 1f;
         if (sr.sprite != null)
@@ -172,7 +174,11 @@ public class FloatieCompanion : MonoBehaviour
         }
     }
 
-    void LateUpdate() { Place(); }
+    void LateUpdate()
+    {
+        Place();
+        if (ownArt && sr != null) sr.sprite = UltimateGun.CompanionSprite(ship, slot + 1);   // the idle light pulse (same rect every frame)
+    }
 
     void OnDestroy() { ShipUiSlots.Unregister(this); }
 }
@@ -196,6 +202,7 @@ public class FloatieBattery : MonoBehaviour
     Color tint = Color.white;
     int previewSlot = -1;
     float previewUntil;
+    public const float ArtTint = .25f;   // how much of the mode colour a drone with its own art takes
     const float AimLead = .3f;   // floatie #2 tilts to its next angle this long before the shot
     float pendingAngle;
     bool pendingSet;
@@ -585,6 +592,8 @@ public class FloatieBattery : MonoBehaviour
             var sr = i == 0 ? (gun != null ? gun.BarrelRenderer : null) : (extras[i - 1] != null ? extras[i - 1].Renderer : null);
             if (sr == null || (i == 0 && gun.Busy)) continue;
             Color colour = DroneSquad.IsActive(i) ? Color.Lerp(tint, DroneSquad.Colour(DroneSquad.Mode(i)), .35f) : new Color(.24f, .3f, .36f, .45f);
+            // the ship's own (skinned, full-colour) drone art takes only a hint of the mode colour, so the skin reads
+            if (DroneSquad.IsActive(i) && DroneArt.Has(ship, DroneArt.TierForSlot(i))) colour = Color.Lerp(Color.white, colour, ArtTint);
             float highlight = upgradeGlow[i] > 0f ? .5f + .5f * Mathf.Sin(upgradeGlow[i] * 32f) : (previewSlot == i && Time.unscaledTime < previewUntil ? .35f : 0f);
             sr.color = Color.Lerp(colour, Color.white, highlight);
             if (i == 0 && gun != null) gun.DroneTint = sr.color;

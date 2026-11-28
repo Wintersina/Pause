@@ -1,0 +1,31 @@
+{
+  "cell": 104,
+  "frames": 4,
+  "fps": 6.0,
+  "pivotX": 0.5,
+  "pivotY": 0.12,
+  "tiers": [
+    {
+      "tier": "t1",
+      "row": 0,
+      "x": 19,
+      "y": 124,
+      "w": 66,
+      "h": 66
+    },
+    {
+      "tier": "t2",
+      "row": 1,
+      "x": 4,
+      "y": 4,
+      "w": 97,
+      "h": 97
+    }
+  ],
+  "skins": [
+    "Night",
+    "Sodium",
+    "Bone",
+    "Ronin"
+  ]
+}

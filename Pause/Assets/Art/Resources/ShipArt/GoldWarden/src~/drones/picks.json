@@ -1,0 +1,10 @@
+{
+  "heal": {
+    "candidate": "r1_2.png",
+    "pick": "s/drone_GoldWarden_heal__nr1.png#2"
+  },
+  "t3": {
+    "candidate": "r1_1.png",
+    "pick": "s/drone_GoldWarden_t3__nr1.png#1"
+  }
+}

@@ -1,0 +1,31 @@
+{
+  "cell": 104,
+  "frames": 4,
+  "fps": 6.0,
+  "pivotX": 0.5,
+  "pivotY": 0.12,
+  "tiers": [
+    {
+      "tier": "t3",
+      "row": 0,
+      "x": 6,
+      "y": 109,
+      "w": 93,
+      "h": 93
+    },
+    {
+      "tier": "heal",
+      "row": 1,
+      "x": 6,
+      "y": 6,
+      "w": 92,
+      "h": 92
+    }
+  ],
+  "skins": [
+    "Night",
+    "Neon",
+    "Bone",
+    "Regent"
+  ]
+}

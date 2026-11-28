@@ -331,6 +331,7 @@ public static class AllTests
         ("PowerCreepTest", PowerCreepTest.Execute),
         ("ShipDamageTest", ShipDamageTest.Execute),
         ("HealDroneTest", HealDroneTest.Execute),
+        ("DroneArtTest", DroneArtTest.Execute),
         ("ShipLivesIndicatorTest", ShipLivesIndicatorTest.Execute),
         ("ShipLivesTest", ShipLivesTest.Execute),
         ("ShipNozzlesTest", ShipNozzlesTest.Execute),
