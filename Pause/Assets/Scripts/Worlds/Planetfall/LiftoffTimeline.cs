@@ -85,6 +85,9 @@ public static class LiftoffTimeline
 
     // ---- the climb's grade and effects ----
 
+    // How hot the shroud burns (0..1): it builds through the climb and peaks
+    // just before the break.
+    public static float ShroudHeat(float t) { return Ramp(t, ShroudInFrom, BreakAt - .4f); }
     public static float ShroudAt(float t) { return ShroudAlpha * Ramp(t, ShroudInFrom, ShroudInTo) * (1f - Ramp(t, BreakAt, FxOutTo)); }
     public static float StreakAlpha(float t) { return Ramp(t, StreaksInFrom, StreaksInTo) * (1f - Ramp(t, BreakAt, FxOutTo)); }
     public static float TintAt(float t) { return TintAlpha * Ramp(t, TintInFrom, TintInTo) * (1f - Ramp(t, BreakAt, GradeOutTo)); }

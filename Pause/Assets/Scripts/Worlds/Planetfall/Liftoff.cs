@@ -319,7 +319,7 @@ public class Liftoff : MonoBehaviour
 
         // ---- the climb ----
         float sa = state == Stage.Rise ? LiftoffTimeline.ShroudAt(tl) : 0f;
-        float deep = LiftoffTimeline.Ramp(tl, LiftoffTimeline.ShroudInTo, LiftoffTimeline.BreakAt);
+        float deep = LiftoffTimeline.ShroudHeat(tl);
         Planetfall.DrawShroud(shroud, shroudGlow, art, pdef, tl, sa, deep, pos + shipMid, shroudScale, shipSpan, hullOrder);
 
         float qw = 2f * halfW * Planetfall.Overscan, qh = 2f * halfH * Planetfall.Overscan;

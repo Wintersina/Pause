@@ -79,7 +79,7 @@ public class Planetfall : MonoBehaviour
     // The shroud's and the burst's cell widths, world units. ShroudWidth is
     // the fallback; the shroud is normally sized to the ship (HoleFit).
     public static float ShroudWidth = 2.6f, BurstWidth = 7.5f;
-    public static float ShroudFps = 14f;
+    public static float ShroudFps = 16f;
     // The shroud's opening is this many times the hull sprite's width (its
     // bounds carry a little clear margin, so the plasma licks the wing tips),
     // within these cell widths. The opening is taller than wide (146 x 165
@@ -88,7 +88,10 @@ public class Planetfall : MonoBehaviour
     public static float HoleFit = 1f, HoleDrop = .1f, ShroudMin = 1.6f, ShroudMax = 5f;
     // Life on top of the 6-cell loop: a scale and twist flicker, a brightness
     // pulse, and the plasma flaring (bigger, hotter) as the dive deepens.
-    public static float ShroudFlicker = .035f, ShroudTwist = 2.5f, ShroudPulse = .12f, ShroudFlare = .05f;
+    public static float ShroudFlicker = .035f, ShroudTwist = 1.5f, ShroudPulse = .12f, ShroudFlare = .05f;
+    // The heat (0..1) scales the shroud's alpha from HeatAlphaFrom and its
+    // height from HeatStretchFrom (+HeatStretch at full heat).
+    public static float HeatAlphaFrom = .55f, HeatStretchFrom = .92f, HeatStretch = .16f;
     // An additive copy one cell behind, slightly larger and jittered.
     public static float GlowScale = 1.07f, GlowFrom = .22f, GlowTo = .55f;
     // Clouds: world units per art pixel (deeper deck: finer), tiles a second.
@@ -610,11 +613,11 @@ public class Planetfall : MonoBehaviour
         if (ship != null) ship.position = pos;
 
         // ---- the entry ----
-        // The 6-cell loop steps at ShroudFps on the descent clock (it
-        // freezes with the world); each cell's pivot is its opening's
-        // centre, so the ship stays in the hole while the plasma churns.
+        // The 12-cell loop steps at ShroudFps on the descent clock (it
+        // freezes with the world); each cell's pivot sits under the hull,
+        // so the white-hot cap wraps the nose and the wake trails behind.
         float sa = PlanetfallTimeline.ShroudAlpha(tl);
-        float deep = PlanetfallTimeline.Ramp(tl, PlanetfallTimeline.ShroudInTo, PlanetfallTimeline.BreakAt);
+        float deep = PlanetfallTimeline.ShroudHeat(tl);
         DrawShroud(shroud, shroudGlow, art, def, tl, sa, deep, pos + shipMid, shroudScale, shipSpan, HullOrder());
 
         float qw = 2f * halfW * Overscan, qh = 2f * halfH * Overscan;
@@ -815,8 +818,10 @@ public class Planetfall : MonoBehaviour
             shroud.sortingOrder = hullOrder - 3;
             shroud.transform.position = at;
             shroud.transform.localRotation = Quaternion.Euler(0f, 0f, ShroudTwist * Mathf.Sin(tl * 17f + 1f));
-            shroud.transform.localScale = new Vector3(size, size * (1f + .025f * Mathf.Sin(tl * 23f)), 1f);
-            shroud.color = new Color(pulse, pulse, pulse, sa);
+            // Hotter burns brighter and drags a longer wake.
+            float stretch = HeatStretchFrom + HeatStretch * deep;
+            shroud.transform.localScale = new Vector3(size, size * stretch * (1f + .025f * Mathf.Sin(tl * 23f)), 1f);
+            shroud.color = new Color(pulse, pulse, pulse, sa * (HeatAlphaFrom + (1f - HeatAlphaFrom) * deep));
 
             // The hot copy: a cell behind, a touch bigger, wobbling the other
             // way, hotter as the dive deepens.
@@ -825,7 +830,7 @@ public class Planetfall : MonoBehaviour
             shroudGlow.sortingOrder = hullOrder - 2;
             shroudGlow.transform.position = at + new Vector3(.01f * size * Mathf.Sin(tl * 29f + 2f), .006f * size * Mathf.Sin(tl * 43f), 0f);
             shroudGlow.transform.localRotation = Quaternion.Euler(0f, 0f, -ShroudTwist * Mathf.Sin(tl * 13f));
-            shroudGlow.transform.localScale = new Vector3(glowSize, glowSize, 1f);
+            shroudGlow.transform.localScale = new Vector3(glowSize, glowSize * stretch, 1f);
             Color g = Color.Lerp(def.heat, Color.white, .35f);
             g.a = sa * Mathf.Lerp(GlowFrom, GlowTo, deep) * (.8f + 1.6f * (1f - pulse));
             shroudGlow.color = g;

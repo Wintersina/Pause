@@ -315,8 +315,8 @@ public static class PlanetfallTest
         Check("Tide's def: world 4, its folder and seven files, the measured numbers and the words",
               tide.world == 4 && tide.folder == "Worlds/Tide/Planetfall/" && tide.planet == "tide_planet" && tide.limb == "tide_planet_limb" &&
               tide.deck == "tide_cloud_deck" && tide.deckDark == "tide_cloud_deck_dark" && tide.entryFx == "tide_entry_fx" &&
-              tide.burst == "tide_breakthrough" && tide.streaks == "tide_entry_streaks" && tide.entryFrames == 6 && tide.burstFrames == 5 &&
-              tide.entryHoleX.Length == 6 && tide.openBanner == "LAND ON TIDE" && tide.urgeBanner == "DIVE INTO TIDE" &&
+              tide.burst == "tide_breakthrough" && tide.streaks == "tide_entry_streaks" && tide.entryFrames == 12 && tide.burstFrames == 5 &&
+              tide.entryHoleX == null && tide.openBanner == "LAND ON TIDE" && tide.urgeBanner == "DIVE INTO TIDE" &&
               Mathf.Abs(tide.entryHolePx - 147f) < 3f && Mathf.Abs(tide.entryShipPx.y - 338f) < 1f);
         Check("Tide's art is installed in Resources (not left staged): all seven files, the staging copies gone",
               System.Array.TrueForAll(new[] { tide.planet, tide.limb, tide.deck, tide.deckDark, tide.entryFx, tide.burst, tide.streaks },
@@ -344,8 +344,8 @@ public static class PlanetfallTest
         Check("Storm's def: world 5, its folder and seven files, the measured numbers and the words",
               storm.world == 5 && storm.folder == "Worlds/Storm/Planetfall/" && storm.planet == "storm_planet" && storm.limb == "storm_planet_limb" &&
               storm.deck == "storm_cloud_deck" && storm.deckDark == "storm_cloud_deck_dark" && storm.entryFx == "storm_entry_fx" &&
-              storm.burst == "storm_breakthrough" && storm.streaks == "storm_entry_streaks" && storm.entryFrames == 6 && storm.burstFrames == 5 &&
-              storm.entryHoleX.Length == 6 && storm.openBanner == "LAND ON STORM" && storm.urgeBanner == "DIVE INTO STORM" &&
+              storm.burst == "storm_breakthrough" && storm.streaks == "storm_entry_streaks" && storm.entryFrames == 12 && storm.burstFrames == 5 &&
+              storm.entryHoleX == null && storm.openBanner == "LAND ON STORM" && storm.urgeBanner == "DIVE INTO STORM" &&
               Mathf.Abs(storm.entryHolePx - 147f) < 3f && Mathf.Abs(storm.entryShipPx.y - 338f) < 1f);
         Check("Storm's art is installed in Resources (not left staged): all seven files, the staging copies gone",
               System.Array.TrueForAll(new[] { storm.planet, storm.limb, storm.deck, storm.deckDark, storm.entryFx, storm.burst, storm.streaks },
@@ -602,24 +602,11 @@ public static class PlanetfallTest
 
     // ---- 6. the art --------------------------------------------------------------------
 
-    // Clear (alpha < 40) pixels from (x, y) stepping (dx, dy), at most 200.
-    static int Clear(Color32[] px, int w, int x, int y, int dx, int dy)
-    {
-        int h = px.Length / w, n = 0;
-        while (n < 200)
-        {
-            int nx = x + dx * (n + 1), ny = y + dy * (n + 1);
-            if (nx < 0 || ny < 0 || nx >= w || ny >= h || px[ny * w + nx].a >= 40) break;
-            n++;
-        }
-        return n;
-    }
-
     // ---- the entry shroud fits the ship and lives ---------------------------
     // The hull here is a known 0.8 x 1.0 unit drawing whose middle sits 0.1
     // above the ship's position: the shroud's opening must be HoleFit times
-    // its width and centred on that middle; the loop steps through all six
-    // cells at about ShroudFps and wraps 5 -> 0; the additive copy rides
+    // its width and centred on that middle; the loop steps through all 12
+    // cells at about ShroudFps and wraps 11 -> 0; the additive copy rides
     // between the shroud and the hull, one cell behind.
     static void ShroudFits(int fromWorld)
     {
@@ -668,8 +655,8 @@ public static class PlanetfallTest
             maxScale = Mathf.Max(maxScale, sh.transform.localScale.x);
             last = sh.sprite;
         }
-        Check("... the loop animates: " + changes + " cell steps in 1 s (12..16), all six cells, wraps 5 -> 0 (" + wraps + ")",
-              changes >= 12 && changes <= 16 && seen == 63 && wraps >= 2);
+        Check("... the loop animates: " + changes + " cell steps in 1 s (14..18), all 12 cells, wraps 11 -> 0 (" + wraps + ")",
+              changes >= 14 && changes <= 18 && seen == (1 << 12) - 1 && wraps >= 1);
         Check("... the hot copy runs a cell behind every frame (" + behind + "/" + frames + "), the size flickers (" +
               minScale.ToString("F3") + " .. " + maxScale.ToString("F3") + ")",
               behind == frames && maxScale - minScale > .02f * p.ShroudScale);
@@ -680,6 +667,15 @@ public static class PlanetfallTest
 
     // `planetPivotY`: the globe's centre, texture rows up from the bottom.
     // `limbArc`: the horizon circle's radius from the measured apex / edges.
+    // Mean alpha (0..255) of a w x h box at image column x, image row y (y down).
+    static float MeanAlpha(Color32[] px, int width, int height, int x, int y, int w, int h)
+    {
+        double sum = 0; int n = 0;
+        for (int r = y; r < y + h; r++)
+            for (int c = x; c < x + w; c++) { sum += px[(height - 1 - r) * width + c].a; n++; }
+        return n > 0 ? (float)(sum / n) : 0f;
+    }
+
     static void ArtLoads(PlanetfallDef def, float planetPivotY, float limbArc)
     {
         string name = WorldManager.Worlds[def.world].displayName;
@@ -687,7 +683,7 @@ public static class PlanetfallTest
         Check(name + "'s planetfall art loads complete", art.Complete);
         if (!art.Complete) return;
         bool sizes = Size(art.PlanetTex, 1024, 1024) & Size(art.LimbTex, 2048, 1024) & Size(art.DeckTex, 2048, 1024) &
-                     Size(art.DeckDarkTex, 2048, 1024) & Size(art.EntryTex, 3072, 1024) & Size(art.BurstTex, 5120, 1024) &
+                     Size(art.DeckDarkTex, 2048, 1024) & Size(art.EntryTex, 6144, 1024) & Size(art.BurstTex, 5120, 1024) &
                      Size(art.StreaksTex, 1024, 2048);
         Check("... every texture at its full size, no mipmaps", sizes);
         Check("... the globe's pivot on its measured centre (" + art.Planet.pivot + ")",
@@ -698,29 +694,36 @@ public static class PlanetfallTest
               art.LimbTex.wrapMode == TextureWrapMode.Clamp && art.EntryTex.wrapMode == TextureWrapMode.Clamp &&
               art.BurstTex.wrapMode == TextureWrapMode.Clamp);
         Check("the strips cut into cells: " + art.Entry.Length + " entry (512x1024), " + art.Burst.Length + " burst (1024x1024)",
-              art.Entry.Length == 6 && art.Burst.Length == 5 && art.Entry[5].rect.width == 512f && art.Entry[0].rect.height == 1024f &&
+              art.Entry.Length == 12 && art.Burst.Length == 5 && art.Entry[11].rect.width == 512f && art.Entry[0].rect.height == 1024f &&
               art.Burst[4].rect.width == 1024f && art.Burst[4].rect.x == 4096f);
-        // Each cell's pivot is its own opening's centre (the hole wanders
-        // 251 .. 268 px through the loop): measured from the PNG, the clear
-        // run from the pivot reaches the plasma about equally far each way.
-        bool pivots = art.Entry.Length == def.entryHoleX.Length, centred = pivots;
+        // The reentry fire has no opening: each cell's pivot is the hull's
+        // middle (entryShipPx), the white-hot cap sits round it (the hull
+        // hides the glow under it), the wake trails below, nothing above the
+        // nose's reach, and no pink outside Space.
+        bool pivots = def.entryHoleX == null, lit = true;
         var png = new Texture2D(2, 2, TextureFormat.RGBA32, false);
         png.LoadImage(File.ReadAllBytes("Assets/Art/Backgrounds/Resources/" + def.folder + def.entryFx + ".png"));
         var px = png.GetPixels32();
         string spans = "";
-        for (int i = 0; pivots && i < art.Entry.Length; i++)
+        int pinks = 0;
+        for (int i = 0; i < px.Length; i += 3)
+            if (px[i].a > 40 && WorldCue.IsPink(new Color32(px[i].r, px[i].g, px[i].b, 255))) pinks++;
+        for (int i = 0; i < art.Entry.Length; i++)
         {
             Vector2 pv = art.Entry[i].pivot;
-            pivots &= Mathf.Abs(pv.x - def.entryHoleX[i]) < .5f && Mathf.Abs(pv.y - (1024f - def.entryShipPx.y)) < .5f;
-            int cx = i * 512 + Mathf.RoundToInt(pv.x), cy = Mathf.RoundToInt(pv.y);   // texture rows are y up
-            int l = Clear(px, png.width, cx, cy, -1, 0), r = Clear(px, png.width, cx, cy, 1, 0);
-            int u = Clear(px, png.width, cx, cy, 0, 1), d = Clear(px, png.width, cx, cy, 0, -1);
-            spans += " " + l + "/" + r + "," + u + "/" + d;
-            centred &= Mathf.Abs(l - r) <= 12 && Mathf.Abs(l + r - def.entryHolePx) <= 14 && Mathf.Abs(u - d) <= 14;
+            pivots &= Mathf.Abs(pv.x - def.entryShipPx.x) < .5f && Mathf.Abs(pv.y - (1024f - def.entryShipPx.y)) < .5f;
+            // rows here are image rows (y down): the nose 240..330, the wake 420..700, the clear top 0..150
+            float nose = MeanAlpha(px, png.width, png.height, i * 512 + 200, 240, 112, 90);
+            float wake = MeanAlpha(px, png.width, png.height, i * 512 + 180, 420, 152, 280);
+            float top = MeanAlpha(px, png.width, png.height, i * 512, 0, 512, 150);
+            spans += " " + nose.ToString("F0") + "/" + wake.ToString("F0") + "/" + top.ToString("F0");
+            lit &= nose > 120f && wake > 30f && wake < nose && top < 4f;
         }
         Object.DestroyImmediate(png);
-        Check("each entry cell's pivot is the centre of its opening (clear px left/right, up/down:" + spans + ")",
-              pivots && centred);
+        Check("each entry cell's pivot is the hull's middle; the cap glows round it, the wake trails below, the top is clear " +
+              "(alpha nose/wake/top:" + spans + ")", pivots && lit);
+        Check("... the fire and its heat tint are never pink outside Space (" + pinks + " px)",
+              pinks == 0 && !WorldCue.IsPink(def.heat));
         Check("the limb's horizon circle: radius " + def.LimbArcPx(2048f).ToString("F0") + " px (apex " + def.limbApexPx + ", edges " +
               def.limbEdgePx + ")", Mathf.Abs(def.LimbArcPx(2048f) - limbArc) < 2f);
         bool importer = true;
