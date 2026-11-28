@@ -830,10 +830,10 @@ public static class EmberBackdropTest
         Check("pools never grow over a long run", wb.GetComponentsInChildren<Transform>(true).Length == transforms);
         // pause-safe: dt 0 is a still frame
         var before = new List<Vector3>();
-        foreach (var p in d.Ground.items) before.Add(p.root.localPosition);
+        foreach (var p in d.Props.items) before.Add(p.root.localPosition);
         for (int i = 0; i < 30; i++) wb.Step(0f);
         bool still = true;
-        for (int i = 0; i < d.Ground.items.Count; i++) still &= d.Ground.items[i].root.localPosition == before[i];
+        for (int i = 0; i < d.Props.items.Count; i++) still &= d.Props.items[i].root.localPosition == before[i];
         Check("a paused frame (dt 0) moves nothing", still);
     }
 }
