@@ -102,12 +102,12 @@ public static class TidePropsTest
         float hw = 2.7f;
         Check("keep-out = .42 x drawn px + 22 on a 1080 px screen (atoll " + TidePropsTuning.Keep(TidePropsTuning.Atoll, hw).ToString("F3") + " units)",
               Mathf.Abs(TidePropsTuning.Keep(TidePropsTuning.Atoll, hw) - (270f * .42f + 22f) / 1080f * 2f * hw) < 1e-4f);
-        Check("drawn px: lighthouse 160, platform 170, village 200, freighter 260, wreck 180, atoll 270, buoys 180, farm 210, dock 220, whales 210, mantas 200, turbines 200, stack 340, cliffs 380, starship 400",
+        Check("drawn px: lighthouse 160, platform 170, village 200, freighter 260, wreck 180, atoll 270, buoys 180, farm 210, dock 220, whales 190, mantas 180, turbines 200, stack 320, cliffs 360, starship 360",
               ks[TidePropsTuning.Lighthouse].px == 160f && ks[TidePropsTuning.Platform].px == 170f && ks[TidePropsTuning.Village].px == 200f &&
               ks[TidePropsTuning.Freighter].px == 260f && ks[TidePropsTuning.Wreck].px == 180f && ks[TidePropsTuning.Atoll].px == 270f &&
               ks[TidePropsTuning.Buoys].px == 180f && ks[TidePropsTuning.Farm].px == 210f && ks[TidePropsTuning.Dock].px == 220f &&
-              ks[TidePropsTuning.Whales].px == 210f && ks[TidePropsTuning.Mantas].px == 200f && ks[TidePropsTuning.Turbines].px == 200f &&
-              ks[TidePropsTuning.Stack].px == 340f && ks[TidePropsTuning.Cliffs].px == 380f && ks[TidePropsTuning.Starship].px == 400f &&
+              ks[TidePropsTuning.Whales].px == 190f && ks[TidePropsTuning.Mantas].px == 180f && ks[TidePropsTuning.Turbines].px == 200f &&
+              ks[TidePropsTuning.Stack].px == 320f && ks[TidePropsTuning.Cliffs].px == 360f && ks[TidePropsTuning.Starship].px == 360f &&
               TidePropsTuning.Big(TidePropsTuning.Stack) && TidePropsTuning.Big(TidePropsTuning.Cliffs) && TidePropsTuning.Big(TidePropsTuning.Starship) && !TidePropsTuning.Big(TidePropsTuning.Lighthouse) &&
               TidePropsTuning.IndexOf("kelp") < 0);
         Check("placement: freighter and buoys on deep water, whales and mantas only in water, the rest on water or shoal; farm and dock like the village",
@@ -175,7 +175,8 @@ public static class TidePropsTest
               mean <= .34f && p90 <= .72f && TidePropsTuning.PropTint.r < 1f);
         var day = TidePropsTuning.TintFor(false); var night = TidePropsTuning.TintFor(true);
         Check("the night side tints the props darker and cooler (" + night.r.ToString("F2") + "," + night.g.ToString("F2") + "," + night.b.ToString("F2") + " vs day " + day.r.ToString("F2") + ")",
-              night.r <= day.r * .5f && night.g <= day.g * .55f && night.b <= day.b * .65f && night.b > night.r);
+              night.r <= day.r * .55f && night.g <= day.g * .62f && night.b <= day.b * .68f && night.b > night.r);
+        Blend(px, width);
         // texture budget: ASTC 4x4, never clamped, no mips
         long astc = ((width + 5) / 6) * ((height + 5) / 6) * 16L;
         var imp = (TextureImporter)AssetImporter.GetAtPath(png);
@@ -183,6 +184,44 @@ public static class TidePropsTest
         Check("props atlas import: ASTC 6x6 on Android, not clamped below 4096, no mipmaps, compressed",
               imp != null && imp.GetPlatformTextureSettings("Android").format == TextureImporterFormat.ASTC_6x6 && imp.maxTextureSize >= 4096 &&
               !imp.mipmapEnabled && imp.textureCompression != TextureImporterCompression.Uncompressed);
+    }
+
+    // BLEND (user, 2026-11-28: every prop blended into its world): per kind, over its opaque texels, the mean luminance within [.15, .36]
+    // (no prop brighter or duller than the sea around it), the mean saturation <= .60, a wet base (the lowest tenth of each cell's
+    // rows darker than the kind's overall mean), and a soft base: the bottom row has no hard opaque edge
+    static void Blend(Color[] px, int width)
+    {
+        var json = JsonUtility.FromJson<JAtlas>(File.ReadAllText(ArtDir + "props.json"));
+        var ks = TidePropsTuning.Kinds;
+        string bad = "";
+        for (int k = 0; k < ks.Length; k++)
+        {
+            double lum = 0, sat = 0, baseLum = 0; long n = 0, nb = 0, hardRows = 0, rows = 0;
+            string prefix = ks[k].name + "_";
+            foreach (var r in json.sprites)
+            {
+                if (!r.n.StartsWith(prefix)) continue;
+                int band = Mathf.Max(1, r.h / 10);
+                for (int y = r.y; y < r.y + r.h; y++)
+                    for (int x = r.x; x < r.x + r.w; x++)
+                    {
+                        var c = px[y * width + x];
+                        if (c.a <= .1f) continue;
+                        float l = .2126f * c.r + .7152f * c.g + .0722f * c.b;
+                        float mx = Mathf.Max(c.r, Mathf.Max(c.g, c.b)), mn = Mathf.Min(c.r, Mathf.Min(c.g, c.b));
+                        lum += l; sat += mx > 0f ? (mx - mn) / mx : 0f; n++;
+                        if (y < r.y + band) { baseLum += l; nb++; }
+                    }
+                // the lowest row of the cut: no long run of fully opaque texels (a square block side)
+                int run = 0;
+                for (int x = r.x; x < r.x + r.w; x++) { if (px[r.y * width + x].a > .95f) run++; }
+                rows++; if (run > r.w * .6f) hardRows++;
+            }
+            if (n == 0) { bad += ks[k].name + ":empty "; continue; }
+            float ml = (float)(lum / n), ms = (float)(sat / n), mb = nb > 0 ? (float)(baseLum / nb) : ml;
+            if (ml < .15f || ml > .36f || ms > .60f || (mb >= ml && !TidePropsTuning.Marine(k)) || hardRows * 4 > rows) bad += ks[k].name + "(lum " + ml.ToString("F2") + " sat " + ms.ToString("F2") + " base " + mb.ToString("F2") + " hard " + hardRows + "/" + rows + ") ";
+        }
+        Check("BLEND: every kind's mean luminance in [.15, .36], saturation <= .60, a darker wet base (not for the marine life), no hard square base edge " + bad, bad.Length == 0);
     }
 
     // ---- live ---------------------------------------------------------------------------------------------------------------

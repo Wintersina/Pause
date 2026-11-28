@@ -15,8 +15,8 @@ OUT = f'{HERE}/src/out2'
 META = json.load(open(f'{HERE}/src/props_meta.json'))
 # kind: (drawn px at the .49 altitude on a 1080 px screen, strip tag)  -- TidePropsTuning.Kinds mirrors this table
 KINDS = dict(lighthouse=(160, 'r1'), platform=(170, 'r1'), village=(200, 'r1'), freighter=(260, 'r1'), wreck=(180, 'r1'), atoll=(270, 'r1'),
-             buoys=(180, 'r1'), farm=(210, 'r1'), dock=(220, 'r1'), whales=(210, 'r2'), mantas=(200, 'r2'),
-             turbines=(200, 'r1'), stack=(340, 'r1'), cliffs=(380, 'r1'), starship=(400, 'r1'))
+             buoys=(180, 'r1'), farm=(210, 'r1'), dock=(220, 'r1'), whales=(190, 'r2'), mantas=(180, 'r2'),
+             turbines=(200, 'r1'), stack=(320, 'r1'), cliffs=(360, 'r1'), starship=(360, 'r1'))
 PAD = 2
 STILL = ('stack', 'cliffs')
 def is_pink(rgb):
@@ -56,6 +56,35 @@ def guard(path, low=.18):
     im[..., :3] = np.clip(np.round(out * 255), 0, 255).astype(np.uint8)
     Image.fromarray(im).save(path, optimize=True)
     return int(sel.sum())
+# ---- BLEND INTO THE WORLD (user 2026-11-28: every prop blended so it does not look out of place) -------------------------------
+SEA = np.array([.10, .24, .22]); WETC = np.array([.05, .15, .15]); SHADOW = np.array([.01, .05, .05])
+BIG = ('stack', 'cliffs', 'starship', 'atoll')            # more atmosphere (farther / bigger masses sit deeper in the haze)
+LIVING = ('whales', 'mantas')                             # in the water: their own foam is the contact, no cast shadow, no wet base
+BLEND = os.environ.get('TIDE_BLEND', '1') != '0'
+def _gauss(a, s):
+    from scipy.ndimage import gaussian_filter
+    return gaussian_filter(a, s)
+def blend(f, kind):
+    """the ground's light is upper-left, its sea dark green: (1) colour pulled toward the sea (lamps / lit windows keep their colour), mildly
+    desaturated; (2) a wet, darker, sea-tinted base band; (3) a soft contact shadow down-right under the silhouette."""
+    f = f.copy(); a = f[..., 3]; rgb = f[..., :3]; H, W = a.shape
+    v = rgb.max(-1); s = (v - rgb.min(-1)) / np.maximum(v, 1e-3); lamp = (v > .75) & (s > .3)
+    k = .28 if kind in BIG else (.10 if kind in LIVING else .16)
+    luma = (rgb @ np.array([.3, .59, .11]))[..., None]
+    g = (rgb * .82 + luma * .18) * (1 - k) + SEA * k
+    ys = np.nonzero(a > .3)[0]
+    if len(ys) and kind not in LIVING:
+        y0, y1 = ys.min(), ys.max(); band = max(4, .16 * (y1 - y0)); yy = np.arange(H)[:, None]
+        w = np.clip((yy - (y1 - band)) / band, 0, 1); w = (w * w * (3 - 2 * w))[..., None] * (a > .3)[..., None]
+        g = g * (1 - .34 * w) + WETC * .34 * w
+    rgb2 = np.where(lamp[..., None], rgb, g)
+    out = f.copy(); out[..., :3] = rgb2
+    if kind not in LIVING:
+        sh = _gauss(a, max(2.0, .028 * W)); dy, dx = int(round(.03 * H)), int(round(.026 * W))
+        sh = np.roll(np.roll(sh, dy, 0), dx, 1) * .52; sh = np.clip(sh * (1 - a), 0, 1)       # only where the sprite is not
+        al = out[..., 3:4]; sa = sh[..., None]; oa = al + sa * (1 - al)
+        out[..., :3] = np.where(oa > 1e-4, (out[..., :3] * al + SHADOW * sa * (1 - al)) / np.maximum(oa, 1e-4), 0); out[..., 3:4] = oa
+    return np.clip(out, 0, 1)
 def strips(kind, tag):
     fs = sorted(glob.glob(f'{OUT}/bd_tide_prop_{kind}/{tag}_*.png'), key=lambda p: int(re.findall(rf'{tag}_(\d+)', p)[0])); out = []
     for p in fs:
@@ -66,7 +95,7 @@ def main():
     for kind, (px, tag) in KINDS.items():
         S = strips(kind, tag)
         if kind in STILL: S = [fr[:1] for fr in S]      # the mountains are one still painting (surf shimmer dropped: texture budget)
-        scaled = [[resize_premul(f, px, px) for f in fr] for fr in S]
+        scaled = [[(blend(resize_premul(f, px, px), kind) if BLEND else resize_premul(f, px, px)) for f in fr] for fr in S]
         al = np.zeros((px, px), bool)
         for fr in scaled:
             for f in fr: al |= f[..., 3] > 2 / 255

@@ -46,8 +46,8 @@ public static class TidePropsTuning
         K("lighthouse", 160, Place.Shoal, 1.6f), K("platform", 170, Place.Shoal, 1.6f), K("village", 200, Place.Shoal, 1.2f),
         K("freighter", 260, Place.Deep, 1.2f), K("wreck", 180, Place.Shoal, 1.5f), K("atoll", 270, Place.Shoal, 1f),
         K("buoys", 180, Place.Deep, 1.5f), K("farm", 210, Place.Shoal, 1.2f, 125, 8, Village), K("dock", 220, Place.Shoal, 1.2f, 125, 8, Village, Farm),
-        K("whales", 210, Place.Marine, 1.2f, 140, 16), K("mantas", 200, Place.Marine, 1.2f, 110, 16),
-        K("turbines", 200, Place.Shoal, 1.3f), B("stack", 340, .7f, 1), B("cliffs", 380, .6f, 1), B("starship", 400, .5f, 8),
+        K("whales", 190, Place.Marine, 1.2f, 140, 16), K("mantas", 180, Place.Marine, 1.2f, 110, 16),
+        K("turbines", 200, Place.Shoal, 1.3f), B("stack", 320, .7f, 1), B("cliffs", 360, .6f, 1), B("starship", 360, .5f, 8),
     };
     static Kind K(string n, float px, Place on, float per, int ms = 125, int frames = 8, params int[] near)
     {
@@ -84,8 +84,8 @@ public static class TidePropsTuning
     public static float TotalPerThree(bool big) { float t = 0f; foreach (var k in Kinds) if (k.big == big) t += k.perThree; return t; }
 
     // ---- look --------------------------------------------------------------------------------------------------------------
-    public static readonly Color PropTint = new Color(.92f, .92f, .92f, 1f);   // a touch under painted: every shot's core stays the brightest thing
-    public static readonly Color NightTint = new Color(.45f, .5f, .58f, 1f);   // the night side (TideTuning.Night): darker and cooler than the ground
+    public static readonly Color PropTint = new Color(.92f, .92f, .92f, 1f);   // a touch under painted (the art itself is graded toward the sea, with a wet base and a contact shadow baked in)
+    public static readonly Color NightTint = new Color(.50f, .58f, .62f, 1f);   // the night side (TideTuning.Night): darker and cooler than the ground
     public static Color TintFor(bool night)
     {
         return night ? new Color(PropTint.r * NightTint.r, PropTint.g * NightTint.g, PropTint.b * NightTint.b, 1f) : PropTint;
