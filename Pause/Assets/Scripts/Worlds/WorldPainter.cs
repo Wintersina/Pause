@@ -75,13 +75,20 @@ public static class WorldPainter
         return world == "Frost" ? FrostRailBrightness : 1f;
     }
 
+    // ---- rail opacity ----
+    // Every world's rails are drawn this much as opaque as painted ("make the
+    // rails about 15% more transparent"): the rail material's tint alpha, which
+    // WorldRailRepeat multiplies into the art's own alpha. The silhouette the
+    // boss rails, rail mines and crash edge measure is the PNG's, so it stays.
+    public const float RailOpacity = .85f;
+
     // The colour the rail material is tinted with for `theme`.
     public static Color RailTint(WorldTheme theme)
     {
-        if (theme == null) return Color.white;
+        if (theme == null) return new Color(1f, 1f, 1f, RailOpacity);
         Color c = theme.tint;
         float k = RailBrightness(theme.displayName);
-        return new Color(c.r * k, c.g * k, c.b * k, c.a);
+        return new Color(c.r * k, c.g * k, c.b * k, c.a * RailOpacity);
     }
 
     public const string RailShader = "WorldRailRepeat";

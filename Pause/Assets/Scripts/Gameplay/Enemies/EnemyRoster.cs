@@ -236,9 +236,16 @@ public static class EnemyRoster
         }
     }
 
+    // The Tide helicopters' idle cells are one rotor turned 22.5 deg a cell (Art/Enemies/src~/helicopters/
+    // spin_paragon_rotors.py): even holds, so the rotor turns at a steady speed instead of stalling on cell 0.
+    public const int RotorIdleTicks = 3;
+    public static readonly string[] SpinningRotorKeys = { "tide_fighter_5", "tide_fighter_6" };
+    public static bool SpinsRotor(EnemyDef def) => def != null && System.Array.IndexOf(SpinningRotorKeys, def.key) >= 0;
+
     public static int[] IdleTicks(EnemyDef def) =>
         def != null && def.key == "space_alien"
             ? new[] { SpaceAlienIdleTicks, SpaceAlienIdleTicks, SpaceAlienIdleTicks, SpaceAlienIdleTicks }
+            : SpinsRotor(def) ? new[] { RotorIdleTicks, RotorIdleTicks, RotorIdleTicks, RotorIdleTicks }
             : FlapsWings(def) ? OriginalIdleTicks(def.role) : IdleTicks(def.role);
 
     // What EnemyFlipbook actually loops (the Steel Hound loops all four idle

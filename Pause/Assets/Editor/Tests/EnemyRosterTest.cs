@@ -125,6 +125,9 @@ public static class EnemyRosterTest
         {
             Check(t.key + " has a shot, rotor animation and a death strip",
                   t.Behaviour != null && t.Behaviour.attack == EnemyAttack.Shot && EnemyRoster.FlapsWings(t) && EnemyDeathFlipbook.Frames(t) != null);
+            var ticks = EnemyRoster.IdleTicks(t);
+            Check(t.key + " turns its rotor at a steady speed (even idle holds)",
+                  EnemyRoster.SpinsRotor(t) && ticks.Length == 4 && System.Array.TrueForAll(ticks, x => x == ticks[0]));
         }
         Check("Space has no helicopter", EnemyRoster.Helicopter(0) == null);
         int seen = 0, early = 0, n = 3000;

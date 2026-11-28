@@ -1448,7 +1448,7 @@ public static class WorldBackdropTest
     // Frost's rails are dimmed (WorldPainter.RailBrightness) so they recede
     // behind the lane: rendered alone through the game camera, their light
     // is 50..70% of the undimmed rail's, and every other world draws its
-    // rail exactly as painted. Run after CheckSpaceRailMaterials (gameS1 open).
+    // rail as painted (rgb); every world's rail alpha is x WorldPainter.RailOpacity. Run after CheckSpaceRailMaterials (gameS1 open).
     static void CheckRailBrightness()
     {
         var cam = Camera.main;
@@ -1481,8 +1481,12 @@ public static class WorldBackdropTest
                     Check("Frost rails render at its rail dial (" + (ratio * 100f).ToString("F0") + "% of the painted rail, dial " +
                           (saved * 100f).ToString("F0") + "%)", before > 1f && Mathf.Abs(ratio - saved) < .02f);
                 else
-                    Check(theme.displayName + " rails render as painted (" + (ratio * 100f).ToString("F1") + "%, tint untouched)",
-                          before > 1f && Mathf.Abs(ratio - 1f) < .01f && mat.color == theme.tint);
+                    Check(theme.displayName + " rails render as painted (" + (ratio * 100f).ToString("F1") + "%, tint rgb untouched, alpha x" +
+                          WorldPainter.RailOpacity.ToString("F2") + ")",
+                          before > 1f && Mathf.Abs(ratio - 1f) < .01f && mat.color == WorldPainter.RailTint(theme) &&
+                          mat.color.r == theme.tint.r && mat.color.g == theme.tint.g && mat.color.b == theme.tint.b);
+                Check(theme.displayName + " rails draw " + (WorldPainter.RailOpacity * 100f).ToString("F0") + "% as opaque as painted (tint alpha " +
+                      mat.color.a.ToString("F3") + ")", WorldPainter.RailOpacity == .85f && Mathf.Abs(mat.color.a - theme.tint.a * .85f) < .002f);
             }
         }
         finally
