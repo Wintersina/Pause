@@ -546,7 +546,19 @@ public static class FrostDockTest
         return false;
     }
 
-    static void SitesAndLaunch()
+    // The backdrop's own docks are held off while a check places one (one dock on the ground at a time: a random one that
+    // scrolled in first would block the kind under test, and from up here it takes a long time to scroll out).
+    static void NoOwnDocks(System.Action check)
+    {
+        float siteFirst = FrostTuning.SiteFirst;
+        FrostTuning.SiteFirst = 1e6f;
+        try { check(); }
+        finally { FrostTuning.SiteFirst = siteFirst; }
+    }
+
+    static void SitesAndLaunch() { NoOwnDocks(SitesAndLaunchChecks); }
+
+    static void SitesAndLaunchChecks()
     {
         var seen = new HashSet<int>();
         foreach (var x in Elites)
@@ -716,7 +728,9 @@ public static class FrostDockTest
         EliteSystem.Clear();
     }
 
-    static void HomesBroughtIntoView()
+    static void HomesBroughtIntoView() { NoOwnDocks(HomesBroughtIntoViewChecks); }
+
+    static void HomesBroughtIntoViewChecks()
     {
         // (a fresh backdrop for each: the site pool holds three, and a launch site stays in the pool until it scrolls off)
         foreach (var x in Elites)

@@ -15,7 +15,10 @@ Ported (each from Pause/Assets/Editor/Tests/):
                            vs lightest 1% >= 2:1
   FrostBackdropTest        (estimate) the ground drawn brighter than painted: median value ratio of the composite lane
                            in 1.3 .. 1.9 (the test renders the whole scene; this is the tiles alone)
-  ground masks             mask.txt 32 x 64 of W B O C; every Frost piece rule has somewhere to stand
+  FrostBackdropTest        seamless ACROSS too (left vs right column <= ACROSS_SEAM): the ground is drawn narrower than the
+                           view (FrostTuning.GroundZoom) and repeated side by side; hwrap_tiles.py makes it so
+  ground masks             mask.txt 64 x 128 of W B O C (flat_masks.py); every Frost piece rule (whole footprint on flat
+                           O, a clear rim of O round it) has somewhere to stand
   skill verifier           sky / far / mid fully opaque; flow straight alpha with no solid (255) texel; no saturated
                            red / pink (hue 345-15, s > .5, v > .35)
 Exit code = number of failures (the skill-verifier lines are warnings: the shipped old flows already miss them).
@@ -249,6 +252,8 @@ def tile(base, v, layer):
     px = a.astype(np.float64) / 255
     s = seam(px)
     check(f"{tag}: vertically seamless (top vs bottom row {s:.4f} <= {SEAM})", s <= SEAM)
+    s = seam(np.swapaxes(px, 0, 1))  # the same measure on the left / right columns
+    check(f"{tag}: seamless across (left vs right column {s:.4f} <= {ACROSS_SEAM})", s <= ACROSS_SEAM)
     if layer == "flow":
         warn(f"{tag}: flow has no solid texel (max alpha {a[..., 3].max()}), {(a[..., 3] > 0).mean():.3f} covered",
               a[..., 3].max() < 255)
@@ -268,39 +273,39 @@ def tile(base, v, layer):
 
 
 # ---- ground masks -------------------------------------------------------------------------
-TILE_W_UNITS = 6.0
-RULES = {   # FrostTuning: (classes, need, core, near)
-    "Floating (icebreaker)": ("W", .8, .26, None),
-    "Offshore (rig, platform, rigbay)": ("W", .6, .34, None),
-    "Island (refinery, relay, derrick, sites)": ("WO", .72, .34, None),
-    "IceRoad (convoy)": ("CO", .72, .26, None),
-    "Shore (cliff)": ("OC", .55, .28, "W"),
-    "Flats (silo)": ("O", .72, .34, None),
-    "Ridge (cave)": ("C", .7, .34, None),
+ACROSS_SEAM = .025          # FrostBackdropTest.AcrossSeam
+TILE_W_UNITS = 7.59         # the view's width x 1.02 overscan (BackdropTile), x ZOOM in game -- as is a piece's size
+ZOOM, FIT = .55, .6         # FrostTuning.GroundZoom, PieceFit: a piece is 1.6 x ZOOM x FIT units on a 7.59 x ZOOM unit tile
+RIM_SCALE, RIM_NEED = 1.15, .9
+RULES = {   # FrostTuning: (classes, need, core, near) -- every one with the clear rim
+    "Land (every landmark, sites)": ("O", 1.0, .34, None),
+    "IceRoad (convoy)": ("O", 1.0, .3, None),
+    "Shore (cliff)": ("O", 1.0, .3, "W"),
 }
 
 
 def mask_check(base, v):
     p = base / f"v{v}" / "mask.txt"
     rows = p.read_text().splitlines()
-    ok = len(rows) == 64 and all(len(r) == 32 and set(r) <= set("WBOC") for r in rows)
-    check(f"v{v}/mask.txt is 32 x 64 of W B O C", ok)
+    R, C = len(rows), len(rows[0]) if rows else 0
+    ok = R == 2 * C and C >= 32 and all(len(r) == C and set(r) <= set("WBOC") for r in rows)
+    check(f"v{v}/mask.txt is {C} x {R} of W B O C (rows = 2 x cols: the tile is twice as tall as wide)", ok)
     if not ok:
         return
     g = np.array([list(r) for r in rows])
     share = {c: float((g == c).mean()) for c in "WBOC"}
     print("      shares " + " ".join(f"{c} {share[c]:.2f}" for c in "WBOC"))
-    # GroundPlanner.Accepts on a grid of candidate spots (tile u across, v down; size 1.6 u of a 6 u wide, 12 u tall tile)
-    size = 1.6
+    # GroundPlanner.Accepts (footprint + rim) on random spots; the mask wraps across and down with the tile
+    size = 1.6 * FIT        # in the tile's own units (both scale with ZOOM)
     rng = np.random.default_rng(5)
+    at = lambda u, vv: g[int((vv % 1) * R) % R, int((u % 1) * C) % C]
     for name, (on, need, core, near) in RULES.items():
         rx = size * max(core, .2) / TILE_W_UNITS
         ry = rx * .8 / 2                               # in v (tile height = 2 widths)
         hits = 0
-        tries = 2000
+        tries = 4000
         for _ in range(tries):
-            u = rng.uniform(.15, .85)
-            vv = rng.uniform(0, 1)
+            u, vv = rng.uniform(0, 1), rng.uniform(0, 1)
             n = m = 0
             for j in range(-2, 3):
                 for i in range(-2, 3):
@@ -308,24 +313,19 @@ def mask_check(base, v):
                     if fx * fx + fy * fy > 1.05:
                         continue
                     n += 1
-                    x = min(max(int((u + fx * rx) * 32), 0), 31)
-                    y = int(((vv + fy * ry) % 1) * 64) % 64
-                    m += g[y, x] in on
+                    m += at(u + fx * rx, vv + fy * ry) in on
             okp = m / n >= need
+            if okp:
+                rim = sum(at(u + np.cos(a) * rx * RIM_SCALE, vv + np.sin(a) * ry * RIM_SCALE) in on
+                          for a in np.arange(16) * np.pi / 8)
+                okp = rim / 16 >= RIM_NEED
             if okp and near:
-                okp = False
-                for k in range(12):
-                    a = k * np.pi / 6
-                    x = min(max(int((u + np.cos(a) * rx * 1.6) * 32), 0), 31)
-                    y = int(((vv + np.sin(a) * ry * 1.6) % 1) * 64) % 64
-                    if g[y, x] in near:
-                        okp = True
-                        break
+                okp = any(at(u + np.cos(a) * rx * 1.6, vv + np.sin(a) * ry * 1.6) in near for a in np.arange(12) * np.pi / 6)
             hits += okp
         print(f"      {name}: {hits / tries:.1%} of spots accept")
-    floats = share["W"] > .08
-    check(f"v{v}: open water (W {share['W']:.2f}) for the floating / offshore pieces and land (O+C {share['O'] + share['C']:.2f})",
-          floats and share["O"] + share["C"] > .2)
+        check(f"v{v}: {name} has somewhere to stand", hits > 0)
+    check(f"v{v}: open water (W {share['W']:.2f}) beside the cliffs, and flat ground (O {share['O']:.2f})",
+          share["W"] > .08 and share["O"] > .1)
 
 
 def main():

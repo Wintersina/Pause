@@ -80,6 +80,11 @@ public static class BackdropCatalog
         public Layer[] layers;      // far -> near
         // Where the art lives under Resources (null: Worlds/<world>/Backdrop/).
         public string folder;
+        // ALTITUDE: the on-screen size of the tile layers (sky, far, mid, flow) as a share of the view's width. 1 = a tile spans
+        // the view (every world but Frost); < 1 = the ground seen from higher up, drawn that much smaller and repeated across
+        // as well as down (BackdropTile.Layout; the art must be seamless across). Whatever stands on the ground (pinned pieces,
+        // their placement) and the ground layers' rates are scaled by the world itself, by the same number (FrostTuning.GroundZoom).
+        public float groundZoom = 1f;
         // The atlas whose presence makes the set complete (null: fx).
         public string keyAtlas;
         // > 0: the tile layers come from one of these many variant folders
@@ -214,7 +219,10 @@ public static class BackdropCatalog
         // creep by far below; clouds, haze and particles pass close.
         // Frost (FrostDirector, docs in FrostBackdrop.cs): flown at atmosphere
         // level just under the cloud ceiling, looking down on a frozen ocean,
-        // coast and ice-bound industry. The four ground tiles come from one of
+        // coast and ice-bound industry -- from HIGH up (FrostTuning.GroundZoom:
+        // the tiles drawn at .55 of the view's width, repeated across; the
+        // ground layers' rates scaled by the same number: farther ground
+        // creeps by slower). The four ground tiles come from one of
         // up to four variant sets per landing (FrostBackdropSelection,
         // Backdrop3/v1..v4); landmarks, launch sites, weather and the ambient
         // loops are shared atlases. BRIGHTNESS: the art is painted dark and
@@ -223,21 +231,24 @@ public static class BackdropCatalog
         // the ground and landmarks all of it, the far layers less so the
         // depth haze holds. Tints can only darken (white = as graded).
         new Spec { world = "Frost", folder = "Worlds/Frost/Backdrop3/", keyAtlas = "landmarks",
-                   variantSets = BackdropVariants.MaxVariants,
+                   variantSets = BackdropVariants.MaxVariants, groundZoom = FrostTuning.GroundZoom,
                    brightness = () => FrostTuning.Brightness, saturation = () => FrostTuning.Saturation, darkArt = true,
                    cloudDensity = () => FrostTuning.CloudDensity, ceilingHold = () => FrostTuning.CeilingHold,
                    ceilingClearSeconds = () => FrostTuning.CeilingClearSeconds, layers = new[] {
-            Layer.Tile("sky", 0.006f, W).Graded(.55f),
-            Layer.Tile("far", 0.014f, W).Graded(.8f),
-            Layer.Tile("mid", 0.024f, W).Graded(1f),
-            Layer.Strip("flow", 0.025f, 0.35f, 0f, W).Graded(1f),
+            Layer.Tile("sky", 0.006f * FrostTuning.GroundZoom, W).Graded(.55f),
+            Layer.Tile("far", 0.014f * FrostTuning.GroundZoom, W).Graded(.8f),
+            Layer.Tile("mid", FrostTuning.GroundRate, W).Graded(1f),
+            // The drifting floes / frost streaks strip is PINNED to the mid tile too (same rate, no flow of its own): it used to
+            // run at 0.025 x the scroll + 0.35 u/s, two to three times faster than the ground under it, so the floes slid under
+            // the landmarks and the whole map read as moving while the pieces standing on it did not (user, 2026-11-27).
+            Layer.Strip("flow", FrostTuning.GroundRate, 0f, 0f, W).PinnedTo("mid", FrostTuning.GroundRate).Graded(1f),
             Layer.Pieces("aurora", 0.027f, Role.Atmosphere).Graded(.3f),
             // Rigs, refineries, icebreakers ... and the elite launch sites
             // (one ground plane: they never slide over each other).
             // PINNED to the mid tile: the pieces stand on the ground, so they
-            // scroll at exactly its rate (0.024; they used to run at 0.030 and
-            // slid 25% faster than the ice they stand on).
-            Layer.Pieces("landmarks", 0.024f, Role.Landmark).PinnedTo("mid", 0.024f).Graded(1f),
+            // scroll at exactly its rate (they used to run at 0.030 against
+            // its 0.024 and slid 25% faster than the ice they stand on).
+            Layer.Pieces("landmarks", FrostTuning.GroundRate, Role.Landmark).PinnedTo("mid", FrostTuning.GroundRate).Graded(1f),
             Layer.Pieces("mist", 0.060f, Role.Atmosphere).Graded(.5f),
             Layer.Pieces("wisps", 0.090f, Role.Cloud).Graded(.5f),
             // The ceiling's banks are also thickened (FrostTuning.CeilingThicken).

@@ -1,6 +1,10 @@
 #!/usr/bin/env python3
 """Regenerate v1 / v2 mask.txt (GroundPlacement: 32 x 64 cells, row 0 = top, W B O C) from the redrawn mid tiles.
 
+SUPERSEDED for the installed masks (2026-11-27): flat_masks.py writes the 64 x 128 masks the game uses now (O = flat tops
+only, read off the drawing); it imports this file's classify / mark_props for the built class and the props. Running this
+file's main() would put the old 32 x 64 masks back -- do not, unless that is the point.
+
     python3 ground_masks.py [<Resources/Worlds/Frost/Backdrop3>] [--debug DIR]
 
 The method is Frost's own (../ground_masks.py: colour + edge statistics ranked by percentile per variant, majority

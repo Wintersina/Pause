@@ -1295,6 +1295,16 @@ public static class FrostEliteTest
 
     static void BringHome()
     {
+        // the backdrop's own first dock is held off (one dock on the ground at a time: a random one already in view would answer
+        // for the hatch), so the dock that comes is the one BringHome asks for
+        float siteFirst = FrostTuning.SiteFirst;
+        FrostTuning.SiteFirst = 1e6f;
+        try { BringHomeChecks(); }
+        finally { FrostTuning.SiteFirst = siteFirst; }
+    }
+
+    static void BringHomeChecks()
+    {
         UnityEditor.SceneManagement.EditorSceneManager.NewScene(UnityEditor.SceneManagement.NewSceneSetup.DefaultGameObjects, UnityEditor.SceneManagement.NewSceneMode.Single);
         Time.timeScale = 1f;
         moveBackGround.speed = .25f;

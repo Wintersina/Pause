@@ -136,17 +136,27 @@ public struct PieceRule
     // (on, near, zone) are read under the slab, so the slab, not the roof above it, is what lands on the right ground; the footprint
     // kept against overlaps stays on the centre. 0: the centre.
     public float foot;
+    // RIM (Frost, 2026-11-27): a clear margin round the footprint. `rim` > 0 also samples a ring of RimSamples points at rim x
+    // the footprint's half-sizes (round the slab, at foot), and at least `rimNeed` of them must be `on` too -- so a slab stands
+    // on a flat top with flat ground all round it, not with its edge on a cliff rim or a lead. 0: no rim rule.
+    public float rim, rimNeed;
 
     public PieceRule(GroundClass on, float need, float core = .32f, GroundClass near = GroundClass.None)
     {
         this.on = on; this.need = need; this.core = core; this.near = near;
         endsOn = GroundClass.None; endA = endB = Vector2.zero; endRadius = 0f;
         zone = GroundClass.None; zoneNeed = 0f; foot = 0f;
+        rim = 0f; rimNeed = 0f;
     }
 
     public PieceRule WithFoot(float y)
     {
         var r = this; r.foot = y; return r;
+    }
+
+    public PieceRule WithRim(float scale, float need)
+    {
+        var r = this; r.rim = scale; r.rimNeed = need; return r;
     }
 
     public PieceRule WithZone(GroundClass zone, float need)
@@ -192,12 +202,18 @@ public class GroundPlanner
     // at bottom edges -V/2 + i h - offset (BackdropTile.Tick), so a point at
     // y lies (y + V/2 + offset) / h up its copy; with offset = travel mod h
     // that is (gy + V/2) / h -- constant for a pinned piece.
+    //
+    // A tile drawn narrower than the view (Spec.groundZoom < 1) repeats across
+    // in columns centred on x = k * TileWidth (BackdropTile), so u wraps too:
+    // the ground under x is the same spot of the art in every column.
     public Vector2 UV(float x, double gy)
     {
         float w = tile != null ? tile.TileWidth : 1f;
         float h = tile != null ? Mathf.Max(.01f, tile.TileHeight) : 1f;
         double v = (gy + set.HalfHeight) / h;
-        return new Vector2(x / w + .5f, (float)(v - System.Math.Floor(v)));
+        float u = x / w + .5f;
+        if (tile != null && tile.Columns > 1) u -= Mathf.Floor(u);
+        return new Vector2(u, (float)(v - System.Math.Floor(v)));
     }
 
     public GroundClass ClassAt(float x, double gy)
@@ -236,6 +252,25 @@ public class GroundPlanner
         return false;
     }
 
+    // Share of a ring of RimSamples points at k x the footprint's half-sizes whose ground is one of `on` (PieceRule.rim).
+    public const int RimSamples = 16;
+    public float Ring(float x, double gy, float rx, float ry, float k, GroundClass on)
+    {
+        if (Mask == null) return 1f;
+        int hit = 0;
+        for (int i = 0; i < RimSamples; i++)
+        {
+            float a = i * 2f * Mathf.PI / RimSamples;
+            if ((ClassAt(x + Mathf.Cos(a) * rx * k, gy + Mathf.Sin(a) * ry * k) & on) != 0) hit++;
+        }
+        return hit / (float)RimSamples;
+    }
+
+    public bool Rim(PieceRule r, float x, double fy, float rx, float ry)
+    {
+        return r.rim <= 0f || Mask == null || Ring(x, fy, rx, ry, r.rim, r.on) >= r.rimNeed;
+    }
+
     // A piece's footprint half-sizes (the same everywhere: Find, Accepts,
     // Claim and the tests).
     public static float HalfX(PieceRule r, float size) { return size * Mathf.Max(r.core, MinCore); }
@@ -246,7 +281,7 @@ public class GroundPlanner
     {
         float rx = HalfX(r, size), ry = HalfY(r, size);
         double fy = gy + r.foot * size;     // the ground under its slab (PieceRule.foot)
-        return Match(x, fy, rx, ry, r.on) >= r.need && InZone(r, x, fy, rx, ry) && Near(x, fy, rx, ry, r.near) && Ends(r, x, gy, size);
+        return Match(x, fy, rx, ry, r.on) >= r.need && Rim(r, x, fy, rx, ry) && InZone(r, x, fy, rx, ry) && Near(x, fy, rx, ry, r.near) && Ends(r, x, gy, size);
     }
 
     public bool InZone(PieceRule r, float x, double gy, float rx, float ry)
@@ -317,6 +352,7 @@ public class GroundPlanner
             double fy = cy + rule.foot * size;
             float m = Match(cx, fy, rx, ry, rule.on);
             if (m < rule.need || m <= best) continue;
+            if (!Rim(rule, cx, fy, rx, ry)) continue;
             if (!InZone(rule, cx, fy, rx, ry)) continue;
             if (!Near(cx, fy, rx, ry, rule.near)) continue;
             if (!Ends(rule, cx, cy, size)) continue;
@@ -324,6 +360,28 @@ public class GroundPlanner
             if (m >= .999f) break;
         }
         return best >= 0f;
+    }
+
+    // The exhaustive fallback of Find: the band [gyMin, gyMax] scanned from its bottom up in rows `step` apart, each row across
+    // [xMin, xMax] in steps of `step` from a random start (wrapping), the first free spot `rule` accepts wins. For the rare
+    // piece that must not be missed (a launch site the elite director asked for): ~(width / step) x (height / step) checks.
+    public bool Scan(PieceRule rule, float size, float xMin, float xMax, double gyMin, double gyMax, float step,
+                     System.Random rng, out float x, out double gy)
+    {
+        x = 0f; gy = 0.0;
+        if (step <= 0f || xMax < xMin) return false;
+        float rx = HalfX(rule, size), ry = HalfY(rule, size);
+        int nx = Mathf.Max(1, Mathf.FloorToInt((xMax - xMin) / step) + 1);
+        int start = rng.Next(nx);
+        for (double cy = gyMin; cy <= gyMax; cy += step)
+            for (int i = 0; i < nx; i++)
+            {
+                float cx = xMin + ((start + i) % nx) * step;
+                if (!Free(cx, cy, rx, ry) || !Accepts(rule, cx, cy, size)) continue;
+                x = cx; gy = cy;
+                return true;
+            }
+        return false;
     }
 
     public int Footprints

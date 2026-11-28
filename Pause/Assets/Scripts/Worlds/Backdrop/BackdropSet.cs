@@ -220,7 +220,7 @@ public class BackdropSet
         // Tiles span the full view width (a little over, so sway never shows an edge).
         float mainWidth = halfWidth * 2f * 1.02f;
         TileScale = mainWidth / 6f;
-        foreach (var t in Tiles) t.Layout(mainWidth, halfHeight * 2f, mainWidth);
+        foreach (var t in Tiles) t.Layout(mainWidth, halfHeight * 2f, mainWidth, Spec.groundZoom);   // (< 1: seen from higher up, Spec.groundZoom)
         if (CloudShadows != null) CloudShadows.Layout(halfWidth, halfHeight);
     }
 
