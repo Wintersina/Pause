@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Ember "eruption columns" (the Cinder Drake's Legacy strike special): a CANDIDATE ember_attack_strike.png, built by
+"""Ember "eruption columns" (the Cinder Drake's Legacy strike special): ember_attack_strike.png, built by
 script from Ember's already-approved, installed attack art (no repaint, no generation):
 
     Resources/Attacks/Ember/ember_attack_laserbody.png   four 128 x 256 flame-beam frames, seamless top to bottom
@@ -15,11 +15,12 @@ Layout the game reads (AttackArt.StrikeBody / StrikeGlyph / StrikeBurst; docs wo
 The body frames are the 256 px beam tiles stretched NEAREST to 384 (every other row doubled): the stretch keeps the tile
 seamless (row 383 meets row 0 exactly as row 255 met row 0). The hit is the middle 46 px; the beam's flame is ~88 px wide.
 
-NOT INSTALLED (2026-11-27): the column tiles at 3 u a tile (384 px at 128 ppu) and AttackStrike.DrawBody lays whole tiles
-until it passes the top, so the Ember geyser (StrikeSpec height 4.2 u) would draw ~1.6 u of flame above its hitbox. Install
-only together with a crop of the last tile to the column's top (or a 1 u tile). Then copy the output to
-Resources/Attacks/Ember/ember_attack_strike.png (+ a .meta like ember_attack_laserbody.png.meta: Point filter, no mips,
-uncompressed, readable off).
+INSTALLED (2026-11-27) as Resources/Attacks/Ember/ember_attack_strike.png (.meta copied from ember_attack_laserbody.png.meta,
+new GUID: Point filter, no mips, not readable, ASTC on Android / iOS). The column tiles at 3 u (384 px at 128 ppu); AttackStrike.DrawBody
+cuts the last tile at the column's top (AttackStrike.Cropped), so the 4.2 u geyser never draws past its hitbox
+(AttackFairnessTest.ArtSlots checks it). Rebuild + reinstall:
+
+    python3 build_strike.py ../../../Resources/Attacks/Ember/ember_attack_strike.png
 
     python3 build_strike.py [OUT.png]
 """

@@ -48,6 +48,7 @@ public struct PShot
     public int burst;                    // > 0: it bursts into a ring of this many shots when its fuse is up
     public float burstSpeed;
     public float burstRot;               // degrees the burst ring is turned by
+    public int burstArt;                 // the burst ring's shards: 0 the shared shard, k > 0 the boss's attack variant k (PatternStream.burstArt)
     // > 0: a DEPLOYING shot (docs/boss-bullet-waves.md). It leaves its muzzle on the boss, flies to its place in the
     // formation, and after `turnAt` seconds takes the velocity `then` (a wall / curtain / rain drop falling down its
     // lane; zero = a thrown mine settling on its spot). `then` is scaled with the launch velocity by the host.
@@ -81,6 +82,7 @@ public sealed class PatternStream
     public float fuse = 1.6f;
     public int burst = 8;
     public float burstSpeed = 2.4f;
+    public int burstArt;                // bomb burst: the shards' attack variant (0: the boss's shared shard; Ember: 1, its cinders)
     public float minSep = 1.9f;         // mines: apart; bombs: apart across the ship
     public int free = 2;                // rain: lanes left empty each drop row
     public float side = 1.4f;           // pincer: how far either side of the part the two jaws sit (one part given)
@@ -628,6 +630,7 @@ public sealed partial class BossPatternRunner
                     sh.burst = s.burst;
                     sh.burstSpeed = s.burstSpeed;
                     sh.burstRot = k * s.rotStep;
+                    sh.burstArt = s.burstArt;
                     host.Fire(from, d / Mathf.Max(.3f, s.fuse), ref sh);
                     Fired++;
                 }

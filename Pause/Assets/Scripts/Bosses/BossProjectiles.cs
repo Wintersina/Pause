@@ -73,7 +73,7 @@ public class BossProjectile : MonoBehaviour, IHostileShot
     // Bullet-hell extras (BossPatternRunner's PShot): a seed's homing, a bomb's / mine's fuse and burst.
     bool patterned;
     float homeLeft, homeDeg, fuseLeft, fuseTotal, burstSpeed, burstRot;
-    int burst;
+    int burst, burstArt;
     PMotion motion;              // the signature library's parametric motion (PatternMotion)
     float turnLeft;              // a deploying shot: seconds until it takes `turnTo` (PShot.turnAt / then)
     Vector2 turnTo;
@@ -173,7 +173,7 @@ public class BossProjectile : MonoBehaviour, IHostileShot
         motion = default;
         art = 0;
         homeLeft = fuseLeft = fuseTotal = turnLeft = 0f;
-        burst = 0;
+        burst = burstArt = 0;
         bouncy = false;
         Launch(def, shotStyle, at, v, railMode, bounces, gravityPull, maxFall, true);
     }
@@ -184,7 +184,7 @@ public class BossProjectile : MonoBehaviour, IHostileShot
         patterned = false;
         motion = default;
         homeLeft = fuseLeft = fuseTotal = turnLeft = 0f;
-        burst = 0;
+        burst = burstArt = 0;
         bouncy = true;
         Launch(def, shotStyle, at, v, BossRailMode.Bounce, BossBounce.MaxBounces, 0f, 0f, true);
     }
@@ -201,6 +201,7 @@ public class BossProjectile : MonoBehaviour, IHostileShot
         burst = ps.burst;
         burstSpeed = ps.burstSpeed;
         burstRot = ps.burstRot;
+        burstArt = ps.burstArt;
         turnLeft = ps.turnAt > 0f ? ps.turnAt : 0f;
         turnTo = ps.then;
         // (never a bomb, a mine or a homing seed: BossBounce only picks straight shots)
@@ -420,7 +421,7 @@ public class BossProjectile : MonoBehaviour, IHostileShot
     void Detonate()
     {
         Vector3 at = transform.position;
-        if (burst > 0 && pool != null) pool.Burst(boss, at, burst, burstSpeed, burstRot);
+        if (burst > 0 && pool != null) pool.Burst(boss, at, burst, burstSpeed, burstRot, burstArt);
         else if (pool != null) pool.Spark(boss, at);
         EndReason = 1;
         Recycle();
@@ -1144,10 +1145,11 @@ public sealed class BossProjectilePool
     }
 
     // A bomb's ring: `n` shards out from `at`, turned `rot` degrees (silent: the bang is the bomb's own).
-    public void Burst(BossDef boss, Vector3 at, int n, float speed, float rot)
+    // art: the shards' attack variant (BossArt.AttackShot; 0 the boss's shared shard). The hit size stays the Shard style's.
+    public void Burst(BossDef boss, Vector3 at, int n, float speed, float rot, int art = 0)
     {
         Spark(boss, at);
-        var ps = new PShot { style = BossShotStyle.Shard, rail = BossRailMode.Absorb };
+        var ps = new PShot { style = BossShotStyle.Shard, rail = BossRailMode.Absorb, art = art };
         for (int i = 0; i < n; i++)
         {
             float h = (rot + 360f * i / n) * Mathf.Deg2Rad;

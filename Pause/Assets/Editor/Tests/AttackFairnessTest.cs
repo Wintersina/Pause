@@ -675,6 +675,32 @@ public static partial class AttackFairnessTest
         AttackArt.Clear();
         AttackHazardArt.Forget();
         EliteSystem.Clear();
+
+        // The installed Ember atlas (Resources/Attacks/Ember/ember_attack_strike.png, Art/Attacks/Ember~/src~/build_strike.py): the
+        // Cinder Drake's eruption column wears it, and its 3 u art tiles are cut at the geyser's top -- the flame never draws past
+        // the hit rectangle (a 4.35 u column = one whole tile + one cropped one).
+        Fresh();
+        var ember = AttackArt.StrikeBody(3, 0);
+        var er = AttackStrike.Arm(StrikeSpec.Standard(3), 0f, -1.5f, 1f, null);
+        er.Ignite();
+        Advance(.05f);
+        float topDrawn = -99f, footDrawn = 99f;
+        bool fromAtlas = ember != null;
+        for (int i = 0; i < AttackStrike.MaxTiles; i++)
+        {
+            var sr = er.BodyRenderer(i);
+            if (!sr.enabled) continue;
+            topDrawn = Mathf.Max(topDrawn, sr.bounds.max.y);
+            footDrawn = Mathf.Min(footDrawn, sr.bounds.min.y);
+            fromAtlas &= sr.sprite != null && ember != null && sr.sprite.texture == ember.texture;
+        }
+        var eh = er.Footprint.Bounds();
+        Check("Ember's installed strike atlas draws the eruption column (" + er.TilesShown + " tiles), from its foot (" + footDrawn.ToString("F2") + " vs " + eh.yMin.ToString("F2") +
+              ") exactly to the geyser's top (" + topDrawn.ToString("F3") + " vs " + eh.yMax.ToString("F3") + ", within one texel), never past it",
+              AttackHazardArt.StrikeArt(3) && fromAtlas && er.TilesShown == 2 && Mathf.Abs(footDrawn - eh.yMin) < .02f &&
+              topDrawn >= eh.yMax - .01f && topDrawn <= eh.yMax + 1f / AttackArt.PixelsPerUnit + .01f);
+        er.Cancel();
+        EliteSystem.Clear();
     }
 
     // ---- FR6: the dodge bot (a short run; AttackBudgetTest rolls the 2000) -------------------------------------------------------
