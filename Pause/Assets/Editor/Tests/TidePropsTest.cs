@@ -294,7 +294,7 @@ public static class TidePropsTest
         audit();
         opening = false;
         Run(wb, 240f, audit);
-        Check("v" + v + ": " + seen + " props over 240 s (" + kinds.Count + " kinds)", seen >= 15 && kinds.Count >= 7);
+        Check("v" + v + ": " + seen + " props over 240 s (" + kinds.Count + " kinds)", seen >= 10 && kinds.Count >= 7);   // (the ground creeps at .49: ~10 copies in four minutes, as Desert's)
         Check("v" + v + ": every prop on its own ground (water / shoal; deep-water kinds on water), marine life only in water, none on a painted deck / block / feature (" +
               offContext + " off, " + onPainted + " painted, " + marineDry + " dry) " + bad, offContext == 0 && onPainted == 0 && marineDry == 0);
         Check("v" + v + ": no two keep-outs overlap (" + keepOverlap + ")", keepOverlap == 0);
