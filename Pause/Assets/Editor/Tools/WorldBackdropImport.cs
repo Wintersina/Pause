@@ -81,7 +81,7 @@ public class WorldBackdropImport : AssetPostprocessor
 
     public static bool IsBackdrop3(string path) { return path.Contains("/Backdrop3/"); }
 
-    // Storm's r3 ground (2026-11-28): 896 x 4096 tiles drawn at StormTuning.TileZoom (.82) of the view, ~1 texel per screen px:
+    // Storm's r3 ground (2026-11-28): 896 x 4096 tiles drawn at StormTuning.TileZoom (.98 since the .49 altitude) of the view, ~1.2 screen px a texel:
     // never clamped (a 2048 cap would halve them), bilinear (a soft painted deck, minified a little on small phones), repeating
     // across as well as down (BackdropTile columns). The vapour strip (flow, 512 x 2048) is drawn at the same width: 512 / 6 px a unit.
     // Desert's r1 ground (2026-11-28) is the same format: its v<n>/mid.png (896 x 4096, DesertTuning.TileZoom) takes the same rules.
@@ -122,9 +122,9 @@ public class WorldBackdropImport : AssetPostprocessor
         return (path.Contains("/Worlds/Tide/Backdrop3/") || path.Contains("/Worlds/Desert/Backdrop3/")) && file != "weather";
     }
 
-    // Desert's worm sheets (worm, worm_giant): 2048 px sheets of 256 / 512 px cells. Since the r1 altitude (2026-11-28) they are drawn
-    // at DesertTuning.PieceScale, under half their pixel size, so they cap at 1024 like the other atlases (their JSON carries
-    // sheetW / sheetH, so the cut rects hold).
+    // Desert's worm sheets (worm, worm_giant): authored 2048 px sheets of 256 / 512 px cells. Since the r1 altitude (2026-11-28) they
+    // are drawn at DesertTuning.PieceScale, about half their px, so they are STORED at 1024 (backdrop_r1~/build_r1.py worms) and
+    // import at 1024 like the other atlases (their JSON keeps sheetW / sheetH 2048, so the cut rects scale).
     // Storm's and Desert's painted art is continuous-tone (thousands of colours: smooth cloud / dune gradients), not
     // the small palettes of Frost / Verdant / Ember: ASTC 6x6 bands and blocks it on phones, so these two worlds
     // take ASTC 4x4 (8 bpp). Their sources are never clamped (see maxTextureSize above).
@@ -173,7 +173,7 @@ public class WorldBackdropImport : AssetPostprocessor
 
     // 2026-10: Frost's four ground variants (v1..v4 sky / far / mid / flow) are crisp, bright pixel-art repaints at 896x1792, same HD
     // import rules as Tide's, Verdant's and Ember's tiles. (docks.png etc. in Backdrop3/ stay as they were.)
-    // 2026-11-28: Frost is seen from high up (FrostTuning.GroundZoom .41: a tile ~450 screen px wide on a 1080 px phone), so the tiles
+    // 2026-11-28: Frost is seen from high up (FrostTuning.GroundZoom .41 then .49: a tile ~450, now ~540 screen px wide on a 1080 px phone), so the tiles
     // are installed HALVED to 448x896 (frost_redraw/install_tiles.py: one texel per 2 px art cell, ~1 texel per screen pixel) and
     // drawn BILINEAR with U wrapping too (the tiles repeat across): point sampling the 896 tiles at ~2x minification skipped every
     // other texel and the ground shimmered as it scrolled (no mipmaps: a non-power-of-two mipmapped texture stays uncompressed,

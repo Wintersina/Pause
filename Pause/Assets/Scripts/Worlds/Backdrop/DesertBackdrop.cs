@@ -1,14 +1,15 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-// Desert's backdrop: the ship flies HIGH over the dead strip-mined planet (r1, 2026-11-28: the user-approved .41 altitude, like
+// Desert's backdrop: the ship flies HIGH over the dead strip-mined planet (r1, 2026-11-28: the user-approved .49 altitude, like
 // Frost and Storm), under a thin high haze of dust, looking down on bone-gold dune seas, a lilac salt mine, a rose dusk oasis in the
 // rock and the NIGHT side's purple craters -- and, under the sand, the GIANT WORMS.
 //
-//   GROUND     one of four stitched ground tiles per landing (BackdropVariants; v<n>/mid.png, 896 x 4096: two .41 columns side by
+//   GROUND     one of four stitched ground tiles per landing (BackdropVariants; v<n>/mid.png, 896 x 4096: two ground columns side by
 //              side, drawn at DesertTuning.TileZoom of the view, so the ground reads at GroundZoom), quilted from the approved round-5
 //              paintings with their painted features re-scattered: never recoloured (the colour and life come from the props).
-//              v1 khaki dune sea, v2 lilac salt mine, v3 rose dusk oasis, v4 the NIGHT side (DesertTuning.Night).
+//              v1 khaki dune sea, v2 lilac salt mine, v3 a golden-hour amber oasis in the rock, v4 the moonlit blue-grey NIGHT side
+//              (DesertTuning.Night) -- v3 / v4 the user-approved regrades; each layout's haze and weather tint are DATA (its grade.json).
 //   PROPS      the living props and the big mountains (DesertProps.cs): PINNED to the mid tile, placed where they make sense
 //              (mask.txt + ctx.txt), each with a keep-out nothing moving enters. They replace the round-1 landmarks, pipes and
 //              ground features, retired with their loops (smoke stacks, lamps, leaks) on 2026-11-28.
@@ -47,10 +48,11 @@ public static class DesertTuning
 
     // ---- ALTITUDE (2026-11-28, the user-approved r1 ground) -------------------------------------------------------------------
     // The ground is seen from Frost's height: .41 of the old view (GroundZoom). The r1 tiles (896 x 4096) hold TWO .41 columns side
-    // by side, so they are drawn at TileZoom (.82) of the view's width (BackdropCatalog.Spec.groundZoom): ~1 texel per screen px.
+    // by side, so they are drawn at TileZoom (2 x GroundZoom) of the view's width (BackdropCatalog.Spec.groundZoom).
+    // (2026-11-28, later: the user moved every world to .49 -- was .41; everything below follows GroundZoom.)
     // Everything that stands on the ground is keyed to GroundZoom (Spec.pieceZoom), never TileZoom: the ground layers' rates, the
     // worms, the sites, the wanderers, the cover boulders; x PieceFit (.7, as Frost) for the pieces' sizes.
-    public const float GroundZoom = .41f, TileZoom = .82f, PieceFit = .7f;
+    public const float GroundZoom = .49f, TileZoom = 2f * GroundZoom, PieceFit = .7f;
     public const float PieceScale = GroundZoom * PieceFit;
     public const float GroundRate = .024f * GroundZoom;               // the mid tile's (and everything pinned to it) parallax rate
     public const float FlowRate = .025f * GroundZoom, FlowDrift = .30f * GroundZoom;
@@ -179,7 +181,15 @@ public static class DesertTuning
         new Color(.70f, .64f, .52f, 1f), new Color(.70f, .64f, .52f, 1f), new Color(.72f, .71f, .74f, 1f),
         new Color(.68f, .66f, .62f, 1f), new Color(.40f, .40f, .42f, 1f),
     };
-    [System.Serializable] class GradeFile { public float[] haze; }
+    [System.Serializable] class GradeFile { public float[] haze, weather; }
+    // The layout's weather tint (wisps, mist, gusts, grit, dust devils): its grade.json "weather" (v3 golden afternoon, v4 moonlit
+    // blue-grey), else as painted (white).
+    public static Color WeatherTintOf(int variant)
+    {
+        var t = WorldArtPreload.Load<TextAsset>(BackdropCatalog.TileFolder("Desert", variant) + GradeFileName);
+        var g = t != null ? JsonUtility.FromJson<GradeFile>(t.text) : null;
+        return g != null && g.weather != null && g.weather.Length >= 3 ? new Color(g.weather[0], g.weather[1], g.weather[2], 1f) : Color.white;
+    }
     // The layout's haze colour: its grade.json, else the fallback above.
     public static Color HazeOf(int variant)
     {
@@ -217,7 +227,7 @@ public partial class DesertDirector : PlanetDirector
     readonly SpriteRenderer[] mists = new SpriteRenderer[3];
     readonly float[] mistA = new float[3];
     float mistClock;
-    Color haze;                                        // the layout's haze (DesertTuning.HazeOf: its grade.json)
+    Color haze, weatherTint;                                        // the layout's haze (DesertTuning.HazeOf: its grade.json)
     Color[] dockTints;                                 // per site kind: its DockGrade colour on this ground set
     Sprite[][] siteLaunch;                             // per site kind: its 6 launch cells (null: an old two-drawing site, or the atlas is missing)
     AmbientEmitters ambient;
@@ -278,6 +288,7 @@ public partial class DesertDirector : PlanetDirector
         weather = set.Atlas("weather");
         night = set.Spec.Night(set.Variant);
         haze = DesertTuning.HazeOf(set.Variant);
+        weatherTint = DesertTuning.WeatherTintOf(set.Variant);
         DesertTuning.LightBoostNow = night ? DesertTuning.NightLightBoost : 1f;
         ambient = new AmbientEmitters(set, DesertAmbientCatalog.Table) { Wind = DesertTuning.Wind };
         planner = new GroundPlanner(set, "mid", GroundMask.Load("Desert", set.Variant), 64);
@@ -514,6 +525,7 @@ public partial class DesertDirector : PlanetDirector
             p.body.localScale = Chance(.5) ? new Vector3(-1f, 1f, 1f) : Vector3.one;
             // a foot-anchored loop (the dust devil) stands on its spot, a centred one is centred on it
             p.body.localPosition = DesertAmbientCatalog.Centred(loop) ? Vector3.zero : new Vector3(0f, 1.08f, 0f);
+            p.dockTint = weatherTint;
             Place(p);
             Tinted(p, 0f);
             return;
@@ -1148,6 +1160,7 @@ public partial class DesertDirector : PlanetDirector
         w.vx = DesertTuning.Wind * DesertTuning.WispDrift * Rand(.7f, 1.3f);
         w.rate = set.Spec.Rate("wisps");
         w.phase = Rand(DesertTuning.WispAlphaMin, DesertTuning.WispAlphaMax) * CloudCover.Alpha(set.Spec.CloudDensity());
+        w.dockTint = weatherTint;
         Place(w);
         Tinted(w, 0f);
     }
@@ -1164,6 +1177,7 @@ public partial class DesertDirector : PlanetDirector
         m.vx = DesertTuning.Wind * DesertTuning.MistDrift * Rand(.6f, 1.4f);
         m.rate = set.Spec.Rate("mist");
         m.phase = Rand(DesertTuning.MistAlphaMin, DesertTuning.MistAlphaMax) * CloudCover.Alpha(set.Spec.CloudDensity());
+        m.dockTint = weatherTint;
         Place(m);
         Tinted(m, 0f);
     }
@@ -1186,6 +1200,7 @@ public partial class DesertDirector : PlanetDirector
         g.vy = -speed * .35f;
         g.life = (2f * HalfW + g.size * .6f) / speed;
         g.rate = set.Spec.Rate("gusts");
+        g.dockTint = weatherTint;
         Place(g);
         Tinted(g, 0f);
     }
@@ -1197,6 +1212,7 @@ public partial class DesertDirector : PlanetDirector
             if (gritArt.Length == 0) break;
             s.Show(true);
             SetSprite(s, Pick(gritArt), Rand(DesertTuning.GritMin, DesertTuning.GritMax));
+            s.dockTint = weatherTint;
             s.x = Rand(-HalfW, HalfW);
             s.y = Rand(-HalfH, HalfH);
             s.phase = Rand(0f, 6.28f);

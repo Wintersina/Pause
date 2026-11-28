@@ -3,7 +3,7 @@ using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 
-// The Desert level as the phone camera sees it (gameS1, 1080x2400) with the r1 ground (DesertTuning.GroundZoom .41) and the living
+// The Desert level as the phone camera sees it (gameS1, 1080x2400) with the r1 ground (DesertTuning.GroundZoom .49) and the living
 // props and mountains (DesertProps.cs), for review:
 //
 //   desert-vN.png         each ground set (v1..v4) mid-level, past the dust ceiling: the stitched ground, the props and mountains the

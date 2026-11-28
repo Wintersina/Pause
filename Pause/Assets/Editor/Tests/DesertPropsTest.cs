@@ -104,8 +104,12 @@ public static class DesertPropsTest
               ks[DesertPropsTuning.Volcano].px == 350f && ks[DesertPropsTuning.Mesa].mountain && ks[DesertPropsTuning.Volcano].on == DesertPropsTuning.Place.Mountain &&
               DesertPropsTuning.TotalPerThree(true) >= .6f - 1e-4f && DesertPropsTuning.TotalPerThree(true) <= .7f + 1e-4f);
         float hw = 2.7f;
-        Check("keep-out = .42 x px + 22 on a 1080 px screen (oasis " + DesertPropsTuning.Keep(DesertPropsTuning.Oasis, hw).ToString("F3") + " units)",
-              Mathf.Abs(DesertPropsTuning.Keep(DesertPropsTuning.Oasis, hw) - (150f * .42f + 22f) / 1080f * 2f * hw) < 1e-4f);
+        Check("drawn at the altitude: the approved .41 px x " + DesertPropsTuning.AltitudeK.ToString("F3") + " (GroundZoom " + DesertTuning.GroundZoom +
+              "), the copies per screen thinned by the area (x" + DesertPropsTuning.DensityK.ToString("F3") + ")",
+              Mathf.Abs(DesertPropsTuning.AltitudeK - .49f / .41f) < 1e-4f && Mathf.Abs(DesertPropsTuning.DrawnPx(DesertPropsTuning.Oasis) - 150f * .49f / .41f) < 1e-3f &&
+              Mathf.Abs(DesertPropsTuning.DensityK - (.41f / .49f) * (.41f / .49f)) < 1e-4f);
+        Check("keep-out = .42 x drawn px + 22 on a 1080 px screen (oasis " + DesertPropsTuning.Keep(DesertPropsTuning.Oasis, hw).ToString("F3") + " units)",
+              Mathf.Abs(DesertPropsTuning.Keep(DesertPropsTuning.Oasis, hw) - (150f * .49f / .41f * .42f + 22f) / 1080f * 2f * hw) < 1e-4f);
         Check("placement rules: skiffs on the shore; camp, caravan, solar, station, spaceport, market, zeppelin, balloons on flat ground; dig, ruins, " +
               "observatory on rocky; crawler, rig, wind on open dunes; caravan beside camp / oasis / market, balloons beside camp / station, market beside the oasis",
               ks[DesertPropsTuning.Skiffs].on == DesertPropsTuning.Place.Shore &&
@@ -302,7 +306,7 @@ public static class DesertPropsTest
         audit();
         Run(wb, 240f, audit);
         Check("v" + v + ": " + seen + " props over 240 s (" + kinds.Count + " kinds, " + mountains + " mountains, " + d.WormsSpawned + " worms)",
-              seen >= 40 && kinds.Count >= 10 && mountains >= 1 && d.WormsSpawned >= 5);
+              seen >= 30 && kinds.Count >= 10 && mountains >= 1 && d.WormsSpawned >= 5);
         Check("v" + v + ": every prop on its own ground (flat / rocky / shore / open), none on a painted feature (" + offContext + " off, " + onArt + " on art) " + bad,
               offContext == 0 && onArt == 0);
         Check("v" + v + ": caravans, balloons and markets stand beside their hosts (" + farFromHost + " alone)", farFromHost == 0);

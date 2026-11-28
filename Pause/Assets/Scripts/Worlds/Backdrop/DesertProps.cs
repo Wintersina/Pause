@@ -1,6 +1,6 @@
 using UnityEngine;
 
-// Desert's LIVING PROPS (r1, user-approved 2026-11-28): small animated paintings standing on the stitched .41-altitude ground --
+// Desert's LIVING PROPS (r1, user-approved 2026-11-28): small animated paintings standing on the stitched high-altitude ground (DesertTuning.GroundZoom) --
 // an oasis town, camel caravans, crawler trains, oil rigs, solar farms, a research station, wind farms, ruins with braziers, a
 // crashed freighter, nomad camps, a TETHERED balloon field, a zeppelin MOORED to its mast, an excavation dig, sand skiffs on a
 // shore, a spaceport, an observatory, a market with its roads -- and the BIG MOUNTAINS (mesa, ridge, hoodoo, volcano), pinned hard.
@@ -78,22 +78,29 @@ public static class DesertPropsTuning
         }
     }
     public static float Need(Place p) { return p == Place.Flat ? .8f : p == Place.Rocky || p == Place.Mountain ? .55f : p == Place.Shore ? .45f : .85f; }
-    public const float ContextShare = .8f;          // the context is read over a disc of this x the keep-out
+    public const float ContextShare = .45f;         // the context is read over a disc of this x the keep-out (~ the painting's base)
     public const GroundClass Painted = GroundClass.Canopy;   // mask C: a painted feature, never under a prop
 
     // ---- sizes (a 1080 px wide screen spans the view: 2 x HalfWidth) -------------------------------------------------------
     public const float ScreenPx = 1080f;
+    // Kind.px is the size approved at the .41 altitude; at GroundZoom every prop is drawn larger by the same share as the ground
+    // (DrawnPx; the atlas is cut at the drawn size, build_r1.py ALT), and the copies per screen thin by the area (DensityK)
+    public const float ApprovedZoom = .41f;
+    public static float AltitudeK => DesertTuning.GroundZoom / ApprovedZoom;
+    public static float DensityK => 1f / (AltitudeK * AltitudeK);
+    public static float DrawnPx(int kind) { return Kinds[kind].px * AltitudeK; }
     public static float Units(float px, float halfW) { return px / ScreenPx * 2f * halfW; }
-    public static float CellSize(int kind, float halfW) { return Units(Kinds[kind].px, halfW); }
+    public static float CellSize(int kind, float halfW) { return Units(DrawnPx(kind), halfW); }
     public const float KeepCore = .42f, KeepMarginPx = 22f;
-    // the keep-out half-size (a box in the planner; a disc in the plan): footprint + margin
-    public static float Keep(int kind, float halfW) { return Units(Kinds[kind].px * KeepCore + KeepMarginPx, halfW); }
+    // the keep-out half-size (a box in the planner; a disc in the plan): .42 x the drawn px + 22 px
+    public static float Keep(int kind, float halfW) { return Units(DrawnPx(kind) * KeepCore + KeepMarginPx, halfW); }
     public const float NearMin = 1f, NearMax = 2.6f;  // a NEAR kind's centre: this x (its host's keep-out + .6 x its own) away
 
     // ---- how many ----------------------------------------------------------------------------------------------------------
     public const float MountainPerThree = .65f;      // mountains (all four kinds together) per three screens, placed first
     public const int Pool = 26, MountainPool = 4;
     public const int Tries = 40;
+    // (as approved at .41: per three screens of the drawn ground; DesertDirector thins it by DensityK)
     public static float TotalPerThree(bool mountains)
     {
         float t = 0f;
@@ -131,7 +138,7 @@ public partial class DesertDirector
     BackdropAtlas propArt;
     Sprite[][][] propStrips;                 // [kind][variant] -> its frames (null: not in this layout's atlas)
     int[] lastPropVariant;
-    int lastPropKind = -1, balloonsDealt;
+    int lastPropKind = -1, balloonsDealt, landing;
     float propTravel, propGap, mountainTravel, mountainGap;
     System.Random propRng;                   // its own stream: a prop never shifts the worms' or the weather's dice
 
@@ -146,7 +153,9 @@ public partial class DesertDirector
 
     void BuildProps()
     {
-        propRng = new System.Random((SeedOverride > 0 ? SeedOverride : 1990) * 53 + 29);
+        // its own stream, a new one each landing (BackdropVariants.Picks): the ground is dealt afresh, deterministic under a test seed
+        landing = BackdropVariants.For("Desert").Picks;
+        propRng = new System.Random((SeedOverride > 0 ? SeedOverride : 1990 + landing * 7919) * 53 + 29);
         propArt = set.VariantAtlas(DesertPropsTuning.Atlas);
         int n = DesertPropsTuning.Count;
         propStrips = new Sprite[n][][];
@@ -169,22 +178,23 @@ public partial class DesertDirector
         Grade(mountains, DesertPropsTuning.Layer);
         Grade(props, DesertPropsTuning.Layer);
         float screens3 = 6f * HalfH;
-        propGap = PRand(.3f, 1f) * screens3 / DesertPropsTuning.TotalPerThree(false);
-        mountainGap = PRand(.2f, .8f) * screens3 / DesertPropsTuning.MountainPerThree;
+        propGap = PRand(.3f, 1f) * screens3 / (DesertPropsTuning.TotalPerThree(false) * DesertPropsTuning.DensityK);
+        mountainGap = PRand(.2f, .8f) * screens3 / (DesertPropsTuning.MountainPerThree * DesertPropsTuning.DensityK);
     }
 
     public bool HasPropArt(int kind) { return propStrips != null && kind >= 0 && kind < propStrips.Length && propStrips[kind] != null; }
     public int PropVariants(int kind) { return HasPropArt(kind) ? propStrips[kind].Length : 0; }
     public float PropKeep(int kind) { return DesertPropsTuning.Keep(kind, HalfW); }
+    float CellHalf(int kind) { return DesertPropsTuning.CellSize(kind, HalfW) * .5f; }
 
     // the opening view: mountains and props already standing (over the whole view and the band above it)
     void OpeningProps()
     {
         if (props == null || !planner.Ready) return;
         double t = planner.Travel;
-        int m = Mathf.RoundToInt(DesertPropsTuning.MountainPerThree / 3f * 1.3f + (float)propRng.NextDouble());
+        int m = Mathf.RoundToInt(DesertPropsTuning.MountainPerThree * DesertPropsTuning.DensityK / 3f * 1.3f + (float)propRng.NextDouble());
         for (int i = 0; i < m; i++) SpawnProp(-1, t - HalfH * .7, t + HalfH * 1.2, true);
-        int n = Mathf.RoundToInt(DesertPropsTuning.TotalPerThree(false) / 3f * 1.3f);
+        int n = Mathf.RoundToInt(DesertPropsTuning.TotalPerThree(false) * DesertPropsTuning.DensityK / 3f * 1.3f);
         for (int i = 0; i < n; i++) SpawnProp(-1, t - HalfH * .9, t + HalfH * 1.3, false);
     }
 
@@ -241,7 +251,7 @@ public partial class DesertDirector
 
     // A prop (kind < 0: one picked) centred in the ground band [lo, hi] on its context, its keep-out free and off every live
     // worm's path. `variant` < 0: the copy's own. False: nothing placed.
-    public bool SpawnProp(int kind, double lo, double hi, bool mountain = false, int variant = -1, int tries = DesertPropsTuning.Tries)
+    public bool SpawnProp(int kind, double lo, double hi, bool mountain = false, int variant = -1, int tries = DesertPropsTuning.Tries, bool above = false)
     {
         if (props == null || !planner.Ready) return false;
         if (kind >= 0) mountain = DesertPropsTuning.Kinds[kind].mountain;
@@ -254,11 +264,14 @@ public partial class DesertDirector
             if (kd < 0 || !HasPropArt(kd) || (kind >= 0 && !NearReady(kd))) return false;
             tried = kd;
             float keep = PropKeep(kd);
+            // entering at the top: the whole painting starts above the view (its half cell), never popping in
+            double off = above ? DesertPropsTuning.CellSize(kd, HalfW) * .55f : 0.0;
             float x = 0f; double gy = 0.0; bool found = false;
             for (int t = 0; t < tries && !found; t++)
             {
                 float cx; double cy;
-                if (!PropCandidate(kd, lo, hi, out cx, out cy)) continue;
+                if (!PropCandidate(kd, lo + off, hi + off, out cx, out cy)) continue;
+                if (above && cy - CellHalf(kd) < planner.Travel + HalfH) continue;
                 if (!planner.Free(cx, cy, keep, keep)) continue;
                 if (!DesertPropsTuning.OnContext(planner, kd, cx, cy, HalfW)) continue;
                 if (!WormPathClear(cx, cy, keep)) { PropsBlockedByWorm++; continue; }
@@ -283,7 +296,7 @@ public partial class DesertDirector
         int v;
         if (variant >= 0) v = Mathf.Min(variant, n - 1);
         else if (kd == DesertPropsTuning.Balloon && balloonsDealt == 0) v = (BackdropVariants.For("Desert").Picks + (SeedOverride > 0 ? SeedOverride : 0)) % n;   // each landing leads with another livery
-        else v = DesertPropsTuning.Variant(PropsSpawned, kd, n, lastPropVariant[kd]);
+        else v = DesertPropsTuning.Variant(PropsSpawned + landing * 131, kd, n, lastPropVariant[kd]);
         if (v == lastPropVariant[kd] && variant < 0 && n > 1) v = (v + 1) % n;
         if (kd == DesertPropsTuning.Balloon) balloonsDealt++;
         lastPropVariant[kd] = v;
@@ -366,14 +379,14 @@ public partial class DesertDirector
             // the mountains first: their ground is taken before the smaller props look for theirs
             if (mountainTravel >= mountainGap)
             {
-                if (SpawnProp(-1, lo + PropKeep(DesertPropsTuning.Ridge), hi + PropKeep(DesertPropsTuning.Ridge), true))
-                { mountainTravel = 0f; mountainGap = PRand(.6f, 1.4f) * screens3 / DesertPropsTuning.MountainPerThree; }
+                if (SpawnProp(-1, lo, hi, true, -1, DesertPropsTuning.Tries, true))
+                { mountainTravel = 0f; mountainGap = PRand(.6f, 1.4f) * screens3 / (DesertPropsTuning.MountainPerThree * DesertPropsTuning.DensityK); }
                 else mountainGap = mountainTravel + DesertTuning.SpawnRetry;
             }
             if (propTravel >= propGap)
             {
-                if (SpawnProp(-1, lo + DesertTuning.SpawnAbove, hi + DesertTuning.SpawnAbove, false))
-                { propTravel = 0f; propGap = PRand(.6f, 1.4f) * screens3 / DesertPropsTuning.TotalPerThree(false); }
+                if (SpawnProp(-1, lo, hi, false, -1, DesertPropsTuning.Tries, true))
+                { propTravel = 0f; propGap = PRand(.6f, 1.4f) * screens3 / (DesertPropsTuning.TotalPerThree(false) * DesertPropsTuning.DensityK); }
                 else propGap = propTravel + DesertTuning.SpawnRetry;
             }
         }

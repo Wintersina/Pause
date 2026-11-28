@@ -122,7 +122,7 @@ public static class DesertBackdropTest
               spec.world == "Desert" && spec.folder == "Worlds/Desert/Backdrop3/" && spec.variantSets == BackdropVariants.MaxVariants);
         Check("the r1 ground: its own stitched mid tile (far reuses the sky), drawn at TileZoom " + spec.groundZoom + ", the pieces keyed to " + spec.PieceZoom,
               spec.Find("mid").texture == "mid" && spec.Find("far").texture == "sky" && spec.Rate("mid") != spec.Rate("sky") &&
-              spec.groundZoom == DesertTuning.TileZoom && spec.PieceZoom == DesertTuning.GroundZoom && DesertTuning.GroundZoom == .41f);
+              spec.groundZoom == DesertTuning.TileZoom && spec.PieceZoom == DesertTuning.GroundZoom && DesertTuning.GroundZoom == .49f && DesertTuning.TileZoom == 2f * DesertTuning.GroundZoom);
         string[] want = { "sky", "far", "mid", "flow", "ground", "mist", "wisps", "ceiling", "gusts", "grit" };
         bool all = !spec.Has("palls");
         foreach (string n in want) all &= spec.Has(n);
@@ -1019,7 +1019,7 @@ public static class DesertBackdropTest
                 behind &= spray == null || spray.sortingOrder < d.Mountains.items[0].sr.sortingOrder;
                 // the emergence origin (bottom centre of the cell) sits on the worm's root
                 var s = p.sr.sprite;
-                Vector2 at = p.kind == 2 ? new Vector2(256f, 492f) : new Vector2(128f, 236f);
+                Vector2 at = (p.kind == 2 ? new Vector2(256f, 492f) : new Vector2(128f, 236f)) * (s.pixelsPerUnit / BackdropAtlas.PixelsPerUnit);   // (authored px; the sheet is stored at half size)
                 Vector3 w = p.sr.transform.TransformPoint(new Vector3((at.x - s.rect.width * .5f) / s.pixelsPerUnit, (s.rect.height * .5f - at.y) / s.pixelsPerUnit, 0f));
                 float off = Vector2.Distance(w, p.root.position);
                 worstAnchor = Mathf.Max(worstAnchor, off);
