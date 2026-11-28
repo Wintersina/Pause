@@ -96,5 +96,5 @@ def run(w):
         res["pink"] = {s: round(float(pink_share(np.asarray(Image.open(od / f"{w}{s}.png").convert("RGBA")))) * 100, 3) for s in ("", "_damage", "_damage_fx", "_death")}
     return res
 
-for w in (sys.argv[1:] or ["Space", "Frost", "Verdant", "Ember", "Tide", "Desert"]):
+for w in (sys.argv[1:] or ["Space", "Frost", "Verdant", "Ember", "Tide", "Storm", "Desert"]):
     print(w, json.dumps(run(w), default=str))

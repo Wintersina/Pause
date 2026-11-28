@@ -40,9 +40,10 @@ LIVE = ART / "Resources/Bosses"
 IMPACT = ART / "Resources/BossImpact/attack"
 OLD = HERE / "old"; OUT = HERE / "out"; APPROVED = HERE / "approved"
 COLS = 5
+SHRINK = {"Space": .91, "Frost": .91, "Verdant": .91, "Ember": .91, "Tide": .91, "Storm": .91}
 PAD = 24                                                # source canvas padding (room for flames / blasts)
 
-CUE = {"Space": 318, "Frost": 195, "Verdant": 135, "Ember": 32, "Tide": 188, "Desert": 45}
+CUE = {"Space": 318, "Frost": 195, "Verdant": 135, "Ember": 32, "Tide": 188, "Storm": 258, "Desert": 45}
 EXPANDED = {"Space", "Ember", "Tide", "Desert"}
 
 # Per boss, in the approved drawing's own pixels (x right, y down):
@@ -56,39 +57,53 @@ RIG = {
         engines=[(60, 3, 0, -1, 4.2, 10), (100, 3, 0, -1, 4.2, 10)],
         lights=[(60, 12, 10), (100, 12, 10), (80, 52, 5), (80, 74, 5), (60, 68, 4), (100, 68, 4), (43, 70, 3), (117, 70, 3),
                 (80, 118, 5), (56, 130, 5), (104, 130, 5)],
-        parts={"Chin": (80, 146), "Core": (80, 74), "PodL": (56, 131), "PodR": (104, 131)},
+        # Chin: the chin cannon's lit breech, Pods: the pod barrels' lit mouths -- high on the guns, so the Archon's underside
+        # (its lowest muzzle) leaves a 3:4 tablet a way through its static patterns (LaneWidthTest: >= 4 % of the zone)
+        parts={"Chin": (80, 118), "Core": (80, 74), "PodL": (56, 128), "PodR": (104, 128)},
         tells={0: ["Chin"], 1: ["Core"], 2: ["PodL", "PodR"]}),
+    # v2 "scarier" redraws (user-approved 2026-11-27): a frost-clad tusked skull fortress
     "Frost": dict(
-        core=(80, 73),
-        engines=[(49, 14, 0, -1, 2.6, 7), (31, 30, 0, -1, 2.6, 7), (109, 14, 0, -1, 2.6, 7), (129, 30, 0, -1, 2.6, 7)],
-        lights=[(80, 73, 13), (54, 96, 3), (106, 96, 3), (70, 127, 4), (90, 127, 4), (52, 115, 5), (108, 115, 5),
-                (49, 22, 7), (31, 38, 7), (109, 22, 7), (129, 38, 7)],
-        parts={"Jaw": (80, 147), "EyeL": (69, 127), "EyeR": (91, 127), "Crown": (80, 14)},
+        core=(80, 50),
+        engines=[(80, 24, 0, -1, 3.6, 9), (64, 18, -.2, -1, 2.6, 7), (96, 18, .2, -1, 2.6, 7)],
+        lights=[(80, 50, 10), (65, 86, 7), (95, 86, 7), (64, 112, 4), (96, 112, 4), (47, 108, 4), (113, 108, 4), (80, 128, 9)],
+        parts={"Jaw": (80, 133), "EyeL": (65, 86), "EyeR": (95, 86), "Crown": (80, 28)},
         tells={0: ["Jaw"], 1: ["EyeL", "EyeR"], 2: ["Crown"]}),
+    # a gear-and-vine hive queen: twin lantern flames, a green seed orb, spore clusters
     "Verdant": dict(
-        core=(80, 50),
-        engines=[(61, 7, 0, -1, 3.4, 6), (98, 5, 0, -1, 3.4, 6)],
-        lights=[(61, 15, 10), (98, 14, 10), (80, 50, 14), (70, 113, 5), (89, 113, 5)],
-        parts={"Stinger": (80, 122), "PetalUL": (30, 20), "PetalUR": (128, 18), "PetalL": (8, 28), "PetalR": (152, 26),
-               "PetalLL": (20, 78), "PetalLR": (140, 78), "CannonL": (33, 117), "CannonR": (127, 117), "Bulb": (80, 50)},
-        # (acid cannons: the fore-leg joints, as wide apart as the old Queen's cannons -- the mandible tips sat 49 px apart
-        #  and the two swept beams left no way through: ShipReachTest)
+        core=(80, 75),
+        engines=[(62, 6, 0, -1, 3.2, 8), (96, 4, 0, -1, 3.2, 8)],
+        lights=[(62, 15, 10), (96, 15, 10), (62, 30, 5), (96, 30, 5), (80, 75, 13), (55, 66, 10), (107, 66, 10), (72, 118, 6), (88, 118, 6)],
+        parts={"Stinger": (80, 120), "PetalUL": (44, 12), "PetalUR": (116, 12), "PetalL": (10, 24), "PetalR": (150, 24),
+               "PetalLL": (6, 55), "PetalLR": (154, 55), "CannonL": (30, 110), "CannonR": (130, 110), "Bulb": (80, 75)},
+        # (acid cannons: the outer vine roots, as wide apart as the old Queen's cannons, so the two swept beams leave a
+        #  way through: ShipReachTest)
         tells={0: ["Stinger"], 1: ["PetalUL", "PetalUR", "PetalL", "PetalR", "PetalLL", "PetalLR"], 2: ["CannonL", "CannonR"]}),
+    # a lava-winged war machine with a horned skull: two flaming exhaust stacks
     "Ember": dict(
-        core=(80, 50),
-        engines=[(68, 20, 0, -1, 3.4, 7), (92, 20, 0, -1, 3.4, 7)],   # (tips stay under the horns: CalmIdleTest holds the idle box within 3 %),
-        lights=[(80, 50, 14), (80, 34, 4), (73, 124, 4), (87, 124, 4), (25, 85, 28), (135, 85, 28), (80, 88, 22)],
-        parts={"Jaw": (80, 139), "Furnace": (80, 50), "Brow": (80, 117), "CannonL": (45, 52), "CannonR": (115, 52)},
+        core=(80, 115),
+        engines=[(64, 9, 0, -1, 3.4, 8), (96, 9, 0, -1, 3.4, 8)],   # (CalmIdleTest holds the idle box within 3 %)
+        lights=[(64, 15, 10), (96, 15, 10), (25, 60, 26), (135, 60, 26), (69, 107, 4), (91, 107, 4), (80, 115, 4),
+                (70, 122, 4), (90, 122, 4), (48, 42, 8), (112, 42, 8)],
+        parts={"Jaw": (80, 142), "Furnace": (80, 115), "Brow": (80, 101), "CannonL": (48, 42), "CannonR": (112, 42)},
         tells={0: ["Jaw"], 1: ["Furnace", "CannonL", "CannonR"], 2: ["Brow"]}),
+    # a horned kraken skull with crystal spines; water-jet thrusters behind the crown
     "Tide": dict(
-        core=(80, 83),
-        engines=[(35, 21, -.6, -.8, 3.2, 5), (53, 7, -.3, -1, 3.2, 5), (107, 7, .3, -1, 3.2, 5), (125, 21, .6, -.8, 3.2, 5)],
-        lights=[(38, 27, 10), (55, 15, 10), (105, 15, 10), (123, 27, 10), (80, 83, 11),
-                (12, 78, 7), (148, 78, 7), (22, 132, 7), (140, 132, 7), (56, 150, 7), (102, 150, 7)],
-        # cannons: the two upper jet arms and the two side spear tips, high on the body like the old Kraken's (the lower
-        # spear tips put the clusters ~1.3 u nearer the ship: BossLadderBotTest's dodge bot took 10.7 hits a minute)
-        parts={"Beak": (80, 90), "LeftA": (38, 28), "LeftB": (14, 78), "RightA": (122, 28), "RightB": (146, 78)},
+        core=(80, 68),
+        engines=[(80, 7, 0, -1, 3.0, 8), (33, 28, -.5, -.85, 2.6, 7), (127, 28, .5, -.85, 2.6, 7)],
+        lights=[(80, 68, 5), (66, 84, 5), (94, 84, 5), (80, 104, 6), (48, 60, 8), (112, 60, 8), (28, 100, 8), (132, 100, 8),
+                (56, 118, 9), (104, 118, 9), (148, 72, 8)],
+        # beak: the fanged mouth's upper jaw; cannons: the crystal spines beside the eyes and on the flanks, high on the body
+        # (BossLadderBotTest: low cannons make the Kraken out-hit the Tempest Engine)
+        parts={"Beak": (80, 94), "LeftA": (48, 60), "LeftB": (28, 100), "RightA": (112, 60), "RightB": (132, 100)},
         tells={0: ["Beak"], 1: ["LeftA", "LeftB"], 2: ["RightA", "RightB"]}),
+    # the Tempest Engine: a reactor fortress round a violet storm eye, twin tesla coils, plasma thrusters below
+    "Storm": dict(
+        core=(80, 75),
+        engines=[(53, 151, 0, 1, 3.0, 2.5), (107, 151, 0, 1, 3.0, 2.5)],   # (down: CalmIdleTest holds the idle box within 3 %)
+        lights=[(80, 75, 22), (40, 37, 11), (120, 37, 11), (53, 145, 8), (107, 145, 8), (49, 9, 5), (111, 9, 5)],
+        # Core: the storm eye's lower lid, near the old Engine's core muzzle height (BossLadderBotTest keeps Storm >= Tide)
+        parts={"Core": (80, 95), "Rods": (80, 18), "CoilL": (40, 37), "CoilR": (120, 37)},
+        tells={0: ["Core"], 1: ["Rods"], 2: ["CoilL", "CoilR"]}),
     # The Dune-Eater: a sand-bleached skull carrier. The crown furnace's flame is its engine, the brass lamp below it the
     # lens (beam, sandstorm wall), the fanged maw the grit fan, the right claw the crane that drops its mines.
     "Desert": dict(
@@ -102,7 +117,7 @@ RIG = {
 # Smoke tint per world (steam for Frost, spore haze for Verdant).
 SMOKE = {"Space": ((58, 52, 66), (104, 96, 112), (150, 142, 156)), "Frost": ((120, 140, 160), (176, 198, 214), (226, 240, 248)),
          "Verdant": ((52, 64, 46), (92, 108, 80), (140, 156, 122)), "Ember": ((50, 44, 42), (92, 82, 76), (140, 128, 116)),
-         "Tide": ((52, 66, 76), (96, 114, 124), (150, 170, 178)), "Desert": ((66, 54, 40), (118, 100, 76), (176, 156, 120))}
+         "Tide": ((52, 66, 76), (96, 114, 124), (150, 170, 178)), "Storm": ((50, 48, 66), (92, 88, 116), (150, 146, 178)), "Desert": ((66, 54, 40), (118, 100, 76), (176, 156, 120))}
 
 
 # ------------------------------------------------------------------------------------------------ colour helpers
@@ -179,7 +194,16 @@ def key_source(path, world):
             for y, x in zip(*np.nonzero(pink)):
                 r, g, b = [int(c) for c in a[y, x, :3]]
                 mx = max(r, g, b)
-                a[y, x, :3] = (mx, min(g, b), min(g, b) // 2) if s[y, x] > .3 else (mx, mx - 4, mx - 8)
+                if world == "Storm":                        # the Tempest's violets stay violet: hue 272, same s / v
+                    a[y, x, :3] = hsv2rgb(272, s[y, x], v[y, x])
+                else:
+                    a[y, x, :3] = (mx, min(g, b), min(g, b) // 2) if s[y, x] > .3 else (mx, mx - 4, mx - 8)
+    if world == "Storm":   # the Violet Squall repaint (BossDamageTest: damaged Storm drawings keep blue well above red):
+        h, s, v = hsv_arrays(a)                         # the gunmetal greys go cool slate; copper and the eye are left alone
+        g = (a[..., 3] > 0) & (s < .3)
+        rgb = a[..., :3].astype(int)
+        rgb[g, 0] -= (10 + 10 * v[g]).astype(int); rgb[g, 2] += (9 + 18 * v[g]).astype(int)
+        a[..., :3] = np.clip(rgb, 0, 255).astype(np.uint8)
     a = np.pad(a, ((PAD, PAD), (PAD, PAD), (0, 0)))
     return a
 
@@ -206,7 +230,9 @@ class Boss:
         ox0, oy0, ox1, oy1 = bbox(oa)
         x0, y0, x1, y1 = bbox(self.hull)
         self.old_edge = max(ox1 - ox0, oy1 - oy0)
-        self.f = self.old_edge / max(x1 - x0, y1 - y0)
+        # SHRINK: the drawing a little smaller than the old art's longest edge, so the engine flames have real room
+        # inside the cell (user, 2026-11-27: scary bosses with visible flames)
+        self.f = self.old_edge / max(x1 - x0, y1 - y0) * SHRINK.get(world, 1.0)
         self.ox = self.C / 2 - (x0 + x1) / 2 * self.f
         self.oy = self.C / 2 - (y0 + y1) / 2 * self.f
         self.src_off = (2 - PAD, 2 - PAD)        # approved px -> padded px: + PAD - 2 (close_cut pads 2)
@@ -233,6 +259,14 @@ class Boss:
         op = c[..., 3] > 0
         g = np.clip(c[..., :3].astype(int) + self._grain, 0, 255)
         c[..., :3] = np.where(op[..., None], g, c[..., :3]).astype(np.uint8)
+        if self.w == "Storm":                     # NoPinkOutsideSpace: glow-clipped violets drift past hue 280; pull back to 274
+            h, s, v = hsv_arrays(c)
+            pk = (c[..., 3] > 24) & (h >= 276) & (h < 352)
+            if pk.any():
+                ch = (v * s)[pk]; mn = v[pk] - ch
+                c[pk, 0] = np.round((mn + ch * .567) * 255).astype(np.uint8)
+                c[pk, 1] = np.round(mn * 255).astype(np.uint8)
+                c[pk, 2] = np.round(v[pk] * 255).astype(np.uint8)
         m = 6                                     # nothing within 6 px of the cell border
         c[:m] = 0; c[-m:] = 0; c[:, :m] = 0; c[:, -m:] = 0
         return c
@@ -268,7 +302,7 @@ class Boss:
     FLAME_CYCLE = (1.0, .5, .85, .42, 1.0, .64)
     FLAME_MARGIN = 6            # cell px kept clear at the cell's edge (the atlas rule: no alpha within 6 px of a border)
 
-    def flames(self, a, t, scale=1.0):
+    def flames(self, a, t, scale=1.0, cycle=None):
         """Engine flames behind the hull: a tapered tongue per engine; length, width, wobble and tip step with t. The length
         cycle is applied AFTER the cell-edge cap, so a flame with little headroom still visibly flickers."""
         out = a.copy()
@@ -287,7 +321,7 @@ class Boss:
                 if d < -1e-6: cap = min(cap, (c0 - o0) / -d)
                 if d > 1e-6: cap = min(cap, (lim - c0) / d)
             full = min(L * scale * self.FLAME_LONG + 3.0, cap - 1.0)
-            Lt = max(1.0, full * self.FLAME_CYCLE[ph] - 3.0)
+            Lt = max(1.0, full * (cycle or self.FLAME_CYCLE)[ph] - 3.0)
             wob = (0, .7, 0, -.7, .4, -.4)[ph]
             fork = ph % 2 == 1
             tot = Lt + 3.0
@@ -363,9 +397,13 @@ class Boss:
                 self._mz[name] = (int(xs[i]), int(ys[i]))
         return self._mz[part]
 
-    def idle(self, a, t, n):
+    # Expanded-atlas bosses play the six idle drawings at 20..25 (BossArt.IdleStart); their legacy cells 0..3 are not
+    # played but CalmIdleTest still measures them (3 % of the cell), so there the flames only breathe.
+    CALM_CYCLE = (1.0, .9, .96, .88, 1.0, .92)
+
+    def idle(self, a, t, n, calm=False):
         k = (0, .16, .06, .24, .1, .2)[t % 6] if n == 6 else (0, .18, .06, .26)[t % 4]
-        return self.glow(self.flames(a, t), k)
+        return self.glow(self.flames(a, t, cycle=self.CALM_CYCLE if calm else None), k)
 
     def tell(self, a, pose, stage, stages):
         """stage 0 .. stages-1 charges; stage == stages is the fire drawing."""
@@ -462,8 +500,10 @@ class Boss:
                             d = math.hypot(X - f["x"], Y - f["y"]) / r + rng.uniform(-.25, .25)
                             if d < 1:
                                 g = int(a[Y, X, :3].astype(int).mean())
-                                soot = (np.array([g, g, g]) * (.18 + .45 * d)).astype(int)
-                                if .55 < d < .85 and (X + Y) % 2: soot = np.array([96, 62, 44]) if self.w != "Frost" else np.array([120, 150, 170])
+                                tint = np.array([.8, .92, 1.3]) if self.w == "Storm" else np.ones(3)   # Storm: slate soot
+                                soot = (g * tint * (.18 + .45 * d)).astype(int)
+                                if .55 < d < .85 and (X + Y) % 2:
+                                    soot = np.array({"Frost": (120, 150, 170), "Storm": (92, 78, 150)}.get(self.w, (96, 62, 44)))
                                 a[Y, X, :3] = np.clip(soot + 6, 0, 255).astype(np.uint8)
             elif f["kind"] == "crack":
                 x, y, ang = float(f["x"]), float(f["y"]), f["ang"]
@@ -681,7 +721,7 @@ class Boss:
         B = self.base
         exp = self.w in EXPANDED
         body = {}
-        for t in range(4): body[t] = self.idle(B, t, 4)
+        for t in range(4): body[t] = self.idle(B, t, 4, calm=self.w in EXPANDED)
         body[4] = self.hit(B)
         body[5], body[6] = self.tell(B, 0, 0, 2), self.tell(B, 0, 1, 2)
         body[7], body[8] = self.tell(B, 1, 0, 2), self.tell(B, 1, 1, 2)

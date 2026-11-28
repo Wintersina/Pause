@@ -356,7 +356,7 @@ def measure_expanded(world):
 # registration, so build.py writes each part's muzzle per drawing (rig_<World>.json, 384 reference px, on an interior
 # pixel of the drawing). They are read here, checked opaque in every drawing that can fire and snapped if not.
 REDRAW = os.path.normpath(os.path.join(ASSETS, "Art", "Bosses~", "redraw-v3"))
-REDRAWN = ("Space", "Frost", "Verdant", "Ember", "Tide", "Desert")
+REDRAWN = ("Space", "Frost", "Verdant", "Ember", "Tide", "Storm", "Desert")
 
 
 def measure_redrawn(world):
