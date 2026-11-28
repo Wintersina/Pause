@@ -62,7 +62,12 @@ public static class TidePropsTuning
 
     // ---- where -------------------------------------------------------------------------------------------------------------
     public const GroundClass Painted = GroundClass.Built | GroundClass.Canopy;     // a painted deck / block / feature: never under a prop
-    public static GroundClass On(Place p) { return p == Place.Shoal ? GroundClass.Water | GroundClass.Open : GroundClass.Water; }
+    // (a ground set with a designed plan -- v1's repaint -- writes its shoals as B in mask.txt: `shoalBuilt`, they are no painted deck there)
+    public static GroundClass On(Place p, bool shoalBuilt = false)
+    {
+        return p == Place.Shoal ? GroundClass.Water | GroundClass.Open | (shoalBuilt ? GroundClass.Built : GroundClass.None) : GroundClass.Water;
+    }
+    public static GroundClass PaintedOn(bool shoalBuilt) { return shoalBuilt ? GroundClass.Canopy : Painted; }
     // the share of the context disc that must be `On`: the whole of it (a prop never touches a painted deck, feature or, for marine
     // life, anything but water); the deep-water kinds may have a shoal cell at the rim
     public static float Need(Place p) { return p == Place.Deep ? .9f : 1f; }
@@ -79,7 +84,7 @@ public static class TidePropsTuning
     public const float NearMin = 1f, NearMax = 2.6f, NearShare = .6f;  // a NEAR kind's centre: this x (its host's keep-out + .6 x its own) away, this often
 
     // ---- how many ----------------------------------------------------------------------------------------------------------
-    public const int Pool = 20, BigPool = 4;
+    public const int Pool = 40, BigPool = 10;
     public const int Tries = 40;
     public static float TotalPerThree(bool big) { float t = 0f; foreach (var k in Kinds) if (k.big == big) t += k.perThree; return t; }
 
@@ -102,14 +107,21 @@ public static class TidePropsTuning
     }
 
     // Is a prop of `kind` centred at (x, gy) on its context, clear of painted features? (placement and the tests)
-    public static bool OnContext(GroundPlanner planner, int kind, float x, double gy, float halfW)
+    public static bool OnContext(GroundPlanner planner, int kind, float x, double gy, float halfW, bool shoalBuilt = false)
     {
         if (planner == null || planner.Mask == null) return true;
         float r = Keep(kind, halfW) * ContextShare;
         var on = Kinds[kind].on;
-        return planner.Match(x, gy, r, r, On(on)) >= Need(on) && planner.Match(x, gy, r, r, Painted) <= 0f;
+        return planner.Match(x, gy, r, r, On(on, shoalBuilt)) >= Need(on) && planner.Match(x, gy, r, r, PaintedOn(shoalBuilt)) <= 0f;
     }
 }
+
+// A DESIGNED placement for one period of a ground set's tile (<variant folder>/placement.json, v1 first): the user's rule 2026-11-28 --
+// settlements, lighthouses, wrecks, turbine fields, pods, each where the painted ground makes sense -- instead of the random spawner.
+// u 0..1 across the tile, v 0..1 DOWN from the tile's top row, kind = an atlas kind name, variant = a hint (the copy's own is still dealt
+// by hash, never the previous copy's of its kind).
+[System.Serializable] public class TidePlanEntry { public string kind; public float u, v; public int variant; }
+[System.Serializable] public class TidePlanJson { public TidePlanEntry[] props; }
 
 public partial class TideDirector
 {
@@ -120,12 +132,22 @@ public partial class TideDirector
     int lastPropKind = -1, landing;
     float propTravel, propGap, bigTravel, bigGap;
     Color propColor;
+    TidePlanEntry[] plan;                    // the designed placement of this ground set (null: the random spawner)
+    int[] planKind;
+    double planScan;                         // every plan entry whose ground y is below this has been dealt
+    float planAhead;                         // dealt this far over the top of the view: before any piece is dealt there
     System.Random propRng;                   // its own stream: a prop never shifts the pieces' or the weather's dice
 
     public BackdropPool Props => props;
     public BackdropPool Bigs => bigs;
     public int PropsSpawned { get; private set; }
     public float ViewHalfWidth => HalfW;
+    public bool HasPlan => plan != null;
+    public bool ShoalBuilt => plan != null;      // (the plan's ground writes its shoals as B)
+    public int PlanSpawned { get; private set; }
+    public int PlanSkipped { get; private set; }
+    public TidePlanEntry[] Plan => plan;
+    public int PlanKind(int i) { return planKind[i]; }
 
     float PRand(float a, float b) { return a + (float)propRng.NextDouble() * (b - a); }
 
@@ -152,6 +174,21 @@ public partial class TideDirector
             propStrips[k] = list.Count > 0 ? list.ToArray() : null;
         }
         propColor = TidePropsTuning.TintFor(night);
+        plan = null;
+        var ta = Resources.Load<TextAsset>(BackdropCatalog.TileFolder("Tide", set.Variant) + "placement");
+        var pj = ta != null ? JsonUtility.FromJson<TidePlanJson>(ta.text) : null;
+        if (pj != null && pj.props != null && pj.props.Length > 0)
+        {
+            plan = pj.props;
+            planKind = new int[plan.Length];
+            float maxKeep = 0f;
+            for (int i = 0; i < plan.Length; i++)
+            {
+                planKind[i] = TidePropsTuning.IndexOf(plan[i].kind);
+                if (planKind[i] >= 0) maxKeep = Mathf.Max(maxKeep, PropKeep(planKind[i]));
+            }
+            planAhead = maxKeep + TideTuning.SpawnAbove + TideTuning.SpawnBand + .3f;
+        }
         // back to front on the ground plane: crests (-8), pipes (-4), props (-3), fires (-2), pieces and sites (0)
         bigs = Pool(TidePropsTuning.Layer, TidePropsTuning.BigPool, false, -6);
         props = Pool(TidePropsTuning.Layer, TidePropsTuning.Pool, false, -3);
@@ -171,6 +208,7 @@ public partial class TideDirector
     {
         if (props == null || !planner.Ready) return;
         double t = planner.Travel;
+        if (plan != null) { planScan = t - HalfH * 1.3; StepPlan(); return; }
         int m = Mathf.RoundToInt(TidePropsTuning.TotalPerThree(true) / 3f * 1.3f + (float)propRng.NextDouble());
         for (int i = 0; i < m; i++) SpawnProp(-1, t - HalfH * .7, t + HalfH * 1.2, -1, TidePropsTuning.Tries, false, true);   // the big ones first
         int n = Mathf.RoundToInt(TidePropsTuning.TotalPerThree(false) / 3f * 1.3f);
@@ -337,7 +375,8 @@ public partial class TideDirector
         if (props == null) return;
         propTravel += scrolled;
         bigTravel += scrolled;
-        if (planner.Ready)
+        if (plan != null) StepPlan();
+        else if (planner.Ready)
         {
             double lo = planner.Travel + HalfH, hi = lo + TideTuning.SpawnBand;
             // the landmarks first: their ground is taken before the smaller props look for theirs
@@ -356,6 +395,37 @@ public partial class TideDirector
         }
         StepPool(bigs, dt);
         StepPool(props, dt);
+    }
+
+    // The designed plan, dealt as the ground scrolls: each entry of the tile's period at its fixed spot (u across, v down from the tile's
+    // top row; the period repeats every tile height, the columns every tile width), in the band over the top of the view -- once.
+    void StepPlan()
+    {
+        if (!planner.Ready) return;
+        if (propGap >= 1e5f) { planScan = planner.Travel + HalfH + planAhead; return; }      // (HoldProps: tests and previews)
+        float h = planner.Tile.TileHeight, w = planner.Tile.TileWidth;
+        double top = planner.Travel + HalfH + planAhead;
+        if (top <= planScan) return;
+        double half = HalfH;
+        long k0 = (long)System.Math.Floor((planScan + half) / h) - 1, k1 = (long)System.Math.Floor((top + half) / h) + 1;
+        for (long k = k0; k <= k1; k++)
+            for (int i = 0; i < plan.Length; i++)
+            {
+                int kd = planKind[i];
+                if (kd < 0 || !HasPropArt(kd)) continue;
+                double gy = (k + 1.0 - plan[i].v) * h - half;
+                if (gy <= planScan || gy > top) continue;
+                float x0 = (plan[i].u - .5f) * w;
+                float keep = PropKeep(kd);
+                for (int m = -1; m <= 1; m++)
+                {
+                    float x = x0 + m * w;
+                    if (Mathf.Abs(x) > EdgeX + .3f) continue;
+                    if (!planner.Free(x, gy, keep, keep) || Commit(kd, x, gy, -1) == null) PlanSkipped++;
+                    else PlanSpawned++;
+                }
+            }
+        planScan = top;
     }
 
     void StepPool(BackdropPool pool, float dt)
