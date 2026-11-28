@@ -264,11 +264,13 @@ class Boss:
     # Idle engine flames (user, 2026-11-27: "bigger and clearly animated"): FLAME_LONG x the rig length, FLAME_WIDE x its
     # width, a length cycle that swings ~2:1 between idle drawings, a forked / spitting tip on alternate drawings, and a
     # white-hot cue-tinted core. Capped so a flame never reaches the 8 px band at the cell's edge.
-    FLAME_LONG, FLAME_WIDE = 1.75, 1.3
-    FLAME_CYCLE = (1.0, .58, .88, .5, 1.12, .7)
+    FLAME_LONG, FLAME_WIDE = 1.75, 1.5
+    FLAME_CYCLE = (1.0, .5, .85, .42, 1.0, .64)
+    FLAME_MARGIN = 6            # cell px kept clear at the cell's edge (the atlas rule: no alpha within 6 px of a border)
 
     def flames(self, a, t, scale=1.0):
-        """Engine flames behind the hull: a tapered tongue per engine; length, wobble and tip step with t."""
+        """Engine flames behind the hull: a tapered tongue per engine; length, width, wobble and tip step with t. The length
+        cycle is applied AFTER the cell-edge cap, so a flame with little headroom still visibly flickers."""
         out = a.copy()
         hull = a[..., 3] > 0
         P = self.pal
@@ -277,15 +279,15 @@ class Boss:
             n = math.hypot(dx, dy); dx, dy = dx / n, dy / n
             px, py = self.P(x, y)
             ph = (t + i * 2) % 6
-            Lt = L * scale * self.FLAME_LONG * self.FLAME_CYCLE[ph]
-            hw = hw * self.FLAME_WIDE * (1.0 if ph % 2 == 0 else .85)
-            # the cell's 8 px margin, in source px along the flame
+            hw = hw * self.FLAME_WIDE * (1.0, .8, .95, .75, 1.05, .85)[ph]
+            # the cell's edge margin, in source px along the flame
             cap = 1e9
             for c0, d, off in ((px, dx, self.ox), (py, dy, self.oy)):
-                o0, lim = (8 - off) / self.f, (self.C - 8 - off) / self.f
+                o0, lim = (self.FLAME_MARGIN + 1 - off) / self.f, (self.C - self.FLAME_MARGIN - 1 - off) / self.f
                 if d < -1e-6: cap = min(cap, (c0 - o0) / -d)
                 if d > 1e-6: cap = min(cap, (lim - c0) / d)
-            Lt = min(Lt, max(1.0, cap - 3.5))
+            full = min(L * scale * self.FLAME_LONG + 3.0, cap - 1.0)
+            Lt = max(1.0, full * self.FLAME_CYCLE[ph] - 3.0)
             wob = (0, .7, 0, -.7, .4, -.4)[ph]
             fork = ph % 2 == 1
             tot = Lt + 3.0
@@ -304,7 +306,7 @@ class Boss:
                     out[Y, X] = (*col, 255)
             if fork:                                                             # a spark spat off the tip
                 X = int(round(px + dx * (tot + 1.5))); Y = int(round(py + dy * (tot + 1.5)))
-                if 0 <= X < W and 0 <= Y < H and not hull[Y, X] and cap > tot + 2: out[Y, X] = (*P["light"], 255)
+                if 0 <= X < W and 0 <= Y < H and not hull[Y, X] and cap > tot + 2.5: out[Y, X] = (*P["light"], 255)
         return out
 
     def part_mask(self, parts, r=9):

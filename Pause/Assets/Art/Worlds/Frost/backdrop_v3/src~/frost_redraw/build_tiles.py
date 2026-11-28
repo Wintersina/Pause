@@ -38,15 +38,15 @@ COLORS = 96
 SEAM_ROWS = {448: 40, 224: 24}            # mirror band height (source rows) per block height
 # painted HSV-value targets (median, p90, max) of the opaque texels; drawn ~1.8x brighter (mid lift 1.95)
 TARGET = {
-    "v1/sky": (.100, .175, .26),
-    "v1/far": (.120, .220, .30),
-    "v1/mid": (.150, .250, .34),
-    "v2/far": (.120, .220, .30),
-    "v2/mid": (.135, .245, .34),
+    "v1/sky": (.110, .185, .27),
+    "v1/far": (.140, .250, .32),
+    "v1/mid": (.160, .280, .35),
+    "v2/far": (.140, .250, .32),
+    "v2/mid": (.165, .290, .36),
 }
 FLOW_TARGET = {"v1/flow": (.30, .40, .42)}   # value of the wisps' own colour (median, p90, max)
 FLOW_ALPHA = .55                              # their peak straight alpha
-GAMMA_RANGE = (.6, 2.6)
+GAMMA_RANGE = (.6, 1.4)              # flatter than .6 washes the darks out, steeper than 1.4 crushes them
 
 
 def load(name):

@@ -48,12 +48,12 @@ public class BossHearts : HeartOrbit
         switch (boss != null ? boss.artKey : null)
         {
             case "Space": return Around(0f, .11f, 1.84f, 1.90f);
-            case "Frost": return Around(0f, .05f, 1.61f, 1.64f);
+            case "Frost": return Around(0f, .04f, 1.61f, 1.63f);
             case "Verdant": return Around(0f, .07f, 1.69f, 1.78f);
-            case "Ember": return Around(0f, .02f, 1.53f, 1.51f);
-            case "Tide": return Around(0f, .02f, 1.72f, 1.73f);
+            case "Ember": return Around(0f, .01f, 1.53f, 1.50f);
+            case "Tide": return Around(0f, .02f, 1.71f, 1.72f);
             case "Storm": return Around(0f, .01f, 1.61f, 1.57f);
-            case "Desert": return Around(0f, .08f, 1.71f, 1.79f);
+            case "Desert": return Around(0f, .06f, 1.71f, 1.76f);
             default:
                 float h = BossConfig.BossWorldSize * .5f * 1.42f;
                 return Around(0f, 0f, h, h);
