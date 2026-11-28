@@ -262,6 +262,11 @@ public static class FrostPropsTest
                                           FrostPropsTuning.KindOf(s.name) == k && FrostPropsTuning.VariantOf(s.name) == v;
                 if (f.Length > 0 && f[0] != null) { stripRects.Add(f[0].rect); stripNames.Add(FrostPropsTuning.Strip(k, v)); stripCells.Add((int)FrostPropsTuning.Cell(k)); }
             }
+        var scar = new BackdropAtlas(Resources.Load<Texture2D>(Folder + FrostPropsTuning.ScarAtlas), Resources.Load<TextAsset>(Folder + FrostPropsTuning.ScarAtlas));
+        bool scarOk = scar.Count == FrostPropsTuning.ScarCells.Length;
+        foreach (var n in FrostPropsTuning.ScarCells) { var c = scar.Get(n); scarOk &= c != null && Mathf.Approximately(c.rect.width, FrostPropsTuning.ScarTexels); }
+        Check("the starship's crash-scar decals load: " + scar.Count + " cells of " + FrostPropsTuning.ScarTexels + " texels (drawings a / b, dry / wet)", scarOk);
+        scar.Destroy();
         Check("the props atlas loads: " + strips + " strips (every kind's every variant) of 8 x 128 px cells, the starship's 256 (" + atlas.Count + " sprites), each cell naming its kind and variant", all);
         atlas.Destroy();
 
@@ -283,6 +288,14 @@ public static class FrostPropsTest
             if (WorldCue.IsPink(px[i])) pinkPainted++;
             if (WorldCue.IsPink(drawn[i])) pinkDrawn++;
         }
+        int scw, sch, scarPink = 0;
+        var spx = Png(ArtDir + FrostPropsTuning.ScarAtlas + ".png", out scw, out sch);
+        if (spx != null)
+        {
+            var sdrawn = BackdropGrade.Apply(spx, lift, sat);
+            for (int i = 0; i < spx.Length; i++) if (spx[i].a > 0f && (WorldCue.IsPink(spx[i]) || WorldCue.IsPink(sdrawn[i]))) scarPink++;
+        }
+        Check("no pink in the crash scar, painted or drawn (" + scarPink + " px)", spx != null && scarPink == 0);
         Check("no pink in the props as painted (" + pinkPainted + " px) or as drawn, lifted x" + lift.ToString("F2") + " (" + pinkDrawn + " px)", pinkPainted == 0 && pinkDrawn == 0);
         float mean = MeanLum(drawn), lmean = MeanLum(ldrawn);
         Check("as drawn, the props sit near the landmarks' brightness (mean luminance " + mean.ToString("F3") + " <= 1.25 x the landmarks' " + lmean.ToString("F3") +
@@ -527,7 +540,8 @@ public static class FrostPropsTest
     static void StarshipAhead()
     {
         const int Seeds = 4;
-        int s = FrostPropsTuning.Starship, total = 0, bad = 0, notAhead = 0, seen = 0;
+        int s = FrostPropsTuning.Starship, total = 0, bad = 0, notAhead = 0, seen = 0, scarBad = 0, scarWrong = 0;
+        float scarPx = 0f;
         float minPx = float.MaxValue, maxPx = 0f;
         string per = "";
         bool every = true;
@@ -544,10 +558,18 @@ public static class FrostPropsTest
                 var set = wb.Current;
                 double lo = d.Planner.Travel + set.HalfHeight + FrostTuning.SpawnAbove, hi = lo + FrostTuning.SpawnBand;
                 BackdropPiece p = null;
+                int slot = -1;
                 if (d.SpawnProp(s, lo, hi, FrostPropsTuning.Tries, true))
-                    for (int i = 0; i < d.Props.items.Count; i++) if (d.Props.items[i].active && d.PropKind(i) == s) p = d.Props.items[i];
+                    for (int i = 0; i < d.Props.items.Count; i++) if (d.Props.items[i].active && d.PropKind(i) == s) { p = d.Props.items[i]; slot = i; }
                 if (p == null) { Object.DestroyImmediate(wb.gameObject); continue; }
                 placed++;
+                // its crash scar: a decal under it (same material, one order below), the right drawing's cell
+                var sc = d.PropScar(slot);
+                int want = FrostPropsTuning.Variants[s] > 1 && d.PropVariant(slot) >= 2 ? 2 : 0;
+                if (sc == null || !sc.enabled || sc.sprite == null || sc.sortingOrder >= p.sr.sortingOrder || sc.sharedMaterial != p.sr.sharedMaterial ||
+                    (sc.sprite.name != FrostPropsTuning.ScarCells[want] && sc.sprite.name != FrostPropsTuning.ScarCells[want + 1]))
+                    scarWrong++;
+                else scarPx = Mathf.Max(scarPx, sc.bounds.size.x * 1080f / (2f * set.HalfWidth));
                 if (p.gy - FrostPropsTuning.ClaimHalf(p.size) * .8f < hi || p.y - p.size * .5f < set.HalfHeight) notAhead++;
                 float pxu = 1080f / (2f * set.HalfWidth);
                 bool inView = false;
@@ -561,6 +583,7 @@ public static class FrostPropsTest
                         var q = d.Props.items[i];
                         if (q.active) bad += KeptOut(d, q) + PlumesThrough(d, q) + DocksBy(d, q);
                     }
+                    scarBad += ScarCrossed(d, slot);
                 }
                 if (inView) seen++;
                 float w = p.size * pxu;
@@ -577,6 +600,30 @@ public static class FrostPropsTest
         Check("STARSHIP: the ground is dealt round its keep-out as it scrolls in (" + bad + " keep-out / plume / dock violations), drawn " +
               minPx.ToString("F0") + " .. " + maxPx.ToString("F0") + " px wide on a 1080 px phone (320 .. 480)",
               bad == 0 && total > 0 && minPx >= 320f && maxPx <= 480f);
+        Check("STARSHIP CRASH SCAR: every copy lies on a decal under it (the furrow, banks, cracks, debris, soot; wet by water), " + scarWrong +
+              " wrong, ~" + scarPx.ToString("F0") + " px across; nothing dealt onto its furrow's keep-out (" + scarBad + " crossings)",
+              scarWrong == 0 && scarBad == 0 && scarPx >= 900f);
+    }
+
+    // Landmarks, docks and other props whose core lies on the crash-scar furrow boxes of the prop in `slot`.
+    static int ScarCrossed(FrostDirector d, int slot)
+    {
+        int n = 0;
+        var pools = new List<BackdropPool>(d.Landmarks) { d.Props };
+        if (d.Sites != null && !pools.Contains(d.Sites)) pools.Add(d.Sites);
+        for (int j = 0; j < FrostPropsTuning.ScarBoxes[0].Length; j++)
+        {
+            float bx, h; double by;
+            if (!d.PropScarBox(slot, j, out bx, out by, out h)) break;
+            foreach (var pool in pools)
+                foreach (var q in pool.items)
+                {
+                    if (!q.active || q == d.Props.items[slot] || q.sr.sprite == null) continue;
+                    float qx = q.size * Mathf.Max(q.core, GroundPlanner.MinCore), qy = qx * .8f;
+                    if (Mathf.Abs(bx - q.x) < (h + qx) * .98f && System.Math.Abs(by - q.gy) < (h + qy) * .98f) n++;
+                }
+        }
+        return n;
     }
 
     // Each kind forced into view: it animates (a loop through its cells; a whale / orca's wait then surfacing), its lamps

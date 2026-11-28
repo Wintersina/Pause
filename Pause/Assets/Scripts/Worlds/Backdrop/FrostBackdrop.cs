@@ -672,7 +672,7 @@ public partial class FrostDirector : PlanetDirector
             p.age += dt;
             p.y = planner.Y(p.gy);
             Place(p);
-            if (p.y < GroundDespawnY(p, ambient))
+            if (p.y < GroundDespawnY(p, ambient) - PinnedTail(pool, i))     // (the starship's scar trails far above it: FrostProps)
             {
                 planner.Release(p.footprint);
                 p.footprint = -1;

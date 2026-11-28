@@ -27,7 +27,12 @@ using UnityEngine;
 //                          256 px cells (Cell), drawn ~400 px wide on a 1080 px phone (over a third of the view; MaxSize lifts
 //                          it past BackdropCatalog.MaxLandmarkSize), on ice / snow with up to a third of its crater over a broken
 //                          edge (a lead beside it is preferred), PLACED AHEAD of the ground being dealt (above the landmarks'
-//                          spawn band) so the landmarks, docks and smaller props are dealt round its keep-out afterwards
+//                          spawn band) so the landmarks, docks and smaller props are dealt round its keep-out afterwards;
+//                          its CRASH SCAR (the user: "blend the crash setting into the backdrop for it to make sense") is
+//                          a ground-level decal under it (Backdrop3/scar, frost_redraw/props/build_scar.py, procedural): the
+//                          furrow it gouged trailing ~2 hull-lengths behind it, ploughed snow banked at the sides, radial
+//                          cracks, debris, soot by the engines, and -- with water beside it -- broken plates and dark water;
+//                          the furrow is part of its keep-out (ScarBoxes, claimed on the planner too)
 // KEEP-OUT (the user, 2026-11-28: nothing that moves may pass through or touch a prop): a prop claims its whole drawing plus
 // KeepOut of its width all round, so no landmark, dock or other prop (whales / orcas / narwhals surfacing) is placed in that
 // margin; no prop stands under a landmark's rising smoke / steam column (PlumeBox) and no landmark is placed whose column
@@ -60,6 +65,35 @@ public static class FrostPropsTuning
     // a kind's drawn-size cap (world units): BackdropCatalog.MaxLandmarkSize, the starship's own above it
     public const float MassiveMax = 3.2f;
     public static float MaxSize(int kind) { return Massive(kind) ? MassiveMax : BackdropCatalog.MaxLandmarkSize; }
+
+    // ---- the starship's CRASH SCAR (a decal child of its body: scrolls, scales and mirrors with it, drawn just under it) ----
+    public const string ScarAtlas = "scar";
+    // its cell: scar_<drawing x 2 + wet> (drawing 0: variants 0, 1; drawing 1: variants 2, 3), 768 texels over ScarSpan cell px
+    public static readonly string[] ScarCells = { "scar_0", "scar_1", "scar_2", "scar_3" };
+    public static int ScarIndex(int variant, bool wet) { return (variant < 2 ? 0 : 2) + (wet ? 1 : 0); }
+    public const float ScarSpan = 720f, ScarTexels = 768f;
+    public static readonly Vector2 ScarCentre = new Vector2(120f, 120f);    // cell px from the cell centre, y up
+    // how far the decal's visible art reaches below / above the cell centre, in drawn widths (the despawn waits for its top,
+    // the deal ahead keeps its bottom out of sight)
+    public const float ScarBelow = .9f, ScarAbove = 1.75f;
+    // the furrow's keep-out boxes per drawing (cell px from the cell centre, y up, half-size; build_scar.py boxes), each
+    // grown by ScarMargin of the drawn width; claimed on the planner beside the wreck's own footprint
+    public static readonly Vector3[][] ScarBoxes =
+    {
+        new[] { new Vector3(134f, 138f, 59f), new Vector3(225f, 227f, 53f), new Vector3(316f, 317f, 46f), new Vector3(400f, 401f, 40f) },
+        new[] { new Vector3(105f, 101f, 59f), new Vector3(188f, 187f, 53f), new Vector3(271f, 273f, 46f), new Vector3(349f, 354f, 40f) },
+    };
+    public const float ScarMargin = .06f;
+    public static bool HasScar(int kind) { return kind == Starship; }
+    // box j of a scar on a wreck drawn `size` wide at x, gy (mirrored or not), variant v: centre and half-size (world units)
+    public static void ScarBox(int variant, int j, float size, bool mirror, float x, double gy, out float cx, out double cy, out float h)
+    {
+        var b = ScarBoxes[variant < 2 ? 0 : 1][j];
+        float k = size / 256f;
+        cx = x + b.x * k * (mirror ? -1f : 1f);
+        cy = gy + b.y * k;
+        h = b.z * k + ScarMargin * size;
+    }
 
     // WHERE each may stand (Rule):
     //   OpenWater  open water (mask W), its whole footprint and a clear rim -- whale, orca, icebreaker, narwhal
@@ -300,6 +334,10 @@ public partial class FrostDirector
     int[] propVar;                         // per pool slot: the variant it shows
     int[] lastVar;                         // per kind: the variant its last copy showed
     float[] propSurface;                   // per pool slot, one-shots: the age its next surfacing starts
+    SpriteRenderer[] propScar;             // per pool slot: the crash-scar decal under its body (the starship's)
+    int[][] propScarFeet;                  // per pool slot: the scar's planner footprints (-1 none)
+    bool[] propMirror;                     // per pool slot: drawn mirrored
+    Sprite[] scarArt;                      // ScarCells (null: not installed)
     SpriteRenderer[][] propLights;         // per pool slot: MaxLights glow renderers under its body
     int[][] propLight;                     // per pool slot, per renderer: index into FrostPropsTuning.Lights, -1 off
     uint[] propSeed;
@@ -318,6 +356,22 @@ public partial class FrostDirector
     public int PropVariant(int slot) { return propVar != null && slot >= 0 && slot < propVar.Length ? propVar[slot] : -1; }
     public PieceRule PropRule(int slot) { return propRules[slot]; }
     public SpriteRenderer[] PropLightRenderers(int slot) { return propLights[slot]; }
+    public SpriteRenderer PropScar(int slot) { return propScar != null && slot >= 0 && slot < propScar.Length ? propScar[slot] : null; }
+    // Box j of the crash scar of the prop in `slot` (false: none there)
+    public bool PropScarBox(int slot, int j, out float x, out double gy, out float h)
+    {
+        x = 0f; gy = 0.0; h = 0f;
+        if (props == null || slot < 0 || slot >= props.items.Count || propKind[slot] < 0 || !FrostPropsTuning.HasScar(propKind[slot]) || propScar[slot] == null || !propScar[slot].enabled) return false;
+        if (j < 0 || j >= FrostPropsTuning.ScarBoxes[0].Length) return false;
+        var p = props.items[slot];
+        FrostPropsTuning.ScarBox(propVar[slot], j, p.size, propMirror[slot], p.x, p.gy, out x, out gy, out h);
+        return true;
+    }
+    // the extra ground a pinned piece's art reaches below its centre before it may be recycled (the starship's furrow)
+    float PinnedTail(BackdropPool pool, int i)
+    {
+        return pool == props && propKind != null && i < propKind.Length && propKind[i] >= 0 && FrostPropsTuning.HasScar(propKind[i]) ? FrostPropsTuning.ScarAbove * pool.items[i].size : 0f;
+    }
 
     float PRand(float a, float b) { return a + (float)propRng.NextDouble() * (b - a); }
 
@@ -351,6 +405,12 @@ public partial class FrostDirector
         propSeed = new uint[n];
         propLights = new SpriteRenderer[n][];
         propLight = new int[n][];
+        propScar = new SpriteRenderer[n];
+        propScarFeet = new int[n][];
+        propMirror = new bool[n];
+        var scarAtlas = set.Atlas(FrostPropsTuning.ScarAtlas);
+        scarArt = new Sprite[FrostPropsTuning.ScarCells.Length];
+        if (scarAtlas != null) for (int s = 0; s < scarArt.Length; s++) scarArt[s] = scarAtlas.Get(FrostPropsTuning.ScarCells[s]);
         propGlow = FrostGroundLights.MakeSprite(out propGlowTex);
         for (int i = 0; i < n; i++)
         {
@@ -370,6 +430,18 @@ public partial class FrostDirector
             }
         }
         Grade(props, FrostPropsTuning.Layer);
+        for (int i = 0; i < n; i++)
+        {
+            var go = new GameObject("scar");
+            go.transform.SetParent(props.items[i].body, false);
+            var sr = go.AddComponent<SpriteRenderer>();
+            sr.sortingOrder = props.items[i].sr.sortingOrder - 1;    // under the wreck, over the ground (the landmarks keep out)
+            sr.sharedMaterial = props.items[i].sr.sharedMaterial;   // graded like the ground it lies on
+            sr.enabled = false;
+            propScar[i] = sr;
+            propScarFeet[i] = new int[FrostPropsTuning.ScarBoxes[0].Length];
+            for (int j = 0; j < propScarFeet[i].Length; j++) propScarFeet[i][j] = -1;
+        }
         plumeKey.Clear();
         foreach (var fam in FrostTuning.Families)
             if (fam != null) foreach (var name in fam) KeyPlume(landmarkArt != null ? landmarkArt.Get(name) : null, name);
@@ -491,11 +563,28 @@ public partial class FrostDirector
         if (props == null) return false;
         float cx, hx, hy; double cy;
         for (int e = 0; PlumeBox(piece, e, size, mirror, x, gy, out cx, out cy, out hx, out hy); e++)
+        {
             foreach (var p in props.items)
             {
                 if (!p.active) continue;
                 float h = FrostPropsTuning.ClaimHalf(p.size);
                 if (Hit(cx, cy, hx, hy, p.x, p.gy, h, h * .8f)) return true;
+            }
+            if (ScarHit(cx, cy, hx, hy)) return true;
+        }
+        return false;
+    }
+
+    // Does a box (centre, half-sizes) touch any crash scar's furrow box?
+    bool ScarHit(float x, double gy, float hx, float hy)
+    {
+        if (props == null || propScar == null) return false;
+        for (int i = 0; i < props.items.Count; i++)
+            for (int j = 0; j < FrostPropsTuning.ScarBoxes[0].Length; j++)
+            {
+                float bx, h; double by;
+                if (!PropScarBox(i, j, out bx, out by, out h)) break;
+                if (Hit(x, gy, hx, hy, bx, by, h, h)) return true;
             }
         return false;
     }
@@ -511,7 +600,7 @@ public partial class FrostDirector
             float h = FrostPropsTuning.ClaimHalf(p.size);
             if (Hit(x, gy, m, m * .8f, p.x, p.gy, h, h * .8f)) return true;
         }
-        return false;
+        return ScarHit(x, gy, m, m * .8f);
     }
 
     // A candidate centre for `kind`: anywhere in the band, or (the outfit) in a ring just outside its host's drawing.
@@ -557,16 +646,24 @@ public partial class FrostDirector
             {
                 // placed before the smaller pieces: above the band the landmarks are being dealt in (its keep-out clear of it,
                 // its drawing out of sight), so they and the docks are dealt round it afterwards
-                if (ahead) { blo = System.Math.Max(lo, hi + ry + .05); bhi = blo + FrostPropsTuning.MassiveBand; }
+                if (ahead)
+                {
+                    blo = System.Math.Max(lo, hi + ry + .05);
+                    if (FrostPropsTuning.HasScar(kd)) blo = System.Math.Max(blo, planner.Travel + HalfH + FrostPropsTuning.ScarBelow * size + .1);   // its scar out of sight too
+                    bhi = blo + FrostPropsTuning.MassiveBand;
+                }
                 n = Mathf.Max(tries, FrostPropsTuning.MassiveTries);
             }
             float best = -1f;
+            bool mirror = propRng.NextDouble() < .5;
+            int sv = FrostPropsTuning.Variants[kd] > 1 ? FrostPropsTuning.PickVariant(kd, (uint)PropsSpawned ^ propSeedBase, lastVar[kd]) : 0;
             for (int t = 0; t < n && !found; t++)
             {
                 float cx; double cy;
                 if (!PropCandidate(kd, size, host, blo, bhi, out cx, out cy)) continue;
                 if (!planner.Free(cx, cy, rx, ry) || !planner.Accepts(rule, cx, cy, size) || !PropClear(cx, cy, rx, ry)) continue;
                 if (!massive) { x = cx; gy = cy; found = true; break; }
+                if (FrostPropsTuning.HasScar(kd) && !ScarClear(sv, size, mirror, cx, cy)) continue;
                 // the wreck: the most ice under it, a lead / broken edge beside it preferred
                 float hx = GroundPlanner.HalfX(rule, size), hy = GroundPlanner.HalfY(rule, size);
                 float score = planner.Match(cx, cy + rule.foot * size, hx, hy, rule.on) + (planner.Near(cx, cy + rule.foot * size, hx, hy, GroundClass.Water) ? .25f : 0f);
@@ -580,6 +677,7 @@ public partial class FrostDirector
             if (p == null) { planner.Release(foot); return false; }
             int i = props.items.IndexOf(p);
             int v = FrostPropsTuning.PickVariant(kd, (uint)PropsSpawned ^ propSeedBase, lastVar[kd]);
+            if (massive) v = sv;
             if (propFrames[kd][v] == null) for (int w = 0; w < propFrames[kd].Length; w++) if (propFrames[kd][w] != null) { v = w; break; }
             lastVar[kd] = v;
             propRules[i] = rule;
@@ -588,7 +686,10 @@ public partial class FrostDirector
             propSeed[i] = (uint)propRng.Next() | 1u;
             propSurface[i] = FrostPropsTuning.OneShot[kd] ? PRand(FrostPropsTuning.WaitMin, FrostPropsTuning.WaitMax) : 0f;
             SetSprite(p, propFrames[kd][v][0], Mathf.Min(size, FrostPropsTuning.MaxSize(kd)));
-            p.body.localScale = propRng.NextDouble() < .5 ? new Vector3(-1f, 1f, 1f) : Vector3.one;
+            if (!massive) mirror = propRng.NextDouble() < .5;
+            p.body.localScale = mirror ? new Vector3(-1f, 1f, 1f) : Vector3.one;
+            propMirror[i] = mirror;
+            AttachScar(i, kd, v, size, mirror, x, gy, rule);
             p.footprint = foot;
             p.core = FrostPropsTuning.ClaimCore + FrostPropsTuning.KeepOut;
             p.gy = gy;
@@ -629,6 +730,55 @@ public partial class FrostDirector
             planner.Release(p.footprint);
             p.footprint = -1;
             Despawn(p);
+        }
+        for (int i = 0; i < props.items.Count; i++) ReleaseScar(i);
+    }
+
+    // Are the scar's furrow boxes free on the planner and clear of plume columns and dock margins?
+    bool ScarClear(int variant, float size, bool mirror, float x, double gy)
+    {
+        for (int j = 0; j < FrostPropsTuning.ScarBoxes[0].Length; j++)
+        {
+            float bx, h; double by;
+            FrostPropsTuning.ScarBox(variant, j, size, mirror, x, gy, out bx, out by, out h);
+            if (!planner.Free(bx, by, h, h) || !PropClear(bx, by, h, h)) return false;
+        }
+        return true;
+    }
+
+    // The crash scar under prop `slot` (the starship): its decal (wet when the layout has water beside it), its furrow claimed.
+    void AttachScar(int slot, int kind, int variant, float size, bool mirror, float x, double gy, PieceRule rule)
+    {
+        var sr = propScar[slot];
+        ReleaseScar(slot);
+        if (!FrostPropsTuning.HasScar(kind)) { sr.enabled = false; return; }
+        float hx = GroundPlanner.HalfX(rule, size), hy = GroundPlanner.HalfY(rule, size);
+        bool wet = planner.Near(x, gy + rule.foot * size, hx, hy, GroundClass.Water);
+        var art = scarArt[FrostPropsTuning.ScarIndex(variant, wet)];
+        if (art == null) { sr.enabled = false; return; }
+        sr.sprite = art;
+        // the body is drawn at size / (Cell / ppu); the decal's ScarTexels span ScarSpan cell px
+        const float ppu = BackdropAtlas.PixelsPerUnit;
+        float k = FrostPropsTuning.ScarSpan / FrostPropsTuning.ScarTexels * art.pixelsPerUnit / ppu;
+        sr.transform.localScale = new Vector3(k, k, 1f);
+        sr.transform.localPosition = new Vector3(FrostPropsTuning.ScarCentre.x / ppu, FrostPropsTuning.ScarCentre.y / ppu, 0f);
+        sr.color = props.items[slot].sr.color;
+        sr.enabled = true;
+        for (int j = 0; j < propScarFeet[slot].Length; j++)
+        {
+            float bx, h; double by;
+            FrostPropsTuning.ScarBox(variant, j, size, mirror, x, gy, out bx, out by, out h);
+            propScarFeet[slot][j] = planner.Claim(bx, by, h, h);
+        }
+    }
+
+    void ReleaseScar(int slot)
+    {
+        if (propScarFeet == null || propScarFeet[slot] == null) return;
+        for (int j = 0; j < propScarFeet[slot].Length; j++)
+        {
+            if (propScarFeet[slot][j] >= 0) planner.Release(propScarFeet[slot][j]);
+            propScarFeet[slot][j] = -1;
         }
     }
 
@@ -701,7 +851,13 @@ public partial class FrostDirector
         for (int i = 0; i < props.items.Count; i++)
         {
             var p = props.items[i];
-            if (!p.active || propKind[i] < 0) continue;
+            if (!p.active)
+            {
+                if (propScar[i].enabled) { propScar[i].enabled = false; ReleaseScar(i); }
+                continue;
+            }
+            if (propKind[i] < 0) continue;
+            if (propScar[i].enabled) propScar[i].color = p.sr.color;
             int f = PropFrame(i, p);
             var want = propFrames[propKind[i]][propVar[i]][f];
             if (p.sr.sprite != want) p.sr.sprite = want;

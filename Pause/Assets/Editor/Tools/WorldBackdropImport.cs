@@ -103,7 +103,8 @@ public class WorldBackdropImport : AssetPostprocessor
 
     // Frost's living props (FrostProps.cs, Backdrop3/props): 47 strips of 8 x 128 px cells, 2048 x 3072 since round 2 (variants):
     // never clamped (the 1024 cap would halve the cells and break the JSON rects), crisp like the landmarks, ASTC 6x6.
-    public static bool IsFrostProps(string path) { return path.Contains("/Worlds/Frost/Backdrop3/") && path.EndsWith("/props.png"); }
+    // The starship's crash-scar decals (Backdrop3/scar, 1536 x 1536, FrostProps.cs) take the same rules.
+    public static bool IsFrostProps(string path) { return path.Contains("/Worlds/Frost/Backdrop3/") && (path.EndsWith("/props.png") || path.EndsWith("/scar.png")); }
 
     // Backdrop3 art is pixel art drawn near 1:1 (landmarks, sites, lights)
     // or ~2x (tiles): point-sampled so it stays crisp. Its soft atlases

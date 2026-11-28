@@ -203,7 +203,7 @@ public static class WorldBackdropTest
     {
         float lift = 1f, alphaLift = 1f, satScale = 1f;
         if (atlas == "landmarks" || atlas == "sites") lift = BackdropGrade.Lift(spec, spec.Find("landmarks"));
-        else if (atlas == FrostPropsTuning.Atlas) lift = BackdropGrade.Lift(spec, spec.Find(FrostPropsTuning.Layer));
+        else if (atlas == FrostPropsTuning.Atlas || atlas == FrostPropsTuning.ScarAtlas) lift = BackdropGrade.Lift(spec, spec.Find(FrostPropsTuning.Layer));
         else if (atlas == "aurora") lift = BackdropGrade.Lift(spec, spec.Find("aurora"));
         else if (FrostAmbientCatalog.Lifted(atlas)) lift = BackdropGrade.Lift(spec, FrostTuning.PlumeShare);
         else if (atlas == "weather")
@@ -333,6 +333,7 @@ public static class WorldBackdropTest
                            "icebreaker_00", "icebreaker_07", "plane_00", "plane_07", "snowcat_0_00", "snowcat_3_07", "radar_0_00",
                            "fishcamp_2_00", "flares_1_07", "tanker_0_00", "bears_3_07", "narwhal_0_00", "sonde_2_07", "seals_00",
                            "heli_0_00", "heli_3_07", "starship_0_00", "starship_3_07" } },
+        { FrostPropsTuning.ScarAtlas, FrostPropsTuning.ScarCells },     // the starship's crash-scar decals
     };
 
     // Verdant's shared atlases and the drawings the director relies on.
