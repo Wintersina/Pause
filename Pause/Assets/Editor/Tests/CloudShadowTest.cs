@@ -250,10 +250,19 @@ public static class CloudShadowTest
         return m;
     }
 
-    // What the GPU draws: with only the shadows visible over white, the picture holds a few stepped levels, not a smooth gradient.
+    // What the GPU draws: with only the shadows visible over white, a pixel-art world's picture holds a few stepped levels, not a smooth
+    // gradient; a SOFT world's (Frost: Look.soft) is a smooth gradient (many shades, still never darker than the cap).
     static void Rendering()
     {
-        var wb = Fresh("Desert");
+        foreach (var look in CloudShadowLayer.Looks)
+            Check(look.world + (look.soft ? ": drawn SOFT (smooth, no steps)" : ": drawn as stepped pixel art"), look.soft == (look.world == "Frost"));
+        RenderingOf("Desert");
+        RenderingOf("Frost");
+    }
+
+    static void RenderingOf(string world)
+    {
+        var wb = Fresh(world);
         var set = wb.Current;
         var cs = set.CloudShadows;
         Run(wb, 8f);
@@ -291,8 +300,14 @@ public static class CloudShadowTest
             if (c.r >= 250) white++; else dark++;
             darkest = Mathf.Min(darkest, c.r / 255f);
         }
-        Check("rendered over white: " + levels.Count + " distinct shades (stepped: <= " + (CloudShadowArt.Steps + 2) + " for one shadow), " + dark + " shadowed / " + white + " lit pixels, darkest " + darkest.ToString("F2") + " >= " + (1f - cs.Peak).ToString("F2") + " (the cap)",
-              levels.Count >= 2 && levels.Count <= CloudShadowArt.Steps + 2 && dark > 0 && white > 0 && darkest >= 1f - cs.Peak - .03f);
+        bool soft = cs.Soft;
+        Check(world + ": the material's soft switch is " + (soft ? "on" : "off"), Mathf.Approximately(cs.SharedMaterial.GetFloat("_Soft"), soft ? 1f : 0f));
+        if (soft)
+            Check(world + " rendered over white: " + levels.Count + " distinct shades (smooth: > " + (CloudShadowArt.Steps + 2) + " for one shadow), " + dark + " shadowed / " + white + " lit pixels, darkest " + darkest.ToString("F2") + " >= " + (1f - cs.Peak).ToString("F2") + " (the cap)",
+                  levels.Count > CloudShadowArt.Steps + 2 && dark > 0 && white > 0 && darkest >= 1f - cs.Peak - .03f);
+        else
+            Check(world + " rendered over white: " + levels.Count + " distinct shades (stepped: <= " + (CloudShadowArt.Steps + 2) + " for one shadow), " + dark + " shadowed / " + white + " lit pixels, darkest " + darkest.ToString("F2") + " >= " + (1f - cs.Peak).ToString("F2") + " (the cap)",
+                  levels.Count >= 2 && levels.Count <= CloudShadowArt.Steps + 2 && dark > 0 && white > 0 && darkest >= 1f - cs.Peak - .03f);
         cam.clearFlags = CameraClearFlags.Skybox;
     }
 

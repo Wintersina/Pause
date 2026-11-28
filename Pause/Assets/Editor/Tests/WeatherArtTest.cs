@@ -90,6 +90,7 @@ public static class WeatherArtTest
             Sheet(sun + "flares_violet.png", 4096, 2048, 1024, 4, 2, "SpaceSun", 0, 0);
         }
         Wired();
+        FrostSoftSheets();
         Debug.Log("[WART] " + (fails == 0 ? "ALL PASS" : fails + " FAILED"));
         return fails;
     }
@@ -151,6 +152,140 @@ public static class WeatherArtTest
                 if (total > 0) worst = Mathf.Max(worst, same / (float)total);
             }
         return worst;
+    }
+
+    // FROST'S WEATHER IS SOFT AND NO FRAME CUTS INTO ANOTHER (2026-11, the user: "all the clouds and weathers are too ugly and pixile and its
+    // frames are cutting into each other ... make sure we fix this in frost"; build_soft_weather.py). The old wx_hazard cut a pick that was
+    // not drawn on its grid (each 512 cell held parts of two drawings), the old weather carried the pick's detached strays and was x4 nearest
+    // neighbour blocks, the old wx_ambient's particles were flat-cut at the sheet's edges. Now, read from disk:
+    //   * every sprite rect sits inside its own cell with a transparent gutter around it (wrap-tiling front strips: the side gutters hold
+    //     the strip's own continuation, never another cell), and a non-tiling drawing never touches its rect's border;
+    //   * the sheets are smooth (many alpha levels), not stepped pixel art;
+    //   * weather.json keeps the old 256 px cell's world size (w / pixelScale == 256).
+    [System.Serializable] class WxRect { public string n; public int x, y, w, h; }
+    [System.Serializable] class WxSheet { public WxRect[] sprites; public float pixelScale; public int sheetW, sheetH; }
+    [System.Serializable] class WxCell { public int col, row, x, y, w, h; }
+    [System.Serializable] class WxCells { public WxCell[] cells; }
+    [System.Serializable] class WxLayout { public int gutter; }
+
+    static Color32[] Px(string path, out int w, out int h)
+    {
+        var t = new Texture2D(2, 2, TextureFormat.RGBA32, false);
+        t.LoadImage(File.ReadAllBytes(path));
+        w = t.width; h = t.height;
+        var px = t.GetPixels32();
+        Object.DestroyImmediate(t);
+        return px;
+    }
+
+    static int AlphaLevels(Color32[] px)
+    {
+        var seen = new bool[256]; int n = 0;
+        foreach (var p in px) if (!seen[p.a]) { seen[p.a] = true; n++; }
+        return n;
+    }
+
+    // max alpha on the rect's own border (inside) and on the `ring` px around it (outside, clipped to the cell)
+    static void Edges(Color32[] px, int W, int x, int y, int w, int h, int ring, int cx0, int cy0, int cw, int ch, out int border, out int outside)
+    {
+        border = 0; outside = 0;
+        for (int yy = Mathf.Max(cy0, y - ring); yy < Mathf.Min(cy0 + ch, y + h + ring); yy++)
+            for (int xx = Mathf.Max(cx0, x - ring); xx < Mathf.Min(cx0 + cw, x + w + ring); xx++)
+            {
+                int a = px[yy * W + xx].a;
+                bool inside = xx >= x && xx < x + w && yy >= y && yy < y + h;
+                if (!inside) outside = Mathf.Max(outside, a);
+                else if (xx == x || xx == x + w - 1 || yy == y || yy == y + h - 1) border = Mathf.Max(border, a);
+            }
+    }
+
+    static void FrostSoftSheets()
+    {
+        string dir = Application.dataPath + "/Art/Backgrounds/Resources/" + BackdropCatalog.Folder("Frost");
+        int W, H;
+        // weather: the cloud ceiling, wisps, mist, blizzard sheets, snow fields
+        if (File.Exists(dir + "weather.png") && File.Exists(dir + "weather.json"))
+        {
+            var px = Px(dir + "weather.png", out W, out H);
+            var m = JsonUtility.FromJson<WxSheet>(File.ReadAllText(dir + "weather.json"));
+            int bad = 0, n = 0; string first = "";
+            foreach (var r in m.sprites)
+            {
+                n++;
+                int cx0 = r.x / 512 * 512, cy0 = r.y / 512 * 512;
+                bool inCell = r.x - cx0 >= 4 && r.y - cy0 >= 4 && r.x + r.w <= cx0 + 512 - 4 && r.y + r.h <= cy0 + 512 - 4;
+                int border = 255, outside = 255;
+                if (inCell) Edges(px, W, r.x, r.y, r.w, r.h, 16, cx0, cy0, 512, 512, out border, out outside);
+                bool ok = inCell && border == 0 && outside == 0 && Mathf.Abs(r.w / Mathf.Max(.01f, m.pixelScale) - 256f) < .5f;
+                if (!ok) { bad++; if (first.Length == 0) first = r.n + " (border " + border + ", gutter " + outside + ")"; }
+            }
+            Check("Frost/weather.png: " + n + " sprites, each inside its own 512 cell with a clear gutter, never touching its rect, at the old cell's world size",
+                  W == 2048 && H == 2048 && n == 16 && bad == 0, first);
+            int lv = AlphaLevels(px);
+            Check("Frost/weather.png is soft (" + lv + " alpha levels, not stepped pixel art)", lv >= 32);
+        }
+        // wx_hazard: the blizzard front (row 0, tiles side by side), the eddy (row 1), the warnings and gust curls (row 2)
+        if (File.Exists(dir + "wx_hazard.png") && File.Exists(dir + "wx_hazard.json"))
+        {
+            var px = Px(dir + "wx_hazard.png", out W, out H);
+            int g = JsonUtility.FromJson<WxLayout>(File.ReadAllText(dir + "wx_hazard.json")).gutter;
+            Check("Frost/wx_hazard.json: a gutter of " + g + " px (4..64, a multiple of 4: ASTC 4x4 blocks never straddle two cells)", g >= 4 && g <= 64 && g % 4 == 0);
+            int bad = 0; string first = "";
+            int side = 512 - 2 * g;
+            for (int r = 0; r < 3 && g >= 4; r++)
+                for (int c = 0; c < 6; c++)
+                {
+                    int cx0 = c * 512, cy0 = (2 - r) * 512, x = cx0 + g, y = cy0 + g;
+                    bool wrap = r == 0 || (r == 2 && c < 2);      // the front strips tile sideways: their side gutters continue the strip
+                    int topBottom = 0, sides = 0, wrapMismatch = 0, border = 0;
+                    for (int yy = cy0; yy < cy0 + 512; yy++)
+                        for (int xx = cx0; xx < cx0 + 512; xx++)
+                        {
+                            int a = px[yy * W + xx].a;
+                            bool inY = yy >= y && yy < y + side, inX = xx >= x && xx < x + side;
+                            if (!inY) topBottom = Mathf.Max(topBottom, a);
+                            else if (!inX)
+                            {
+                                if (!wrap) sides = Mathf.Max(sides, a);
+                                else
+                                {
+                                    int src = xx < x ? xx + side : xx - side;     // the strip's own continuation
+                                    var p = px[yy * W + xx]; var q = px[yy * W + src];
+                                    if (p.r != q.r || p.g != q.g || p.b != q.b || p.a != q.a) wrapMismatch++;
+                                }
+                            }
+                            else if (!wrap && (xx == x || xx == x + side - 1 || yy == y || yy == y + side - 1)) border = Mathf.Max(border, a);
+                            else if (wrap && (yy == y || yy == y + side - 1)) border = Mathf.Max(border, a);
+                        }
+                    if (topBottom > 0 || sides > 0 || wrapMismatch > 0 || border > 0)
+                    {
+                        bad++;
+                        if (first.Length == 0) first = "r" + r + " c" + c + " (gutter " + Mathf.Max(topBottom, sides) + ", wrap mismatches " + wrapMismatch + ", border " + border + ")";
+                    }
+                }
+            Check("Frost/wx_hazard.png: every cell's drawing stays inside its " + side + " px rect (clear gutters; the front strips' side gutters are their own wrap-around)",
+                  W == 3072 && H == 1536 && bad == 0, first);
+            int lv = AlphaLevels(px);
+            Check("Frost/wx_hazard.png is soft (" + lv + " alpha levels, not stepped pixel art)", lv >= 32);
+        }
+        // wx_ambient: snowflakes, glints, dots
+        if (File.Exists(dir + "wx_ambient.png") && File.Exists(dir + "wx_ambient.json"))
+        {
+            var px = Px(dir + "wx_ambient.png", out W, out H);
+            var m = JsonUtility.FromJson<WxCells>(File.ReadAllText(dir + "wx_ambient.json"));
+            int bad = 0; string first = "";
+            foreach (var cl in m.cells)
+            {
+                int cx0 = cl.col * 256, cy0 = (1 - cl.row) * 256;
+                bool inCell = cl.x >= cx0 + 2 && cl.y >= cy0 + 2 && cl.x + cl.w <= cx0 + 254 && cl.y + cl.h <= cy0 + 254;
+                int border = 255, outside = 255;
+                if (inCell) Edges(px, W, cl.x, cl.y, cl.w, cl.h, 2, cx0, cy0, 256, 256, out border, out outside);
+                if (!inCell || border > 0 || outside > 0) { bad++; if (first.Length == 0) first = "cell r" + cl.row + " c" + cl.col; }
+            }
+            Check("Frost/wx_ambient.png: every particle whole inside its own cell (nothing flat-cut at the sheet's or a rect's edge)", m.cells.Length == 16 && bad == 0, first);
+            int lv = AlphaLevels(px);
+            Check("Frost/wx_ambient.png is soft (" + lv + " alpha levels, not stepped pixel art)", lv >= 32);
+        }
     }
 
     // Once wired (Resources/Weather/...), nothing may be clamped below its own size.

@@ -789,6 +789,10 @@ def build_wx_hazard():
     return sheet
 
 
+# 2026-11: Frost's weather sheets are built SOFT, with clean cells and gutters, by build_soft_weather.py (the builders below are kept for
+# the record only: they cut the picks on their 64 px grid, which the weather picks are not drawn on, and scale them by nearest neighbour)
+SUPERSEDED = ("weather", "wx_ambient", "wx_hazard")
+
 BUILD = {
     "landmarks": build_landmarks, "sites": build_sites, "weather": build_weather, "aurora": build_aurora,
     "smoke": build_smoke, "steam": build_steam, "fire_lights": build_fire_lights, "beacons": build_beacons,
@@ -800,8 +804,12 @@ def main():
     global OUT
     ap = argparse.ArgumentParser()
     ap.add_argument("--out", default=str(OUT))
-    ap.add_argument("atlases", nargs="*", default=list(BUILD))
+    ap.add_argument("atlases", nargs="*", default=[n for n in BUILD if n not in SUPERSEDED])
     args = ap.parse_args()
+    for n in args.atlases:
+        if n in SUPERSEDED:
+            sys.exit(f"{n}: superseded by build_soft_weather.py (this build cuts the pick on its grid, x4 / x8 nearest neighbour: "
+                     "the frames cut into each other and the sheet is blocky). Run that instead.")
     OUT = Path(args.out)
     OUT.mkdir(parents=True, exist_ok=True)
     for n in args.atlases:
