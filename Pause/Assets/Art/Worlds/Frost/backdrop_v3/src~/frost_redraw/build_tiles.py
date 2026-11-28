@@ -36,7 +36,7 @@ HERE = Path(__file__).resolve().parent
 DEFAULT_OUT = HERE.parents[4] / "Backgrounds/Resources/Worlds/Frost/Backdrop3"
 W, H, CELL = 896, 1792, 4
 COLORS = 96
-SEAM_ROWS = {448: 28, 224: 12}            # quilt band height (source rows) per block height
+SEAM_ROWS = {896: 56, 448: 28, 224: 12}           # quilt band height (source rows) per block height
 DETAIL_WEIGHT = .5                        # quilt: cost of repeating a busy strip vs a plain one
 ROLL = CELL // 2                          # output rows the tile is rolled by: the wrap falls inside one 4 px cell
 # painted HSV-value targets (median, p90, max) of the opaque texels; drawn ~1.8x brighter (mid lift 1.95)
@@ -61,7 +61,10 @@ GAMMA_RANGE = (.6, 1.4)              # flatter than .6 washes the darks out, ste
 
 
 def load(name):
-    return np.asarray(Image.open(HERE / "sources" / name).convert("RGBA")).copy()
+    # FULL DETAIL: a 448 x 896 redraw in sources_hd/ (hd_gen + hd_join: the approved drawing redrawn at twice the pixel
+    # detail in two halves, the join repainted) wins over the 224 x 448 drawing; it is drawn with 2 px cells, not 4.
+    hd = HERE / "sources_hd" / name
+    return np.asarray(Image.open(hd if hd.exists() else HERE / "sources" / name).convert("RGBA")).copy()
 
 
 def border(a, max_band=24):
@@ -276,8 +279,8 @@ def limit_colors(a):
     return out, COLORS
 
 
-def pixel_pass(a, seed):
-    big = np.roll(np.repeat(np.repeat(a, CELL, 0), CELL, 1), ROLL, 0).astype(np.int16)
+def pixel_pass(a, seed, cell=CELL):
+    big = np.roll(np.repeat(np.repeat(a, cell, 0), cell, 1), cell // 2, 0).astype(np.int16)
     rng = np.random.default_rng(seed)
     grain = rng.integers(-1, 2, size=big.shape[:2]).astype(np.int16)
     grain[-1] = grain[0]
@@ -296,7 +299,7 @@ def build(key):
         raise SystemExit(f"{key}: a {l} / {r} px frame on the left / right: crop it and re-pick (columns can't be quilted)")
     if t or b:                                         # a frame band top or bottom: cut off, the rows quilted back
         print(f"{key}: frame band cropped: {t} rows top, {b} bottom")
-        a, ek = extend(a[t:a.shape[0] - b], 448)
+        a, ek = extend(a[t:a.shape[0] - b], 2 * a.shape[1])
     if layer != "flow":
         y0, y1 = content_rows(a)
         if y1 - y0 < a.shape[0]:                   # a letterboxed square drawing: its band, repeated twice
@@ -316,8 +319,10 @@ def build(key):
     if a.shape[0] == 224:
         a = np.concatenate([a, a], 0)
     a, ncol = limit_colors(a)
-    assert a.shape[:2] == (H // CELL, W // CELL), a.shape
-    out = pixel_pass(a, seed=sum(map(ord, key)) * 7919)
+    cell = W // a.shape[1]                        # 4: the 224-wide drawings; 2: the full-detail redraws
+    assert a.shape[:2] == (H // cell, W // cell), a.shape
+    out = pixel_pass(a, seed=sum(map(ord, key)) * 7919, cell=cell)
+    info["cell"] = cell
     info["colors"] = ncol
     info["quilt_k"] = k
     return out, info

@@ -7,6 +7,13 @@ The method is Frost's own (../ground_masks.py: colour + edge statistics ranked b
 vote per cell, 3x3 mode filter), unchanged; that script measures a 512 x 1024 tile in 16 px cells, so the 896 x 1792 mid
 is resized to 512 x 1024 (Lanczos) first, which gives the same 32 x 64 grid and the same blur radii per cell.
 The per-variant rules are the original ones (OVERRIDES is the hook to retune them); v3 / v4 are not touched.
+
+PAINTED PROPS (mark_props, after the vote): the colour statistics read the redrawn tiles' small painted props -- v1's crate
+stacks, tent and lamp posts on the floes, v4's braziers and supply crates on the plateaus -- as plain sheet / plateau (C),
+so the planner would stand a landmark or a launch site right on top of them. Every cell holding a cluster of their warm
+lit pixels (amber lamps, fire, orange crate bands: never in the blue-grey ice) is marked B, grown by one cell for the
+prop's unlit body. --props-only applies just that pass to the mask.txt already there (the masks are otherwise left as
+checked against the tiles).
 """
 import importlib.util
 import os
@@ -29,6 +36,25 @@ spec.loader.exec_module(gm)
 # and it marks the gorge rims, not the domed fort, so the original rules stand.
 OVERRIDES = {}
 
+PROP_MIN = 6        # warm pixels (of the 896 x 1792 tile) that make a cell hold a painted prop
+
+
+def mark_props(mid_rgb, grid):
+    """B on every cell with a painted prop (warm lit pixels), grown by one cell; grid rows x cols, row 0 = top."""
+    a = np.asarray(mid_rgb.convert("RGB")).astype(int)
+    r, g, b = a[..., 0], a[..., 1], a[..., 2]
+    warm = (r > g + 12) & (r > b + 25) & (r > 60)
+    rows, cols = len(grid), len(grid[0])
+    cnt = np.zeros((rows, cols), int)
+    ys, xs = np.nonzero(warm)
+    np.add.at(cnt, ((ys * rows) // a.shape[0], (xs * cols) // a.shape[1]), 1)
+    hot = cnt >= PROP_MIN
+    grown = hot.copy()
+    for dy in (-1, 0, 1):
+        for dx in (-1, 0, 1):
+            grown |= np.roll(np.roll(hot, dy, 0), dx, 1) & (np.arange(cols)[None, :] - dx >= 0) & (np.arange(cols)[None, :] - dx < cols)
+    return ["".join("B" if grown[y, x] else grid[y][x] for x in range(cols)) for y in range(rows)], int(grown.sum())
+
 
 def main():
     args = [a for a in sys.argv[1:]]
@@ -37,7 +63,18 @@ def main():
         i = args.index("--debug")
         dbg = args[i + 1]
         del args[i:i + 2]
+    props_only = "--props-only" in args
+    if props_only:
+        args.remove("--props-only")
     base = Path(args[0]) if args else DEFAULT
+    if props_only:
+        for v in (1, 2, 3, 4):
+            path = base / f"v{v}" / "mask.txt"
+            grid = [l for l in path.read_text().split("\n") if l]
+            grid, n = mark_props(Image.open(base / f"v{v}" / "mid.png"), grid)
+            path.write_text("\n".join(grid) + "\n")
+            print(f"v{v}: {n} prop cells B")
+        return
     for v in (1, 2, 3, 4):
         cfg = dict(gm.VARIANTS[v])
         cfg.update(OVERRIDES.get(v, {}))
@@ -47,7 +84,8 @@ def main():
             mid.save(p)
             im, grid = gm.classify(p, cfg)
         assert grid.shape == (64, 32), grid.shape
-        (base / f"v{v}" / "mask.txt").write_text("\n".join("".join(gm.CLASSES[c] for c in row) for row in grid) + "\n")
+        rows, _ = mark_props(Image.open(base / f"v{v}" / "mid.png"), ["".join(gm.CLASSES[c] for c in row) for row in grid])
+        (base / f"v{v}" / "mask.txt").write_text("\n".join(rows) + "\n")
         print(f"v{v}", " ".join(f"{gm.CLASSES[k]} {(grid == k).mean():.2f}" for k in range(4)))
         if dbg:
             os.makedirs(dbg, exist_ok=True)

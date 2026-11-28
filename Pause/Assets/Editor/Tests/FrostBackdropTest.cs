@@ -571,10 +571,10 @@ public static class FrostBackdropTest
         var pool2 = new BackdropPool(root2, "test", 1, -400, 0f);
         amb2.Rig(pool2);
         var p2 = pool2.Spawn();
-        int shown2 = amb2.Attach(p2, "refinery_00", new System.Random(1));
+        int shown2 = amb2.Attach(p2, "refinery_01", new System.Random(1));     // (the stacked refinery: refinery_00 is tanks, no stack)
         amb2.Step(1f);
         Check("with them, a refinery gets its smoke plumes and windows (" + shown2 + " loops, " + amb2.LiveCount + " live)",
-              shown2 == FrostAmbientCatalog.For("refinery_00").Length && amb2.LiveCount == shown2);
+              shown2 == FrostAmbientCatalog.For("refinery_01").Length && amb2.LiveCount == shown2 && amb2.HasRisingPlume(p2));
         frost.Destroy();
         Object.DestroyImmediate(root2.gameObject);
     }

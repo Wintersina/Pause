@@ -16,6 +16,13 @@ of its opaque texels; hue kept) and alpha (the old sequence's peak alpha: the ar
 translucency comes from that level), and at the end every visible texel gets the per-texel grain of the tiles
 (RGB -1 / 0 / +1, seeded) so no 256 cell is a nearest-neighbour block upscale for BackdropResolutionTest.
 
+HD sources (sources_hd/atlas_<name>.png, preferred when present): the same picks redrawn at twice the detail (512 x 512,
+4 x 4 cells of 128 px, the same piece in the same cell), cut from 128 px cells and scaled x2 instead of x4 (a 2 px
+source pixel, as the HD ground tiles), every other step the same; the lit lamp pixels stay 4 x 4 (two HD source pixels)
+on the 2 px grid. landmarks and sites take them whole; docks only rows 2-3 (the rig and the icebreaker: x2, each
+piece found by its own bounds, the HD sheet is shifted a few px off the cell grid), rows 0-1 stay on sources/ (the HD
+animated door / hatch drawings do not match frame to frame).
+
 Frames BUILT BY SCRIPT (no matching sequence in the pick), see SCRIPTED: printed by the build.
 """
 import argparse
@@ -40,6 +47,18 @@ SCRIPTED = []
 
 def src(name):
     return np.asarray(Image.open(HERE / "sources" / f"atlas_{name}.png").convert("RGBA")).copy()
+
+
+def src_hd(name):
+    """The HD pick (128 px cells) or None."""
+    p = HERE / "sources_hd" / f"atlas_{name}.png"
+    return np.asarray(Image.open(p).convert("RGBA")).copy() if p.exists() else None
+
+
+def pick(name):
+    """(sheet, cell px, upscale): the HD pick at x2 when there is one, else the 64 px pick at x4 (the same 256 cell)."""
+    a = src_hd(name)
+    return (a, 128, 2) if a is not None else (src(name), 64, 4)
 
 
 def old_json(name):
@@ -236,10 +255,10 @@ SITES = {
 
 
 def ground_atlas(name, table, extra=None):
-    a = src(name)
+    a, n_px, k = pick(name)
     groups = {}
     for n, (r, c) in table.items():
-        groups.setdefault(family(n), []).append((n, up(grid(a, r, c), 4)))
+        groups.setdefault(family(n), []).append((n, up(grid(a, r, c, n_px), k)))
     if extra:
         for n, cell in extra.items():
             groups.setdefault(family(n), []).append((n, cell))
@@ -339,10 +358,12 @@ def cool(cells, old_sheet, old_js, only=None, lum_target=None):
     return cells
 
 
-def strip_lamps(frames, block, colours=("beacon_cyan", "window_lights")):
+def strip_lamps(frames, block, colours=("beacon_cyan", "window_lights"), lamp=None):
     """A launch strip's lamps: two lit source pixels at the top of the drawing, a quarter in from each side (the
     topmost drawn block in that column of the idle cell), the same spots in all six cells (so no cell is brighter
-    than idle), plus one amber at the drawing's lowest centre block."""
+    than idle), plus one amber at the drawing's lowest centre block. block: the source pixel (the grid the spots
+    sit on); lamp: the lit square's side (default one block; the HD x2 pieces light 2 x 2 source pixels)."""
+    lamp = lamp or block
     idle = frames[0]
     on = idle[..., 3] > 0
     xs = np.nonzero(on.any(0))[0]
@@ -351,65 +372,67 @@ def strip_lamps(frames, block, colours=("beacon_cyan", "window_lights")):
     for fx, col in ((.25, colours[0]), (.75, colours[0])):
         gx = int(x0 + (x1 - x0) * fx) // block * block
         for gy in range(0, idle.shape[0] - block, block):
-            if on[gy:gy + block, gx:gx + block].all():
+            if on[gy:gy + lamp, gx:gx + lamp].all():
                 spots.append((gx, gy + block, col))    # one block in from the outline
                 break
     gx = (x0 + x1) // 2 // block * block
-    for gy in range(idle.shape[0] - block, 0, -block):
-        if on[gy:gy + block, gx:gx + block].all():
-            spots.append((gx, gy - block, colours[1]))
+    for gy in range(idle.shape[0] - lamp, 0, -block):
+        if on[gy:gy + lamp, gx:gx + lamp].all():
+            spots.append((gx, gy - lamp, colours[1]))
             break
     for c in frames:
         for x, y, col in spots:
-            if (c[y:y + block, x:x + block, 3] > 0).all():
-                c[y:y + block, x:x + block, :3] = LIT[col]
+            if (c[y:y + lamp, x:x + lamp, 3] > 0).all():
+                c[y:y + lamp, x:x + lamp, :3] = LIT[col]
     return len(spots)
 
 
-def light_up(cells, pick, table, alias=None):
-    """A few lit lamp pixels (one 4 x 4 source pixel each, on the drawing's grid): at each of the piece's
-    beacon / strobe emitter points (the topmost drawn pixel within 20 px), a short row of three at its window
-    point, and the pick's own lamp-pod texels (green in the drawing) turned cyan. Returns {frame: count}."""
+def light_up(cells, pick, table, alias=None, n_px=64, k=4, lamp=4):
+    """A few lit lamp pixels (a lamp x lamp square on the drawing's k px grid: one source pixel of the 64 px pick, two
+    of the HD one): at each of the piece's beacon / strobe emitter points (the topmost drawn square within 20 px), a
+    short row of three at its window point, and the pick's own lamp-pod texels (green in the drawing) turned cyan
+    (each one source pixel). Returns {frame: count}."""
     bind = bindings()
     count = {}
     for n, (r, c) in table.items():
         cell = cells[n]
         on = cell[..., 3] > 0
         lit = []
-        src_cell = pick[r * 64:(r + 1) * 64, c * 64:(c + 1) * 64]
+        src_cell = pick[r * n_px:(r + 1) * n_px, c * n_px:(c + 1) * n_px]
         f = src_cell[..., :3].astype(np.float64) / 255
         mx, mn = f.max(-1), f.min(-1)
         green = (src_cell[..., 3] > 0) & (f[..., 1] == mx) & (mx - mn > .3) & (f[..., 1] - f[..., 2] > .1)
         for y, x in zip(*np.nonzero(green)):
-            lit.append((x * 4, y * 4, LIT["beacon_cyan"]))
+            lit.append((x * k, y * k, LIT["beacon_cyan"], k))
         for loop, x, y in bind.get((alias or {}).get(n, n), []):
             if loop not in LIT:
                 continue
-            gx, gy = x // 4 * 4, y // 4 * 4
+            gx, gy = x // k * k, y // k * k
             if loop == "window_lights":
-                for dx in (-4, 0, 4):
-                    lit.append((gx + dx, gy, LIT[loop]))
+                for dx in (-lamp, 0, lamp):
+                    lit.append((gx + dx, gy, LIT[loop], lamp))
                 continue
             best = None
-            for yy in range(max(0, gy - 20), min(252, gy + 21), 4):
-                for xx in range(max(0, gx - 20), min(252, gx + 21), 4):
-                    if on[yy:yy + 4, xx:xx + 4].all() and (best is None or (yy, abs(xx - gx)) < (best[1], abs(best[0] - gx))):
+            for yy in range(max(0, gy - 20), min(256 - lamp, gy + 21), k):
+                for xx in range(max(0, gx - 20), min(256 - lamp, gx + 21), k):
+                    if on[yy:yy + lamp, xx:xx + lamp].all() and (best is None or (yy, abs(xx - gx)) < (best[1], abs(best[0] - gx))):
                         best = (xx, yy)
             if best:
-                lit.append((best[0], best[1], LIT[loop]))
-        k = 0
-        for x, y, col in lit:
-            if on[y:y + 4, x:x + 4].all():
-                cell[y:y + 4, x:x + 4, :3] = col
-                k += 1
-        count[n] = k
+                lit.append((best[0], best[1], LIT[loop], lamp))
+        cnt = 0
+        for x, y, col, s in lit:
+            if on[y:y + s, x:x + s].all():
+                cell[y:y + s, x:x + s, :3] = col
+                cnt += 1
+        count[n] = cnt
     return count
 
 
 def build_landmarks():
     cells = ground_atlas("landmarks", LANDMARKS)
     cells = cool(cells, OLD / "landmarks.png", OLD / "landmarks.json")
-    lit = light_up(cells, src("landmarks"), LANDMARKS)
+    a, n_px, k = pick("landmarks")
+    lit = light_up(cells, a, LANDMARKS, n_px=n_px, k=k)
     print("landmarks lit lamp pixels:", lit)
     sheet, js = sheet_from_cells("landmarks", cells, (1024, 1024))
     return save("landmarks", sheet, js, 101)
@@ -419,7 +442,8 @@ def build_sites():
     cells = ground_atlas("sites", SITES, extra=site_lamps())
     cells = cool(cells, OLD / "sites.png", OLD / "sites.json", only=set(SITES))
     table = dict(SITES)
-    lit = light_up(cells, src("sites"), table, alias={n: n.rsplit("_", 1)[0] + "_closed" if not n.endswith("idle") and not n.endswith("active")
+    a, n_px, k = pick("sites")
+    lit = light_up(cells, a, table, n_px=n_px, k=k, alias={n: n.rsplit("_", 1)[0] + "_closed" if not n.endswith("idle") and not n.endswith("active")
                                                        else "padring_idle" for n in SITES})
     print("sites lit lamp pixels:", lit)
     sheet, js = sheet_from_cells("sites", cells, (1024, 1024))
@@ -663,8 +687,26 @@ def scripted_strip(base, centre, R):
     return [iris(base, centre, r) for r in (0, 0, R // 2, R, R, R // 2)]
 
 
+def hd_piece(a, r, c, n=128, pad=24):
+    """A piece of an HD sheet drawn a few px off its cell: the components (in a window `pad` px wider than the
+    cell) whose centre lies in the cell, tight. Neighbours' bits that cross in are dropped (their centre is outside)."""
+    y0, x0 = max(0, r * n - pad), max(0, c * n - pad)
+    win = a[y0:(r + 1) * n + pad, x0:(c + 1) * n + pad].copy()
+    m = win[..., 3] > 0
+    lab, k = ndimage.label(ndimage.binary_dilation(m, iterations=1), structure=np.ones((3, 3)))
+    lab = lab * m
+    keep = np.zeros_like(m)
+    for i in range(1, k + 1):
+        yy, xx = np.nonzero(lab == i)
+        if len(yy) and r * n <= y0 + yy.mean() < (r + 1) * n and c * n <= x0 + xx.mean() < (c + 1) * n:
+            keep |= lab == i
+    win[~keep] = 0
+    return tight(win)
+
+
 def build_docks():
     a = src("docks")
+    a_hd = src_hd("docks")
     sixth = 256 / 6
     def top(r, c):
         x0 = int(round(c * sixth)); x1 = int(round((c + 1) * sixth))
@@ -682,15 +724,20 @@ def build_docks():
     silo = [place(up(hat[i], 4)) for i in (0, 0, 2, 1, 1, 2)]
     cells["silo"] = silo
     SCRIPTED.append("docks silo_00..05: the pick's 3 hatch drawings in launch order (shut, shut, machine up, open, open, machine up); see-through holes filled as the dark shaft")
+    # rows 2-3: the HD pick's pieces at x2 (2 px source pixels) when there is one, else the 64 px pick's at x3
+    if a_hd is not None:
+        low_t, k_low, rig_r, ice_r = (lambda r, c: hd_piece(a_hd, r, c)), 2, 38, 33
+    else:
+        low_t, k_low, rig_r, ice_r = (lambda r, c: tight(low(r, c))), 3, 30, 26
     # rig: the platform drawing, its bay iris opening by script
-    rig = place(up(tight(low(2, 3)), 3))
-    cells["rig"] = scripted_strip(rig, (128, 120), 30)
+    rig = place(up(low_t(2, 3), k_low))
+    cells["rig"] = scripted_strip(rig, (128, 120), rig_r)
     pads["rig"] = (128, 120)
     SCRIPTED.append("docks rig_00..05: the pick's rig platform (row 2) with a dark bay opening / closing on its deck by script")
     # icebreaker: the tracked hull turned upright for the 192 x 256 cell, its deck hatch opening by script
-    ice = np.rot90(tight(low(3, 1)), -1)
-    ice = place(up(ice, 3), size=(192, 256), centre=(96, 128))
-    cells["icebreaker"] = scripted_strip(ice, (96, 128), 26)
+    ice = np.rot90(low_t(3, 1), -1)
+    ice = place(up(ice, k_low), size=(192, 256), centre=(96, 128))
+    cells["icebreaker"] = scripted_strip(ice, (96, 128), ice_r)
     pads["icebreaker"] = (96, 128)
     SCRIPTED.append("docks icebreaker_00..05: the pick's tracked hull (row 3) turned upright, a deck hatch opening / closing by script")
     named = {}
@@ -702,7 +749,8 @@ def build_docks():
     named = cool(named, OLD / "docks.png", OLD / "docks.json", lum_target=DOCK_LUM)
     for tag in cells:
         frames = [named[f"{tag}_{i:02d}"] for i in range(6)]
-        print(f"docks {tag}: {strip_lamps(frames, 3 if tag in ('rig', 'icebreaker') else 4)} lamps")
+        block = k_low if tag in ("rig", "icebreaker") else 4
+        print(f"docks {tag}: {strip_lamps(frames, block, lamp=4 if block == 2 else None)} lamps")
     sheet, js = sheet_from_cells("docks", named, (1578, 1054))
     save("docks", sheet, js, 109)
     return named, pads

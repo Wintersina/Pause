@@ -131,12 +131,22 @@ public struct PieceRule
     // piece stands where its map's painted story puts it (a trough, beside a rail or an outpost) and not anywhere clear.
     public GroundClass zone;
     public float zoneNeed;
+    // FOOT (Frost, 2026-11): where the drawing meets the ground -- the centre of the snow / rock slab it is drawn standing on -- as a
+    // share of its drawn width from its centre, y up (a tall drawing's slab is its lower part: -.2 for a tower). The ground rules
+    // (on, near, zone) are read under the slab, so the slab, not the roof above it, is what lands on the right ground; the footprint
+    // kept against overlaps stays on the centre. 0: the centre.
+    public float foot;
 
     public PieceRule(GroundClass on, float need, float core = .32f, GroundClass near = GroundClass.None)
     {
         this.on = on; this.need = need; this.core = core; this.near = near;
         endsOn = GroundClass.None; endA = endB = Vector2.zero; endRadius = 0f;
-        zone = GroundClass.None; zoneNeed = 0f;
+        zone = GroundClass.None; zoneNeed = 0f; foot = 0f;
+    }
+
+    public PieceRule WithFoot(float y)
+    {
+        var r = this; r.foot = y; return r;
     }
 
     public PieceRule WithZone(GroundClass zone, float need)
@@ -235,7 +245,8 @@ public class GroundPlanner
     public bool Accepts(PieceRule r, float x, double gy, float size)
     {
         float rx = HalfX(r, size), ry = HalfY(r, size);
-        return Match(x, gy, rx, ry, r.on) >= r.need && InZone(r, x, gy, rx, ry) && Near(x, gy, rx, ry, r.near) && Ends(r, x, gy, size);
+        double fy = gy + r.foot * size;     // the ground under its slab (PieceRule.foot)
+        return Match(x, fy, rx, ry, r.on) >= r.need && InZone(r, x, fy, rx, ry) && Near(x, fy, rx, ry, r.near) && Ends(r, x, gy, size);
     }
 
     public bool InZone(PieceRule r, float x, double gy, float rx, float ry)
@@ -303,10 +314,11 @@ public class GroundPlanner
             float cx = xMin + (float)rng.NextDouble() * (xMax - xMin);
             double cy = gyMin + rng.NextDouble() * (gyMax - gyMin);
             if (!Free(cx, cy, rx, ry)) continue;
-            float m = Match(cx, cy, rx, ry, rule.on);
+            double fy = cy + rule.foot * size;
+            float m = Match(cx, fy, rx, ry, rule.on);
             if (m < rule.need || m <= best) continue;
-            if (!InZone(rule, cx, cy, rx, ry)) continue;
-            if (!Near(cx, cy, rx, ry, rule.near)) continue;
+            if (!InZone(rule, cx, fy, rx, ry)) continue;
+            if (!Near(cx, fy, rx, ry, rule.near)) continue;
             if (!Ends(rule, cx, cy, size)) continue;
             best = m; x = cx; gy = cy;
             if (m >= .999f) break;
