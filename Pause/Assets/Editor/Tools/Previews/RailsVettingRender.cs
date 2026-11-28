@@ -19,6 +19,8 @@ public static class RailsVettingRender
     public static void Run()
     {
         string outDir = System.Environment.GetEnvironmentVariable("RAILS_VETTING_OUT");
+        // CI's manual `preview` run (unity-tests.yml) hands its showcase folder in SHOWCASE_DIR
+        if (string.IsNullOrEmpty(outDir)) outDir = System.Environment.GetEnvironmentVariable("SHOWCASE_DIR");
         if (string.IsNullOrEmpty(outDir)) outDir = "Logs/rails-vetting";
         Directory.CreateDirectory(outDir);
         using var sandbox = new TestHarness.Sandbox();

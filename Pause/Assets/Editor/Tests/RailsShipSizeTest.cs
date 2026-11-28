@@ -56,6 +56,7 @@ public static class RailsShipSizeTest
             ShipScaleInTheMainSceneOnly();
             InsetOnlyWhereThereIsRoom();
             ReachAndMinesOnEveryAspect();
+            NarrowRailArt();
             EdgeTreatment();
             StarDust();
         }
@@ -177,20 +178,65 @@ public static class RailsShipSizeTest
         float sIpad = RailInset.ShiftFor(1620, 2160), s20 = RailInset.ShiftFor(1080, 2160);
         Debug.Log("[RSS] rail shift per side: 9:16 " + F(s916) + ", iPhone SE " + F(sSE) + ", 16:10 " + F(s1610) + ", 18:9 " + F(s20) +
                   ", 19.5:9 " + F(s195) + ", 21:9 " + F(s21) + ", 3:4 " + F(sIpad) + ", landscape " + F(sLand));
-        float B = RailInset.BaseShift, Full = RailInset.BaseShift + RailInset.MaxShift;
+        // NarrowShift: the 80% rail's inner edge sits that much further out on every screen (its outer edge stays)
+        float N = RailInset.NarrowShift, B = N + RailInset.BaseShift, Full = N + RailInset.BaseShift + RailInset.MaxShift;
         // (a screen wider than a phone's view -- 3:4 by 0.03 u, landscape by far more -- also gets LaneMetrics' wide extra:
         // the rails go to its edges; LaneWidthTest checks those)
-        Check("16:9 phones and 16:10 tablets get the base widening only (" + F(B) + "); landscape full room + the wide extra",
+        Check("16:9 phones and 16:10 tablets get the narrow rail's shift + the base widening only (" + F(B) + "); landscape full room + the wide extra",
               Mathf.Approximately(s916, B) && Mathf.Approximately(sSE, B) && Mathf.Approximately(s1610, B) &&
               Mathf.Approximately(sLand, Full + LaneMetrics.WideExtraFor(1920, 1080)) && LaneMetrics.WideExtraFor(1920, 1080) > 1f);
         Check("20:9 moves them out fully too (" + F(RailInset.ShiftFor(1080, 2400)) + ")", Mathf.Approximately(RailInset.ShiftFor(1080, 2400), Full));
         Check("19.5:9, 21:9 and 3:4 move the rails out by the full " + Full + " u (3:4 + its " + F(LaneMetrics.WideExtraFor(1620, 2160)) + " u wide extra)",
               Mathf.Approximately(s195, Full) && Mathf.Approximately(s21, Full) && Mathf.Approximately(sIpad, Full + LaneMetrics.WideExtraFor(1620, 2160)));
-        // the widened flight lane: 8-12% wider than the old layout on every portrait screen
+        Check("the rails are 80% as wide as the 1.09 u full-width rail (" + F(RailInset.RailWidth) + " u) and the inner edge moves out by the rest (" + F(N) + ")",
+              Mathf.Approximately(RailInset.RailWidthScale, .8f) && Mathf.Abs(RailInset.FullRailWidth - 1.0922f) < .001f &&
+              Mathf.Abs(RailInset.RailWidth - .8738f) < .001f && Mathf.Abs(N - .2184f) < .001f);
+        Check("the room shifts are scaled with the rail: the same share of it goes past the screen edge (" + F(RailInset.BaseShift / RailInset.RailWidth) + ")",
+              Mathf.Abs(RailInset.BaseShift / RailInset.RailWidth - .24f / RailInset.FullRailWidth) < .001f &&
+              Mathf.Abs(RailInset.MaxShift / RailInset.RailWidth - .24f / RailInset.FullRailWidth) < .001f);
+        // the widened flight lane vs the full-width rails' pre-widen layout (inner edge 2.606): the narrow rail's
+        // 0.218 + the base widening, 12-20% wider on 16:9 and on tall phones
         float oldHalf = BossRails.ReinforcedInnerEdge;
-        Check("lane widening vs the pre-widen layout is 8-12% on 16:9 (" + F(B / oldHalf * 100f) + "%) and on tall phones (" + F(RailInset.BaseShift / (oldHalf + RailInset.MaxShift) * 100f) + "%)",
-              B / oldHalf >= .08f && B / oldHalf <= .12f && B / (oldHalf + RailInset.MaxShift) >= .08f && B / (oldHalf + RailInset.MaxShift) <= .12f);
+        float w169 = B / oldHalf, wTall = (Full - RailInset.MaxShift) / (oldHalf + RailInset.MaxShift);
+        Check("lane widening vs the pre-widen layout is 12-20% on 16:9 (" + F(w169 * 100f) + "%) and on tall phones (" + F(wTall * 100f) + "%)",
+              w169 >= .12f && w169 <= .20f && wTall >= .12f && wTall <= .20f);
         Check("18:9 eases in between (" + F(s20) + ")", s20 > B && s20 < Full);
+    }
+
+    // ---- the 80% rail ----------------------------------------------------------------
+    // "squash the rails down to 80%": every world's rail art is squashed to 80% of its old 725 px canvas
+    // (580 px, Art/Worlds/Rails80~) and drawn RailInset.RailWidth wide -- the art's width matches the world
+    // width, so its texels stay square (no stretch, the vertical tile as tall as before); the outer edge
+    // stays where the full-width rail's was, the inner edge moves out by NarrowShift.
+    static void NarrowRailArt()
+    {
+        var d = FitDevice.Find("and-1080x1920");
+        foreach (var theme in WorldManager.Worlds)
+        {
+            if (WorldPainter.RailTextureName(theme.displayName) == null) continue;
+            Stage(d, theme);
+            string tag = "80% rail " + theme.displayName;
+            var left = GameObject.Find("leftPipe");
+            var r = left.GetComponent<Renderer>();
+            var mat = r.sharedMaterial;
+            var tex = mat.mainTexture;
+            Check(tag + ": the art is squashed to 80% of its 725 px canvas (" + tex.width + " px)", tex.width == Mathf.RoundToInt(725 * RailInset.RailWidthScale));
+            WorldPainter.VisibleRailEdges(left, out float inner, out float outer);
+            float thick = WorldPainter.RailThickness(theme.displayName);
+            Check(tag + ": drawn " + F(outer - inner) + " u wide = 80% of " + F(RailInset.FullRailWidth * thick) + " (" + (100f * (outer - inner) / (2f * CameraFit.GameplayHalfWidth)).ToString("F1") + "% of the view)",
+                  Mathf.Abs(outer - inner - RailInset.RailWidth * thick) < .003f);
+            float room = RailInset.RoomShiftFor(d.w, d.h);
+            Check(tag + ": the outer edge stays where the full-width rail's was (" + F(outer) + "), the inner moves out by " + F(RailInset.NarrowShift),
+                  Mathf.Abs(outer - (BossRails.ReinforcedInnerEdge + RailInset.FullRailWidth * thick + room)) < .002f + .2f * Mathf.Abs(1f - thick) * RailInset.FullRailWidth &&
+                  Mathf.Abs(inner - (BossRails.ReinforcedInnerEdge + RailInset.NarrowShift + room)) < .003f);
+            // texel aspect: world u per texel across vs down (RailFit's vertical tiling of the drawn quad)
+            float quadW = r.bounds.size.x, quadH = r.bounds.size.y;
+            float overlap = mat.HasProperty("_Overlap") ? mat.GetFloat("_Overlap") : 0f;
+            float perX = quadW / tex.width;
+            float perY = quadH / (Mathf.Abs(mat.mainTextureScale.y) * tex.height * (1f - overlap));
+            Check(tag + ": the art is not stretched: square texels (" + perX.ToString("F5") + " u across, " + perY.ToString("F5") + " down)",
+                  Mathf.Abs(perX / perY - 1f) < .01f);
+        }
     }
 
     // gameS1 as device `d` shows it, painted as `theme`.

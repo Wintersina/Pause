@@ -4,13 +4,19 @@ using UnityEngine;
 // screen: the one source every lane width reads its screen-aware part from.
 //
 // The gameplay camera is width-fitted (CameraFit.GameplayHalfWidth 3.72): on
-// every phone the view is 7.44 u wide and only its height changes. At the
-// authored layout each reinforced rail fills 14.7% of that width (its art
-// from 2.61 to 3.70). Where the screen has room to spare the rails move out
-// by up to MaxShift per side, so the flight lane is wider and the rail reads
-// at ~11.7% of the width, as in the approved 900x1600 reference; up to a
-// fifth of the rail's outer art (its outer conduit, not the lamp column) is
-// then cut off by the screen edge.
+// every phone the view is 7.44 u wide and only its height changes. The
+// reinforced rails were drawn 1.09 u wide (FullRailWidth: 14.7% of that
+// width, art from 2.61 to 3.70); they are now RailWidthScale (80%) of that
+// ("squash the rails down to 80%"): the art itself is squashed horizontally
+// (Art/Worlds/Rails80~), and WorldPainter draws it RailWidth (0.87 u, 11.8%)
+// wide. The outer edge stays where it was (3.70, at the screen's edge); the
+// inner edge moves out by NarrowShift (0.22 u), so the flight lane is that
+// much wider per side -- on EVERY screen, the batch editor's too, since it is
+// the art's own width, not the screen's. Where the screen has room to spare
+// the rails move out by up to MaxShift more per side, so the flight lane is
+// wider still; up to a fifth of the rail's outer art (its outer conduit, not
+// the lamp column) is then cut off by the screen edge (BaseShift and MaxShift
+// are scaled with the rail, so the share cut off is what it was).
 //
 // Room to spare, by the screen's height / width ratio r:
 //   tall phones   r from 16:9 (no shift; up to 1.8) to 19.5:9 (full shift)
@@ -34,13 +40,25 @@ using UnityEngine;
 public static class RailInset
 {
     // ---- tunables ----
-    // Outward shift at full room, world units per side (3.2% of the 7.44 u view).
-    public const float MaxShift = .24f;
+    // The rails' drawn width as a share of the 1.09 u they were drawn at
+    // (the squashed art is this share of its old 725 px width too).
+    public const float RailWidthScale = .8f;
+    // The full-width rail's visible width (Frost's approved 1.25x of the
+    // 1.43 u wall quad x 443 / 725 of its canvas: 1.092 u).
+    public const float FullRailWidth = 1.43f * 1.25f * 443f / 725f;
+    // The rail's visible width now (0.874 u, 11.7% of the phone view).
+    public const float RailWidth = FullRailWidth * RailWidthScale;
+    // The inner edge moves out by the width the rail lost; the outer edge
+    // stays (0.218 u per side, on every screen).
+    public const float NarrowShift = FullRailWidth - RailWidth;
+    // Outward shift at full room, world units per side: 0.24 u for the
+    // full-width rail (a fifth of its outer art off-screen), scaled with it.
+    public const float MaxShift = .24f * RailWidthScale;
     // Widen-the-lane knob: extra outward shift on EVERY portrait screen (the
     // 16:9s too), world units per side, on top of the room-based MaxShift.
-    // 0.24 = lane half-width 2.70 -> 2.94 on 16:9 (+8.9% wider lane),
-    // 2.94 -> 3.18 on tall phones (+8.2%). Set 0 for the old layout.
-    public const float BaseShift = .24f;
+    // 0.24 u for the full-width rail, scaled with it (0.192). Set 0 for the
+    // old layout.
+    public const float BaseShift = .24f * RailWidthScale;
     // Height / width ratios where the tall-phone ramp starts and is full.
     // (just past 16:9 -- the iPhone SE's 750x1334 is 16:9 to 0.05% -- and
     // just short of 19.5:9 -- an iPhone 13's 1170x2532 is 2.164)
@@ -49,7 +67,7 @@ public static class RailInset
     public const float WideStart = 3f / 2f, WideFull = 4f / 3f;
 
     // Tools only (before / after renders): false lays every screen out as
-    // before the inset existed.
+    // before the inset existed (the narrower rail's NarrowShift stays).
     public static bool Enabled = true;
     // Tools only: false drops BaseShift (the before shot of the lane widening).
     public static bool WidenLane = true;
@@ -57,10 +75,11 @@ public static class RailInset
     // World units the rails move out on a w x h screen: the room-based shift
     // above plus, on a screen wider than a phone's view, LaneMetrics.WideExtra
     // (the rails then sit against the screen's edges, the lane takes the room).
+    // NarrowShift is always in: it is the art's width, not the screen's.
     public static float ShiftFor(float w, float h)
     {
-        if (!Enabled || w <= 0f || h <= 0f) return 0f;   // no screen
-        return RoomShiftFor(w, h) + LaneMetrics.WideExtraFor(w, h);
+        if (!Enabled || w <= 0f || h <= 0f) return NarrowShift;   // no screen
+        return NarrowShift + RoomShiftFor(w, h) + LaneMetrics.WideExtraFor(w, h);
     }
 
     // The room-based part alone (phones and tablets; a landscape screen,
@@ -81,8 +100,8 @@ public static class RailInset
 
     // The live screen (ScreenInfo: the device, or a test's override). The
     // batch editor with no override (LaneMetrics.HasDevice false: a 640x480
-    // window no player sees) keeps the authored layout, 0, as it always had.
-    public static float Shift { get { return LaneMetrics.HasDevice ? ShiftFor(ScreenInfo.Width, ScreenInfo.Height) : 0f; } }
+    // window no player sees) keeps the authored layout: NarrowShift alone.
+    public static float Shift { get { return LaneMetrics.HasDevice ? ShiftFor(ScreenInfo.Width, ScreenInfo.Height) : NarrowShift; } }
 
     // An authored lane half-width (written for the authored rails) on this screen.
     public static float Lane(float authoredHalfWidth) { return authoredHalfWidth + Shift; }

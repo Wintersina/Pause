@@ -6,8 +6,8 @@ using UnityEngine;
 //
 // PHONES. The gameplay camera is width-fitted (CameraFit.GameplayHalfWidth
 // 3.72): on every portrait phone the view is 7.44 u wide and only its height
-// changes. The rails sit at their authored place plus RailInset's small
-// room-based shift (0.24 .. 0.48 u per side). Nothing here changes that:
+// changes. The rails sit at their authored place plus RailInset's shift
+// (0.218 u for the 80% rail, plus 0.19 .. 0.38 u of room, per side). Nothing here changes that:
 // WideExtra is exactly 0 on every screen whose width / height is at most
 // 3.72 / 5 = 0.744 (every phone, 16:10 and 3:4 tablets to within 0.03 u).
 //
@@ -28,10 +28,10 @@ using UnityEngine;
 //
 //     Density = clamp(1 + WideExtra / ReferenceLaneHalf, 1, MaxDensity)
 //
-// ReferenceLaneHalf (3.086 u) is the widest phone / tablet lane before any
-// wide extra (BossRails.ReinforcedInnerEdge 2.606 + RailInset's full 0.48 u
-// shift), so Density is the lane's width over that lane's width: 1 on every
-// phone, ~1.41 on a 1:1 foldable, ~1.96 on a 4:3 landscape window. It
+// ReferenceLaneHalf (3.209 u) is the widest phone / tablet lane before any
+// wide extra (BossRails.ReinforcedInnerEdge 2.606 + RailInset's NarrowShift
+// 0.218 + full 0.384 u room shift), so Density is the lane's width over that lane's width: 1 on every
+// phone, ~1.40 on a 1:1 foldable, ~1.92 on a 4:3 landscape window. It
 // multiplies the roster spawn rate, the threat ceiling and the pilot load
 // (enmiesOnBoard / EnemyDensity), and the shot counts of the boss's spread
 // patterns (fans, rain, mines; LaneMetrics.ScaleCount) -- spreads widen with
@@ -53,8 +53,9 @@ public static class LaneMetrics
     // The phone view's half-width (every phone shows exactly this much).
     public const float PhoneViewHalfWidth = CameraFit.GameplayHalfWidth;
     // The widest pre-wide lane (inner rail edge, world u): reinforced rail
-    // edge + RailInset's full room shift (BaseShift + MaxShift).
-    public const float ReferenceLaneHalf = BossRails.ReinforcedInnerEdge + RailInset.BaseShift + RailInset.MaxShift;
+    // edge + the 80% rail's NarrowShift + RailInset's full room shift
+    // (BaseShift + MaxShift): 3.209.
+    public const float ReferenceLaneHalf = BossRails.ReinforcedInnerEdge + RailInset.NarrowShift + RailInset.BaseShift + RailInset.MaxShift;
     // At most this much extra half-width (world u per side): Density <= 2.
     public const float MaxWideExtra = ReferenceLaneHalf;
     public const float MaxDensity = 2f;

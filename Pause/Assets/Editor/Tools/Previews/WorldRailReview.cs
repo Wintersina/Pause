@@ -68,17 +68,17 @@ public static class WorldRailReview
                    rm.mainTextureScale.x == (name == null ? 1 : -1) && Mathf.Approximately(left.transform.localScale.x,
                    width * WorldPainter.RailWidthFactor(theme.displayName)), ref failures);
             Verify(theme.displayName + " visible silhouette matches the common width (Frost trimmed)",
-                Mathf.Abs(left.transform.localScale.x * visibleFraction - width * 1.25f * 443f / 725f * WorldPainter.RailThickness(theme.displayName)) < .001f, ref failures);
+                Mathf.Abs(left.transform.localScale.x * visibleFraction - width * RailInset.RailWidthScale * 1.25f * 443f / 725f * WorldPainter.RailThickness(theme.displayName)) < .001f, ref failures);
             Verify(theme.displayName + " inner edge matches Frost",
                 Mathf.Abs(left.transform.localPosition.x + left.transform.localScale.x * innerBoundary -
-                (leftX + width * 1.25f * (583f / 725f - .5f))) < .001f, ref failures);
+                (leftX + width * 1.25f * (583f / 725f - .5f) - WorldPainter.AppliedInset)) < .001f, ref failures);
             // Imported dimensions can be reduced; use the known world-space
             // silhouette width and its verified inner edge instead.
             float actualInner = left.transform.localPosition.x + left.transform.localScale.x * innerBoundary;
             float actualOuter = actualInner - left.transform.localScale.x * visibleFraction;
             Verify(theme.displayName + " full wide rail remains in the phone frame",
                 actualOuter >= -cam.orthographicSize * cam.aspect - .001f &&
-                left.transform.localScale.x * visibleFraction / (2 * cam.orthographicSize * cam.aspect) >= .13f,
+                left.transform.localScale.x * visibleFraction / (2 * cam.orthographicSize * cam.aspect) >= .11f,
                 ref failures);
             VerifyProportions(left, theme.displayName, ref failures);
             VerifyProportions(right, theme.displayName, ref failures);

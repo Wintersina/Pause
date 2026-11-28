@@ -184,8 +184,10 @@ public static class WorldPainter
     {
         // Measure visible silhouette boundaries, excluding transparent/black
         // padding. Frost's approved 1.25x presentation is the common standard.
+        // RailInset.RailWidthScale: every rail is drawn 80% as wide as that
+        // standard (its art squashed to match, so nothing is stretched).
         RailBounds(world, out float min, out float max);
-        return 1.25f * (443f / 725f) * RailThickness(world) / (max - min);
+        return RailInset.RailWidthScale * 1.25f * (443f / 725f) * RailThickness(world) / (max - min);
     }
 
     // Per-row median of lit (non-black) art columns: Space/Tide/Storm 261, Ember 259, Verdant 338, Frost 356.
@@ -197,6 +199,9 @@ public static class WorldPainter
         return world == "Frost" ? .955f : world == "Ember" ? 1.008f : 1f;
     }
 
+    // u of the art's outer and inner silhouette, as a share of the canvas width
+    // (measured on the 725 px art; the 80% squash to 580 px squashes the whole
+    // canvas, so every share is unchanged to within half a texel).
     static void RailBounds(string world, out float min, out float max)
     {
         switch (world)
@@ -215,7 +220,8 @@ public static class WorldPainter
     // and of its outer edge. The wall quad itself is no guide any more: it is
     // padded with the texture's transparent canvas, so its renderer bounds
     // reach well into the lane (to about 2.26 on Frost and Verdant, 1.87 on
-    // Space and Ember) while the drawn rail starts near 2.61 in every world.
+    // Space and Ember) while the drawn rail starts near 2.82 in every world
+    // (2.61 before the rails were squashed to 80%).
     // False if the wall is not showing one of the reinforced rails.
     static readonly string[] RailWorlds = { "Space", "Frost", "Verdant", "Ember", "Tide", "Storm" };
 
@@ -247,9 +253,11 @@ public static class WorldPainter
         RailBounds(world, out float min, out float max);
         // Match both visible edges to Frost as well as its thickness; this
         // prevents asymmetric canvas padding from shifting the flight lane.
-        // The lane-facing (inner) edge stays put; only the outer edge moves in.
+        // The lane-facing (inner) edge is anchored here; the outer edge follows the width.
         float shift = 1.25f * (583f / 725f - 0.5f) - factor * (max - 0.5f);
-        // Out toward the screen edges where the screen has room (RailInset).
+        // Out by the width the 80% rail lost (RailInset.NarrowShift: the outer
+        // edge stays at the screen's edge), and further toward the screen
+        // edges where the screen has room (RailInset).
         float inset = RailInset.Shift;
         laidOutWorld = world;
         appliedInset = inset;

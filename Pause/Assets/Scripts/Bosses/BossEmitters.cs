@@ -116,9 +116,10 @@ public static class BossRails
     // (Unmeasured: the authored edge, pushed out on a wide screen with the rails: LaneMetrics.WideExtra, 0 on phones.)
     public static float InnerEdge => measured > 0f ? measured : AuthoredInnerEdge + LaneMetrics.WideExtra;
 
-    // The reinforced rails' drawn inner edge as WorldPainter lays them out
-    // (every world matches Frost's: 3.15 + 1.7875 * (.5 - 583 / 725)), before
-    // RailInset moves them out.
+    // The full-width reinforced rails' drawn inner edge as WorldPainter lays
+    // them out (every world matches Frost's: 3.15 + 1.7875 * (.5 - 583 / 725)),
+    // before RailInset moves it out -- by NarrowShift (the 80% rail's inner
+    // edge, 2.825, on every screen) and by the screen's room.
     public const float ReinforcedInnerEdge = 2.606f;
 
     // The drawn rails' inner edge on this screen: the measured walls, or,
