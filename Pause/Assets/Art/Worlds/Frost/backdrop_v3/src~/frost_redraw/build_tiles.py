@@ -8,8 +8,8 @@ Installs (overwrites the PNG bytes in place, the .meta files are untouched):
 The other v2 layers and v3 / v4 are not part of this redraw.
 
 Per layer, all in the 224-wide source grid (one source pixel = one 4 x 4 cell of the 896 x 1792 tile):
-  1. CROP   v1_mid is a 224 x 224 drawing letterboxed in white: its content band is cut out and repeated twice
-            down the tile (period 896 px) after step 2. Everything else uses the full 224 x 448.
+  1. CROP   a 224 x 224 drawing letterboxed in white (none now: v1_mid is the full-height r1_2) would have its band cut
+            out and repeated twice down the tile after step 2. flow: the faintest wisps are dropped to FLOW_COVER.
   2. SEAM   two-cut quilt (seamless()): a 2 x O row strip found elsewhere in the same drawing is spliced over the
             wrap, cut in and out along minimum-error paths (hard cuts where the pieces already agree: no mirror, no
             blur), so the last row and the first row are rows that were neighbours in the drawing.
@@ -48,6 +48,7 @@ TARGET = {
     "v2/mid": (.165, .290, .36),
 }
 FLOW_TARGET = {"v1/flow": (.30, .40, .42)}   # value of the wisps' own colour (median, p90, max)
+FLOW_COVER = .245                             # share of flow texels that may show (skill verifier: <= .25)
 FLOW_ALPHA = .55                              # their peak straight alpha
 GAMMA_RANGE = (.6, 1.4)              # flatter than .6 washes the darks out, steeper than 1.4 crushes them
 
@@ -134,6 +135,26 @@ def seamless(a):
     return out, k
 
 
+def trim_flow(a, cover):
+    """Drop the faintest wisps (connected pieces, least visible first: size x mean value) until <= cover of texels show."""
+    from scipy import ndimage
+    op = a[..., 3] > 0
+    lab, n = ndimage.label(op, structure=np.ones((3, 3)))
+    if op.mean() <= cover or n == 0:
+        return a
+    ids = np.arange(1, n + 1)
+    size = ndimage.sum(op, lab, ids)
+    val = ndimage.mean(a[..., :3].max(-1).astype(np.float64), lab, ids)
+    out = a.copy()
+    left = op.sum()
+    for i in np.argsort(size * val):
+        if left <= cover * op.size:
+            break
+        out[lab == ids[i]] = 0
+        left -= size[i]
+    return out
+
+
 def value(rgb):
     return rgb.max(-1)
 
@@ -216,13 +237,15 @@ def pixel_pass(a, seed):
 def build(key):
     v, layer = key.split("/")
     a = load(f"{v}_{layer}.png")
-    if key == "v1/mid":
+    if layer != "flow":
         y0, y1 = content_rows(a)
-        a = a[y0:y1]
-        if a.shape[0] != 224:
-            raise SystemExit(f"v1_mid content band is {a.shape[0]} rows, expected 224")
+        if y1 - y0 < a.shape[0]:                   # a letterboxed square drawing: its band, repeated twice
+            a = a[y0:y1]
+            if a.shape[0] != 224:
+                raise SystemExit(f"{key}: content band is {a.shape[0]} rows, expected 224 or 448")
     a, k = seamless(a)
     if layer == "flow":
+        a = trim_flow(a, FLOW_COVER)
         a, info = grade(a, FLOW_TARGET[key], FLOW_ALPHA)
     else:
         a[..., 3] = 255
