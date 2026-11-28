@@ -98,15 +98,18 @@ public static class TidePropsTest
         bool names = true;
         var seen = new HashSet<string>();
         foreach (var k in ks) names &= seen.Add(k.name) && k.px > 0f && k.perThree > 0f && k.ms >= 80;
-        Check("the props table: " + ks.Length + " kinds, one data row each (unique names, sizes, rates, frame times)", ks.Length == 11 && names);
+        Check("the props table: " + ks.Length + " kinds, one data row each (unique names, sizes, rates, frame times)", ks.Length == 15 && names);
         float hw = 2.7f;
         Check("keep-out = .42 x drawn px + 22 on a 1080 px screen (atoll " + TidePropsTuning.Keep(TidePropsTuning.Atoll, hw).ToString("F3") + " units)",
               Mathf.Abs(TidePropsTuning.Keep(TidePropsTuning.Atoll, hw) - (270f * .42f + 22f) / 1080f * 2f * hw) < 1e-4f);
-        Check("drawn px: lighthouse 160, platform 170, village 200, freighter 260, wreck 180, atoll 270, buoys 180, farm 210, dock 220, whales 240, mantas 230",
+        Check("drawn px: lighthouse 160, platform 170, village 200, freighter 260, wreck 180, atoll 270, buoys 180, farm 210, dock 220, whales 210, mantas 200, turbines 200, stack 340, cliffs 380, starship 400",
               ks[TidePropsTuning.Lighthouse].px == 160f && ks[TidePropsTuning.Platform].px == 170f && ks[TidePropsTuning.Village].px == 200f &&
               ks[TidePropsTuning.Freighter].px == 260f && ks[TidePropsTuning.Wreck].px == 180f && ks[TidePropsTuning.Atoll].px == 270f &&
               ks[TidePropsTuning.Buoys].px == 180f && ks[TidePropsTuning.Farm].px == 210f && ks[TidePropsTuning.Dock].px == 220f &&
-              ks[TidePropsTuning.Whales].px == 240f && ks[TidePropsTuning.Mantas].px == 230f);
+              ks[TidePropsTuning.Whales].px == 210f && ks[TidePropsTuning.Mantas].px == 200f && ks[TidePropsTuning.Turbines].px == 200f &&
+              ks[TidePropsTuning.Stack].px == 340f && ks[TidePropsTuning.Cliffs].px == 380f && ks[TidePropsTuning.Starship].px == 400f &&
+              TidePropsTuning.Big(TidePropsTuning.Stack) && TidePropsTuning.Big(TidePropsTuning.Cliffs) && TidePropsTuning.Big(TidePropsTuning.Starship) && !TidePropsTuning.Big(TidePropsTuning.Lighthouse) &&
+              TidePropsTuning.IndexOf("kelp") < 0);
         Check("placement: freighter and buoys on deep water, whales and mantas only in water, the rest on water or shoal; farm and dock like the village",
               ks[TidePropsTuning.Freighter].on == TidePropsTuning.Place.Deep && ks[TidePropsTuning.Buoys].on == TidePropsTuning.Place.Deep &&
               ks[TidePropsTuning.Whales].on == TidePropsTuning.Place.Marine && ks[TidePropsTuning.Mantas].on == TidePropsTuning.Place.Marine &&
@@ -123,7 +126,7 @@ public static class TidePropsTest
         for (int k = 0; k < ks.Length; k++)
         {
             int variants = 0;
-            int want = TidePropsTuning.Marine(k) ? 16 : 8;
+            int want = ks[k].frames;
             for (int i = 0; i < 16; i++)
             {
                 var f = a.Frames(TidePropsTuning.Strip(k, i));
@@ -133,7 +136,7 @@ public static class TidePropsTest
             }
             if (variants != 4) { strips = false; bad += ks[k].name + " x" + variants + " "; }
         }
-        Check("props atlas: every kind has 4 variants of 8 frames (the whales and mantas 16) " + bad, a.Count > 0 && strips);
+        Check("props atlas: every kind has 4 variants and its frames (8; the whales and mantas 16; the stack and cliffs 1) " + bad, a.Count > 0 && strips);
         a.Destroy();
 
         var json = JsonUtility.FromJson<JAtlas>(File.ReadAllText(ArtDir + "props.json"));
@@ -174,11 +177,11 @@ public static class TidePropsTest
         Check("the night side tints the props darker and cooler (" + night.r.ToString("F2") + "," + night.g.ToString("F2") + "," + night.b.ToString("F2") + " vs day " + day.r.ToString("F2") + ")",
               night.r <= day.r * .5f && night.g <= day.g * .55f && night.b <= day.b * .65f && night.b > night.r);
         // texture budget: ASTC 4x4, never clamped, no mips
-        long astc = ((width + 3) / 4) * ((height + 3) / 4) * 16L;
+        long astc = ((width + 5) / 6) * ((height + 5) / 6) * 16L;
         var imp = (TextureImporter)AssetImporter.GetAtPath(png);
-        Check("props atlas texture memory " + (astc / 1024) + " KB ASTC 4x4 <= 12288 KB (the world's total is WorldBackdropTest's line)", astc <= 12L * 1024 * 1024);
-        Check("props atlas import: ASTC 4x4 on Android, not clamped below 4096, no mipmaps, compressed",
-              imp != null && imp.GetPlatformTextureSettings("Android").format == TextureImporterFormat.ASTC_4x4 && imp.maxTextureSize >= 4096 &&
+        Check("props atlas texture memory " + (astc / 1024) + " KB ASTC 6x6 <= 12288 KB (4x4 would be " + (((width + 3) / 4) * ((height + 3) / 4) * 16L / 1024) + " KB) (the world's total is WorldBackdropTest's line)", astc <= 12L * 1024 * 1024);
+        Check("props atlas import: ASTC 6x6 on Android, not clamped below 4096, no mipmaps, compressed",
+              imp != null && imp.GetPlatformTextureSettings("Android").format == TextureImporterFormat.ASTC_6x6 && imp.maxTextureSize >= 4096 &&
               !imp.mipmapEnabled && imp.textureCompression != TextureImporterCompression.Uncompressed);
     }
 
@@ -187,7 +190,7 @@ public static class TidePropsTest
     static void Live(int v)
     {
         TideDirector.SeedOverride = 6100 + v * 13;
-        var wb = Fresh(v, 2f);
+        var wb = Fresh(v, 8f);
         var d = Director(wb);
         Check("v" + v + " director with its props atlas", d != null && d.HasPropArt(TidePropsTuning.Lighthouse) && d.HasPropArt(TidePropsTuning.Mantas));
         if (d == null) return;
@@ -198,11 +201,13 @@ public static class TidePropsTest
         var known = new HashSet<BackdropPiece>();
         var lastVariant = new Dictionary<int, int>();
         string bad = "";
+        bool opening = true;      // (the opening view is dealt in one frame: its copies are seen in pool order, not spawn order)
         float rate = wb.Current.Spec.Rate("mid");
         var all = new List<BackdropPiece>();
         System.Action audit = () =>
         {
             all.Clear();
+            foreach (var p in d.Bigs.items) if (p.active) all.Add(p);
             foreach (var p in d.Props.items) if (p.active) all.Add(p);
             foreach (var p in all)
             {
@@ -216,7 +221,7 @@ public static class TidePropsTest
                     if (d.Planner.Match(p.x, p.gy, r, r, TidePropsTuning.Painted) > 0f) onPainted++;
                     if (TidePropsTuning.Marine(p.kind) && d.Planner.Match(p.x, p.gy, r, r, GroundClass.Water) < 1f) marineDry++;
                     int last;
-                    if (lastVariant.TryGetValue(p.kind, out last) && last == p.tier && d.PropVariants(p.kind) > 1) repeat++;
+                    if (!opening && lastVariant.TryGetValue(p.kind, out last) && last == p.tier && d.PropVariants(p.kind) > 1) repeat++;
                     lastVariant[p.kind] = p.tier;
                 }
                 if (Mathf.Abs((float)(p.y + d.Planner.Travel - p.gy)) > 1e-3f || p.rate != rate || p.body.localScale != Vector3.one || p.body.localRotation != Quaternion.identity) notPinned++;
@@ -248,6 +253,7 @@ public static class TidePropsTest
             }
         };
         audit();
+        opening = false;
         Run(wb, 240f, audit);
         Check("v" + v + ": " + seen + " props over 240 s (" + kinds.Count + " kinds)", seen >= 15 && kinds.Count >= 7);
         Check("v" + v + ": every prop on its own ground (water / shoal; deep-water kinds on water), marine life only in water, none on a painted deck / block / feature (" +

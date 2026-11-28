@@ -40,8 +40,8 @@ public static class WorldBackdropTest
     // one 4-tile variant set: ~6 MB measured now (ASTC 6x6 sizes), ~8.5 MB with run C.
     // 2026-10: Tide's sky / far / mid / flow tiles are 896x1792 (ASTC 6x6, 0.72 MB each, was 0.24 MB at 512x1024): the variant set grew ~1.9 MB, 10 -> 12 MB.
     // 2026-11-28 r1 (the .49 altitude): the living props atlas (Backdrop3/props, 4096 x 2876 ASTC 4x4, ~11.2 MB) joins the world's resident
-    // atlases: 12 -> 24 MB (an estimate: CI measures, and the line below prints it).
-    public const long TideTextureBudgetBytes = 24L * 1024 * 1024;
+    // atlases (4096 x 4000 with the landmarks, ASTC 6x6 ~7.3 MB; 4x4 would be ~16 MB): 12 -> 20 MB (CI measured 22.8 MB with the 11.5 MB 4x4 atlas).
+    public const long TideTextureBudgetBytes = 20L * 1024 * 1024;
     // Desert carries the same shared 1024 atlases as Tide (landmarks, pipes, fires, sites, weather)
     // plus fourteen loop sheets' worth of dust, shimmer, leaks and lights, and the worms'
     // two 2048 sheets (worm, worm_giant), besides one 4-tile variant set.

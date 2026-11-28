@@ -15,8 +15,10 @@ OUT = f'{HERE}/src/out2'
 META = json.load(open(f'{HERE}/src/props_meta.json'))
 # kind: (drawn px at the .49 altitude on a 1080 px screen, strip tag)  -- TidePropsTuning.Kinds mirrors this table
 KINDS = dict(lighthouse=(160, 'r1'), platform=(170, 'r1'), village=(200, 'r1'), freighter=(260, 'r1'), wreck=(180, 'r1'), atoll=(270, 'r1'),
-             buoys=(180, 'r1'), farm=(210, 'r1'), dock=(220, 'r1'), whales=(240, 'r2'), mantas=(230, 'r2'))
+             buoys=(180, 'r1'), farm=(210, 'r1'), dock=(220, 'r1'), whales=(210, 'r2'), mantas=(200, 'r2'),
+             turbines=(200, 'r1'), stack=(340, 'r1'), cliffs=(380, 'r1'), starship=(400, 'r1'))
 PAD = 2
+STILL = ('stack', 'cliffs')
 def is_pink(rgb):
     r, g, b = rgb[..., 0], rgb[..., 1], rgb[..., 2]; mx = rgb.max(-1); mn = rgb.min(-1); d = mx - mn; h = np.zeros_like(mx); m = d > 1e-6
     rr = m & (mx == r); gg = m & (mx == g) & ~rr; bb = m & ~rr & ~gg
@@ -26,6 +28,34 @@ def resize_premul(a, w, h):
     pm = a.copy(); pm[..., :3] *= pm[..., 3:4]; out = np.zeros((h, w, 4))
     for c in range(4): out[..., c] = np.asarray(Image.fromarray(pm[..., c].astype(np.float32), 'F').resize((w, h), Image.LANCZOS))
     out = np.clip(out, 0, 1); al = out[..., 3:4]; out[..., :3] = np.where(al > 1e-4, out[..., :3] / np.maximum(al, 1e-4), 0); return np.clip(out, 0, 1)
+def guard(path, low=.18):
+    """ASTC drifts a texel's hue / value a few steps, so a texel just outside WorldCue.IsPink (hue 285-352, s > .25, v > .3) can
+    come out of the importer inside it (CI read 2 / 6 such texels in the v1 / v2 props). Keep a margin round the band: any texel
+    (any alpha) with hue 270-360, saturation > .2 and value > `low` is moved out -- 340-360 (the reds of the lamps' rims) turned
+    to pure red, the rest (dusky violet shadow) brought to saturation .18 at its own value. Idempotent."""
+    im = np.asarray(Image.open(path).convert('RGBA')).copy()
+    a = im[..., :3].astype(float) / 255
+    r, g, b = a[..., 0], a[..., 1], a[..., 2]
+    mx = a.max(-1); mn = a.min(-1); d = mx - mn
+    h = np.zeros_like(mx); m = d > 1e-6
+    rr = m & (mx == r); gg = m & (mx == g) & ~rr; bb = m & ~rr & ~gg
+    h[rr] = (60 * ((g - b)[rr] / d[rr])) % 360
+    h[gg] = 60 * ((b - r)[gg] / d[gg]) + 120
+    h[bb] = 60 * ((r - g)[bb] / d[bb]) + 240
+    s = np.where(mx > 0, d / np.maximum(mx, 1e-6), 0)
+    sel = (h >= 270) & (s > .2) & (mx > low) & (im[..., 3] > 0)
+    if not sel.any(): return 0
+    red = sel & (h >= 340)
+    vio = sel & ~red
+    out = a.copy()
+    # red: hue 0 at the same value / saturation -> (v, v(1-s), v(1-s))
+    out[red] = np.stack([mx[red], (mx * (1 - s))[red], (mx * (1 - s))[red]], -1)
+    # violet: pull every channel toward the value so the saturation is .18 (hue kept)
+    k = (.18 / s[vio])[:, None]
+    out[vio] = mx[vio][:, None] - (mx[vio][:, None] - a[vio]) * k
+    im[..., :3] = np.clip(np.round(out * 255), 0, 255).astype(np.uint8)
+    Image.fromarray(im).save(path, optimize=True)
+    return int(sel.sum())
 def strips(kind, tag):
     fs = sorted(glob.glob(f'{OUT}/bd_tide_prop_{kind}/{tag}_*.png'), key=lambda p: int(re.findall(rf'{tag}_(\d+)', p)[0])); out = []
     for p in fs:
@@ -34,7 +64,9 @@ def strips(kind, tag):
 def main():
     uniq = {}; names = []; frame_ms = {}
     for kind, (px, tag) in KINDS.items():
-        S = strips(kind, tag); scaled = [[resize_premul(f, px, px) for f in fr] for fr in S]
+        S = strips(kind, tag)
+        if kind in STILL: S = [fr[:1] for fr in S]      # the mountains are one still painting (surf shimmer dropped: texture budget)
+        scaled = [[resize_premul(f, px, px) for f in fr] for fr in S]
         al = np.zeros((px, px), bool)
         for fr in scaled:
             for f in fr: al |= f[..., 3] > 2 / 255
@@ -68,6 +100,7 @@ def main():
         g = q[..., :3].astype(float).mean(-1, keepdims=True); q[..., :3] = np.where(pk[..., None], g.astype(np.uint8), q[..., :3])
     pink = int((is_pink(q[..., :3].astype(float) / 255) & (q[..., 3] > 0)).sum())
     Image.fromarray(q, 'RGBA').save(f'{D}/props.png', optimize=True)
+    print('guard moved', guard(f'{D}/props.png'), 'texels out of the pink margin')
     json.dump(dict(sheetW=width, sheetH=H, sprites=sprites, frameMs=frame_ms), open(f'{D}/props.json', 'w'), indent=0)
     print(f'props: {len(sprites)} sprites, {len(uniq)} unique cells, {width} x {H}, ASTC 4x4 {width * H / 1048576:.2f} MB, pink {pink}, frameMs {frame_ms}')
 if __name__ == '__main__': main()

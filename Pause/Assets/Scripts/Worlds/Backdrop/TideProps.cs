@@ -36,22 +36,28 @@ public static class TidePropsTuning
         public float perThree;    // copies per three screens of ground
         public int ms;            // frame time
         public int[] near;        // likes to stand within NearReach of one of these kinds (null: anywhere)
+        public int frames;        // frames a variant's strip has (the atlas is the truth: the stack and cliffs are a single painting)
+        public bool big;          // a landmark (stack, cliffs, starship): dealt first from its own pool, hard-pinned like the rest
     }
-    public const int Lighthouse = 0, Platform = 1, Village = 2, Freighter = 3, Wreck = 4, Atoll = 5, Buoys = 6, Farm = 7, Dock = 8, Whales = 9, Mantas = 10;
+    public const int Lighthouse = 0, Platform = 1, Village = 2, Freighter = 3, Wreck = 4, Atoll = 5, Buoys = 6, Farm = 7, Dock = 8, Whales = 9, Mantas = 10,
+                     Turbines = 11, Stack = 12, Cliffs = 13, Starship = 14;
     public static readonly Kind[] Kinds =
     {
         K("lighthouse", 160, Place.Shoal, 1.6f), K("platform", 170, Place.Shoal, 1.6f), K("village", 200, Place.Shoal, 1.2f),
         K("freighter", 260, Place.Deep, 1.2f), K("wreck", 180, Place.Shoal, 1.5f), K("atoll", 270, Place.Shoal, 1f),
-        K("buoys", 180, Place.Deep, 1.5f), K("farm", 210, Place.Shoal, 1.2f, 125, Village), K("dock", 220, Place.Shoal, 1.2f, 125, Village, Farm),
-        K("whales", 240, Place.Marine, 1.2f, 140), K("mantas", 230, Place.Marine, 1.2f, 110),
+        K("buoys", 180, Place.Deep, 1.5f), K("farm", 210, Place.Shoal, 1.2f, 125, 8, Village), K("dock", 220, Place.Shoal, 1.2f, 125, 8, Village, Farm),
+        K("whales", 210, Place.Marine, 1.2f, 140, 16), K("mantas", 200, Place.Marine, 1.2f, 110, 16),
+        K("turbines", 200, Place.Shoal, 1.3f), B("stack", 340, .7f, 1), B("cliffs", 380, .6f, 1), B("starship", 400, .5f, 8),
     };
-    static Kind K(string n, float px, Place on, float per, int ms = 125, params int[] near)
+    static Kind K(string n, float px, Place on, float per, int ms = 125, int frames = 8, params int[] near)
     {
-        return new Kind { name = n, px = px, on = on, perThree = per, ms = ms, near = near != null && near.Length > 0 ? near : null };
+        return new Kind { name = n, px = px, on = on, perThree = per, ms = ms, frames = frames, near = near != null && near.Length > 0 ? near : null };
     }
+    static Kind B(string n, float px, float per, int frames) { return new Kind { name = n, px = px, on = Place.Shoal, perThree = per, ms = 125, frames = frames, big = true }; }
     public static int Count => Kinds.Length;
     public static int IndexOf(string name) { for (int i = 0; i < Kinds.Length; i++) if (Kinds[i].name == name) return i; return -1; }
     public static string Strip(int kind, int variant) { return Kinds[kind].name + "_" + variant; }
+    public static bool Big(int kind) { return Kinds[kind].big; }
     public static bool Marine(int kind) { return Kinds[kind].on == Place.Marine; }
 
     // ---- where -------------------------------------------------------------------------------------------------------------
@@ -73,9 +79,9 @@ public static class TidePropsTuning
     public const float NearMin = 1f, NearMax = 2.6f, NearShare = .6f;  // a NEAR kind's centre: this x (its host's keep-out + .6 x its own) away, this often
 
     // ---- how many ----------------------------------------------------------------------------------------------------------
-    public const int Pool = 20;
+    public const int Pool = 20, BigPool = 4;
     public const int Tries = 40;
-    public static float TotalPerThree() { float t = 0f; foreach (var k in Kinds) t += k.perThree; return t; }
+    public static float TotalPerThree(bool big) { float t = 0f; foreach (var k in Kinds) if (k.big == big) t += k.perThree; return t; }
 
     // ---- look --------------------------------------------------------------------------------------------------------------
     public static readonly Color PropTint = new Color(.92f, .92f, .92f, 1f);   // a touch under painted: every shot's core stays the brightest thing
@@ -107,16 +113,17 @@ public static class TidePropsTuning
 
 public partial class TideDirector
 {
-    BackdropPool props;
+    BackdropPool props, bigs;
     BackdropAtlas propArt;
     Sprite[][][] propStrips;                 // [kind][variant] -> its frames (null: not in the atlas)
     int[] lastPropVariant;
     int lastPropKind = -1, landing;
-    float propTravel, propGap;
+    float propTravel, propGap, bigTravel, bigGap;
     Color propColor;
     System.Random propRng;                   // its own stream: a prop never shifts the pieces' or the weather's dice
 
     public BackdropPool Props => props;
+    public BackdropPool Bigs => bigs;
     public int PropsSpawned { get; private set; }
     public float ViewHalfWidth => HalfW;
 
@@ -146,9 +153,12 @@ public partial class TideDirector
         }
         propColor = TidePropsTuning.TintFor(night);
         // back to front on the ground plane: crests (-8), pipes (-4), props (-3), fires (-2), pieces and sites (0)
+        bigs = Pool(TidePropsTuning.Layer, TidePropsTuning.BigPool, false, -6);
         props = Pool(TidePropsTuning.Layer, TidePropsTuning.Pool, false, -3);
+        Grade(bigs, TidePropsTuning.Layer);
         Grade(props, TidePropsTuning.Layer);
-        propGap = PRand(.3f, 1f) * 6f * HalfH / TidePropsTuning.TotalPerThree();
+        propGap = PRand(.3f, 1f) * 6f * HalfH / TidePropsTuning.TotalPerThree(false);
+        bigGap = PRand(.2f, .8f) * 6f * HalfH / TidePropsTuning.TotalPerThree(true);
     }
 
     public bool HasPropArt(int kind) { return propStrips != null && kind >= 0 && kind < propStrips.Length && propStrips[kind] != null; }
@@ -161,7 +171,9 @@ public partial class TideDirector
     {
         if (props == null || !planner.Ready) return;
         double t = planner.Travel;
-        int n = Mathf.RoundToInt(TidePropsTuning.TotalPerThree() / 3f * 1.3f);
+        int m = Mathf.RoundToInt(TidePropsTuning.TotalPerThree(true) / 3f * 1.3f + (float)propRng.NextDouble());
+        for (int i = 0; i < m; i++) SpawnProp(-1, t - HalfH * .7, t + HalfH * 1.2, -1, TidePropsTuning.Tries, false, true);   // the big ones first
+        int n = Mathf.RoundToInt(TidePropsTuning.TotalPerThree(false) / 3f * 1.3f);
         for (int i = 0; i < n; i++) SpawnProp(-1, t - HalfH * .9, t + HalfH * 1.3);
     }
 
@@ -174,17 +186,17 @@ public partial class TideDirector
         return false;
     }
 
-    int PickProp(int not)
+    int PickProp(int not, bool big)
     {
         float total = 0f;
         var ks = TidePropsTuning.Kinds;
         for (int i = 0; i < ks.Length; i++)
-            if (i != not && i != lastPropKind && HasPropArt(i)) total += ks[i].perThree;
+            if (ks[i].big == big && i != not && (big || i != lastPropKind) && HasPropArt(i)) total += ks[i].perThree;
         if (total <= 0f) return -1;
         float r = PRand(0f, total);
         for (int i = 0; i < ks.Length; i++)
         {
-            if (i == not || i == lastPropKind || !HasPropArt(i)) continue;
+            if (ks[i].big != big || i == not || (!big && i == lastPropKind) || !HasPropArt(i)) continue;
             r -= ks[i].perThree;
             if (r <= 0f) return i;
         }
@@ -221,20 +233,22 @@ public partial class TideDirector
 
     // A prop (kind < 0: one picked) centred in the ground band [lo, hi] on its context, its keep-out free of every piece, crest, pall
     // and smoke column. `variant` < 0: the copy's own. `above`: the whole painting starts over the top of the view. False: nothing placed.
-    public bool SpawnProp(int kind, double lo, double hi, int variant = -1, int tries = TidePropsTuning.Tries, bool above = false)
+    public bool SpawnProp(int kind, double lo, double hi, int variant = -1, int tries = TidePropsTuning.Tries, bool above = false, bool big = false)
     {
         if (props == null || !planner.Ready) return false;
-        if (props.ActiveCount >= props.Capacity) return false;
+        if (kind >= 0) big = TidePropsTuning.Kinds[kind].big;
+        var pool = big ? bigs : props;
+        if (pool.ActiveCount >= pool.Capacity) return false;
         int tried = -1;
         bool shoals = planner.Mask != null && planner.Mask.Share(GroundClass.Open) > 0f;
         for (int k = 0; k < 3; k++)
         {
-            int kd = kind >= 0 ? kind : PickProp(tried);
+            int kd = kind >= 0 ? kind : PickProp(tried, big);
             if (kd < 0 || !HasPropArt(kd)) return false;
             tried = kd;
             float keep = PropKeep(kd);
             double off = above ? TidePropsTuning.CellSize(kd, HalfW) * .55f : 0.0;
-            bool wantOpen = shoals && TidePropsTuning.Kinds[kd].on == TidePropsTuning.Place.Shoal;
+            bool wantOpen = shoals && !big && TidePropsTuning.Kinds[kd].on == TidePropsTuning.Place.Shoal;
             float x = 0f; double gy = 0.0; bool found = false;
             for (int t = 0; t < tries && !found; t++)
             {
@@ -262,7 +276,7 @@ public partial class TideDirector
         float keep = PropKeep(kd);
         int foot = planner.Claim(x, gy, keep, keep);
         if (foot < 0) return null;
-        var p = props.Spawn();
+        var p = (TidePropsTuning.Big(kd) ? bigs : props).Spawn();
         if (p == null) { planner.Release(foot); return null; }
         int n = propStrips[kd].Length;
         int v;
@@ -295,7 +309,7 @@ public partial class TideDirector
         p.dyingT = -1f;
         Place(p);
         PaintProp(p);
-        lastPropKind = kd;
+        if (!TidePropsTuning.Big(kd)) lastPropKind = kd;
         PropsSpawned++;
         return p;
     }
@@ -322,17 +336,31 @@ public partial class TideDirector
     {
         if (props == null) return;
         propTravel += scrolled;
+        bigTravel += scrolled;
         if (planner.Ready)
         {
             double lo = planner.Travel + HalfH, hi = lo + TideTuning.SpawnBand;
+            // the landmarks first: their ground is taken before the smaller props look for theirs
+            if (bigTravel >= bigGap)
+            {
+                if (SpawnProp(-1, lo, hi, -1, TidePropsTuning.Tries, true, true))
+                { bigTravel = 0f; bigGap = PRand(.6f, 1.4f) * 6f * HalfH / TidePropsTuning.TotalPerThree(true); }
+                else bigGap = bigTravel + TideTuning.SpawnRetry;
+            }
             if (propTravel >= propGap)
             {
                 if (SpawnProp(-1, lo, hi, -1, TidePropsTuning.Tries, true))
-                { propTravel = 0f; propGap = PRand(.6f, 1.4f) * 6f * HalfH / TidePropsTuning.TotalPerThree(); }
+                { propTravel = 0f; propGap = PRand(.6f, 1.4f) * 6f * HalfH / TidePropsTuning.TotalPerThree(false); }
                 else propGap = propTravel + TideTuning.SpawnRetry;
             }
         }
-        foreach (var p in props.items)
+        StepPool(bigs, dt);
+        StepPool(props, dt);
+    }
+
+    void StepPool(BackdropPool pool, float dt)
+    {
+        foreach (var p in pool.items)
         {
             if (!p.active) continue;
             p.age += dt;
@@ -354,8 +382,13 @@ public partial class TideDirector
     // Is there a live prop whose keep-out box meets the box (x, gy, rx, ry)?
     public bool TouchesProp(float x, double gy, float rx, float ry)
     {
-        if (props == null) return false;
-        foreach (var p in props.items)
+        return TouchesIn(bigs, x, gy, rx, ry) || TouchesIn(props, x, gy, rx, ry);
+    }
+
+    bool TouchesIn(BackdropPool pool, float x, double gy, float rx, float ry)
+    {
+        if (pool == null) return false;
+        foreach (var p in pool.items)
         {
             if (!p.active) continue;
             float k = PropKeep(p.kind);
@@ -426,13 +459,16 @@ public partial class TideDirector
     // Tests / previews: every prop gone, its ground released.
     public void ClearProps()
     {
-        if (props == null) return;
-        foreach (var p in props.items)
+        foreach (var pool in new[] { props, bigs })
         {
-            if (!p.active) continue;
-            planner.Release(p.footprint);
-            p.footprint = -1;
-            Despawn(p);
+            if (pool == null) continue;
+            foreach (var p in pool.items)
+            {
+                if (!p.active) continue;
+                planner.Release(p.footprint);
+                p.footprint = -1;
+                Despawn(p);
+            }
         }
     }
 
@@ -440,5 +476,6 @@ public partial class TideDirector
     public void HoldProps(float ground)
     {
         propTravel = 0f; propGap = ground;
+        bigTravel = 0f; bigGap = ground;
     }
 }
