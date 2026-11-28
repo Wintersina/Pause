@@ -65,6 +65,84 @@ def depink(img):
     return n
 
 
+# ---- BLEND (user 2026-11-28: "all props should be blended in into the world correctly such that it makes sense and doesnt look
+# out of place"). Before the pink guard, every cell is: graded toward the ice palette (luminance carried on the ice's hue -- the
+# v1-v4 mid tiles' ice measures rgb .16 .22 .25 as painted -- plus a little atmospheric pull to it; the drawing's lamps and lit
+# windows, max channel >= LAMP_HI, keep their colour unscaled), its cut-out silhouette feathered by a hair, and -- for the props
+# that stand on the ice -- a soft contact shadow cast down-right (the ground is lit from the top-left) and a snow drift banked
+# round the lowest part of the piece. The props in open water (whale, orca, narwhal, icebreaker) already carry their wake / ripple
+# rings: grade and feather only. The crashed starship has its own ground-level crash scar: grade, feather and a light shadow.
+import numpy as np
+
+ICE = np.array([.16, .22, .25])
+ICE_NORM = ICE / (ICE @ [.2126, .7152, .0722])
+SNOW = np.array([.25, .31, .34])
+SHADOW = np.array([.01, .03, .06])
+BLEND = {   # kind: (grade, shadow alpha, drift alpha)
+    "station": (1, .5, .55), "lab": (1, .5, .55), "plane": (1, .5, .55), "snowcat": (1, .45, .5), "radar": (1, .5, .55),
+    "fishcamp": (1, .4, .45), "flares": (1, .4, .45), "tanker": (1, .45, .6), "bears": (.8, .35, .4), "seals": (.8, .35, .4),
+    "sonde": (1, .45, .5), "heli": (1, .5, .6), "starship": (1, .3, 0),
+    "whale": (.6, 0, 0), "orca": (.6, 0, 0), "narwhal": (.6, 0, 0), "icebreaker": (.8, 0, 0),
+}
+LAMP_LO, LAMP_HI = .56, .72
+
+
+def blur(x, r):
+    k = int(np.ceil(3 * r))
+    t = np.arange(-k, k + 1, dtype=np.float32)
+    w = np.exp(-.5 * (t / max(r, 1e-3)) ** 2)
+    w /= w.sum()
+    y = np.apply_along_axis(lambda v: np.convolve(v, w, "same"), 0, x.astype(np.float32))
+    return np.apply_along_axis(lambda v: np.convolve(v, w, "same"), 1, y)
+
+
+def blend_cell(px, kind):
+    g, sh, dr = BLEND[kind]
+    a = px.astype(np.float32) / 255
+    rgb, al = a[..., :3], a[..., 3]
+    n = px.shape[0] / 128.0
+    lum = rgb @ np.array([.2126, .7152, .0722], np.float32)
+    graded = rgb * (1 - .32 * g) + lum[..., None] * ICE_NORM * (.32 * g)
+    graded = graded * (1 - .10 * g) + ICE * (.10 * g)
+    keep = np.clip((rgb.max(-1) - LAMP_LO) / (LAMP_HI - LAMP_LO), 0, 1)[..., None]
+    rgb = np.clip(graded * (1 - keep) + rgb * keep, 0, 1)
+    # feather: no hard cut-out edge
+    al = .45 * al + .55 * np.minimum(al, blur(al, .8 * n))
+    H, W = al.shape
+    pr = rgb * al[..., None]
+    pa = al.copy()
+    if sh > 0:
+        dx, dy = int(round(3 * n)), int(round(3 * n))
+        sil = np.zeros_like(al)
+        sil[dy:, dx:] = al[:H - dy, :W - dx]
+        shadow = blur(sil, 2.2 * n) * sh
+        pr = pr + SHADOW * shadow[..., None] * (1 - pa[..., None])
+        pa = pa + shadow * (1 - pa)
+    if dr > 0:
+        ys = np.nonzero(al.max(1) > .1)[0]
+        top, bot = (ys[0], ys[-1]) if len(ys) else (0, H - 1)
+        yy = np.arange(H, dtype=np.float32)[:, None]
+        band = np.clip((yy - (bot - .2 * (bot - top))) / max(1., .2 * (bot - top)), 0, 1) ** .8
+        # the drift: snow piled against the base and spilling a little past it
+        drift = np.clip(blur(al, 2.4 * n) * 1.6, 0, 1) * band * dr
+        da = np.clip(drift * (.5 + .5 * al), 0, 1)
+        pr = SNOW * da[..., None] + pr * (1 - da[..., None])
+        pa = da + pa * (1 - da)
+    rgb = np.where(pa[..., None] > 1e-4, pr / np.maximum(pa[..., None], 1e-4), 0)
+    out = np.dstack([np.clip(rgb, 0, 1), np.clip(pa, 0, 1)])
+    return (out * 255 + .5).astype(np.uint8)
+
+
+def blend_strip(img, name):
+    if "--raw" in sys.argv:
+        return img
+    a = np.array(img)
+    c = a.shape[0]
+    for f in range(a.shape[1] // c):
+        a[:, f * c:(f + 1) * c] = blend_cell(a[:, f * c:(f + 1) * c], name)
+    return Image.fromarray(a, "RGBA").copy()
+
+
 def build():
     sheet = Image.new("RGBA", (W, H), (0, 0, 0, 0))
     sprites = []
@@ -72,6 +150,7 @@ def build():
         b = base(name, v)
         strip = Image.open(HERE / "strips" / f"{b}.png").convert("RGBA")
         assert strip.size == (CELL * FRAMES, CELL), (b, strip.size)
+        strip = blend_strip(strip, name)
         depink(strip)
         r, x0 = i // PER_ROW, (i % PER_ROW) * CELL * FRAMES
         sheet.paste(strip, (x0, r * CELL))
@@ -82,6 +161,7 @@ def build():
         b, c = base(name, v), CELLS[name]
         strip = Image.open(HERE / "strips" / f"{b}.png").convert("RGBA")
         assert strip.size == (c * FRAMES, c), (b, strip.size)
+        strip = blend_strip(strip, name)
         depink(strip)
         sheet.paste(strip, (0, top))
         for f in range(FRAMES):

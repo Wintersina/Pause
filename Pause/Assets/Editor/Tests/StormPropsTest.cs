@@ -229,6 +229,38 @@ public static class StormPropsTest
         return new Stat { mean = sw > 0 ? (float)(sl / sw) : 0f, p90 = vals.Count > 0 ? vals[(int)(vals.Count * .9f)] : 0f, peak = peak };
     }
 
+    // Blend (user 2026-11-28: every prop blends into the world): over the first cell of every livery, the opaque texels' warmth
+    // (mean r - b; the cool deck measures about -.10) and the share of the base band (the lowest 8 % of the piece) that is fully opaque
+    // (a hard cut-out mount reads pasted on; a feathered, vapour-wrapped base reads sat in the deck).
+    static Vector2 Blend(Color[] px, int w, BackdropAtlas atlas, string kind, int variants)
+    {
+        double warm = 0; int n = 0, hard = 0, band = 0;
+        for (int v = 0; v < variants; v++)
+        {
+            var cells = atlas.Frames(StormPropsTuning.Strip(kind, v));
+            if (cells.Length == 0) continue;
+            var r = cells[0].rect;
+            int x0 = (int)r.x, y0 = (int)r.y, cw = (int)r.width, ch = (int)r.height, lo = -1, hi = -1;
+            for (int y = 0; y < ch; y++)
+                for (int x = 0; x < cw; x++)
+                {
+                    var c = px[(y0 + y) * w + x0 + x];
+                    if (c.a > .1f) { if (lo < 0) lo = y; hi = y; }
+                    if (c.a > .5f) { warm += c.r - c.b; n++; }
+                }
+            if (lo < 0) continue;
+            int top = lo + Mathf.Max(1, Mathf.RoundToInt(.08f * (hi - lo)));   // texture rows count up: lo is the piece's base
+            for (int y = lo; y <= top; y++)
+                for (int x = 0; x < cw; x++)
+                {
+                    float a = px[(y0 + y) * w + x0 + x].a;
+                    if (a > .05f) band++;
+                    if (a > .9f) hard++;
+                }
+        }
+        return new Vector2(n > 0 ? (float)(warm / n) : 0f, band > 0 ? (float)hard / band : 0f);
+    }
+
     const float ApprovedDeckLum = .29f, ApprovedDeckP90 = .66f;
 
     static void Art()
@@ -297,6 +329,18 @@ public static class StormPropsTest
                 else ok &= s.mean <= land.mean * 1.3f && s.p90 <= .75f && s.mean <= .5f;   // aloft: hazed, dimmer than every shot
             }
             Check(sheet + " as drawn within the landmark rules (landmarks lum " + land.mean.ToString("F2") + " p90 " + land.p90.ToString("F2") + "): " + rows, ok);
+            if (ground)
+            {
+                string brows = ""; bool bok = true;
+                for (int k = 0; k < kinds.Length; k++)
+                {
+                    if (k == StormPropsTuning.Cell || k == StormPropsTuning.Vortex) continue;   // (cloud phenomena: they are the deck)
+                    var bl = Blend(px, w, atlas, kinds[k], counts[k]);
+                    brows += kinds[k] + " warm " + bl.x.ToString("F3") + " hard base " + bl.y.ToString("F2") + "; ";
+                    bok &= bl.x <= .01f && bl.y <= .12f;
+                }
+                Check("every ground prop is blended into the cool deck: graded toward it (warmth r-b <= .01) and its base feathered into the clouds (<= 12% of the base band hard): " + brows, bok);
+            }
             atlas.Destroy();
         }
     }

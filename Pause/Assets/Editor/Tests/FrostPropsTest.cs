@@ -331,6 +331,44 @@ public static class FrostPropsTest
             rowsOk &= p90 <= lp90 + .15f && ml <= .66f;
         }
         Check("every prop's forms within the landmark rules as drawn (value p90 <= landmarks' " + lp90.ToString("F2") + " + .15, luminance <= .66): " + rows, rowsOk);
+
+        // BLEND (user 2026-11-28: every prop blends into the world): no cut-out silhouette (the share of a strip's first cell's opaque
+        // texels that touch a transparent one), and on the ice a feathered base banked with snow (the share of the lowest 8 % of
+        // the piece that is fully opaque); the props in open water keep their wake / ripple rings instead.
+        string brows = ""; bool bok = true;
+        for (int k = 0; k < stripRects.Count; k++)
+        {
+            int y0 = (int)stripRects[k].y, x0 = (int)stripRects[k].x, cp = stripCells[k];
+            int opaque = 0, cut = 0, lo = -1, hi = -1;
+            for (int y = 0; y < cp; y++)
+                for (int x = 0; x < cp; x++)
+                {
+                    float al = px[(y0 + y) * w + x0 + x].a;
+                    if (al > .1f) { if (lo < 0) lo = y; hi = y; }
+                    if (al <= .9f) continue;
+                    opaque++;
+                    bool edge = false;
+                    if (x > 0 && px[(y0 + y) * w + x0 + x - 1].a < .05f) edge = true;
+                    if (x < cp - 1 && px[(y0 + y) * w + x0 + x + 1].a < .05f) edge = true;
+                    if (y > 0 && px[(y0 + y - 1) * w + x0 + x].a < .05f) edge = true;
+                    if (y < cp - 1 && px[(y0 + y + 1) * w + x0 + x].a < .05f) edge = true;
+                    if (edge) cut++;
+                }
+            float cutShare = opaque > 0 ? (float)cut / opaque : 0f;
+            bool water = stripNames[k].StartsWith("whale") || stripNames[k].StartsWith("orca") || stripNames[k].StartsWith("narwhal") || stripNames[k].StartsWith("icebreaker");
+            int band = 0, hard = 0;
+            if (lo >= 0)
+                for (int y = lo; y <= lo + Mathf.Max(1, Mathf.RoundToInt(.08f * (hi - lo))); y++)   // texture rows count up: lo is the base
+                    for (int x = 0; x < cp; x++)
+                    {
+                        float al = px[(y0 + y) * w + x0 + x].a;
+                        if (al > .05f) band++;
+                        if (al > .9f) hard++;
+                    }
+            float hardBase = band > 0 ? (float)hard / band : 0f;
+            if (cutShare > .02f || (!water && hardBase > .45f)) { bok = false; brows += stripNames[k] + " cut " + cutShare.ToString("F3") + " base " + hardBase.ToString("F2") + "; "; }
+        }
+        Check("every prop is blended into the ice: no cut-out edge (<= 2% of its opaque texels touch a clear one) and, on the ice, a feathered snow-banked base (<= 45% of the base band hard)" + (bok ? "" : ": " + brows), bok);
     }
 
     // ---- live: placement, rarity, animation, lights --------------------------------------------
