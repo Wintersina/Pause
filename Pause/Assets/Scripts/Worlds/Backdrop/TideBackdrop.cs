@@ -326,7 +326,7 @@ public partial class TideDirector : PlanetDirector
         night = set.Spec.Night(set.Variant);
         TideTuning.LightBoostNow = night ? TideTuning.NightLightBoost : 1f;
         ambient = new AmbientEmitters(set, TideAmbientCatalog.Table) { Wind = TideTuning.Wind };
-        planner = new GroundPlanner(set, "mid", GroundMask.Load("Tide", set.Variant), 160);
+        planner = new GroundPlanner(set, "mid", GroundMask.Load("Tide", set.Variant), 96);
         openSea = set.Variant >= 0 && set.Variant < TideTuning.OpenSea.Length && TideTuning.OpenSea[set.Variant];
 
         dockArt = set.Atlas(TideTuning.DocksAtlas);

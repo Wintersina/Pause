@@ -14,6 +14,7 @@ def premul_resize(im, w, h, f=Image.BOX):
     ch = [np.asarray(Image.fromarray(a[..., i], 'F').resize((w, h), f)) for i in range(4)]; o = np.stack(ch, -1); al = o[..., 3:4]
     o[..., :3] = np.where(al > 1e-4, o[..., :3] / np.maximum(al, 1e-4), 0); return Image.fromarray((np.clip(o, 0, 1) * 255 + .5).astype(np.uint8), 'RGBA')
 def wx(name, k): return Image.open(f'{S}/bd_tide_wx_{name}/r1_{k}.png').convert('RGBA')
+GAIN_BANK, GAIN = .6, .85
 def weather():
     j = json.load(open(f'{D}/weather.json')); sheet = Image.open(f'{D}/weather.png').convert('RGBA'); H = sheet.height
     plan = {f'cloud_bank_0{i}': ('bank', i) for i in range(4)}; plan.update({f'cloud_wisp_0{i}': ('squall', i) for i in range(4)})
@@ -21,6 +22,10 @@ def weather():
     for s in j['sprites']:
         if s['n'] not in plan: continue
         name, k = plan[s['n']]; c = premul_resize(wx(name, k), s['w'], s['h'])
+        # CI (2026-11-28): the painted banks read 0.87 value against the planetfall deck's 0.44 and the atlas 0.906 as drawn (<= 0.8): the cloud is toned down
+        # (the ceiling's lift 1.6 and alpha thickening multiply it), the banks hardest; alpha untouched
+        g = GAIN_BANK if name == 'bank' else GAIN
+        a = np.asarray(c).astype(np.float32); a[..., :3] *= g; c = Image.fromarray(np.clip(a + .5, 0, 255).astype(np.uint8), 'RGBA')
         box = (s['x'], H - s['y'] - s['h']); sheet.paste(Image.new('RGBA', (s['w'], s['h']), (0, 0, 0, 0)), box); sheet.paste(c, box)
     sheet.save(f'{D}/weather.png', optimize=True); print('weather.png', len(plan), 'cells replaced')
 def hazard():

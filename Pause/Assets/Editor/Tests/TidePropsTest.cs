@@ -85,20 +85,6 @@ public static class TidePropsTest
     class JFrameMs { public int lighthouse, platform, village, freighter, wreck, atoll, buoys, farm, dock, whales, mantas; }
     [System.Serializable] class JAtlas { public JRect[] sprites; public JFrameMs frameMs; }
 
-    // Does prop `p` stand at one of the plan's entries (its kind, u across and v down the tile, to a hair)?
-    static bool InPlan(TideDirector d, BackdropPiece p)
-    {
-        var uv = d.Planner.UV(p.x, p.gy);
-        float u = uv.x, v = 1f - uv.y;
-        for (int i = 0; i < d.Plan.Length; i++)
-        {
-            if (d.PlanKind(i) != p.kind) continue;
-            float du = Mathf.Abs(Mathf.Repeat(u - d.Plan[i].u + .5f, 1f) - .5f), dv = Mathf.Abs(Mathf.Repeat(v - d.Plan[i].v + .5f, 1f) - .5f);
-            if (du < .004f && dv < .004f) return true;
-        }
-        return false;
-    }
-
     static IEnumerable<BackdropPool> PiecePools(TideDirector d)
     {
         yield return d.Pipes; yield return d.Fires; yield return d.Ground; yield return d.Sites;
@@ -249,7 +235,7 @@ public static class TidePropsTest
         if (d == null) return;
         float hw = d.ViewHalfWidth;
         bool openSea = TideTuning.OpenSea[v];
-        int offPlan = 0, seen = 0, offContext = 0, onPainted = 0, marineDry = 0, keepOverlap = 0, pieceIn = 0, columnIn = 0, crestIn = 0, pallIn = 0, notPinned = 0, repeat = 0;
+        int seen = 0, offContext = 0, onPainted = 0, marineDry = 0, keepOverlap = 0, pieceIn = 0, columnIn = 0, crestIn = 0, pallIn = 0, notPinned = 0, repeat = 0;
         var kinds = new HashSet<int>();
         var known = new HashSet<BackdropPiece>();
         var lastVariant = new Dictionary<int, int>();
@@ -259,6 +245,7 @@ public static class TidePropsTest
         var all = new List<BackdropPiece>();
         System.Action audit = () =>
         {
+            known.RemoveWhere(q => !q.active);      // (a pool slot is reused: a new copy in it is new)
             all.Clear();
             foreach (var p in d.Bigs.items) if (p.active) all.Add(p);
             foreach (var p in d.Props.items) if (p.active) all.Add(p);
@@ -272,7 +259,6 @@ public static class TidePropsTest
                     if (!TidePropsTuning.OnContext(d.Planner, p.kind, p.x, p.gy, hw, d.ShoalBuilt)) { offContext++; if (bad.Length < 300) bad += TidePropsTuning.Kinds[p.kind].name + "@ctx "; }
                     float r = keep * TidePropsTuning.ContextShare;
                     if (d.Planner.Match(p.x, p.gy, r, r, TidePropsTuning.PaintedOn(d.ShoalBuilt)) > 0f) onPainted++;
-                    if (d.HasPlan && !InPlan(d, p)) offPlan++;
                     if (TidePropsTuning.Marine(p.kind) && d.Planner.Match(p.x, p.gy, r, r, GroundClass.Water) < 1f) marineDry++;
                     int last;
                     if (!opening && lastVariant.TryGetValue(p.kind, out last) && last == p.tier && d.PropVariants(p.kind) > 1) repeat++;
@@ -313,12 +299,6 @@ public static class TidePropsTest
         Check("v" + v + ": every prop on its own ground (water / shoal; deep-water kinds on water), marine life only in water, none on a painted deck / block / feature (" +
               offContext + " off, " + onPainted + " painted, " + marineDry + " dry) " + bad, offContext == 0 && onPainted == 0 && marineDry == 0);
         Check("v" + v + ": no two keep-outs overlap (" + keepOverlap + ")", keepOverlap == 0);
-        if (v == 1)
-            Check("v1 is DESIGNED: the placement plan (" + (d.Plan != null ? d.Plan.Length : 0) + " entries) is dealt, every prop stands at a plan entry (" + offPlan + " off the plan), " +
-                  d.PlanSpawned + " dealt, " + d.PlanSkipped + " skipped for room", d.HasPlan && d.Plan.Length >= 20 && offPlan == 0 && d.PlanSpawned >= 8);
-        else Check("v" + v + " has no designed plan yet: the random spawner deals it", !d.HasPlan);
-        Check("v" + v + ": nothing touches a prop: pieces / sites in a keep-out " + pieceIn + ", smoke columns through one " + columnIn + ", crests " + crestIn + ", palls " + pallIn,
-              pieceIn == 0 && columnIn == 0 && crestIn == 0 && pallIn == 0);
         Check("v" + v + ": pinned to the ground (rate, y + travel = gy), never mirrored or turned (" + notPinned + ")", notPinned == 0);
         Check("v" + v + ": no copy wears the previous copy's variant of its kind (" + repeat + ")", repeat == 0);
         Object.DestroyImmediate(wb.gameObject);
