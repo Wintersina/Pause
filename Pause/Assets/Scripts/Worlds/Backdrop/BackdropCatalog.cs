@@ -452,8 +452,8 @@ public static class BackdropCatalog
         get
         {
             var wb = WorldBackdrop.Instance;
-            var set = wb != null ? wb.Current : null;
-            if (set == null || set.Spec == null || !set.Spec.boldUnderCeiling || set.Director == null) return false;
+            var set = wb != null && wb.Current != null ? wb.Current : WorldBackdrop.LastShown;
+            if (set == null || set.Root == null || set.Spec == null || !set.Spec.boldUnderCeiling || set.Director == null) return false;
             if (set.Spec.world != WorldManager.Current.displayName) return false;
             return set.Spec.CeilingDensity(set.Director.Elapsed) >= DeckBoldDensity;
         }
