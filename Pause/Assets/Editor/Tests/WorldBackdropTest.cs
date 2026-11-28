@@ -11,7 +11,8 @@ public static class WorldBackdropTest
     // Budgets / guards.
     public const long TextureBudgetBytes = 9L * 1024 * 1024;   // per world, GPU size of the imported format
     // Frost carries eight shared 1024 atlases (landmarks, sites, weather and
-    // five ambient-loop sheets) besides one 4-tile variant set.
+    // five ambient-loop sheets), the docks strips and the living props (a
+    // 1024 x 768 sheet, FrostProps.cs) besides one 4-tile variant set.
     public const long FrostTextureBudgetBytes = 12L * 1024 * 1024;
     // Space carries the 2048 anim_hires planet sheet (~5.3 MB with mips; the 1x
     // sheet was ~1.3 MB) beside the asteroid-drift sheets: 9573 KB, over the
@@ -189,6 +190,7 @@ public static class WorldBackdropTest
     {
         float lift = 1f, alphaLift = 1f, satScale = 1f;
         if (atlas == "landmarks" || atlas == "sites") lift = BackdropGrade.Lift(spec, spec.Find("landmarks"));
+        else if (atlas == FrostPropsTuning.Atlas) lift = BackdropGrade.Lift(spec, spec.Find(FrostPropsTuning.Layer));
         else if (atlas == "aurora") lift = BackdropGrade.Lift(spec, spec.Find("aurora"));
         else if (FrostAmbientCatalog.Lifted(atlas)) lift = BackdropGrade.Lift(spec, FrostTuning.PlumeShare);
         else if (atlas == "weather")
@@ -313,6 +315,8 @@ public static class WorldBackdropTest
         { "fire_lights", new[] { "flare_00", "searchlight_07" } },
         { "beacons", new[] { "beacon_magenta_03", "beacon_cyan_00", "strobe_white_00", "window_lights_03" } },
         { "aurora", new[] { "aurora_00", "aurora_15" } },
+        { "props", new[] { "whale_00", "whale_07", "orca_00", "orca_07", "station_00", "station_07", "lab_00", "lab_07",
+                           "icebreaker_00", "icebreaker_07", "plane_00", "plane_07" } },
     };
 
     // Verdant's shared atlases and the drawings the director relies on.

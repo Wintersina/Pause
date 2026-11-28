@@ -47,6 +47,8 @@ using UnityEngine;
 //              scattering of cloud wisps and low mist drifting with the wind
 //              (FrostTuning.CloudDensity), snow fields at three depths, and BLIZZARD gusts:
 //              translucent diagonal sheets sweeping across every so often.
+//   PROPS      rare living accents on the same ground plane (FrostProps.cs): whales and orcas surfacing in the leads, an
+//              icebreaker churning through, a research station, an abandoned lab, a crashed plane, their lamps lit.
 //   AURORA     a faint animated overlay; strong only over the glacier night.
 //
 // Everything sits far below gameplay (BackdropCatalog.BaseOrder), so no
@@ -334,7 +336,7 @@ public static class FrostTuning
     public static float BlizzardWind = 1.6f;       // sideways push given to the snow while a gust blows
 }
 
-public class FrostDirector : PlanetDirector
+public partial class FrostDirector : PlanetDirector
 {
     BackdropPool ground, sites, auroraPool, mist, wisps, ceiling, blizzard;
     readonly BackdropPool[] snow = new BackdropPool[3];
@@ -373,6 +375,7 @@ public class FrostDirector : PlanetDirector
         grades.Clear();
         if (ambient != null) ambient.Destroy();
         if (groundLights != null) groundLights.Destroy();
+        TeardownProps();
     }
 
     // Draws `pool` brightened by its layer's share of FrostTuning.Brightness
@@ -538,6 +541,7 @@ public class FrostDirector : PlanetDirector
         Grade(wisps, "wisps");
         CeilingMaterial = Grade(ceiling, "ceiling", FrostTuning.CeilingThicken, FrostTuning.CeilingSaturation);
         if (!FrostTuning.BlizzardAdditive) Grade(blizzard, "blizzard");
+        BuildProps();     // the living props (FrostProps.cs): whales, orcas, an icebreaker, a station, a lab, a crashed plane
         if (FrostTuning.BlizzardAdditive)
         {
             var shader = Resources.Load<Shader>(SpaceAsteroidDrift.AdditiveShader);
@@ -554,6 +558,7 @@ public class FrostDirector : PlanetDirector
         if (planner.Ready)
         {
             double t = planner.Travel;
+            OpeningProp();
             for (float y = -HalfH * .85f; y < HalfH * .8f; y += GRand(FrostTuning.GapMin, FrostTuning.GapMax))
                 SpawnLandmark(t + y, t + y + FrostTuning.SpawnBand);
         }
@@ -610,6 +615,7 @@ public class FrostDirector : PlanetDirector
         }
         StepPinned(ground, groundRules, dt);
         StepPinned(sites, siteRules, dt);
+        StepProps(dt, scrolled);
         StepSites(dt);
         ambient.Step(1f);
         groundLights.Step(dt);

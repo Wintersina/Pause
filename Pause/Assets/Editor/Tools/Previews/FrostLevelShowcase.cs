@@ -26,6 +26,9 @@ using UnityEngine;
 //   boss-damaged-attack.png   through OnShipAttackHit), idle and attacking
 //   frost_v1_frames/NNN.png   24 frames at 15 fps of v1 gameplay (CI turns
 //                             each *_frames folder into <name>.gif)
+//   props-<a>-<b>.png         the living props (FrostProps.cs) two at a time, placed
+//   props_<a>_<b>_frames/     in view by their own rules, + 30 frames at 15 fps
+//                             (a whale / orca surfacing, the loops and lamps)
 //
 //   SHOWCASE_DIR=<dir> Unity -batchmode -quit -projectPath Pause -executeMethod FrostLevelShowcase.Run
 //   (default dir Builds/Showcase; see FrostBackdropPreview for the scene setup this reuses)
@@ -62,6 +65,7 @@ public static class FrostLevelShowcase
                 failures += Section("elites", Elites);
                 failures += Section("boss", Boss);
                 failures += Section("gif", Gif);
+                failures += Section("props", Props);
             }
             finally
             {
@@ -439,6 +443,55 @@ public static class FrostLevelShowcase
     }
 
     // ---- the animated sequence ---------------------------------------------------
+
+    // ---- the living props ------------------------------------------------------------
+
+    static void Props()
+    {
+        // (variant, two kinds): the water props on v2's leads, the structures on v1's ice plates
+        var shots = new[]
+        {
+            new[] { 2, FrostPropsTuning.Whale, FrostPropsTuning.Icebreaker },
+            new[] { 1, FrostPropsTuning.Station, FrostPropsTuning.Plane },
+            new[] { 2, FrostPropsTuning.Orca, FrostPropsTuning.Lab },
+        };
+        foreach (var shot in shots)
+        {
+            Scene(shot[0]);
+            director.ClearProps();
+            float h = cam.orthographicSize;
+            double tr = director.Planner.Travel;
+            string tag = FrostPropsTuning.Names[shot[1]] + "-" + FrostPropsTuning.Names[shot[2]];
+            for (int j = 1; j <= 2; j++)
+            {
+                bool ok = false;
+                // the first in the upper half, the second in the lower half; any variant's ground if this one has no room
+                double lo = j == 1 ? tr - h * .05f : tr - h * .6f, hi = j == 1 ? tr + h * .6f : tr + h * .05f;
+                for (int a = 0; a < 6 && !ok; a++) ok = director.SpawnProp(shot[j], lo, hi, 800);
+                if (!ok) for (int a = 0; a < 6 && !ok; a++) ok = director.SpawnProp(shot[j], tr - h * .8f, tr + h * .8f, 800);
+                Debug.Log("[SHOWCASE] props v" + shot[0] + " " + FrostPropsTuning.Names[shot[j]] + " placed " + ok);
+            }
+            director.SurfaceNow();
+            Steps(.45f);
+            Capture("props-" + tag + ".png");
+            foreach (var p in director.Props.items)
+            {
+                if (!p.active) continue;
+                var sp = cam.WorldToScreenPoint(p.root.position);
+                Debug.Log("[SHOWCASE] prop " + p.sr.sprite.name + " at screen px " + Mathf.RoundToInt(sp.x) + "," + Mathf.RoundToInt(H - sp.y) +
+                          " size " + Mathf.RoundToInt(p.size * W / (2f * cam.orthographicSize * cam.aspect)) + " px");
+            }
+            string frames = Path.Combine(dir, "props_" + tag.Replace('-', '_') + "_frames");
+            if (Directory.Exists(frames)) Directory.Delete(frames, true);
+            Directory.CreateDirectory(frames);
+            director.SurfaceNow();
+            for (int f = 0; f < 30; f++)
+            {
+                if (f > 0) for (int s2 = 0; s2 < 4; s2++) Step(Dt);
+                Capture(Path.Combine(Path.GetFileName(frames), f.ToString("000") + ".png"));
+            }
+        }
+    }
 
     static void Gif()
     {

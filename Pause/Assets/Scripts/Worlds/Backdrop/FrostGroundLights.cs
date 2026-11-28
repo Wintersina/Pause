@@ -138,7 +138,8 @@ public sealed class FrostGroundLights
     }
 
     // A 7 x 7 pixel-art glow: a bright plus-shaped core, a soft ring, nothing in the corners. White: tinted per light.
-    static Sprite MakeSprite(out Texture2D tex)
+    // (also the living props' lamps, FrostProps.cs)
+    internal static Sprite MakeSprite(out Texture2D tex)
     {
         const int n = 7;
         tex = new Texture2D(n, n, TextureFormat.RGBA32, false) { filterMode = FilterMode.Bilinear, wrapMode = TextureWrapMode.Clamp, name = "FrostGroundLight" };

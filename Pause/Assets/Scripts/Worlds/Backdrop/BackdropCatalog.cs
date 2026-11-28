@@ -257,6 +257,9 @@ public static class BackdropCatalog
             // scroll at exactly its rate (they used to run at 0.030 against
             // its 0.024 and slid 25% faster than the ice they stand on).
             Layer.Pieces("landmarks", FrostTuning.GroundRate, Role.Landmark).PinnedTo("mid", FrostTuning.GroundRate).Graded(1f),
+            // the living props (FrostProps.cs: whales, orcas, an icebreaker, a station, a lab, a crashed plane): rare accents
+            // on the same ground plane, pinned and graded like the landmarks
+            Layer.Pieces(FrostPropsTuning.Layer, FrostTuning.GroundRate, Role.Landmark).PinnedTo("mid", FrostTuning.GroundRate).Graded(1f),
             Layer.Pieces("mist", 0.060f, Role.Atmosphere).Graded(.5f),
             Layer.Pieces("wisps", 0.090f, Role.Cloud).Graded(.5f),
             // The ceiling's banks are also thickened (FrostTuning.CeilingThicken).

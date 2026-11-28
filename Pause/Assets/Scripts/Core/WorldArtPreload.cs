@@ -293,7 +293,7 @@ public static class WorldArtPreload
         switch (world)
         {
             case "Space": return new[] { "extras", "neon_frames", "asteroid_fx", "twinkle", "nebula", "debris", "wrecks", "outposts", "docks" };
-            case "Frost": return new[] { "landmarks", "sites", "weather", "smoke", "steam", "fire_lights", "beacons", "aurora", "docks" };
+            case "Frost": return new[] { "landmarks", "sites", "weather", "smoke", "steam", "fire_lights", "beacons", "aurora", "docks", "props" };
             case "Verdant": return new[] { "landmarks", "pipes", "fires", "sites", "weather", "lights", "smoke", "wildfire", "firesmoke", "leaks" };
             case "Ember": return new[] { "landmarks", "pipes", "fires", "sites", "weather", "lights", "smoke", "lavafire", "eruption", "leaks", "docks" };
             case "Tide": return new[] { "landmarks", "pipes", "fires", "sites", "weather", "smoke", "smoke_2", "flames", "flames_2", "leaks", "leaks_2", "lights", "lights_2", "surf", "surf_2", "surf_3", "surf_4", "docks" };

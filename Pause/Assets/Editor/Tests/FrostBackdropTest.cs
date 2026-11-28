@@ -103,11 +103,11 @@ public static class FrostBackdropTest
         var spec = BackdropCatalog.For("Frost");
         Check("Frost has its own v3 folder and four variant sets",
               spec.folder == "Worlds/Frost/Backdrop3/" && spec.variantSets == FrostBackdropSelection.MaxVariants);
-        string[] want = { "sky", "far", "mid", "flow", "aurora", "landmarks", "mist", "wisps", "ceiling",
+        string[] want = { "sky", "far", "mid", "flow", "aurora", "landmarks", "props", "mist", "wisps", "ceiling",
                           "snow_far", "blizzard", "snow_mid", "snow_near" };
         bool all = true;
         foreach (string n in want) all &= spec.Has(n);
-        Check("Frost layers: ground tiles + flow, aurora, landmarks, mist, wisps, ceiling, snow x3, blizzard", all);
+        Check("Frost layers: ground tiles + flow, aurora, landmarks, living props, mist, wisps, ceiling, snow x3, blizzard", all);
         bool rising = true;
         float prev = float.MinValue;
         foreach (var l in spec.layers)
