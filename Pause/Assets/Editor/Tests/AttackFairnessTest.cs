@@ -444,7 +444,8 @@ public static partial class AttackFairnessTest
                 yield return new KeyValuePair<string, Sprite>(st + " glyph " + f, AttackHazardArt.Glyph(st, world, f, bold, false));
             }
             for (int f = 0; f < 3; f++)
-                yield return new KeyValuePair<string, Sprite>(st + " burst " + f, AttackHazardArt.Burst(world, st, f, bold));
+                // (the procedural burst: a world with a painted strike atlas -- Ember -- would serve its non-readable art here)
+                yield return new KeyValuePair<string, Sprite>(st + " burst " + f, AttackHazardArt.BurstProcedural(world, st, f, bold));
             if (AttackHazardArt.HasTip(st))
                 yield return new KeyValuePair<string, Sprite>(st + " tip", AttackHazardArt.ColumnProcedural(world, st, 0, bold, true));
         }

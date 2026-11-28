@@ -375,7 +375,8 @@ public static partial class AttackHazardArt
         return s;
     }
 
-    static Sprite BurstProcedural(int world, StrikeStyle style, int frame, bool bold)
+    // (public: the hazard audits read the procedural burst whether or not a world ships a strike atlas)
+    public static Sprite BurstProcedural(int world, StrikeStyle style, int frame, bool bold)
     {
         int f = Mathf.Clamp(frame, 0, 2);
         var ramp = RampOf(world);

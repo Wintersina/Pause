@@ -217,10 +217,15 @@ public static partial class AttackHazardArt
         int key = -200 - world;
         bool b;
         if (flags.TryGetValue(key, out b)) return b;
-        b = AttackArt.WaveBody(world, 0) != null;
+        b = OwnWaveFolder(world) && AttackArt.WaveBody(world, 0) != null;
         flags[key] = b;
         return b;
     }
+
+    // AttackArt.PathOf clamps a world past ShotSkins.WorldKeys (Storm 5, Desert 6) to Tide's folder: without this their scan
+    // lines would wear Tide's surf (tide_attack_wave.png). Only a world whose own Attacks/<World> folder is searched uses wave art.
+    static bool OwnWaveFolder(int world) =>
+        world >= 0 && world < EnemyRoster.WorldKeys.Length && AttackArt.KeyOf(world) == EnemyRoster.WorldKeys[world];
 
     // The band's tile: art frames (4, 12 fps) or the procedural strip (2 frames of the core's flicker).
     public static Sprite WaveBody(int world, WaveStyle style, int frame, bool bold)
@@ -252,7 +257,7 @@ public static partial class AttackHazardArt
         int key = Key(Kind.WaveMarker, world, 0, frame & 1, bold);
         Sprite s;
         if (Cached(key, out s)) return s;
-        s = AttackArt.WaveGapMarker(world, frame & 1) ?? GapProcedural(world, frame, bold);
+        s = (OwnWaveFolder(world) ? AttackArt.WaveGapMarker(world, frame & 1) : null) ?? GapProcedural(world, frame, bold);
         resolved[key] = s;
         return s;
     }
