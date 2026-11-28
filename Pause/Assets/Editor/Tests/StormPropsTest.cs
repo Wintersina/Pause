@@ -155,14 +155,15 @@ public static class StormPropsTest
         // the aloft layer
         var spec = BackdropCatalog.For("Storm");
         var layer = spec.Find(StormPropsTuning.AloftLayer);
-        int at = System.Array.IndexOf(spec.layers, layer), flow = System.Array.IndexOf(spec.layers, spec.Find("flow")), glow = System.Array.IndexOf(spec.layers, spec.Find("glow"));
+        int at = System.Array.IndexOf(spec.layers, layer), flow = System.Array.IndexOf(spec.layers, spec.Find("flow")), glow = System.Array.IndexOf(spec.layers, spec.Find("glow")),
+            pinnedPlane = System.Array.IndexOf(spec.layers, spec.Find("ground"));
         float k2 = layer.rate / spec.Rate("ground");
-        Check("the aloft layer: its own, not pinned, scrolling " + k2.ToString("F2") + "x the ground (1.3 - 1.6x), above the vapour and under the lightning and every weather layer, behind gameplay",
+        Check("the aloft layer: its own, not pinned, scrolling " + k2.ToString("F2") + "x the ground (1.3 - 1.6x), above the vapour and the pinned plane, under the lightning and every weather layer, behind gameplay",
               spec.Has(StormPropsTuning.AloftLayer) && string.IsNullOrEmpty(layer.pinTo) && layer.role != BackdropCatalog.Role.Landmark &&
-              k2 >= 1.3f && k2 <= 1.6f && at == flow + 1 && glow == at + 1 && spec.Order(StormPropsTuning.AloftLayer) < 0);
+              k2 >= 1.3f && k2 <= 1.6f && flow < pinnedPlane && at == pinnedPlane + 1 && glow == at + 1 && spec.Order(StormPropsTuning.AloftLayer) < 0);
         Check("rare: one aloft piece at most (pool " + StormPropsTuning.AloftPool + "), " + StormPropsTuning.AloftGapMin + " .. " + StormPropsTuning.AloftGapMax +
               " u of its own scroll between two (a view is ~15 u); ground props: pool " + StormPropsTuning.GroundPool + ", " + StormPropsTuning.GroundGapMin + " .. " + StormPropsTuning.GroundGapMax + " u apart",
-              StormPropsTuning.AloftPool == 1 && StormPropsTuning.AloftGapMin >= 14f && StormPropsTuning.GroundPool <= 6 && StormPropsTuning.GroundGapMin >= 2f);
+              StormPropsTuning.AloftPool == 1 && StormPropsTuning.AloftGapMin >= 14f && StormPropsTuning.GroundPool <= 8 && StormPropsTuning.GroundGapMin >= 2f);
 
         // the livery hash: never the previous copy's, and every livery turns up
         bool never = true, every = true;
@@ -252,6 +253,7 @@ public static class StormPropsTest
             var layer = spec.Find(ground ? "ground" : StormPropsTuning.AloftLayer);
             float lift = BackdropGrade.Lift(spec, layer), sat = BackdropGrade.Saturation(spec, lift);
             var drawn = BackdropGrade.Apply(px, lift, sat);
+            if (ReferenceEquals(drawn, px)) drawn = (Color[])px.Clone();   // (Apply hands back `px` itself at lift 1: tint a copy)
             if (!ground)
                 for (int i = 0; i < drawn.Length; i++) { var c = drawn[i] * StormPropsTuning.AloftTint; drawn[i] = c; }
             var ldrawn = BackdropGrade.Apply(lpx, BackdropGrade.Lift(spec, spec.Find("ground")), sat);

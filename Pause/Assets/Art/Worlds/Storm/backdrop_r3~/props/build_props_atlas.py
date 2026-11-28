@@ -72,6 +72,29 @@ def cut(src):
     print("cut strips into", HERE / "strips")
 
 
+# The aloft pieces are DRAWN under a cool haze tint (StormPropsTuning.AloftTint): it lifts blue against red, which turns a red lamp
+# or band magenta. Any texel pink AS DRAWN loses the channel that makes it so (red side: blue down to the tinted green; violet side:
+# red down to the tinted green), so it stays red / blue on screen.
+TINT = np.array([.80, .84, .93])
+
+
+def tint_safe(a):
+    x = a.astype(np.float64) / 255
+    t = x[..., :3] * TINT
+    r, g, b = t[..., 0], t[..., 1], t[..., 2]
+    mx, mn = t.max(-1), t.min(-1)
+    d = np.maximum(mx - mn, 1e-9)
+    h = np.where(mx == r, ((g - b) / d) % 6, np.where(mx == g, (b - r) / d + 2, (r - g) / d + 4)) * 60
+    s = np.where(mx > 0, (mx - mn) / np.maximum(mx, 1e-9), 0)
+    bad = (x[..., 3] > 0) & (s > .2) & (mx > .25) & (h >= 280) & (h <= 356)
+    red = bad & (h >= 318)
+    vio = bad & (h < 318)
+    x[..., 2] = np.where(red, np.minimum(x[..., 2], x[..., 1] * TINT[1] / TINT[2]), x[..., 2])
+    x[..., 0] = np.where(vio, np.minimum(x[..., 0], x[..., 1] * TINT[1] / TINT[0]), x[..., 0])
+    a[..., :3] = np.clip(x[..., :3] * 255 + .5, 0, 255).astype(np.uint8)
+    return int(bad.sum())
+
+
 def pack(group):
     cells = []
     for kind, n, cell in group:
@@ -111,6 +134,10 @@ def main():
         cut(sys.argv[sys.argv.index("--src") + 1])
     for name, group in (("props", GROUND), ("aloft", ALOFT)):
         sheet, js = pack(group)
+        if name == "aloft":
+            arr = np.array(sheet)
+            print("aloft: tint-safe", tint_safe(arr), "texels")
+            sheet = Image.fromarray(arr, "RGBA")
         sheet.save(OUT / f"{name}.png", optimize=True)
         (OUT / f"{name}.json").write_text(json.dumps(js, indent=1) + "\n")
         print("wrote", name, sheet.size, len(js["sprites"]), "cells")

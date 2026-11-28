@@ -54,8 +54,9 @@ public static class StormPropsTuning
     //     skimmer (Companion; all or nothing); a lightning-rod platform only beside a refinery deck, on the flat lit tops (O);
     //   * moving things keep clear of every pinned piece (StormDirector.ClearOfPinned): fork bolts and arcs, a strike's bolt
     //     (except on its own mast), the tumbling debris along its whole path, and the aloft pieces, whose path over the ground is a
-    //     straight column (no sideways drift): spawned only in a column no pinned piece stands in, and while one is up its column
-    //     is a LANE no new ground piece is placed in (GroundPlanner.LaneX). The vapour (flow) strip runs UNDER the pinned layer.
+    //     straight slide down (no sideways drift; creatures drift down with the wind): spawned only where the stretch it will still
+    //     slide over (AloftSlide) holds no pinned piece, and while one is up that stretch is a LANE no new ground piece is placed in
+    //     (GroundPlanner.LaneX / LaneLo / LaneHi). The vapour (flow) strip runs UNDER the pinned layer.
     public static bool Claims(int kind) { return true; }
     public static readonly float[] KeepK = { 1.15f, 1.15f, 1.15f, 1.2f, 1.1f, 1.45f, 1.15f, 1.1f, 1.1f, 1.15f };
     public const float BodyShare = .4f;                              // a moving piece's drawn half-extent, x its cell size
@@ -92,11 +93,11 @@ public static class StormPropsTuning
         new[] { 140, 140, 140, 140, 140, 140, 140, 140 },          // the buoy chain: lamps chase down the chain, a dark pause between runs
         new[] { 125, 125, 125, 125, 125, 125, 125, 125 },          // the skimmer on its mooring lines: nav lamps, idling intake glow
     };
-    public const int GroundPool = 10, CellPool = 2;
-    public static float GroundGapMin = 2.6f, GroundGapMax = 4.4f;   // scrolled ground (world units) between two ground props
+    public const int GroundPool = 8, CellPool = 2;
+    public static float GroundGapMin = 4.2f, GroundGapMax = 6.8f;   // scrolled ground (world units) between two ground props
     public const float SizeJitter = .06f;
     public const float VortexSpin = 7f;                              // degrees / s about its eye
-    public const float CellAlpha = .85f;                             // the cell's light, at most (additive)
+    public const float CellAlpha = .8f;                              // the cell's light, at most (additive)
     public const int Tries = 40;
 
     // ---- aloft ----
@@ -130,7 +131,7 @@ public static class StormPropsTuning
     public static readonly float[] BobPeriod = { 5.5f, 6.5f, 3.6f, 4.6f };
     public static readonly float[] SwayDeg = { 2.5f, 1f, 0f, 0f };
     public static readonly float[] SwayPeriod = { 7f, 8f, 1f, 1f };
-    public const float JellyDrift = .05f;                           // straight up the column only (no sideways drift)
+    public const float JellyDrift = .05f;                           // straight DOWN with the wind only (no sideways drift)
     public static bool Drifts(int aloftKind) { return aloftKind == Jelly || aloftKind == Rays; }
 
     public static string Strip(string kind, int variant) { return kind + "_" + variant; }
@@ -397,17 +398,32 @@ public partial class StormDirector
         return true;
     }
 
-    // a vertical column (x +- hx) with no pinned piece in it, anywhere up or down
-    public bool ColumnClear(float x, float hx)
+    // How far (screen units) an aloft piece at screen y still slides DOWN over the ground before it leaves the view: its layer
+    // scrolls faster than the pinned one (and a creature drifts down with the wind), so relative to the ground it moves straight
+    // down. Taken at the slowest scroll (WorldBackdrop.ScrollVelocity(0)), where that share is largest.
+    public float AloftSlide(float y, float size, float vy)
     {
-        return ColumnIn(Ground, false, x, hx) && ColumnIn(Sites, false, x, hx) && ColumnIn(props, true, x, hx) && ColumnIn(cells, true, x, hx);
+        float ra = set.Spec.Rate(StormPropsTuning.AloftLayer), rg = set.Spec.Rate("ground"), v = WorldBackdrop.ScrollVelocity(0f), d = Mathf.Abs(vy);
+        float share = ((ra - rg) * v + d) / Mathf.Max(1e-5f, ra * v + d);
+        return Mathf.Max(0f, y + HalfH + size) * share;
     }
 
-    bool ColumnIn(BackdropPool pool, bool prop, float x, float hx)
+    // the stretch an aloft piece (x, y, half-width h) will pass over -- from where it is down by `slide` -- touches no pinned piece
+    public bool StretchClear(float x, float y, float h, float slide)
+    {
+        return StretchIn(Ground, false, x, y, h, slide) && StretchIn(Sites, false, x, y, h, slide) &&
+               StretchIn(props, true, x, y, h, slide) && StretchIn(cells, true, x, y, h, slide);
+    }
+
+    bool StretchIn(BackdropPool pool, bool prop, float x, float y, float h, float slide)
     {
         if (pool == null) return true;
         foreach (var p in pool.items)
-            if (p.active && Mathf.Abs(p.x - x) < hx + PinnedHalf(p, prop)) return false;
+        {
+            if (!p.active) continue;
+            float hp = PinnedHalf(p, prop);
+            if (Mathf.Abs(p.x - x) < h + hp && p.y + hp * .8f > y - slide - h && p.y - hp * .8f < y + h) return false;
+        }
         return true;
     }
 
@@ -432,7 +448,11 @@ public partial class StormDirector
             foreach (var p in aloft.items)
             {
                 if (!p.active || n >= planner.LaneX.Length) continue;
-                planner.LaneX[n] = p.x; planner.LaneR[n] = p.size * StormPropsTuning.BodyShare; n++;
+                float h = p.size * StormPropsTuning.BodyShare;
+                planner.LaneX[n] = p.x; planner.LaneR[n] = h;
+                planner.LaneHi[n] = planner.GroundY(p.y + h);
+                planner.LaneLo[n] = planner.GroundY(p.y - AloftSlide(p.y, p.size, p.vy) - h);
+                n++;
             }
         planner.Lanes = n;
     }
@@ -452,14 +472,17 @@ public partial class StormDirector
         int kd = kind >= 0 ? kind : PickWeighted(StormPropsTuning.AloftWeights[vset], lastAloftKind, -1, false);
         if (kd < 0 || !HasAloftArt(kd)) return false;
         float size = StormPropsTuning.AloftSize(kd) * (1f + StormPropsTuning.SizeJitter * PRand(-1f, 1f));
+        float vy0 = StormPropsTuning.Drifts(kd) ? -PRand(.3f, 1f) * StormPropsTuning.JellyDrift : 0f;   // creatures drift down with the wind
+        float y0 = float.IsNaN(y) ? SpawnY(size) : y;
         if (float.IsNaN(x))
         {
-            // a column no pinned piece stands in (its path over the ground is straight down it)
+            // a spot whose whole slide over the ground (straight down, AloftSlide) passes no pinned piece
+            float h = size * StormPropsTuning.BodyShare, slide = AloftSlide(y0, size, vy0);
             bool found = false;
-            for (int t = 0; t < 16 && !found; t++)
+            for (int t = 0; t < 24 && !found; t++)
             {
                 float cx = PRand(-HalfW * .62f, HalfW * .62f);
-                if (ColumnClear(cx, size * StormPropsTuning.BodyShare)) { x = cx; found = true; }
+                if (StretchClear(cx, y0, h, slide)) { x = cx; found = true; }
             }
             if (!found) return false;
         }
@@ -475,9 +498,9 @@ public partial class StormDirector
         bool mirror = propRng.NextDouble() < .5;
         p.body.localScale = mirror ? new Vector3(-1f, 1f, 1f) : Vector3.one;
         p.vx = p.vy = 0f;                                  // moored / tethered: it rides the parallax only
-        if (StormPropsTuning.Drifts(kd)) p.vy = PRand(.3f, 1f) * StormPropsTuning.JellyDrift;
+        p.vy = vy0;
         p.x = x;
-        p.y = float.IsNaN(y) ? SpawnY(p.size) + Mathf.Max(0f, p.vy) * 2f : y;
+        p.y = y0;
         p.body.localRotation = Quaternion.identity;
         p.rate = set.Spec.Rate(StormPropsTuning.AloftLayer);
         p.color = StormPropsTuning.AloftTint;

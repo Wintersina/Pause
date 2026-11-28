@@ -298,16 +298,19 @@ public class GroundPlanner
                Match(x + r.endB.x * size, gy + r.endB.y * size, e, e, r.endsOn) >= .5f;
     }
 
-    // Vertical LANES kept clear of new footprints (screen x, half-width): a director's moving pieces whose path relative to the
-    // ground is a vertical column (Storm's aloft props scroll straight down faster than the ground) set these, so nothing is
-    // placed where one of them would later pass over it. Unused (0) by every other world.
+    // LANES kept clear of new footprints: a director's moving pieces whose path relative to the ground is a straight vertical
+    // stretch (Storm's aloft props scroll straight down faster than the ground) set these (screen x, half-width, and the ground
+    // span [LaneLo, LaneHi] it will still pass over), so nothing is placed where one of them would later pass. Unused (0)
+    // by every other world.
     public readonly float[] LaneX = new float[4], LaneR = new float[4];
+    public readonly double[] LaneLo = new double[4], LaneHi = new double[4];
     public int Lanes;
 
     // Room for a footprint (half-sizes) at x, gy: no overlap with any remembered one, outside every lane.
     public bool Free(float x, double gy, float rx, float ry, int ignore = -1)
     {
-        for (int i = 0; i < Lanes; i++) if (Mathf.Abs(LaneX[i] - x) < LaneR[i] + rx) return false;
+        for (int i = 0; i < Lanes; i++)
+            if (Mathf.Abs(LaneX[i] - x) < LaneR[i] + rx && gy + ry > LaneLo[i] && gy - ry < LaneHi[i]) return false;
         for (int i = 0; i < feet.Length; i++)
         {
             if (!feet[i].on || i == ignore) continue;
