@@ -132,7 +132,7 @@ public static class FrostPropsTest
                 case FrostPropsTuning.Place.Crater: ok &= r.on == ice && r.need >= .6f && r.need < 1f && r.near == GroundClass.None; break;
                 case FrostPropsTuning.Place.Outfit: ok &= r.on == ice && r.need >= .999f && r.rim > 1f && r.rimNeed >= .7f; break;
             }
-            bool wet = w != FrostPropsTuning.Place.Flat && w != FrostPropsTuning.Place.SnowField && w != FrostPropsTuning.Place.Outfit;
+            bool wet = w != FrostPropsTuning.Place.Flat && w != FrostPropsTuning.Place.SnowField && w != FrostPropsTuning.Place.Outfit && w != FrostPropsTuning.Place.Crater;
             ok &= FrostPropsTuning.Wet(k) == wet && FrostPropsTuning.Fits(k, 4) == !wet && FrostPropsTuning.Fits(k, 1);
             ok &= FrostPropsTuning.OneShot[k] == (names[k] == "whale" || names[k] == "orca" || names[k] == "narwhal");
             ok &= FrostPropsTuning.NeedsHost(k) == (names[k] == "snowcat" || names[k] == "radar" || names[k] == "sonde");
