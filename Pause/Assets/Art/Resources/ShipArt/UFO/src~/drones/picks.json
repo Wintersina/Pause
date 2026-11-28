@@ -1,4 +1,8 @@
 {
+  "heal": {
+    "candidate": "r2_3.png",
+    "pick": "s/drone_UFO_heal__nr2.png#3"
+  },
   "t1": {
     "candidate": "r1_0.png",
     "pick": "s/drone_UFO_t1__nr1.png#0"

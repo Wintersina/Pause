@@ -32,6 +32,10 @@ public static class DroneArt
     // Tests: behave as if no ship had drone art (the roster-tile fallback everywhere).
     public static bool ForceFallback;
 
+    // Tests: behave as if ship `HiddenShip` had no drawing for `HiddenTier` (the per-tier fallback); 0 = off.
+    public static int HiddenShip;
+    public static DroneTier HiddenTier;
+
     public static DroneTier TierForSlot(int droneSlot) { return (DroneTier)(Mathf.Max(0, droneSlot) % GunTiers); }
 
     [Serializable] public class CellData { public string tier; public int row, x, y, w, h; }
@@ -88,16 +92,16 @@ public static class DroneArt
         }
     }
 
-    static CellData CellOf(SheetData d, DroneTier tier)
+    static CellData CellOf(int ship, SheetData d, DroneTier tier)
     {
-        if (d == null) return null;
+        if (d == null || (HiddenShip != 0 && ship == HiddenShip && tier == HiddenTier)) return null;
         string name = TierName(tier);
         for (int i = 0; i < d.tiers.Length; i++) if (d.tiers[i] != null && d.tiers[i].tier == name) return d.tiers[i];
         return null;
     }
 
     // Does the ship have its own drawing for this tier?
-    public static bool Has(int ship, DroneTier tier) { return CellOf(Layout(ship), tier) != null; }
+    public static bool Has(int ship, DroneTier tier) { return CellOf(ship, Layout(ship), tier) != null; }
 
     // How many of the four tiers it has drawings for.
     public static int TierCount(int ship)
@@ -173,7 +177,7 @@ public static class DroneArt
     public static Sprite Frame(int ship, DroneTier tier, int skin, int frame)
     {
         var d = Layout(ship);
-        var c = CellOf(d, tier);
+        var c = CellOf(ship, d, tier);
         if (c == null) return null;
         var s = SheetFor(ship, skin);
         if (s == null || s.tex == null) return null;
@@ -235,6 +239,7 @@ public static class DroneArt
             UnityEngine.Object.DestroyImmediate(s.tex);
         }
         sheets.Clear();
+        HiddenShip = 0;
         for (int i = 0; i < MaxIds; i++) { layouts[i] = null; triedLayout[i] = false; }
     }
 }

@@ -18,19 +18,15 @@ public static class DroneArtTest
 
     public static void Run() { TestHarness.Exit(Execute()); }
 
-    // Ships whose t1, t2, t3 and heal drawings are all approved and installed. Add a ship here once its last
-    // drawing lands (UFO heal pending).
+    // Every ship's t1, t2, t3 and heal drawings are approved and installed (all 16 roster ships).
     static readonly string[] Complete =
     {
         "NeonComet", "VoltViper", "SolarFang", "CrimsonHalo", "IonLancer", "JadePhantom", "GoldWarden",
-        "Lightning", "Ligher", "Paranoid", "Ninja", "Saboteur", "Dove", "Turtle", "Paragon",
+        "Lightning", "Ligher", "Paranoid", "Ninja", "Saboteur", "UFO", "Dove", "Turtle", "Paragon",
     };
 
     // Ships with only some drawings so far: the tiers they must have (the rest fall back to the roster tile).
-    static readonly Dictionary<string, DroneTier[]> Partial = new Dictionary<string, DroneTier[]>
-    {
-        { "UFO", new[] { DroneTier.T1, DroneTier.T2, DroneTier.T3 } },
-    };
+    static readonly Dictionary<string, DroneTier[]> Partial = new Dictionary<string, DroneTier[]>();
 
     public static int Execute()
     {
@@ -49,6 +45,7 @@ public static class DroneArtTest
         finally
         {
             DroneArt.ForceFallback = false;
+            DroneArt.HiddenShip = 0;
             DroneArt.Invalidate();
         }
         Debug.Log("[DRONEART] failures: " + fails);
@@ -111,7 +108,7 @@ public static class DroneArtTest
                 Check(key + " " + tier + ": it keeps the old drone's on-screen size", sized);
             }
         }
-        Check("some ships have drone art", ships >= Complete.Length);
+        Check("every roster ship has drone art", ships >= Complete.Length && Complete.Length == ShipId.Count);
     }
 
     static float MaxSide(Sprite s) { return s == null ? 0f : Mathf.Max(s.bounds.size.x, s.bounds.size.y); }
@@ -195,7 +192,26 @@ public static class DroneArtTest
         }
         Check("each drone slot shows its tier's own drawing, or the roster tile where there is none", tiered);
         Check("the heal drawing is there exactly where a ship has one", heal);
-        if (!sawMissing) Debug.Log("[DRONEART] note: every ship has every tier; the per-tier fallback is covered by ForceFallback only");
+        if (!sawMissing) Debug.Log("[DRONEART] note: every ship has every tier; the per-tier fallback is checked by hiding cells below");
+
+        // one tier hidden at test time (as if its drawing were not there yet): that slot alone falls back
+        int ship = ShipId.FromKey(Complete[0]);
+        bool perTier = true;
+        for (int t = 0; t <= (int)DroneTier.Heal; t++)
+        {
+            DroneArt.HiddenShip = ship;
+            DroneArt.HiddenTier = (DroneTier)t;
+            perTier &= !DroneArt.Has(ship, (DroneTier)t) && DroneArt.TierCount(ship) == 3;
+            for (int slot = 0; slot < DroneSquad.MaxSlots; slot++)
+            {
+                var tier = DroneArt.TierForSlot(slot);
+                var sp = UltimateGun.CompanionSprite(ship, slot);
+                perTier &= tier == (DroneTier)t ? sp == UltimateGun.RosterSprite(ship) : sp != null && sp != UltimateGun.RosterSprite(ship);
+            }
+            perTier &= (DroneTier)t == DroneTier.Heal ? UltimateGun.HealSprite(ship) == null : UltimateGun.HealSprite(ship) != null;
+        }
+        DroneArt.HiddenShip = 0;
+        Check("a missing drawing falls back to the roster tile for its own slots only (heal: no art)", perTier);
 
         DroneArt.ForceFallback = true;
         bool all = true;
