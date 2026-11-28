@@ -17,7 +17,10 @@ using UnityEngine;
 //          AloftTint), never pinned. VERY rare: one at most in view (AloftPool = 1) and often none.
 //   USER RULE (2026-11-28): "I don't want things flying around if the player cannot shoot them down; it has to be trapped or
 //          something somewhere." No vehicle moves on its own: the moored / tethered ones only bob and sway on their lines
-//          (Bob*, Sway*), the wrecks are stuck; only the creatures (jellies) drift, slowly.
+//          (Bob*, Sway*), the wrecks are stuck; only the creatures (jellies, manta rays) drift, slowly.
+//   2026-11-28 approved additions (all 4 liveries each): ground -- a storm TUG moored by cable to its buoy (W|C), a lightning-ROD
+//          platform (O; tip lamps blink, an arc jumps once a second), a BUOY chain (W|C; lamps chase down it); aloft -- a school
+//          of manta RAYS (creatures: they flap and drift like the jellies).
 //
 // COLOUR VARIANT PER COPY: each kind ships 3 - 7 liveries (<kind>_<variant>_<frame>, Backdrop3/props + aloft,
 // backdrop_r3~/props/build_props_atlas.py). A copy's livery is a hash of its spawn count and kind, never the one the previous
@@ -32,27 +35,27 @@ public static class StormPropsTuning
     public const float PxPerUnit = 160f;
 
     // ---- ground ----
-    public static readonly string[] Ground = { "refinery", "mast", "wreck", "vortex", "cell", "gunship" };
-    public const int Refinery = 0, Mast = 1, Wreck = 2, Vortex = 3, Cell = 4, Gunship = 5;
-    public static readonly int[] GroundVariants = { 4, 4, 4, 3, 3, 4 };
+    public static readonly string[] Ground = { "refinery", "mast", "wreck", "vortex", "cell", "gunship", "tug", "rods", "buoys" };
+    public const int Refinery = 0, Mast = 1, Wreck = 2, Vortex = 3, Cell = 4, Gunship = 5, Tug = 6, Rods = 7, Buoys = 8;
+    public static readonly int[] GroundVariants = { 4, 4, 4, 3, 3, 4, 4, 4, 4 };
     // drawn cell width, screen px (pl/storm/r3/composite.py RULES, user-approved)
-    public static readonly float[] GroundPx = { 124f, 92f, 128f, 284f, 250f, 240f };   // (the vortex at BackdropCatalog.MaxLandmarkSize; the gunship "nice and large")
+    public static readonly float[] GroundPx = { 124f, 92f, 128f, 284f, 250f, 240f, 200f, 110f, 120f };   // (the vortex at BackdropCatalog.MaxLandmarkSize; the gunship "nice and large")
     public static float GroundSize(int kind) { return GroundPx[kind] / PxPerUnit; }
     // where each may stand (r3 masks: O lit cloud tops, C textured deck, W dark lanes) and how much of its footprint must match
-    public static readonly GroundClass[] GroundOn = { GroundClass.Open, GroundClass.Open, GroundClass.Water, GroundClass.Water | GroundClass.Canopy, GroundClass.Open, GroundClass.Water | GroundClass.Canopy };
-    public static readonly float[] GroundNeed = { .6f, .5f, .6f, .75f, .45f, .6f };
-    public static readonly float[] GroundCore = { .34f, .3f, .36f, .42f, .3f, .36f };
+    public static readonly GroundClass[] GroundOn = { GroundClass.Open, GroundClass.Open, GroundClass.Water, GroundClass.Water | GroundClass.Canopy, GroundClass.Open, GroundClass.Water | GroundClass.Canopy, GroundClass.Water | GroundClass.Canopy, GroundClass.Open, GroundClass.Water | GroundClass.Canopy };
+    public static readonly float[] GroundNeed = { .6f, .5f, .6f, .75f, .45f, .6f, .6f, .55f, .6f };
+    public static readonly float[] GroundCore = { .34f, .3f, .36f, .42f, .3f, .36f, .34f, .32f, .3f };
     public static PieceRule GroundRule(int kind) { return new PieceRule(GroundOn[kind], GroundNeed[kind], GroundCore[kind]); }
     public static bool Claims(int kind) { return kind != Cell; }            // a cell is light: it never holds ground
     // per ground set (index = variant, 0 none): v1 banded deck and v4 shelf arcs more industry, v2 thunderhead field more cells,
     // v3 night side more lit kinds
     public static readonly int[][] GroundWeights =
     {
-        new[] { 3, 3, 2, 1, 3, 2 },
-        new[] { 4, 3, 2, 1, 2, 2 },
-        new[] { 2, 3, 1, 1, 5, 2 },
-        new[] { 3, 4, 2, 1, 3, 2 },
-        new[] { 4, 3, 2, 1, 2, 2 },
+        new[] { 3, 3, 2, 1, 3, 2, 2, 2, 2 },
+        new[] { 4, 3, 2, 1, 2, 2, 2, 2, 2 },
+        new[] { 2, 3, 1, 1, 5, 2, 2, 3, 2 },
+        new[] { 3, 4, 2, 1, 3, 2, 3, 2, 2 },
+        new[] { 4, 3, 2, 1, 2, 2, 2, 2, 3 },
     };
     public static readonly int[][] GroundMs =
     {
@@ -62,6 +65,9 @@ public static class StormPropsTuning
         new[] { 1500, 900, 90, 150, 220, 380, 160, 600 },          // eyewall lightning: two flicker groups a 4 s cycle
         new[] { 1700, 90, 140, 200, 420, 130, 260, 400 },          // the cell's flash and re-strike: a 3.3 s cycle
         new[] { 125, 125, 125, 125, 125, 125, 125, 125 },          // the gunship: the cloud boils round it, its distress lamp blinks once a second
+        new[] { 90, 90, 90, 90, 90, 90, 90, 90 },                  // the tug idling on its mooring: props, nav lamps, beacons, the buoy lamp
+        new[] { 125, 125, 125, 125, 125, 125, 125, 125 },          // the rod platform: tip lamps blink, an arc jumps once a second (frames 3-4)
+        new[] { 140, 140, 140, 140, 140, 140, 140, 140 },          // the buoy chain: lamps chase down the chain, a dark pause between runs
     };
     public const int GroundPool = 6, CellPool = 2;
     public static float GroundGapMin = 2.6f, GroundGapMax = 4.4f;   // scrolled ground (world units) between two ground props
@@ -71,12 +77,12 @@ public static class StormPropsTuning
     public const int Tries = 40;
 
     // ---- aloft ----
-    public static readonly string[] Aloft = { "aerostat", "skimmer", "convoy", "jelly" };
-    public const int Aerostat = 0, Skimmer = 1, Convoy = 2, Jelly = 3;
-    public static readonly int[] AloftVariants = { 4, 4, 3, 7 };
+    public static readonly string[] Aloft = { "aerostat", "skimmer", "convoy", "jelly", "rays" };
+    public const int Aerostat = 0, Skimmer = 1, Convoy = 2, Jelly = 3, Rays = 4;
+    public static readonly int[] AloftVariants = { 4, 4, 3, 7, 4 };
     // their ground size (px, as above) x AloftSizeK: 1.6 - 2.5x (user: "closer and larger")
-    public static readonly float[] AloftBasePx = { 100f, 118f, 176f, 116f };
-    public static readonly float[] AloftSizeK = { 2.0f, 1.86f, 1.82f, 2.0f };
+    public static readonly float[] AloftBasePx = { 100f, 118f, 176f, 116f, 124f };
+    public static readonly float[] AloftSizeK = { 2.0f, 1.86f, 1.82f, 2.0f, 1.9f };
     public static float AloftSize(int kind) { return AloftBasePx[kind] * AloftSizeK[kind] / PxPerUnit; }
     public const float AloftRateK = 1.45f;                           // x the ground's parallax: closer to the camera
     public const float AloftRate = StormTuning.GroundRate * AloftRateK;
@@ -85,24 +91,24 @@ public static class StormPropsTuning
     public static readonly Color AloftTint = new Color(.80f, .84f, .93f, .82f);
     public static readonly int[][] AloftWeights =
     {
-        new[] { 3, 3, 2, 3 },
-        new[] { 3, 3, 3, 2 },
-        new[] { 3, 2, 2, 3 },
-        new[] { 2, 2, 2, 5 },
-        new[] { 3, 3, 3, 2 },
+        new[] { 3, 3, 2, 3, 2 },
+        new[] { 3, 3, 3, 2, 3 },
+        new[] { 3, 2, 2, 3, 2 },
+        new[] { 2, 2, 2, 5, 3 },
+        new[] { 3, 3, 3, 2, 2 },
     };
-    public static readonly int[] AloftMs = { 125, 125, 125, 180 };
+    public static readonly int[] AloftMs = { 125, 125, 125, 180, 160 };
     public const int AloftPool = 1;                                  // at most one in view
     public static float AloftGapMin = 16f, AloftGapMax = 34f;        // aloft-layer travel (world units) between two (a view is ~15 u tall)
     public static float AloftFirst = 9f;
     // own motion: NO vehicle travels (the user's rule). The tethered aerostats and the moored skimmer / convoy only bob on their
-    // lines (amplitude x their size, period s) and sway (degrees, period s); the jellies, living creatures, also drift slowly.
-    public static readonly float[] BobAmp = { .03f, .012f, .01f, .045f };
-    public static readonly float[] BobPeriod = { 5.5f, 4.2f, 6.5f, 3.6f };
-    public static readonly float[] SwayDeg = { 2.5f, 1.5f, 1f, 0f };
-    public static readonly float[] SwayPeriod = { 7f, 5.5f, 8f, 1f };
+    // lines (amplitude x their size, period s) and sway (degrees, period s); the jellies and rays, living creatures, also drift slowly.
+    public static readonly float[] BobAmp = { .03f, .012f, .01f, .045f, .03f };
+    public static readonly float[] BobPeriod = { 5.5f, 4.2f, 6.5f, 3.6f, 4.6f };
+    public static readonly float[] SwayDeg = { 2.5f, 1.5f, 1f, 0f, 0f };
+    public static readonly float[] SwayPeriod = { 7f, 5.5f, 8f, 1f, 1f };
     public const float JellyDrift = .05f;
-    public static bool Drifts(int aloftKind) { return aloftKind == Jelly; }
+    public static bool Drifts(int aloftKind) { return aloftKind == Jelly || aloftKind == Rays; }
 
     public static string Strip(string kind, int variant) { return kind + "_" + variant; }
 

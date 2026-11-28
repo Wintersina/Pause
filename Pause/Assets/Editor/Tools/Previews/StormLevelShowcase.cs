@@ -9,7 +9,7 @@ using UnityEngine;
 //   storm-vN.png              each ground set (v1..v4) mid-level, past the cloud ceiling: the ground, the vapour strip, the
 //                             landmarks and whatever props the director dealt, with the player ship
 //   props-vN-<a>-<b>-<c>.png  two ground props placed by their own rules and one ALOFT prop above them, per ground set
-//   props_vN_frames/          + 36 frames at 15 fps (lights, the vortex turning, the cell's flash, the moored aloft prop's bob and sway, the crashed gunship's boiling cloud)
+//   props_<tag>_frames/         + 36 frames at 15 fps (lights, the vortex turning, the cell's flash, the moored aloft prop's bob and sway, the crashed gunship's boiling cloud)
 //   storm_v2_frames/          36 frames at 15 fps of v2 as it plays (CI turns each *_frames folder into <name>.gif)
 //
 //   SHOWCASE_DIR=<dir> Unity -batchmode -quit -projectPath Pause -executeMethod StormLevelShowcase.Run
@@ -134,10 +134,11 @@ public static class StormLevelShowcase
         // (variant, two ground kinds, one aloft kind)
         var shots = new[]
         {
-            new[] { 1, StormPropsTuning.Refinery, StormPropsTuning.Mast, StormPropsTuning.Aerostat },
-            new[] { 2, StormPropsTuning.Cell, StormPropsTuning.Gunship, StormPropsTuning.Jelly },
-            new[] { 3, StormPropsTuning.Wreck, StormPropsTuning.Mast, StormPropsTuning.Convoy },
+            new[] { 1, StormPropsTuning.Refinery, StormPropsTuning.Rods, StormPropsTuning.Aerostat },
+            new[] { 2, StormPropsTuning.Cell, StormPropsTuning.Gunship, StormPropsTuning.Rays },
+            new[] { 3, StormPropsTuning.Tug, StormPropsTuning.Buoys, StormPropsTuning.Convoy },
             new[] { 4, StormPropsTuning.Gunship, StormPropsTuning.Vortex, StormPropsTuning.Skimmer },
+            new[] { 1, StormPropsTuning.Wreck, StormPropsTuning.Mast, StormPropsTuning.Jelly },
         };
         foreach (var shot in shots)
         {
@@ -160,7 +161,7 @@ public static class StormLevelShowcase
             Steps(.3f);
             Capture("props-" + tag + ".png");
             Log("props " + tag);
-            string frames = Path.Combine(dir, "props_v" + shot[0] + "_frames");
+            string frames = Path.Combine(dir, "props_" + tag.Replace('-', '_') + "_frames");
             if (Directory.Exists(frames)) Directory.Delete(frames, true);
             Directory.CreateDirectory(frames);
             for (int f = 0; f < 36; f++)

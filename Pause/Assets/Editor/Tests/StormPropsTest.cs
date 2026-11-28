@@ -94,12 +94,12 @@ public static class StormPropsTest
 
     static void Table()
     {
-        Check("ground kinds: refinery, mast, wreck, vortex, cell, gunship (" + string.Join(", ", StormPropsTuning.Ground) + ")",
-              string.Join(",", StormPropsTuning.Ground) == "refinery,mast,wreck,vortex,cell,gunship");
-        Check("aloft kinds: aerostat, skimmer, convoy, jelly (" + string.Join(", ", StormPropsTuning.Aloft) + ")",
-              string.Join(",", StormPropsTuning.Aloft) == "aerostat,skimmer,convoy,jelly");
-        Check("liveries (all of each approved prop): refinery / mast / wreck / gunship 4, vortex / cell 3; aerostat / skimmer 4, convoy 3, jelly 7",
-              string.Join(",", StormPropsTuning.GroundVariants) == "4,4,4,3,3,4" && string.Join(",", StormPropsTuning.AloftVariants) == "4,4,3,7");
+        Check("ground kinds: refinery, mast, wreck, vortex, cell, gunship, tug, rods, buoys (" + string.Join(", ", StormPropsTuning.Ground) + ")",
+              string.Join(",", StormPropsTuning.Ground) == "refinery,mast,wreck,vortex,cell,gunship,tug,rods,buoys");
+        Check("aloft kinds: aerostat, skimmer, convoy, jelly, rays (" + string.Join(", ", StormPropsTuning.Aloft) + ")",
+              string.Join(",", StormPropsTuning.Aloft) == "aerostat,skimmer,convoy,jelly,rays");
+        Check("liveries (all of each approved prop): refinery / mast / wreck / gunship / tug / rods / buoys 4, vortex / cell 3; aerostat / skimmer / rays 4, convoy 3, jelly 7",
+              string.Join(",", StormPropsTuning.GroundVariants) == "4,4,4,3,3,4,4,4,4" && string.Join(",", StormPropsTuning.AloftVariants) == "4,4,3,7,4");
         bool shapes = StormPropsTuning.GroundMs.Length == StormPropsTuning.Ground.Length && StormPropsTuning.GroundPx.Length == StormPropsTuning.Ground.Length &&
                       StormPropsTuning.AloftMs.Length == StormPropsTuning.Aloft.Length;
         foreach (var w in StormPropsTuning.GroundWeights) shapes &= w.Length == StormPropsTuning.Ground.Length;
@@ -114,16 +114,17 @@ public static class StormPropsTest
         bool classes = R(StormPropsTuning.Refinery).on == GroundClass.Open && R(StormPropsTuning.Mast).on == GroundClass.Open &&
                        R(StormPropsTuning.Cell).on == GroundClass.Open && R(StormPropsTuning.Wreck).on == GroundClass.Water &&
                        R(StormPropsTuning.Vortex).on == (GroundClass.Water | GroundClass.Canopy) &&
-                       R(StormPropsTuning.Gunship).on == (GroundClass.Water | GroundClass.Canopy);
+                       R(StormPropsTuning.Gunship).on == (GroundClass.Water | GroundClass.Canopy) && R(StormPropsTuning.Tug).on == (GroundClass.Water | GroundClass.Canopy) &&
+                       R(StormPropsTuning.Buoys).on == (GroundClass.Water | GroundClass.Canopy) && R(StormPropsTuning.Rods).on == GroundClass.Open;
         for (int k = 0; k < StormPropsTuning.Ground.Length; k++) classes &= R(k).need >= .45f && R(k).core > 0f;
-        Check("mask classes: refinery, mast and cell on the lit cloud tops (O), the wreck in a dark lane (W), the vortex and the crashed gunship on lane / deck (W|C)", classes);
+        Check("mask classes: refinery, mast and cell on the lit cloud tops (O), the wreck in a dark lane (W), rods on the tops (O); the vortex, the crashed gunship, the moored tug and the buoy chain on lane / deck (W|C)", classes);
         Check("the cell is light and claims no ground; every other ground prop claims its footprint",
               !StormPropsTuning.Claims(StormPropsTuning.Cell) && StormPropsTuning.Claims(StormPropsTuning.Refinery) && StormPropsTuning.Claims(StormPropsTuning.Vortex) &&
               StormPropsTuning.Claims(StormPropsTuning.Gunship));
         // the user's rule: nothing flies around that the player cannot shoot -- only the jellies (creatures) drift
         bool still = true;
-        for (int k = 0; k < StormPropsTuning.Aloft.Length; k++) still &= StormPropsTuning.Drifts(k) == (k == StormPropsTuning.Jelly);
-        Check("no vehicle travels: aerostats tethered, skimmer and convoy moored (bob / sway only); only the jellies drift", still &&
+        for (int k = 0; k < StormPropsTuning.Aloft.Length; k++) still &= StormPropsTuning.Drifts(k) == (k == StormPropsTuning.Jelly || k == StormPropsTuning.Rays);
+        Check("no vehicle travels: aerostats tethered, skimmer and convoy moored (bob / sway only); only the creatures (jellies, rays) drift", still &&
               StormPropsTuning.SwayDeg[StormPropsTuning.Skimmer] > 0f && StormPropsTuning.SwayDeg[StormPropsTuning.Convoy] > 0f);
 
         // sizes
@@ -518,7 +519,7 @@ public static class StormPropsTest
                 if (Parse(p.sr.sprite != null ? p.sr.sprite.name : null, out kind, out vr, out f) && kind == name) framesSeen.Add(f);
             }
             float parallax = -p.rate * v * 3f, own = (p.y - y0) - parallax, side = p.x - x0;
-            bool jelly = k == StormPropsTuning.Jelly;
+            bool jelly = StormPropsTuning.Drifts(k);
             bool moves = jelly
                 ? bobMax > 0f || Mathf.Abs(side) > .001f
                 : Mathf.Abs(own) < .05f && Mathf.Abs(side) < .05f && (bobMax > 0f || swayMax > .1f);

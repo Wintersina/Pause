@@ -51,7 +51,9 @@ public static class WorldBackdropTest
     // plus those ~1629 KiB totals ~9678 KiB. Keep a 10 MiB cap for this installed set.
     // 2026-11-28 r3: the stitched ground tile (896 x 4096, ASTC 6x6: +~0.7 MB a set over the old 1024 x 2048 mid), the soft vapour strip
     // (512 x 2048, -0.7 MB), the living props (props 2040 x 1424 ASTC 4x4 ~2.8 MB; aloft 2016 x 2424 ASTC 6x6 ~2.1 MB): ~14.6 MB.
-    public const long StormTextureBudgetBytes = 16L * 1024 * 1024;
+    // later the same day: the crashed gunship + the moored tug, lightning-rod platform and buoy chain (ground props, ASTC 4x4) and the
+    // manta rays (aloft, 6x6), all four liveries each: props ~2040 x 3200 (~6.5 MB), aloft ~2016 x 2900 (~2.6 MB): ~18.4 MB.
+    public const long StormTextureBudgetBytes = 20L * 1024 * 1024;
     const float SeamTolerance = 0.02f;          // mean |top row - bottom row|, premultiplied RGBA
     // 2026-10: the Desert hi-res pixel-art ground tiles (4 px cells, build_tiles.py) are seamless by construction, but the top and bottom
     // rows are two different CELLS, so their difference is a cell-boundary difference: measured .018-.041 on the shipped tiles, the same as the

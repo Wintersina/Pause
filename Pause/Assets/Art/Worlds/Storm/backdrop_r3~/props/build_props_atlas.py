@@ -26,8 +26,8 @@ from PIL import Image, ImageFilter
 HERE = Path(__file__).resolve().parent
 OUT = HERE.parents[3] / "Backgrounds" / "Resources" / "Worlds" / "Storm" / "Backdrop3"
 FRAMES, GUT = 8, 4
-GROUND = [("refinery", 4, 128), ("mast", 4, 128), ("wreck", 4, 128), ("vortex", 3, 160), ("cell", 3, 128), ("gunship", 4, 176)]
-ALOFT = [("aerostat", 4, 160), ("skimmer", 4, 160), ("convoy", 3, 240), ("jelly", 7, 160)]
+GROUND = [("refinery", 4, 128), ("mast", 4, 128), ("wreck", 4, 128), ("vortex", 3, 160), ("cell", 3, 128), ("gunship", 4, 176), ("tug", 4, 176), ("rods", 4, 128), ("buoys", 4, 128)]
+ALOFT = [("aerostat", 4, 160), ("skimmer", 4, 160), ("convoy", 3, 240), ("jelly", 7, 160), ("rays", 4, 160)]
 HAZE = .55          # aloft: gaussian blur radius in atlas px (depth haze)
 WIDTH = 2048
 
