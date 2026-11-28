@@ -78,6 +78,7 @@ public abstract class HeartOrbit : MonoBehaviour
     public const float LoopSeconds = .95f, LoopRadius = .1f;
     // How quickly a turn-back swings round (units of direction a second).
     public const float TurnRate = 2.2f;
+    public const float TurnWaitMax = 1f;   // how long an owed turn-back looks for extra room before it takes the plain flourish clearance
 
     // The shield: dart to the impact, flash, crack, then shards fall and fade.
     public const float DartSeconds = .14f, ShieldSeconds = .16f, BreakCrack = .1f, BreakFall = .6f;
@@ -123,6 +124,7 @@ public abstract class HeartOrbit : MonoBehaviour
     float[] rollOwn;     // its own heading offset (degrees)
     float[] loopT;       // seconds into a loop-de-loop (-1: none)
     float[] turnCredit; // staggered fair cadence, independent of when a drone lets a flourish start
+    float[] turnWait;   // seconds an owed turn-back has been looking for a roomy spot (0: not waiting)
     float[] flourishIn;  // seconds to its next flourish
     float[] popLeft;
     float[] depth;       // -1 back .. 1 front
@@ -385,6 +387,7 @@ public abstract class HeartOrbit : MonoBehaviour
         loopT = new float[count];
         flourishIn = new float[count];
         turnCredit = new float[count];
+        turnWait = new float[count];
         popLeft = new float[count];
         depth = new float[count];
         ghostAmt = new float[count];
@@ -1083,7 +1086,7 @@ public abstract class HeartOrbit : MonoBehaviour
     void Swap(int a, int b)
     {
         Sw(hearts, a, b); Sw(renderers, a, b); Sw(theta, a, b); Sw(dir, a, b); Sw(dirTarget, a, b);
-        Sw(rollBase, a, b); Sw(tiltOwn, a, b); Sw(rollOwn, a, b); Sw(loopT, a, b); Sw(flourishIn, a, b); Sw(turnCredit, a, b);
+        Sw(rollBase, a, b); Sw(tiltOwn, a, b); Sw(rollOwn, a, b); Sw(loopT, a, b); Sw(flourishIn, a, b); Sw(turnCredit, a, b); Sw(turnWait, a, b);
         Sw(popLeft, a, b); Sw(depth, a, b); Sw(ghostAmt, a, b); Sw(ghostNow, a, b); Sw(shrink, a, b); Sw(lean, a, b); Sw(push, a, b);
         Sw(pos, a, b); Sw(tangent, a, b);
         if (outlines != null) Sw(outlines, a, b);
@@ -1346,16 +1349,30 @@ public abstract class HeartOrbit : MonoBehaviour
                 if (flourishIn[i] <= 0f && yOff > -.05f && (!hasGun || GunGapAny(at, gunBox) > heartSize) && Mathf.Abs(dir[i] - dirTarget[i]) < .01f)
                 {
                     int key = i * 101 + Mathf.FloorToInt((clock + seed) * 7f);
-                    // a turn-back stalls a moment: only where it can't drift onto the gun
-                    bool away = !hasGun || GunGapAny(at, gunBox) > heartSize * 1.2f;
                     // Don't let changes in drone clearance repeatedly sample the same
-                    // unlucky clock phases. Accumulate the style's turn share, retaining
-                    // an owed turn until a safe spot is available.
-                    turnCredit[i] = Mathf.Min(1f, turnCredit[i] + orbit.turnBackChance);
-                    if (orbit.turnBackChance > 0f && turnCredit[i] >= 1f && away)
-                    { dirTarget[i] = -dirTarget[i]; turnCredit[i] -= 1f; TurnBacks++; }
-                    else { loopT[i] = 0f; Loops++; }
-                    flourishIn[i] = orbit.flourishEvery * (.6f + .8f * Hash01(key + 3));
+                    // unlucky clock phases. Accumulate the style's turn share (once per
+                    // flourish), retaining an owed turn until a safe spot is available.
+                    if (turnWait[i] <= 0f) turnCredit[i] = Mathf.Min(1f, turnCredit[i] + orbit.turnBackChance);
+                    bool owed = orbit.turnBackChance > 0f && turnCredit[i] >= 1f;
+                    // a turn-back stalls a moment: only where it can't drift onto the gun. An owed
+                    // one keeps flying on, looking for a roomier spot (a ship whose drones crowd
+                    // the top of its orbit: SolarFang with 2+ drone slots never met one at the
+                    // flourish instant), and after TurnWaitMax takes the plain flourish clearance.
+                    float gap = hasGun ? GunGapAny(at, gunBox) : float.MaxValue;
+                    bool away = gap > heartSize * 1.2f || turnWait[i] >= TurnWaitMax;
+                    if (owed && away)
+                    {
+                        dirTarget[i] = -dirTarget[i]; turnCredit[i] -= 1f; TurnBacks++;
+                        turnWait[i] = 0f;
+                        flourishIn[i] = orbit.flourishEvery * (.6f + .8f * Hash01(key + 3));
+                    }
+                    else if (owed) turnWait[i] += dt;   // (the flourish stays due: next frame looks again)
+                    else
+                    {
+                        loopT[i] = 0f; Loops++;
+                        turnWait[i] = 0f;
+                        flourishIn[i] = orbit.flourishEvery * (.6f + .8f * Hash01(key + 3));
+                    }
                 }
             }
 

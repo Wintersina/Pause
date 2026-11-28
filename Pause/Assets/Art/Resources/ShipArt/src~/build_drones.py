@@ -8,7 +8,8 @@ Sources (one PNG per tier, transparent, 1 px pixel art, any size up to CELL - 2*
     ShipArt/<Key>/src~/drones/<tier>.png          tier in t1, t2, t3, heal
 
 Outputs (all in the ship's own folder; Resources-loaded by Scripts/Ship/DroneArt.cs):
-    ShipArt/<Key>/<Key>_drones.json               layout: cell, frames, fps, pivot, tiers (row + sprite rect), skins
+    ShipArt/<Key>/<Key>_dronelayout.json          layout (own name: Resources paths drop the extension, so it must not
+                                                  share "<Key>_drones" with the stock sheet): cell, frames, fps, pivot, tiers (row + sprite rect), skins
     ShipArt/<Key>/<Key>_drones.bytes              stock sheet (PNG bytes): one row per present tier, one column per frame
     ShipArt/<Key>/<Key>_drones_<Skin>.bytes       the same sheet recoloured for each non-stock skin of <Key>_data.json
 
@@ -299,7 +300,7 @@ def build_ship(key):
            "tiers": [{k: v for k, v in l.items() if k in ("tier", "row", "x", "y", "w", "h")} for l in layout],
            "skins": [s["name"] for s in skins]}
     folder = os.path.join(SHIPART, key)
-    jp = os.path.join(folder, key + "_drones.json")
+    jp = os.path.join(folder, key + "_dronelayout.json")
     with open(jp, "w") as f:
         json.dump(out, f, indent=2)
         f.write("\n")

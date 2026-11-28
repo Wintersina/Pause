@@ -10,7 +10,7 @@ public enum DroneTier { T1 = 0, T2 = 1, T3 = 2, Heal = 3 }
 //
 // Files (all in the ship's folder, written by Art/Resources/ShipArt/src~/build_drones.py from
 // ShipArt/<Key>/src~/drones/<tier>.png):
-//   ShipArt/<Key>/<Key>_drones.json          layout: cell, frames, fps, pivot, the tiers present (row + sprite rect), skins
+//   ShipArt/<Key>/<Key>_dronelayout.json     layout: cell, frames, fps, pivot, the tiers present (row + sprite rect), skins
 //   ShipArt/<Key>/<Key>_drones.bytes         stock sheet (PNG bytes): one row per present tier, one column per frame
 //   ShipArt/<Key>/<Key>_drones_<Skin>.bytes  the same sheet recoloured for skin <Skin> (ShipSkins names)
 //
@@ -49,7 +49,9 @@ public static class DroneArt
         public string[] skins;
     }
 
-    public static string LayoutPath(string key) { return ShipData.Folder(key) + key + "_drones"; }
+    // (the layout must not share a name with a sheet: Resources paths drop the extension, so "<Key>_drones" would
+    // be both the .json and the stock .bytes and Resources.Load returns either one)
+    public static string LayoutPath(string key) { return ShipData.Folder(key) + key + "_dronelayout"; }
     public static string SheetPath(string key, string skin)
     {
         return ShipData.Folder(key) + key + "_drones" + (string.IsNullOrEmpty(skin) ? "" : "_" + skin);

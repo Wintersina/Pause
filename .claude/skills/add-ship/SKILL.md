@@ -86,7 +86,7 @@ Example generator: `ShipArt/Turtle/src~/make_rotor.py`.
 | ultimate runner | `Gameplay/Weapons/ShipAttacks.cs` (`StartRun` + `Step` cases); title screen mirror `UI/TitleScreenTraffic.Combat.cs` |
 | ultimate look | `Gameplay/Weapons/WeaponStyleTable.cs` (+ `Resources/Weapons/<Key>.png`, `AttackFx.png` row, `SecretMeter.png` row, `ShipFxArt.Rows`) |
 | gun pod that slides out before the ultimate | `Gameplay/Weapons/UltimateGun.cs` (tile in `ShipArt/Guns/ship_gun_roster.png`) |
-| drone art: t1/t2/t3 gun drones (one per drone slot) + heal drone, per skin, idle pulse | drop `ShipArt/<Key>/src~/drones/{t1,t2,t3,heal}.png` (+ optional `config.json` armourHue/hueTol when the drones' armour is not the data file's stock hue, see Paragon), run `python3 ShipArt/src~/build_drones.py <Key>` (writes `<Key>_drones.json` + `<Key>_drones[_<Skin>].bytes`, read by `Scripts/Ship/DroneArt.cs`); a missing tier falls back to the roster tile; add the ship to `DroneArtTest.Complete` once all four are in |
+| drone art: t1/t2/t3 gun drones (one per drone slot) + heal drone, per skin, idle pulse | drop `ShipArt/<Key>/src~/drones/{t1,t2,t3,heal}.png` (+ optional `config.json` armourHue/hueTol when the drones' armour is not the data file's stock hue, see Paragon), run `python3 ShipArt/src~/build_drones.py <Key>` (writes `<Key>_dronelayout.json` + `<Key>_drones[_<Skin>].bytes`, read by `Scripts/Ship/DroneArt.cs`); a missing tier falls back to the roster tile; add the ship to `DroneArtTest.Complete` once all four are in |
 | skin weapon upgrades | `Gameplay/Weapons/ShipWeaponUpgrades.cs` (4 steps per ship) |
 | codex entry | `Codex/CodexCatalogue.cs` (`ShipLore`) |
 | dock | `Shop/SpaceDock.cs` (berths sort by price, cheapest first), `DockPopup.cs`, `DockBay.cs` |
