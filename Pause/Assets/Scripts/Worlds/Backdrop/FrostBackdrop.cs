@@ -343,6 +343,7 @@ public class FrostDirector : PlanetDirector
     Color[] dockTints;                                 // per site kind: its DockGrade colour on this ground set
     Sprite[][] siteLaunch;                             // per site kind: its 6 launch cells (null: an old two-drawing site, or the atlas is missing)
     AmbientEmitters ambient;
+    FrostGroundLights groundLights;                    // the tile's own painted lamps, glowing / blinking (FrostGroundLights.cs)
     Sprite[] auroraFrames;
     Sprite[] siteClosed, siteOpen, banks, wispArt, mistArt, gustArt, snowArt;
     Sprite lampsOff, lampsOn;
@@ -371,6 +372,7 @@ public class FrostDirector : PlanetDirector
         foreach (var m in grades) BackdropAtlas.Kill(m);
         grades.Clear();
         if (ambient != null) ambient.Destroy();
+        if (groundLights != null) groundLights.Destroy();
     }
 
     // Draws `pool` brightened by its layer's share of FrostTuning.Brightness
@@ -410,6 +412,7 @@ public class FrostDirector : PlanetDirector
     public int Gusts { get; private set; }
     public int SitesSpawned { get; private set; }
     public AmbientEmitters Ambient => ambient;
+    public FrostGroundLights GroundLights => groundLights;
     public BackdropPool Ground => ground;
     public BackdropPool Sites => sites;
     public GroundPlanner Planner => planner;
@@ -460,6 +463,7 @@ public class FrostDirector : PlanetDirector
         planner = new GroundPlanner(set, "mid", GroundMask.Load("Frost", set.Variant));
         weather = set.Atlas("weather");
         ambient = new AmbientEmitters(set);
+        groundLights = new FrostGroundLights(set, planner.Tile, set.Variant, set.Spec.Order("flow") + 1);
         var spec = set.Spec;
         tintGround = spec.Tint("landmarks");
         tintAurora = spec.Tint("aurora");
@@ -608,6 +612,7 @@ public class FrostDirector : PlanetDirector
         StepPinned(sites, siteRules, dt);
         StepSites(dt);
         ambient.Step(1f);
+        groundLights.Step(dt);
 
         foreach (var m in mist.items)
             if (m.active && Drift(m, dt, v)) Tinted(m, tintMist, m.phase);

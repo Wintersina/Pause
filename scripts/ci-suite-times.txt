@@ -119,6 +119,7 @@ FrameStillsTest 0.2
 FriendlyFireCoverageTest 12.5
 FrostBackdropTest 8.1
 FrostEliteTest 3.9
+FrostGroundLightsTest 2.0
 FrostVerdantEliteFramesTest 0.2
 GameMediaTest 0.7
 GateAudioTest 0.7

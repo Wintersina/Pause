@@ -415,6 +415,7 @@ public static class AllTests
         ("CreditsBannerTest", CreditsBannerTest.Execute),
         ("HomeHighlightShapeTest", HomeHighlightShapeTest.Execute),
         ("FrostBackdropTest", FrostBackdropTest.Execute),
+        ("FrostGroundLightsTest", FrostGroundLightsTest.Execute),
         ("CloudShadowTest", CloudShadowTest.Execute),
         ("BackdropAnchorTest", BackdropAnchorTest.Execute),
         ("BackdropCellBleedTest", BackdropCellBleedTest.Execute),

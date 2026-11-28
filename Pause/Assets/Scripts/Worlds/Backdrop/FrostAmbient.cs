@@ -236,20 +236,22 @@ public static class FrostAmbientCatalog
         B("rig_00", E("beacon_magenta", 147, 50), E("strobe_white", 173, 81), E("flare", 60, 218, .45f)),
         B("rig_01", E("beacon_magenta", 143, 46), E("strobe_white", 193, 67)),
         B("platform_00", E("searchlight", 149, 159), E("beacon_magenta", 199, 62), E("window_lights", 133, 198, .2f)),
-        B("platform_01", E("searchlight", 132, 145), E("beacon_cyan", 89, 120), E("window_lights", 130, 184, .2f)),
+        B("platform_01", E("searchlight", 132, 145), E("beacon_cyan", 110, 109), E("window_lights", 130, 184, .2f)),   // the cyan lamp atop the dome
         B("platform_02", E("searchlight", 125, 119), E("beacon_magenta", 79, 47), E("window_lights", 181, 102, .2f)),
-        B("refinery_00", E("window_lights", 105, 186, .2f)),
+        B("refinery_00", E("window_lights", 105, 186, .2f), E("beacon_magenta", 131, 60), E("strobe_white", 178, 104)),   // warning lamps on the tank caps
         B("refinery_01", E("smoke_a", 147, 42, .6f), E("smoke_b", 162, 38, .6f), E("smoke_b", 87, 72, .5f), E("window_lights", 133, 178, .2f)),
         B("relay_00", E("beacon_cyan", 141, 62), E("beacon_magenta", 177, 109), E("strobe_white", 117, 59)),
         B("relay_01", E("beacon_cyan", 117, 38), E("beacon_magenta", 191, 60), E("strobe_white", 141, 22)),
         B("icebreaker_00", E("beacon_magenta", 145, 78), E("flare", 84, 196, .45f)),     // a fire on the ice beside the wreck
-        B("icebreaker_01", E("beacon_cyan", 137, 37)),
+        B("icebreaker_01", E("beacon_cyan", 137, 37), E("strobe_white", 206, 72)),   // + the aft mast head
         B("cliff_01", E("beacon_cyan", 175, 34)),
+        B("causeway_00", E("window_lights", 181, 116, .2f)),        // the locomotive's lit cab window
+        B("convoy_00", E("beacon_magenta", 184, 88), E("window_lights", 90, 72, .2f)),   // the lamp post by the gun, the car's lit windows
         B("derrick_00", E("beacon_magenta", 117, 22), E("beacon_magenta", 89, 102), E("flare", 52, 186, .45f)),
         // launch sites (keyed by their closed drawing)
         B("hangar_closed", E("searchlight", 119, 181), E("beacon_magenta", 87, 34), E("beacon_cyan", 147, 34)),
-        B("rigbay_closed", E("beacon_cyan", 67, 43)),
-        B("padring_idle", E("beacon_magenta", 69, 72), E("strobe_white", 178, 72)),
+        B("rigbay_closed", E("beacon_cyan", 88, 33)),               // the cyan lamp on the crane jib
+        B("padring_idle", E("beacon_magenta", 69, 72), E("strobe_white", 178, 72), E("beacon_cyan", 70, 162), E("beacon_cyan", 175, 162)),   // + the near rim posts
         B("crawlerbay_closed", E("window_lights", 209, 78, .2f), E("beacon_cyan", 79, 42)),
         B("hatch_closed", E("beacon_cyan", 137, 43)),
     };
