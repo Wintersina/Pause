@@ -488,7 +488,7 @@ public static class StormBackdropTest
             // r3 (2026-11-28): the mid is the stitched 896 x 4096 ground (two ground columns), the vapour strip a soft 512 x 2048 painting
             // drawn at the tile's width; sky / far (hidden under the opaque mid) stay 1024 x 2048
             bool size = f.EndsWith("mid.png") ? (w == 896 && h == 4096) : f.EndsWith("flow.png") ? (w == 512 && h == 2048) :
-                        f.StartsWith("v") ? (w == 1024 && h == 2048) : (w == 1024 && h == 1024);
+                        f.StartsWith("v") ? (w == 1024 && h == 2048) : f.EndsWith("landmarks.png") ? (w == 768 && h == 256) : (w == 1024 && h == 1024);   // (landmarks: the 3 kept drawings since 2026-11-28)
             Check("Storm " + f + " is native " + w + "x" + h + " with real detail: identical texel pairs " + (dh * 100f).ToString("F0") + "% across, " +
                   (dv * 100f).ToString("F0") + "% down (<= " + MaxDupPairs * 100f + "%" + (flow ? ", down exempt: rain streaks" : "") + ")",
                   size && dh <= MaxDupPairs && (flow || dv <= MaxDupPairs));

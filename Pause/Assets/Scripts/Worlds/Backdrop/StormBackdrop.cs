@@ -57,8 +57,8 @@ public static class StormTuning
     public static float LandmarkMin = 1.5f * PieceScale, LandmarkMax = 1.75f * PieceScale;
     // scrolled ground between spawns, x GroundZoom: the same ground of the tile between two tries as before the zoom
     // (2026-11-28 retirement: the new ground props are the deck's main content now, so the three remaining landmarks come far apart)
-    public static float ClusterGapMin = 4.5f * GroundZoom, ClusterGapMax = 7.5f * GroundZoom;
-    public static float LoneGapMin = 3f * GroundZoom, LoneGapMax = 5f * GroundZoom;
+    public static float ClusterGapMin = 3f * GroundZoom, ClusterGapMax = 5f * GroundZoom;
+    public static float LoneGapMin = 2f * GroundZoom, LoneGapMax = 3.5f * GroundZoom;
     public static float NeighbourGapMin = .1f * PieceScale, NeighbourGapMax = .5f * PieceScale;
     public const int GroundPool = 24;                                  // landmarks alive at once (~6x the old ground in view)
     // where a new piece is looked for: a band SpawnBand tall starting SpawnAbove over the top of the view
