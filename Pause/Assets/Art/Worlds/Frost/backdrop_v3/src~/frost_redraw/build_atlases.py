@@ -287,6 +287,7 @@ AMBIENT = HERE.parents[5] / "Scripts/Worlds/Backdrop/FrostAmbient.cs"
 LIT = {"beacon_cyan": (110, 242, 238), "beacon_magenta": (255, 196, 96), "strobe_white": (205, 244, 248),
        "window_lights": (236, 178, 84), "flare": (255, 196, 96), "searchlight": (205, 244, 248)}
 LANDMARK_CONTRAST, LANDMARK_SAT = 1.4, 1.3
+DOCK_LUM = .27        # painted = drawn (docks are not lifted): near the landmarks' .28 as drawn
 
 
 def bindings():
@@ -299,7 +300,7 @@ def bindings():
     return out
 
 
-def cool(cells, old_sheet, old_js):
+def cool(cells, old_sheet, old_js, only=None, lum_target=None):
     """Lift contrast and saturation (about the family's mean), then take the old atlas's cool blue: the family's
     mean RGB is matched to the old drawings' (per channel)."""
     o = np.asarray(Image.open(old_sheet).convert("RGBA")).astype(np.float64)
@@ -310,7 +311,8 @@ def cool(cells, old_sheet, old_js):
         fam_old.setdefault(family(sp["n"]), []).append(c[..., :3][c[..., 3] > 0])
     groups = {}
     for n in cells:
-        groups.setdefault(family(n), []).append(n)
+        if only is None or n in only:
+            groups.setdefault(family(n), []).append(n)
     for fam, names in groups.items():
         allp = np.concatenate([cells[n][..., :3][cells[n][..., 3] > 0] for n in names]).astype(np.float64)
         mv = allp.max(-1).mean()
@@ -327,10 +329,44 @@ def cool(cells, old_sheet, old_js):
         for n in names:
             on = cells[n][..., 3] > 0
             cells[n][..., :3] = np.where(on[..., None], np.clip(np.rint(tmp[n] * ratio), 0, 255), 0).astype(np.uint8)
+    if lum_target is not None:                         # unlifted art (docks): scale to a painted luminance
+        names = [n for g in groups.values() for n in g]
+        px = np.concatenate([cells[n][cells[n][..., 3] > 0] for n in names]).astype(np.float64)
+        lum = float((px[:, 3] * (px[:, :3] @ [.2126, .7152, .0722])).sum() / px[:, 3].sum() / 255)
+        for n in names:
+            on = cells[n][..., 3] > 0
+            cells[n][..., :3] = np.where(on[..., None], np.clip(np.rint(cells[n][..., :3] * (lum_target / lum)), 0, 255), 0).astype(np.uint8)
     return cells
 
 
-def light_up(cells, pick, table):
+def strip_lamps(frames, block, colours=("beacon_cyan", "window_lights")):
+    """A launch strip's lamps: two lit source pixels at the top of the drawing, a quarter in from each side (the
+    topmost drawn block in that column of the idle cell), the same spots in all six cells (so no cell is brighter
+    than idle), plus one amber at the drawing's lowest centre block."""
+    idle = frames[0]
+    on = idle[..., 3] > 0
+    xs = np.nonzero(on.any(0))[0]
+    x0, x1 = xs.min(), xs.max()
+    spots = []
+    for fx, col in ((.25, colours[0]), (.75, colours[0])):
+        gx = int(x0 + (x1 - x0) * fx) // block * block
+        for gy in range(0, idle.shape[0] - block, block):
+            if on[gy:gy + block, gx:gx + block].all():
+                spots.append((gx, gy + block, col))    # one block in from the outline
+                break
+    gx = (x0 + x1) // 2 // block * block
+    for gy in range(idle.shape[0] - block, 0, -block):
+        if on[gy:gy + block, gx:gx + block].all():
+            spots.append((gx, gy - block, colours[1]))
+            break
+    for c in frames:
+        for x, y, col in spots:
+            if (c[y:y + block, x:x + block, 3] > 0).all():
+                c[y:y + block, x:x + block, :3] = LIT[col]
+    return len(spots)
+
+
+def light_up(cells, pick, table, alias=None):
     """A few lit lamp pixels (one 4 x 4 source pixel each, on the drawing's grid): at each of the piece's
     beacon / strobe emitter points (the topmost drawn pixel within 20 px), a short row of three at its window
     point, and the pick's own lamp-pod texels (green in the drawing) turned cyan. Returns {frame: count}."""
@@ -346,7 +382,7 @@ def light_up(cells, pick, table):
         green = (src_cell[..., 3] > 0) & (f[..., 1] == mx) & (mx - mn > .3) & (f[..., 1] - f[..., 2] > .1)
         for y, x in zip(*np.nonzero(green)):
             lit.append((x * 4, y * 4, LIT["beacon_cyan"]))
-        for loop, x, y in bind.get(n, []):
+        for loop, x, y in bind.get((alias or {}).get(n, n), []):
             if loop not in LIT:
                 continue
             gx, gy = x // 4 * 4, y // 4 * 4
@@ -381,6 +417,11 @@ def build_landmarks():
 
 def build_sites():
     cells = ground_atlas("sites", SITES, extra=site_lamps())
+    cells = cool(cells, OLD / "sites.png", OLD / "sites.json", only=set(SITES))
+    table = dict(SITES)
+    lit = light_up(cells, src("sites"), table, alias={n: n.rsplit("_", 1)[0] + "_closed" if not n.endswith("idle") and not n.endswith("active")
+                                                       else "padring_idle" for n in SITES})
+    print("sites lit lamp pixels:", lit)
     sheet, js = sheet_from_cells("sites", cells, (1024, 1024))
     return save("sites", sheet, js, 102)
 
@@ -657,6 +698,11 @@ def build_docks():
         v, al = OLD_TONE["dock_" + tag]
         for i, c in enumerate(tone(fr, v, al)):
             named[f"{tag}_{i:02d}"] = no_red(c)
+    # the landmarks' tone pass: contrast, the old docks' cool blue, painted luminance DOCK_LUM (docks draw unlifted)
+    named = cool(named, OLD / "docks.png", OLD / "docks.json", lum_target=DOCK_LUM)
+    for tag in cells:
+        frames = [named[f"{tag}_{i:02d}"] for i in range(6)]
+        print(f"docks {tag}: {strip_lamps(frames, 3 if tag in ('rig', 'icebreaker') else 4)} lamps")
     sheet, js = sheet_from_cells("docks", named, (1578, 1054))
     save("docks", sheet, js, 109)
     return named, pads
