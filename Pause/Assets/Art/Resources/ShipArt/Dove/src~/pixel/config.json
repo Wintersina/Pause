@@ -1,12 +1,12 @@
 {
  "drawing": "approved.png",
- "source": "PixelLab drawing ship_Dove/r2_0.png (160 px), approved Nov 2026",
+ "source": "PixelLab drawing ship_Dove/r6_2.png (160 px), approved Nov 2026 (multi-colour redo: teal armour, pearl-silver feathered wings, gold trim, coral intake rings, violet canopy, olive branch emblem)",
  "canopy": [
   [
    80,
-   62,
-   8.5,
-   15
+   58.5,
+   9,
+   18.5
   ]
  ],
  "nozzles": [
