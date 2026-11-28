@@ -312,28 +312,25 @@ public static class BackdropCatalog
             Layer.Pieces("spores", 0.400f, Role.Atmosphere),
             Layer.Pieces("fireflies", 0.550f, Role.Atmosphere),
         }},
-        // Ember (EmberDirector, docs in EmberBackdrop.cs): flown at atmosphere
-        // level over the forge planet: caldera fields and lava rivers, a
-        // forge city's plate maze, ash ridges, or the NIGHT side's cracked
-        // crust (EmberTuning.Night; one of four variant sets per landing).
-        // Forges, cooling towers, pipework, eruptions and slag barges stand on
-        // the ground, PINNED to the mid tile (GroundPlanner) where its
-        // affinity mask says they belong. The art is painted dark and
-        // lava-lit (value p90 ~.40-.47) and drawn as painted (brightness 1:
-        // not Spec.Bright), so the dark worlds' shot outlines apply.
-        new Spec { world = "Ember", folder = "Worlds/Ember/Backdrop3/", keyAtlas = "landmarks",
-                   variantSets = BackdropVariants.MaxVariants,
+        // Ember (EmberDirector, docs in EmberBackdrop.cs): flown HIGH (r1, 2026-11-28: the user-approved .49 altitude, as Frost / Desert) over
+        // the forge planet: caldera fields and lava rivers, cooled-crust plates, ash ridges, or the NIGHT side's cracked crust
+        // (EmberTuning.Night; one of four variant sets per landing). The 896 px repainted ground tile is drawn at 2 x GroundZoom of the
+        // view (EmberTuning.TileZoom: two columns side by side), so everything standing on it is keyed to EmberTuning.GroundZoom (.49).
+        // The living props and the mountains (EmberProps.cs) stand on the ground, PINNED to the mid tile (GroundPlanner) where its mask and
+        // context say they belong, with the eruptions (lava fountains, scars, coal beds, flare stacks, pools) and the elite launch sites.
+        // The art is painted dark and lava-lit (drawn as painted, brightness 1: not Spec.Bright), so the dark worlds' shot outlines apply.
+        new Spec { world = "Ember", folder = "Worlds/Ember/Backdrop3/", keyAtlas = "sites",
+                   variantSets = BackdropVariants.MaxVariants, groundZoom = EmberTuning.TileZoom, pieceZoom = EmberTuning.GroundZoom,
                    brightness = () => EmberTuning.Brightness, saturation = () => 1f,
                    variantBrightness = EmberTuning.VariantBrightness, variantNight = EmberTuning.Night,
                    cloudDensity = () => EmberTuning.CloudDensity, ceilingHold = () => EmberTuning.CeilingHold,
                    ceilingClearSeconds = () => EmberTuning.CeilingClearSeconds, layers = new[] {
-            Layer.Tile("sky", 0.006f, W).Graded(.6f),
-            Layer.Tile("far", 0.014f, W).Graded(.8f),
-            Layer.Tile("mid", 0.024f, W).Graded(1f),
-            // landmarks, pipes, eruptions and the elite sites: one ground
-            // plane pinned to the mid tile
-            Layer.Pieces("ground", 0.024f, Role.Landmark).PinnedTo("mid", 0.024f).Graded(1f),
-            Layer.Strip("flow", 0.025f, 0.25f, 0.01f, new Color(1f, 1f, 1f, 0.85f)).Graded(1f),
+            // (sky / far lie under the opaque mid: the far layer reuses the sky texture, their rates scaled with the altitude)
+            Layer.Tile("sky", 0.006f * EmberTuning.GroundZoom, W).Graded(.6f),
+            Layer.Tile("far", 0.014f * EmberTuning.GroundZoom, W).WithTexture("sky").Graded(.8f),
+            Layer.Tile("mid", EmberTuning.GroundRate, W).Graded(1f),
+            // the mountains, the living props, the eruptions and the elite sites: one ground plane pinned to the mid tile
+            Layer.Pieces("ground", EmberTuning.GroundRate, Role.Landmark).PinnedTo("mid", EmberTuning.GroundRate).Graded(1f),
             Layer.Pieces("palls", 0.040f, Role.Atmosphere).Graded(.6f),
             Layer.Pieces("mist", 0.060f, Role.Atmosphere).Graded(.6f),
             Layer.Pieces("wisps", 0.090f, Role.Cloud).Graded(.6f),

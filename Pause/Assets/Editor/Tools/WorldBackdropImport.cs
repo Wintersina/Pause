@@ -87,7 +87,8 @@ public class WorldBackdropImport : AssetPostprocessor
     // Desert's r1 ground (2026-11-28) is the same format: its v<n>/mid.png (896 x 4096, DesertTuning.TileZoom) takes the same rules.
     public static bool IsStormR3Tile(string path, bool tile)
     {
-        return tile && (path.Contains("/Worlds/Storm/Backdrop3/v") || (path.Contains("/Worlds/Desert/Backdrop3/v") && path.EndsWith("/mid.png")));
+        // Ember's r1 ground (2026-11-28, the PixelLab repaint, EmberTuning.TileZoom) is the same format
+        return tile && (path.Contains("/Worlds/Storm/Backdrop3/v") || ((path.Contains("/Worlds/Desert/Backdrop3/v") || path.Contains("/Worlds/Ember/Backdrop3/v")) && path.EndsWith("/mid.png")));
     }
     public const float StormFlowPixelsPerUnit = 512f / 6f;
     // Storm's living props (StormProps.cs): props (ground, ASTC 4x4) and aloft (hazed, ASTC 6x6). Painted, soft: bilinear; their
@@ -98,6 +99,8 @@ public class WorldBackdropImport : AssetPostprocessor
     public static bool IsStormProps(string path)
     {
         if (path.Contains("/Worlds/Desert/Backdrop3/v") && path.EndsWith("/props.png")) return true;
+        // Ember's living props (EmberProps.cs, Backdrop3/v<n>/props, one per ground set) and the starship's crash-scar decals (Backdrop3/scar) likewise
+        if (path.Contains("/Worlds/Ember/Backdrop3/") && (path.EndsWith("/props.png") || path.EndsWith("/scar.png"))) return true;
         // Tide's living props (TideProps.cs, Backdrop3/props: 4096 x 4000, shared by the four ground sets) take the same rules, at ASTC 6x6.
         if (IsTideProps(path)) return true;
         if (!path.Contains("/Worlds/Storm/Backdrop3/")) return false;

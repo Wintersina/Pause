@@ -34,7 +34,9 @@ public static class WorldBackdropTest
     // sites, weather and five ambient-loop sheets) as Verdant besides one
     // 4-tile variant set (~5.5 MB measured, ASTC 6x6 sizes).
     // 2026-10: Ember's sky / far / mid / flow tiles are 896x1792 (ASTC 6x6, 0.72 MB each, was 0.24 MB at 512x1024); measured 8037 KB, 7 -> 9 MB.
-    public const long EmberTextureBudgetBytes = 9L * 1024 * 1024;
+    // 2026-11-28 r1 (the .49 altitude): the landmarks, pipes, flow and far tiles retired; a set gains the repainted mid (896 x 4096, ASTC 6x6,
+    // ~1.6 MB) and its living props atlas (v<n>/props, 4096 x ~2400 ASTC 4x4, ~10 MB); the scar decals (scar, ~1 MB): ~17 MB (estimate, CI measures).
+    public const long EmberTextureBudgetBytes = 19L * 1024 * 1024;
     // Tide carries the same shared 1024 atlases as Ember (landmarks, pipes, fires, sites,
     // weather) plus run C's five loop sheets (smoke, flames, surf, leaks, lights) besides
     // one 4-tile variant set: ~6 MB measured now (ASTC 6x6 sizes), ~8.5 MB with run C.
@@ -67,7 +69,7 @@ public static class WorldBackdropTest
     const float PixelGridSeamTolerance = 0.06f;
     static float SeamLimit(string asset)
     {
-        if (System.Text.RegularExpressions.Regex.IsMatch(asset.Replace('\\', '/'), "/(Storm|Desert)/Backdrop3/v[1234]/mid\\.png$")) return StormR3SeamTolerance;   // (Desert r1: the same stitched format)
+        if (System.Text.RegularExpressions.Regex.IsMatch(asset.Replace('\\', '/'), "/(Storm|Desert|Ember)/Backdrop3/v[1234]/mid\\.png$")) return StormR3SeamTolerance;   // (Desert / Ember r1: the same stitched format)
         return System.Text.RegularExpressions.Regex.IsMatch(asset.Replace('\\', '/'), "/Desert/Backdrop3/v[1234]/(sky|far|mid)\\.png$") ? PixelGridSeamTolerance : SeamTolerance;
     }
     // 2026-11-28 Storm's r3 ground (896 x 4096, quilted from the approved painting and wrapped by construction, pl/storm/r3/stitch.py):
@@ -357,8 +359,6 @@ public static class WorldBackdropTest
     // Ember's shared atlases and the drawings the director relies on.
     static readonly Dictionary<string, string[]> EmberAtlases = new Dictionary<string, string[]>
     {
-        { "landmarks", EmberPieces("landmarks") },
-        { "pipes", EmberPieces("pipes") },
         { "fires", EmberPieces("fires") },
         { "sites", new[] { "foundryhangar_closed", "foundryhangar_open", "magmabay_closed", "magmabay_open", "slagpad_idle", "slagpad_active",
                            "furnacebay_closed", "furnacebay_open", "hatch_closed", "hatch_open", "lights_off", "lights_on" } },
@@ -424,20 +424,13 @@ public static class WorldBackdropTest
         return names.ToArray();
     }
 
-    // Every drawing of an Ember piece atlas the director names.
+    // Every drawing of an Ember piece atlas the director names (the eruptions: the round-1 landmarks and pipes retired 2026-11-28).
     static string[] EmberPieces(string atlas)
     {
         var names = new List<string>();
-        foreach (var group in new[] { EmberTuning.Forges, EmberTuning.Neighbours, EmberTuning.Fronts, EmberTuning.Satellites,
-                                      EmberTuning.Barges, EmberTuning.Banks, EmberTuning.Pools, EmberTuning.Lone, EmberTuning.HorizontalPipes })
+        foreach (var group in new[] { EmberTuning.Fronts, EmberTuning.Satellites, EmberTuning.Pools })
             foreach (string n in group)
-            {
-                bool pipe = n.StartsWith("pipe") || n.StartsWith("manifold") || n == "pumphouse_00";
-                bool fire = n.StartsWith("lava") && !n.StartsWith("lavafall") || n.StartsWith("eruption") || n.StartsWith("coal") ||
-                            n.StartsWith("scorched") || n.StartsWith("firebreak") || n.StartsWith("flarestack");
-                string a = pipe ? "pipes" : fire ? "fires" : "landmarks";
-                if (a == atlas && !names.Contains(n)) names.Add(n);
-            }
+                if (atlas == "fires" && !names.Contains(n)) names.Add(n);
         return names.ToArray();
     }
 
