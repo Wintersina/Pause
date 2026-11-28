@@ -227,6 +227,44 @@ def ground():
         if v in WEATHER: g['weather'] = WEATHER[v]
         with open(gp, 'w') as f: json.dump(g, f)
         print(f'v{v}{o}: {C}x{R}, flat {flat.mean():.2f} rocky {rocky.mean():.2f} shore {shore.mean():.2f} open {openm.mean():.2f}')
+        g.pop('exposure', None)
+        with open(gp, 'w') as f: json.dump(g, f)
+        shot_line(v)                                   # after the context: it reads the painting as painted
+
+
+# The SHOT LINE (DesertTuning.ShotLine): a shot's white-hot core (linear luminance ~1) must stand 3:1 over the ground it crosses
+# (RailMineThemedTest / HostileProjectileTest: >= 16 px at 3:1 against the patch behind it), so the lit ground stays under
+# (1 + .05) / 3 - .05 = .30 everywhere and under the line in all but its brightest 1 %. CI: the beam over v3 amber (32 px patches
+# p99 .306) stood out 0 px, over v1 B (.352) 16 px, over v2 A (.220) 91. A tile over the line is exposed down in linear light
+# (hue and saturation kept, after the context grid is read from the painting) until its p99 sits on it; grade.json keeps the factor.
+SHOT_LINE = .24
+SHOT_PATCH = 32
+
+
+def patch_p99(rgb):
+    lin = np.where(rgb <= .04045, rgb / 12.92, ((rgb + .055) / 1.055) ** 2.4)
+    y = lin @ np.array([.2126, .7152, .0722])
+    h, w = y.shape; P = SHOT_PATCH
+    return float(np.percentile(y[:h // P * P, :w // P * P].reshape(h // P, P, w // P, P).mean((1, 3)), 99))
+
+
+def shot_line(v):
+    """expose v<n>/mid.png down to the shot line (idempotent: a tile on or under it is left alone)"""
+    path = f'{D}/v{v}/mid.png'
+    im = np.asarray(Image.open(path).convert('RGBA')).astype(float) / 255
+    p = patch_p99(im[..., :3])
+    if p <= SHOT_LINE + .002: return 1.0
+    k = SHOT_LINE / p
+    lin = np.where(im[..., :3] <= .04045, im[..., :3] / 12.92, ((im[..., :3] + .055) / 1.055) ** 2.4) * k
+    srgb = np.where(lin <= .0031308, lin * 12.92, 1.055 * np.power(np.maximum(lin, 0), 1 / 2.4) - .055)
+    im[..., :3] = srgb
+    Image.fromarray((np.clip(im, 0, 1) * 255 + .5).astype(np.uint8), 'RGBA').save(path, optimize=True)
+    gp = f'{D}/v{v}/{GRADE}.json'
+    g = json.load(open(gp)) if os.path.exists(gp) else {}
+    g['exposure'] = round(g.get('exposure', 1.0) * k, 4)
+    with open(gp, 'w') as f: json.dump(g, f)
+    print(f'v{v}/mid.png: patch p99 {p:.3f} -> {patch_p99(srgb):.3f} (linear x {k:.3f})')
+    return k
 
 
 # ---------------------------------------------------------------- props
@@ -387,7 +425,9 @@ def worms():
 
 
 if __name__ == '__main__':
-    what = [a for a in sys.argv[1:] if a in ('ground', 'props', 'weather', 'regrade_layers', 'worms', 'guard')] or ['ground', 'regrade_layers', 'props', 'weather', 'worms']
+    what = [a for a in sys.argv[1:] if a in ('ground', 'props', 'weather', 'regrade_layers', 'worms', 'guard', 'shotline')] or ['ground', 'regrade_layers', 'props', 'weather', 'worms']
+    if 'shotline' in what:
+        for v in (1, 2, 3, 4): shot_line(v)
     if 'guard' in what:
         for v in (1, 2, 3, 4): print(f'v{v} props guard: {guard(f"{D}/v{v}/props.png")} texels moved out of the pink margin')
     if 'worms' in what: worms()

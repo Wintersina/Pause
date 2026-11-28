@@ -53,6 +53,11 @@ public static class DesertTuning
     // Everything that stands on the ground is keyed to GroundZoom (Spec.pieceZoom), never TileZoom: the ground layers' rates, the
     // worms, the sites, the wanderers, the cover boulders; x PieceFit (.7, as Frost) for the pieces' sizes.
     public const float GroundZoom = .49f, TileZoom = 2f * GroundZoom, PieceFit = .7f;
+    // the SHOT LINE: a shot's white-hot core (linear luminance ~1) stands 3:1 over the ground it crosses only while that ground stays
+    // under (1 + .05) / 3 - .05 = .30, so each layout's lit ground keeps its 32 px patches' 99th percentile linear luminance at or
+    // under ShotLine (build_r1.py shot_line exposes a brighter tile down in linear light; grade.json "exposure" keeps the factor)
+    public const float ShotLine = .24f;
+    public const int ShotPatch = 32;
     public const float PieceScale = GroundZoom * PieceFit;
     public const float GroundRate = .024f * GroundZoom;               // the mid tile's (and everything pinned to it) parallax rate
     public const float FlowRate = .025f * GroundZoom, FlowDrift = .30f * GroundZoom;

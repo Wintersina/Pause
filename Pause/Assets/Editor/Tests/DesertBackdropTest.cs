@@ -62,6 +62,7 @@ public static class DesertBackdropTest
             Weather();
             Clouds();
             Brightness();
+            ShotLine();
             Sites();
             Allocation();
         }
@@ -713,6 +714,33 @@ public static class DesertBackdropTest
         }
         Check("the night side renders darker than the day (median " + nightMedian.ToString("F3") + " < " + dayMedian.ToString("F3") + ")",
               nightMedian < dayMedian * .92f);
+    }
+
+    // The shot line: every layout's ground keeps the 99th percentile of its 32 px patches' linear luminance at or under
+    // DesertTuning.ShotLine, so a shot's core stands 3:1 over it anywhere (CI: the rail mine's beam over v3 amber at .306 stood out 0 px).
+    static void ShotLine()
+    {
+        for (int v = 1; v <= 4; v++)
+        {
+            var t = new Texture2D(2, 2);
+            t.LoadImage(File.ReadAllBytes("Assets/Art/Backgrounds/Resources/Worlds/Desert/Backdrop3/v" + v + "/mid.png"));
+            var px = t.GetPixels();
+            int w = t.width, h = t.height, P = DesertTuning.ShotPatch, cols = w / P, rows = h / P;
+            Object.DestroyImmediate(t);
+            var patches = new List<float>(cols * rows);
+            for (int r = 0; r < rows; r++)
+                for (int c = 0; c < cols; c++)
+                {
+                    double sum = 0;
+                    for (int y = r * P; y < (r + 1) * P; y++)
+                        for (int x = c * P; x < (c + 1) * P; x++) sum += RelLum(px[y * w + x]);
+                    patches.Add((float)(sum / (P * P)));
+                }
+            patches.Sort();
+            float p99 = patches[(int)(patches.Count * .99f)];
+            Check("v" + v + " ground under the shot line: 32 px patches' p99 linear luminance " + p99.ToString("F3") + " <= " + DesertTuning.ShotLine.ToString("F2") +
+                  " (a shot's core stands 3:1 over it)", p99 <= DesertTuning.ShotLine + .005f);
+        }
     }
 
     struct Shot { public float mean, median, p90, laneLum; }
