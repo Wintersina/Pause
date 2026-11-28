@@ -130,6 +130,7 @@ public static class AllTests
         ("EmberSmokeCutTest", EmberSmokeCutTest.Execute),
         ("BossAttackTest", BossAttackTest.Execute),
         ("BossDamageTest", BossDamageTest.Execute),
+        ("BossAnimTest", BossAnimTest.Execute),
         ("BossImpactTest", BossImpactTest.Execute),
         ("NukeBossDamageTest", NukeBossDamageTest.Execute),
         ("FxLinksTest", FxLinksTest.Execute),

@@ -223,8 +223,9 @@ public static class RailsVettingTest
         Check("in all four worlds at 1080x2520 and 1080x1920 a rail mine's clamp sits " + RailMineArt.ClampBite + " u inside the drawn rail, on both " +
               "walls alike, wholly on screen, its body within the ship's reach (mine centre " + lowest.ToString("F3") + " to " + highest.ToString("F3") +
               " u; " + string.Join(", ", bad) + ")", bad.Count == 0);
-        Check("that is further out than the old lane-edge mount (" + RailMineArt.FallbackRailX + "), by under 0.15 u",
-              lowest > RailMineArt.FallbackRailX && highest < RailMineArt.FallbackRailX + .15f);
+        // (the 80% rails: their inner edge, and the mounts with it, sit RailInset.NarrowShift further out)
+        Check("that is further out than the old lane-edge mount (" + RailMineArt.FallbackRailX + "), by under 0.15 u + the narrow rail's " + RailInset.NarrowShift.ToString("F3"),
+              lowest > RailMineArt.FallbackRailX && highest < RailMineArt.FallbackRailX + RailInset.NarrowShift + .15f);
 
         // the real spawner mounts them there, on a rail of the right wall
         Stage(1, Shapes[0]);

@@ -297,7 +297,9 @@ public static class BossDamageTest
         for (int i = 0; i < 10; i++) e.Step(Dt, 1f);
         Check("fight starts pristine: stage 0, no smoke, no arcs",
               a.DamageStage == 0 && a.DamageSmoke != null && !a.DamageSmoke.enabled && !a.DamageArcs.enabled);
-        Check("... and the body is the plain atlas frame", body.sprite == BossArt.Body(a.Boss, a.BodyFrame));
+        Check("... and the body is the plain atlas frame (or, animated, its BossAnim frame) with no decal",
+              (a.AnimFrame >= 0 ? body.sprite == BossAnim.Sprite(a.Boss, a.AnimFrame) : body.sprite == BossArt.Body(a.Boss, a.BodyFrame)) &&
+              (a.DamageDecal == null || !a.DamageDecal.enabled));
         Check("overlays sit just above the body at its scale",
               a.DamageSmoke.sortingOrder > body.sortingOrder && a.DamageArcs.sortingOrder > a.DamageSmoke.sortingOrder &&
               a.DamageArcs.sortingOrder < 0 &&
@@ -318,7 +320,16 @@ public static class BossDamageTest
             {
                 e.Step(Dt, 1f);
                 frames++;
-                if (BossArt.IsIdleFrame(a.BodyFrame))
+                if (a.AnimFrame >= 0)
+                {
+                    // animated (BossAnim): every pose is the animation frame, the stage's damage its decal over it
+                    bool decalOk = a.DamageDecal != null && a.DamageDecal.enabled &&
+                                   (a.DamageDecal.sprite == BossAnim.Decal(a.Boss, stage, 0) || a.DamageDecal.sprite == BossAnim.Decal(a.Boss, stage, 1));
+                    bool bodyOk = body.sprite == BossAnim.Sprite(a.Boss, a.AnimFrame);
+                    if (BossAnim.IsIdle(a.AnimFrame) || BossAnim.IsTurn(a.AnimFrame)) { idleSeen++; if (decalOk && bodyOk) idleDamaged++; }
+                    else { poseSeen++; if (decalOk && bodyOk) posePristine++; }
+                }
+                else if (BossArt.IsIdleFrame(a.BodyFrame))
                 {
                     idleSeen++;
                     int row = (stage - 1) * BossArt.DamageColumns;
@@ -793,6 +804,15 @@ public static class BossDamageTest
         return ghostCache[key] = n;
     }
 
+    static string AnimStateName(int f)
+    {
+        if (BossAnim.IsIdle(f)) return "anim idle";
+        if (BossAnim.IsTurn(f)) return "anim turn";
+        if (BossAnim.IsHit(f)) return "anim hit";
+        string kind = BossAnim.IsTell(f) ? "tell" : BossAnim.IsFire(f) ? "fire" : "recoil";
+        return "anim " + kind + BossAnim.PoseOf(f);
+    }
+
     static string StateName(BossDef boss, int frame, bool flash)
     {
         string s;
@@ -834,6 +854,12 @@ public static class BossDamageTest
                 extras++;
                 if (sr.sprite.texture != BossArt.DamageFx(boss, 0).texture) { row.badOverlay++; why = n + " is not from the damage fx sheet"; }
             }
+            else if (n == "DamageDecal")
+            {
+                // the battle damage over the animated body (BossAnim): the stage's decal
+                extras++;
+                if (sr.sprite != BossAnim.Decal(boss, a.DamageStage, 0) && sr.sprite != BossAnim.Decal(boss, a.DamageStage, 1)) { row.badOverlay++; why = "decal is not the stage's"; }
+            }
             else if (n.StartsWith("Charge") || n.StartsWith("Ring")) { }
             else { row.badOverlay++; why = "unexpected renderer " + n; }
         }
@@ -843,10 +869,16 @@ public static class BossDamageTest
         if (!visible) { if (why != null && firstFail == null) firstFail = label + ": " + why; return; }
         if (bodies != 1) why = "body renderers up: " + bodies;
         int frame = a.BodyFrame, stage = a.DamageStage;
-        row.states.Add(StateName(boss, frame, a.WhiteAlpha > 0f));
+        row.states.Add(a.AnimFrame >= 0 ? AnimStateName(a.AnimFrame) : StateName(boss, frame, a.WhiteAlpha > 0f));
         row.steps++;
+        if (a.AnimFrame >= 0)
+        {
+            // animated (BossAnim): the body is the animation frame; damaged, the stage's decal rides over it
+            if (body.sprite != BossAnim.Sprite(boss, a.AnimFrame)) { row.stale++; why = "animated body is not its frame " + a.AnimFrame; }
+            if (stage > 0 && BossArt.HasDamageArt(boss) && (a.DamageDecal == null || !a.DamageDecal.enabled)) { row.stale++; why = "damaged (stage " + stage + ") with no decal"; }
+        }
         // the drawing is the one for (pose, stage): a damaged boss never shows a pristine pose / hull
-        if (stage > 0 && BossArt.HasDamageArt(boss) && a.State == BossActor.Mode.Fighting)
+        else if (stage > 0 && BossArt.HasDamageArt(boss) && a.State == BossActor.Mode.Fighting)
         {
             if (BossArt.IsIdleFrame(frame))
             {

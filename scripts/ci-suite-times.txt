@@ -271,3 +271,4 @@ ShipRotorsTest 0.3
 PerfSoakTest 40
 EngineModuleGuardTest 1
 PerfHitchTest 8
+BossAnimTest 160.0

@@ -251,6 +251,15 @@ public static class PerfHitchTest
             foreach (int pose in BossArt.AttackDamagePoses(boss)) BossArt.AttackDamageBody(boss, pose, 1);
         }
         if (!string.IsNullOrEmpty(boss.deathKey)) BossArt.DeathStrip(boss, 0);
+        TouchAnim(boss);
+    }
+
+    // The many-frame animation the fight draws (BossAnim) and its damage decals.
+    static void TouchAnim(BossDef boss)
+    {
+        for (int i = 0; i < BossAnim.FrameCount(boss); i++) BossAnim.Sprite(boss, i);
+        if (BossArt.HasDamageArt(boss))
+            for (int st = 1; st <= BossArt.DamageStages; st++) { BossAnim.Decal(boss, st, 0); BossAnim.Decal(boss, st, 1); }
     }
 
     // What a frame of the fight asks BossArt for (one rim style, as a fight has).
@@ -261,6 +270,7 @@ public static class PerfHitchTest
         for (int i = 0; i < BossArt.ShotColumns; i++) BossArt.Shot(boss, i);
         for (int c = 0; c < BossArt.ShotRimCells; c++) BossArt.ShotRim(boss, c, false);
         BossArt.AttackShot(boss, 1, 0);
+        TouchAnim(boss);
         if (!BossArt.HasDamageArt(boss)) return;
         for (int i = 0; i < BossArt.DamageCells; i++) BossArt.DamageBody(boss, i);
         for (int i = 0; i < BossArt.DamageFxCells; i++) BossArt.DamageFx(boss, i);
@@ -281,7 +291,7 @@ public static class PerfHitchTest
             int queued = FirstUseWarm.Queued;
             PumpWarm();
             Check(boss.artKey + ": the warm steps (" + queued + ", one a frame) make the boss's sprites before the fight",
-                  queued >= 7 && queued <= 14 && FirstUseWarm.Done && BossArt.Warmed(boss));
+                  queued >= 7 && queued <= 16 && FirstUseWarm.Done && BossArt.Warmed(boss));
             int sprites = Sprites();
             Watch();
             TouchFight(boss);
