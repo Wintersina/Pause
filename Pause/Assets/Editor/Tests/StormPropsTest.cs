@@ -94,12 +94,12 @@ public static class StormPropsTest
 
     static void Table()
     {
-        Check("ground kinds: refinery, mast, wreck, vortex, cell (" + string.Join(", ", StormPropsTuning.Ground) + ")",
-              string.Join(",", StormPropsTuning.Ground) == "refinery,mast,wreck,vortex,cell");
+        Check("ground kinds: refinery, mast, wreck, vortex, cell, gunship (" + string.Join(", ", StormPropsTuning.Ground) + ")",
+              string.Join(",", StormPropsTuning.Ground) == "refinery,mast,wreck,vortex,cell,gunship");
         Check("aloft kinds: aerostat, skimmer, convoy, jelly (" + string.Join(", ", StormPropsTuning.Aloft) + ")",
               string.Join(",", StormPropsTuning.Aloft) == "aerostat,skimmer,convoy,jelly");
-        Check("liveries: refinery / mast / wreck 4, vortex / cell 3; aerostat / skimmer 4, convoy 3, jelly 7",
-              string.Join(",", StormPropsTuning.GroundVariants) == "4,4,4,3,3" && string.Join(",", StormPropsTuning.AloftVariants) == "4,4,3,7");
+        Check("liveries (all of each approved prop): refinery / mast / wreck / gunship 4, vortex / cell 3; aerostat / skimmer 4, convoy 3, jelly 7",
+              string.Join(",", StormPropsTuning.GroundVariants) == "4,4,4,3,3,4" && string.Join(",", StormPropsTuning.AloftVariants) == "4,4,3,7");
         bool shapes = StormPropsTuning.GroundMs.Length == StormPropsTuning.Ground.Length && StormPropsTuning.GroundPx.Length == StormPropsTuning.Ground.Length &&
                       StormPropsTuning.AloftMs.Length == StormPropsTuning.Aloft.Length;
         foreach (var w in StormPropsTuning.GroundWeights) shapes &= w.Length == StormPropsTuning.Ground.Length;
@@ -113,11 +113,18 @@ public static class StormPropsTest
         var R = new System.Func<int, PieceRule>(StormPropsTuning.GroundRule);
         bool classes = R(StormPropsTuning.Refinery).on == GroundClass.Open && R(StormPropsTuning.Mast).on == GroundClass.Open &&
                        R(StormPropsTuning.Cell).on == GroundClass.Open && R(StormPropsTuning.Wreck).on == GroundClass.Water &&
-                       R(StormPropsTuning.Vortex).on == (GroundClass.Water | GroundClass.Canopy);
+                       R(StormPropsTuning.Vortex).on == (GroundClass.Water | GroundClass.Canopy) &&
+                       R(StormPropsTuning.Gunship).on == (GroundClass.Water | GroundClass.Canopy);
         for (int k = 0; k < StormPropsTuning.Ground.Length; k++) classes &= R(k).need >= .45f && R(k).core > 0f;
-        Check("mask classes: refinery, mast and cell on the lit cloud tops (O), the wreck in a dark lane (W), the vortex on lane / deck (W|C)", classes);
+        Check("mask classes: refinery, mast and cell on the lit cloud tops (O), the wreck in a dark lane (W), the vortex and the crashed gunship on lane / deck (W|C)", classes);
         Check("the cell is light and claims no ground; every other ground prop claims its footprint",
-              !StormPropsTuning.Claims(StormPropsTuning.Cell) && StormPropsTuning.Claims(StormPropsTuning.Refinery) && StormPropsTuning.Claims(StormPropsTuning.Vortex));
+              !StormPropsTuning.Claims(StormPropsTuning.Cell) && StormPropsTuning.Claims(StormPropsTuning.Refinery) && StormPropsTuning.Claims(StormPropsTuning.Vortex) &&
+              StormPropsTuning.Claims(StormPropsTuning.Gunship));
+        // the user's rule: nothing flies around that the player cannot shoot -- only the jellies (creatures) drift
+        bool still = true;
+        for (int k = 0; k < StormPropsTuning.Aloft.Length; k++) still &= StormPropsTuning.Drifts(k) == (k == StormPropsTuning.Jelly);
+        Check("no vehicle travels: aerostats tethered, skimmer and convoy moored (bob / sway only); only the jellies drift", still &&
+              StormPropsTuning.SwayDeg[StormPropsTuning.Skimmer] > 0f && StormPropsTuning.SwayDeg[StormPropsTuning.Convoy] > 0f);
 
         // sizes
         float gmin = float.MaxValue, gmax = 0f;
@@ -475,7 +482,7 @@ public static class StormPropsTest
         StormDirector.SeedOverride = 0;
     }
 
-    // ---- each aloft kind: size, parallax, its own motion, a still frame at dt 0, no pink as drawn ----
+    // ---- each aloft kind: size, parallax, moored (vehicles) or drifting (jellies), a still frame at dt 0, no pink as drawn ----
 
     static void Aloft()
     {
@@ -498,7 +505,7 @@ public static class StormPropsTest
             Check(name + ": drawn " + ratio.ToString("F2") + "x its ground size (1.6 - 2.5x), at " + (p.rate / ground).ToString("F2") + "x the ground's rate (1.3 - 1.6x), not pinned",
                   ratio >= 1.5f && ratio <= 2.6f && p.rate / ground >= 1.3f && p.rate / ground <= 1.6f && p.footprint < 0);
             // its motion over 3 s against what the parallax alone would do
-            float x0 = p.x, y0 = p.y, by0 = p.body.localPosition.y;
+            float x0 = p.x, y0 = p.y, by0 = p.body.localPosition.y, swayMax = 0f;
             float v = WorldBackdrop.ScrollVelocity(moveBackGround.speed) * WorldBackdrop.ScrollBoost;
             float bobMax = 0f;
             var framesSeen = new HashSet<int>();
@@ -506,21 +513,26 @@ public static class StormPropsTest
             {
                 wb.Step(1f / 60f);
                 bobMax = Mathf.Max(bobMax, Mathf.Abs(p.body.localPosition.y - by0));
+                swayMax = Mathf.Max(swayMax, Mathf.Abs(Mathf.DeltaAngle(0f, p.body.localEulerAngles.z)));
                 string kind; int vr, f;
                 if (Parse(p.sr.sprite != null ? p.sr.sprite.name : null, out kind, out vr, out f) && kind == name) framesSeen.Add(f);
             }
             float parallax = -p.rate * v * 3f, own = (p.y - y0) - parallax, side = p.x - x0;
-            bool moves = k == StormPropsTuning.Skimmer || k == StormPropsTuning.Convoy
-                ? Mathf.Abs(own) + Mathf.Abs(side) > .15f
-                : bobMax > 0f || Mathf.Abs(side) > .001f;
-            Check(name + ": moves on its own (" + side.ToString("F2") + " u across, " + own.ToString("F2") + " u beyond the parallax, bob " + bobMax.ToString("F3") + ") and animates (" + framesSeen.Count + " cells)",
+            bool jelly = k == StormPropsTuning.Jelly;
+            bool moves = jelly
+                ? bobMax > 0f || Mathf.Abs(side) > .001f
+                : Mathf.Abs(own) < .05f && Mathf.Abs(side) < .05f && (bobMax > 0f || swayMax > .1f);
+            Check(name + (jelly ? ": drifts slowly" : ": MOORED -- rides the parallax only, bobs / sways on its lines") + " (" + side.ToString("F3") + " u across, " + own.ToString("F3") +
+                  " u beyond the parallax, bob " + bobMax.ToString("F3") + ", sway " + swayMax.ToString("F1") + " deg) and animates (" + framesSeen.Count + " cells)",
                   moves && framesSeen.Count >= 6);
             Check(name + ": hazed (tint " + p.sr.color + ") -- never brighter than the haze, never pink",
                   p.sr.color.r <= StormPropsTuning.AloftTint.r + 1e-3f && p.sr.color.a <= StormPropsTuning.AloftTint.a + 1e-3f && !WorldCue.IsPink(p.sr.color));
             var sprite = p.sr.sprite;
             Vector3 pos = p.root.localPosition, body = p.body.localPosition;
             for (int i = 0; i < 30; i++) wb.Step(0f);
-            Check(name + ": dt 0 (paused) is a still frame -- cell, spot, bob", p.sr.sprite == sprite && p.root.localPosition == pos && p.body.localPosition == body);
+            var rot = p.body.localRotation;
+            for (int i = 0; i < 30; i++) wb.Step(0f);
+            Check(name + ": dt 0 (paused) is a still frame -- cell, spot, bob, sway", p.sr.sprite == sprite && p.root.localPosition == pos && p.body.localPosition == body && p.body.localRotation == rot);
             Object.DestroyImmediate(wb.gameObject);
         }
         StormDirector.SeedOverride = 0;

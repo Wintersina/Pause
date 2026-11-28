@@ -7,13 +7,17 @@ using UnityEngine;
 //
 //   GROUND (the "ground" layer, PINNED to the mid tile like the landmarks: same rate, placed by the same GroundPlanner, so they
 //          never overlap a landmark or a dock) -- refinery (a lit cloud-top platform), relay mast, a wrecked airship sinking
-//          into a dark lane, a vortex (eyewall lightning, turning slowly) and a lightning cell (a cloud tower lit from inside:
-//          additive light over the deck, it may overlap other pieces). Rare accents: GroundPool at most, one every
-//          GroundGapMin..GroundGapMax of scrolled ground.
+//          into a dark lane, a vortex (eyewall lightning, turning slowly), a lightning cell (a cloud tower lit from inside:
+//          additive light over the deck, it may overlap other pieces) and a crashed GUNSHIP (the user-approved gunship as a dead
+//          derelict: rotors dark, one torn off, rimed with hail, tangled in tethers, half sunk in the deck). Rare accents:
+//          GroundPool at most, one every GroundGapMin..GroundGapMax of scrolled ground.
 //   ALOFT  (its own "aloft" layer, closer to the camera, BackdropCatalog: above the vapour strip, under all the weather) --
-//          tethered aerostats (bob), a gas skimmer and a freighter convoy (cruise along their heading), sky jellies (pulse,
-//          drift). Drawn AloftSizeK x their ground size, scrolling AloftRateK x the ground's rate, hazed (a baked blur and a
-//          cool tint, AloftTint), never pinned. VERY rare: one at most in view (AloftPool = 1) and often none.
+//          tethered aerostats, a gas skimmer and a freighter convoy MOORED to buoys (cables baked into the art), sky jellies.
+//          Drawn AloftSizeK x their ground size, scrolling AloftRateK x the ground's rate, hazed (a baked blur and a cool tint,
+//          AloftTint), never pinned. VERY rare: one at most in view (AloftPool = 1) and often none.
+//   USER RULE (2026-11-28): "I don't want things flying around if the player cannot shoot them down; it has to be trapped or
+//          something somewhere." No vehicle moves on its own: the moored / tethered ones only bob and sway on their lines
+//          (Bob*, Sway*), the wrecks are stuck; only the creatures (jellies) drift, slowly.
 //
 // COLOUR VARIANT PER COPY: each kind ships 3 - 7 liveries (<kind>_<variant>_<frame>, Backdrop3/props + aloft,
 // backdrop_r3~/props/build_props_atlas.py). A copy's livery is a hash of its spawn count and kind, never the one the previous
@@ -28,27 +32,27 @@ public static class StormPropsTuning
     public const float PxPerUnit = 160f;
 
     // ---- ground ----
-    public static readonly string[] Ground = { "refinery", "mast", "wreck", "vortex", "cell" };
-    public const int Refinery = 0, Mast = 1, Wreck = 2, Vortex = 3, Cell = 4;
-    public static readonly int[] GroundVariants = { 4, 4, 4, 3, 3 };
+    public static readonly string[] Ground = { "refinery", "mast", "wreck", "vortex", "cell", "gunship" };
+    public const int Refinery = 0, Mast = 1, Wreck = 2, Vortex = 3, Cell = 4, Gunship = 5;
+    public static readonly int[] GroundVariants = { 4, 4, 4, 3, 3, 4 };
     // drawn cell width, screen px (pl/storm/r3/composite.py RULES, user-approved)
-    public static readonly float[] GroundPx = { 124f, 92f, 128f, 284f, 250f };   // (the vortex at BackdropCatalog.MaxLandmarkSize)
+    public static readonly float[] GroundPx = { 124f, 92f, 128f, 284f, 250f, 240f };   // (the vortex at BackdropCatalog.MaxLandmarkSize; the gunship "nice and large")
     public static float GroundSize(int kind) { return GroundPx[kind] / PxPerUnit; }
     // where each may stand (r3 masks: O lit cloud tops, C textured deck, W dark lanes) and how much of its footprint must match
-    public static readonly GroundClass[] GroundOn = { GroundClass.Open, GroundClass.Open, GroundClass.Water, GroundClass.Water | GroundClass.Canopy, GroundClass.Open };
-    public static readonly float[] GroundNeed = { .6f, .5f, .6f, .75f, .45f };
-    public static readonly float[] GroundCore = { .34f, .3f, .36f, .42f, .3f };
+    public static readonly GroundClass[] GroundOn = { GroundClass.Open, GroundClass.Open, GroundClass.Water, GroundClass.Water | GroundClass.Canopy, GroundClass.Open, GroundClass.Water | GroundClass.Canopy };
+    public static readonly float[] GroundNeed = { .6f, .5f, .6f, .75f, .45f, .6f };
+    public static readonly float[] GroundCore = { .34f, .3f, .36f, .42f, .3f, .36f };
     public static PieceRule GroundRule(int kind) { return new PieceRule(GroundOn[kind], GroundNeed[kind], GroundCore[kind]); }
     public static bool Claims(int kind) { return kind != Cell; }            // a cell is light: it never holds ground
     // per ground set (index = variant, 0 none): v1 banded deck and v4 shelf arcs more industry, v2 thunderhead field more cells,
     // v3 night side more lit kinds
     public static readonly int[][] GroundWeights =
     {
-        new[] { 3, 3, 2, 1, 3 },
-        new[] { 4, 3, 2, 1, 2 },
-        new[] { 2, 3, 1, 1, 5 },
-        new[] { 3, 4, 2, 1, 3 },
-        new[] { 4, 3, 2, 1, 2 },
+        new[] { 3, 3, 2, 1, 3, 2 },
+        new[] { 4, 3, 2, 1, 2, 2 },
+        new[] { 2, 3, 1, 1, 5, 2 },
+        new[] { 3, 4, 2, 1, 3, 2 },
+        new[] { 4, 3, 2, 1, 2, 2 },
     };
     public static readonly int[][] GroundMs =
     {
@@ -57,6 +61,7 @@ public static class StormPropsTuning
         new[] { 125, 125, 125, 125, 125, 125, 125, 125 },
         new[] { 1500, 900, 90, 150, 220, 380, 160, 600 },          // eyewall lightning: two flicker groups a 4 s cycle
         new[] { 1700, 90, 140, 200, 420, 130, 260, 400 },          // the cell's flash and re-strike: a 3.3 s cycle
+        new[] { 125, 125, 125, 125, 125, 125, 125, 125 },          // the gunship: the cloud boils round it, its distress lamp blinks once a second
     };
     public const int GroundPool = 6, CellPool = 2;
     public static float GroundGapMin = 2.6f, GroundGapMax = 4.4f;   // scrolled ground (world units) between two ground props
@@ -90,13 +95,14 @@ public static class StormPropsTuning
     public const int AloftPool = 1;                                  // at most one in view
     public static float AloftGapMin = 16f, AloftGapMax = 34f;        // aloft-layer travel (world units) between two (a view is ~15 u tall)
     public static float AloftFirst = 9f;
-    // own motion: the skimmer and the convoy cruise along their drawn heading (unmirrored art: skimmer bow lower-left, convoy
-    // noses upper-right), u/s; the aerostat and the jellies bob (amplitude x their size, period s) and the jellies drift
-    public static readonly Vector2[] Heading = { Vector2.zero, new Vector2(-.8f, -.6f), new Vector2(.5f, .866f), Vector2.zero };
-    public static readonly float[] Cruise = { 0f, .11f, .07f, 0f };
-    public static readonly float[] BobAmp = { .03f, 0f, 0f, .045f };
-    public static readonly float[] BobPeriod = { 5.5f, 1f, 1f, 3.6f };
-    public const float JellyDrift = .05f, AerostatDrift = .025f;
+    // own motion: NO vehicle travels (the user's rule). The tethered aerostats and the moored skimmer / convoy only bob on their
+    // lines (amplitude x their size, period s) and sway (degrees, period s); the jellies, living creatures, also drift slowly.
+    public static readonly float[] BobAmp = { .03f, .012f, .01f, .045f };
+    public static readonly float[] BobPeriod = { 5.5f, 4.2f, 6.5f, 3.6f };
+    public static readonly float[] SwayDeg = { 2.5f, 1.5f, 1f, 0f };
+    public static readonly float[] SwayPeriod = { 7f, 5.5f, 8f, 1f };
+    public const float JellyDrift = .05f;
+    public static bool Drifts(int aloftKind) { return aloftKind == Jelly; }
 
     public static string Strip(string kind, int variant) { return kind + "_" + variant; }
 
@@ -311,13 +317,11 @@ public partial class StormDirector
         p.frames = aloftStrips[kd][v];
         bool mirror = propRng.NextDouble() < .5;
         p.body.localScale = mirror ? new Vector3(-1f, 1f, 1f) : Vector3.one;
-        var h = StormPropsTuning.Heading[kd] * StormPropsTuning.Cruise[kd];
-        p.vx = mirror ? -h.x : h.x;
-        p.vy = h.y;
-        if (kd == StormPropsTuning.Jelly) { p.vx = PRand(-1f, 1f) * StormPropsTuning.JellyDrift; p.vy = PRand(0f, 1f) * StormPropsTuning.JellyDrift; }
-        if (kd == StormPropsTuning.Aerostat) p.vx = PRand(-1f, 1f) * StormPropsTuning.AerostatDrift;
+        p.vx = p.vy = 0f;                                  // moored / tethered: it rides the parallax only
+        if (StormPropsTuning.Drifts(kd)) { p.vx = PRand(-1f, 1f) * StormPropsTuning.JellyDrift; p.vy = PRand(0f, 1f) * StormPropsTuning.JellyDrift; }
         p.x = float.IsNaN(x) ? PRand(-HalfW * .62f, HalfW * .62f) : x;
         p.y = float.IsNaN(y) ? SpawnY(p.size) + Mathf.Max(0f, p.vy) * 2f : y;
+        p.body.localRotation = Quaternion.identity;
         p.rate = set.Spec.Rate(StormPropsTuning.AloftLayer);
         p.color = StormPropsTuning.AloftTint;
         p.dockTint = Color.white;
@@ -378,6 +382,8 @@ public partial class StormDirector
             float b = Mathf.Sin((p.age + p.phase) * 2f * Mathf.PI / StormPropsTuning.BobPeriod[p.kind]) * amp * p.size;
             var lp = p.body.localPosition; lp.y = b / Mathf.Max(.0001f, p.root.localScale.y); p.body.localPosition = lp;
         }
+        float sway = StormPropsTuning.SwayDeg[p.kind];
+        if (sway > 0f) p.body.localRotation = Quaternion.Euler(0f, 0f, Mathf.Sin((p.age + p.phase) * 2f * Mathf.PI / StormPropsTuning.SwayPeriod[p.kind]) * sway);
         Color c = StormPropsTuning.AloftTint;
         c.a *= set.Alpha;
         p.sr.color = c;

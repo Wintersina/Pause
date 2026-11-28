@@ -5,8 +5,10 @@ User-approved 2026-11-28 ("storm stuff approved with latest version go storm"): 
 pl/storm/r3/build_props2.py, 8-frame horizontal strips (lights baked into the frames). Two depths (user: "some of these
 items ... can be closer and larger in atmosphere level"):
   props  (pinned to the ground, StormProps.cs): refinery 0-3, mast 0-3, wreck 0-3 (sinking into the deck), vortex 0-2,
-         cell 0-2 (lightning inside a cloud tower). 128 px cells (vortex 160): drawn ~1:1 on a 1080 px phone.
-  aloft  (closer to the camera, StormProps.cs): aerostat 0-3, skimmer 0-3, convoy 0-2, jelly 0-6. 160 px cells (convoy 240)
+         cell 0-2 (lightning inside a cloud tower), gunship 0-3 (the approved gunship as a crashed derelict sunk in the deck,
+         gunship_wreck.py). 128 px cells (vortex 160, gunship 176): drawn ~1:1 on a 1080 px phone.
+  aloft  (closer to the camera, StormProps.cs): aerostat 0-3 (tethered), skimmer 0-3 and convoy 0-2 (moored to buoys: moor.py; user
+         rule 2026-11-28: nothing flies around that the player cannot shoot), jelly 0-6. 160 px cells (convoy 240)
          drawn 1.2 - 1.45x with a baked depth haze (a slight blur), so the art holds at the larger size.
 Every cell sits in a 4 px transparent gutter (ASTC blocks and bilinear sampling never reach a neighbour). Sprites are
 named <kind>_<variant>_<frame 00..07>, BackdropAtlas.Frames("<kind>_<variant>") returns a strip.
@@ -24,7 +26,7 @@ from PIL import Image, ImageFilter
 HERE = Path(__file__).resolve().parent
 OUT = HERE.parents[3] / "Backgrounds" / "Resources" / "Worlds" / "Storm" / "Backdrop3"
 FRAMES, GUT = 8, 4
-GROUND = [("refinery", 4, 128), ("mast", 4, 128), ("wreck", 4, 128), ("vortex", 3, 160), ("cell", 3, 128)]
+GROUND = [("refinery", 4, 128), ("mast", 4, 128), ("wreck", 4, 128), ("vortex", 3, 160), ("cell", 3, 128), ("gunship", 4, 176)]
 ALOFT = [("aerostat", 4, 160), ("skimmer", 4, 160), ("convoy", 3, 240), ("jelly", 7, 160)]
 HAZE = .55          # aloft: gaussian blur radius in atlas px (depth haze)
 WIDTH = 2048

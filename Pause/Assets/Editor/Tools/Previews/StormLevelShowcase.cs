@@ -9,7 +9,7 @@ using UnityEngine;
 //   storm-vN.png              each ground set (v1..v4) mid-level, past the cloud ceiling: the ground, the vapour strip, the
 //                             landmarks and whatever props the director dealt, with the player ship
 //   props-vN-<a>-<b>-<c>.png  two ground props placed by their own rules and one ALOFT prop above them, per ground set
-//   props_vN_frames/          + 36 frames at 15 fps (lights, the vortex turning, the cell's flash, the aloft prop's drift)
+//   props_vN_frames/          + 36 frames at 15 fps (lights, the vortex turning, the cell's flash, the moored aloft prop's bob and sway, the crashed gunship's boiling cloud)
 //   storm_v2_frames/          36 frames at 15 fps of v2 as it plays (CI turns each *_frames folder into <name>.gif)
 //
 //   SHOWCASE_DIR=<dir> Unity -batchmode -quit -projectPath Pause -executeMethod StormLevelShowcase.Run
@@ -135,9 +135,9 @@ public static class StormLevelShowcase
         var shots = new[]
         {
             new[] { 1, StormPropsTuning.Refinery, StormPropsTuning.Mast, StormPropsTuning.Aerostat },
-            new[] { 2, StormPropsTuning.Cell, StormPropsTuning.Vortex, StormPropsTuning.Jelly },
+            new[] { 2, StormPropsTuning.Cell, StormPropsTuning.Gunship, StormPropsTuning.Jelly },
             new[] { 3, StormPropsTuning.Wreck, StormPropsTuning.Mast, StormPropsTuning.Convoy },
-            new[] { 4, StormPropsTuning.Refinery, StormPropsTuning.Wreck, StormPropsTuning.Skimmer },
+            new[] { 4, StormPropsTuning.Gunship, StormPropsTuning.Vortex, StormPropsTuning.Skimmer },
         };
         foreach (var shot in shots)
         {
