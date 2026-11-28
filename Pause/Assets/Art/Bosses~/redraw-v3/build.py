@@ -401,24 +401,168 @@ class Boss:
     # played but CalmIdleTest still measures them (3 % of the cell), so there the flames only breathe.
     CALM_CYCLE = (1.0, .9, .96, .88, 1.0, .92)
 
+    # ---------------------------------------------------------------- readable frames (v3.1)
+    #
+    # User, 2026-11-27: "all the bosses are missing all their frames". The v3 sheets had every cell, but the idle, tell,
+    # fire and retreat drawings differed from the idle by ~1-2 % of their pixels (a 2-5 px orb, a faint lift on the
+    # lights), so they read as one still drawn 30 times. v3.1 keeps the hull pixel-still (no bob: CalmIdleTest, the
+    # hearts ellipse and every rig point are unchanged; idle cell 0 / 20 is byte-identical) and makes each state read:
+    #   idle    the lights breathe AND bloom onto the plating round them (two dilation rings, additive cue hue)
+    #   tell    the firing part goes hot, a charge orb swells on its muzzle inside a dashed ring that closes in, motes
+    #           stream into it, and the last charge drawing crackles; the rest of the hull's lights ramp with it
+    #   fire    a white-hot muzzle blast: core, eight rays (the one toward the player longest), a dithered shock ring and
+    #           spat sparks, the part's plating flared near-white
+    #   retreat long burn flames, a cue afterglow trail left below the hull, dense warp streaks
+    # Everything is drawn on the approved drawing's pixel grid before the one NEAREST scale, so it wears the hull's pixels.
+
+    def dilate(self, m, r=1):
+        o = m.copy()
+        for _ in range(r):
+            e = o.copy()
+            for dy in (-1, 0, 1):
+                for dx in (-1, 0, 1):
+                    e |= np.roll(np.roll(o, dy, 0), dx, 1)
+            o = e
+        return o
+
+    def in_cell(self, X, Y, m=10):
+        """A padded-canvas px whose cell px stays m px clear of the cell's border (render() blanks the outer 6 px)."""
+        cx, cy = self.cell_xy(X, Y)
+        return m <= cx < self.C - m and m <= cy < self.C - m
+
+    def put(self, a, X, Y, col, m=10):
+        X, Y = int(round(X)), int(round(Y))
+        H, W = a.shape[:2]
+        if 0 <= X < W and 0 <= Y < H and self.in_cell(X, Y, m):
+            a[Y, X] = (*col, 255)
+
+    def bloom(self, a, k):
+        """The lights' glow spilling onto the plating round them: ring 1 (1 px) at k, ring 2 at k / 2, additive cue mid."""
+        if k <= 0: return a
+        if not hasattr(self, "_halo"):
+            d1 = self.dilate(self.lights, 1); d2 = self.dilate(self.lights, 2)
+            self._halo = (d1 & self.hull & ~self.lights, d2 & self.hull & ~d1)
+        a = a.copy()
+        cue = np.array(self.pal["mid"], np.float32)
+        for ring, w in zip(self._halo, (k, k * .5)):
+            m = ring & (a[..., 3] > 0)
+            rgb = a[..., :3].astype(np.float32)
+            rgb[m] = np.clip(rgb[m] + cue * w * .9, 0, 255)
+            a[..., :3] = rgb.astype(np.uint8)
+        return a
+
+    IDLE6 = (0, .34, .14, .5, .2, .4)
+    IDLE4 = (0, .36, .14, .5)
+
     def idle(self, a, t, n, calm=False):
-        k = (0, .16, .06, .24, .1, .2)[t % 6] if n == 6 else (0, .18, .06, .26)[t % 4]
-        return self.glow(self.flames(a, t, cycle=self.CALM_CYCLE if calm else None), k)
+        k = self.IDLE6[t % 6] if n == 6 else self.IDLE4[t % 4]
+        a = self.glow(self.flames(a, t, cycle=self.CALM_CYCLE if calm else None), k)
+        return self.bloom(a, k)
+
+    def parts_scale(self, parts):
+        return 1.0 if len(parts) <= 2 else .62          # the Bloom Queen's six petals charge smaller orbs
+
+    KEY = (18, 12, 22)                                    # the ink keyline round a charge orb / blast (reads on busy plating)
+
+    def keyline(self, a, x, y, r):
+        for Y in range(int(y - r - 3), int(y + r + 4)):
+            for X in range(int(x - r - 3), int(x + r + 4)):
+                if r + .5 < math.hypot(X - x, Y - y) <= r + 1.6: self.put(a, X, Y, self.KEY)
+
+    def charge(self, a, x, y, k, sc, seed, last):
+        """A charge gathering on a muzzle: a swelling orb, a dashed ring closing in, motes streaming in, crackle when full."""
+        P = self.pal
+        r = sc * (3.4 + 5.6 * k)
+        ring = r + sc * (3.0 + 6.0 * (1 - k))
+        # the ring closing in: solid dark cue, every other 30-degree arc lit, behind the orb
+        for i in range(int(2 * math.pi * ring * 2) + 1):
+            ang = i / (2 * ring) + seed * .37
+            lit = int(math.degrees(ang) // 30) % 2 == 0
+            self.put(a, x + math.cos(ang) * ring, y + math.sin(ang) * ring, (P["light"] if k > .99 else P["mid"]) if lit else P["dark"])
+        # a dithered halo round the orb
+        for Y in range(int(y - r - 3), int(y + r + 4)):
+            for X in range(int(x - r - 3), int(x + r + 4)):
+                if r + .5 < math.hypot(X - x, Y - y) <= r + 2.6 and (X + Y) % 2 == 0: self.put(a, X, Y, P["dark"])
+        # motes streaming in: a 2 x 2 head with a tail pointing outward
+        for i in range(6):
+            ang = math.radians(i * 60 + seed * 23 + k * 40)
+            d = ring + sc * (2.5 + 3.5 * (1 - k)) + (i % 2) * 1.5
+            hx, hy = x + math.cos(ang) * d, y + math.sin(ang) * d
+            for ox, oy in ((0, 0), (1, 0), (0, 1), (1, 1)):
+                self.put(a, hx + ox, hy + oy, P["core"] if k > .9 else P["light"])
+            for s in range(1, 4):
+                self.put(a, hx + math.cos(ang) * s * 1.2, hy + math.sin(ang) * s * 1.2, P["mid"] if s < 3 else P["dark"])
+        self.keyline(a, x, y, r)
+        self.orb(a, x, y, r)
+        if last:                                             # full: three short jagged arcs leap off the orb
+            rng = np.random.default_rng(seed + 11)
+            for j in range(3):
+                ang = math.radians(j * 120 + seed * 41)
+                px, py = x + math.cos(ang) * r, y + math.sin(ang) * r
+                for s in range(int(5 + 3 * sc)):
+                    ang += rng.uniform(-.7, .7)
+                    px += math.cos(ang); py += math.sin(ang)
+                    self.put(a, px, py, P["core"] if s % 2 else P["light"])
+        return a
+
+    def blast_fire(self, a, x, y, sc, seed):
+        """The muzzle blast of the fire drawing: a filled eight-point star (the point toward the player longest, the
+        others alternating long / short) shaded core -> light -> mid -> dark, a shot streak leaving downward, a dithered
+        shock ring and spat sparks."""
+        P = self.pal
+        H, W = a.shape[:2]
+        R = sc * 20
+        for i in range(int(2 * math.pi * R * 2)):                      # shock ring (behind)
+            ang = i / (2 * R)
+            X, Y = x + math.cos(ang) * R, y + math.sin(ang) * R
+            if (int(round(X)) + int(round(Y))) % 2 == 0: self.put(a, X, Y, P["mid"])
+        def star_r(ang):                                               # the star's edge at this angle
+            k8 = (ang % (math.pi / 4)) / (math.pi / 4)                 # 0 at a point, .5 between, 1 at the next point
+            pt = int(round(ang / (math.pi / 4))) % 8                   # nearest point: 0 right, 2 down (toward the player)
+            tip = sc * ((27 if pt == 2 else 18) if pt % 2 == 0 else 12)
+            return sc * 8 + (tip - sc * 8) * (1 - min(k8, 1 - k8) * 2) ** 1.3
+        reach = int(sc * 28) + 2
+        for Y in range(int(y) - reach, int(y) + reach + 1):
+            for X in range(int(x) - reach, int(x) + reach + 1):
+                if not (0 <= X < W and 0 <= Y < H): continue
+                d = math.hypot(X - x, Y - y)
+                e = star_r(math.atan2(Y - y, X - x) % (2 * math.pi))
+                if d > e + 1.3: continue
+                if d > e: self.put(a, X, Y, self.KEY); continue
+                q = d / e
+                col = P["core"] if q < .45 else P["light"] if q < .72 else P["mid"] if q < .9 else P["dark"]
+                self.put(a, X, Y, col)
+        for s in range(int(sc * 32)):                                  # the shot leaving: a tapered streak down
+            half = max(0, int(round(sc * 2.6 * (1 - s / (sc * 32)))))
+            for o in range(-half, half + 1):
+                self.put(a, x + o, y + sc * 6 + s, P["core"] if abs(o) < max(1, half) * .6 else P["light"])
+        self.orb(a, x, y, sc * 5.5)
+        rng = np.random.default_rng(seed + 3)
+        for _ in range(int(12 * sc) + 4):
+            ang = rng.uniform(0, 2 * math.pi); d = rng.uniform(R * .8, R * 1.45)
+            X, Y = x + math.cos(ang) * d, y + math.sin(ang) * d
+            self.put(a, X, Y, P["core"]); self.put(a, X + 1, Y, P["light"])
+        return a
 
     def tell(self, a, pose, stage, stages):
         """stage 0 .. stages-1 charges; stage == stages is the fire drawing."""
         parts = self.rig["tells"][pose]
+        sc = self.parts_scale(parts)
         a = self.flames(a, 1, 1.15)
-        a = self.glow(a, .2)
+        pm = self.part_mask(parts, r=12)
         if stage >= stages:
-            a = self.glow(a, 1.0, self.part_mask(parts))
-            for p in parts:
-                x, y = self.muzzle_src(p); self.flash(a, x, y, 10)
+            a = self.glow(a, .45)
+            a = self.bloom(a, .6)
+            a = self.glow(a, 1.6, pm)
+            for i, p in enumerate(parts):
+                x, y = self.muzzle_src(p); self.blast_fire(a, x, y, sc, 7 * pose + i)
             return a
         k = (stage + 1) / stages
-        a = self.glow(a, .35 + .6 * k, self.part_mask(parts))
-        for p in parts:
-            x, y = self.muzzle_src(p); self.orb(a, x, y, 2.0 + 3.2 * k)
+        a = self.glow(a, .2 + .3 * k)
+        a = self.bloom(a, .25 + .35 * k)
+        a = self.glow(a, .5 + .8 * k, pm)
+        for i, p in enumerate(parts):
+            x, y = self.muzzle_src(p); self.charge(a, x, y, k, sc, 5 * pose + i + stage, stage == stages - 1)
         return a
 
     def hit(self, a):
@@ -430,17 +574,27 @@ class Boss:
         return a
 
     def retreat(self, a, n):
-        a = self.flames(a, n, 1.4)
-        a = self.glow(a, .3)
-        rng = np.random.default_rng(40 + n)
+        """It warps up and away (BossActor outro): full-burn flames, a cue afterglow trail below, dense warp streaks."""
+        P = self.pal
         x0, y0, x1, y1 = bbox(self.hull)
         H, W = self.hull.shape
-        for _ in range(10 + 8 * n):
-            x = int(rng.integers(x0 + 4, x1 - 4)); y = int(rng.integers(y0, y1 - 20)); L = int(rng.integers(14, 34))
-            col = self.pal["light"] if rng.random() < .6 else self.pal["core"]
-            for Y in range(y, min(y + L, H)):
-                a[Y, x] = (*col, 255)
-        return a
+        out = self.flames(a, n, 2.2)
+        # the afterglow: the silhouette smeared downward behind the hull, hottest next to it (nearest band first: each fills only empty px)
+        for d, col, dith in ((2, P["light"], False), (5 + 2 * n, P["mid"], True), (10 + 4 * n, P["dark"], True)):
+            sh = np.roll(self.hull, d, 0); sh[:d] = False
+            m = sh & ~self.hull & (out[..., 3] == 0)
+            for Y, X in zip(*np.nonzero(m)):
+                if (not dith or (X + Y + n) % 2 == 0) and self.in_cell(X, Y): out[Y, X] = (*col, 255)
+        out = self.glow(out, .5)
+        out = self.bloom(out, .5)
+        rng = np.random.default_rng(40 + n)
+        for _ in range(22 + 12 * n):
+            x = int(rng.integers(x0 + 2, x1 - 2)); y = int(rng.integers(y0 - 4, y1 - 6)); L = int(rng.integers(16, 44))
+            col = P["light"] if rng.random() < .6 else P["core"]
+            for s in range(L):
+                c = col if s < L * .6 else P["mid"]
+                self.put(out, x, y + s, c)
+        return out
 
     # ---------------------------------------------------------------- damage
 
