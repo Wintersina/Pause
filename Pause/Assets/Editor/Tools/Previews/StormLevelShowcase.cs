@@ -134,11 +134,12 @@ public static class StormLevelShowcase
         // (variant, two ground kinds, one aloft kind)
         var shots = new[]
         {
-            new[] { 1, StormPropsTuning.Refinery, StormPropsTuning.Rods, StormPropsTuning.Aerostat },
+            // (rods come beside a refinery, a tug / skimmer beside a buoy chain: their companions are placed with them)
+            new[] { 1, StormPropsTuning.Rods, StormPropsTuning.Mast, StormPropsTuning.Aerostat },
             new[] { 2, StormPropsTuning.Cell, StormPropsTuning.Gunship, StormPropsTuning.Rays },
-            new[] { 3, StormPropsTuning.Tug, StormPropsTuning.Buoys, StormPropsTuning.Convoy },
-            new[] { 4, StormPropsTuning.Gunship, StormPropsTuning.Vortex, StormPropsTuning.Skimmer },
-            new[] { 1, StormPropsTuning.Wreck, StormPropsTuning.Mast, StormPropsTuning.Jelly },
+            new[] { 3, StormPropsTuning.Tug, StormPropsTuning.Skimmer, StormPropsTuning.Convoy },
+            new[] { 4, StormPropsTuning.Gunship, StormPropsTuning.Vortex, StormPropsTuning.Jelly },
+            new[] { 1, StormPropsTuning.Wreck, StormPropsTuning.Buoys, StormPropsTuning.Jelly },
         };
         foreach (var shot in shots)
         {
@@ -155,7 +156,7 @@ public static class StormLevelShowcase
                 if (!ok) for (int a = 0; a < 6 && !ok; a++) ok = director.SpawnProp(shot[j], tr - h * .85f, tr + h * .85f, -1, 800);
                 Debug.Log("[SHOWCASE] props v" + shot[0] + " " + StormPropsTuning.Ground[shot[j]] + " placed " + ok);
             }
-            bool up = director.SpawnAloft(shot[3], .4f, h * .25f);
+            bool up = director.SpawnAloft(shot[3], float.NaN, h * .25f);   // (a column clear of every pinned piece, or none)
             Debug.Log("[SHOWCASE] aloft v" + shot[0] + " " + StormPropsTuning.Aloft[shot[3]] + " placed " + up);
             string tag = "v" + shot[0] + "-" + StormPropsTuning.Ground[shot[1]] + "-" + StormPropsTuning.Ground[shot[2]] + "-" + StormPropsTuning.Aloft[shot[3]];
             Steps(.3f);
@@ -175,7 +176,7 @@ public static class StormLevelShowcase
     static void Gif()
     {
         Scene(2);
-        director.SpawnAloft(-1, -.5f, cam.orthographicSize * .5f);
+        director.SpawnAloft(-1, float.NaN, cam.orthographicSize * .5f);
         string frames = Path.Combine(dir, "storm_v2_frames");
         if (Directory.Exists(frames)) Directory.Delete(frames, true);
         Directory.CreateDirectory(frames);

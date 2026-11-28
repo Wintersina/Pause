@@ -108,14 +108,21 @@ public static class StormBackdropTest
         foreach (string n in want) all &= spec.Has(n);
         Check("Storm layers: ground tiles, pinned ground pieces, flow, lightning glow + bolts, mist, wisps, ceiling, bloom, gusts, debris, rain", all);
         var g = spec.Find("ground");
-        Check("the ground pieces are PINNED to the mid tile: same rate, landmark role, right after it",
+        int iMid = System.Array.IndexOf(spec.layers, spec.Find("mid")), iFlow = System.Array.IndexOf(spec.layers, spec.Find("flow"));
+        Check("the ground pieces are PINNED to the mid tile: same rate, landmark role, drawn right over the vapour strip that runs over the mid tile " +
+              "(user rule 2026-11-28: the vapour passes UNDER the props, never through them)",
               g.pinTo == "mid" && g.rate == spec.Rate("mid") && g.rate <= BackdropCatalog.MaxGroundRate &&
-              g.role == BackdropCatalog.Role.Landmark && System.Array.IndexOf(spec.layers, g) == System.Array.IndexOf(spec.layers, spec.Find("mid")) + 1);
+              g.role == BackdropCatalog.Role.Landmark && iFlow == iMid + 1 && System.Array.IndexOf(spec.layers, g) == iFlow + 1);
         bool rising = true;
-        for (int i = 1; i < spec.layers.Length; i++)
-            rising &= spec.layers[i].rate > spec.layers[i - 1].rate ||
-                      (spec.layers[i].pinTo == spec.layers[i - 1].name && spec.layers[i].rate == spec.layers[i - 1].rate);
-        Check("Storm rates strictly increase far -> near", rising);
+        float prev = float.MinValue;
+        for (int i = 0; i < spec.layers.Length; i++)
+        {
+            var l = spec.layers[i];
+            if (!string.IsNullOrEmpty(l.pinTo)) { rising &= l.rate == spec.Rate(l.pinTo); continue; }   // (pinned: its host's rate)
+            rising &= l.rate > prev;
+            prev = l.rate;
+        }
+        Check("Storm rates strictly increase far -> near (the pinned plane shares the mid tile's)", rising);
         Check("Storm ships four ground sets rotating, v3 the night side (darker), v1 / v2 / v4 day",
               spec.variantSets == 4 && !spec.Night(1) && !spec.Night(2) && spec.Night(3) && !spec.Night(4) &&
               spec.VariantBrightness(3) < 1f && spec.VariantBrightness(1) >= spec.VariantBrightness(3) &&

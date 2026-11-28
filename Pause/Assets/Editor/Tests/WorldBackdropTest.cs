@@ -52,7 +52,7 @@ public static class WorldBackdropTest
     // 2026-11-28 r3: the stitched ground tile (896 x 4096, ASTC 6x6: +~0.7 MB a set over the old 1024 x 2048 mid), the soft vapour strip
     // (512 x 2048, -0.7 MB), the living props (props 2040 x 1424 ASTC 4x4 ~2.8 MB; aloft 2016 x 2424 ASTC 6x6 ~2.1 MB): ~14.6 MB.
     // later the same day: the crashed gunship + the moored tug, lightning-rod platform and buoy chain (ground props, ASTC 4x4) and the
-    // manta rays (aloft, 6x6), all four liveries each: props ~2040 x 3200 (~6.5 MB), aloft ~2016 x 2900 (~2.6 MB): ~18.4 MB.
+    // manta rays (aloft, 6x6), all four liveries each: props 2040 x 3480 (~7.1 MB, the moored skimmer moved here), aloft 2016 x 2424 (~2.2 MB): ~18.6 MB.
     public const long StormTextureBudgetBytes = 20L * 1024 * 1024;
     const float SeamTolerance = 0.02f;          // mean |top row - bottom row|, premultiplied RGBA
     // 2026-10: the Desert hi-res pixel-art ground tiles (4 px cells, build_tiles.py) are seamless by construction, but the top and bottom
@@ -382,8 +382,9 @@ public static class WorldBackdropTest
         { "weather", new[] { "cloud_bank_00", "cloud_bank_03", "cloud_wisp_00", "cloud_wisp_02", "mist_00", "mist_01", "gust_00", "gust_01", "pall_00", "rain_00", "rain_03" } },
         { "lightning", new[] { "bolt_00", "bolt_05", "strike_00", "strike_01", "flash_00", "flash_01", "arc_00", "debris_00", "debris_04" } },
         // the living props (StormProps.cs): first and last cell of a livery of every kind
-        { StormPropsTuning.Atlas, new[] { "refinery_0_00", "refinery_3_07", "mast_0_00", "mast_3_07", "wreck_0_00", "wreck_3_07", "vortex_0_00", "vortex_2_07", "cell_0_00", "cell_2_07" } },
-        { StormPropsTuning.AloftAtlas, new[] { "aerostat_0_00", "aerostat_3_07", "skimmer_0_00", "skimmer_3_07", "convoy_0_00", "convoy_2_07", "jelly_0_00", "jelly_6_07" } },
+        { StormPropsTuning.Atlas, new[] { "refinery_0_00", "refinery_3_07", "mast_0_00", "mast_3_07", "wreck_0_00", "wreck_3_07", "vortex_0_00", "vortex_2_07", "cell_0_00", "cell_2_07",
+                                              "gunship_0_00", "gunship_3_07", "tug_0_00", "tug_3_07", "rods_0_00", "rods_3_07", "buoys_0_00", "buoys_3_07", "skimmer_0_00", "skimmer_3_07" } },
+        { StormPropsTuning.AloftAtlas, new[] { "aerostat_0_00", "aerostat_3_07", "convoy_0_00", "convoy_2_07", "jelly_0_00", "jelly_6_07", "rays_0_00", "rays_3_07" } },
     };
 
     // Desert's shared atlases and the drawings the director relies on (ordered like the art:

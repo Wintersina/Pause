@@ -491,8 +491,11 @@ public partial class StormDirector : PlanetDirector
 
     // ------------------------------------------------------------------- step --
 
+    float lastV;
+
     protected override void Step(float dt, float v)
     {
+        lastV = v;
         float scrolled = set.Spec.Rate("ground") * v * dt;
         groundTravel += scrolled;
         siteTravel += scrolled;
@@ -670,6 +673,9 @@ public partial class StormDirector : PlanetDirector
     {
         Flashes++;
         BackdropPiece mast = kind == StormLightning.Kind.Strike ? FindMast() : null;
+        // a strike comes down on its mast only: its bolt touches no other pinned piece on the way (else it is a fork elsewhere)
+        if (mast != null && !ClearOfPinned(mast.x, mast.y + StrikeOffset(mast, StormTuning.StrikeSize), StormTuning.StrikeSize * StormPropsTuning.BoltHalfX,
+                                           StormTuning.StrikeSize * StormPropsTuning.BoltHalfY + BoltSlide(), mast)) mast = null;
         if (kind == StormLightning.Kind.Strike && mast == null) kind = StormLightning.Kind.Fork;
         float gx, gy;
         if (mast != null) { gx = mast.x; gy = mast.y + (128f - StormTuning.RodTipY) / 256f * mast.size; }
@@ -680,6 +686,15 @@ public partial class StormDirector : PlanetDirector
             if (tower != null) { gx = tower.x + Rand(-.3f, .3f); gy = tower.y + tower.size * Rand(.1f, .3f); life.Strike(tower, Mathf.Clamp01(peak / .8f)); }   // its own bolts flash with the weather
             else { gx = Rand(-HalfW * .8f, HalfW * .8f); gy = Rand(-HalfH * .1f, HalfH * .85f); }
         }
+        // a fork's bolt keeps clear of every pinned piece: a few spots tried, else no bolt this time (the flash still lights the clouds)
+        float boltSize = Rand(StormTuning.BoltMin, StormTuning.BoltMax);
+        bool forkClear = false;
+        if (kind == StormLightning.Kind.Fork)
+            for (int t = 0; t < 12 && !forkClear; t++)
+            {
+                if (t > 0) { gx = Rand(-HalfW * .8f, HalfW * .8f); gy = Rand(-HalfH * .1f, HalfH * .85f); }
+                forkClear = BoltClear(gx, gy, boltSize);
+            }
         SpawnGlow(glow, gx, gy, Rand(StormTuning.GlowMin, StormTuning.GlowMax), peak, "glow");
         if (kind == StormLightning.Kind.Sheet && Chance(.6)) SpawnGlow(bloom, gx * .5f, gy * .6f, StormTuning.BloomSize, peak, "bloom");
         if (!fresh) return;
@@ -691,9 +706,27 @@ public partial class StormDirector : PlanetDirector
         else if (kind == StormLightning.Kind.Fork)
         {
             Forks++;
-            if (boltArt.Length > 0) SpawnBolt(Pick(boltArt), Rand(StormTuning.BoltMin, StormTuning.BoltMax), gx, gy, null);
+            if (boltArt.Length > 0 && forkClear) SpawnBolt(Pick(boltArt), boltSize, gx, gy, null);
         }
-        else if (arcArt.Length > 0 && Chance(.5)) SpawnBolt(Pick(arcArt), StormTuning.ArcSize, gx * .3f, gy, null);
+        else if (arcArt.Length > 0 && Chance(.5) && BoltClear(gx * .3f, gy, StormTuning.ArcSize)) SpawnBolt(Pick(arcArt), StormTuning.ArcSize, gx * .3f, gy, null);
+    }
+
+    // where a strike bolt's centre sits over its mast (SpawnBolt)
+    static float StrikeOffset(BackdropPiece mast, float size)
+    {
+        return (128f - StormTuning.RodTipY) / 256f * mast.size + (StormTuning.StrikeEndY - 128f) / 256f * size;
+    }
+
+    // how far a bolt slides over the ground in its life (its layer scrolls faster than the pinned one)
+    float BoltSlide()
+    {
+        return Mathf.Max(0f, set.Spec.Rate("bolts") - set.Spec.Rate("ground")) * lastV * StormLightning.BoltLife;
+    }
+
+    bool BoltClear(float x, float y, float size)
+    {
+        float slide = BoltSlide();
+        return ClearOfPinned(x, y - slide * .5f, size * StormPropsTuning.BoltHalfX, size * StormPropsTuning.BoltHalfY + slide * .5f);
     }
 
     BackdropPiece FindTower()
@@ -810,6 +843,7 @@ public partial class StormDirector : PlanetDirector
         SetSprite(p, sprite, Mathf.Min(size, BackdropCatalog.MaxLandmarkSize));
         p.body.localScale = mirror ? new Vector3(-1f, 1f, 1f) : Vector3.one;
         p.footprint = foot;
+        p.core = rule.core;
         p.gy = gy;
         p.x = x;
         p.y = planner.Y(gy);
@@ -1188,14 +1222,28 @@ public partial class StormDirector : PlanetDirector
     void SpawnDebris()
     {
         if (debrisArt.Length == 0) return;
+        // its whole tumble, relative to the ground, must pass no pinned piece: a few paths tried, else none this time
+        float size = Rand(StormTuning.DebrisMin, StormTuning.DebrisMax), rel = Mathf.Max(0f, set.Spec.Rate("debris") - set.Spec.Rate("ground")) * lastV;
+        float dir = 1f, x0 = 0f, y0 = SpawnY(size), vx = 0f, vy = 0f;
+        bool clear = false;
+        for (int t = 0; t < 16 && !clear; t++)
+        {
+            dir = Chance(.5) ? 1f : -1f;
+            x0 = -dir * Rand(HalfW * .3f, HalfW * .9f);
+            vx = dir * Rand(.15f, .5f);
+            vy = -Rand(.1f, .4f);
+            float down = -(vy - rel), seconds = down > .01f ? (y0 + HalfH + size * 2f) / down : 0f;
+            float gvx = vx, gvy = vy - rel;
+            clear = seconds > 0f && PathClear(x0, y0, gvx, gvy, Mathf.Min(seconds, 60f), size * StormPropsTuning.BodyShare);
+        }
+        if (!clear) return;
         var d = debris.Spawn();
         if (d == null) return;
-        SetSprite(d, Pick(debrisArt), Rand(StormTuning.DebrisMin, StormTuning.DebrisMax));
-        float dir = Chance(.5) ? 1f : -1f;
-        d.x = -dir * Rand(HalfW * .3f, HalfW * .9f);
-        d.y = SpawnY(d.size);
-        d.vx = dir * Rand(.15f, .5f);
-        d.vy = -Rand(.1f, .4f);
+        SetSprite(d, Pick(debrisArt), size);
+        d.x = x0;
+        d.y = y0;
+        d.vx = vx;
+        d.vy = vy;
         d.spin = Rand(40f, 120f) * (Chance(.5) ? 1f : -1f);
         d.rate = set.Spec.Rate("debris");
         Place(d);

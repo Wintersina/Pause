@@ -392,11 +392,12 @@ public static class BackdropCatalog
             Layer.Tile("sky", 0.006f * StormTuning.GroundZoom, W).Graded(.6f),
             Layer.Tile("far", 0.014f * StormTuning.GroundZoom, W).Graded(.8f),
             Layer.Tile("mid", StormTuning.GroundRate, W).Graded(1f),
+            // soft wind-sheared vapour streaks drifting over the deck (a little faster than the ground: the wind). UNDER the pinned
+            // plane (user rule 2026-11-28: nothing moving passes through a prop): the vapour runs beneath the floating structures
+            Layer.Strip("flow", StormTuning.FlowRate, StormTuning.FlowDrift, 0.004f, new Color(1f, 1f, 1f, 0.85f)).Graded(1f),
             // masts, towers, skyhooks, refineries, the elite sites and the ground props (StormProps.cs): one ground plane pinned to the mid tile
             Layer.Pieces("ground", StormTuning.GroundRate, Role.Landmark).PinnedTo("mid", StormTuning.GroundRate).Graded(1f),
-            // soft wind-sheared vapour streaks drifting over the deck (a little faster than the ground: the wind)
-            Layer.Strip("flow", StormTuning.FlowRate, StormTuning.FlowDrift, 0.004f, new Color(1f, 1f, 1f, 0.85f)).Graded(1f),
-            // the ALOFT props (StormProps.cs: aerostats, skimmers, convoys, sky jellies): closer to the camera than the ground,
+            // the ALOFT props (StormProps.cs: aerostats, convoys, sky jellies, manta rays): closer to the camera than the ground,
             // drawn larger and scrolling faster (StormPropsTuning.AloftRateK x the ground's), hazed, under every weather layer
             Layer.Pieces(StormPropsTuning.AloftLayer, StormPropsTuning.AloftRate, Role.Atmosphere).Graded(StormPropsTuning.AloftGrade),
             // lightning's light spilling over the cloud sea, and its bolts

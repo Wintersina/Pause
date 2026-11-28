@@ -12,7 +12,8 @@ using UnityEngine;
 //          derelict: rotors dark, one torn off, rimed with hail, tangled in tethers, half sunk in the deck). Rare accents:
 //          GroundPool at most, one every GroundGapMin..GroundGapMax of scrolled ground.
 //   ALOFT  (its own "aloft" layer, closer to the camera, BackdropCatalog: above the vapour strip, under all the weather) --
-//          tethered aerostats, a gas skimmer and a freighter convoy MOORED to buoys (cables baked into the art), sky jellies.
+//          tethered aerostats, a freighter convoy MOORED to buoys (cables baked into the art), sky jellies, manta rays. (The
+//          moored gas SKIMMER moved to the ground on 2026-11-28 so it rides the moorings with the buoys and the tug.)
 //          Drawn AloftSizeK x their ground size, scrolling AloftRateK x the ground's rate, hazed (a baked blur and a cool tint,
 //          AloftTint), never pinned. VERY rare: one at most in view (AloftPool = 1) and often none.
 //   USER RULE (2026-11-28): "I don't want things flying around if the player cannot shoot them down; it has to be trapped or
@@ -35,27 +36,48 @@ public static class StormPropsTuning
     public const float PxPerUnit = 160f;
 
     // ---- ground ----
-    public static readonly string[] Ground = { "refinery", "mast", "wreck", "vortex", "cell", "gunship", "tug", "rods", "buoys" };
-    public const int Refinery = 0, Mast = 1, Wreck = 2, Vortex = 3, Cell = 4, Gunship = 5, Tug = 6, Rods = 7, Buoys = 8;
-    public static readonly int[] GroundVariants = { 4, 4, 4, 3, 3, 4, 4, 4, 4 };
+    public static readonly string[] Ground = { "refinery", "mast", "wreck", "vortex", "cell", "gunship", "tug", "rods", "buoys", "skimmer" };
+    public const int Refinery = 0, Mast = 1, Wreck = 2, Vortex = 3, Cell = 4, Gunship = 5, Tug = 6, Rods = 7, Buoys = 8, Skimmer = 9;
+    public static readonly int[] GroundVariants = { 4, 4, 4, 3, 3, 4, 4, 4, 4, 4 };
     // drawn cell width, screen px (pl/storm/r3/composite.py RULES, user-approved)
-    public static readonly float[] GroundPx = { 124f, 92f, 128f, 284f, 250f, 240f, 200f, 110f, 120f };   // (the vortex at BackdropCatalog.MaxLandmarkSize; the gunship "nice and large")
+    public static readonly float[] GroundPx = { 124f, 92f, 128f, 284f, 250f, 240f, 200f, 110f, 120f, 128f };   // (the vortex at BackdropCatalog.MaxLandmarkSize; the gunship "nice and large")
     public static float GroundSize(int kind) { return GroundPx[kind] / PxPerUnit; }
     // where each may stand (r3 masks: O lit cloud tops, C textured deck, W dark lanes) and how much of its footprint must match
-    public static readonly GroundClass[] GroundOn = { GroundClass.Open, GroundClass.Open, GroundClass.Water, GroundClass.Water | GroundClass.Canopy, GroundClass.Open, GroundClass.Water | GroundClass.Canopy, GroundClass.Water | GroundClass.Canopy, GroundClass.Open, GroundClass.Water | GroundClass.Canopy };
-    public static readonly float[] GroundNeed = { .6f, .5f, .6f, .75f, .45f, .6f, .6f, .55f, .6f };
-    public static readonly float[] GroundCore = { .34f, .3f, .36f, .42f, .3f, .36f, .34f, .32f, .3f };
+    public static readonly GroundClass[] GroundOn = { GroundClass.Open, GroundClass.Open, GroundClass.Water, GroundClass.Water | GroundClass.Canopy, GroundClass.Open, GroundClass.Water | GroundClass.Canopy, GroundClass.Water | GroundClass.Canopy, GroundClass.Open, GroundClass.Water | GroundClass.Canopy, GroundClass.Water | GroundClass.Canopy };
+    public static readonly float[] GroundNeed = { .6f, .5f, .6f, .75f, .45f, .6f, .6f, .55f, .6f, .6f };
+    public static readonly float[] GroundCore = { .34f, .3f, .36f, .42f, .3f, .36f, .34f, .32f, .3f, .32f };
     public static PieceRule GroundRule(int kind) { return new PieceRule(GroundOn[kind], GroundNeed[kind], GroundCore[kind]); }
-    public static bool Claims(int kind) { return kind != Cell; }            // a cell is light: it never holds ground
+    // PLACEMENT (user rule 2026-11-28: props stand where they make sense and nothing moving passes through or touches one):
+    //   * every ground prop holds its ground -- the cell too now -- with a KEEP-OUT box KeepK x its footprint (the crashed gunship
+    //     the widest: nothing comes near it), so no landmark, launch site or other prop is ever placed on or against it;
+    //   * the moorings stay together: a tug or a skimmer is only ever placed beside a buoy chain and a buoy chain beside a tug or a
+    //     skimmer (Companion; all or nothing); a lightning-rod platform only beside a refinery deck, on the flat lit tops (O);
+    //   * moving things keep clear of every pinned piece (StormDirector.ClearOfPinned): fork bolts and arcs, a strike's bolt
+    //     (except on its own mast), the tumbling debris along its whole path, and the aloft pieces, whose path over the ground is a
+    //     straight column (no sideways drift): spawned only in a column no pinned piece stands in, and while one is up its column
+    //     is a LANE no new ground piece is placed in (GroundPlanner.LaneX). The vapour (flow) strip runs UNDER the pinned layer.
+    public static bool Claims(int kind) { return true; }
+    public static readonly float[] KeepK = { 1.15f, 1.15f, 1.15f, 1.2f, 1.1f, 1.45f, 1.15f, 1.1f, 1.1f, 1.15f };
+    public const float BodyShare = .4f;                              // a moving piece's drawn half-extent, x its cell size
+    public const float BoltHalfX = .18f, BoltHalfY = .45f;           // a bolt's (thin, tall) drawn half-extents, x its cell size
+    public static float MoorReach = .5f;                             // a companion's footprint edge at most this far from its anchor's (u)
+    // the companion a kind must stand beside (-1 none); `coin` picks between two
+    public static int Companion(int kind, bool coin)
+    {
+        if (kind == Tug || kind == Skimmer) return Buoys;
+        if (kind == Buoys) return coin ? Tug : Skimmer;
+        if (kind == Rods) return Refinery;
+        return -1;
+    }
     // per ground set (index = variant, 0 none): v1 banded deck and v4 shelf arcs more industry, v2 thunderhead field more cells,
     // v3 night side more lit kinds
     public static readonly int[][] GroundWeights =
     {
-        new[] { 3, 3, 2, 1, 3, 2, 2, 2, 2 },
-        new[] { 4, 3, 2, 1, 2, 2, 2, 2, 2 },
-        new[] { 2, 3, 1, 1, 5, 2, 2, 3, 2 },
-        new[] { 3, 4, 2, 1, 3, 2, 3, 2, 2 },
-        new[] { 4, 3, 2, 1, 2, 2, 2, 2, 3 },
+        new[] { 3, 3, 2, 1, 3, 2, 2, 2, 2, 2 },
+        new[] { 4, 3, 2, 1, 2, 2, 2, 2, 2, 2 },
+        new[] { 2, 3, 1, 1, 5, 2, 2, 3, 2, 2 },
+        new[] { 3, 4, 2, 1, 3, 2, 3, 2, 2, 2 },
+        new[] { 4, 3, 2, 1, 2, 2, 2, 2, 3, 3 },
     };
     public static readonly int[][] GroundMs =
     {
@@ -68,8 +90,9 @@ public static class StormPropsTuning
         new[] { 90, 90, 90, 90, 90, 90, 90, 90 },                  // the tug idling on its mooring: props, nav lamps, beacons, the buoy lamp
         new[] { 125, 125, 125, 125, 125, 125, 125, 125 },          // the rod platform: tip lamps blink, an arc jumps once a second (frames 3-4)
         new[] { 140, 140, 140, 140, 140, 140, 140, 140 },          // the buoy chain: lamps chase down the chain, a dark pause between runs
+        new[] { 125, 125, 125, 125, 125, 125, 125, 125 },          // the skimmer on its mooring lines: nav lamps, idling intake glow
     };
-    public const int GroundPool = 6, CellPool = 2;
+    public const int GroundPool = 10, CellPool = 2;
     public static float GroundGapMin = 2.6f, GroundGapMax = 4.4f;   // scrolled ground (world units) between two ground props
     public const float SizeJitter = .06f;
     public const float VortexSpin = 7f;                              // degrees / s about its eye
@@ -77,12 +100,12 @@ public static class StormPropsTuning
     public const int Tries = 40;
 
     // ---- aloft ----
-    public static readonly string[] Aloft = { "aerostat", "skimmer", "convoy", "jelly", "rays" };
-    public const int Aerostat = 0, Skimmer = 1, Convoy = 2, Jelly = 3, Rays = 4;
-    public static readonly int[] AloftVariants = { 4, 4, 3, 7, 4 };
+    public static readonly string[] Aloft = { "aerostat", "convoy", "jelly", "rays" };
+    public const int Aerostat = 0, Convoy = 1, Jelly = 2, Rays = 3;
+    public static readonly int[] AloftVariants = { 4, 3, 7, 4 };
     // their ground size (px, as above) x AloftSizeK: 1.6 - 2.5x (user: "closer and larger")
-    public static readonly float[] AloftBasePx = { 100f, 118f, 176f, 116f, 124f };
-    public static readonly float[] AloftSizeK = { 2.0f, 1.86f, 1.82f, 2.0f, 1.9f };
+    public static readonly float[] AloftBasePx = { 100f, 176f, 116f, 124f };
+    public static readonly float[] AloftSizeK = { 2.0f, 1.82f, 2.0f, 1.9f };
     public static float AloftSize(int kind) { return AloftBasePx[kind] * AloftSizeK[kind] / PxPerUnit; }
     public const float AloftRateK = 1.45f;                           // x the ground's parallax: closer to the camera
     public const float AloftRate = StormTuning.GroundRate * AloftRateK;
@@ -91,23 +114,23 @@ public static class StormPropsTuning
     public static readonly Color AloftTint = new Color(.80f, .84f, .93f, .82f);
     public static readonly int[][] AloftWeights =
     {
-        new[] { 3, 3, 2, 3, 2 },
-        new[] { 3, 3, 3, 2, 3 },
-        new[] { 3, 2, 2, 3, 2 },
-        new[] { 2, 2, 2, 5, 3 },
-        new[] { 3, 3, 3, 2, 2 },
+        new[] { 3, 2, 3, 2 },
+        new[] { 3, 3, 2, 3 },
+        new[] { 3, 2, 3, 2 },
+        new[] { 2, 2, 5, 3 },
+        new[] { 3, 3, 2, 2 },
     };
-    public static readonly int[] AloftMs = { 125, 125, 125, 180, 160 };
+    public static readonly int[] AloftMs = { 125, 125, 180, 160 };
     public const int AloftPool = 1;                                  // at most one in view
     public static float AloftGapMin = 16f, AloftGapMax = 34f;        // aloft-layer travel (world units) between two (a view is ~15 u tall)
     public static float AloftFirst = 9f;
-    // own motion: NO vehicle travels (the user's rule). The tethered aerostats and the moored skimmer / convoy only bob on their
+    // own motion: NO vehicle travels (the user's rule). The tethered aerostats and the moored convoy only bob on their
     // lines (amplitude x their size, period s) and sway (degrees, period s); the jellies and rays, living creatures, also drift slowly.
-    public static readonly float[] BobAmp = { .03f, .012f, .01f, .045f, .03f };
-    public static readonly float[] BobPeriod = { 5.5f, 4.2f, 6.5f, 3.6f, 4.6f };
-    public static readonly float[] SwayDeg = { 2.5f, 1.5f, 1f, 0f, 0f };
-    public static readonly float[] SwayPeriod = { 7f, 5.5f, 8f, 1f, 1f };
-    public const float JellyDrift = .05f;
+    public static readonly float[] BobAmp = { .03f, .01f, .045f, .03f };
+    public static readonly float[] BobPeriod = { 5.5f, 6.5f, 3.6f, 4.6f };
+    public static readonly float[] SwayDeg = { 2.5f, 1f, 0f, 0f };
+    public static readonly float[] SwayPeriod = { 7f, 8f, 1f, 1f };
+    public const float JellyDrift = .05f;                           // straight up the column only (no sideways drift)
     public static bool Drifts(int aloftKind) { return aloftKind == Jelly || aloftKind == Rays; }
 
     public static string Strip(string kind, int variant) { return kind + "_" + variant; }
@@ -254,7 +277,7 @@ public partial class StormDirector
             if (pool.ActiveCount >= pool.Capacity) { if (kind >= 0) return false; continue; }
             float size = StormPropsTuning.GroundSize(kd) * (1f + StormPropsTuning.SizeJitter * PRand(-1f, 1f));
             var rule = StormPropsTuning.GroundRule(kd);
-            float rx = GroundPlanner.HalfX(rule, size), ry = GroundPlanner.HalfY(rule, size);
+            float rx = KeepX(kd, size), ry = rx * .8f;
             float x = 0f; double gy = 0.0; bool found = false;
             for (int t = 0; t < tries && !found; t++)
             {
@@ -265,36 +288,153 @@ public partial class StormDirector
                 x = cx; gy = cy; found = true;
             }
             if (!found) { if (kind >= 0) return false; continue; }
-            int foot = -1;
-            if (StormPropsTuning.Claims(kd)) { foot = planner.Claim(x, gy, rx, ry); if (foot < 0) return false; }
-            var p = pool.Spawn();
-            if (p == null) { if (foot >= 0) planner.Release(foot); return false; }
-            int n = StormPropsTuning.GroundVariants[kd];
-            int v = variant >= 0 ? Mathf.Min(variant, n - 1) : StormPropsTuning.Variant(PropsSpawned, kd, n, lastGroundVariant[kd]);
-            if (groundStrips[kd][v] == null) v = 0;
-            lastGroundVariant[kd] = v;
-            p.frames = groundStrips[kd][v];
-            SetSprite(p, p.frames[0], Mathf.Min(size, BackdropCatalog.MaxLandmarkSize));
-            p.frames = groundStrips[kd][v];
-            p.body.localScale = kd != StormPropsTuning.Cell && propRng.NextDouble() < .5 ? new Vector3(-1f, 1f, 1f) : Vector3.one;
-            p.footprint = foot;
-            p.core = rule.core;
-            p.gy = gy;
-            p.x = x;
-            p.y = planner.Y(gy);
-            p.rate = set.Spec.Rate("ground");
-            p.color = Color.white;
-            p.dockTint = Color.white;
-            p.kind = kd;
-            p.tier = v;
-            p.phase = PRand(0f, StormPropsTuning.CycleMs(StormPropsTuning.GroundMs[kd]) / 1000f);   // its own animation phase
-            Place(p);
-            PaintProp(p);
-            lastGroundKind = kd;
-            PropsSpawned++;
+            var placed = Commit(kd, x, gy, size, variant);
+            if (placed == null) return false;
+            int ck = StormPropsTuning.Companion(kd, propRng.NextDouble() < .5);
+            if (ck >= 0 && HasGroundArt(ck) && !Beside(ck, placed) &&
+                (kd != StormPropsTuning.Buoys || !Beside(ck == StormPropsTuning.Tug ? StormPropsTuning.Skimmer : StormPropsTuning.Tug, placed)))
+            {
+                Remove(placed);                                   // the moorings come together or not at all
+                if (kind >= 0) return false;
+                continue;
+            }
             return true;
         }
         return false;
+    }
+
+    // a ground prop's keep-out half-width (its footprint x KeepK) -- the box it claims and every check uses
+    public static float KeepX(int kind, float size) { return GroundPlanner.HalfX(StormPropsTuning.GroundRule(kind), size) * StormPropsTuning.KeepK[kind]; }
+
+    // place a ground prop of `kind` at (x, gy): its ground claimed, its livery hashed. Null: no room.
+    BackdropPiece Commit(int kd, float x, double gy, float size, int variant)
+    {
+        var rule = StormPropsTuning.GroundRule(kd);
+        var pool = kd == StormPropsTuning.Cell ? cells : props;
+        float rx = KeepX(kd, size), ry = rx * .8f;
+        int foot = -1;
+        if (StormPropsTuning.Claims(kd)) { foot = planner.Claim(x, gy, rx, ry); if (foot < 0) return null; }
+        var p = pool.Spawn();
+        if (p == null) { if (foot >= 0) planner.Release(foot); return null; }
+        int n = StormPropsTuning.GroundVariants[kd];
+        int v = variant >= 0 ? Mathf.Min(variant, n - 1) : StormPropsTuning.Variant(PropsSpawned, kd, n, lastGroundVariant[kd]);
+        if (groundStrips[kd][v] == null) v = 0;
+        lastGroundVariant[kd] = v;
+        p.frames = groundStrips[kd][v];
+        SetSprite(p, p.frames[0], Mathf.Min(size, BackdropCatalog.MaxLandmarkSize));
+        p.frames = groundStrips[kd][v];
+        p.body.localScale = kd != StormPropsTuning.Cell && propRng.NextDouble() < .5 ? new Vector3(-1f, 1f, 1f) : Vector3.one;
+        p.footprint = foot;
+        p.core = rule.core;
+        p.gy = gy;
+        p.x = x;
+        p.y = planner.Y(gy);
+        p.rate = set.Spec.Rate("ground");
+        p.color = Color.white;
+        p.dockTint = Color.white;
+        p.kind = kd;
+        p.tier = v;
+        p.phase = PRand(0f, StormPropsTuning.CycleMs(StormPropsTuning.GroundMs[kd]) / 1000f);   // its own animation phase
+        Place(p);
+        PaintProp(p);
+        lastGroundKind = kd;
+        PropsSpawned++;
+        return p;
+    }
+
+    // a companion of `kind` beside `anchor` (left or right, its footprint edge within MoorReach of the anchor's)
+    bool Beside(int kind, BackdropPiece anchor)
+    {
+        var pool = kind == StormPropsTuning.Cell ? cells : props;
+        if (pool.ActiveCount >= pool.Capacity) return false;
+        float size = StormPropsTuning.GroundSize(kind) * (1f + StormPropsTuning.SizeJitter * PRand(-1f, 1f));
+        var rule = StormPropsTuning.GroundRule(kind);
+        float ra = KeepX(anchor.kind, anchor.size), rb = KeepX(kind, size);
+        for (int t = 0; t < 24; t++)
+        {
+            float side = (t & 1) == 0 ? -1f : 1f;
+            float cx = anchor.x + side * (ra + rb + PRand(.02f, StormPropsTuning.MoorReach));
+            double cy = anchor.gy + PRand(-1f, 1f) * (ra + rb) * .6f;
+            if (cx < XMin(size) - .1f || cx > XMax(size) + .1f) continue;
+            if (!planner.Free(cx, cy, rb, rb * .8f) || !planner.Accepts(rule, cx, cy, size)) continue;
+            if (Commit(kind, cx, cy, size, -1) != null) return true;
+        }
+        return false;
+    }
+
+    void Remove(BackdropPiece p)
+    {
+        if (p.footprint >= 0) planner.Release(p.footprint);
+        p.footprint = -1;
+        Despawn(p);
+    }
+
+    // ---- keeping clear of the pinned pieces -------------------------------------------------------------------------------
+
+    // a pinned piece's keep-out half-width (landmarks and sites: their footprint; props: x KeepK)
+    public float PinnedHalf(BackdropPiece p, bool prop)
+    {
+        float h = p.size * Mathf.Max(p.core, GroundPlanner.MinCore);
+        return prop ? h * StormPropsTuning.KeepK[p.kind] : h;
+    }
+
+    // true when a box (centre x, y; half-extents hx, hy; screen units) touches no pinned piece but `except`
+    public bool ClearOfPinned(float x, float y, float hx, float hy, BackdropPiece except = null)
+    {
+        return ClearIn(Ground, false, x, y, hx, hy, except) && ClearIn(Sites, false, x, y, hx, hy, except) &&
+               ClearIn(props, true, x, y, hx, hy, except) && ClearIn(cells, true, x, y, hx, hy, except);
+    }
+
+    bool ClearIn(BackdropPool pool, bool prop, float x, float y, float hx, float hy, BackdropPiece except)
+    {
+        if (pool == null) return true;
+        foreach (var p in pool.items)
+        {
+            if (!p.active || p == except) continue;
+            float h = PinnedHalf(p, prop);
+            if (Mathf.Abs(p.x - x) < hx + h && Mathf.Abs(p.y - y) < hy + h * .8f) return false;
+        }
+        return true;
+    }
+
+    // a vertical column (x +- hx) with no pinned piece in it, anywhere up or down
+    public bool ColumnClear(float x, float hx)
+    {
+        return ColumnIn(Ground, false, x, hx) && ColumnIn(Sites, false, x, hx) && ColumnIn(props, true, x, hx) && ColumnIn(cells, true, x, hx);
+    }
+
+    bool ColumnIn(BackdropPool pool, bool prop, float x, float hx)
+    {
+        if (pool == null) return true;
+        foreach (var p in pool.items)
+            if (p.active && Mathf.Abs(p.x - x) < hx + PinnedHalf(p, prop)) return false;
+        return true;
+    }
+
+    // a straight path relative to the ground (from x, y moving vx, vy u/s for `seconds`) that passes no pinned piece
+    public bool PathClear(float x, float y, float vx, float vy, float seconds, float h)
+    {
+        float len = Mathf.Sqrt(vx * vx + vy * vy) * seconds;
+        int n = Mathf.Clamp(Mathf.CeilToInt(len / Mathf.Max(.05f, h * .5f)), 1, 96);
+        for (int i = 0; i <= n; i++)
+        {
+            float t = seconds * i / n;
+            if (!ClearOfPinned(x + vx * t, y + vy * t, h, h)) return false;
+        }
+        return true;
+    }
+
+    // every aloft piece's column is a lane no new ground piece may be placed in
+    void UpdateLanes()
+    {
+        int n = 0;
+        if (aloft != null)
+            foreach (var p in aloft.items)
+            {
+                if (!p.active || n >= planner.LaneX.Length) continue;
+                planner.LaneX[n] = p.x; planner.LaneR[n] = p.size * StormPropsTuning.BodyShare; n++;
+            }
+        planner.Lanes = n;
     }
 
     // Tests / previews: a ground prop of `kind` around screen y (searched a little up and down).
@@ -311,21 +451,32 @@ public partial class StormDirector
         int vset = Mathf.Clamp(set.Variant, 0, StormPropsTuning.AloftWeights.Length - 1);
         int kd = kind >= 0 ? kind : PickWeighted(StormPropsTuning.AloftWeights[vset], lastAloftKind, -1, false);
         if (kd < 0 || !HasAloftArt(kd)) return false;
+        float size = StormPropsTuning.AloftSize(kd) * (1f + StormPropsTuning.SizeJitter * PRand(-1f, 1f));
+        if (float.IsNaN(x))
+        {
+            // a column no pinned piece stands in (its path over the ground is straight down it)
+            bool found = false;
+            for (int t = 0; t < 16 && !found; t++)
+            {
+                float cx = PRand(-HalfW * .62f, HalfW * .62f);
+                if (ColumnClear(cx, size * StormPropsTuning.BodyShare)) { x = cx; found = true; }
+            }
+            if (!found) return false;
+        }
         var p = aloft.Spawn();
         if (p == null) return false;
         int n = StormPropsTuning.AloftVariants[kd];
         int v = variant >= 0 ? Mathf.Min(variant, n - 1) : StormPropsTuning.Variant(AloftSpawned, kd + 11, n, lastAloftVariant[kd]);
         if (aloftStrips[kd][v] == null) v = 0;
         lastAloftVariant[kd] = v;
-        float size = StormPropsTuning.AloftSize(kd) * (1f + StormPropsTuning.SizeJitter * PRand(-1f, 1f));
         SetSprite(p, aloftStrips[kd][v][0], size);
         p.body.localPosition = Vector3.zero;
         p.frames = aloftStrips[kd][v];
         bool mirror = propRng.NextDouble() < .5;
         p.body.localScale = mirror ? new Vector3(-1f, 1f, 1f) : Vector3.one;
         p.vx = p.vy = 0f;                                  // moored / tethered: it rides the parallax only
-        if (StormPropsTuning.Drifts(kd)) { p.vx = PRand(-1f, 1f) * StormPropsTuning.JellyDrift; p.vy = PRand(0f, 1f) * StormPropsTuning.JellyDrift; }
-        p.x = float.IsNaN(x) ? PRand(-HalfW * .62f, HalfW * .62f) : x;
+        if (StormPropsTuning.Drifts(kd)) p.vy = PRand(.3f, 1f) * StormPropsTuning.JellyDrift;
+        p.x = x;
         p.y = float.IsNaN(y) ? SpawnY(p.size) + Mathf.Max(0f, p.vy) * 2f : y;
         p.body.localRotation = Quaternion.identity;
         p.rate = set.Spec.Rate(StormPropsTuning.AloftLayer);
@@ -337,6 +488,7 @@ public partial class StormDirector
         p.footprint = -1;
         Place(p);
         PaintAloft(p);
+        UpdateLanes();
         lastAloftKind = kd;
         AloftSpawned++;
         return true;
@@ -417,6 +569,7 @@ public partial class StormDirector
     void StepProps(float dt, float v, float scrolled)
     {
         if (props == null) return;
+        UpdateLanes();
         propTravel += scrolled;
         if (planner.Ready && propTravel >= propGap)
         {

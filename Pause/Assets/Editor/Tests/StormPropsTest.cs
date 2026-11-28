@@ -45,6 +45,9 @@ public static class StormPropsTest
             for (int v = 1; v <= StormTuning.Variants; v++) Live(v);
             Forced();
             Aloft();
+            Clear(2);
+            Clear(4);
+            Moorings();
         }
         finally
         {
@@ -94,12 +97,12 @@ public static class StormPropsTest
 
     static void Table()
     {
-        Check("ground kinds: refinery, mast, wreck, vortex, cell, gunship, tug, rods, buoys (" + string.Join(", ", StormPropsTuning.Ground) + ")",
-              string.Join(",", StormPropsTuning.Ground) == "refinery,mast,wreck,vortex,cell,gunship,tug,rods,buoys");
-        Check("aloft kinds: aerostat, skimmer, convoy, jelly, rays (" + string.Join(", ", StormPropsTuning.Aloft) + ")",
-              string.Join(",", StormPropsTuning.Aloft) == "aerostat,skimmer,convoy,jelly,rays");
-        Check("liveries (all of each approved prop): refinery / mast / wreck / gunship / tug / rods / buoys 4, vortex / cell 3; aerostat / skimmer / rays 4, convoy 3, jelly 7",
-              string.Join(",", StormPropsTuning.GroundVariants) == "4,4,4,3,3,4,4,4,4" && string.Join(",", StormPropsTuning.AloftVariants) == "4,4,3,7,4");
+        Check("ground kinds: refinery, mast, wreck, vortex, cell, gunship, tug, rods, buoys, skimmer (" + string.Join(", ", StormPropsTuning.Ground) + ")",
+              string.Join(",", StormPropsTuning.Ground) == "refinery,mast,wreck,vortex,cell,gunship,tug,rods,buoys,skimmer");
+        Check("aloft kinds: aerostat, convoy, jelly, rays -- the moored skimmer rides the ground moorings now (" + string.Join(", ", StormPropsTuning.Aloft) + ")",
+              string.Join(",", StormPropsTuning.Aloft) == "aerostat,convoy,jelly,rays");
+        Check("liveries (all of each approved prop): refinery / mast / wreck / gunship / tug / rods / buoys / skimmer 4, vortex / cell 3; aerostat / rays 4, convoy 3, jelly 7",
+              string.Join(",", StormPropsTuning.GroundVariants) == "4,4,4,3,3,4,4,4,4,4" && string.Join(",", StormPropsTuning.AloftVariants) == "4,3,7,4");
         bool shapes = StormPropsTuning.GroundMs.Length == StormPropsTuning.Ground.Length && StormPropsTuning.GroundPx.Length == StormPropsTuning.Ground.Length &&
                       StormPropsTuning.AloftMs.Length == StormPropsTuning.Aloft.Length;
         foreach (var w in StormPropsTuning.GroundWeights) shapes &= w.Length == StormPropsTuning.Ground.Length;
@@ -115,17 +118,23 @@ public static class StormPropsTest
                        R(StormPropsTuning.Cell).on == GroundClass.Open && R(StormPropsTuning.Wreck).on == GroundClass.Water &&
                        R(StormPropsTuning.Vortex).on == (GroundClass.Water | GroundClass.Canopy) &&
                        R(StormPropsTuning.Gunship).on == (GroundClass.Water | GroundClass.Canopy) && R(StormPropsTuning.Tug).on == (GroundClass.Water | GroundClass.Canopy) &&
-                       R(StormPropsTuning.Buoys).on == (GroundClass.Water | GroundClass.Canopy) && R(StormPropsTuning.Rods).on == GroundClass.Open;
+                       R(StormPropsTuning.Buoys).on == (GroundClass.Water | GroundClass.Canopy) && R(StormPropsTuning.Rods).on == GroundClass.Open &&
+                       R(StormPropsTuning.Skimmer).on == (GroundClass.Water | GroundClass.Canopy);
         for (int k = 0; k < StormPropsTuning.Ground.Length; k++) classes &= R(k).need >= .45f && R(k).core > 0f;
-        Check("mask classes: refinery, mast and cell on the lit cloud tops (O), the wreck in a dark lane (W), rods on the tops (O); the vortex, the crashed gunship, the moored tug and the buoy chain on lane / deck (W|C)", classes);
-        Check("the cell is light and claims no ground; every other ground prop claims its footprint",
-              !StormPropsTuning.Claims(StormPropsTuning.Cell) && StormPropsTuning.Claims(StormPropsTuning.Refinery) && StormPropsTuning.Claims(StormPropsTuning.Vortex) &&
-              StormPropsTuning.Claims(StormPropsTuning.Gunship));
+        Check("mask classes: refinery, mast and cell on the lit cloud tops (O), the wreck in a dark lane (W), rods on the tops (O); the vortex, the crashed gunship, the moored tug, skimmer and buoy chain on lane / deck (W|C)", classes);
+        bool claims = true, keep = StormPropsTuning.KeepK.Length == StormPropsTuning.Ground.Length;
+        for (int k = 0; k < StormPropsTuning.Ground.Length; k++) { claims &= StormPropsTuning.Claims(k); if (keep) keep &= StormPropsTuning.KeepK[k] >= 1.05f; }
+        if (keep) for (int k = 0; k < StormPropsTuning.Ground.Length; k++) keep &= StormPropsTuning.KeepK[StormPropsTuning.Gunship] >= StormPropsTuning.KeepK[k];
+        Check("every ground prop (the cell too) claims a keep-out box > its footprint, the crashed gunship the widest", claims && keep);
+        Check("the moorings come together: tug / skimmer beside a buoy chain, a buoy chain beside a tug or skimmer, the rods beside a refinery",
+              StormPropsTuning.Companion(StormPropsTuning.Tug, true) == StormPropsTuning.Buoys && StormPropsTuning.Companion(StormPropsTuning.Skimmer, false) == StormPropsTuning.Buoys &&
+              StormPropsTuning.Companion(StormPropsTuning.Buoys, true) == StormPropsTuning.Tug && StormPropsTuning.Companion(StormPropsTuning.Buoys, false) == StormPropsTuning.Skimmer &&
+              StormPropsTuning.Companion(StormPropsTuning.Rods, true) == StormPropsTuning.Refinery && StormPropsTuning.Companion(StormPropsTuning.Gunship, true) < 0);
         // the user's rule: nothing flies around that the player cannot shoot -- only the jellies (creatures) drift
         bool still = true;
         for (int k = 0; k < StormPropsTuning.Aloft.Length; k++) still &= StormPropsTuning.Drifts(k) == (k == StormPropsTuning.Jelly || k == StormPropsTuning.Rays);
-        Check("no vehicle travels: aerostats tethered, skimmer and convoy moored (bob / sway only); only the creatures (jellies, rays) drift", still &&
-              StormPropsTuning.SwayDeg[StormPropsTuning.Skimmer] > 0f && StormPropsTuning.SwayDeg[StormPropsTuning.Convoy] > 0f);
+        Check("no vehicle travels: aerostats tethered, the convoy moored (bob / sway only); only the creatures (jellies, rays) drift", still &&
+              StormPropsTuning.SwayDeg[StormPropsTuning.Aerostat] > 0f && StormPropsTuning.SwayDeg[StormPropsTuning.Convoy] > 0f);
 
         // sizes
         float gmin = float.MaxValue, gmax = 0f;
@@ -399,7 +408,7 @@ public static class StormPropsTest
               runs == Runs && dealt >= Runs * 3 && wrong == 0);
         Check("v" + v + ": no ground prop overlaps a landmark, a dock or another prop (" + overlaps + "), never two vortices in view (" + twoVortex + ")", overlaps == 0 && twoVortex == 0);
         Check("v" + v + ": every ground prop stays pinned to its spot of the ground (" + drift + " frames drifted)", drift == 0);
-        Check("v" + v + ": ground props are accents -- at most 6 in view (max " + maxInView + "), " + mean.ToString("F2") + " on average (<= 4)", maxInView <= 6 && mean <= 4f);
+        Check("v" + v + ": ground props are accents -- at most 8 in view (moorings come in pairs; max " + maxInView + "), " + mean.ToString("F2") + " on average (<= 4.5)", maxInView <= 8 && mean <= 4.5f);
         Check("v" + v + ": aloft -- at most one in view (max " + maxAloft + "), in view " + (aloftShare * 100f).ToString("F0") + "% of the time (often none: <= 60%), " +
               aloftDealt + " came by, at the aloft rate (" + badRate + " off)", maxAloft <= 1 && aloftShare <= .6f && aloftDealt >= 1 && badRate == 0);
     }
@@ -418,6 +427,140 @@ public static class StormPropsTest
                 if (Mathf.Abs(p.x - q.x) < (px + qx) * .98f && System.Math.Abs(p.gy - q.gy) < (py + qy) * .98f) n++;
             }
         return n;
+    }
+
+    // ---- the SIMPLE OVERLAP TEST (user rule 2026-11-28: props stand where they make sense; nothing moving passes through or touches
+    // one). A live run, every frame, everything in view: no two pinned pieces' boxes meet (a prop's keep-out box against any
+    // landmark / site / prop footprint), and no moving piece -- aloft prop, fork bolt / arc, a strike's bolt (but on its own mast),
+    // tumbling debris -- touches a pinned piece. The vapour strip is drawn under the pinned plane. ----
+
+    static bool InViewY(float y, float h, float halfH) { return y + h > -halfH && y - h < halfH; }
+
+    static void Clear(int v)
+    {
+        const float Seconds = 120f;
+        int pinnedHits = 0, movingHits = 0, aloftSeen = 0, boltsSeen = 0, debrisSeen = 0, frames = 0;
+        string bad = "";
+        StormDirector.SeedOverride = 777 + v;
+        var wb = Fresh(v, .6f);
+        var d = Director(wb);
+        if (d == null || d.Props == null) { Check("v" + v + ": Storm director for the overlap test", false); if (wb != null) Object.DestroyImmediate(wb.gameObject); return; }
+        float hh = wb.Current.HalfHeight;
+        var pinned = new List<BackdropPool>(d.Landmarks);
+        if (!pinned.Contains(d.Sites)) pinned.Add(d.Sites);
+        pinned.Add(d.Props); pinned.Add(d.Cells);
+        var aloftFirst = new HashSet<BackdropPiece>();
+        for (float t = 0f; t < Seconds; t += Dt)
+        {
+            if (t > 0f) wb.Step(Dt);
+            frames++;
+            // pinned vs pinned: every prop's keep-out box against every other pinned piece's footprint
+            foreach (var pp in new[] { d.Props, d.Cells })
+                foreach (var a in pp.items)
+                {
+                    if (!a.active || !InViewY(a.y, a.size, hh)) continue;
+                    float ha = d.PinnedHalf(a, true);
+                    foreach (var pool in pinned)
+                    {
+                        bool prop = pool == d.Props || pool == d.Cells;
+                        foreach (var b in pool.items)
+                        {
+                            if (!b.active || b == a || b.sr.sprite == null) continue;
+                            float hb = prop ? GroundPlanner.HalfX(new PieceRule(GroundClass.Any, 0f, b.core), b.size) : d.PinnedHalf(b, false);
+                            if (Mathf.Abs(a.x - b.x) < (ha + hb) * .97f && System.Math.Abs(a.gy - b.gy) < (ha + hb) * .8f * .97f)
+                            { pinnedHits++; if (bad.Length < 240) bad += StormPropsTuning.Ground[a.kind] + "x" + b.sr.sprite.name + " "; }
+                        }
+                    }
+                }
+            // moving vs pinned (boxes shrunk 8 %: bob, sway and a frame's step)
+            foreach (var p in d.AloftPool.items)
+            {
+                if (!p.active || !InViewY(p.y, p.size, hh)) continue;
+                if (aloftFirst.Add(p)) aloftSeen++;
+                float h = p.size * StormPropsTuning.BodyShare * .92f;
+                if (Touches(d, pinned, p.x, p.y, h, h, null)) { movingHits++; if (bad.Length < 240) bad += "aloft:" + StormPropsTuning.Aloft[p.kind] + " "; }
+            }
+            foreach (var p in d.Bolts.items)
+            {
+                if (!p.active || !InViewY(p.y, p.size * .5f, hh)) continue;
+                boltsSeen++;
+                BackdropPiece mast = p.parent != null && p.parent.active ? p.parent : null;
+                if (Touches(d, pinned, p.x, p.y, p.size * StormPropsTuning.BoltHalfX * .92f, p.size * StormPropsTuning.BoltHalfY * .92f, mast))
+                { movingHits++; if (bad.Length < 240) bad += (mast != null ? "strike " : "bolt ") + (p.sr.sprite != null ? p.sr.sprite.name : "") + " "; }
+            }
+            foreach (var p in d.Debris.items)
+            {
+                if (!p.active || !InViewY(p.y, p.size, hh)) continue;
+                debrisSeen++;
+                float h = p.size * StormPropsTuning.BodyShare * .92f;
+                if (Touches(d, pinned, p.x, p.y, h, h, null)) { movingHits++; if (bad.Length < 240) bad += "debris "; }
+            }
+        }
+        Object.DestroyImmediate(wb.gameObject);
+        StormDirector.SeedOverride = 0;
+        Check("v" + v + " overlap test, " + frames + " frames: no pinned piece meets a prop's keep-out box (" + pinnedHits + ") and nothing moving touches a pinned piece (" +
+              movingHits + "): " + aloftSeen + " aloft, " + boltsSeen + " bolt frames, " + debrisSeen + " debris frames in view " + bad,
+              pinnedHits == 0 && movingHits == 0);
+        Check("v" + v + ": the weather still happens around the props (debris tumbles by: " + debrisSeen + " frames)", debrisSeen > 0);
+        var spec = BackdropCatalog.For("Storm");
+        Check("the vapour strip runs UNDER the pinned plane (flow drawn before ground)",
+              System.Array.IndexOf(spec.layers, spec.Find("flow")) < System.Array.IndexOf(spec.layers, spec.Find("ground")));
+    }
+
+    static bool Touches(StormDirector d, List<BackdropPool> pinned, float x, float y, float hx, float hy, BackdropPiece except)
+    {
+        foreach (var pool in pinned)
+        {
+            bool prop = pool == d.Props || pool == d.Cells;
+            foreach (var b in pool.items)
+            {
+                if (!b.active || b == except) continue;
+                float hb = d.PinnedHalf(b, prop);
+                if (Mathf.Abs(b.x - x) < hx + hb && Mathf.Abs(b.y - y) < hy + hb * .8f) return true;
+            }
+        }
+        return false;
+    }
+
+    // every mooring kind placed on its own comes with its companion beside it (or not at all)
+    static void Moorings()
+    {
+        foreach (int k in new[] { StormPropsTuning.Tug, StormPropsTuning.Skimmer, StormPropsTuning.Buoys, StormPropsTuning.Rods })
+        {
+            string name = StormPropsTuning.Ground[k];
+            int placed = 0, lonely = 0;
+            for (int seed = 0; seed < 4; seed++)
+            {
+                StormDirector.SeedOverride = 61 + seed * 7 + k;
+                var wb = Fresh(1 + seed % 4, .25f);
+                var d = Director(wb);
+                if (d == null || d.Props == null) { if (wb != null) Object.DestroyImmediate(wb.gameObject); continue; }
+                d.ClearProps();
+                d.HoldProps(1e6f, 1e6f);
+                double tr = d.Planner.Travel;
+                float hh = wb.Current.HalfHeight;
+                for (int a = 0; a < 4; a++) d.SpawnProp(k, tr - hh * .6f, tr + hh * .6f, -1, 400);
+                foreach (var p in d.Props.items)
+                {
+                    if (!p.active || p.kind != k) continue;
+                    placed++;
+                    bool near = false;
+                    foreach (var q in d.Props.items)
+                    {
+                        if (!q.active || q == p) continue;
+                        bool fits = k == StormPropsTuning.Buoys ? (q.kind == StormPropsTuning.Tug || q.kind == StormPropsTuning.Skimmer)
+                                  : q.kind == StormPropsTuning.Companion(k, true);
+                        if (!fits) continue;
+                        float gap = Mathf.Abs(p.x - q.x) - (StormDirector.KeepX(p.kind, p.size) + StormDirector.KeepX(q.kind, q.size));
+                        if (gap <= StormPropsTuning.MoorReach + .05f && System.Math.Abs(p.gy - q.gy) < (p.size + q.size)) near = true;
+                    }
+                    if (!near) lonely++;
+                }
+                Object.DestroyImmediate(wb.gameObject);
+            }
+            StormDirector.SeedOverride = 0;
+            Check(name + ": placed only beside its companion (" + placed + " placed, " + lonely + " alone)", placed > 0 && lonely == 0);
+        }
     }
 
     // ---- each ground kind forced into view: its own strip, every cell, a still frame at dt 0, no allocation ----
