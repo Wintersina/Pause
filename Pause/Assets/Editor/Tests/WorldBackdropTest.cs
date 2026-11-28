@@ -12,7 +12,8 @@ public static class WorldBackdropTest
     public const long TextureBudgetBytes = 9L * 1024 * 1024;   // per world, GPU size of the imported format
     // Frost carries eight shared 1024 atlases (landmarks, sites, weather and
     // five ambient-loop sheets), the docks strips and the living props (a
-    // 1024 x 768 sheet, FrostProps.cs) besides one 4-tile variant set.
+    // 2048 x 3072 sheet since round 2's variants, ASTC 6x6 ~2.8 MB, FrostProps.cs; measured 6794 KB with the old
+    // 1024 x 768 sheet, so ~9.3 MB) besides one 4-tile variant set.
     public const long FrostTextureBudgetBytes = 12L * 1024 * 1024;
     // Space carries the 2048 anim_hires planet sheet (~5.3 MB with mips; the 1x
     // sheet was ~1.3 MB) beside the asteroid-drift sheets: 9573 KB, over the
@@ -326,7 +327,9 @@ public static class WorldBackdropTest
         { "beacons", new[] { "beacon_magenta_03", "beacon_cyan_00", "strobe_white_00", "window_lights_03" } },
         { "aurora", new[] { "aurora_00", "aurora_15" } },
         { "props", new[] { "whale_00", "whale_07", "orca_00", "orca_07", "station_00", "station_07", "lab_00", "lab_07",
-                           "icebreaker_00", "icebreaker_07", "plane_00", "plane_07" } },
+                           "icebreaker_00", "icebreaker_07", "plane_00", "plane_07", "snowcat_0_00", "snowcat_3_07", "radar_0_00",
+                           "fishcamp_2_00", "flares_1_07", "tanker_0_00", "bears_3_07", "narwhal_0_00", "sonde_2_07", "seals_00",
+                           "heli_0_00", "heli_3_07", "airlift_0_00", "airlift_3_07" } },
     };
 
     // Verdant's shared atlases and the drawings the director relies on.

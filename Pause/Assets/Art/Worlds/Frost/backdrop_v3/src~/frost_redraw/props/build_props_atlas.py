@@ -1,11 +1,13 @@
 #!/usr/bin/env python3
 """Frost's living props atlas: Backdrop3/props.png + props.json.
 
-The six approved props (round 1, user-approved 2026-11-28; no seals) are 8-cell strips of 128 px cells in strips/<name>.png,
-already graded to the landmark rules by gen/props_build.py (forms value p90 ~.46, lamps capped at .92, no pink). This only
-lays them out: one prop per row, top to bottom in NAMES order, frames left to right, named <name>_00 .. <name>_07 so
-BackdropAtlas.Frames(name) returns the strip. The manifest is the landmarks' Unity-rect JSON (n, x, y, w, h; y measured from
-the BOTTOM of the sheet). The sheet is 1024 x 768 (six rows; no empty rows paid for on phones).
+The approved props are 8-cell strips of 128 px cells, already graded to the landmark rules (forms value p90 ~.46, lamps capped
+at .92, no pink as drawn): round 1 (2026-11-28) strips/<name>.png, one drawing each; round 2 (props_more, 2026-11-28: snowcat,
+radar, fishcamp, flares, tanker, bears, narwhal, sonde, and the crashed heli and airlift -- four colour / pose variants each -- and seals, one) strips/<name>_<v>.png.
+This only lays them out, two strips to a row (frames left to right), in NAMES order, variants in order. A one-drawing prop's
+cells are <name>_00 .. <name>_07, a variant's <name>_<v>_00 .. _07, so BackdropAtlas.Frames(FrostPropsTuning.Strip(kind, v))
+returns its strip. The manifest is the landmarks' Unity-rect JSON (n, x, y, w, h; y measured from the BOTTOM of the sheet).
+The sheet is 2048 x 3072 (47 strips; WorldBackdropImport.IsFrostProps never clamps it).
 
     python3 build_props_atlas.py            # writes Art/Backgrounds/Resources/Worlds/Frost/Backdrop3/props.{png,json}
     python3 build_props_atlas.py --check    # verifies the installed sheet matches the strips
@@ -14,7 +16,7 @@ NO PINK (WorldCue.IsPink: hue 285-352, saturation > .25, value > .3 -- the hosti
 painted, but the icebreaker's dark crimson hull (hue 344-349, value < .3) is lifted past value .3 by the Frost grade (x1.95)
 and then reads pink: every coloured texel with a hue in PINK_HUES is turned to HULL_HUE (a true red; the grade keeps hue).
 
-Keep NAMES in step with FrostPropsTuning.Names (FrostProps.cs).
+Keep NAMES / VARIANTS in step with FrostPropsTuning.Names / Variants (FrostProps.cs).
 """
 import json
 import sys
@@ -25,10 +27,17 @@ import colorsys
 from PIL import Image
 
 HERE = Path(__file__).resolve().parent
-OUT = HERE.parents[5] / "Backgrounds" / "Resources" / "Worlds" / "Frost" / "Backdrop3"
-NAMES = ["whale", "orca", "station", "lab", "icebreaker", "plane"]
-CELL, FRAMES = 128, 8
-W, H = CELL * FRAMES, CELL * len(NAMES)
+OUT = Path(sys.argv[sys.argv.index("--out") + 1]) if "--out" in sys.argv else HERE.parents[5] / "Backgrounds" / "Resources" / "Worlds" / "Frost" / "Backdrop3"
+NAMES = ["whale", "orca", "station", "lab", "icebreaker", "plane",
+         "snowcat", "radar", "fishcamp", "flares", "tanker", "bears", "narwhal", "sonde", "seals", "heli", "airlift"]
+VARIANTS = [1, 1, 1, 1, 1, 1, 4, 4, 4, 4, 4, 4, 4, 4, 1, 4, 4]
+CELL, FRAMES, PER_ROW = 128, 8, 2
+STRIPS = [(n, v) for n, k in zip(NAMES, VARIANTS) for v in range(k)]
+W, H = CELL * FRAMES * PER_ROW, CELL * ((len(STRIPS) + PER_ROW - 1) // PER_ROW)
+
+
+def base(name, v):
+    return name if VARIANTS[NAMES.index(name)] == 1 else f"{name}_{v}"
 PINK_HUES = (280.0, 357.0)
 HULL_HUE = 358.0
 
@@ -52,13 +61,15 @@ def depink(img):
 def build():
     sheet = Image.new("RGBA", (W, H), (0, 0, 0, 0))
     sprites = []
-    for r, name in enumerate(NAMES):
-        strip = Image.open(HERE / "strips" / f"{name}.png").convert("RGBA")
-        assert strip.size == (W, CELL), (name, strip.size)
+    for i, (name, v) in enumerate(STRIPS):
+        b = base(name, v)
+        strip = Image.open(HERE / "strips" / f"{b}.png").convert("RGBA")
+        assert strip.size == (CELL * FRAMES, CELL), (b, strip.size)
         depink(strip)
-        sheet.paste(strip, (0, r * CELL))
+        r, x0 = i // PER_ROW, (i % PER_ROW) * CELL * FRAMES
+        sheet.paste(strip, (x0, r * CELL))
         for f in range(FRAMES):
-            sprites.append({"n": f"{name}_{f:02d}", "x": f * CELL, "y": H - (r + 1) * CELL, "w": CELL, "h": CELL})
+            sprites.append({"n": f"{b}_{f:02d}", "x": x0 + f * CELL, "y": H - (r + 1) * CELL, "w": CELL, "h": CELL})
     return sheet, {"sprites": sprites}
 
 

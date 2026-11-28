@@ -95,6 +95,10 @@ public class WorldBackdropImport : AssetPostprocessor
         return f == "props" || f == "aloft";
     }
 
+    // Frost's living props (FrostProps.cs, Backdrop3/props): 47 strips of 8 x 128 px cells, 2048 x 3072 since round 2 (variants):
+    // never clamped (the 1024 cap would halve the cells and break the JSON rects), crisp like the landmarks, ASTC 6x6.
+    public static bool IsFrostProps(string path) { return path.Contains("/Worlds/Frost/Backdrop3/") && path.EndsWith("/props.png"); }
+
     // Backdrop3 art is pixel art drawn near 1:1 (landmarks, sites, lights)
     // or ~2x (tiles): point-sampled so it stays crisp. Its soft atlases
     // (clouds, mist, snow sheets, smoke, steam, aurora) are drawn several
@@ -238,7 +242,7 @@ public class WorldBackdropImport : AssetPostprocessor
         ti.isReadable = false;
         ti.npotScale = TextureImporterNPOTScale.None;
         bool stormHd = IsStormHdTile(assetPath, tile);
-        ti.maxTextureSize = sun || stormR3 || stormProps ? PlanetSheetMaxSize : planetSheet ? PlanetSheetMaxSize : file == "station_ring_v2" ? 1024 : file == "reference_planet" ? 1024 :
+        ti.maxTextureSize = sun || stormR3 || stormProps || IsFrostProps(assetPath) ? PlanetSheetMaxSize : planetSheet ? PlanetSheetMaxSize : file == "station_ring_v2" ? 1024 : file == "reference_planet" ? 1024 :
             sharpSpaceSky || stormHd || (!tile && assetPath.Contains("/Worlds/Space/")) || IsDesertWormSheet(assetPath, file) || IsFrostLaunchSites(assetPath) || IsFrostSoftWeather(assetPath) || file == "docks" ? 2048 : 1024;   // (docks: the launch-strip sites atlas, 1578 px wide, keeps every pixel)
         ti.textureCompression = sunDisc ? TextureImporterCompression.Uncompressed : TextureImporterCompression.Compressed;
         ti.sRGBTexture = true;
@@ -280,7 +284,7 @@ public class WorldBackdropImport : AssetPostprocessor
         {
             var ps = ti.GetPlatformTextureSettings(platform);
             ps.overridden = true;
-            ps.maxTextureSize = sun || stormR3 || stormProps ? PlanetSheetMaxSize : planetSheet ? PlanetSheetMaxSize : file == "station_ring_v2" ? 1024 : file == "reference_planet" ? 1024 :
+            ps.maxTextureSize = sun || stormR3 || stormProps || IsFrostProps(assetPath) ? PlanetSheetMaxSize : planetSheet ? PlanetSheetMaxSize : file == "station_ring_v2" ? 1024 : file == "reference_planet" ? 1024 :
                 sharpSpaceSky || stormHd || (!tile && assetPath.Contains("/Worlds/Space/")) || IsDesertWormSheet(assetPath, file) || IsFrostLaunchSites(assetPath) || IsFrostSoftWeather(assetPath) || file == "docks" ? 2048 : 1024;   // (docks: the launch-strip sites atlas, 1578 px wide, keeps every pixel)
             ps.format = sunDisc ? TextureImporterFormat.RGBA32 : stormProps ? (file == "aloft" ? TextureImporterFormat.ASTC_6x6 : TextureImporterFormat.ASTC_4x4) : stormHd ? TextureImporterFormat.ASTC_6x6 : sun || planetSheet || IsContinuousTone(assetPath) ? TextureImporterFormat.ASTC_4x4 : TextureImporterFormat.ASTC_6x6;
             ps.textureCompression = sunDisc ? TextureImporterCompression.Uncompressed : TextureImporterCompression.Compressed;

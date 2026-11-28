@@ -735,6 +735,7 @@ public partial class FrostDirector : PlanetDirector
             bool mirror = !rule.HasEnds && GChance(.5);
             float x; double gy;
             if (!Spot(rule, size, lo, hi, out x, out gy)) continue;
+            if (PlumeHitsProp(name, size, mirror, x, gy)) continue;     // its smoke / steam column would rise through a prop (FrostProps keep-out)
             var p = Put(ground, groundRules, landmarkArt.Get(name), rule, size, x, gy, mirror);
             if (p == null) return false;
             lastFamily = fam;
@@ -810,23 +811,31 @@ public partial class FrostDirector : PlanetDirector
         double lo = float.IsNaN(y) ? planner.Travel + HalfH + FrostTuning.SpawnAbove : planner.GroundY(y) - .3f;
         double hi = lo + (float.IsNaN(y) ? FrostTuning.SpawnBand : .6f);
         var rule = DockGrade.Strict ? FrostTuning.SiteRule(set.Variant, false) : FrostTuning.DockRule(kind, set.Variant);
-        float x; double gy;
-        if (DockGrade.Strict)
+        float x = 0f; double gy = 0.0;
+        // a dock keeps its margin clear of the living props (FrostPropsTuning.SiteKeepOut): a spot inside one is searched again
+        bool placed = false;
+        for (int attempt = 0; attempt < 4 && !placed; attempt++)
         {
-            // a flat top with its rim clear, else with the rim a little broken: random tries first, then a scan of a taller band
-            // (flat tops big enough for a pad are few: a site the elite director asks for must not be missed by bad luck)
-            var relaxed = FrostTuning.SiteRule(set.Variant, true);
-            double far = lo + (float.IsNaN(y) ? FrostTuning.SiteScanBand : .6f);
-            if (!planner.Find(rule, size, XMin(size), XMax(size), lo, hi, groundRng, out x, out gy, FrostTuning.SiteTries) &&
-                !planner.Find(rule = relaxed, size, XMin(size), XMax(size), lo, hi, groundRng, out x, out gy, FrostTuning.SiteTries) &&
-                !planner.Scan(rule = FrostTuning.SiteRule(set.Variant, false), size, XMin(size), XMax(size), lo, far, FrostTuning.SiteScanStep, groundRng, out x, out gy) &&
-                !planner.Scan(rule = relaxed, size, XMin(size), XMax(size), lo, far, FrostTuning.SiteScanStep, groundRng, out x, out gy))
+            rule = DockGrade.Strict ? FrostTuning.SiteRule(set.Variant, false) : FrostTuning.DockRule(kind, set.Variant);
+            if (DockGrade.Strict)
+            {
+                // a flat top with its rim clear, else with the rim a little broken: random tries first, then a scan of a taller band
+                // (flat tops big enough for a pad are few: a site the elite director asks for must not be missed by bad luck)
+                var relaxed = FrostTuning.SiteRule(set.Variant, true);
+                double far = lo + (float.IsNaN(y) ? FrostTuning.SiteScanBand : .6f);
+                if (!planner.Find(rule, size, XMin(size), XMax(size), lo, hi, groundRng, out x, out gy, FrostTuning.SiteTries) &&
+                    !planner.Find(rule = relaxed, size, XMin(size), XMax(size), lo, hi, groundRng, out x, out gy, FrostTuning.SiteTries) &&
+                    !planner.Scan(rule = FrostTuning.SiteRule(set.Variant, false), size, XMin(size), XMax(size), lo, far, FrostTuning.SiteScanStep, groundRng, out x, out gy) &&
+                    !planner.Scan(rule = relaxed, size, XMin(size), XMax(size), lo, far, FrostTuning.SiteScanStep, groundRng, out x, out gy))
+                    return false;
+            }
+            else if (!planner.Find(rule, size, XMin(size), XMax(size), lo, hi, groundRng, out x, out gy) &&
+                     !planner.Find(rule = FrostTuning.SiteRelaxedOld, size, XMin(size), XMax(size), lo, hi, groundRng, out x, out gy) &&
+                     !planner.Find(rule = new PieceRule(GroundClass.Any, 0f, FrostTuning.SiteRelaxed.core), size, XMin(size), XMax(size), lo, hi, groundRng, out x, out gy))
                 return false;
+            placed = !SiteHitsProp(x, gy, size, rule.core);
         }
-        else if (!planner.Find(rule, size, XMin(size), XMax(size), lo, hi, groundRng, out x, out gy) &&
-                 !planner.Find(rule = FrostTuning.SiteRelaxedOld, size, XMin(size), XMax(size), lo, hi, groundRng, out x, out gy) &&
-                 !planner.Find(rule = new PieceRule(GroundClass.Any, 0f, FrostTuning.SiteRelaxed.core), size, XMin(size), XMax(size), lo, hi, groundRng, out x, out gy))
-            return false;
+        if (!placed) return false;
         var p = Put(sites, siteRules, closed, rule, size, x, gy, false);     // doors face the viewer: never mirrored
         if (p == null) return false;
         p.dockTint = dockTints[kind];

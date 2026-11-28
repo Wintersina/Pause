@@ -3,11 +3,18 @@ using System.IO;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 
-// Frost's living props (FrostProps.cs: whales, orcas, an icebreaker, a research station, an abandoned lab, a crashed plane):
-//   * LOAD: the props atlas resolves with all six 8-cell strips (no seals), the director builds its pool and lights;
-//   * PLACED where they belong: the whales, orcas and icebreaker only on open water (mask W, their whole footprint and a
-//     clear rim), the structures only on a flat top (mask O) like the landmarks; nothing that floats on the glacier (v4);
-//     never overlapping a landmark, a dock or another prop; pinned to their spot of the ground;
+// Frost's living props (FrostProps.cs: whales, orcas, an icebreaker, a research station, an abandoned lab, a crashed plane;
+// round 2: snowcats, a radar mast, an ice-fishing camp, a flare strip, a frozen-in tanker, polar bears, narwhals, a sonde,
+// seals, a crashed heli and a belly-landed airlift -- most in four variants, each copy picking one by hash):
+//   * LOAD: the props atlas resolves with every kind's every 8-cell variant strip, the director builds its pool and lights;
+//   * PLACED where they make sense (the user, 2026-11-28): whales, orcas, narwhals and the icebreaker on open water (mask W,
+//     whole footprint and a clear rim); bears and seals on an ice edge (water with ice beside); the fishing camp on a flat top
+//     by open water; the tanker frozen into the ice by a lead; the crashed heli / airlift on a snow field with no water near;
+//     the snowcat, radar and sonde only beside a station or lab; the structures on a flat top like the landmarks; nothing
+//     wet on the glacier (v4); pinned to their spot of the ground;
+//   * KEEP-OUT / OVERLAP: no prop overlaps a landmark, a dock or another prop, nor their keep-out margins (KeepOut); no
+//     smoke / steam column rises through one; no dock stands inside a prop's SiteKeepOut margin -- live, and forced (docks
+//     asked for right on top of a prop);
 //   * RARE: at most two in view at once, and on average well under that;
 //   * ANIMATED: the structures and the icebreaker loop through their cells, the whales / orcas wait as a shadow WaitMin..
 //     WaitMax s, then surface, blow and dive; their lamps glow / blink in step with the drawing; dt 0 is a still frame;
@@ -40,6 +47,7 @@ public static class FrostPropsTest
             Art();
             for (int v = 1; v <= 4; v++) Live(v);
             Forced();
+            ForcedOverlap();
         }
         finally
         {
@@ -79,26 +87,75 @@ public static class FrostPropsTest
     static void Table()
     {
         var names = FrostPropsTuning.Names;
-        Check("six props, the approved picks (no seals): " + string.Join(", ", names),
-              names.Length == 6 && System.Array.IndexOf(names, "seals") < 0 && System.Array.IndexOf(names, "whale") >= 0 &&
-              System.Array.IndexOf(names, "orca") >= 0 && System.Array.IndexOf(names, "station") >= 0 && System.Array.IndexOf(names, "lab") >= 0 &&
-              System.Array.IndexOf(names, "icebreaker") >= 0 && System.Array.IndexOf(names, "plane") >= 0);
-        bool shapes = FrostPropsTuning.FrameMs.Length == names.Length && FrostPropsTuning.Water.Length == names.Length &&
+        string[] want = { "whale", "orca", "station", "lab", "icebreaker", "plane", "snowcat", "radar", "fishcamp", "flares", "tanker",
+                          "bears", "narwhal", "sonde", "seals", "heli", "airlift" };
+        bool picks = names.Length == want.Length;
+        foreach (string n in want) picks &= System.Array.IndexOf(names, n) >= 0;
+        Check("seventeen props, the approved picks: " + string.Join(", ", names), picks);
+        bool shapes = FrostPropsTuning.FrameMs.Length == names.Length && FrostPropsTuning.Where.Length == names.Length &&
                       FrostPropsTuning.OneShot.Length == names.Length && FrostPropsTuning.SizeK.Length == names.Length &&
-                      FrostPropsTuning.Feet.Length == names.Length && FrostPropsTuning.Weights.Length == names.Length;
+                      FrostPropsTuning.Feet.Length == names.Length && FrostPropsTuning.Weights.Length == names.Length &&
+                      FrostPropsTuning.Variants.Length == names.Length;
         foreach (var ms in FrostPropsTuning.FrameMs) { shapes &= ms.Length == FrostPropsTuning.Frames; foreach (int m in ms) shapes &= m >= 80; }
         Check("every prop has 8 frame timings (>= 80 ms), a size, a foot and a weight", shapes);
+        // where each belongs (the user's rule, 2026-11-28)
+        var place = new Dictionary<string, FrostPropsTuning.Place>
+        {
+            { "whale", FrostPropsTuning.Place.OpenWater }, { "orca", FrostPropsTuning.Place.OpenWater }, { "icebreaker", FrostPropsTuning.Place.OpenWater },
+            { "narwhal", FrostPropsTuning.Place.OpenWater }, { "bears", FrostPropsTuning.Place.IceEdge }, { "seals", FrostPropsTuning.Place.IceEdge },
+            { "fishcamp", FrostPropsTuning.Place.ByHole }, { "tanker", FrostPropsTuning.Place.FrozenIn }, { "heli", FrostPropsTuning.Place.SnowField },
+            { "airlift", FrostPropsTuning.Place.SnowField }, { "station", FrostPropsTuning.Place.Flat }, { "lab", FrostPropsTuning.Place.Flat },
+            { "plane", FrostPropsTuning.Place.Flat }, { "flares", FrostPropsTuning.Place.Flat }, { "snowcat", FrostPropsTuning.Place.Outfit },
+            { "radar", FrostPropsTuning.Place.Outfit }, { "sonde", FrostPropsTuning.Place.Outfit },
+        };
+        const GroundClass ice = GroundClass.Open | GroundClass.Canopy;
         bool classes = true;
+        string wrongRule = "";
         for (int k = 0; k < names.Length; k++)
         {
             var r = FrostPropsTuning.Rule(k);
-            bool water = names[k] == "whale" || names[k] == "orca" || names[k] == "icebreaker";
-            classes &= FrostPropsTuning.Water[k] == water;
-            classes &= r.on == (water ? GroundClass.Water : GroundClass.Open) && r.need >= .999f && r.rim > 1f && r.rimNeed >= .9f;
-            classes &= FrostPropsTuning.Fits(k, 4) == !water && FrostPropsTuning.Fits(k, 1);
-            classes &= FrostPropsTuning.OneShot[k] == (names[k] == "whale" || names[k] == "orca");
+            var w = FrostPropsTuning.Where[k];
+            bool ok = place.ContainsKey(names[k]) && place[names[k]] == w;
+            switch (w)
+            {
+                case FrostPropsTuning.Place.OpenWater: ok &= r.on == GroundClass.Water && r.need >= .999f && r.rim > 1f && r.rimNeed >= .9f; break;
+                case FrostPropsTuning.Place.Flat: ok &= r.on == GroundClass.Open && r.need >= .999f && r.rim > 1f && r.rimNeed >= .9f; break;
+                case FrostPropsTuning.Place.ByHole: ok &= r.on == GroundClass.Open && r.need >= .999f && r.near == GroundClass.Water; break;
+                case FrostPropsTuning.Place.FrozenIn: ok &= r.on == ice && r.need >= .999f && r.near == GroundClass.Water; break;
+                case FrostPropsTuning.Place.IceEdge: ok &= r.on == GroundClass.Water && r.need >= .5f && r.need < 1f && (r.near & ice) == ice; break;
+                case FrostPropsTuning.Place.SnowField: ok &= r.on == ice && r.need >= .999f && r.rim >= 2f && r.rimNeed >= .999f; break;
+                case FrostPropsTuning.Place.Outfit: ok &= r.on == ice && r.need >= .999f && r.rim > 1f && r.rimNeed >= .7f; break;
+            }
+            bool wet = w != FrostPropsTuning.Place.Flat && w != FrostPropsTuning.Place.SnowField && w != FrostPropsTuning.Place.Outfit;
+            ok &= FrostPropsTuning.Wet(k) == wet && FrostPropsTuning.Fits(k, 4) == !wet && FrostPropsTuning.Fits(k, 1);
+            ok &= FrostPropsTuning.OneShot[k] == (names[k] == "whale" || names[k] == "orca" || names[k] == "narwhal");
+            ok &= FrostPropsTuning.NeedsHost(k) == (names[k] == "snowcat" || names[k] == "radar" || names[k] == "sonde");
+            if (!ok) wrongRule += names[k] + " ";
+            classes &= ok;
         }
-        Check("whales, orcas and the icebreaker on open water only (W, whole footprint + rim), the structures on a flat top only (O); nothing floats on the glacier", classes);
+        Check("each prop where it makes sense: sea life / icebreaker on open water, bears and seals on an ice edge, the fishing camp by a hole, " +
+              "the tanker frozen in, the crashed heli / airlift on a snow field away from water, the snowcat / radar / sonde beside a station; " +
+              "nothing wet on the glacier (" + (wrongRule.Length > 0 ? "wrong: " + wrongRule : "all") + ")", classes);
+        bool vars = true;
+        for (int k = 0; k < names.Length; k++)
+        {
+            int n = FrostPropsTuning.Variants[k];
+            vars &= n == 1 || (n >= 2 && n <= 4);
+            if (n <= 1) continue;
+            var seen = new HashSet<int>();
+            int last = -1;
+            for (uint c = 0; c < 64; c++)
+            {
+                int v = FrostPropsTuning.PickVariant(k, c * 7919u, last);
+                vars &= v >= 0 && v < n && v != last;
+                seen.Add(v);
+                last = v;
+            }
+            vars &= seen.Count == n;
+        }
+        Check("variants: 1 or 2-4 per kind; copies spread over every variant by hash, never the previous copy's", vars);
+        Check("keep-out margins: KeepOut " + FrostPropsTuning.KeepOut + " of a prop's width, SiteKeepOut " + FrostPropsTuning.SiteKeepOut + " of a dock's",
+              FrostPropsTuning.KeepOut >= .2f && FrostPropsTuning.SiteKeepOut >= .3f);
         float min = float.MaxValue, max = 0f;
         for (int k = 0; k < names.Length; k++) { min = Mathf.Min(min, FrostPropsTuning.Size(k)); max = Mathf.Max(max, FrostPropsTuning.Size(k) * (1f + FrostPropsTuning.SizeJitter)); }
         Check("drawn at the landmarks' scale (" + min.ToString("F2") + " .. " + max.ToString("F2") + " u, landmarks " + FrostTuning.LandmarkMin.ToString("F2") +
@@ -115,6 +172,7 @@ public static class FrostPropsTest
         {
             pink |= WorldCue.IsPink(FrostPropsTuning.ColorOf(l.kind));
             known &= "xws".IndexOf(l.kind) >= 0 && l.prop >= 0 && l.prop < names.Length && !FrostPropsTuning.OneShot[l.prop];
+            known &= l.variants >= 0 && l.variants < (1 << FrostPropsTuning.Variants[l.prop]) || l.variants == 0;
             known &= l.at.x >= 0f && l.at.x < 128f && l.at.y >= 0f && l.at.y < 128f;
             per[l.prop]++;
             if (l.kind == 'x')
@@ -126,9 +184,19 @@ public static class FrostPropsTest
             }
         }
         bool fit = true;
-        foreach (int n in per) fit &= n <= FrostPropsTuning.MaxLights;
-        Check("lamps: the station's red mast beacon and amber windows, the lab's mast tip, the plane's red tail beacon, the icebreaker's deck lights",
-              per[FrostPropsTuning.Station] >= 2 && per[FrostPropsTuning.Lab] >= 1 && per[FrostPropsTuning.Plane] >= 1 && per[FrostPropsTuning.Icebreaker] >= 2 && fit && known);
+        for (int k = 0; k < names.Length; k++)
+            for (int v = 0; v < FrostPropsTuning.Variants[k]; v++)
+            {
+                int n = 0;
+                foreach (var l in FrostPropsTuning.Lights) if (l.prop == k && FrostPropsTuning.On(l, v)) n++;
+                fit &= n <= FrostPropsTuning.MaxLights;
+            }
+        Check("lamps: the station's red mast beacon and amber windows, the lab's mast tip, the plane's red tail beacon, the icebreaker's deck lights; " +
+              "round 2: the snowcats' headlights, the radar's and tanker's red beacons, the camp's windows, the flare pots, the sonde's beacon and strobe, " +
+              "the crashed heli's and airlift's distress beacons (at most " + FrostPropsTuning.MaxLights + " a variant)",
+              per[FrostPropsTuning.Station] >= 2 && per[FrostPropsTuning.Lab] >= 1 && per[FrostPropsTuning.Plane] >= 1 && per[FrostPropsTuning.Icebreaker] >= 2 &&
+              per[FrostPropsTuning.Snowcat] >= 1 && per[FrostPropsTuning.Radar] >= 1 && per[FrostPropsTuning.Fishcamp] >= 2 && per[FrostPropsTuning.Flares] >= 2 &&
+              per[FrostPropsTuning.Tanker] >= 1 && per[FrostPropsTuning.Sonde] >= 2 && per[FrostPropsTuning.Heli] >= 1 && per[FrostPropsTuning.Airlift] >= 1 && fit && known);
         Check("no lamp is pink, beacons blink no faster than " + FrostGroundLightsTuning.MaxHz + " Hz, peak alpha <= .9", !pink && lit && FrostPropsTuning.Peak <= .9f);
     }
 
@@ -157,14 +225,21 @@ public static class FrostPropsTest
     static void Art()
     {
         var atlas = new BackdropAtlas(Resources.Load<Texture2D>(Folder + FrostPropsTuning.Atlas), Resources.Load<TextAsset>(Folder + FrostPropsTuning.Atlas));
-        bool all = atlas.Count == FrostPropsTuning.Names.Length * FrostPropsTuning.Frames;
-        foreach (string n in FrostPropsTuning.Names)
-        {
-            var f = atlas.Frames(n);
-            all &= f.Length == FrostPropsTuning.Frames;
-            foreach (var s in f) all &= s != null && Mathf.Approximately(s.rect.width, 128f) && Mathf.Approximately(s.rect.height, 128f);
-        }
-        Check("the props atlas loads: six strips of 8 x 128 px cells (" + atlas.Count + " sprites)", all);
+        int strips = 0;
+        foreach (int n in FrostPropsTuning.Variants) strips += n;
+        bool all = atlas.Count == strips * FrostPropsTuning.Frames;
+        var stripRects = new List<Rect>();
+        var stripNames = new List<string>();
+        for (int k = 0; k < FrostPropsTuning.Names.Length; k++)
+            for (int v = 0; v < FrostPropsTuning.Variants[k]; v++)
+            {
+                var f = atlas.Frames(FrostPropsTuning.Strip(k, v));
+                all &= f.Length == FrostPropsTuning.Frames;
+                foreach (var s in f) all &= s != null && Mathf.Approximately(s.rect.width, 128f) && Mathf.Approximately(s.rect.height, 128f) &&
+                                          FrostPropsTuning.KindOf(s.name) == k && FrostPropsTuning.VariantOf(s.name) == v;
+                if (f.Length > 0 && f[0] != null) { stripRects.Add(f[0].rect); stripNames.Add(FrostPropsTuning.Strip(k, v)); }
+            }
+        Check("the props atlas loads: " + strips + " strips (every kind's every variant) of 8 x 128 px cells (" + atlas.Count + " sprites), each cell naming its kind and variant", all);
         atlas.Destroy();
 
         var spec = BackdropCatalog.For("Frost");
@@ -189,21 +264,21 @@ public static class FrostPropsTest
         float mean = MeanLum(drawn), lmean = MeanLum(ldrawn);
         Check("as drawn, the props sit near the landmarks' brightness (mean luminance " + mean.ToString("F3") + " <= 1.25 x the landmarks' " + lmean.ToString("F3") +
               ", under the set-piece ceiling .66)", mean <= lmean * 1.25f && mean <= .66f);
-        // per prop (a row of the sheet; texture rows run bottom-up): under the ceiling, its forms (value p90 of the opaque
-        // texels, the lamps a few px) a step above the landmarks' at most
+        // per strip (its 8 cells from its first cell's rect; texture rows run bottom-up, as the rects): under the ceiling, its
+        // forms (value p90 of the opaque texels, the lamps a few px) a step above the landmarks' at most
         var lv = new List<float>();
         foreach (var c in ldrawn) if (c.a > .5f) lv.Add(Mathf.Max(c.r, Mathf.Max(c.g, c.b)));
         lv.Sort();
         float lp90 = lv.Count > 0 ? lv[(int)(lv.Count * .9f)] : 0f;
         string rows = "";
         bool rowsOk = true;
-        for (int k = 0; k < FrostPropsTuning.Names.Length; k++)
+        for (int k = 0; k < stripRects.Count; k++)
         {
-            int y0 = h - (k + 1) * 128;
+            int y0 = (int)stripRects[k].y, x0 = (int)stripRects[k].x;
             var vals = new List<float>();
             double sw = 0, sl = 0;
-            for (int y = y0; y < y0 + 128; y++)
-                for (int x = 0; x < w; x++)
+            for (int y = y0; y < y0 + 128 && y < h; y++)
+                for (int x = x0; x < x0 + 128 * FrostPropsTuning.Frames && x < w; x++)
                 {
                     var c = drawn[y * w + x];
                     if (c.a > .5f) vals.Add(Mathf.Max(c.r, Mathf.Max(c.g, c.b)));
@@ -212,7 +287,7 @@ public static class FrostPropsTest
             vals.Sort();
             float p90 = vals.Count > 0 ? vals[(int)(vals.Count * .9f)] : 1f;
             float ml = sw > 0 ? (float)(sl / sw) : 1f;
-            rows += FrostPropsTuning.Names[k] + " p90 " + p90.ToString("F2") + " lum " + ml.ToString("F2") + "; ";
+            rows += stripNames[k] + " p90 " + p90.ToString("F2") + " lum " + ml.ToString("F2") + "; ";
             rowsOk &= p90 <= lp90 + .15f && ml <= .66f;
         }
         Check("every prop's forms within the landmark rules as drawn (value p90 <= landmarks' " + lp90.ToString("F2") + " + .15, luminance <= .66): " + rows, rowsOk);
@@ -232,6 +307,7 @@ public static class FrostPropsTest
         const int Runs = 3;
         const float Seconds = 150f;
         int dealt = 0, wrong = 0, overlaps = 0, drift = 0, floaters = 0, maxInView = 0, frames = 0, inViewSum = 0, runs = 0;
+        int keepOut = 0, plumes = 0, docks = 0, hostless = 0;
         string bad = "";
         var kinds = new HashSet<string>();
         for (int run = 0; run < Runs; run++)
@@ -263,8 +339,18 @@ public static class FrostPropsTest
                     kinds.Add(FrostPropsTuning.Names[k]);
                     var rule = FrostPropsTuning.Rule(k);
                     if (!d.Planner.Accepts(rule, p.x, p.gy, p.size)) { wrong++; if (bad.Length < 200) bad += FrostPropsTuning.Names[k] + "@" + d.Planner.ClassAt(p.x, p.gy) + " "; }
-                    if (FrostPropsTuning.Water[k] && FrostTuning.IsGlacier(v)) floaters++;
+                    if (FrostPropsTuning.Wet(k) && FrostTuning.IsGlacier(v)) floaters++;
+                    if (FrostPropsTuning.NeedsHost(k) && !HostBeside(d, p)) hostless++;
                     overlaps += Overlaps(d, p);
+                }
+                // keep-out, every frame (a dock or a landmark dealt after the prop must keep clear of it too)
+                for (int i = 0; i < d.Props.items.Count; i++)
+                {
+                    var p = d.Props.items[i];
+                    if (!p.active) continue;
+                    keepOut += KeptOut(d, p);
+                    plumes += PlumesThrough(d, p);
+                    docks += DocksBy(d, p);
                 }
                 maxInView = Mathf.Max(maxInView, inView);
                 inViewSum += inView;
@@ -276,6 +362,9 @@ public static class FrostPropsTest
         Check("v" + v + ": " + runs + " runs dealt " + dealt + " props (" + string.Join(", ", kinds) + "), none on ground its rule forbids (" + wrong + " " + bad + ")",
               runs == Runs && dealt >= Runs * 2 && wrong == 0);
         Check("v" + v + ": no prop overlaps a landmark, a dock or another prop (" + overlaps + ")", overlaps == 0);
+        Check("v" + v + ": KEEP-OUT -- no ground piece inside a prop's keep-out margin (" + keepOut + " frames), no smoke / steam column through a prop (" +
+              plumes + "), no dock inside a prop's dock margin (" + docks + ")", keepOut == 0 && plumes == 0 && docks == 0);
+        Check("v" + v + ": every snowcat / radar / sonde dealt beside a station or lab (" + hostless + " without)", hostless == 0);
         Check("v" + v + ": every prop stays pinned to its spot of the ground (" + drift + " frames drifted)", drift == 0);
         Check("v" + v + ": rare -- at most 2 in view at once (max " + maxInView + "), " + mean.ToString("F2") + " on average (<= 1.6)", maxInView <= 2 && mean <= 1.6f);
         if (FrostTuning.IsGlacier(v)) Check("v" + v + " (glacier): no whale, orca or icebreaker over the crevasses (" + floaters + ")", floaters == 0);
@@ -297,6 +386,118 @@ public static class FrostPropsTest
         return n;
     }
 
+    // The host (a station / lab prop) beside outfit prop `p`: their drawings' gap at most HostGapMax of the host's width.
+    static bool HostBeside(FrostDirector d, BackdropPiece p)
+    {
+        for (int i = 0; i < d.Props.items.Count; i++)
+        {
+            var q = d.Props.items[i];
+            if (!q.active || q == p || !FrostPropsTuning.IsHost(d.PropKind(i))) continue;
+            float reach = (q.size + p.size) * (FrostPropsTuning.ClaimCore + FrostPropsTuning.KeepOut) + q.size * FrostPropsTuning.HostGapMax;
+            float dx = p.x - q.x, dy = (float)(p.gy - q.gy) / .8f;
+            if (dx * dx + dy * dy <= reach * reach * 1.0001f) return true;
+        }
+        return false;
+    }
+
+    // Ground pieces (landmarks, docks, other props: their planner core) inside prop `p`'s claimed drawing + KeepOut margin.
+    static int KeptOut(FrostDirector d, BackdropPiece p)
+    {
+        int n = 0;
+        float px = FrostPropsTuning.ClaimHalf(p.size), py = px * .8f;
+        var pools = new List<BackdropPool>(d.Landmarks) { d.Props };
+        foreach (var pool in pools)
+            foreach (var q in pool.items)
+            {
+                if (!q.active || q == p || q.sr.sprite == null) continue;
+                float qx = q.size * Mathf.Max(q.core, GroundPlanner.MinCore), qy = qx * .8f;
+                if (Mathf.Abs(p.x - q.x) < (px + qx) * .98f && System.Math.Abs(p.gy - q.gy) < (py + qy) * .98f) n++;
+            }
+        return n;
+    }
+
+    // Smoke / steam columns (FrostDirector.PlumeBox, without its own margin) of every ground piece crossing prop `p`'s drawing.
+    static int PlumesThrough(FrostDirector d, BackdropPiece p)
+    {
+        int n = 0;
+        float px = p.size * FrostPropsTuning.ClaimCore, py = px * .8f;
+        foreach (var pool in d.Landmarks)
+            foreach (var q in pool.items)
+            {
+                if (!q.active || q.sr.sprite == null) continue;
+                float cx, hx, hy; double cy;
+                for (int e = 0; FrostDirector.PlumeBox(q.sr.sprite.name, e, q.size, q.body.localScale.x < 0f, q.x, q.gy, out cx, out cy, out hx, out hy); e++)
+                {
+                    float k = 1f / (1f + FrostPropsTuning.PlumeKeepOut);
+                    if (Mathf.Abs(p.x - cx) < px + hx * k && System.Math.Abs(p.gy - cy) < py + hy * k) n++;
+                }
+            }
+        return n;
+    }
+
+    // Docks standing inside prop `p`'s dock margin (the dock's core + SiteKeepOut of its width, against the prop's claim).
+    static int DocksBy(FrostDirector d, BackdropPiece p)
+    {
+        int n = 0;
+        if (d.Sites == null) return 0;
+        float px = FrostPropsTuning.ClaimHalf(p.size), py = px * .8f;
+        foreach (var q in d.Sites.items)
+        {
+            if (!q.active) continue;
+            float m = q.size * (Mathf.Max(q.core, GroundPlanner.MinCore) + FrostPropsTuning.SiteKeepOut) * .98f;
+            if (Mathf.Abs(p.x - q.x) < px + m && System.Math.Abs(p.gy - q.gy) < py + m * .8f) n++;
+        }
+        return n;
+    }
+
+    // OVERLAP, forced: a prop of every kind placed in view, then docks asked for right on top of it (SpawnSite at its screen y,
+    // many times) and the ground scrolled on with the landmarks dealt round it: no dock inside its margin, no landmark or
+    // other prop in its keep-out, no plume column through it, at any step.
+    static void ForcedOverlap()
+    {
+        int tried = 0, docksAsked = 0, docksPlaced = 0, bad = 0;
+        string where = "";
+        for (int k = 0; k < FrostPropsTuning.Names.Length; k++)
+        {
+            var wk = FrostPropsTuning.Where[k];
+            int v = wk == FrostPropsTuning.Place.OpenWater || wk == FrostPropsTuning.Place.IceEdge ? 2 : 1;   // the widest water (v2), else the ice plates (v1)
+            FrostDirector.SeedOverride = 151 + k;
+            var wb = Fresh(v, 1.5f);
+            var d = Director(wb);
+            if (d == null || d.Props == null) { if (wb != null) Object.DestroyImmediate(wb.gameObject); continue; }
+            d.ClearProps();
+            double tr = d.Planner.Travel;
+            float hh = wb.Current.HalfHeight;
+            if (FrostPropsTuning.NeedsHost(k)) d.SpawnProp(FrostPropsTuning.Station, tr - hh * .4f, tr + hh * .6f, 800);
+            BackdropPiece p = null;
+            if (d.SpawnProp(k, tr - hh * .4f, tr + hh * .6f, 800))
+                for (int i = 0; i < d.Props.items.Count; i++) if (d.Props.items[i].active && d.PropKind(i) == k) p = d.Props.items[i];
+            if (p == null) { Object.DestroyImmediate(wb.gameObject); continue; }
+            tried++;
+            for (int a = 0; a < 6; a++)
+            {
+                docksAsked++;
+                if (d.SpawnSite(p.y)) docksPlaced++;
+            }
+            for (float t = 0f; t < 20f && p.active; t += Dt)
+            {
+                wb.Step(Dt);
+                for (int i = 0; i < d.Props.items.Count; i++)
+                {
+                    var q = d.Props.items[i];
+                    if (!q.active) continue;
+                    int b = KeptOut(d, q) + PlumesThrough(d, q) + DocksBy(d, q);
+                    if (b > 0 && where.Length < 160) where += FrostPropsTuning.Names[d.PropKind(i)] + " ";
+                    bad += b;
+                }
+            }
+            Object.DestroyImmediate(wb.gameObject);
+        }
+        FrostDirector.SeedOverride = 0;
+        Check("OVERLAP (forced): " + tried + " props, " + docksAsked + " docks asked for on top of them (" + docksPlaced + " placed clear), the ground scrolled 20 s: " +
+              bad + " keep-out / plume / dock violations " + where, tried >= FrostPropsTuning.Names.Length - 4 && bad == 0);
+    }
+
     // Each kind forced into view: it animates (a loop through its cells; a whale / orca's wait then surfacing), its lamps
     // light up (never pink, alpha-capped, a readable size), dt 0 freezes it all, no allocation per frame.
     static void Forced()
@@ -305,7 +506,9 @@ public static class FrostPropsTest
         {
             string name = FrostPropsTuning.Names[k];
             // the water props where the open water is widest (v2), the structures on the ice plates first (v1)
-            int[] order = FrostPropsTuning.Water[k] ? new[] { 2, 1, 3 } : new[] { 1, 3, 2, 4 };
+            var wk = FrostPropsTuning.Where[k];
+            int[] order = wk == FrostPropsTuning.Place.OpenWater || wk == FrostPropsTuning.Place.IceEdge ? new[] { 2, 1, 3 } :
+                          FrostPropsTuning.Wet(k) ? new[] { 1, 3, 2 } : new[] { 1, 3, 2, 4 };
             WorldBackdrop wb = null;
             FrostDirector d = null;
             int slot = -1, v = 0;
@@ -318,6 +521,8 @@ public static class FrostPropsTest
                 d.ClearProps();
                 double tr = d.Planner.Travel;
                 float hh = wb.Current.HalfHeight;
+                // a station's outfit needs its station on the ground first
+                if (FrostPropsTuning.NeedsHost(k)) d.SpawnProp(FrostPropsTuning.Station, tr - hh * .4f, tr + hh * .4f, 800);
                 for (int a = 0; a < 6 && slot < 0; a++)
                     if (d.SpawnProp(k, tr - hh * .5f, tr + hh * .6f, 800))
                         for (int i = 0; i < d.Props.items.Count; i++) if (d.Props.items[i].active && d.PropKind(i) == k) slot = i;
@@ -342,6 +547,7 @@ public static class FrostPropsTest
                 if (!p.active) break;
                 int f = FrostPropsTuning.FrameOf(p.sr.sprite != null ? p.sr.sprite.name : null);
                 if (FrostPropsTuning.KindOf(p.sr.sprite != null ? p.sr.sprite.name : null) != k) wrongSheet = true;
+                if (FrostPropsTuning.VariantOf(p.sr.sprite != null ? p.sr.sprite.name : null) != d.PropVariant(slot)) wrongSheet = true;
                 framesSeen.Add(f);
                 if (f > 0 && firstUp < 0f) firstUp = p.age;
                 if (f == 0 && lastFrame > 0) back = true;
@@ -356,14 +562,14 @@ public static class FrostPropsTest
                     maxPx = Mathf.Max(maxPx, w);
                 }
             }
-            Check(name + ": shows only its own cells", !wrongSheet);
+            Check(name + ": shows only its own variant's cells (variant " + d.PropVariant(slot) + ")", !wrongSheet);
             if (FrostPropsTuning.OneShot[k])
                 Check(name + ": waits as a shadow " + FrostPropsTuning.WaitMin + " .. " + FrostPropsTuning.WaitMax + " s (surfaced at " + firstUp.ToString("F2") +
                       " s), surfaces through every cell (" + framesSeen.Count + "/8) and goes back under",
                       firstUp >= FrostPropsTuning.WaitMin - .05f && firstUp <= FrostPropsTuning.WaitMax + .05f && framesSeen.Count == 8 && back);
             else
                 Check(name + ": loops through its cells (" + framesSeen.Count + "/8 in 3 s)", framesSeen.Count == 8);
-            if (!FrostPropsTuning.OneShot[k])
+            if (!FrostPropsTuning.OneShot[k] && FrostPropsTuning.HasLights(k))
                 Check(name + ": its lamps light up (peak alpha " + maxA.ToString("F2") + ", " + minPx.ToString("F1") + " .. " + maxPx.ToString("F1") +
                       " px on a 1080 px phone), never pink, alpha <= .9", maxA >= .5f && maxA <= .9f + 1e-4f && !pink && minPx >= 3f && maxPx <= 16f);
 
