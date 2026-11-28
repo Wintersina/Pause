@@ -95,6 +95,8 @@ public class WorldBackdropImport : AssetPostprocessor
     // sheets are 2040 / 2016 px wide and up to 2424 tall, never clamped (the JSON carries sheetW / sheetH, so the rects hold).
     // Desert's living props (DesertProps.cs, Backdrop3/v<n>/props: 4096 x ~2200, one per ground set) take the same rules (ASTC 4x4).
     // (4096 x 4000 with the landmarks: ASTC 6x6 ~7 MB, not 4x4 ~16 MB, to keep Tide inside its budget)
+    // Ember's props (v<n>/props: 4096 x 5332, one per ground set) and scar decals import ASTC 6x6 (4x4 would be ~22 MB a set)
+    public static bool IsEmberProps(string path) { return path.Contains("/Worlds/Ember/Backdrop3/") && (path.EndsWith("/props.png") || path.EndsWith("/scar.png")); }
     public static bool IsTideProps(string path) { return path.Contains("/Worlds/Tide/Backdrop3/props.png"); }
     public static bool IsStormProps(string path)
     {
@@ -301,7 +303,7 @@ public class WorldBackdropImport : AssetPostprocessor
             ps.overridden = true;
             ps.maxTextureSize = sun || stormR3 || stormProps || IsFrostProps(assetPath) ? PlanetSheetMaxSize : planetSheet ? PlanetSheetMaxSize : file == "station_ring_v2" ? 1024 : file == "reference_planet" ? 1024 :
                 sharpSpaceSky || stormHd || (!tile && assetPath.Contains("/Worlds/Space/")) || IsFrostLaunchSites(assetPath) || IsFrostSoftWeather(assetPath) || file == "docks" ? 2048 : 1024;   // (docks: the launch-strip sites atlas, 1578 px wide, keeps every pixel)
-            ps.format = sunDisc ? TextureImporterFormat.RGBA32 : stormProps ? (file == "aloft" || IsTideProps(assetPath) ? TextureImporterFormat.ASTC_6x6 : TextureImporterFormat.ASTC_4x4) : stormHd ? TextureImporterFormat.ASTC_6x6 : sun || planetSheet || IsContinuousTone(assetPath) ? TextureImporterFormat.ASTC_4x4 : TextureImporterFormat.ASTC_6x6;
+            ps.format = sunDisc ? TextureImporterFormat.RGBA32 : stormProps ? (file == "aloft" || IsTideProps(assetPath) || IsEmberProps(assetPath) ? TextureImporterFormat.ASTC_6x6 : TextureImporterFormat.ASTC_4x4) : stormHd ? TextureImporterFormat.ASTC_6x6 : sun || planetSheet || IsContinuousTone(assetPath) ? TextureImporterFormat.ASTC_4x4 : TextureImporterFormat.ASTC_6x6;
             ps.textureCompression = sunDisc ? TextureImporterCompression.Uncompressed : TextureImporterCompression.Compressed;
             ti.SetPlatformTextureSettings(ps);
         }

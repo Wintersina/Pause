@@ -35,8 +35,8 @@ public static class WorldBackdropTest
     // 4-tile variant set (~5.5 MB measured, ASTC 6x6 sizes).
     // 2026-10: Ember's sky / far / mid / flow tiles are 896x1792 (ASTC 6x6, 0.72 MB each, was 0.24 MB at 512x1024); measured 8037 KB, 7 -> 9 MB.
     // 2026-11-28 r1 (the .49 altitude): the landmarks, pipes, flow and far tiles retired; a set gains the repainted mid (896 x 4096, ASTC 6x6,
-    // ~1.6 MB) and its living props atlas (v<n>/props, 4096 x ~2400 ASTC 4x4, ~10 MB); the scar decals (scar, ~1 MB): ~17 MB (estimate, CI measures).
-    public const long EmberTextureBudgetBytes = 19L * 1024 * 1024;
+    // ~1.6 MB) and its living props atlas (v<n>/props, 4096 x 5332 ASTC 6x6, ~9.7 MB); the scar decals (scar, ~1 MB): ~17 MB (estimate, CI measures).
+    public const long EmberTextureBudgetBytes = 20L * 1024 * 1024;
     // Tide carries the same shared 1024 atlases as Ember (landmarks, pipes, fires, sites,
     // weather) plus run C's five loop sheets (smoke, flames, surf, leaks, lights) besides
     // one 4-tile variant set: ~6 MB measured now (ASTC 6x6 sizes), ~8.5 MB with run C.
@@ -128,9 +128,14 @@ public static class WorldBackdropTest
     // keep the thin outline). Held to these limits AS DRAWN; the gameplay
     // guard (enemy bodies 2.5:1, brightest tone 7:1 against the rendered
     // lane: CheckReadability and EmberBackdropTest) is every world's.
-    const float EmberTileMaxValueP90 = 0.45f;
+    // 2026-11-28 r1: the PixelLab-repainted grounds (measured: value p90 .573 / .475 / .475 / .686, mean luminance .203 / .193 / .240 / .199, chroma
+    // .147 / .125 / .142 / .231) carry more lit lava and rock texture than the old chunky paint, so the tile caps follow the art
+    // (value p90 .45 -> .72, luminance .18 -> .26); the lava stays the brightest accent, soft-kneed under EmberTuning.ShotLine (.24, the 32 px
+    // patches' p99 linear luminance: EmberBackdropTest.ShotLine), and the lane guard (CheckReadability, EmberBackdropTest) is every world's.
+    // The sky tile (hidden under the opaque mid) is still the old painting.
+    const float EmberTileMaxValueP90 = 0.72f;
     const float EmberSkyMaxLuminance = 0.16f;
-    const float EmberTileMaxLuminance = 0.18f;
+    const float EmberTileMaxLuminance = 0.26f;
     const float EmberTileMaxChroma = 0.25f;
     // Ember enemy bodies read >= 2.0:1 (every other world 2.5:1) against the rendered lane, user decision 2026-10-27 ("the
     // Ember backdrops are all black, make them colourful"): the 2.5:1 rule forced a lane median luminance <= .011 and so

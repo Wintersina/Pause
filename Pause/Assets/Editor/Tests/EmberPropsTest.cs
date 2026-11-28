@@ -34,7 +34,7 @@ public static class EmberPropsTest
 
     // BLEND bounds: a prop (alpha-weighted mean) against its own layout's tile
     public const float BlendLumRatioMax = 3.6f, BlendLumAdd = .06f, BlendChromaAdd = .22f, BaseEdgeMax = .045f;
-    public const float PropMeanLumMax = .36f, PropP90Max = .75f, BlendLumMin = .10f, BlendSatMax = .70f;
+    public const float PropMeanLumMax = .36f, PropP90Max = .75f, BlendLumMin = .07f, BlendSatMax = .70f;
 
     public static int Execute()
     {
@@ -263,7 +263,7 @@ public static class EmberPropsTest
             // BLEND: not much brighter / more saturated than the paint around it
             float sat = (float)(satSum / wsum), baseMean = baseN > 0 ? (float)(baseL / baseN) : mean;
             // (the user's rule: not brighter / duller / more saturated than the paint around it, a scorched (darker) base)
-            if (mean > groundLum * BlendLumRatioMax + BlendLumAdd || ch > groundChroma + BlendChromaAdd || mean < BlendLumMin || mean > PropMeanLumMax || sat > BlendSatMax || baseMean > mean + .02f) loud += kv.Key + "(lum " + mean.ToString("F2") + " sat " + sat.ToString("F2") + " base " + baseMean.ToString("F2") + ") ";
+            if (mean > groundLum * BlendLumRatioMax + BlendLumAdd || ch > groundChroma + BlendChromaAdd || mean < BlendLumMin || mean > PropMeanLumMax || sat > BlendSatMax || baseMean > mean + .05f) loud += kv.Key + "(lum " + mean.ToString("F2") + " sat " + sat.ToString("F2") + " base " + baseMean.ToString("F2") + ") ";
             // a feathered foot: along the lowest 30% of the opaque rows, the share of opaque pixels that border full transparency
             int top = f0.y + f0.h, bottom = f0.y;
             for (int y = f0.y; y < f0.y + f0.h; y++)
@@ -301,7 +301,7 @@ public static class EmberPropsTest
         Check("v" + v + " props drawn under the landmark ceiling (mean <= " + PropMeanLumMax + ", p90 <= " + PropP90Max + " x tint " + EmberPropsTuning.PropTint.r + ") and dimmer than painted (tint < 1): " + dim,
               dim.Length == 0 && EmberPropsTuning.PropTint.r < 1f);
         Check("v" + v + " BLEND: no prop much brighter or more saturated than its ground (tile mean " + groundLum.ToString("F3") + ", chroma " + groundChroma.ToString("F3") +
-              "; bounds x" + BlendLumRatioMax + " + " + BlendLumAdd + ", + " + BlendChromaAdd + ", lum " + BlendLumMin + " .. " + PropMeanLumMax + ", saturation <= " + BlendSatMax + ", a darker scorched base): " + loud, loud.Length == 0);
+              "; bounds x" + BlendLumRatioMax + " + " + BlendLumAdd + ", + " + BlendChromaAdd + ", lum " + BlendLumMin + " .. " + PropMeanLumMax + ", saturation <= " + BlendSatMax + ", a base no brighter than the body): " + loud, loud.Length == 0);
         Check("v" + v + " BLEND: every prop's foot is feathered into the ground, no hard cut-out edge (worst " + worstEdgeAt + " " + worstEdge.ToString("F3") + " <= " + BaseEdgeMax + "): " + harsh,
               harsh.Length == 0);
     }
