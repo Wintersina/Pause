@@ -144,9 +144,11 @@ public static class EmberPropsTest
                     variants++;
                     if (f.Length != 8 && !(ks[k].mountain && f.Length == 1)) { strips = false; bad += ks[k].name + "_" + i + " "; }
                 }
-                if (variants != 4) { strips = false; bad += ks[k].name + " x" + variants + " "; }
+                // (a layout without a lava worth the name -- v3's threads -- carries no lava kinds, as Desert's skiffs need a shore)
+                bool want = !EmberPropsTuning.Lava(k) || variants > 0;
+                if (want ? variants != 4 : false) { strips = false; bad += ks[k].name + " x" + variants + " "; }
             }
-            Check("v" + v + " props atlas: every kind's four variants, 8 frames each " + bad, a.Count > 0 && strips);
+            Check("v" + v + " props atlas: every kind's four variants, 8 frames each (the lava kinds only where the layout has lava) " + bad, a.Count > 0 && strips);
             a.Destroy();
         }
         // the scar decals: one per starship livery
@@ -172,6 +174,7 @@ public static class EmberPropsTest
         int worst = 0; float worstOdds = 1f;
         for (int k = 0; k < ks.Length; k++)
         {
+            if (!d.HasPropArt(k)) { line += ks[k].name + " (not in this layout) "; continue; }
             int ok = 0, n = 0;
             for (double gy = g0; gy < g0 + h; gy += .2)
                 for (float x = -2.4f; x <= 2.4f; x += .2f) { n++; if (EmberPropsTuning.OnContext(pl, k, x, gy, hw)) ok++; }
