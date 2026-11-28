@@ -43,6 +43,9 @@ public abstract class BackdropDirector
     // seconds: bring one in if this world can (Space's docks). True: one is on screen or entering.
     public virtual bool BringHome(string launchFrom) { return false; }
 
+    // seconds this director has run (scaled time)
+    public float Elapsed => clock;
+
     public void Tick(float dt, float velocity)
     {
         clock += dt;

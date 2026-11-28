@@ -243,7 +243,10 @@ public static class HostileProjectileTest
             float wantDrawn = (s.Skin.motion & ShotMotion.Slash) != 0 ? ShotMotions.SlashLength : d.shotSize * s.Skin.drawScale;
             string hug;
             bool hugs = OutlineHugsArt(art.sprite, g.sprite, out hug);
-            bool ok = g != null && g.enabled && g.sprite != null && g.sprite == ShotOutline.For(art.sprite, drawn) &&
+            // the def may force the bold keyline (EliteDef.boldShots: a pale shot over its own pale world, the Whiteout Sentinel's
+            // shard): then it is the bold trace, still hugging the drawing within the same reach
+            bool wantBold = ShotOutline.UseBold || d.boldShots;
+            bool ok = g != null && g.enabled && g.sprite != null && g.sprite == ShotOutline.For(art.sprite, drawn, wantBold) &&
                       g.sortingOrder < 30 && g.GetComponent<Collider2D>() == null &&
                       g.transform.localScale == Vector3.one && DrawnAtItsSize(s, drawn, d.shotSize) &&
                       Mathf.Abs(WorldRadius(col) - s.Radius) < 1e-4f && past <= .06f && hugs &&

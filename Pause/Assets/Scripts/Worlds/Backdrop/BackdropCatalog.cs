@@ -126,6 +126,11 @@ public static class BackdropCatalog
         // trace's thin keyline and light core both lose their 3:1 (BossHeartsTest, 2026-11-28). (Its shots stay standard:
         // the bold keyline softens Frost's small bolts past AtomClarityTest's hard-edge cap -- darkArt above.)
         public bool boldHearts;
+        // UNDER THE CLOUD DECK the shots go bold too (BackdropCatalog.CurrentUnderDeck): while the planetfall's pale ceiling is
+        // still thick over the ground (CeilingDensity >= DeckBoldDensity, Frost's first ~9 s), a pale shot over it has only its
+        // dark keyline to stand out by (HostileProjectileTest at 5 s: 12 px at 3:1 with the standard trace, need 16). Shots and
+        // boss rims fired then wear the bold style; once the ceiling has thinned they launch with the standard trace again.
+        public bool boldUnderCeiling;
         public bool HeartsBold => Bright || boldHearts;
 
         // CLOUD COVER (CloudCover): this world's knobs, read when a set is
@@ -240,7 +245,7 @@ public static class BackdropCatalog
         // depth haze holds. Tints can only darken (white = as graded).
         new Spec { world = "Frost", folder = "Worlds/Frost/Backdrop3/", keyAtlas = "landmarks",
                    variantSets = BackdropVariants.MaxVariants, groundZoom = FrostTuning.GroundZoom,
-                   brightness = () => FrostTuning.Brightness, saturation = () => FrostTuning.Saturation, darkArt = true, boldHearts = true,
+                   brightness = () => FrostTuning.Brightness, saturation = () => FrostTuning.Saturation, darkArt = true, boldHearts = true, boldUnderCeiling = true,
                    cloudDensity = () => FrostTuning.CloudDensity, ceilingHold = () => FrostTuning.CeilingHold,
                    ceilingClearSeconds = () => FrostTuning.CeilingClearSeconds, layers = new[] {
             Layer.Tile("sky", 0.006f * FrostTuning.GroundZoom, W).Graded(.55f),
@@ -439,6 +444,23 @@ public static class BackdropCatalog
     {
         get { var spec = For(WorldManager.Current.displayName); return spec != null && spec.Bright; }
     }
+
+    // Is the current world's live backdrop under its thick cloud deck (Spec.boldUnderCeiling)? Read when a shot launches.
+    public const float DeckBoldDensity = .3f;
+    public static bool CurrentUnderDeck
+    {
+        get
+        {
+            var wb = WorldBackdrop.Instance;
+            var set = wb != null ? wb.Current : null;
+            if (set == null || set.Spec == null || !set.Spec.boldUnderCeiling || set.Director == null) return false;
+            if (set.Spec.world != WorldManager.Current.displayName) return false;
+            return set.Spec.CeilingDensity(set.Director.Elapsed) >= DeckBoldDensity;
+        }
+    }
+
+    // Shots and boss rims launched now wear the bold style: a bright world, or under its thick cloud deck.
+    public static bool CurrentBoldShots => CurrentIsBright || CurrentUnderDeck;
 
     // Do the current world's hearts wear the bold outline (Spec.HeartsBold)?
     public static bool CurrentHeartsBold

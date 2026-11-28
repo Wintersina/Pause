@@ -490,7 +490,7 @@ public static class BossArt
     public static readonly Color32 ShotRimBoldKey = new Color32(10, 8, 26, 255);
     // Bold rims for the current world? (Tests may force it: ShotRimBold.)
     public static bool? ShotRimBold;
-    public static bool ShotRimUseBold => ShotRimBold.HasValue ? ShotRimBold.Value : BackdropCatalog.CurrentIsBright;
+    public static bool ShotRimUseBold => ShotRimBold.HasValue ? ShotRimBold.Value : BackdropCatalog.CurrentBoldShots;
     public const float ShotRimPulseScale = 0f;    // it never swells (a swelling rim reads as a round glow); only its alpha pulses
 
     sealed class RimSet { public Sprite[] sprites; public Texture2D source; public bool built; }

@@ -243,10 +243,12 @@ public sealed class FrostGroundLights
                     slotRow[used] = (int)K;
                     slotCol[used] = c;
                     used++;
-                    if (a <= .004f) { if (sr.enabled) sr.enabled = false; continue; }
-                    float s = size * FrostGroundLightsTuning.Scale[pt.kind] * (pt.k == 'r' || pt.k == 's' ? .85f + .15f * lvl : 1f);
+                    // placed on its lamp every frame, lit or not: a renderer handed to another lamp while dark must not keep the
+                    // last lamp's spot (Probe reports where it is; FrostGroundLightsTest held every in-use renderer to its point)
                     var t = sr.transform;
                     t.localPosition = new Vector3(x, y, 0f);
+                    if (a <= .004f) { if (sr.enabled) sr.enabled = false; continue; }
+                    float s = size * FrostGroundLightsTuning.Scale[pt.kind] * (pt.k == 'r' || pt.k == 's' ? .85f + .15f * lvl : 1f);
                     t.localScale = new Vector3(s, s, 1f);
                     Color col = FrostGroundLightsTuning.ColorOf(pt.k);
                     col.a = a;
