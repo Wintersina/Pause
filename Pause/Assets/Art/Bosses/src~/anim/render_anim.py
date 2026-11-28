@@ -16,9 +16,25 @@ sys.path.insert(0, HERE)
 import rig, rigs, moves
 
 RES = os.path.normpath(os.path.join(HERE, '..', '..', '..', 'Resources', 'Bosses'))
-ORDER = ['idle', 'turnL', 'turnR', 'hit'] + [f'{m}{p}' for p in range(3) for m in ('tell', 'fire', 'recoil')]
+def order(n=3):
+    return ['idle', 'turnL', 'turnR', 'hit'] + [f'{m}{p}' for p in range(n) for m in ('tell', 'fire', 'recoil')]
+
+
+ORDER = order()
 MAX_TEX = 4096
 COLUMNS = 7
+# A clear margin round every anim frame (an eighth of the cell each side: the frame is 1.25 cells, drawn at the body's
+# pixel scale, centred on it -- BossAnim.Margin), so the limbs flung wide are never cut at the cell's edge. The
+# 576-px bosses' 720-px frames pack 5 across (BossAnim.ColumnsFor).
+MARGIN = 1.25
+
+
+def pad_for(spec):
+    return int(round(spec['cell'] * (MARGIN - 1) / 2))
+
+
+def columns_for(spec):
+    return COLUMNS if (spec['cell'] + 2 * pad_for(spec)) * COLUMNS <= MAX_TEX else 5
 
 
 def source_cell(key, cell, frame):
@@ -43,12 +59,18 @@ def build(spec):
         out[f'tell{i}'] = [(p, ft(t), m(t)) for p, t in tell]
         out[f'fire{i}'] = [(p, ff(t), m(1 - .4 * t)) for p, t in fire]
         out[f'recoil{i}'] = [(p, fr(t), m(.6 * (1 - t))) for p, t in rec]
+    ov = spec.get('overlay')
+    if ov:
+        # a per-move additive layer (a wing beat that keeps going through the turns, the pincers' chatter...)
+        for n, seq in out.items():
+            out[n] = [(moves.add(p, ov(n, i, len(seq))), fx, maw) for i, (p, fx, maw) in enumerate(seq)]
     return out
 
 
 def render_moves(spec, names):
     src = source_cell(spec['key'], spec['cell'], spec['src_frame'])
-    r = rig.Rig(src, spec['parts'], base=spec.get('base', 384), maw_dark=spec.get('maw_dark', (18, 10, 12)))
+    r = rig.Rig(src, spec['parts'], base=spec.get('base', 384), maw_dark=spec.get('maw_dark', (18, 10, 12)),
+                pad=pad_for(spec))
     allm = build(spec)
     res = {}
     for n in names:
@@ -66,7 +88,7 @@ def ticks_for(spec, move, nframes):
     if move.startswith('fire'): return moves.FIRE_TICKS
     if move.startswith('recoil'): return moves.RECOIL_TICKS
     if move.startswith('tell'):
-        secs = spec.get('tell_seconds', [.8, .8, .8])[int(move[-1])]
+        secs = (spec.get('tell_seconds', [.8, .8, .8]) + [.8] * 9)[int(move[4:])]
         return [max(1, round(secs * 24 / nframes))] * nframes
     return [3] * nframes
 
@@ -79,7 +101,7 @@ def gif(frames, ticks, path, bg=(34, 32, 52)):
     out[0].save(path, save_all=True, append_images=out[1:], duration=[int(t * 1000 / 24) for t in ticks], loop=0, disposal=2)
 
 
-def review(spec, world, names, outroot):
+def review(spec, world, names, outroot, rnd=1):
     res, src = render_moves(spec, names)
     paths = []
     for n in names:
@@ -89,24 +111,38 @@ def review(spec, world, names, outroot):
         os.makedirs(d, exist_ok=True)
         strip = Image.new('RGBA', (C * len(fr), C), (0, 0, 0, 0))
         for i, f in enumerate(fr): strip.alpha_composite(f, (i * C, 0))
-        strip.save(os.path.join(d, 'r1_0.png'))
+        strip.save(os.path.join(d, f'r{rnd}_0.png'))
         gif(fr, ticks_for(spec, n, len(fr)), os.path.join(d, 'preview.gif'))
         paths.append(os.path.join(d, 'preview.gif'))
     # the full attacks as one clip each (tell -> fire -> recoil), and idle -> turns
-    for p in range(3):
+    for p in range(len(spec['attacks'])):
         if all(f'{m}{p}' in res for m in ('tell', 'fire', 'recoil')):
             fr = res[f'tell{p}'] + res[f'fire{p}'] + res[f'recoil{p}'] + (res['idle'][:6] if 'idle' in res else [])
             tk = ticks_for(spec, f'tell{p}', 8) + moves.FIRE_TICKS + moves.RECOIL_TICKS + ([3] * 6 if 'idle' in res else [])
             d = os.path.join(outroot, f'boss_{world}_anim_attack{p}_full.gif')
             gif(fr, tk, d); paths.append(d)
+    # every move as one contact sheet (a row per move, on the review backdrop)
+    C = res[names[0]][0].width
+    sc = 1. if C <= 400 else 2 / 3
+    c = int(C * sc)
+    W = c * max(len(res[n]) for n in names)
+    sheet = Image.new('RGB', (W, (c + 4) * len(names)), (0, 0, 0))
+    for j, n in enumerate(names):
+        for i, f in enumerate(res[n]):
+            b = Image.new('RGBA', f.size, (34, 32, 52, 255)); b.alpha_composite(f)
+            if sc != 1.: b = b.resize((c, c), Image.LANCZOS)
+            sheet.paste(b.convert('RGB'), (i * c, j * (c + 4)))
+    p = os.path.join(outroot, f'boss_{world}_anim_all.png')
+    sheet.save(p); paths.append(p)
     return paths
 
 
 def atlas(spec):
-    res, src = render_moves(spec, ORDER)
-    frames = [f for n in ORDER for f in res[n]]
+    od = order(len(spec['attacks']))
+    res, src = render_moves(spec, od)
+    frames = [f for n in od for f in res[n]]
     C = frames[0].width
-    cols = COLUMNS                  # BossAnim.Columns: a cell is always the sheet's width / 7
+    cols = columns_for(spec)        # BossAnim.ColumnsFor: a cell is always the sheet's width / its columns
     rows_max = MAX_TEX // C
     per = cols * rows_max
     sheets = []
@@ -126,12 +162,12 @@ def atlas(spec):
 
 def showcase(spec, world, outroot):
     """One clip of the whole set: idle, a turn each way, the three attacks, a hit -- at game timing."""
-    res, _ = render_moves(spec, ORDER)
+    res, _ = render_moves(spec, order(len(spec['attacks'])))
     fr, tk = [], []
     def put(m):
         fr.extend(res[m]); tk.extend(ticks_for(spec, m, len(res[m])))
     put('idle'); put('idle'); put('turnL'); put('idle'); put('turnR'); put('idle')
-    for p in range(3):
+    for p in range(len(spec['attacks'])):
         put(f'tell{p}'); put(f'fire{p}'); put(f'recoil{p}'); put('idle')
     put('hit'); put('idle')
     small = [f.resize((f.width * 2 // 3, f.height * 2 // 3), Image.LANCZOS) if f.width > 400 else f for f in fr]
@@ -145,7 +181,7 @@ def decals(spec):
     rig's static core only, laid out like <Key>_damage.png (2 columns: idle loop A / B, 4 rows: stage 1..4)."""
     C = spec['cell']
     src = source_cell(spec['key'], C, spec['src_frame'])
-    r = rig.Rig(src, spec['parts'], base=spec.get('base', 384))
+    r = rig.Rig(src, spec['parts'], base=spec.get('base', 384))       # (unpadded: the decal is the body's own cell)
     moving = np.zeros((C, C), bool)
     for p in r.parts:
         moving |= p.mask
@@ -173,14 +209,16 @@ def decals(spec):
 if __name__ == '__main__':
     ap = argparse.ArgumentParser()
     ap.add_argument('--boss', required=True)
-    ap.add_argument('--moves', default=','.join(ORDER))
+    ap.add_argument('--moves')
+    ap.add_argument('--round', type=int, default=1)
     ap.add_argument('--review')
     ap.add_argument('--atlas', action='store_true')
     ap.add_argument('--showcase')
     a = ap.parse_args()
     spec = rigs.BOSSES[a.boss]()
+    mv = a.moves.split(',') if a.moves else order(len(spec['attacks']))
     if a.review:
-        for p in review(spec, a.boss, a.moves.split(','), a.review): print(p)
+        for p in review(spec, a.boss, mv, a.review, a.round): print(p)
     if a.atlas:
         print(atlas(spec))
         if os.path.exists(os.path.join(RES, spec['key'] + '_damage.png')):

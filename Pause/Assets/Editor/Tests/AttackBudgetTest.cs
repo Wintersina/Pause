@@ -205,6 +205,10 @@ public static class AttackBudgetTest
         { "roster:ember_fighter_6", "roster:ember_big" },           // Hellmouth (tier 6 rare extra): Magma Skull's slag pair -> ONE slag shell straight down from the jaw (x2 -> x1, speed 1.5 -> 1.4, size .32 -> .3, tell 1.0, cooldown 3.6 -> 3.4, volleys 3), tracking slowly
         { "themed:boss_tide_thunder_strike", "boss:Tide:starboard cluster" },
         { "themed:boss_tide_surf_wave", "boss:Tide:starboard cluster" },
+        // round 2 of the boss animation (user: "the eye can shoot beams and coils can shoot lightning"): the core fan's bolts now fork out of
+        // the two coils (3 + 3) and the coils' twin beams became one beam out of the eye -- each held to the attack it replaced
+        { "boss:Storm:coil lightning", "boss:Storm:core arc fan" },
+        { "boss:Storm:eye beam", "boss:Storm:coil beams" },
         { "themed:boss_storm_crown_strike", "boss:Storm:crown hail" },
         { "themed:boss_storm_chain_lightning", "boss:Storm:crown hail" },   // held to the crown hail (the coil beams of its slot are 0 % and the core fan 4.6 %; measured 9.2 %)
         { "themed:boss_verdant_vine_lash", "boss:Verdant:spore bloom" },     // slot 2 of the table (joins at phase 1 beside stinger thorns; spore bloom is the pinned attack of that slot)

@@ -53,15 +53,17 @@ def ease_out(t):
 
 
 def idle_loop(osc, n=IDLE):
-    """osc: {part: [(component index, amplitude, phase), ...]} -> n poses of a seamless loop."""
+    """osc: {part: [(component index, amplitude, phase[, cycles per loop]), ...]} -> n poses of a seamless loop."""
     frames = []
     for i in range(n):
         t = i / n
         pose = {}
         for part, terms in osc.items():
             v = list(REST)
-            for comp, amp, ph in terms:
-                w = math.sin(2 * math.pi * t + ph)
+            for term in terms:
+                comp, amp, ph = term[:3]
+                fq = term[3] if len(term) > 3 else 1
+                w = math.sin(2 * math.pi * fq * t + ph)
                 v[comp] += amp * w
             pose[part] = tuple(v)
         frames.append((pose, t))

@@ -51,6 +51,9 @@ public sealed class BossAttack
     public string name;             // what it is, for previews and tests
     public BossAttackKind kind;
     public int tell;                // which drawn tell pose (0..2) the boss holds
+    // Its many-frame animation pose (BossAnim) when not its tell's: the Bloom Queen's own stinger / spore / acid poses
+    // (3..5) and its vine poses (0..2); -1 = the tell's (BossAnim.PoseFor).
+    public int anim = -1;
     public float tellSeconds = .7f; // telegraph before the first shot / beam
     // The body parts it fires from (BossEmitterTable names) and their
     // resolved indices (filled by BossCatalog).
@@ -321,13 +324,13 @@ public static class BossCatalog
                 {
                     // The stinger swells and spits four thorns at the ship;
                     // they stick in a rail.
-                    new BossAttack { name = "stinger thorns", kind = BossAttackKind.Aimed, tell = 0, tellSeconds = .6f,
+                    new BossAttack { name = "stinger thorns", kind = BossAttackKind.Aimed, tell = 0, tellSeconds = .6f, anim = 3,
                                      emitters = new[] { "Stinger" }, fireFrame = true,
                                      volleys = 4, volleyGap = .24f, count = 1, speed = 4.1f, style = BossShotStyle.Bolt,
                                      rail = BossRailMode.Absorb, cooldown = 1.1f },
                     // Every petal tip sparks, then flings two spiky spores out
                     // and down, away from the bulb; they bounce once.
-                    new BossAttack { name = "spore bloom", kind = BossAttackKind.Fan, tell = 1, tellSeconds = .9f,
+                    new BossAttack { name = "spore bloom", kind = BossAttackKind.Fan, tell = 1, tellSeconds = .9f, anim = 4,
                                      emitters = new[] { "PetalUL", "PetalUR", "PetalL", "PetalR", "PetalLL", "PetalLR" },
                                      radialFrom = "Bulb", radialBend = .6f,
                                      volleys = 1, count = 2, spreadDeg = 24f, speed = 2.5f, style = BossShotStyle.Shard,
@@ -335,7 +338,7 @@ public static class BossCatalog
                     // The flank cannons glow and hose acid: two jets start
                     // aimed out at the rails and swing in to straight down --
                     // get between the cannons.
-                    new BossAttack { name = "acid cannons", kind = BossAttackKind.Beam, tell = 2, tellSeconds = 1f,
+                    new BossAttack { name = "acid cannons", kind = BossAttackKind.Beam, tell = 2, tellSeconds = 1f, anim = 5,
                                      emitters = new[] { "CannonL", "CannonR" },
                                      aim = BossBeamAim.Down, aimDeg = 30f, sweepDeg = -30f, beamWidth = .3f, hold = .8f,
                                      cooldown = 1.4f },
@@ -395,25 +398,27 @@ public static class BossCatalog
             // ----------------------------------------------------------- Storm
             // A weather-factory turbine: a white-hot core drum, a crown of
             // lightning rods between two Tesla coil towers. Tells: core flare
-            // (0), crown arcs (1), coil towers charging (2). The core fan and
-            // the coil beams are its default pattern; the crown's hail is its
-            // third; the themed table (BossThemed) adds its lane strike and
-            // chain-lightning sweep.
+            // (0), crown arcs (1), coil towers charging (2). The coil lightning
+            // and the eye beam are its default pattern (user, 2026-11-28: "the
+            // eye can shoot beams and coils can shoot lightning"); the crown's
+            // hail is its third; the themed table (BossThemed) adds its lane
+            // strike and chain-lightning sweep.
             new BossDef
             {
                 id = CodexPrefix + "storm", name = "TEMPEST ENGINE", title = "STORM-MAKING TURBINE", artKey = "Storm",
                 damageKey = StormDamageKey, deathKey = StormDeathKey,
                 lore = "A floating turbine the size of a city block that builds the weather it hides in. " +
-                       "Its drum spits arcs when the core flares white, its crown calls lightning down your lane after the rods spark, and its twin coils cut the sky in half. " +
+                       "Its twin coils hurl forks of lightning, its crown calls lightning down your lane after the rods spark, and when its eye flares white it burns a beam down the sky. " +
                        "Watch what lights up first, then slip between the towers.",
                 swayX = 1.05f, swayY = .16f, freqX = .28f, freqY = .56f, flash = StormYellow, heartColor = ShipLivesIndicator.HeartTint,
                 attacks = new[]
                 {
-                    // The drum's core flares white, then it vents fans of
-                    // arc bolts that ricochet once off the rails.
-                    new BossAttack { name = "core arc fan", kind = BossAttackKind.Fan, tell = 0, tellSeconds = 1f,
-                                     emitters = new[] { "Core" }, fireFrame = true,
-                                     volleys = 3, volleyGap = .65f, count = 5, spreadDeg = 84f, rotateDeg = 10f,
+                    // Arcs crawl up both Tesla coils, then each hurls a fork
+                    // of lightning bolts, down and out, that ricochet once off
+                    // the rails (the old core fan's five bolts, split 3 + 3).
+                    new BossAttack { name = "coil lightning", kind = BossAttackKind.Fan, tell = 2, tellSeconds = 1f,
+                                     emitters = new[] { "CoilL", "CoilR" }, fireFrame = true,
+                                     volleys = 3, volleyGap = .65f, count = 3, spreadDeg = 54f, rotateDeg = 10f,
                                      speed = 2.6f, style = BossShotStyle.Bolt,
                                      rail = BossRailMode.Bounce, bounces = 1, cooldown = 1.2f },
                     // The rods spark, then hail is flung up out of the crown
@@ -423,11 +428,12 @@ public static class BossCatalog
                                      volleys = 2, volleyGap = .55f, count = 4, style = BossShotStyle.Shard,
                                      lobUp = 2.2f, gravity = 6f, fallSpeed = 3.4f,
                                      rail = BossRailMode.Absorb, cooldown = 1.4f },
-                    // Both coil towers charge, then burn two beams straight
-                    // down that swing outward: the lane between them is safe.
-                    new BossAttack { name = "coil beams", kind = BossAttackKind.Beam, tell = 2, tellSeconds = 1f,
-                                     emitters = new[] { "CoilL", "CoilR" },
-                                     aim = BossBeamAim.Down, aimDeg = 6f, sweepDeg = 14f, beamWidth = .28f, hold = .8f,
+                    // The eye charges (its pupil dilates, light gathers in
+                    // it), then burns a beam straight down out of it that
+                    // sweeps across: step round its far end.
+                    new BossAttack { name = "eye beam", kind = BossAttackKind.Beam, tell = 0, tellSeconds = 1f,
+                                     emitters = new[] { "Core" },
+                                     aim = BossBeamAim.Down, aimDeg = 0f, sweepDeg = 18f, beamWidth = .28f, hold = .8f,
                                      cooldown = 1.4f },
                 },
             },

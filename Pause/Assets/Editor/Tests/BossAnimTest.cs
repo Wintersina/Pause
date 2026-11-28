@@ -4,9 +4,11 @@ using UnityEngine;
 
 // Feature: every boss animates with many frames (BossAnim; user, 2026-11-28: "every boss to have a lot of frames ...
 // for their attacks and movements", "arms moving, jaws moving"). Each boss has its <Key>_anim atlas -- a 12-frame
-// hover, a 6-frame turn each way, a 3-frame flinch, and for each of its three tell poses an 8-frame wind-up, a
-// 4-frame release and a 4-frame recoil -- and plays it while it fights: every attack's tell is spread over the
-// attack's real telegraph, the release starts as the shots leave, the recoil once the attack is over.
+// hover, a 6-frame turn each way, a 3-frame flinch, and for each of its attack poses (three; the Bloom Queen six) an
+// 8-frame wind-up, a 4-frame release and a 4-frame recoil -- and plays it while it fights: every attack's tell is
+// spread over the attack's real telegraph, the release starts as the shots leave, the recoil once the attack is over.
+// Round 2 (user): the Tempest Engine's eye fires the beam and its coils the lightning; the Bloom Queen's vine attacks
+// keep the first poses and its stinger / spore / acid attacks have their own.
 //
 // Drives BossEncounter frame by frame (Step(realDt, timeScale)) in edit mode.
 public static class BossAnimTest
@@ -29,6 +31,7 @@ public static class BossAnimTest
             FrameTable();
             for (int w = 0; w < BossCatalog.All.Length; w++) AtlasComplete(BossCatalog.All[w]);
             for (int w = 0; w < BossCatalog.All.Length; w++) EveryAttackHasASequence(BossCatalog.All[w], w);
+            OwnPoses();
             for (int w = 0; w < BossCatalog.All.Length; w++) NoPinkOutsideSpace(BossCatalog.All[w]);
             for (int w = 0; w < BossCatalog.All.Length; w++) MovesReallyMove(BossCatalog.All[w]);
             StepsAllocateNothing();
@@ -84,22 +87,27 @@ public static class BossAnimTest
 
     static void AtlasComplete(BossDef b)
     {
-        Check(b.artKey + ": has its animation atlas (" + BossAnim.FrameCount(b) + " frames)", BossAnim.Has(b) && BossAnim.FrameCount(b) == BossAnim.Frames);
+        int frames = BossAnim.FramesFor(b);
+        Check(b.artKey + ": has its animation atlas (" + BossAnim.FrameCount(b) + " of " + frames + " frames, " + BossAnim.PosesFor(b) + " poses)",
+              BossAnim.Has(b) && BossAnim.FrameCount(b) == frames && frames >= BossAnim.Frames);
         if (!BossAnim.Has(b)) return;
         float cell = BossAnim.Sprite(b, 0).rect.width;
         bool size = true, drawn = true;
-        for (int i = 0; i < BossAnim.Frames; i++)
+        for (int i = 0; i < frames; i++)
         {
             var s = BossAnim.Sprite(b, i);
             size &= s != null && Mathf.Abs(s.rect.width - cell) < .5f && Mathf.Abs(s.rect.height - cell) < .5f &&
-                    Mathf.Abs(s.pixelsPerUnit - s.rect.width) < .01f;
-            drawn &= Opaque(s) > cell * cell / 20f;
+                    Mathf.Abs(s.pixelsPerUnit * BossAnim.Margin - s.rect.width) < .01f;
+            drawn &= Opaque(s) > cell * cell / 32f;
         }
-        Check(b.artKey + ": every frame is one square cell, 1 unit across (as a body cell) and drawn", size && drawn);
-        // the same registration as the body: the hover's first frame covers the idle drawing's own box (+-2% of a cell)
+        Check(b.artKey + ": every frame is one square cell, " + BossAnim.Margin + " units across (the body cell and its margin) and drawn", size && drawn);
+        // the same registration as the body: the hover's first frame covers the idle drawing's own box (+-2% of a body
+        // cell), the anim frame's box taken back to body-cell shares (its margin off each side)
         var ib = Frac(BossArt.Body(b, BossArt.IdleStart(b)));
         var ab = Frac(BossAnim.Sprite(b, BossAnim.Idle0));
         bool reg = ib != null && ab != null;
+        float m = (BossAnim.Margin - 1f) * .5f;
+        if (ab != null) for (int k = 0; k < 4; k++) ab[k] = ab[k] * BossAnim.Margin - m;
         for (int k = 0; reg && k < 4; k++) reg &= Mathf.Abs(ib[k] - ab[k]) <= .02f;
         Check(b.artKey + ": registered on the body (idle box " + Str(ib) + ", anim " + Str(ab) + ")", reg);
         if (BossArt.HasDamageArt(b))
@@ -120,8 +128,9 @@ public static class BossAnimTest
         string bad = "";
         foreach (var a in all)
         {
-            bool ok = a.tell >= 0 && a.tell < BossAnim.Poses &&
-                      BossAnim.PoseOf(BossAnim.Tell(a.tell, 0)) == a.tell && BossAnim.PoseOf(BossAnim.Recoil(a.tell, 3)) == a.tell;
+            int p = BossAnim.PoseFor(b, a);
+            bool ok = a.tell >= 0 && a.tell < BossAnim.Poses && p >= 0 && p < BossAnim.PosesFor(b) &&
+                      BossAnim.PoseOf(BossAnim.Tell(p, 0)) == p && BossAnim.PoseOf(BossAnim.Recoil(p, 3)) == p;
             if (!ok) { mapped = false; bad += a.name + " "; }
         }
         Check(b.artKey + ": every attack (" + all.Count + ") plays its own tell -> fire -> recoil sequence", mapped, bad);
@@ -131,17 +140,45 @@ public static class BossAnimTest
         if (ww >= 0)
             for (int p = 0; p < BossEmitterTable.Parts[ww].Length; p++)
             {
-                int pose = BossWaveSources.PoseOf(b, p);
-                parts &= pose >= 0 && pose < BossAnim.Poses;
+                int pose = BossAnim.TellPose(b, BossWaveSources.PoseOf(b, p));
+                parts &= pose >= 0 && pose < BossAnim.PosesFor(b);
             }
         Check(b.artKey + ": every wave source's pose has a sequence", parts);
+    }
+
+    // Round 2: the attacks wear the poses drawn for them.
+    static void OwnPoses()
+    {
+        var storm = BossCatalog.Find("boss_storm");
+        BossAttack beam = null, bolts = null;
+        foreach (var a in storm.DefaultAttacks) { if (a.name == "eye beam") beam = a; if (a.name == "coil lightning") bolts = a; }
+        Check("Storm: the eye beam is a beam from the eye (Core) on the eye's pose", beam != null && beam.kind == BossAttackKind.Beam &&
+              beam.emitters.Length == 1 && beam.emitters[0] == "Core" && BossAnim.PoseFor(storm, beam) == 0);
+        Check("Storm: the coil lightning is bolts from both coils on the coils' pose", bolts != null && bolts.style == BossShotStyle.Bolt &&
+              bolts.emitters.Length == 2 && bolts.emitters[0] == "CoilL" && bolts.emitters[1] == "CoilR" && BossAnim.PoseFor(storm, bolts) == 2);
+        var v = BossCatalog.Find("boss_verdant");
+        var want = new Dictionary<string, int> { { "stinger thorns", 3 }, { "spore bloom", 4 }, { "acid cannons", 5 }, { "vine lash", 1 }, { "trunk toss", 2 } };
+        var all = new List<BossAttack>();
+        foreach (var list in new[] { v.attacks, v.themed }) if (list != null) all.AddRange(list);
+        int seen = 0;
+        bool ok = BossAnim.PosesFor(v) == 6;
+        foreach (var a in all)
+        {
+            int p;
+            if (!want.TryGetValue(a.name, out p)) continue;
+            seen++;
+            ok &= BossAnim.PoseFor(v, a) == p;
+        }
+        Check("Verdant: vine attacks on the vine poses (0-2), stinger / spore / acid on their own (3-5)", ok && seen >= 3);
+        Check("Verdant: the song's stinger vines keep pose 0, its bulb rings and cannon hedges wear the spore and acid poses",
+              BossAnim.TellPose(v, 0) == 0 && BossAnim.TellPose(v, 1) == 4 && BossAnim.TellPose(v, 2) == 5 && BossAnim.TellPose(storm, 2) == 2);
     }
 
     static void NoPinkOutsideSpace(BossDef b)
     {
         if (!BossAnim.Has(b) || b.artKey == "Space") return;
         long pink = 0, opaque = 0;
-        for (int i = 0; i < BossAnim.Frames; i++)
+        for (int i = 0, n = BossAnim.FramesFor(b); i < n; i++)
         {
             int w, h;
             var px = ShieldContour.ReadPixels(BossAnim.Sprite(b, i), out w, out h);
@@ -164,7 +201,7 @@ public static class BossAnimTest
         if (!BossAnim.Has(b)) return;
         bool tells = true;
         string why = "";
-        for (int p = 0; p < BossAnim.Poses; p++)
+        for (int p = 0; p < BossAnim.PosesFor(b); p++)
         {
             float d = Diff(BossAnim.Sprite(b, BossAnim.Tell(p, 0)), BossAnim.Sprite(b, BossAnim.Tell(p, 7)));
             float f = Diff(BossAnim.Sprite(b, BossAnim.Tell(p, 7)), BossAnim.Sprite(b, BossAnim.Fire(p, 0)));
@@ -244,6 +281,7 @@ public static class BossAnimTest
         for (int k = 0; k < a.Boss.attacks.Length; k++)
         {
             var atk = a.Boss.attacks[k];
+            int apose = BossAnim.PoseFor(a.Boss, atk);
             a.ForcedAttack = k;
             // let whatever is running finish, then catch this attack's tell
             int guard = 0;
@@ -261,19 +299,19 @@ public static class BossAnimTest
             while (a.Telegraphing && a.CurrentAttack == atk && tellTime < 5f)
             {
                 int f = a.AnimFrame;
-                tellOk &= BossAnim.IsTell(f) && BossAnim.PoseOf(f) == atk.tell && BossAnim.StepOf(f) >= last;
+                tellOk &= BossAnim.IsTell(f) && BossAnim.PoseOf(f) == apose && BossAnim.StepOf(f) >= last;
                 if (firstStep < 0) firstStep = BossAnim.StepOf(f);
                 last = BossAnim.StepOf(f);
                 sprites &= body.sprite == BossAnim.Sprite(a.Boss, f);
                 e.Step(Dt, 1f);
                 tellTime += Dt;
             }
-            Check(name + " " + atk.name + ": the wind-up (pose " + atk.tell + ") climbs " + firstStep + " -> " + last + " over its " +
+            Check(name + " " + atk.name + ": the wind-up (pose " + apose + ") climbs " + firstStep + " -> " + last + " over its " +
                   atk.tellSeconds + " s telegraph (" + tellTime.ToString("0.00") + " s)",
                   tellOk && firstStep <= 1 && last == BossAnim.TellFrames - 1 && Mathf.Abs(tellTime - atk.tellSeconds) < .25f);
             int released = a.AnimFrame;
             Check(name + " " + atk.name + ": the release is up as it fires (" + released + ")",
-                  BossAnim.IsFire(released) && BossAnim.PoseOf(released) == atk.tell);
+                  BossAnim.IsFire(released) && BossAnim.PoseOf(released) == apose);
             // through to the end of the attack, then the recoil, then back to the hover / a turn
             bool sawRecoil = false, settled = false;
             for (int i = 0; i < 1200 && e.State == BossEncounter.Phase.Fight; i++)
@@ -281,7 +319,7 @@ public static class BossAnimTest
                 e.Step(Dt, 1f);
                 sprites &= body.sprite == BossAnim.Sprite(a.Boss, a.AnimFrame);
                 if (a.CurrentAttack != null) continue;
-                if (BossAnim.IsRecoil(a.AnimFrame) && BossAnim.PoseOf(a.AnimFrame) == atk.tell) sawRecoil = true;
+                if (BossAnim.IsRecoil(a.AnimFrame) && BossAnim.PoseOf(a.AnimFrame) == apose) sawRecoil = true;
                 if (sawRecoil && (BossAnim.IsIdle(a.AnimFrame) || BossAnim.IsTurn(a.AnimFrame))) { settled = true; break; }
             }
             Check(name + " " + atk.name + ": it recoils, then settles into the hover", sawRecoil && settled);

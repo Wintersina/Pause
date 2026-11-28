@@ -186,7 +186,7 @@ public static class AttackArt
 
     // <w>_attack_laser (1024 x 384, 8 x 3 cells of 128), <w>_attack_laserbody (512 x 256: four 128 x 256 beam frames, root at the TOP)
     // and <w>_attack_lasertell (512 x 128: sight a,b then lock a,b) for the worlds whose boss fires a painted beam (Space pod lasers,
-    // Frost glare beams, Verdant acid cannons, Ember jaw flamethrower, Tide beak jet, Storm coil beams, Desert lens beam). Null when any of the three
+    // Frost glare beams, Verdant acid cannons, Ember jaw flamethrower, Tide beak jet, Storm eye beam, Desert lens beam). Null when any of the three
     // files is missing (BossBeam then draws the generic boss beam).
     //   laser row 0: windup 1-8 (energy gathering at the emitter); row 1: muzzle a-d (loop) then fade 1-4; row 2: impact 1-4 then spark a-d
     public sealed class LaserArt

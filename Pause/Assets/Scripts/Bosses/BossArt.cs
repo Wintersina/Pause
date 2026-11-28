@@ -768,7 +768,7 @@ public static class BossArt
             for (int i = 0; i < DeathStripCells; i++) yield return DeathStrip(boss, i);
         if (BossAnim.Has(boss))
         {
-            for (int i = 0; i < BossAnim.Frames; i++) yield return BossAnim.Sprite(boss, i);
+            for (int i = 0, n = BossAnim.FramesFor(boss); i < n; i++) yield return BossAnim.Sprite(boss, i);
             if (HasDamageArt(boss))
                 for (int s = 1; s <= DamageStages; s++)
                     for (int c = 0; c < DamageColumns; c++) yield return BossAnim.Decal(boss, s, c);

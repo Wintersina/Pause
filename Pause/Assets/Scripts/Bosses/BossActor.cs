@@ -580,7 +580,7 @@ public class BossActor : MonoBehaviour, IMusicPatternHost
                 tellAge += dt;
                 if (current.kind == BossAttackKind.Beam)
                 {
-                    if (tellAge >= current.tellSeconds) { phase = AttackPhase.Beams; AnimFire(current.tell); }
+                    if (tellAge >= current.tellSeconds) { phase = AttackPhase.Beams; AnimFire(BossAnim.PoseFor(boss, current)); }
                     return;
                 }
                 if (phaseTimer > 0f) return;
@@ -732,7 +732,7 @@ public class BossActor : MonoBehaviour, IMusicPatternHost
     void Fire()
     {
         fireLeft = BossArt.FireTicks * BossArt.Tick;
-        AnimFire(current != null ? current.tell : 0);
+        AnimFire(current != null ? BossAnim.PoseFor(boss, current) : 0);
     }
 
     static Vector2 Heading(float deg)
@@ -790,7 +790,7 @@ public class BossActor : MonoBehaviour, IMusicPatternHost
     {
         // the first part to fire in a frame names the drawing (a wave before an accent on the same sixteenth); a new
         // firing ends the last one's flashes and held drawing
-        if (fireStamp != animClock) { fireStamp = animClock; musicFirePose = BossWaveSources.PoseOf(boss, part); fireLeft = 0f; firedMask = 0; AnimFire(musicFirePose); }
+        if (fireStamp != animClock) { fireStamp = animClock; musicFirePose = BossWaveSources.PoseOf(boss, part); fireLeft = 0f; firedMask = 0; AnimFire(BossAnim.TellPose(boss, musicFirePose)); }
         fireLeft = Mathf.Max(fireLeft, Mathf.Max(BossArt.FireTicks * BossArt.Tick, holdSeconds));
         var parts = current != null ? current.parts : null;
         if (parts == null) return;
@@ -1059,12 +1059,12 @@ public class BossActor : MonoBehaviour, IMusicPatternHost
             if (animFireAge < fireEnd) return BossAnim.FireAt(animPose, animFireAge);
             // a held stream (the Drake's breath) keeps its release drawings flickering for as long as it pours
             if (fireLeft > 0f) return BossAnim.Fire(animPose, BossAnim.FireFrames - 2 + (Mathf.FloorToInt(animFireAge / (2f * BossArt.Tick)) & 1));
-            if (musicDirector.Telling) return BossAnim.TellAt(musicDirector.TellPose, musicDirector.TellProgress);
+            if (musicDirector.Telling) return BossAnim.TellAt(BossAnim.TellPose(boss, musicDirector.TellPose), musicDirector.TellProgress);
             if (animFireAge < recoilEnd) return BossAnim.RecoilAt(animPose, animFireAge - fireEnd);
         }
         else if (current != null && phase != AttackPhase.Cooldown)
         {
-            int pose = current.tell;
+            int pose = BossAnim.PoseFor(boss, current);
             if (phase == AttackPhase.Tell) return BossAnim.TellAt(pose, tellAge / Mathf.Max(.01f, current.tellSeconds));
             if (animFireAge < fireEnd) return BossAnim.FireAt(animPose, animFireAge);
             // lasers burn and hazards rage on the released drawing; between volleys / pattern waves it is wound up again

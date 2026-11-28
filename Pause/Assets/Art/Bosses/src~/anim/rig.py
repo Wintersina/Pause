@@ -117,20 +117,25 @@ class Part:
 class Rig:
     """src: RGBA image of the idle cell. parts: list of Part, coordinates in BASE px (scaled by size / base)."""
 
-    def __init__(self, src, parts, base=384, maw_dark=(18, 10, 12), body_shadow=.5, fill_reach=7):
-        self.src = np.array(src.convert('RGBA'))
+    def __init__(self, src, parts, base=384, maw_dark=(18, 10, 12), body_shadow=.5, fill_reach=7, pad=0):
+        # pad: a clear margin (output px) round the painted cell, so a limb flung wide is never cut at the cell's edge
+        src = np.array(src.convert('RGBA'))
+        if pad:
+            src = np.pad(src, ((pad, pad), (pad, pad), (0, 0)))
+        self.src = src
+        self.pad = pad
         self.size = self.src.shape[0]
-        k = self.size / base
+        k = (self.size - 2 * pad) / base
         self.k = k
         self.parts = []
         claimed = np.zeros(self.src.shape[:2], bool)
         opaque = self.src[..., 3] >= 8
         for p in parts:
-            poly = [(x * k, y * k) for x, y in p.poly]
+            poly = [(x * k + pad, y * k + pad) for x, y in p.poly]
             m = poly_mask(self.size, poly) & opaque & ~claimed   # first part listed owns a shared pixel
             claimed |= m
             p.mask = m
-            p.piv = (p.pivot[0] * k, p.pivot[1] * k)
+            p.piv = (p.pivot[0] * k + pad, p.pivot[1] * k + pad)
             ys, xs = np.nonzero(m)
             p.reach = float(np.hypot(xs - p.piv[0], ys - p.piv[1]).max()) if len(xs) else 1.
             self.parts.append(p)
@@ -223,12 +228,21 @@ class Rig:
         if cavity.any():
             m = maw
             if m is not None:
-                m = (m[0], m[1], (m[2][0] + shift[0] / self.k, m[2][1] + shift[1] / self.k), m[3])
+                o = self.pad / self.k
+                m = (m[0], m[1], (m[2][0] + o + shift[0] / self.k, m[2][1] + o + shift[1] / self.k), m[3])
             out = compose(out, self._maw_layer(m, cavity))
         for z, img in sorted(layers_front, key=lambda t: t[0]):
             out = compose(out, img)
         if fx is not None:
-            out = fx(out, self.k)
+            P = self.pad
+            if P:
+                # the FX are drawn in the painted cell's own coordinates (a view: they draw in place)
+                v = out[P:self.size - P, P:self.size - P]
+                r = fx(v, self.k)
+                if r is not v:
+                    out[P:self.size - P, P:self.size - P] = r
+            else:
+                out = fx(out, self.k)
         return out
 
     def _part_image(self, p, pose):
@@ -308,6 +322,8 @@ def orb(img, k, cx, cy, r, pal, strength=1.):
     R = r * k
     x0, x1 = int(max(0, cx * k - R * 1.8)), int(min(S, cx * k + R * 1.8 + 1))
     y0, y1 = int(max(0, cy * k - R * 1.8)), int(min(S, cy * k + R * 1.8 + 1))
+    if y0 >= y1 or x0 >= x1:
+        return img
     ys, xs = np.mgrid[y0:y1, x0:x1]
     d = np.hypot(xs + .5 - cx * k, ys + .5 - cy * k) / R
     for lim, col, a in ((1.75, pal[0], .35), (1.25, pal[0], .7), (.85, pal[1], .95), (.45, pal[2], 1.)):
@@ -322,6 +338,8 @@ def ring(img, k, cx, cy, r, w, col, strength=1.):
     R = r * k; W = max(1., w * k)
     x0, x1 = int(max(0, cx * k - R - W - 1)), int(min(S, cx * k + R + W + 2))
     y0, y1 = int(max(0, cy * k - R - W - 1)), int(min(S, cy * k + R + W + 2))
+    if y0 >= y1 or x0 >= x1:
+        return img
     ys, xs = np.mgrid[y0:y1, x0:x1]
     d = np.abs(np.hypot(xs + .5 - cx * k, ys + .5 - cy * k) - R)
     m = d <= W * .5
@@ -377,6 +395,8 @@ def shard(img, k, cx, cy, length, ang, col, edge, strength=1.):
     L = length * k; Wd = max(1.2, length * .28 * k)
     x0, x1 = int(cx * k - L - 2), int(cx * k + L + 2)
     y0, y1 = int(cy * k - L - 2), int(cy * k + L + 2)
+    if max(0, y0) >= min(S, y1) or max(0, x0) >= min(S, x1):
+        return img                                   # wholly off the cell
     ys, xs = np.mgrid[max(0, y0):min(S, y1), max(0, x0):min(S, x1)]
     px = xs + .5 - cx * k; py = ys + .5 - cy * k
     u = px * ux + py * uy; v = px * vx + py * vy

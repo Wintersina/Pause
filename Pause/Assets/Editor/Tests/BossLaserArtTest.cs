@@ -5,7 +5,7 @@ using UnityEngine;
 
 // THE BOSSES' PAINTED LASER KITS (Art/Resources/Attacks/<World>/<w>_attack_laser*.png, AttackArt.BossLaser, BossBeam), once per
 // world that fires a beam: Space (pod lasers), Frost (glare beams), Verdant (acid cannons), Ember (jaw flamethrower), Tide (beak jet),
-// Storm (coil beams), Desert (lens beam); a missing kit falls back to the generic beam (checked at the end).
+// Storm (eye beam), Desert (lens beam); a missing kit falls back to the generic beam (checked at the end).
 //
 //   * the three slots exist with the right sizes, imported point-filtered, uncompressed, mip-free; the kit resolves to its
 //     8 windup / 4 muzzle / 4 fade / 4 impact / 4 spark / 4 body / 2 sight / 2 lock cells; texture memory within budget;
@@ -40,7 +40,7 @@ public static class BossLaserArtTest
         new Kit { world = 2, name = "Verdant", attack = "acid cannons", tell = 1f,   hold = .8f, width = .3f,  parts = 2 },
         new Kit { world = 3, name = "Ember",   attack = "jaw flamethrower",   tell = .8f,  hold = .8f, width = .34f, parts = 1 },
         new Kit { world = 4, name = "Tide",    attack = "beak jet",     tell = .9f,  hold = .8f, width = .34f, parts = 1 },
-        new Kit { world = 5, name = "Storm",   attack = "coil beams",   tell = 1f,   hold = .8f, width = .28f, parts = 2 },
+        new Kit { world = 5, name = "Storm",   attack = "eye beam",     tell = 1f,   hold = .8f, width = .28f, parts = 1 },
         new Kit { world = 6, name = "Desert",  attack = "lens beam",    tell = 1f,   hold = .8f, width = .3f,  parts = 1 },
     };
     static Kit kit;
