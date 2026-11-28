@@ -50,7 +50,8 @@ public static class BossLadder
     public static float CooldownFor(int world) => Cooldown[Mathf.Clamp(world, 0, Cooldown.Length - 1)];
     // The overall density of the boss's streams (every stream's firing rate x this, all phases): the one fine-tuning knob
     // the greedy-bot ladder is calibrated with (BossLadderBotTest), so the tables themselves stay readable.
-    public static float[] Density = { .75f, .62f, .64f, .62f, .60f, .50f, .66f };
+    // (Ember .62 -> .64 with the v3 redraw, BossPatternTables.Ember: shots/s 6.4 -> ~6.6, still under the Kraken's 6.9)
+    public static float[] Density = { .75f, .62f, .64f, .64f, .60f, .50f, .66f };
     public static float DensityFor(int world) => Density[Mathf.Clamp(world, 0, Density.Length - 1)];
 
     // The firing-rate scale at a point of the fight: the density, times the enrage in the last third.

@@ -288,10 +288,15 @@ public static class BossCatalog
                                      speed = 3f, style = BossShotStyle.Bolt,
                                      rail = BossRailMode.Bounce, bounces = 2, cooldown = 1.2f },
                     // Both eyes flare and lock on where the ship is; two
-                    // freezing beams cross there, then drift apart.
+                    // freezing beams cross there, then drift apart. (Sweep
+                    // 10 -> 6 deg with the v3 redraw: its eyes sit ~.8 u
+                    // higher on the head and further apart, so the same angle
+                    // raked further across the ship's row -- BossSpecialsTest's
+                    // dodge bot went from 1.5 to 3 hits a minute; 6 deg rakes
+                    // the row a little less than the old eyes' 10 did.)
                     new BossAttack { name = "glare beams", kind = BossAttackKind.Beam, tell = 1, tellSeconds = .8f,
                                      emitters = new[] { "EyeL", "EyeR" },
-                                     aim = BossBeamAim.AtShip, sweepDeg = 10f, beamWidth = .22f, hold = .5f,
+                                     aim = BossBeamAim.AtShip, sweepDeg = 6f, beamWidth = .22f, hold = .5f,
                                      cooldown = 1.2f },
                     // The blowhole crown spouts: hail crystals arc up out of it
                     // and rain down on four of five columns.
