@@ -352,19 +352,22 @@ public static class BackdropCatalog
         // lamps (value p90 ~.38-.47) and drawn as painted (brightness 1: not
         // Spec.Bright), so the dark worlds' shot outlines apply. The ground tiles are 896x1792 (a 1.75x
         // resample of the first 512x1024 art, 149.33 px per unit: WorldBackdropImport.IsTideHdTile).
+        // 2026-11-28: flown at the .49 altitude like every world: the tiles drawn at TideTuning.TileZoom (2 x GroundZoom), everything on the
+        // ground keyed to TideTuning.GroundZoom (pieceZoom); the living props (TideProps.cs) stand on the ground plane too.
         new Spec { world = "Tide", folder = "Worlds/Tide/Backdrop3/", keyAtlas = "landmarks",
-                   variantSets = BackdropVariants.MaxVariants,
+                   variantSets = BackdropVariants.MaxVariants, groundZoom = TideTuning.TileZoom, pieceZoom = TideTuning.GroundZoom,
                    brightness = () => TideTuning.Brightness, saturation = () => 1f,
                    variantBrightness = TideTuning.VariantBrightness, variantNight = TideTuning.Night,
                    cloudDensity = () => TideTuning.CloudDensity, ceilingHold = () => TideTuning.CeilingHold,
                    ceilingClearSeconds = () => TideTuning.CeilingClearSeconds, layers = new[] {
-            Layer.Tile("sky", 0.006f, W).Graded(.6f),
-            Layer.Tile("far", 0.014f, W).Graded(.8f),
-            Layer.Tile("mid", 0.024f, W).Graded(1f),
-            // landmarks, pipes, vents, vessels and the elite sites: one ground
+            Layer.Tile("sky", 0.006f * TideTuning.GroundZoom, W).Graded(.6f),
+            Layer.Tile("far", 0.014f * TideTuning.GroundZoom, W).Graded(.8f),
+            Layer.Tile("mid", TideTuning.GroundRate, W).Graded(1f),
+            // the current streaks: UNDER the pinned plane (user rule 2026-11-28: nothing moving passes through a prop)
+            Layer.Strip("flow", TideTuning.FlowRate, TideTuning.FlowDrift, 0.01f, new Color(1f, 1f, 1f, 0.85f)).Graded(1f),
+            // landmarks, pipes, vents, vessels, the living props and the elite sites: one ground
             // plane pinned to the mid tile
-            Layer.Pieces("ground", 0.024f, Role.Landmark).PinnedTo("mid", 0.024f).Graded(1f),
-            Layer.Strip("flow", 0.025f, 0.30f, 0.01f, new Color(1f, 1f, 1f, 0.85f)).Graded(1f),
+            Layer.Pieces("ground", TideTuning.GroundRate, Role.Landmark).PinnedTo("mid", TideTuning.GroundRate).Graded(1f),
             Layer.Pieces("palls", 0.040f, Role.Atmosphere).Graded(.6f),
             Layer.Pieces("mist", 0.060f, Role.Atmosphere).Graded(.6f),
             Layer.Pieces("wisps", 0.090f, Role.Cloud).Graded(.6f),

@@ -49,6 +49,18 @@ using UnityEngine;
 // are fixed and a frame allocates nothing.
 public static class TideTuning
 {
+    // ---- ALTITUDE (2026-11-28: the user moved every world to the .49 altitude) ---------------------------------------------------
+    // The ground tiles are drawn at TileZoom (2 x GroundZoom, as Desert and Storm: the repainted two-column ground drops straight in; the
+    // present 896 wide tiles simply show at about their old scale) and EVERYTHING that stands on the ground is keyed to GroundZoom
+    // (Spec.pieceZoom): the ground layers' rates, the gaps and bands (x GroundZoom), the piece sizes (x PieceScale: GroundZoom x PieceFit,
+    // as Frost and Desert). The living props (TideProps.cs) are cut at the .49 altitude.
+    public const float GroundZoom = .49f, TileZoom = 2f * GroundZoom, PieceFit = .7f;
+    public const float PieceScale = GroundZoom * PieceFit;
+    public const float GroundRate = .024f * GroundZoom;               // the mid tile's (and everything pinned to it) parallax rate
+    public const float FlowRate = .025f * GroundZoom, FlowDrift = .30f * GroundZoom;
+    // where a new piece is looked for: a band SpawnBand tall starting SpawnAbove over the top of the view
+    public const float SpawnAbove = .95f * PieceScale, SpawnBand = .9f * GroundZoom, SpawnRetry = .25f * GroundZoom;
+
     // ---- brightness ----------------------------------------------------------
     // The Tide art is painted dark with mint foam and lamps (tile value p90
     // ~.38-.47, v4 ~.30-.40) but its sea is lighter than the enemies fly over
@@ -73,12 +85,12 @@ public static class TideTuning
     public static float LightBoostNow = 1f;           // set by the director for its variant
 
     // ---- ground pieces -------------------------------------------------------
-    public static float LandmarkMin = 1.5f, LandmarkMax = 1.75f;
-    public static float FireMin = 1.4f, FireMax = 1.75f, SatelliteMin = 1.05f, SatelliteMax = 1.35f;
-    public static float PipeMin = .5f, PipeMax = 1.45f;
-    public static float ClusterGapMin = 1.6f, ClusterGapMax = 3.2f;     // scrolled ground distance after a cluster
-    public static float LoneGapMin = .8f, LoneGapMax = 1.5f;             // ... after a lone piece
-    public static float NeighbourGapMin = .1f, NeighbourGapMax = .45f;  // between a rig's plate and its neighbour's
+    public static float LandmarkMin = 1.5f * PieceScale, LandmarkMax = 1.75f * PieceScale;
+    public static float FireMin = 1.4f * PieceScale, FireMax = 1.75f * PieceScale, SatelliteMin = 1.05f * PieceScale, SatelliteMax = 1.35f * PieceScale;
+    public static float PipeMin = .5f * PieceScale, PipeMax = 1.45f * PieceScale;
+    public static float ClusterGapMin = 1.6f * GroundZoom, ClusterGapMax = 3.2f * GroundZoom;     // scrolled ground distance after a cluster
+    public static float LoneGapMin = .8f * GroundZoom, LoneGapMax = 1.5f * GroundZoom;             // ... after a lone piece
+    public static float NeighbourGapMin = .1f * PieceScale, NeighbourGapMax = .45f * PieceScale;  // between a rig's plate and its neighbour's
     public static float Wind = 1f;                                        // +1: plumes lean right (as painted)
     public static float PlateFeather = 0f;                                // the pieces carry their own foam fringe
 
@@ -147,8 +159,8 @@ public static class TideTuning
     public static readonly string[] HorizontalPipes = { "pipe_straight_00", "manifold_00", "manifold_01", "pipe_tangle_01", "pipe_leak_01", "pipe_leak_00" };
 
     // ---- launch sites ----
-    public static float SiteMin = 1.5f, SiteMax = 1.7f, SiteFirst = 3f, SiteGapMin = 5f, SiteGapMax = 8.5f;
-    public static float SiteCloseDelay = .9f, SiteMinSize = 1.2f;
+    public static float SiteMin = 1.5f * PieceScale, SiteMax = 1.7f * PieceScale, SiteFirst = 3f * GroundZoom, SiteGapMin = 5f * GroundZoom, SiteGapMax = 8.5f * GroundZoom;
+    public static float SiteCloseDelay = .9f, SiteMinSize = 1.2f * PieceScale;
     // Entries 0-4 are the old two-drawing sites (sites atlas); 5-8 the launch-strip ones (docks atlas: <name>_00..05, DocksAtlas), for which
     // SiteClosed / SiteOpen name the idle and the open cell (Rule picks the ground by the name).
     public static readonly string[] SiteNames = { "trench_hatch", "rig_bay", "reef_dock", "vent_stack", "wreck_bay", "carrierpad", "lighthousesilo", "subpen", "wreckhull" };
@@ -227,13 +239,13 @@ public static class TideTuning
     public static float GustStagger = .6f, GustSpeed = 3.4f, GustMin = 4.5f, GustMax = 6f, GustMaxAlpha = 1f;
     public static int RainCount = 5;
     public static float RainMin = .9f, RainMax = 1.5f, RainAlpha = .9f;
-    public static float PallAlpha = .6f, PallLife = 22f;
+    public static float PallAlpha = .6f, PallLife = 22f, PallKeep = .35f;     // PallKeep: the pall's solid core, a share of its width, kept out of every prop
     // run C's free ocean crests (wave_crest_a / _b): wandering over the open water
     public static int CrestCount = 6;
-    public static float CrestMin = 1.1f, CrestMax = 1.7f, CrestAlpha = .6f, CrestLife = 7f, CrestEveryMin = 1.2f, CrestEveryMax = 2.6f;
+    public static float CrestMin = 1.1f * GroundZoom, CrestMax = 1.7f * GroundZoom, CrestAlpha = .6f, CrestLife = 7f, CrestEveryMin = 1.2f, CrestEveryMax = 2.6f, CrestKeep = .5f;
 }
 
-public class TideDirector : PlanetDirector
+public partial class TideDirector : PlanetDirector
 {
     BackdropPool ground, pipes, fires, sites, palls, mist, wisps, ceiling, gusts, rain, crests;
     readonly SpriteRenderer[] lamps = new SpriteRenderer[3];
@@ -314,7 +326,7 @@ public class TideDirector : PlanetDirector
         night = set.Spec.Night(set.Variant);
         TideTuning.LightBoostNow = night ? TideTuning.NightLightBoost : 1f;
         ambient = new AmbientEmitters(set, TideAmbientCatalog.Table) { Wind = TideTuning.Wind };
-        planner = new GroundPlanner(set, "mid", GroundMask.Load("Tide", set.Variant));
+        planner = new GroundPlanner(set, "mid", GroundMask.Load("Tide", set.Variant), 64);
         openSea = set.Variant >= 0 && set.Variant < TideTuning.OpenSea.Length && TideTuning.OpenSea[set.Variant];
 
         dockArt = set.Atlas(TideTuning.DocksAtlas);
@@ -379,6 +391,7 @@ public class TideDirector : PlanetDirector
         mistFrames = new Sprite[TideTuning.MistLoops.Length][];
         for (int m = 0; m < mistFrames.Length; m++) mistFrames[m] = ambient.Frames(TideTuning.MistLoops[m]);
         crests = Pool("ground", TideTuning.CrestCount, false, -8);
+        BuildProps();
         for (int i = 0; i < 2; i++) crestArt[i] = set.Atlas("surf").Frames(TideAmbientCatalog.Crests[i]);
         palls = Pool("palls", 4);
         mist = Pool("mist", 3);
@@ -399,11 +412,12 @@ public class TideDirector : PlanetDirector
         // the opening view: the ground already dressed, under a thick ceiling
         groundGap = Rand(TideTuning.LoneGapMin, TideTuning.LoneGapMax);
         siteGap = TideTuning.SiteFirst;
+        OpeningProps();        // the living props first: the opening clusters are dealt round them
         if (planner.Ready)
         {
             double t = planner.Travel;
-            for (float y = -HalfH * .85f; y < HalfH * .8f; y += Rand(2.6f, 3.6f))
-                SpawnCluster(t + y, t + y + 1.2f);
+            for (float y = -HalfH * .85f; y < HalfH * .8f; y += Rand(2.6f, 3.6f) * TideTuning.GroundZoom)
+                SpawnCluster(t + y, t + y + 1.2f * TideTuning.GroundZoom);
         }
         BuildCeiling();
         BuildParticles();
@@ -462,7 +476,7 @@ public class TideDirector : PlanetDirector
         {
             float gap = SpawnGround();
             if (gap > 0f) { groundTravel = 0f; groundGap = gap; }
-            else groundGap = groundTravel + .25f;     // nothing fitted: look again a little further on
+            else groundGap = groundTravel + TideTuning.SpawnRetry;     // nothing fitted: look again a little further on
         }
         ceilingTravel += set.Spec.Rate("ceiling") * v * dt;
         float density = set.Spec.CeilingDensity(clock);
@@ -481,6 +495,7 @@ public class TideDirector : PlanetDirector
             if (sheetIn <= 0f) { SpawnSheet(); sheetsLeft--; sheetIn = TideTuning.GustStagger; }
         }
 
+        StepProps(dt, scrolled);
         StepPinned(pipes, dt);
         StepPinned(fires, dt);
         StepPinned(ground, dt);
@@ -554,31 +569,48 @@ public class TideDirector : PlanetDirector
     void SpawnCrest()
     {
         int kind = rng.Next(2);
-        var frames = crestArt[kind];
-        if (frames == null || frames.Length == 0 || !planner.Ready) return;
         float size = Rand(TideTuning.CrestMin, TideTuning.CrestMax);
         for (int t = 0; t < 12; t++)
         {
             float x = Rand(XMin(size), XMax(size));
-            double gy = planner.Travel + HalfH + size * .5f + Rand(0f, 2f);
-            if (planner.Match(x, gy, size * .3f, size * .25f, GroundClass.Water) < .9f) continue;
-            var p = crests.Spawn();
-            if (p == null) return;
-            SetSprite(p, frames[0], size);
-            p.frames = frames;
-            p.fps = 8f * Rand(.9f, 1.1f);
-            p.age = 0f;
-            p.life = TideTuning.CrestLife * Rand(.8f, 1.2f);
-            p.gy = gy;
-            p.x = x;
-            p.y = planner.Y(gy);
-            p.rate = set.Spec.Rate("ground");
-            p.body.localScale = Chance(.5) ? new Vector3(-1f, 1f, 1f) : Vector3.one;
-            Place(p);
-            Tinted(p, 0f);
-            return;
+            double gy = planner.Travel + HalfH + size * .5f + Rand(0f, 2f * TideTuning.GroundZoom);
+            if (PlaceCrest(kind, size, x, gy, true) != 0) return;
         }
     }
+
+    // One crest of art `kind` (size, x, gy). 1: placed, -1: nothing can be (no art / no pool / no room: stop trying), 0: this spot is no
+    // good (not open water, or a prop / piece / another crest is there: try another). A crest rides its spot of the sea (pinned), so it
+    // is never put where a prop stands, and its footprint is claimed so no prop is later dealt onto it while it lives (TideProps.cs:
+    // nothing moving draws through a prop). `water`: false in the tests, which force a crest onto a prop.
+    int PlaceCrest(int kind, float size, float x, double gy, bool water)
+    {
+        var frames = crestArt[kind];
+        if (frames == null || frames.Length == 0 || !planner.Ready) return -1;
+        float kx = size * TideTuning.CrestKeep, ky = kx * .8f;
+        if (water && planner.Match(x, gy, size * .3f, size * .25f, GroundClass.Water) < .9f) return 0;
+        if (TouchesProp(x, gy, kx, ky) || !planner.Free(x, gy, kx, ky)) return 0;
+        int foot = planner.Claim(x, gy, kx, ky);
+        if (foot < 0) return -1;
+        var p = crests.Spawn();
+        if (p == null) { planner.Release(foot); return -1; }
+        p.footprint = foot;
+        SetSprite(p, frames[0], size);
+        p.frames = frames;
+        p.fps = 8f * Rand(.9f, 1.1f);
+        p.age = 0f;
+        p.life = TideTuning.CrestLife * Rand(.8f, 1.2f);
+        p.gy = gy;
+        p.x = x;
+        p.y = planner.Y(gy);
+        p.rate = set.Spec.Rate("ground");
+        p.body.localScale = Chance(.5) ? new Vector3(-1f, 1f, 1f) : Vector3.one;
+        Place(p);
+        Tinted(p, 0f);
+        return 1;
+    }
+
+    // Tests: a crest at exactly (x, gy), the rules of the open sea kept except that the spot need not be water. False: refused.
+    public bool TryCrestAt(float x, double gy) { return PlaceCrest(0, TideTuning.CrestMax, x, gy, false) == 1; }
 
     void StepCrests(float dt)
     {
@@ -591,7 +623,13 @@ public class TideDirector : PlanetDirector
             p.y = planner.Y(p.gy);
             Place(p);
             float k = p.age / Mathf.Max(.01f, p.life);
-            if (k >= 1f || p.y < -HalfH - p.size) { Despawn(p); continue; }
+            if (k >= 1f || p.y < -HalfH - p.size || TouchesProp(p.x, p.gy, p.size * TideTuning.CrestKeep, p.size * TideTuning.CrestKeep * .8f))
+            {
+                planner.Release(p.footprint);
+                p.footprint = -1;
+                Despawn(p);
+                continue;
+            }
             p.Animate();
             Tinted(p, TideTuning.CrestAlpha * Mathf.Min(1f, Mathf.Min(k * 5f, (1f - k) * 4f)));
         }
@@ -605,7 +643,7 @@ public class TideDirector : PlanetDirector
     float SpawnGround()
     {
         double t = planner.Travel;
-        double lo = t + HalfH + .95f, hi = lo + .9f;
+        double lo = t + HalfH + TideTuning.SpawnAbove, hi = lo + TideTuning.SpawnBand;
         if (siteTravel >= siteGap && SpawnSite(float.NaN))
         {
             siteTravel = 0f;
@@ -661,6 +699,7 @@ public class TideDirector : PlanetDirector
         if (sprite == null) return null;
         var rule = TideTuning.Rule(name, openSea);
         float rx = GroundPlanner.HalfX(rule, size), ry = GroundPlanner.HalfY(rule, size);
+        if (TouchesProp(x, gy, rx, ry) || PlumeBoxTouchesProp(x, gy, Mathf.Min(size, BackdropCatalog.MaxLandmarkSize))) return null;      // (nothing rises or flows through a prop)
         int foot = planner.Claim(x, gy, rx, ry);
         if (foot < 0) return null;
         var p = pool.Spawn();
@@ -702,15 +741,15 @@ public class TideDirector : PlanetDirector
             string nb = Pick(TideTuning.Neighbours);
             if (nb == anchor) nb = "crane_gantry_00";
             bool pump = nb == "pumphouse_00";
-            float sb = pump ? Rand(.9f, 1.1f) : Rand(TideTuning.LandmarkMin * .85f, TideTuning.LandmarkMax * .9f);
+            float sb = pump ? Rand(.9f, 1.1f) * TideTuning.PieceScale : Rand(TideTuning.LandmarkMin * .85f, TideTuning.LandmarkMax * .9f);
             float plateA = sa * .4f, plateB = sb * (pump ? .44f : .4f);
             for (int attempt = 0; attempt < 2; attempt++)
             {
                 float side = (xa > 0f) == (attempt == 0) ? -1f : 1f;
                 float gap = Rand(TideTuning.NeighbourGapMin, TideTuning.NeighbourGapMax);
                 float xb = xa + side * (plateA + gap + plateB);
-                double gb = ga + Rand(-.12f, .12f);
-                if (xb < XMin(sb) - .2f || xb > XMax(sb) + .2f) continue;
+                double gb = ga + Rand(-.12f, .12f) * TideTuning.PieceScale;
+                if (xb < XMin(sb) - .2f * TideTuning.PieceScale || xb > XMax(sb) + .2f * TideTuning.PieceScale) continue;
                 var rule = TideTuning.Rule(nb, openSea);
                 if (!planner.Accepts(rule, xb, gb, sb) || !planner.Free(xb, gb, GroundPlanner.HalfX(rule, sb), GroundPlanner.HalfY(rule, sb))) continue;
                 var b = Put(pump ? pipes : ground, pump ? pipeArt : landmarkArt, nb, sb, xb, gb, !pump && Chance(.5));
@@ -730,7 +769,7 @@ public class TideDirector : PlanetDirector
     bool PipeRun(float x0, float x1, double gy)
     {
         float len = x1 - x0;
-        if (len < .3f) return false;
+        if (len < .3f * TideTuning.PieceScale) return false;
         bool overWater = planner.ClassAt((x0 + x1) * .5f, gy) == GroundClass.Water;
         string name = overWater ? "pipebridge_00" : Pick(TideTuning.HorizontalPipes);
         int pieces = 1;
@@ -738,7 +777,7 @@ public class TideDirector : PlanetDirector
         float w = len / span;
         if (w > TideTuning.PipeMax) { pieces = 2; w = len * .5f / span; }
         if (w < TideTuning.PipeMin * .6f) return false;
-        if (!planner.Free((x0 + x1) * .5f, gy, Mathf.Max(.05f, len * .5f - .25f), .1f)) return false;
+        if (!planner.Free((x0 + x1) * .5f, gy, Mathf.Max(.05f * TideTuning.PieceScale, len * .5f - .25f * TideTuning.PieceScale), .1f * TideTuning.PieceScale)) return false;
         float placed = x0;
         for (int i = 0; i < pieces; i++)
         {
@@ -795,7 +834,7 @@ public class TideDirector : PlanetDirector
             float ss = Rand(TideTuning.SatelliteMin, TideTuning.SatelliteMax);
             float dir = k % 2 == 0 ? wind : -wind;
             float xs = xf + dir * Rand(.75f, 1.15f) * (sf + ss) * .5f;
-            double gs = gf + Rand(-.7f, .5f);
+            double gs = gf + Rand(-.7f, .5f) * TideTuning.PieceScale;
             if (xs < XMin(ss) || xs > XMax(ss)) continue;
             var rule = TideTuning.Rule(sat, openSea);
             if (!planner.Accepts(rule, xs, gs, ss) || !planner.Free(xs, gs, GroundPlanner.HalfX(rule, ss), GroundPlanner.HalfY(rule, ss))) continue;
@@ -813,13 +852,13 @@ public class TideDirector : PlanetDirector
         string vessel = Pick(TideTuning.Vessels);
         float sv = Rand(TideTuning.LandmarkMin * .9f, TideTuning.LandmarkMax);
         float x; double gy;
-        if (Spot(vessel, sv, lo - .4f, hi + .4f, out x, out gy) && Put(ground, landmarkArt, vessel, sv, x, gy, Chance(.5)) != null) n++;
+        if (Spot(vessel, sv, lo - .4f * TideTuning.GroundZoom, hi + .4f * TideTuning.GroundZoom, out x, out gy) && Put(ground, landmarkArt, vessel, sv, x, gy, Chance(.5)) != null) n++;
         string bank = Pick(TideTuning.Banks);
         float sk = Rand(TideTuning.LandmarkMin, TideTuning.LandmarkMax);
         bool pipeBank = bank.StartsWith("pipebridge"), feature = bank.StartsWith("whirlpool") || bank.StartsWith("oil_slick");
         var atlas = pipeBank ? pipeArt : feature ? fireArt : landmarkArt;
         var pool = pipeBank ? pipes : feature ? fires : ground;
-        if (Spot(bank, sk, lo - .4f, hi + 1.4f, out x, out gy) && Put(pool, atlas, bank, sk, x, gy, !TideTuning.Rule(bank, openSea).HasEnds && Chance(.5)) != null) n++;
+        if (Spot(bank, sk, lo - .4f * TideTuning.GroundZoom, hi + 1.4f * TideTuning.GroundZoom, out x, out gy) && Put(pool, atlas, bank, sk, x, gy, !TideTuning.Rule(bank, openSea).HasEnds && Chance(.5)) != null) n++;
         return n;
     }
 
@@ -845,14 +884,20 @@ public class TideDirector : PlanetDirector
     void SpawnPall(BackdropPiece fire)
     {
         if (pallArt.Length == 0) return;
+        float size = Rand(2.2f, 3f) * TideTuning.PieceScale;
+        float px = fire.x + TideTuning.Wind * fire.size * .3f, pgy = fire.gy + fire.size * .35f;
+        float pvx = TideTuning.Wind * Rand(.03f, .06f) * TideTuning.PieceScale, pvy = Rand(.02f, .05f) * TideTuning.PieceScale;
+        // a smoke pall drifts: it is only raised where its whole straight drift (rising and downwind) stays clear of every prop
+        for (float a = 0f; a <= TideTuning.PallLife; a += 1f)
+            if (TouchesProp(px + pvx * a, pgy + pvy * a, size * TideTuning.PallKeep, size * TideTuning.PallKeep)) return;
         var p = palls.Spawn();
         if (p == null) return;
-        SetSprite(p, Pick(pallArt), Rand(2.2f, 3f));
+        SetSprite(p, Pick(pallArt), size);
         if (Chance(.5)) p.body.localScale = new Vector3(-1f, 1f, 1f);
-        p.gy = fire.gy + fire.size * .35f;
-        p.x = fire.x + TideTuning.Wind * fire.size * .3f;
-        p.vx = TideTuning.Wind * Rand(.03f, .06f);
-        p.vy = Rand(.02f, .05f);
+        p.gy = pgy;
+        p.x = px;
+        p.vx = pvx;
+        p.vy = pvy;
         p.life = TideTuning.PallLife;
         p.rate = set.Spec.Rate("ground");
         p.phase = TideTuning.PallAlpha * Rand(.8f, 1f);
@@ -884,6 +929,8 @@ public class TideDirector : PlanetDirector
             foreach (var q in pool.items)
                 if (q.active) { planner.Release(q.footprint); q.footprint = -1; Despawn(q); }
         foreach (var q in palls.items) if (q.active) Despawn(q);
+        ClearProps();
+        HoldProps(1e6f);
         bool pipe = pipeArt.Has(name), fire = fireArt.Has(name), site = siteArt.Has(name);
         var atlas = pipe ? pipeArt : fire ? fireArt : site ? siteArt : landmarkArt;
         var p = Put(pipe ? pipes : fire ? fires : site ? sites : ground, atlas, name, size, x, planner.GroundY(y), mirror);
@@ -914,8 +961,8 @@ public class TideDirector : PlanetDirector
         var closed = siteClosed[kind];
         if (closed == null || siteOpen[kind] == null) return false;
         float size = Rand(TideTuning.SiteMin, TideTuning.SiteMax) * TideTuning.SiteWidthK[kind];
-        double lo = float.IsNaN(y) ? planner.Travel + HalfH + .95f : planner.GroundY(y) - .3f;
-        double hi = lo + (float.IsNaN(y) ? .9f : .6f);
+        double lo = float.IsNaN(y) ? planner.Travel + HalfH + TideTuning.SpawnAbove : planner.GroundY(y) - .3f * TideTuning.GroundZoom;
+        double hi = lo + (float.IsNaN(y) ? TideTuning.SpawnBand : .6f * TideTuning.GroundZoom);
         float x; double gy;
         if (!planner.Find(TideTuning.DockDeck, size, XMin(size), XMax(size), lo, hi, rng, out x, out gy) &&
             (DockGrade.Strict || !planner.Find(new PieceRule(GroundClass.Any, 0f), size, XMin(size), XMax(size), lo, hi, rng, out x, out gy))) return false;   // only on a painted deck / rig platform: no deck, no dock

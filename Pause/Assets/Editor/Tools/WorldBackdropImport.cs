@@ -96,6 +96,8 @@ public class WorldBackdropImport : AssetPostprocessor
     public static bool IsStormProps(string path)
     {
         if (path.Contains("/Worlds/Desert/Backdrop3/v") && path.EndsWith("/props.png")) return true;
+        // Tide's living props (TideProps.cs, Backdrop3/props: 4096 x 2876, shared by the four ground sets) take the same rules (ASTC 4x4).
+        if (path.Contains("/Worlds/Tide/Backdrop3/props.png")) return true;
         if (!path.Contains("/Worlds/Storm/Backdrop3/")) return false;
         string f = System.IO.Path.GetFileNameWithoutExtension(path);
         return f == "props" || f == "aloft";

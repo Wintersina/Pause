@@ -1,0 +1,1562 @@
+{
+ "lighthouse_r1_0": {
+  "frames": 8,
+  "cell": 256,
+  "ms": [
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125
+  ],
+  "pink_px": 0,
+  "note": "as painted: red and white bands, copper-green lantern roof, red cottage roof",
+  "air": false,
+  "lamps": {
+   "window": 1,
+   "lamp": 1
+  }
+ },
+ "lighthouse_r1_1": {
+  "frames": 8,
+  "cell": 256,
+  "ms": [
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125
+  ],
+  "pink_px": 0,
+  "note": "navy and white bands, orange cottage roof",
+  "air": false,
+  "lamps": {
+   "window": 1,
+   "lamp": 1
+  }
+ },
+ "lighthouse_r1_2": {
+  "frames": 8,
+  "cell": 256,
+  "ms": [
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125
+  ],
+  "pink_px": 0,
+  "note": "black and white bands, green cottage roof, red lantern roof",
+  "air": false,
+  "lamps": {
+   "window": 1,
+   "lamp": 1
+  }
+ },
+ "lighthouse_r1_3": {
+  "frames": 8,
+  "cell": 256,
+  "ms": [
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125
+  ],
+  "pink_px": 0,
+  "note": "yellow ochre and white bands, blue cottage roof",
+  "air": false,
+  "lamps": {
+   "window": 1,
+   "lamp": 1
+  }
+ },
+ "wreck_r1_0": {
+  "frames": 8,
+  "cell": 256,
+  "ms": [
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125
+  ],
+  "pink_px": 0,
+  "note": "as painted: black and red hull, coral orange, yellow and teal",
+  "air": false,
+  "lamps": {}
+ },
+ "wreck_r1_1": {
+  "frames": 8,
+  "cell": 256,
+  "ms": [
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125
+  ],
+  "pink_px": 0,
+  "note": "grey-green hull, white lettering",
+  "air": false,
+  "lamps": {}
+ },
+ "wreck_r1_2": {
+  "frames": 8,
+  "cell": 256,
+  "ms": [
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125
+  ],
+  "pink_px": 0,
+  "note": "blue hull, rust-orange stripe",
+  "air": false,
+  "lamps": {}
+ },
+ "wreck_r1_3": {
+  "frames": 8,
+  "cell": 256,
+  "ms": [
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125
+  ],
+  "pink_px": 0,
+  "note": "dark green hull with yellow coral",
+  "air": false,
+  "lamps": {}
+ },
+ "freighter_r1_0": {
+  "frames": 8,
+  "cell": 256,
+  "ms": [
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125
+  ],
+  "pink_px": 0,
+  "note": "as painted: navy and red hull, mixed containers",
+  "air": false,
+  "lamps": {
+   "nav_red": 1,
+   "nav_green": 1,
+   "strobe": 1,
+   "window": 14
+  }
+ },
+ "freighter_r1_1": {
+  "frames": 8,
+  "cell": 256,
+  "ms": [
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125
+  ],
+  "pink_px": 0,
+  "note": "green hull, mostly blue and white containers",
+  "air": false,
+  "lamps": {
+   "nav_red": 1,
+   "nav_green": 1,
+   "strobe": 1,
+   "window": 14
+  }
+ },
+ "freighter_r1_2": {
+  "frames": 8,
+  "cell": 256,
+  "ms": [
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125
+  ],
+  "pink_px": 0,
+  "note": "black hull, orange and grey containers",
+  "air": false,
+  "lamps": {
+   "nav_red": 1,
+   "nav_green": 1,
+   "strobe": 1,
+   "window": 14
+  }
+ },
+ "freighter_r1_3": {
+  "frames": 8,
+  "cell": 256,
+  "ms": [
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125
+  ],
+  "pink_px": 0,
+  "note": "maroon hull, green and yellow containers",
+  "air": false,
+  "lamps": {
+   "nav_red": 1,
+   "nav_green": 1,
+   "strobe": 1,
+   "window": 14
+  }
+ },
+ "village_r1_0": {
+  "frames": 8,
+  "cell": 256,
+  "ms": [
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125
+  ],
+  "pink_px": 0,
+  "note": "as painted: rust red, blue-grey and green tin roofs, weathered wood",
+  "air": false,
+  "lamps": {
+   "window": 13,
+   "lamp": 3
+  }
+ },
+ "village_r1_1": {
+  "frames": 8,
+  "cell": 256,
+  "ms": [
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125
+  ],
+  "pink_px": 0,
+  "note": "ochre and teal roofs",
+  "air": false,
+  "lamps": {
+   "window": 13,
+   "lamp": 3
+  }
+ },
+ "village_r1_2": {
+  "frames": 8,
+  "cell": 256,
+  "ms": [
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125
+  ],
+  "pink_px": 0,
+  "note": "blue and white painted houses",
+  "air": false,
+  "lamps": {
+   "window": 13,
+   "lamp": 3
+  }
+ },
+ "village_r1_3": {
+  "frames": 8,
+  "cell": 256,
+  "ms": [
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125
+  ],
+  "pink_px": 0,
+  "note": "green roofs, yellow-washed walls",
+  "air": false,
+  "lamps": {
+   "window": 13,
+   "lamp": 3
+  }
+ },
+ "atoll_r1_0": {
+  "frames": 8,
+  "cell": 256,
+  "ms": [
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125
+  ],
+  "pink_px": 0,
+  "note": "as painted: turquoise lagoon, orange coral rim, thatch huts",
+  "air": false,
+  "lamps": {
+   "lamp": 2
+  }
+ },
+ "atoll_r1_1": {
+  "frames": 8,
+  "cell": 256,
+  "ms": [
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125
+  ],
+  "pink_px": 0,
+  "note": "deep blue lagoon, yellow and olive coral",
+  "air": false,
+  "lamps": {
+   "lamp": 2
+  }
+ },
+ "atoll_r1_2": {
+  "frames": 8,
+  "cell": 256,
+  "ms": [
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125
+  ],
+  "pink_px": 0,
+  "note": "jade green lagoon, orange coral, dry brown sand",
+  "air": false,
+  "lamps": {
+   "lamp": 2
+  }
+ },
+ "atoll_r1_3": {
+  "frames": 8,
+  "cell": 256,
+  "ms": [
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125
+  ],
+  "pink_px": 0,
+  "note": "pale aqua lagoon, teal coral",
+  "air": false,
+  "lamps": {
+   "lamp": 2
+  }
+ },
+ "buoys_r1_0": {
+  "frames": 8,
+  "cell": 256,
+  "ms": [
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125
+  ],
+  "pink_px": 0,
+  "note": "as painted: red can, green cone, yellow-black cardinal, red-white, orange",
+  "air": false,
+  "lamps": {
+   "beacon": 3,
+   "nav_green": 1,
+   "strobe": 1
+  }
+ },
+ "buoys_r1_1": {
+  "frames": 8,
+  "cell": 256,
+  "ms": [
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125
+  ],
+  "pink_px": 0,
+  "note": "blue can, yellow cone, red-white, green, white",
+  "air": false,
+  "lamps": {
+   "beacon": 3,
+   "nav_green": 1,
+   "strobe": 1
+  }
+ },
+ "buoys_r1_2": {
+  "frames": 8,
+  "cell": 256,
+  "ms": [
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125
+  ],
+  "pink_px": 0,
+  "note": "orange can, red cone, green-white, blue, yellow",
+  "air": false,
+  "lamps": {
+   "beacon": 3,
+   "nav_green": 1,
+   "strobe": 1
+  }
+ },
+ "buoys_r1_3": {
+  "frames": 8,
+  "cell": 256,
+  "ms": [
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125
+  ],
+  "pink_px": 0,
+  "note": "white and green set, black cardinal",
+  "air": false,
+  "lamps": {
+   "beacon": 3,
+   "nav_green": 1,
+   "strobe": 1
+  }
+ },
+ "mantas_r1_0": {
+  "frames": 8,
+  "cell": 256,
+  "ms": [
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125
+  ],
+  "pink_px": 0,
+  "note": "as painted: dark grey-blue and teal-green mantas, white shoulder patches",
+  "air": false,
+  "lamps": {}
+ },
+ "mantas_r1_1": {
+  "frames": 8,
+  "cell": 256,
+  "ms": [
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125
+  ],
+  "pink_px": 0,
+  "note": "slate and olive-green mantas",
+  "air": false,
+  "lamps": {}
+ },
+ "mantas_r1_2": {
+  "frames": 8,
+  "cell": 256,
+  "ms": [
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125
+  ],
+  "pink_px": 0,
+  "note": "charcoal black mantas, bright white patches",
+  "air": false,
+  "lamps": {}
+ },
+ "mantas_r1_3": {
+  "frames": 8,
+  "cell": 256,
+  "ms": [
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125
+  ],
+  "pink_px": 0,
+  "note": "sandy-brown reef mantas",
+  "air": false,
+  "lamps": {}
+ },
+ "whales_r1_0": {
+  "frames": 8,
+  "cell": 256,
+  "ms": [
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125
+  ],
+  "pink_px": 0,
+  "note": "as painted: slate blue-grey humpbacks, white spray",
+  "air": false,
+  "lamps": {}
+ },
+ "whales_r1_1": {
+  "frames": 8,
+  "cell": 256,
+  "ms": [
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125
+  ],
+  "pink_px": 0,
+  "note": "warm grey-brown grey whales, barnacle pale mottling",
+  "air": false,
+  "lamps": {}
+ },
+ "whales_r1_2": {
+  "frames": 8,
+  "cell": 256,
+  "ms": [
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125
+  ],
+  "pink_px": 0,
+  "note": "blue-grey blue whales with lighter dappled backs",
+  "air": false,
+  "lamps": {}
+ },
+ "whales_r1_3": {
+  "frames": 8,
+  "cell": 256,
+  "ms": [
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125
+  ],
+  "pink_px": 0,
+  "note": "near-black humpbacks, pale throat grooves",
+  "air": false,
+  "lamps": {}
+ },
+ "kelp_r1_0": {
+  "frames": 8,
+  "cell": 256,
+  "ms": [
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125
+  ],
+  "pink_px": 0,
+  "note": "as painted: golden-brown fronds over dark green water, orange float",
+  "air": false,
+  "lamps": {
+   "lamp": 1
+  }
+ },
+ "kelp_r1_1": {
+  "frames": 8,
+  "cell": 256,
+  "ms": [
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125
+  ],
+  "pink_px": 0,
+  "note": "olive-green fronds, bright orange float",
+  "air": false,
+  "lamps": {
+   "lamp": 1
+  }
+ },
+ "kelp_r1_2": {
+  "frames": 8,
+  "cell": 256,
+  "ms": [
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125
+  ],
+  "pink_px": 0,
+  "note": "dark brown fronds (bull kelp), yellow float",
+  "air": false,
+  "lamps": {
+   "lamp": 1
+  }
+ },
+ "kelp_r1_3": {
+  "frames": 8,
+  "cell": 256,
+  "ms": [
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125
+  ],
+  "pink_px": 0,
+  "note": "pale straw-yellow fronds over teal water",
+  "air": false,
+  "lamps": {
+   "lamp": 1
+  }
+ },
+ "dock_r1_0": {
+  "frames": 8,
+  "cell": 256,
+  "ms": [
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125
+  ],
+  "pink_px": 0,
+  "note": "as painted: red trawler, yellow rescue boat, green workboat, white yacht",
+  "air": false,
+  "lamps": {
+   "window": 1,
+   "lamp": 5
+  }
+ },
+ "dock_r1_1": {
+  "frames": 8,
+  "cell": 256,
+  "ms": [
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125
+  ],
+  "pink_px": 0,
+  "note": "blue trawler, orange rescue boat, red workboat, cream yacht",
+  "air": false,
+  "lamps": {
+   "window": 1,
+   "lamp": 5
+  }
+ },
+ "dock_r1_2": {
+  "frames": 8,
+  "cell": 256,
+  "ms": [
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125
+  ],
+  "pink_px": 0,
+  "note": "green trawler, white rescue boat, blue workboat",
+  "air": false,
+  "lamps": {
+   "window": 1,
+   "lamp": 5
+  }
+ },
+ "dock_r1_3": {
+  "frames": 8,
+  "cell": 256,
+  "ms": [
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125
+  ],
+  "pink_px": 0,
+  "note": "yellow trawler, red rescue boat, grey workboat",
+  "air": false,
+  "lamps": {
+   "window": 1,
+   "lamp": 5
+  }
+ },
+ "turbines_r1_0": {
+  "frames": 8,
+  "cell": 256,
+  "ms": [
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125
+  ],
+  "pink_px": 0,
+  "note": "as painted: yellow towers, white blades, orange service platform",
+  "air": false,
+  "lamps": {
+   "beacon": 4
+  }
+ },
+ "turbines_r1_1": {
+  "frames": 8,
+  "cell": 256,
+  "ms": [
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125
+  ],
+  "pink_px": 0,
+  "note": "white towers with red bands, blue platform",
+  "air": false,
+  "lamps": {
+   "beacon": 4
+  }
+ },
+ "turbines_r1_2": {
+  "frames": 8,
+  "cell": 256,
+  "ms": [
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125
+  ],
+  "pink_px": 0,
+  "note": "orange towers, grey platform",
+  "air": false,
+  "lamps": {
+   "beacon": 4
+  }
+ },
+ "turbines_r1_3": {
+  "frames": 8,
+  "cell": 256,
+  "ms": [
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125
+  ],
+  "pink_px": 0,
+  "note": "green towers, yellow platform",
+  "air": false,
+  "lamps": {
+   "beacon": 4
+  }
+ },
+ "cliffs_r1_0": {
+  "frames": 8,
+  "cell": 256,
+  "ms": [
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125
+  ],
+  "pink_px": 0,
+  "note": "as painted: tan sandstone, green forest cap",
+  "air": false,
+  "lamps": {}
+ },
+ "cliffs_r1_1": {
+  "frames": 8,
+  "cell": 256,
+  "ms": [
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125
+  ],
+  "pink_px": 0,
+  "note": "grey slate, pine-green forest",
+  "air": false,
+  "lamps": {}
+ },
+ "cliffs_r1_2": {
+  "frames": 8,
+  "cell": 256,
+  "ms": [
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125
+  ],
+  "pink_px": 0,
+  "note": "red-ochre sandstone, autumn olive forest",
+  "air": false,
+  "lamps": {}
+ },
+ "cliffs_r1_3": {
+  "frames": 8,
+  "cell": 256,
+  "ms": [
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125
+  ],
+  "pink_px": 0,
+  "note": "pale limestone, deep green forest",
+  "air": false,
+  "lamps": {}
+ },
+ "platform_r1_0": {
+  "frames": 8,
+  "cell": 256,
+  "ms": [
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125
+  ],
+  "pink_px": 0,
+  "note": "as painted: white deck, orange trim, blue cabins, yellow helipad",
+  "air": false,
+  "lamps": {
+   "beacon": 2,
+   "window": 3
+  }
+ },
+ "platform_r1_1": {
+  "frames": 8,
+  "cell": 256,
+  "ms": [
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125
+  ],
+  "pink_px": 0,
+  "note": "white deck, yellow trim, green cabins, white helipad",
+  "air": false,
+  "lamps": {
+   "beacon": 2,
+   "window": 3
+  }
+ },
+ "platform_r1_2": {
+  "frames": 8,
+  "cell": 256,
+  "ms": [
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125
+  ],
+  "pink_px": 0,
+  "note": "grey-blue deck, red trim, orange cabins",
+  "air": false,
+  "lamps": {
+   "beacon": 2,
+   "window": 3
+  }
+ },
+ "platform_r1_3": {
+  "frames": 8,
+  "cell": 256,
+  "ms": [
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125
+  ],
+  "pink_px": 0,
+  "note": "cream deck, blue trim, red cabins, green helipad",
+  "air": false,
+  "lamps": {
+   "beacon": 2,
+   "window": 3
+  }
+ },
+ "farm_r1_0": {
+  "frames": 8,
+  "cell": 256,
+  "ms": [
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125
+  ],
+  "pink_px": 0,
+  "note": "as painted: black rings, green nets, blue and white feed barge, orange house",
+  "air": false,
+  "lamps": {}
+ },
+ "farm_r1_1": {
+  "frames": 8,
+  "cell": 256,
+  "ms": [
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125
+  ],
+  "pink_px": 0,
+  "note": "blue water pens, white and red barge",
+  "air": false,
+  "lamps": {}
+ },
+ "farm_r1_2": {
+  "frames": 8,
+  "cell": 256,
+  "ms": [
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125
+  ],
+  "pink_px": 0,
+  "note": "olive-brown algal pens, yellow barge",
+  "air": false,
+  "lamps": {}
+ },
+ "farm_r1_3": {
+  "frames": 8,
+  "cell": 256,
+  "ms": [
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125
+  ],
+  "pink_px": 0,
+  "note": "clear aqua pens, green barge, blue house roof",
+  "air": false,
+  "lamps": {}
+ },
+ "stack_r1_0": {
+  "frames": 8,
+  "cell": 256,
+  "ms": [
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125
+  ],
+  "pink_px": 0,
+  "note": "as painted: black basalt, green grass cap",
+  "air": false,
+  "lamps": {}
+ },
+ "stack_r1_1": {
+  "frames": 8,
+  "cell": 256,
+  "ms": [
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125
+  ],
+  "pink_px": 0,
+  "note": "warm brown rock, dry golden-green cap",
+  "air": false,
+  "lamps": {}
+ },
+ "stack_r1_2": {
+  "frames": 8,
+  "cell": 256,
+  "ms": [
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125
+  ],
+  "pink_px": 0,
+  "note": "grey granite, bright green cap",
+  "air": false,
+  "lamps": {}
+ },
+ "stack_r1_3": {
+  "frames": 8,
+  "cell": 256,
+  "ms": [
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125
+  ],
+  "pink_px": 0,
+  "note": "red-ochre iron rock, olive cap",
+  "air": false,
+  "lamps": {}
+ },
+ "starship_r1_0": {
+  "frames": 8,
+  "cell": 256,
+  "ms": [
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125
+  ],
+  "pink_px": 0,
+  "note": "as painted: white hull, navy and orange livery, coral growth",
+  "air": false,
+  "lamps": {
+   "window": 38,
+   "fire": 2
+  }
+ },
+ "starship_r1_1": {
+  "frames": 8,
+  "cell": 256,
+  "ms": [
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125
+  ],
+  "pink_px": 0,
+  "note": "grey-green military hull, yellow stripe",
+  "air": false,
+  "lamps": {
+   "window": 38,
+   "fire": 2
+  }
+ },
+ "starship_r1_2": {
+  "frames": 8,
+  "cell": 256,
+  "ms": [
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125
+  ],
+  "pink_px": 0,
+  "note": "cream hull, red stripe, teal trim",
+  "air": false,
+  "lamps": {
+   "window": 38,
+   "fire": 2
+  }
+ },
+ "starship_r1_3": {
+  "frames": 8,
+  "cell": 256,
+  "ms": [
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125
+  ],
+  "pink_px": 0,
+  "note": "blue-white hull, orange stripe, dark green trim",
+  "air": false,
+  "lamps": {
+   "window": 38,
+   "fire": 2
+  }
+ },
+ "whales_r2_0": {
+  "frames": 16,
+  "cell": 256,
+  "ms": [
+   140,
+   140,
+   140,
+   140,
+   140,
+   140,
+   140,
+   140,
+   140,
+   140,
+   140,
+   140,
+   140,
+   140,
+   140,
+   140
+  ],
+  "pink_px": 0,
+  "note": "as painted: slate blue-grey humpbacks, white spray | r2: 16-frame surface-spout-dive",
+  "air": false,
+  "lamps": {}
+ },
+ "whales_r2_1": {
+  "frames": 16,
+  "cell": 256,
+  "ms": [
+   140,
+   140,
+   140,
+   140,
+   140,
+   140,
+   140,
+   140,
+   140,
+   140,
+   140,
+   140,
+   140,
+   140,
+   140,
+   140
+  ],
+  "pink_px": 0,
+  "note": "warm grey-brown grey whales, barnacle pale mottling | r2: 16-frame surface-spout-dive",
+  "air": false,
+  "lamps": {}
+ },
+ "whales_r2_2": {
+  "frames": 16,
+  "cell": 256,
+  "ms": [
+   140,
+   140,
+   140,
+   140,
+   140,
+   140,
+   140,
+   140,
+   140,
+   140,
+   140,
+   140,
+   140,
+   140,
+   140,
+   140
+  ],
+  "pink_px": 0,
+  "note": "blue-grey blue whales with lighter dappled backs | r2: 16-frame surface-spout-dive",
+  "air": false,
+  "lamps": {}
+ },
+ "whales_r2_3": {
+  "frames": 16,
+  "cell": 256,
+  "ms": [
+   140,
+   140,
+   140,
+   140,
+   140,
+   140,
+   140,
+   140,
+   140,
+   140,
+   140,
+   140,
+   140,
+   140,
+   140,
+   140
+  ],
+  "pink_px": 0,
+  "note": "near-black humpbacks, pale throat grooves | r2: 16-frame surface-spout-dive",
+  "air": false,
+  "lamps": {}
+ },
+ "mantas_r2_0": {
+  "frames": 16,
+  "cell": 256,
+  "ms": [
+   110,
+   110,
+   110,
+   110,
+   110,
+   110,
+   110,
+   110,
+   110,
+   110,
+   110,
+   110,
+   110,
+   110,
+   110,
+   110
+  ],
+  "pink_px": 0,
+  "note": "as painted: dark grey-blue and teal-green mantas, white shoulder patches | r2: 16-frame wing-beat glide",
+  "air": false,
+  "lamps": {}
+ },
+ "mantas_r2_1": {
+  "frames": 16,
+  "cell": 256,
+  "ms": [
+   110,
+   110,
+   110,
+   110,
+   110,
+   110,
+   110,
+   110,
+   110,
+   110,
+   110,
+   110,
+   110,
+   110,
+   110,
+   110
+  ],
+  "pink_px": 0,
+  "note": "slate and olive-green mantas | r2: 16-frame wing-beat glide",
+  "air": false,
+  "lamps": {}
+ },
+ "mantas_r2_2": {
+  "frames": 16,
+  "cell": 256,
+  "ms": [
+   110,
+   110,
+   110,
+   110,
+   110,
+   110,
+   110,
+   110,
+   110,
+   110,
+   110,
+   110,
+   110,
+   110,
+   110,
+   110
+  ],
+  "pink_px": 0,
+  "note": "charcoal black mantas, bright white patches | r2: 16-frame wing-beat glide",
+  "air": false,
+  "lamps": {}
+ },
+ "mantas_r2_3": {
+  "frames": 16,
+  "cell": 256,
+  "ms": [
+   110,
+   110,
+   110,
+   110,
+   110,
+   110,
+   110,
+   110,
+   110,
+   110,
+   110,
+   110,
+   110,
+   110,
+   110,
+   110
+  ],
+  "pink_px": 0,
+  "note": "sandy-brown reef mantas | r2: 16-frame wing-beat glide",
+  "air": false,
+  "lamps": {}
+ },
+ "kelp_r2_0": {
+  "frames": 8,
+  "cell": 256,
+  "ms": [
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125
+  ],
+  "pink_px": 0,
+  "note": "olive / bronze / amber fronds, a few red-brown blades, dark green holdfast, gold-brown float",
+  "air": false,
+  "lamps": {
+   "lamp": 1
+  }
+ },
+ "kelp_r2_1": {
+  "frames": 8,
+  "cell": 256,
+  "ms": [
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125
+  ],
+  "pink_px": 0,
+  "note": "bronze-led mix with many red-brown blades and amber tips",
+  "air": false,
+  "lamps": {
+   "lamp": 1
+  }
+ },
+ "kelp_r2_2": {
+  "frames": 8,
+  "cell": 256,
+  "ms": [
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125
+  ],
+  "pink_px": 0,
+  "note": "olive and moss green with gold fronds, dark holdfast, few red-brown",
+  "air": false,
+  "lamps": {
+   "lamp": 1
+  }
+ },
+ "kelp_r2_3": {
+  "frames": 8,
+  "cell": 256,
+  "ms": [
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125
+  ],
+  "pink_px": 0,
+  "note": "bronze and amber mix, red-brown blades, olive patches",
+  "air": false,
+  "lamps": {
+   "lamp": 1
+  }
+ }
+}
