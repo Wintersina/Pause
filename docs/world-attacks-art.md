@@ -67,6 +67,7 @@ a pink-white ring with the world's motif, dotted) + `flash` a,b (muzzle flash, ~
 Row 0 (128 x 384 cells x 6): the **column body**, top to bottom, plays once over the .25 s live window at 24 fps: Frost a falling spear + mist; Ember a magma geyser
 (base wide, white-hot centre); Tide a vertical jagged lightning bolt with a blue-white glow. Row 1 (128 x 128 x 6): `glyph` a,b (the lane marker that blinks during the tell; the
 hit width is .36 u = 46 px: draw the marker 1 u wide) + `burst` 3 frames at the ground + 1 reserved.
+Ember ships no strike sheet: `AttackArt.KitStrike` assembles its eruption from the resident `ember_attack_laserbody` (2 u body tiles, ignite pinch / cooling fade as width scale and tint) and `ember_attack_mineflame` (glyph, burst) -- a 768 x 512 copy did not fit the attack-art memory budget.
 
 ### 3.4 `<w>_attack_jet.png` -- Ember (flame cone), Tide (water jet)
 
@@ -74,10 +75,10 @@ hit width is .36 u = 46 px: draw the marker 1 u wide) + `burst` 3 frames at the 
   body, pink fringe (loop, 12 fps). Row 1 six cells 128 x 128: `nozzle` 3 frames (a flare at the muzzle, 3 growth stages for the tell) + `tip` 3 frames (sparks dying at the far end).
 * **Tide** 768 x 448: row 0 six frames 128 x 320 = a straight pressure jet column .5 u wide, 2.5 u long (320 px), white water, pink-white core, spray beads, loop 12 fps; row 1 six cells 128 x 128: `nozzle` 3 + `splash` 3.
 
-### 3.5 `tide_attack_wave.png` -- 512 x 480 (the surf wave), tileable in x
+### 3.5 `tide_attack_wave.png` -- 512 x 384 (the surf wave), tileable in x
 
-Rows 0-3: four 512 x 96 **body** frames of the band, **seamless left-right**, foam crest on its lower edge, 12 fps loop; the band's hit thickness is .4 u = 51 px, draw 96 px tall (crest + wash).
-Row 4 (96 px): `capL` `capR` (96 x 96 rounded ends that meet the gap), `gapMarker` a,b (96 x 96 arrow-and-ripple glyph shown at the gap edges during the tell). Pink-white crest line is the keyline (PC1).
+Rows 0-2: three 512 x 96 **body** frames of the band, **seamless left-right**, foam crest on its lower edge, a 12 fps ping-pong loop 0, 1, 2, 1 (a fourth band did not fit the attack-art memory budget); the band's hit thickness is .4 u = 51 px, draw 96 px tall (crest + wash).
+Row 3 (y 288, 96 px): `capL` `capR` (96 x 96 rounded ends that meet the gap), `gapMarker` a,b (96 x 96 arrow-and-ripple glyph shown at the gap edges during the tell). Pink-white crest line is the keyline (PC1).
 
 ### 3.6 `frost_attack_ring.png` -- 1024 x 128 (the cold-blast ring)
 

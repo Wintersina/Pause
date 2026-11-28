@@ -99,18 +99,25 @@ public static class EnemyRosterTest
 
     // The helicopters are fighters of tier 5+ (outside the four-tier ladder): the spawner fields them as a rare extra from
     // phase 3 in their own world only, never from the phase 2 window, and the four-tier ladder still has its four.
+    // Ember has two tier 5+ extras: the Forge Gyro (tier 5, rotors) and the Hellmouth (tier 6, a furnace gunship: no rotors).
     static void HelicoptersAreRareExtras()
     {
         const int Ember = 3;
         var heli = EnemyRoster.Helicopter(Ember);
         Check("Ember has a helicopter", heli != null && EnemyRoster.IsHelicopter(heli));
-        if (heli != null)
+        var emberExtras = EnemyRoster.For(Ember, EnemyRole.Fighter).FindAll(EnemyRoster.IsHelicopter);
+        Check("Ember has two tier 5+ extras (" + emberExtras.Count + ")", emberExtras.Count == 2);
+        foreach (var e in emberExtras)
         {
-            Check("the Ember helicopter is a fighter of tier 5+ (" + heli.tier + ")", heli.role == EnemyRole.Fighter && heli.tier >= EnemyRoster.HelicopterTier);
-            Check("the helicopter has a behaviour with a shot", heli.Behaviour != null && heli.Behaviour.attack == EnemyAttack.Shot);
-            Check("the helicopter is a wing-flap (rotor) animation", EnemyRoster.FlapsWings(heli));
-            Check("the helicopter has a death strip", EnemyDeathFlipbook.Frames(heli) != null);
+            Check(e.key + " is a fighter of tier 5+ (" + e.tier + ")", e.role == EnemyRole.Fighter && e.tier >= EnemyRoster.HelicopterTier);
+            Check(e.key + " has a behaviour with a shot", e.Behaviour != null && e.Behaviour.attack == EnemyAttack.Shot);
+            Check(e.key + " has a death strip", EnemyDeathFlipbook.Frames(e) != null);
         }
+        var gyro = EnemyRoster.Find("ember_fighter_5");
+        Check("the Forge Gyro is a wing-flap (rotor) animation", gyro != null && EnemyRoster.FlapsWings(gyro));
+        var hellmouth = EnemyRoster.Find("ember_fighter_6");
+        Check("the Hellmouth is Ember's tier 6 extra, a calm idle (no rotors to flap)",
+              hellmouth != null && EnemyRoster.Fighter(Ember, 6) == hellmouth && !EnemyRoster.FlapsWings(hellmouth));
         const int Tide = 4;
         var tideHelis = EnemyRoster.For(Tide, EnemyRole.Fighter).FindAll(EnemyRoster.IsHelicopter);
         Check("Tide has two helicopters (" + tideHelis.Count + ")", tideHelis.Count == 2);
@@ -118,6 +125,9 @@ public static class EnemyRosterTest
         {
             Check(t.key + " has a shot, rotor animation and a death strip",
                   t.Behaviour != null && t.Behaviour.attack == EnemyAttack.Shot && EnemyRoster.FlapsWings(t) && EnemyDeathFlipbook.Frames(t) != null);
+            var ticks = EnemyRoster.IdleTicks(t);
+            Check(t.key + " turns its rotor at a steady speed (even idle holds)",
+                  EnemyRoster.SpinsRotor(t) && ticks.Length == 4 && System.Array.TrueForAll(ticks, x => x == ticks[0]));
         }
         Check("Space has no helicopter", EnemyRoster.Helicopter(0) == null);
         int seen = 0, early = 0, n = 3000;
@@ -217,7 +227,11 @@ public static class EnemyRosterTest
                             // the drawings differ in texture and palette, only the silhouette is alike. Allowed up to 90 % for that one pair family.
                             // KNOWN, tracked (Desert, relaxed here, not in the art): the approved Dune Boulder is a round grooved ball too: 91 % against
                             // Verdant's spore rock and 80 % against its knot; only texture and palette differ. Allowed up to 93 % for that one drawing.
-                            float limit = db.key == "storm_rock_hail" ? .9f : db.key == "desert_rock_dune" ? .93f : .8f;
+                            // KNOWN, tracked (Paragon redraw, the user's picks): these approved rocks are compact lumps that differ by material and palette
+                            // (Desert husk and spire, Ember cinder, Storm ore, Verdant spore and vine), and the Ember and Desert tier-4 fighters share
+                            // a broad wing-hull. Allowed up to 86 % for exactly these pairs; every other pair keeps 80 %.
+                            bool knownPair = System.Array.IndexOf(KnownLookalikes, da.key + "|" + db.key) >= 0 || System.Array.IndexOf(KnownLookalikes, db.key + "|" + da.key) >= 0;
+                            float limit = db.key == "storm_rock_hail" ? .9f : db.key == "desert_rock_dune" ? .93f : knownPair ? .86f : .8f;
                             Check(string.Format("{0} and {1} are different drawings (silhouette overlap {2:P0} < {3:P0})",
                                                 da.key, db.key, iou, limit), iou < limit);
                         }
@@ -229,6 +243,10 @@ public static class EnemyRosterTest
         string orig = "Assets/Art/Enemies/src~/ship_scale_border~/original/" + Path.GetFileNameWithoutExtension(path) + ".png";
         return path.Contains("/Resources/Enemies/") && File.Exists(orig) ? orig : path;
     }
+
+    static readonly string[] KnownLookalikes = {
+        "ember_rock_cinder|desert_rock_spire", "ember_rock_cinder|storm_rock_ore", "storm_rock_ore|desert_rock_spire",
+        "verdant_rock_spore|desert_rock_husk", "verdant_rock_vine|desert_rock_husk", "ember_fighter_4|desert_fighter_4" };
 
     static bool[] Mask(EnemyDef d)
     {
@@ -922,7 +940,11 @@ public static class EnemyRosterTest
     // and many colour boundaries (panel lines, rivets, plates, sockets,
     // teeth...). The heavies, drawn twice as big, carry more. Floors sit
     // well under the 2026-10 art (fewest: 374 tones, 4362 boundaries).
-    public const int MinTones = 300, MinBoundaries = 3000, MinBoundariesBig = 6000;
+    // The 2026-11 Paragon-standard redraw (src~/paragon_standard) is real pixel
+    // art on a fixed 32-colour palette per enemy, so tones stopped measuring
+    // detail: the tone floor only rules out flat fills now, and the colour
+    // boundaries (the redraw has 5500+ on a fighter) carry the detail check.
+    public const int MinTones = 24, MinBoundaries = 3000, MinBoundariesBig = 6000;
 
     static void DetailFloor()
     {

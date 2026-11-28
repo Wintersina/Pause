@@ -181,7 +181,9 @@ public static class RailsVettingTest
         // KNOWN ART GAP (tracked, reported): the Tide mine's weathered brass brackets and clamp sit in the red band (7%),
         // well under Verdant's thorns (14%) and Ember's lava (42%).
         Check("(art gap, tracked) the Tide mine's brass brackets touch the player's red band: " + red[4].ToString("P0") + " (< 15%)", red[4] < .15f);
-        Check("the Space and Frost mines carry none of the player's red", red[0] < .01f && red[1] < .01f);
+        // (the redrawn Space mine's rust-orange bolt heads are 2% of it: tracked art delta, the approved drawing)
+        Check("the Space and Frost mines carry (next to) none of the player's red: " + red[0].ToString("P1") + ", " + red[1].ToString("P1"),
+              red[0] < .03f && red[1] < .01f);
         // KNOWN ART GAP (reported, not fixed here: the atlas is approved art):
         // the Ember mine's lava is orange-red, 42% of it inside the red band,
         // and the Verdant mine's magenta thorns touch it (14%).
@@ -221,8 +223,9 @@ public static class RailsVettingTest
         Check("in all four worlds at 1080x2520 and 1080x1920 a rail mine's clamp sits " + RailMineArt.ClampBite + " u inside the drawn rail, on both " +
               "walls alike, wholly on screen, its body within the ship's reach (mine centre " + lowest.ToString("F3") + " to " + highest.ToString("F3") +
               " u; " + string.Join(", ", bad) + ")", bad.Count == 0);
-        Check("that is further out than the old lane-edge mount (" + RailMineArt.FallbackRailX + "), by under 0.15 u",
-              lowest > RailMineArt.FallbackRailX && highest < RailMineArt.FallbackRailX + .15f);
+        // (the 80% rails: their inner edge, and the mounts with it, sit RailInset.NarrowShift further out)
+        Check("that is further out than the old lane-edge mount (" + RailMineArt.FallbackRailX + "), by under 0.15 u + the narrow rail's " + RailInset.NarrowShift.ToString("F3"),
+              lowest > RailMineArt.FallbackRailX && highest < RailMineArt.FallbackRailX + RailInset.NarrowShift + .15f);
 
         // the real spawner mounts them there, on a rail of the right wall
         Stage(1, Shapes[0]);
@@ -252,8 +255,8 @@ public static class RailsVettingTest
         BossRails.Reset();
         var bare = new GameObject("~NoWalls");
         foreach (var wall in walls) wall.SetActive(false);
-        Check("without the walls a mine keeps the authored lane edge (" + RailMineArt.FallbackRailX + ")",
-              Mathf.Approximately(enmiesOnBoard.WorldRailX(false), RailMineArt.FallbackRailX));
+        Check("without the walls a mine keeps the authored lane edge, out by the 80% rail's NarrowShift (" + RailMineArt.FallbackRailX + " + " + RailInset.NarrowShift.ToString("F3") + ")",
+              Mathf.Approximately(enmiesOnBoard.WorldRailX(false), RailMineArt.FallbackRailX + RailInset.NarrowShift));
         foreach (var wall in walls) wall.SetActive(true);
         Object.DestroyImmediate(bare);
     }
@@ -339,8 +342,9 @@ public static class RailsVettingTest
 
         // the blast: how much of the lane a bursting mine takes with it
         float reach = enmiesOnBoard.WorldRailX(false) - FriendlyFire.MineBlastRadius;
+        // (the 80% rails' mounts sit RailInset.NarrowShift further out, the blast's reach with them)
         Check("a mine's blast (" + FriendlyFire.MineBlastRadius + " u) reaches in to x " + reach.ToString("F2") + ": about a fifth of the lane on its side, never the middle",
-              reach > 1.2f && reach < 1.6f);
+              reach > 1.2f + RailInset.NarrowShift && reach < 1.6f + RailInset.NarrowShift);
     }
 
     // ---- 3b: a mine is never taken by its lane --------------------------------

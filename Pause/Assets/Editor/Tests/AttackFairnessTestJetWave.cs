@@ -214,7 +214,8 @@ public static partial class AttackFairnessTest
         ShotOutline.Bold = true;
         var j = AttackJet.Arm(JetSpec.Flame(3), new Vector2(0f, 2.2f), new Vector2(0f, -1.4f), 1f, null);
         j.Ignite();
-        var w = AttackWave.Arm(WaveSpec.Surf(4), new Vector2(0f, 3f), new Vector2(0f, -3f), 1f, null);
+        // (the procedural surf strip, on Frost: Tide's own surf is the painted tide_attack_wave.png, which carries no generated keyline)
+        var w = AttackWave.Arm(WaveSpec.Surf(1), new Vector2(0f, 3f), new Vector2(0f, -3f), 1f, null);
         w.Ignite();
         Advance(.05f);
         Check("forced bold (a bright backdrop): the jet's body and the wave's strip wear the near-black keyline ring around the pink-white stroke",
@@ -224,7 +225,7 @@ public static partial class AttackFairnessTest
         ShotOutline.Bold = false;
         j = AttackJet.Arm(JetSpec.Flame(3), new Vector2(0f, 2.2f), new Vector2(0f, -1.4f), 1f, null);
         j.Ignite();
-        w = AttackWave.Arm(WaveSpec.Surf(4), new Vector2(0f, 3f), new Vector2(0f, -3f), 1f, null);
+        w = AttackWave.Arm(WaveSpec.Surf(1), new Vector2(0f, 3f), new Vector2(0f, -3f), 1f, null);
         w.Ignite();
         Advance(.05f);
         Check("standard (a dark backdrop): no keyline ring on either, the pink-white stroke alone", !HasKeyline(j.BodyRenderer.sprite) && !HasKeyline(w.LeftRenderer.sprite));
@@ -233,6 +234,7 @@ public static partial class AttackFairnessTest
         for (int i = 0; i < WorldManager.Worlds.Length; i++)
         {
             var spec2 = BackdropCatalog.For(WorldManager.Worlds[i].displayName);
+            if (AttackHazardArt.WaveArt(i)) continue;   // a painted wave (Tide) has no generated keyline either way
             if (spec2.Bright && bright < 0) bright = i;
             if (!spec2.Bright && dark < 0) dark = i;
         }
@@ -325,10 +327,13 @@ public static partial class AttackFairnessTest
     static void JetWaveArtSlots()
     {
         Fresh();
-        Check("without the art files the procedural drawing is used (no jet or wave atlas)", !AttackArt.Has(3, "jet") && !AttackArt.Has(4, "jet") && !AttackArt.Has(4, "wave") && !AttackHazardArt.JetArt(3) && !AttackHazardArt.WaveArt(4));
+        Check("without the art files the procedural drawing is used (no jet atlas); Tide's surf wave is installed (tide_attack_wave.png) and only Tide wears it",
+              !AttackArt.Has(3, "jet") && !AttackArt.Has(4, "jet") && !AttackHazardArt.JetArt(3) && AttackArt.Has(4, "wave") && AttackHazardArt.WaveArt(4) &&
+              !AttackHazardArt.WaveArt(0) && !AttackHazardArt.WaveArt(1) && !AttackHazardArt.WaveArt(5) && !AttackHazardArt.WaveArt(6));
+        var installedWave = AttackArt.Atlas(4, "wave");
         var emberJet = Atlas(768, 384, new Color32(255, 120, 220, 255));
         var tideJet = Atlas(768, 448, new Color32(255, 120, 220, 255));
-        var tideWave = Atlas(512, 480, new Color32(255, 120, 220, 255));
+        var tideWave = Atlas(512, 384, new Color32(255, 120, 220, 255));
         AttackArt.Inject(3, "jet", emberJet);
         AttackArt.Inject(4, "jet", tideJet);
         AttackArt.Inject(4, "wave", tideWave);
@@ -364,6 +369,86 @@ public static partial class AttackFairnessTest
         AttackArt.Clear();
         AttackHazardArt.Forget();
         EliteSystem.Clear();
-        Check("with the files gone the procedural drawing is back", !AttackHazardArt.JetArt(3) && !AttackHazardArt.WaveArt(4));
+        Check("with the injected files gone the jets are procedural again and the surf wave is back on the installed sheet",
+              !AttackHazardArt.JetArt(3) && AttackHazardArt.WaveArt(4) && AttackArt.WaveBody(4, 0) != null && AttackArt.WaveBody(4, 0).texture == installedWave);
+        TideWaveArt();
     }
+
+    // ---- the installed Tide surf wave (Art/Attacks/Tide~/src~/build_wave.py) ----------------------------------------------
+
+    // Read off the source file (the atlas is not CPU-readable in the game).
+    static Color32[] SourcePixels(Sprite s)
+    {
+        var r = s.rect;
+        return ShieldContour.ReadFromSourceFile(s.texture, Mathf.RoundToInt(r.x), Mathf.RoundToInt(r.y), Mathf.RoundToInt(r.width), Mathf.RoundToInt(r.height));
+    }
+
+    static void TideWaveArt()
+    {
+        Fresh();
+        var tex = AttackArt.Atlas(4, "wave");
+        Check("tide_attack_wave.png is 512 x 384 (three 512 x 96 band frames, then the 96 x 96 caps and gap markers)", tex != null && tex.width == 512 && tex.height == 384);
+        if (tex == null) return;
+        // the band: three drawings, 4 x .75 u at 128 ppu, all different (the 12 fps loop moves), each seamless left-right; the
+        // loop's fourth step is the ping-pong back through frame 1
+        int seamBad = 0, alike = 0;
+        Color32[] prev = null;
+        for (int i = 0; i < 3; i++)
+        {
+            var b = AttackArt.WaveBody(4, i);
+            if (b == null || Mathf.Abs(b.bounds.size.x - 4f) > .01f || Mathf.Abs(b.bounds.size.y - .75f) > .01f) { seamBad++; continue; }
+            var px = SourcePixels(b);
+            int w = 512, h = 96;
+            // the tile meets itself: column 511 -> column 0 differs no more than an ordinary pair of neighbouring columns does
+            float seam = 0f, inner = 0f; int pairs = 0;
+            for (int y = 0; y < h; y++)
+            {
+                seam += ColDiff(px[y * w + w - 1], px[y * w]);
+                for (int x = 0; x < w - 1; x += 7) { inner += ColDiff(px[y * w + x], px[y * w + x + 1]); pairs++; }
+            }
+            seam /= h; inner /= Mathf.Max(1, pairs);
+            if (seam > inner * 1.6f) seamBad++;
+            if (prev != null) { int d = 0; for (int k = 0; k < px.Length; k++) if (!px[k].Equals(prev[k])) d++; if (d < 200) alike++; }
+            prev = px;
+        }
+        Check("the three band frames are 4 x .75 u tiles, each seamless left-right (" + seamBad + " bad) and each a different drawing (" + alike + " too alike); the loop plays 0, 1, 2, 1",
+              seamBad == 0 && alike == 0 && AttackArt.WaveBody(4, 3) == AttackArt.WaveBody(4, 1) && AttackArt.WaveBody(4, 4) == AttackArt.WaveBody(4, 0));
+        // the caps: AttackWave centres a cap on the gap edge, so a cap's pixels all sit on the band's side of its middle
+        var capL = AttackArt.WaveCapL(4); var capR = AttackArt.WaveCapR(4);
+        int intoGap = 0, capPaint = 0;
+        if (capL != null && capR != null)
+        {
+            var pl = SourcePixels(capL); var pr = SourcePixels(capR);
+            for (int y = 0; y < 96; y++)
+                for (int x = 0; x < 96; x++)
+                {
+                    if (pl[y * 96 + x].a > 24) { if (x >= 48) intoGap++; else capPaint++; }
+                    if (pr[y * 96 + x].a > 24) { if (x < 48) intoGap++; else capPaint++; }
+                }
+        }
+        Check("the two caps are painted (" + capPaint + " px) and never draw into the gap (" + intoGap + " px past their middle)", capL != null && capR != null && capPaint > 1000 && intoGap == 0);
+        // the gap marker: two frames (the 8 fps blink), different
+        var ma = AttackArt.WaveGapMarker(4, 0); var mb = AttackArt.WaveGapMarker(4, 1);
+        int md = 0;
+        if (ma != null && mb != null) { var a = SourcePixels(ma); var bb = SourcePixels(mb); for (int k = 0; k < a.Length; k++) if (!a[k].Equals(bb[k])) md++; }
+        Check("the gap marker's two blink frames are painted and differ (" + md + " px)", ma != null && mb != null && md > 100);
+        // live: the Kraken's / Hammerhead's surf wave wears it, .75 u thick on its .4 u hit (under 2x), caps on; a Storm scan line does not
+        var w4 = AttackWave.Arm(WaveSpec.Surf(4), new Vector2(0f, 3f), new Vector2(0f, -3f), 1f, null);
+        bool marker = w4.MarkerA.sprite != null && w4.MarkerA.sprite.texture == tex;
+        w4.Ignite();
+        Advance(.1f);
+        Check("a live Tide surf wave draws the installed band (" + w4.DrawnHeight.ToString("F2") + " u on a " + (w4.HitHalf * 2f).ToString("F2") + " hit), its caps and gap markers",
+              w4.LeftRenderer.sprite != null && w4.LeftRenderer.sprite.texture == tex && w4.DrawnHeight >= w4.HitHalf * 2f && w4.DrawnHeight <= w4.HitHalf * 4f + .001f &&
+              w4.CapLRenderer.enabled && w4.CapLRenderer.sprite.texture == tex && marker);
+        w4.Cancel();
+        var w5 = AttackWave.Arm(WaveSpec.Scan(5), new Vector2(0f, 3f), new Vector2(0f, -3f), 1f, null);
+        w5.Ignite();
+        Advance(.05f);
+        Check("a Storm scan line keeps its own procedural strip (not Tide's surf)", w5.LeftRenderer.sprite != null && w5.LeftRenderer.sprite.texture != tex && w5.MarkerA.sprite.texture != tex);
+        w5.Cancel();
+        EliteSystem.Clear();
+    }
+
+    static float ColDiff(Color32 a, Color32 b) =>
+        (a.a > 24) != (b.a > 24) ? 255f : (a.a <= 24 ? 0f : Mathf.Abs(a.r - b.r) + Mathf.Abs(a.g - b.g) + Mathf.Abs(a.b - b.b));
 }

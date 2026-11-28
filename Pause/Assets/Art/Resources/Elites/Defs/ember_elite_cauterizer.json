@@ -19,7 +19,7 @@
   "lore": "A siege kiln that parks high and sights one lane with a thin line before the shell comes. Between shots it lobs firebombs onto ringed spots that burst into rings of fire. Hurt, it fires two lanes at once, following you: the gap between them is yours.",
   "cellWorldSize": 1.81,
   "hullRadius": 0.376,
-  "silhouetteShare": 0.5057,
+  "silhouetteShare": 0.486,
   "noseDeg": 90,
   "turnsToFace": true,
   "speed": 1.8,
@@ -41,25 +41,25 @@
   "muzzles": [
     {
       "name": "cannon",
-      "x": 192,
-      "y": 35,
+      "x": 193,
+      "y": 78,
       "dir": -1.0
     }
   ],
   "nozzles": [
     {
       "name": "a",
-      "x": 135,
-      "y": 302,
+      "x": 141,
+      "y": 309,
       "dir": -1.0,
-      "offsets": [0, 0, 0, 0, 0, 4, 0, 0, 0, 0, 5, 0, -1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+      "offsets": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 5, 0, -2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
     },
     {
       "name": "b",
-      "x": 248,
-      "y": 302,
+      "x": 245,
+      "y": 309,
       "dir": -1.0,
-      "offsets": [0, 0, 0, 0, 0, 4, 0, 0, 0, 0, 1, 0, -5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+      "offsets": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, -5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
     }
   ],
   "codexId": "elite_ember_cauterizer",

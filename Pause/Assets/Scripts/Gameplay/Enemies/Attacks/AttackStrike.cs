@@ -110,6 +110,9 @@ public sealed class AttackStrike : AttackHazard
     bool bold, artBody;
     int bodyFrames;
     readonly Sprite[] bodySprites = new Sprite[6], glyphSprites = new Sprite[2], burstSprites = new Sprite[3];
+    // the per-frame width / tint of a kit-assembled body (AttackArt.StrikeFrameLook: Ember's ignite pinch and cooling fade)
+    readonly float[] lookWidth = { 1f, 1f, 1f, 1f, 1f, 1f };
+    readonly Color[] lookTint = { Color.white, Color.white, Color.white, Color.white, Color.white, Color.white };
     Sprite tipSprite;
 
     public override float ThreatWeight => 1f;                  // FR7: a strike counts as one shot
@@ -141,7 +144,13 @@ public sealed class AttackStrike : AttackHazard
         artBody = AttackHazardArt.StrikeArt(s.world);
         bodyFrames = artBody ? 6 : 2;
         float dw;
-        for (int i = 0; i < bodyFrames; i++) bodySprites[i] = AttackHazardArt.ColumnBody(s.world, style, i, bold, out tileHeight, out dw);
+        for (int i = 0; i < bodyFrames; i++)
+        {
+            bodySprites[i] = AttackHazardArt.ColumnBody(s.world, style, i, bold, out tileHeight, out dw);
+            float ws = 1f; Color tint = Color.white;
+            if (artBody) AttackArt.StrikeFrameLook(s.world, i, out ws, out tint);
+            lookWidth[i] = ws; lookTint[i] = tint;
+        }
         DrawnWidth = AttackHazardArt.ColumnDrawWidth(s.world, style, bold);
         tipSprite = AttackHazardArt.ColumnTip(s.world, style, bold);
         for (int i = 0; i < 2; i++) glyphSprites[i] = AttackHazardArt.StrikeGlyph(s.world, style, i, bold);
@@ -198,6 +207,23 @@ public sealed class AttackStrike : AttackHazard
         TilesShown = 0;
     }
 
+    // A column tile cut to `height` u from its foot (whole texels, rounded up so the drawing reaches the top). Made once per
+    // (sprite, texel rows) and cached: a strike's height is fixed per spec, so a fight builds a handful, never one per frame.
+    static readonly System.Collections.Generic.Dictionary<long, Sprite> crops = new System.Collections.Generic.Dictionary<long, Sprite>();
+    public static Sprite Cropped(Sprite s, float height)
+    {
+        var r = s.rect;
+        int rows = Mathf.Clamp(Mathf.CeilToInt(height * s.pixelsPerUnit - .01f), 1, Mathf.RoundToInt(r.height));
+        if (rows >= Mathf.RoundToInt(r.height)) return s;
+        long key = ((long)s.GetInstanceID() << 16) ^ rows;
+        Sprite c;
+        if (crops.TryGetValue(key, out c) && c != null) return c;
+        c = Sprite.Create(s.texture, new Rect(r.x, r.y, r.width, rows), new Vector2(.5f, .5f), s.pixelsPerUnit, 0, SpriteMeshType.FullRect);
+        c.name = s.name + "#crop" + rows;
+        crops[key] = c;
+        return c;
+    }
+
     // The column's tiles, laid foot to top; frame 0 / 1 (flicker) or the art's six (24 fps over the live window).
     void DrawBody()
     {
@@ -216,13 +242,18 @@ public sealed class AttackStrike : AttackHazard
             y = foot.y + tipSprite.bounds.size.y;
         }
         else tip.enabled = false;
-        while (y < top.y && n < tiles.Length)
+        while (y < top.y - .001f && n < tiles.Length)
         {
             var sr = tiles[n++];
-            sr.sprite = body;
-            sr.enabled = body != null;
-            sr.transform.position = new Vector3(laneX, y + tileHeight * .5f, 0f);
-            sr.transform.localScale = Vector3.one;
+            // the last tile is cut to the column's top (its foot rows kept, so it still meets the tile below seamlessly): the
+            // drawing never reaches past the hit rectangle (an Ember geyser is 4.2 u, its laser-body tile 2 u, a strike sheet's 3 u)
+            var piece = body != null && y + tileHeight > top.y + .001f ? Cropped(body, top.y - y) : body;
+            float h = piece != null ? piece.bounds.size.y : tileHeight;
+            sr.sprite = piece;
+            sr.enabled = piece != null;
+            sr.transform.position = new Vector3(laneX, y + h * .5f, 0f);
+            sr.transform.localScale = new Vector3(lookWidth[frame], 1f, 1f);
+            sr.color = lookTint[frame];
             y += tileHeight;
         }
         for (int i = n; i < tiles.Length; i++) tiles[i].enabled = false;

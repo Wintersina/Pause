@@ -1,0 +1,29 @@
+{
+ "drawing": "approved.png",
+ "source": "PixelLab drawing ship_Lightning/r4b_1.png (160 px), approved Nov 2026: red lightning bolts painted on both wings, wing lights",
+ "canopy": [
+  [
+   80,
+   73,
+   6,
+   11
+  ]
+ ],
+ "nozzles": [
+  [
+   59,
+   148,
+   0.72
+  ],
+  [
+   100,
+   148,
+   0.72
+  ]
+ ],
+ "damageNote": "1) left wing panel blown beside the bolt, sparking conduit, right prong scorched; 2) right wing root blown and burning, nose prong holed, soot over the gold, canopy cracked",
+ "seed": 8,
+ "integer_scale": true,
+ "wreck_soot": 0.22,
+ "wreck_mul": 0.3
+}

@@ -27,7 +27,7 @@
       15
     ]
   },
-  "cellWorldSize": 1.812,
+  "cellWorldSize": 1.932,
   "noseDeg": 90,
   "maxBank": 3,
   "heartColor": "#9CC8FF",
@@ -51,7 +51,7 @@
   "attack": "hail_wall",
   "lore": "An armoured floating fortress that crawls along the top of the sky. It marks the gap of a hail wall with two thin lines, then lets the hail fall in staggered waves while the gap slides, and it is never where you stand. Only mines, rails and its own kind crack it.",
   "hullRadius": 0.385,
-  "silhouetteShare": 0.4595,
+  "silhouetteShare": 0.4473,
   "turnsToFace": false,
   "speed": 1.7,
   "accel": 3.5,
@@ -73,57 +73,43 @@
     {
       "name": "core",
       "x": 192,
-      "y": 132,
+      "y": 89,
       "dir": 270.0
     },
     {
       "name": "portcap",
-      "x": 97,
-      "y": 68,
+      "x": 136,
+      "y": 45,
       "dir": 270.0
     },
     {
       "name": "starcap",
-      "x": 286,
-      "y": 67,
+      "x": 246,
+      "y": 44,
       "dir": 270.0
     }
   ],
   "nozzles": [
     {
       "name": "a",
-      "x": 124,
-      "y": 286,
+      "x": 165,
+      "y": 291,
       "dir": -1.0,
-      "offsets": [0, 0, 0, 0, 0, 0, 0, 0, 2, 0, -2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+      "offsets": [0, 0, 0, 0, 0, 0, 0, 0, 4, 0, -2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
     },
     {
       "name": "b",
-      "x": 188,
-      "y": 298,
+      "x": 192,
+      "y": 275,
       "dir": -1.0,
-      "offsets": [0, 0, 0, 0, 0, 0, 0, 0, 3, 0, -3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+      "offsets": [0, 0, 0, 0, 0, 0, 0, 0, 2, 0, -2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
     },
     {
       "name": "c",
-      "x": 255,
-      "y": 286,
+      "x": 217,
+      "y": 291,
       "dir": -1.0,
-      "offsets": [0, 0, 0, 0, 0, 0, 0, 0, 2, 0, -2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
-    },
-    {
-      "name": "d",
-      "x": 150,
-      "y": 287,
-      "dir": -1.0,
-      "offsets": [0, 0, 0, 0, 0, 0, 0, 0, 2, 0, -2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
-    },
-    {
-      "name": "e",
-      "x": 231,
-      "y": 287,
-      "dir": -1.0,
-      "offsets": [0, 0, 0, 0, 0, 0, 0, 0, 2, 0, -2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+      "offsets": [0, 0, 0, 0, 0, 0, 0, 0, 2, 0, -4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
     }
   ],
   "followDistance": 3.0,

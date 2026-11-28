@@ -315,7 +315,7 @@ public partial class ShotAtomHud : MonoBehaviour
     Sprite GlyphSprite()
     {
         var b = FloatieBattery.Current;
-        return UltimateGun.CompanionSprite(b != null ? b.Ship : ShipId.Equipped());
+        return UltimateGun.CompanionSprite(b != null ? b.Ship : ShipId.Equipped(), DroneSquad.Selected);   // the selected drone's own drawing
     }
 
     void Refresh()

@@ -130,7 +130,9 @@ public static class HostileGlow
     // The wrapper's pulse at `age` seconds: a scale factor, an alpha.
     public static float PulseScaleAt(float age) => PulseScaleAt(age, PulseScale);
     public static float PulseScaleAt(float age, float amount) => 1f + amount * Mathf.Sin(age * PulseHz * 2f * Mathf.PI);
-    public static float PulseAlphaAt(float age) => 1f - PulseAlpha * (.5f + .5f * Mathf.Sin(age * PulseHz * 2f * Mathf.PI + 1.3f));
+    // (a shot is born at full alpha and then breathes: the old +1.3 rad phase launched every outline at its dimmest, 85 %, so a
+    //  bold world's solid dark keyline came out translucent over a dark patch -- soft, not the hard hostile edge AtomClarityTest asks for)
+    public static float PulseAlphaAt(float age) => 1f - PulseAlpha * (.5f - .5f * Mathf.Cos(age * PulseHz * 2f * Mathf.PI));
 
     // A glow renderer child under `parent`, drawn just behind the shot.
     public static SpriteRenderer Attach(Transform parent, int order, bool beam = false)

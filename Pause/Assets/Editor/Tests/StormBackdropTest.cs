@@ -108,22 +108,48 @@ public static class StormBackdropTest
         foreach (string n in want) all &= spec.Has(n);
         Check("Storm layers: ground tiles, pinned ground pieces, flow, lightning glow + bolts, mist, wisps, ceiling, bloom, gusts, debris, rain", all);
         var g = spec.Find("ground");
-        Check("the ground pieces are PINNED to the mid tile: same rate, landmark role, right after it",
+        int iMid = System.Array.IndexOf(spec.layers, spec.Find("mid")), iFlow = System.Array.IndexOf(spec.layers, spec.Find("flow"));
+        Check("the ground pieces are PINNED to the mid tile: same rate, landmark role, drawn right over the vapour strip that runs over the mid tile " +
+              "(user rule 2026-11-28: the vapour passes UNDER the props, never through them)",
               g.pinTo == "mid" && g.rate == spec.Rate("mid") && g.rate <= BackdropCatalog.MaxGroundRate &&
-              g.role == BackdropCatalog.Role.Landmark && System.Array.IndexOf(spec.layers, g) == System.Array.IndexOf(spec.layers, spec.Find("mid")) + 1);
+              g.role == BackdropCatalog.Role.Landmark && iFlow == iMid + 1 && System.Array.IndexOf(spec.layers, g) == iFlow + 1);
         bool rising = true;
-        for (int i = 1; i < spec.layers.Length; i++)
-            rising &= spec.layers[i].rate > spec.layers[i - 1].rate ||
-                      (spec.layers[i].pinTo == spec.layers[i - 1].name && spec.layers[i].rate == spec.layers[i - 1].rate);
-        Check("Storm rates strictly increase far -> near", rising);
+        float prev = float.MinValue;
+        for (int i = 0; i < spec.layers.Length; i++)
+        {
+            var l = spec.layers[i];
+            if (!string.IsNullOrEmpty(l.pinTo)) { rising &= l.rate == spec.Rate(l.pinTo); continue; }   // (pinned: its host's rate)
+            rising &= l.rate > prev;
+            prev = l.rate;
+        }
+        Check("Storm rates strictly increase far -> near (the pinned plane shares the mid tile's)", rising);
         Check("Storm ships four ground sets rotating, v3 the night side (darker), v1 / v2 / v4 day",
               spec.variantSets == 4 && !spec.Night(1) && !spec.Night(2) && spec.Night(3) && !spec.Night(4) &&
               spec.VariantBrightness(3) < 1f && spec.VariantBrightness(1) >= spec.VariantBrightness(3) &&
               System.IO.File.Exists(Art + "v3/mid.png") && System.IO.File.Exists(Art + "v4/mid.png") &&
               StormTuning.ClusterWeights.Length == 5 && StormTuning.VariantBrightness.Length == 5 && StormTuning.Night.Length == 5);
         Check("the art is dark: Storm is drawn below the bright-world lift, so shots keep the thin outline", !spec.Bright);
+        // ALTITUDE (2026-11-28, the user-approved r3 ground, then every world 20% closer): the 896 px tiles drawn at TileZoom (.98)
+        // hold two ground columns, so the ground reads at GroundZoom (.49); the pieces, the rates and the cover boulders follow .49, never .98
+        Check("Storm's ground is seen from Frost's height: tiles drawn at " + spec.groundZoom + " of the view (two ground columns a tile), pieces keyed to " + spec.PieceZoom +
+              ", the ground's rate .024 x " + StormTuning.GroundZoom + ", the landmarks " + StormTuning.LandmarkMin.ToString("F2") + " .. " + StormTuning.LandmarkMax.ToString("F2") + " u",
+              Mathf.Approximately(spec.groundZoom, StormTuning.TileZoom) && Mathf.Approximately(spec.PieceZoom, StormTuning.GroundZoom) &&
+              Mathf.Approximately(StormTuning.TileZoom, 2f * StormTuning.GroundZoom) && Mathf.Approximately(spec.Rate("mid"), .024f * StormTuning.GroundZoom) &&
+              Mathf.Approximately(CoverBoulders.GroundZoom("Storm"), StormTuning.GroundZoom) &&
+              Mathf.Approximately(StormTuning.LandmarkMin, 1.5f * StormTuning.PieceScale) && StormTuning.LandmarkMax <= BackdropCatalog.MaxLandmarkSize &&
+              Mathf.Approximately(StormTuning.GroundZoom, FrostTuning.GroundZoom));
         var set = new BackdropSet("Storm", new GameObject("~root").transform, 3f, 5f);
         Check("a Storm backdrop is built by the StormDirector (not TideDirector)", set.Director is StormDirector && !(set.Director is TideDirector));
+        // at TileZoom .98 the ground tile spans the whole screen across: the centre column covers it (its seams at the screen's edges)
+        // and a column each side fills the camera sway, so the wrap never shows a gap
+        {
+            BackdropTile mid = null;
+            foreach (var t in set.Tiles) if (t.layer.name == "mid") mid = t;
+            bool covers = mid != null && mid.Columns >= 3 && mid.Columns % 2 == 1 && mid.TileWidth >= set.HalfWidth * 2f * .99f &&
+                          mid.Columns * mid.TileWidth >= set.HalfWidth * 2f * 1.02f;
+            Check("the mid tile covers the screen across at " + StormTuning.TileZoom + ": " + (mid != null ? mid.Columns + " columns of " + mid.TileWidth.ToString("F2") : "none") +
+                  " u over a " + (set.HalfWidth * 2f).ToString("F2") + " u view, no gap when it wraps", covers);
+        }
         Check("every layer sits behind gameplay (order < 0)", spec.Order("rain") < 0 && spec.Order("sky") < spec.Order("rain"));
         set.Destroy();
         Object.DestroyImmediate(GameObject.Find("~root"));
@@ -271,7 +297,10 @@ public static class StormBackdropTest
                     // the strike cell's lower end (bottom centre, y 226 of 256) vs the mast's rod tip (y 40 of 256)
                     float end = b.root.localPosition.y - (StormTuning.StrikeEndY - 128f) / 256f * b.size;
                     float tip = b.parent.root.localPosition.y + (128f - StormTuning.RodTipY) / 256f * b.parent.size;
-                    float off = Mathf.Abs(end - tip);
+                    // (2026-11-28 the mast is the RODS prop: its tallest rod stands off the cell's centre, mirrored with the piece)
+                    float tipX = b.parent.root.localPosition.x + (StormTuning.RodTipX - 128f) / 256f * b.parent.size * (b.parent.body.localScale.x < 0f ? -1f : 1f);
+                    if (b.parent.kind != StormPropsTuning.Rods) bad++;
+                    float off = Mathf.Max(Mathf.Abs(end - tip), Mathf.Abs(b.root.localPosition.x - tipX));
                     worstOff = Mathf.Max(worstOff, off);
                     if (off > .02f) bad++;
                     checkedStrikes++;
@@ -280,7 +309,7 @@ public static class StormBackdropTest
             Object.DestroyImmediate(wb.gameObject);
         }
         StormDirector.SeedOverride = 0;
-        Check("strikes happen on the thunderhead field (" + checkedStrikes + " frames sampled)", checkedStrikes > 0);
+        Check("strikes happen on the thunderhead field, onto the rods platform (" + checkedStrikes + " frames sampled)", checkedStrikes > 0);
         Check("a strike bolt's lower end sits on its mast's rod tip (worst " + worstOff.ToString("F3") + " units)", bad == 0);
     }
 
@@ -310,7 +339,8 @@ public static class StormBackdropTest
         Object.DestroyImmediate(wb.gameObject);
 
         // no overlap, distinct pieces, towers where the storm is thick
-        int seeds = 40, bad = 0, towers = 0, spires = 0, pieces = 0;
+        int seeds = 40, bad = 0, pieces = 0, retired = 0;
+        var kinds = new HashSet<string>();
         for (int v = 1; v <= StormTuning.Variants; v++)
             for (int s = 1; s <= seeds / 4; s++)
             {
@@ -322,8 +352,8 @@ public static class StormBackdropTest
                 {
                     if (!p.active) continue;
                     pieces++;
-                    if (p.kind == StormDirector.KindTower) towers++;
-                    if (p.kind == StormDirector.KindSpire) spires++;
+                    string n = p.sr.sprite != null ? p.sr.sprite.name : "";
+                    if (System.Array.IndexOf(StormTuning.AllPieces(), n) >= 0) kinds.Add(n); else retired++;
                     foreach (var q in d2.Ground.items)
                         if (q != p && q.active && Mathf.Abs(q.x - p.x) < p.size * .22f && Mathf.Abs((float)(q.gy - p.gy)) < p.size * .18f) bad++;
                 }
@@ -331,7 +361,8 @@ public static class StormBackdropTest
             }
         StormDirector.SeedOverride = 0;
         Check("no two pieces sit on top of each other over " + seeds + " seeded runs (" + bad + ")", bad == 0);
-        Check("the storm's pieces turn up: " + towers + " thunderhead towers and " + spires + " lightning-rod masts among " + pieces, towers > 5 && spires > 3);
+        Check("only the kept landmarks turn up (" + string.Join(", ", kinds) + " among " + pieces + "; " + retired + " retired drawings)",
+              retired == 0 && kinds.Count == StormTuning.AllPieces().Length);
     }
 
     // ---- the removed eye-of-the-storm deck stays gone ----------------------------------------------------------
@@ -454,7 +485,10 @@ public static class StormBackdropTest
                 }
             float dh = hN > 0 ? (float)hSame / hN : 0f, dv = vN > 0 ? (float)vSame / vN : 0f;
             bool flow = f.EndsWith("flow.png");
-            bool size = f.StartsWith("v") ? (Hd(f) ? (w == 1024 && h == 2048) : (w == 512 && h == 1024)) : (w == 1024 && h == 1024);
+            // r3 (2026-11-28): the mid is the stitched 896 x 4096 ground (two ground columns), the vapour strip a soft 512 x 2048 painting
+            // drawn at the tile's width; sky / far (hidden under the opaque mid) stay 1024 x 2048
+            bool size = f.EndsWith("mid.png") ? (w == 896 && h == 4096) : f.EndsWith("flow.png") ? (w == 512 && h == 2048) :
+                        f.StartsWith("v") ? (w == 1024 && h == 2048) : f.EndsWith("landmarks.png") ? (w == 768 && h == 256) : (w == 1024 && h == 1024);   // (landmarks: the 3 kept drawings since 2026-11-28)
             Check("Storm " + f + " is native " + w + "x" + h + " with real detail: identical texel pairs " + (dh * 100f).ToString("F0") + "% across, " +
                   (dv * 100f).ToString("F0") + "% down (<= " + MaxDupPairs * 100f + "%" + (flow ? ", down exempt: rain streaks" : "") + ")",
                   size && dh <= MaxDupPairs && (flow || dv <= MaxDupPairs));
@@ -468,12 +502,8 @@ public static class StormBackdropTest
         var set = wb.Current;
         var land = set.Atlas("landmarks"); var sites = set.Atlas("sites"); var weather = set.Atlas("weather"); var light = set.Atlas("lightning");
         bool names = true;
-        foreach (string n in StormTuning.Towers) names &= land.Has(n);
-        foreach (string n in StormTuning.Spires) names &= land.Has(n);
-        foreach (string n in StormTuning.Skyhooks) names &= land.Has(n);
-        foreach (string n in StormTuning.Refineries) names &= land.Has(n);
-        foreach (string n in StormTuning.Neighbours) names &= land.Has(n);
-        foreach (string n in StormTuning.Dishes) names &= land.Has(n);
+        foreach (string n in StormTuning.AllPieces()) names &= land.Has(n);
+        Check("the landmarks atlas holds only the kept drawings (" + land.Count + ")", land.Count == StormTuning.AllPieces().Length);
         for (int k = 0; k < StormTuning.FirstLaunchSite; k++) names &= sites.Has(StormTuning.SiteClosed[k]) && sites.Has(StormTuning.SiteOpen[k]);   // (the strip sites are in the docks atlas: StormDockTest)
         names &= sites.Has("lights_off") && sites.Has("lights_on");
         Check("every piece the director draws is in the landmarks / sites atlases", names);
@@ -511,18 +541,21 @@ public static class StormBackdropTest
         Check("a strike bolt reaches the strike end point (128, " + StormTuning.StrikeEndY + ")", strikeEnd);
         Check("bolt cores are white-hot (brightest pixel value >= .85)", boltsBright);
 
-        var lm = Load(Art + "landmarks.png");
-        var jl = JsonUtility.FromJson<Cells>(File.ReadAllText(Art + "landmarks.json"));
-        bool tipOk = true; string tipDetail = "";
+        // strikes come down on the RODS prop (the retired spires' job): its tallest rod's tip, every livery's first cell
+        var lm = Load(Art + StormPropsTuning.Atlas + ".png");
+        var jl = JsonUtility.FromJson<Cells>(File.ReadAllText(Art + StormPropsTuning.Atlas + ".json"));
+        bool tipOk = true; string tipDetail = ""; int tips = 0;
         foreach (var c in jl.sprites)
-            if (StormTuning.IsSpire(c.n))
+            if (c.n.StartsWith("rods_") && c.n.EndsWith("_00"))
             {
-                float a = MaxAlpha(lm, c, c.w / 2 - 14, (int)StormTuning.RodTipY - 14, 28, 28);
-                float above = MaxAlpha(lm, c, 0, 0, c.w, (int)StormTuning.RodTipY - 22);
-                tipDetail += " " + c.n + " tip " + a.ToString("F2") + " above " + above.ToString("F2");
-                if (a < .6f || above > .35f) tipOk = false;
+                float k = c.w / 256f;
+                int tx = Mathf.RoundToInt(StormTuning.RodTipX * k), ty = Mathf.RoundToInt(StormTuning.RodTipY * k);
+                float a = MaxAlpha(lm, c, tx - 4, Mathf.Max(0, ty - 4), 8, 8);
+                tipDetail += " " + c.n + " tip " + a.ToString("F2");
+                if (a < .5f) tipOk = false;
+                tips++;
             }
-        Check("the lightning-rod masts' rod tips are at (128, " + StormTuning.RodTipY + ")" + tipDetail, tipOk);
+        Check("the rods platform's rod tip is at (" + StormTuning.RodTipX + ", " + StormTuning.RodTipY + ") of its cell" + tipDetail, tipOk && tips == 4);
         Object.DestroyImmediate(lt); Object.DestroyImmediate(lm);
     }
 
@@ -624,7 +657,8 @@ public static class StormBackdropTest
 
     static void Sites()
     {
-        var wb = Fresh(2);
+        // (the ground creeps by at .024 x GroundZoom: flown faster, so the same ground (and as many sites) goes by in 240 s as before the zoom)
+        var wb = Fresh(2, (.2f + .25f) / StormTuning.GroundZoom - .2f);
         var d = Director(wb);
         if (d == null) return;
         var sites = new List<LandingSite>();

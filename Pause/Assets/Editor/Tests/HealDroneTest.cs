@@ -147,7 +147,10 @@ public static class HealDroneTest
         float maxDeploy = 0f;
         for (float t = 0f; t < 3f; t += Dt) { Frame(fx, life, drone, gun); maxDeploy = Mathf.Max(maxDeploy, drone.Deploy); }
         Check("whole ship: the drone never comes out and nothing sprays", maxDeploy == 0f && fx.Sprays == 0 && !drone.NozzleShown);
-        Check("the drone is drawn in green", drone.BodyRenderer.color == HealDrone.Green && drone.BodyRenderer.sprite != null);
+        Check("the drone wears the ship's own healing drawing un-tinted, or the companion drawing in green",
+              drone.BodyRenderer.sprite != null &&
+              (drone.OwnArt ? drone.BodyRenderer.color == Color.white && DroneArt.Has(ShipId.Starter, DroneTier.Heal)
+                            : drone.BodyRenderer.color == HealDrone.Green));
 
         collisionDetection.lifeCounter = 1;   // 3 of 4 hearts left: damaged, 2+ hearts
         bool deployed = false, nozzle = false, spurt = false, fromNozzle = true, tucked = false, sprayWhileOut = true;

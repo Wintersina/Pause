@@ -11,7 +11,9 @@ public static class WorldBackdropTest
     // Budgets / guards.
     public const long TextureBudgetBytes = 9L * 1024 * 1024;   // per world, GPU size of the imported format
     // Frost carries eight shared 1024 atlases (landmarks, sites, weather and
-    // five ambient-loop sheets) besides one 4-tile variant set.
+    // five ambient-loop sheets), the docks strips and the living props (a
+    // 2048 x 3072 sheet since round 2's variants, ASTC 6x6 ~2.8 MB, FrostProps.cs; measured 6794 KB with the old
+    // 1024 x 768 sheet, so ~9.3 MB; 2048 x 3840 with the crashed starship's 256 px cells, ~3.5 MB, so ~10 MB) besides one 4-tile variant set.
     public const long FrostTextureBudgetBytes = 12L * 1024 * 1024;
     // Space carries the 2048 anim_hires planet sheet (~5.3 MB with mips; the 1x
     // sheet was ~1.3 MB) beside the asteroid-drift sheets: 9573 KB, over the
@@ -27,28 +29,43 @@ public static class WorldBackdropTest
     // variant set: two atlases more than Frost. Measured 5488 KB (ASTC 6x6
     // sizes); 7 MB leaves room for one more sheet.
     // 2026-10: Verdant's sky / far / mid / flow tiles are 896x1792 (ASTC 6x6, ~0.72 MB each, was ~0.24 MB at 512x1024): the variant set grew ~1.9 MB (~7.4 MB), 7 -> 9 MB (estimate, CI measures).
-    public const long VerdantTextureBudgetBytes = 9L * 1024 * 1024;
+    // 2026-11-28 r1 (the .49 altitude): the landmarks and pipes atlases and the far / flow tiles retired (-1.7 MB resident, -.7 MB a set); a set
+    // gains the repainted mid (896 x 4096, ASTC 6x6, ~1.6 MB), a half-size sky (448 x 2048, ~.4 MB) and its living props atlas (v<n>/props,
+    // 4096 x 2552 ASTC 6x6, ~4.7 MB; art only until the placement lands): ~10.9 MB (estimate, CI measures).
+    public const long VerdantTextureBudgetBytes = 12L * 1024 * 1024;
     // Ember carries the same ten shared 1024 atlases (landmarks, pipes, fires,
     // sites, weather and five ambient-loop sheets) as Verdant besides one
     // 4-tile variant set (~5.5 MB measured, ASTC 6x6 sizes).
     // 2026-10: Ember's sky / far / mid / flow tiles are 896x1792 (ASTC 6x6, 0.72 MB each, was 0.24 MB at 512x1024); measured 8037 KB, 7 -> 9 MB.
-    public const long EmberTextureBudgetBytes = 9L * 1024 * 1024;
+    // 2026-11-28 r1 (the .49 altitude): the landmarks, pipes, flow and far tiles retired; a set gains the repainted mid (896 x 4096, ASTC 6x6,
+    // ~1.6 MB) and its living props atlas (v<n>/props, 4096 x 5332 ASTC 6x6, ~9.7 MB); the scar decals (scar, ~1 MB): ~17 MB (estimate, CI measures).
+    public const long EmberTextureBudgetBytes = 20L * 1024 * 1024;
     // Tide carries the same shared 1024 atlases as Ember (landmarks, pipes, fires, sites,
     // weather) plus run C's five loop sheets (smoke, flames, surf, leaks, lights) besides
     // one 4-tile variant set: ~6 MB measured now (ASTC 6x6 sizes), ~8.5 MB with run C.
     // 2026-10: Tide's sky / far / mid / flow tiles are 896x1792 (ASTC 6x6, 0.72 MB each, was 0.24 MB at 512x1024): the variant set grew ~1.9 MB, 10 -> 12 MB.
-    public const long TideTextureBudgetBytes = 12L * 1024 * 1024;
+    // 2026-11-28 r1 (the .49 altitude): the living props atlas (Backdrop3/props, 4096 x 2876 ASTC 4x4, ~11.2 MB) joins the world's resident
+    // atlases (4096 x 4000 with the landmarks, ASTC 6x6 ~7.3 MB; 4x4 would be ~16 MB): 12 -> 20 MB (CI measured 22.8 MB with the 11.5 MB 4x4 atlas).
+    public const long TideTextureBudgetBytes = 20L * 1024 * 1024;
     // Desert carries the same shared 1024 atlases as Tide (landmarks, pipes, fires, sites, weather)
     // plus fourteen loop sheets' worth of dust, shimmer, leaks and lights, and the worms'
     // two 2048 sheets (worm, worm_giant), besides one 4-tile variant set.
     // Since 1f0d8e87 (2026-10-13) Desert's continuous-tone art is ASTC 4x4 on phones (WorldBackdropImport.IsContinuousTone; 6x6 bands the
     // dune gradients), 2.25x the old 6x6 size: 24 MB measured on the Android target (the worm sheets alone ~6 MB).
     // 2026-10 painted salt flat: its sky / far / mid / flow are 1024x2048 (ASTC 6x6, ~7.5 MB with mips, was ~2.7 MB at 512x1024), so the largest variant set grew ~5 MB: 26 -> 32 MB.
+    // 2026-11-28 r1 (the .41 altitude): the landmarks, pipes, fires, leaks, lights, lights_2, shimmer_2 and dust_3 sheets and the far tiles
+    // retired; the worm sheets capped at 1024 (drawn at under half their px now); a set gains the stitched mid (896 x 4096) and its living
+    // props atlas (v<n>/props, cut at the .49 altitude with room for the blend's contact shadow and sand drift: 4096 x ~3610 ASTC 4x4,
+    // ~14.1 MB): ~31.3 MB, inside the old cap.
     public const long DesertTextureBudgetBytes = 32L * 1024 * 1024;   // (+1 MB for the docks atlas: four 6-cell launch strips, ~0.7 MB ASTC 4x4)
     // Storm's HD tiles use ASTC 6x6; its painted atlases use 4x4. The launch-strip docks
     // added in cd2db99ec are 1578x1054 (1,668,480 bytes at 4x4): the existing ~8049 KiB
     // plus those ~1629 KiB totals ~9678 KiB. Keep a 10 MiB cap for this installed set.
-    public const long StormTextureBudgetBytes = 10L * 1024 * 1024;
+    // 2026-11-28 r3: the stitched ground tile (896 x 4096, ASTC 6x6: +~0.7 MB a set over the old 1024 x 2048 mid), the soft vapour strip
+    // (512 x 2048, -0.7 MB), the living props (props 2040 x 1424 ASTC 4x4 ~2.8 MB; aloft 2016 x 2424 ASTC 6x6 ~2.1 MB): ~14.6 MB.
+    // later the same day: the crashed gunship + the moored tug, lightning-rod platform and buoy chain (ground props, ASTC 4x4) and the
+    // manta rays (aloft, 6x6), all four liveries each: props 2040 x 3480 (~7.1 MB, the moored skimmer moved here), aloft 2016 x 2424 (~2.2 MB): ~18.6 MB.
+    public const long StormTextureBudgetBytes = 20L * 1024 * 1024;
     const float SeamTolerance = 0.02f;          // mean |top row - bottom row|, premultiplied RGBA
     // 2026-10: the Desert hi-res pixel-art ground tiles (4 px cells, build_tiles.py) are seamless by construction, but the top and bottom
     // rows are two different CELLS, so their difference is a cell-boundary difference: measured .018-.041 on the shipped tiles, the same as the
@@ -56,8 +73,18 @@ public static class WorldBackdropTest
     const float PixelGridSeamTolerance = 0.06f;
     static float SeamLimit(string asset)
     {
+        if (System.Text.RegularExpressions.Regex.IsMatch(asset.Replace('\\', '/'), "/(Storm|Desert|Ember)/Backdrop3/v[1234]/mid\\.png$")) return StormR3SeamTolerance;   // (Desert / Ember r1: the same stitched format)
+        if (System.Text.RegularExpressions.Regex.IsMatch(asset.Replace('\\', '/'), "/Verdant/Backdrop3/v[1234]/(mid|sky)\\.png$")) return VerdantR1SeamTolerance;   // (Verdant r1: the quilted ground and its half-size copy)
         return System.Text.RegularExpressions.Regex.IsMatch(asset.Replace('\\', '/'), "/Desert/Backdrop3/v[1234]/(sky|far|mid)\\.png$") ? PixelGridSeamTolerance : SeamTolerance;
     }
+    // 2026-11-28 Storm's r3 ground (896 x 4096, quilted from the approved painting and wrapped by construction, pl/storm/r3/stitch.py):
+    // a fine-grained cloud deck whose OWN neighbouring rows differ by .024 - .031 on average (p95 .037 - .045); the wrap rows differ
+    // .012 - .032, inside that. The limit is the worst interior p95.
+    const float StormR3SeamTolerance = .045f;
+    // 2026-11-28 Verdant's r1 ground (896 x 4096, PixelLab repaints quilted along minimum-error cuts and wrapped both ways, pl/verdant/r1/ground.py)
+    // is a fine-grained canopy whose OWN neighbouring rows differ by .033 - .046 on average (p95 .043 - .057); the wrap rows differ .027 - .044 (its
+    // half-size sky .031 - .042), inside that. The limit is the worst interior p95.
+    const float VerdantR1SeamTolerance = .06f;
     // The guide's sky ramps (docs/art-style.md 1.3) peak at ~#123248 / #143430,
     // so the opaque sky averages up to ~0.12 relative luminance.
     const float SkyMaxLuminance = 0.13f;        // opaque far layer
@@ -110,9 +137,14 @@ public static class WorldBackdropTest
     // keep the thin outline). Held to these limits AS DRAWN; the gameplay
     // guard (enemy bodies 2.5:1, brightest tone 7:1 against the rendered
     // lane: CheckReadability and EmberBackdropTest) is every world's.
-    const float EmberTileMaxValueP90 = 0.45f;
+    // 2026-11-28 r1: the PixelLab-repainted grounds (measured: value p90 .573 / .475 / .475 / .686, mean luminance .203 / .193 / .240 / .199, chroma
+    // .147 / .125 / .142 / .231) carry more lit lava and rock texture than the old chunky paint, so the tile caps follow the art
+    // (value p90 .45 -> .72, luminance .18 -> .26); the lava stays the brightest accent, soft-kneed under EmberTuning.ShotLine (.24, the 32 px
+    // patches' p99 linear luminance: EmberBackdropTest.ShotLine), and the lane guard (CheckReadability, EmberBackdropTest) is every world's.
+    // The sky tile (hidden under the opaque mid) is still the old painting.
+    const float EmberTileMaxValueP90 = 0.72f;
     const float EmberSkyMaxLuminance = 0.16f;
-    const float EmberTileMaxLuminance = 0.18f;
+    const float EmberTileMaxLuminance = 0.26f;
     const float EmberTileMaxChroma = 0.25f;
     // Ember enemy bodies read >= 2.0:1 (every other world 2.5:1) against the rendered lane, user decision 2026-10-27 ("the
     // Ember backdrops are all black, make them colourful"): the 2.5:1 rule forced a lane median luminance <= .011 and so
@@ -189,6 +221,7 @@ public static class WorldBackdropTest
     {
         float lift = 1f, alphaLift = 1f, satScale = 1f;
         if (atlas == "landmarks" || atlas == "sites") lift = BackdropGrade.Lift(spec, spec.Find("landmarks"));
+        else if (atlas == FrostPropsTuning.Atlas || atlas == FrostPropsTuning.ScarAtlas) lift = BackdropGrade.Lift(spec, spec.Find(FrostPropsTuning.Layer));
         else if (atlas == "aurora") lift = BackdropGrade.Lift(spec, spec.Find("aurora"));
         else if (FrostAmbientCatalog.Lifted(atlas)) lift = BackdropGrade.Lift(spec, FrostTuning.PlumeShare);
         else if (atlas == "weather")
@@ -205,7 +238,7 @@ public static class WorldBackdropTest
     static Color[] VerdantAtlasAsDrawn(BackdropCatalog.Spec spec, string atlas, Color[] px)
     {
         float lift = 1f, alphaLift = 1f, sat = 1f;
-        if (atlas == "landmarks" || atlas == "sites" || atlas == "pipes" || atlas == "fires") lift = BackdropGrade.Lift(spec, spec.Find("ground"), 1);
+        if (atlas == "sites" || atlas == "fires" || atlas == VerdantPropsArt.Atlas) lift = BackdropGrade.Lift(spec, spec.Find("ground"), 1);
         else if (atlas == "smoke" || atlas == "firesmoke") lift = VerdantTuning.PlumeLift;
         else if (atlas == "weather") { alphaLift = VerdantTuning.CeilingThicken; lift = VerdantTuning.CeilingLift; sat = VerdantTuning.CeilingSaturation; }
         return BackdropGrade.Apply(px, lift, sat, alphaLift);
@@ -226,7 +259,7 @@ public static class WorldBackdropTest
     static Color[] TideAtlasAsDrawn(BackdropCatalog.Spec spec, string atlas, Color[] px)
     {
         float lift = 1f, alphaLift = 1f, sat = 1f;
-        if (atlas == "landmarks" || atlas == "sites" || atlas == "pipes" || atlas == "fires") lift = BackdropGrade.Lift(spec, spec.Find("ground"), 1);
+        if (atlas == "landmarks" || atlas == "sites" || atlas == "pipes" || atlas == "fires" || atlas == TidePropsTuning.Atlas) lift = BackdropGrade.Lift(spec, spec.Find("ground"), 1);
         else if (atlas == "weather") { alphaLift = TideTuning.CeilingThicken; lift = TideTuning.CeilingLift; sat = TideTuning.CeilingSaturation; }
         return BackdropGrade.Apply(px, lift, sat, alphaLift);
     }
@@ -236,7 +269,7 @@ public static class WorldBackdropTest
     static Color[] DesertAtlasAsDrawn(BackdropCatalog.Spec spec, string atlas, Color[] px)
     {
         float lift = 1f, alphaLift = 1f, sat = 1f;
-        if (atlas == "landmarks" || atlas == "sites" || atlas == "pipes" || atlas == "fires") lift = BackdropGrade.Lift(spec, spec.Find("ground"), 1);
+        if (atlas == "sites" || atlas == DesertPropsTuning.Atlas) lift = BackdropGrade.Lift(spec, spec.Find("ground"), 1);
         else if (atlas == "weather") { alphaLift = DesertTuning.CeilingThicken; lift = DesertTuning.CeilingLift; sat = DesertTuning.CeilingSaturation; }
         return BackdropGrade.Apply(px, lift, sat, alphaLift);
     }
@@ -245,7 +278,8 @@ public static class WorldBackdropTest
     static Color[] StormAtlasAsDrawn(BackdropCatalog.Spec spec, string atlas, Color[] px)
     {
         float lift = 1f, alphaLift = 1f, sat = 1f;
-        if (atlas == "landmarks" || atlas == "sites") lift = BackdropGrade.Lift(spec, spec.Find("ground"), 1);
+        if (atlas == "landmarks" || atlas == "sites" || atlas == StormPropsTuning.Atlas) lift = BackdropGrade.Lift(spec, spec.Find("ground"), 1);
+        else if (atlas == StormPropsTuning.AloftAtlas) lift = BackdropGrade.Lift(spec, spec.Find(StormPropsTuning.AloftLayer), 1);
         else if (atlas == "weather") alphaLift = StormTuning.CeilingThicken;
         return BackdropGrade.Apply(px, lift, sat, alphaLift);
     }
@@ -313,13 +347,16 @@ public static class WorldBackdropTest
         { "fire_lights", new[] { "flare_00", "searchlight_07" } },
         { "beacons", new[] { "beacon_magenta_03", "beacon_cyan_00", "strobe_white_00", "window_lights_03" } },
         { "aurora", new[] { "aurora_00", "aurora_15" } },
+        { "props", new[] { "whale_00", "whale_07", "orca_00", "orca_07", "station_00", "station_07", "lab_00", "lab_07",
+                           "icebreaker_00", "icebreaker_07", "plane_00", "plane_07", "snowcat_0_00", "snowcat_3_07", "radar_0_00",
+                           "fishcamp_2_00", "flares_1_07", "tanker_0_00", "bears_3_07", "narwhal_0_00", "sonde_2_07", "seals_00",
+                           "heli_0_00", "heli_3_07", "starship_0_00", "starship_3_07" } },
+        { FrostPropsTuning.ScarAtlas, FrostPropsTuning.ScarCells },     // the starship's crash-scar decals
     };
 
     // Verdant's shared atlases and the drawings the director relies on.
     static readonly Dictionary<string, string[]> VerdantAtlases = new Dictionary<string, string[]>
     {
-        { "landmarks", VerdantPieces("landmarks") },
-        { "pipes", VerdantPieces("pipes") },
         { "fires", VerdantPieces("fires") },
         { "sites", new[] { "roothangar_closed", "roothangar_open", "riverbay_closed", "riverbay_open", "podpad_idle", "podpad_active",
                            "towerbay_closed", "towerbay_open", "hatch_closed", "hatch_open", "lights_off", "lights_on" } },
@@ -334,8 +371,6 @@ public static class WorldBackdropTest
     // Ember's shared atlases and the drawings the director relies on.
     static readonly Dictionary<string, string[]> EmberAtlases = new Dictionary<string, string[]>
     {
-        { "landmarks", EmberPieces("landmarks") },
-        { "pipes", EmberPieces("pipes") },
         { "fires", EmberPieces("fires") },
         { "sites", new[] { "foundryhangar_closed", "foundryhangar_open", "magmabay_closed", "magmabay_open", "slagpad_idle", "slagpad_active",
                            "furnacebay_closed", "furnacebay_open", "hatch_closed", "hatch_open", "lights_off", "lights_on" } },
@@ -367,40 +402,22 @@ public static class WorldBackdropTest
                            "gantry_hatch_closed", "gantry_hatch_open", "cloud_bay_closed", "cloud_bay_open", "lights_off", "lights_on" } },
         { "weather", new[] { "cloud_bank_00", "cloud_bank_03", "cloud_wisp_00", "cloud_wisp_02", "mist_00", "mist_01", "gust_00", "gust_01", "pall_00", "rain_00", "rain_03" } },
         { "lightning", new[] { "bolt_00", "bolt_05", "strike_00", "strike_01", "flash_00", "flash_01", "arc_00", "debris_00", "debris_04" } },
+        // the living props (StormProps.cs): first and last cell of a livery of every kind
+        { StormPropsTuning.Atlas, new[] { "refinery_0_00", "refinery_3_07", "mast_0_00", "mast_3_07", "wreck_0_00", "wreck_3_07", "vortex_0_00", "vortex_2_07", "cell_0_00", "cell_2_07",
+                                              "gunship_0_00", "gunship_3_07", "tug_0_00", "tug_3_07", "rods_0_00", "rods_3_07", "buoys_0_00", "buoys_3_07", "skimmer_0_00", "skimmer_3_07" } },
+        { StormPropsTuning.AloftAtlas, new[] { "aerostat_0_00", "aerostat_3_07", "convoy_0_00", "convoy_2_07", "jelly_0_00", "jelly_6_07", "rays_0_00", "rays_3_07" } },
     };
 
-    // Desert's shared atlases and the drawings the director relies on (ordered like the art:
-    // landmarks, pipes, fires, sites, weather; the loop sheets and the worms are checked by name below).
+    // Desert's shared atlases and the drawings the director relies on (the r1 living props live per ground set, v<n>/props:
+    // DesertPropsTest; the round-1 landmarks, pipes and features retired 2026-11-28; the loop sheets and the worms are checked by name below).
     static readonly Dictionary<string, string[]> DesertAtlases = new Dictionary<string, string[]>
     {
-        { "landmarks", DesertPieces("landmarks") },
-        { "pipes", DesertPieces("pipes") },
-        { "fires", DesertPieces("fires") },
         { "sites", new[] { "worm_burrow_closed", "worm_burrow_open", "crawler_bay_closed", "crawler_bay_open", "glass_pad_closed", "glass_pad_open",
                            "buried_silo_closed", "buried_silo_open", "ruin_dock_closed", "ruin_dock_open" } },
         { "weather", new[] { "cloud_bank_00", "cloud_bank_03", "cloud_wisp_00", "cloud_wisp_03", "mist_00", "mist_02", "gust_00", "gust_01", "pall_00", "pall_01", "particle_00" } },
         { "worm", new[] { "worm_s_ridge_00", "worm_s_emerge_01", "worm_s_arc_00", "worm_s_dive_00", "worm_s_spray_00", "worm_m_ridge_00", "worm_m_emerge_01", "worm_m_arc_00", "worm_m_dive_00", "worm_m_spray_00" } },
         { "worm_giant", new[] { "worm_l_ridge_00", "worm_l_emerge_01", "worm_l_arc_00", "worm_l_dive_00", "worm_l_spray_00" } },
     };
-
-    // Every drawing of a Desert piece atlas the director names.
-    static string[] DesertPieces(string atlas)
-    {
-        var names = new List<string>();
-        foreach (var group in new[] { DesertTuning.Ruins, DesertTuning.Neighbours, DesertTuning.Fronts, DesertTuning.Satellites,
-                                      DesertTuning.Caravans, DesertTuning.Banks, DesertTuning.Lone, DesertTuning.HorizontalPipes })
-            foreach (string n in group)
-            {
-                bool pipe = n.StartsWith("straight") || n.StartsWith("manifold") || n.StartsWith("tangle") || n.StartsWith("leak") ||
-                            n == "pump_house" || n == "half_buried_pipe" || n.StartsWith("pipe_bridge");
-                bool fire = n.StartsWith("rock_fin") || n.StartsWith("wall_drift") || n.StartsWith("fulgurite") || n.StartsWith("dry_well") ||
-                            n.StartsWith("machine_ribs") || n.StartsWith("heat_vent") || n == "crack_scar" || n == "dune_ridge" ||
-                            n == "wreckage" || n == "lone_crawler";
-                string a = pipe ? "pipes" : fire ? "fires" : "landmarks";
-                if (a == atlas && !names.Contains(n)) names.Add(n);
-            }
-        return names.ToArray();
-    }
 
     // Every drawing of a Tide piece atlas the director names.
     static string[] TidePieces(string atlas)
@@ -419,36 +436,23 @@ public static class WorldBackdropTest
         return names.ToArray();
     }
 
-    // Every drawing of an Ember piece atlas the director names.
+    // Every drawing of an Ember piece atlas the director names (the eruptions: the round-1 landmarks and pipes retired 2026-11-28).
     static string[] EmberPieces(string atlas)
     {
         var names = new List<string>();
-        foreach (var group in new[] { EmberTuning.Forges, EmberTuning.Neighbours, EmberTuning.Fronts, EmberTuning.Satellites,
-                                      EmberTuning.Barges, EmberTuning.Banks, EmberTuning.Pools, EmberTuning.Lone, EmberTuning.HorizontalPipes })
+        foreach (var group in new[] { EmberTuning.Fronts, EmberTuning.Satellites, EmberTuning.Pools })
             foreach (string n in group)
-            {
-                bool pipe = n.StartsWith("pipe") || n.StartsWith("manifold") || n == "pumphouse_00";
-                bool fire = n.StartsWith("lava") && !n.StartsWith("lavafall") || n.StartsWith("eruption") || n.StartsWith("coal") ||
-                            n.StartsWith("scorched") || n.StartsWith("firebreak") || n.StartsWith("flarestack");
-                string a = pipe ? "pipes" : fire ? "fires" : "landmarks";
-                if (a == atlas && !names.Contains(n)) names.Add(n);
-            }
+                if (atlas == "fires" && !names.Contains(n)) names.Add(n);
         return names.ToArray();
     }
 
-    // Every drawing of a Verdant piece atlas the director names.
+    // Every drawing of a Verdant piece atlas the director names (the wildfires: the round-1 landmarks and pipes retired 2026-11-28).
     static string[] VerdantPieces(string atlas)
     {
         var names = new List<string>();
-        foreach (var group in new[] { VerdantTuning.Refineries, VerdantTuning.Neighbours, VerdantTuning.Fronts, VerdantTuning.Satellites,
-                                      VerdantTuning.Barges, VerdantTuning.Banks, VerdantTuning.Lone, VerdantTuning.HorizontalPipes })
+        foreach (var group in new[] { VerdantTuning.Fronts, VerdantTuning.Satellites })
             foreach (string n in group)
-            {
-                bool pipe = n.StartsWith("pipe") || n.StartsWith("manifold") || n == "pumphouse_00";
-                bool fire = n.StartsWith("burn") || n.StartsWith("coal") || n.StartsWith("scorched") || n.StartsWith("firebreak");
-                string a = pipe ? "pipes" : fire ? "fires" : "landmarks";
-                if (a == atlas && !names.Contains(n)) names.Add(n);
-            }
+                if (atlas == "fires" && !names.Contains(n)) names.Add(n);
         return names.ToArray();
     }
 
@@ -508,7 +512,9 @@ public static class WorldBackdropTest
             // Space carries two runs of body tiers (planets, structures).
             // Space carries two runs of body tiers (planets, structures);
             // Frost its weather at several depths.
-            int maxLayers = spec.world == "Space" || V3(spec) ? 14 : 10;
+            // Storm (2026-11-28) 15: its own aloft layer (StormProps.cs: the props seen closer than the ground) between the vapour
+            // strip and the lightning; still far under gameplay (BaseOrder -500 + 14 x 10 = -360).
+            int maxLayers = spec.world == "Storm" ? 15 : spec.world == "Space" || V3(spec) ? 14 : 10;
             Check(theme.displayName + " has 4-" + maxLayers + " depth layers (" + spec.layers.Length + ")",
                   spec.layers.Length >= 4 && spec.layers.Length <= maxLayers);
 
@@ -1235,7 +1241,8 @@ public static class WorldBackdropTest
             Check("Desert v" + v + " keeps out of the player's red, star-dust amber and violet (" + (forbidden / (float)n).ToString("F4") + " <= " + DesertMaxForbiddenShareFor(v) + ")",
                   forbidden <= DesertMaxForbiddenShareFor(v) * n);
         }
-        foreach (string atlas in new[] { "landmarks", "pipes", "fires", "sites", "weather" })
+        // (the r1 props carry their own approved lamps -- the zeppelin's red port light, the beacons -- held by DesertPropsTest instead)
+        foreach (string atlas in new[] { "sites", "weather" })
         {
             int bad = 0;
             foreach (var c in ReadPixels(ArtDir("Desert") + atlas + ".png"))
@@ -1448,7 +1455,7 @@ public static class WorldBackdropTest
     // Frost's rails are dimmed (WorldPainter.RailBrightness) so they recede
     // behind the lane: rendered alone through the game camera, their light
     // is 50..70% of the undimmed rail's, and every other world draws its
-    // rail exactly as painted. Run after CheckSpaceRailMaterials (gameS1 open).
+    // rail as painted (rgb); every world's rail alpha is x WorldPainter.RailOpacity. Run after CheckSpaceRailMaterials (gameS1 open).
     static void CheckRailBrightness()
     {
         var cam = Camera.main;
@@ -1481,8 +1488,12 @@ public static class WorldBackdropTest
                     Check("Frost rails render at its rail dial (" + (ratio * 100f).ToString("F0") + "% of the painted rail, dial " +
                           (saved * 100f).ToString("F0") + "%)", before > 1f && Mathf.Abs(ratio - saved) < .02f);
                 else
-                    Check(theme.displayName + " rails render as painted (" + (ratio * 100f).ToString("F1") + "%, tint untouched)",
-                          before > 1f && Mathf.Abs(ratio - 1f) < .01f && mat.color == theme.tint);
+                    Check(theme.displayName + " rails render as painted (" + (ratio * 100f).ToString("F1") + "%, tint rgb untouched, alpha x" +
+                          WorldPainter.RailOpacity.ToString("F2") + ")",
+                          before > 1f && Mathf.Abs(ratio - 1f) < .01f && mat.color == WorldPainter.RailTint(theme) &&
+                          mat.color.r == theme.tint.r && mat.color.g == theme.tint.g && mat.color.b == theme.tint.b);
+                Check(theme.displayName + " rails draw " + (WorldPainter.RailOpacity * 100f).ToString("F0") + "% as opaque as painted (tint alpha " +
+                      mat.color.a.ToString("F3") + ")", WorldPainter.RailOpacity == .85f && Mathf.Abs(mat.color.a - theme.tint.a * .85f) < .002f);
             }
         }
         finally

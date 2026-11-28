@@ -151,8 +151,8 @@ public static class VerdantBackdropPreview
                 wb.Step(Dt);
             }
             Capture(cam, Path.Combine(dir, "handoff-level-" + a.ToString("00") + "s.png"));
-            Debug.Log("[VERDANT-PREVIEW] level " + a + " s: ceiling " + d.CeilingCover.ToString("F2") + " ground " + d.Ground.ActiveCount +
-                      " fires " + d.Fires.ActiveCount + " pipes " + d.Pipes.ActiveCount + " loops " + d.Ambient.LiveCount);
+            Debug.Log("[VERDANT-PREVIEW] level " + a + " s: ceiling " + d.CeilingCover.ToString("F2") + " fires " + d.Fires.ActiveCount +
+                      " loops " + d.Ambient.LiveCount);
         }
         Object.DestroyImmediate(wm.gameObject);
         Object.DestroyImmediate(wb.gameObject);
@@ -178,9 +178,9 @@ public static class VerdantBackdropPreview
             {
                 while (d.Clock < at) wb.Step(Dt);
                 Capture(cam, Path.Combine(dir, "variant-v" + v + "-" + at.ToString("00") + "s.png"));
-                Debug.Log("[VERDANT-PREVIEW] v" + v + " " + at + "s ground " + d.Ground.ActiveCount + " fires " + d.Fires.ActiveCount +
-                          " pipes " + d.Pipes.ActiveCount + " sites " + d.Sites.ActiveCount + " loops " + d.Ambient.LiveCount +
-                          " clusters " + d.Clusters + " runs " + d.PipeRuns);
+                Debug.Log("[VERDANT-PREVIEW] v" + v + " " + at + "s fires " + d.Fires.ActiveCount +
+                          " sites " + d.Sites.ActiveCount + " loops " + d.Ambient.LiveCount +
+                          " clusters " + d.Clusters);
             }
             if (v == 3) Launch(cam, wb, d, dir);
         }
@@ -229,10 +229,10 @@ public static class VerdantBackdropPreview
         int i = 0;
         foreach (string n in names)
         {
-            var p = d.Showcase(n, 1.7f, 0f, 1f, i % 2 == 1);
+            var p = d.Showcase(n, 1.7f * VerdantTuning.PieceScale, 0f, 1f, i % 2 == 1);
             if (p == null) { Debug.LogWarning("[VERDANT-PREVIEW] cannot show " + n); continue; }
             for (int k = 0; k < 40; k++) wb.Step(Dt);
-            Crop(cam, p.root.position, 1.7f * 1.6f, Path.Combine(dir, "piece-" + n + ".png"));
+            Crop(cam, p.root.position, 1.7f * VerdantTuning.PieceScale * 1.6f, Path.Combine(dir, "piece-" + n + ".png"));
             i++;
         }
         Object.DestroyImmediate(wb.gameObject);

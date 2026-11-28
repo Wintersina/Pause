@@ -1,0 +1,233 @@
+{
+  "world": "ember",
+  "heartColor": "#FFC24A",
+  "shotColor": "#FF8A2A",
+  "shotCore": "#FFE9B8",
+  "engineColor": "#FF9A3C",
+  "hearts": 3,
+  "heartSize": 0.18,
+  "heartOrbit": 0.786,
+  "heartStyle": "Halo",
+  "boldHearts": true,
+  "exhaustShip": 3,
+  "cellPixels": 384,
+  "key": "ember_elite_coalrunner",
+  "displayName": "Coalrunner",
+  "role": "strafing gunship",
+  "brain": "strafer",
+  "attack": "coal_strafe",
+  "lore": "A broadside gunship that races along the top of the sky from rail to rail and stops dead to fire. Its side cannons cross their bolts on lanes you can see before they fly. Hurt it and it starts dropping burning coal that bounces down the board.",
+  "cellWorldSize": 1.895,
+  "hullRadius": 0.345,
+  "silhouetteShare": 0.4663,
+  "noseDeg": 90,
+  "turnsToFace": false,
+  "maxBank": 10,
+  "speed": 3.4,
+  "accel": 8,
+  "turnRate": 200,
+  "laneOffset": 1.7,
+  "aggression": 0.5,
+  "tellSeconds": 0.55,
+  "attackGap": 0.15,
+  "avoidance": 0.75,
+  "lookAhead": 0.45,
+  "actionSeconds": 0.3,
+  "shotCount": 2,
+  "shotSpeed": 5.2,
+  "shotInterval": 0.14,
+  "shotSpread": 14,
+  "shotSize": 0.22,
+  "shotKind": "bolt",
+  "exhaustScale": 0,
+  "muzzles": [
+    {
+      "name": "left",
+      "x": 80,
+      "y": 182,
+      "dir": 180.0
+    },
+    {
+      "name": "right",
+      "x": 306,
+      "y": 182,
+      "dir": 0.0
+    }
+  ],
+  "nozzles": [
+    {
+      "name": "a",
+      "x": 148,
+      "y": 284,
+      "dir": -1.0,
+      "offsets": [0, 0, -3, 2, 0, 7, 0, 0, 0, 0, 4, 0, -1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    },
+    {
+      "name": "b",
+      "x": 192,
+      "y": 284,
+      "dir": -1.0,
+      "offsets": [-2, -13, 0, 0, 0, 3, 0, 0, 0, 0, 3, 0, -3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    },
+    {
+      "name": "c",
+      "x": 237,
+      "y": 284,
+      "dir": -1.0,
+      "offsets": [0, 0, 0, 0, 0, 3, 0, 0, 0, 0, 1, 0, -4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    }
+  ],
+  "codexId": "elite_ember_coalrunner",
+  "followLag": 0.45,
+  "cells": {
+    "flight": [
+      3,
+      4
+    ],
+    "parked": 0,
+    "parkedIdle": 1,
+    "liftoff": 2,
+    "bankLeft": 5,
+    "bankRight": 6,
+    "tell": -1,
+    "action": -1,
+    "hit": -1,
+    "damaged": 7,
+    "damagedLoop": [
+      8,
+      9,
+      10,
+      11,
+      12,
+      13
+    ]
+  },
+  "glowScale": 0.09,
+  "launchFrom": "crucible,magmabay",
+  "hurtHide": true,
+  "hideSeconds": 3.5,
+  "hazardCount": 0,
+  "engageSeconds": 42,
+  "script": {
+    "tempo": 0.8,
+    "exitTell": 1.2,
+    "lastExit": "right",
+    "lastExitSeconds": 1.6,
+    "note": "sweeper: races rail to rail along the top, stops and fires; coal on the stops from phase 2",
+    "entrance": {
+      "kind": "overshoot",
+      "seconds": 1.4,
+      "amp": 2.0
+    },
+    "phase1": {
+      "speed": 1.0,
+      "gap": 1.0,
+      "loop": [
+        {
+          "wait": 2.4,
+          "move": "R",
+          "attack": "tight"
+        },
+        {
+          "wait": 2.4,
+          "move": "L",
+          "attack": "wide"
+        }
+      ]
+    },
+    "phase2": {
+      "speed": 1.1,
+      "gap": 0.9,
+      "loop": [
+        {
+          "wait": 2.2,
+          "move": "R",
+          "attack": "coal"
+        },
+        {
+          "wait": 2.2,
+          "move": "L",
+          "attack": "coal"
+        }
+      ]
+    },
+    "last": {
+      "speed": 1.25,
+      "gap": 0.75,
+      "loop": [
+        {
+          "wait": 1.8,
+          "move": "R",
+          "attack": "coals"
+        },
+        {
+          "wait": 1.8,
+          "move": "L",
+          "attack": "coals"
+        }
+      ]
+    },
+    "variants": [
+      {
+        "name": "tight",
+        "set": [
+          {
+            "key": "shotCount",
+            "value": 2
+          },
+          {
+            "key": "shotSpread",
+            "value": 10
+          }
+        ]
+      },
+      {
+        "name": "wide",
+        "set": [
+          {
+            "key": "shotCount",
+            "value": 3
+          },
+          {
+            "key": "shotSpread",
+            "value": 14
+          }
+        ]
+      },
+      {
+        "name": "coal",
+        "set": [
+          {
+            "key": "hazardCount",
+            "value": 1
+          },
+          {
+            "key": "shotCount",
+            "value": 3
+          },
+          {
+            "key": "shotSpread",
+            "value": 14
+          }
+        ]
+      },
+      {
+        "name": "coals",
+        "set": [
+          {
+            "key": "hazardCount",
+            "value": 2
+          },
+          {
+            "key": "shotCount",
+            "value": 3
+          },
+          {
+            "key": "shotSpread",
+            "value": 12
+          }
+        ]
+      }
+    ]
+  }
+}

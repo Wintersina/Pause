@@ -27,7 +27,7 @@
       15
     ]
   },
-  "cellWorldSize": 1.963,
+  "cellWorldSize": 1.867,
   "noseDeg": 90,
   "maxBank": 3,
   "heartColor": "#7FD8FF",
@@ -54,7 +54,7 @@
   "launchFrom": "wreckhull,wreckbay",
   "lore": "An armoured shell that keeps to one of three stations at the top of the board. Two thin lanes mark the arc it sweeps with slow pearls, leaving a gap where you stood when it locked. After every cast it hops to another station.",
   "hullRadius": 0.411,
-  "silhouetteShare": 0.4568,
+  "silhouetteShare": 0.4629,
   "turnsToFace": false,
   "speed": 1.8,
   "accel": 3.5,
@@ -78,31 +78,31 @@
   "muzzles": [
     {
       "name": "shellp",
-      "x": 138,
-      "y": 183,
+      "x": 145,
+      "y": 163,
       "dir": -1.0
     },
     {
       "name": "shells",
-      "x": 246,
-      "y": 183,
+      "x": 241,
+      "y": 163,
       "dir": -1.0
     }
   ],
   "nozzles": [
     {
       "name": "l",
-      "x": 126,
-      "y": 278,
+      "x": 141,
+      "y": 290,
       "dir": -1.0,
-      "offsets": [-2, -13, 0, 0, 0, 0, 0, 0, 4, 0, -1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+      "offsets": [0, 0, 0, 0, 0, 0, 0, 0, 5, 0, -2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
     },
     {
       "name": "r",
-      "x": 258,
-      "y": 278,
+      "x": 241,
+      "y": 290,
       "dir": -1.0,
-      "offsets": [-1, -13, 0, 0, 0, 0, 0, 0, 1, 0, -4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+      "offsets": [0, 0, 0, 0, 0, 0, 0, 0, 2, 0, -5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
     }
   ],
   "followLag": 0.25,

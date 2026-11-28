@@ -87,17 +87,18 @@ public static class PlanetfallCatalog
         planetDiscPx = 392f,
         limbApexPx = 355f,
         limbEdgePx = 722f,
-        entryFrames = 6,
-        // The opening, measured per cell (flood fill of the clear pixels
-        // round the ship): 146 px wide, 165 tall, centre y 338.5; its centre
-        // x wanders 251 .. 268 through the loop. The manifest's 256, 300 is
-        // the opening's upper part, which put the ship's nose out of it.
-        entryShipPx = new Vector2(256f, 338.5f),
-        entryHolePx = 146f,
-        entryHoleX = new[] { 251f, 251.5f, 259.5f, 268f, 267.5f, 258.5f },
+        entryFrames = 12,
+        // The reentry fire (12-cell loop, no opening): a white-hot cap on the
+        // nose and wing edges, the glow hugging the hull, a tapering wake
+        // trailing below. It is fitted to a 147 px arrowhead hull whose
+        // middle is the pivot, 256, 338; the hull drawn over it hides the
+        // glow underneath. Source: Art/Worlds/Frost/descent/src~/reentry.
+        entryShipPx = new Vector2(256f, 338f),
+        entryHolePx = 147f,
+        entryHoleX = null,
         burstFrames = 5,
         cue = new Color(0.45f, 0.92f, 1f),
-        heat = new Color(0.95f, 0.30f, 0.80f),
+        heat = new Color(1f, 0.62f, 0.32f),          // orange plasma (no pink outside Space)
         cold = new Color(0.35f, 0.78f, 1f),
         flash = new Color(0.86f, 0.98f, 1f),
         shade = new Color(0.05f, 0.03f, 0.14f),
@@ -131,14 +132,15 @@ public static class PlanetfallCatalog
         planetDiscPx = 430f,
         limbApexPx = 355f,
         limbEdgePx = 722f,
-        entryFrames = 6,
-        // The opening, measured per cell (flood fill of the clear pixels
-        // round 256, 338): round, 167 tall (y 255 .. 421), widest 148 .. 154
-        // px across its middle row, whose centre wanders 253 .. 259; the
-        // lime-gold plasma is a thin ribbon trailing below it.
+        entryFrames = 12,
+        // The reentry fire (12-cell loop, no opening): a white-hot cap on the
+        // nose and wing edges, the glow hugging the hull, a tapering wake
+        // trailing below. It is fitted to a 147 px arrowhead hull whose
+        // middle is the pivot, 256, 338; the hull drawn over it hides the
+        // glow underneath. Source: Art/Worlds/Frost/descent/src~/reentry.
         entryShipPx = new Vector2(256f, 338f),
-        entryHolePx = 150f,
-        entryHoleX = new[] { 253.5f, 253f, 256f, 258.5f, 259f, 256f },
+        entryHolePx = 147f,
+        entryHoleX = null,
         burstFrames = 5,
         cue = new Color(0.70f, 1f, 0.36f),          // lime: the atmosphere band, the river light
         heat = new Color(0.86f, 0.90f, 0.22f),      // lime-gold plasma
@@ -175,14 +177,15 @@ public static class PlanetfallCatalog
         planetDiscPx = 396f,
         limbApexPx = 353f,
         limbEdgePx = 718f,
-        entryFrames = 6,
-        // The opening, measured per cell (flood fill of the clear pixels
-        // round 256, 338): round, 168 tall (y 254 .. 421), 147 .. 149 px
-        // across its middle row, centred 255 .. 256 (it barely wanders); the
-        // amber-gold plasma is an S-shaped ribbon trailing below it.
-        entryShipPx = new Vector2(256f, 337.5f),
-        entryHolePx = 148f,
-        entryHoleX = new[] { 255f, 256f, 256f, 256f, 256f, 255.5f },
+        entryFrames = 12,
+        // The reentry fire (12-cell loop, no opening): a white-hot cap on the
+        // nose and wing edges, the glow hugging the hull, a tapering wake
+        // trailing below. It is fitted to a 147 px arrowhead hull whose
+        // middle is the pivot, 256, 338; the hull drawn over it hides the
+        // glow underneath. Source: Art/Worlds/Frost/descent/src~/reentry.
+        entryShipPx = new Vector2(256f, 338f),
+        entryHolePx = 147f,
+        entryHoleX = null,
         burstFrames = 5,
         cue = new Color(1f, 0.74f, 0.26f),          // amber-gold: the rim band, the lava light (hue ~37 deg)
         heat = new Color(1f, 0.64f, 0.20f),         // amber-gold plasma (hue ~33 deg)
@@ -222,14 +225,15 @@ public static class PlanetfallCatalog
         planetDiscPx = 414f,
         limbApexPx = 355f,
         limbEdgePx = 720f,
-        entryFrames = 6,
-        // The opening, measured per cell (flood fill of the clear pixels at
-        // y 338): 145 .. 149 px wide, 165 .. 169 tall, centre y 338, centre x
-        // wandering 254 .. 259 (manifest hole_center_px_per_frame). White-hot
-        // core, mint-white and blue edge flames, wide (not a ribbon).
+        entryFrames = 12,
+        // The reentry fire (12-cell loop, no opening): a white-hot cap on the
+        // nose and wing edges, the glow hugging the hull, a tapering wake
+        // trailing below. It is fitted to a 147 px arrowhead hull whose
+        // middle is the pivot, 256, 338; the hull drawn over it hides the
+        // glow underneath. Source: Art/Worlds/Frost/descent/src~/reentry.
         entryShipPx = new Vector2(256f, 338f),
         entryHolePx = 147f,
-        entryHoleX = new[] { 256f, 258f, 254f, 259f, 255f, 257f },
+        entryHoleX = null,
         burstFrames = 5,
         cue = new Color(0.49f, 0.95f, 0.75f),       // bioluminescent mint #7CF2C0 (hue ~158 deg)
         heat = new Color(0.55f, 0.90f, 0.85f),      // mint-white plasma (core 0.83 .97 .91)
@@ -266,10 +270,15 @@ public static class PlanetfallCatalog
         planetDiscPx = 414f,
         limbApexPx = 355f,
         limbEdgePx = 720f,
-        entryFrames = 6,
+        entryFrames = 12,
+        // The reentry fire (12-cell loop, no opening): a white-hot cap on the
+        // nose and wing edges, the glow hugging the hull, a tapering wake
+        // trailing below. It is fitted to a 147 px arrowhead hull whose
+        // middle is the pivot, 256, 338; the hull drawn over it hides the
+        // glow underneath. Source: Art/Worlds/Frost/descent/src~/reentry.
         entryShipPx = new Vector2(256f, 338f),
         entryHolePx = 147f,
-        entryHoleX = new[] { 256f, 258f, 254f, 259f, 255f, 257f },
+        entryHoleX = null,
         burstFrames = 5,
         cue = new Color(1f, 0.95f, 0.63f),          // pale lightning yellow #FFF3A0 (hue ~55 deg)
         heat = new Color(0.80f, 0.88f, 1f),         // storm-white / cold white-blue plasma
@@ -305,10 +314,15 @@ public static class PlanetfallCatalog
         planetDiscPx = 387f,
         limbApexPx = 355f,
         limbEdgePx = 887f,
-        entryFrames = 6,
+        entryFrames = 12,
+        // The reentry fire (12-cell loop, no opening): a white-hot cap on the
+        // nose and wing edges, the glow hugging the hull, a tapering wake
+        // trailing below. It is fitted to a 147 px arrowhead hull whose
+        // middle is the pivot, 256, 338; the hull drawn over it hides the
+        // glow underneath. Source: Art/Worlds/Frost/descent/src~/reentry.
         entryShipPx = new Vector2(256f, 338f),
         entryHolePx = 147f,
-        entryHoleX = new[] { 256f, 259f, 253f, 260f, 254f, 258f },
+        entryHoleX = null,
         burstFrames = 5,
         cue = new Color(1f, 0.945f, 0.78f),         // sun-white #FFF1C8 (hue 45 deg, S .22: never amber)
         heat = new Color(1f, 0.95f, 0.80f),         // white-hot shroud with a pale gold edge

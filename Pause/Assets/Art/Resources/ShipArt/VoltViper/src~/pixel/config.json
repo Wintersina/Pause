@@ -1,0 +1,29 @@
+{
+ "drawing": "approved.png",
+ "source": "PixelLab drawing ship_VoltViper/r3_1.png (160 px), approved Nov 2026",
+ "canopy": [
+  [
+   80,
+   57,
+   14,
+   15
+  ]
+ ],
+ "nozzles": [
+  [
+   49,
+   141,
+   0.72
+  ],
+  [
+   111,
+   141,
+   0.72
+  ]
+ ],
+ "damageNote": "1) left wing armour blown, sparking vents, right shoulder scorched; 2) right booster blown and burning, brow plate holed, soot over the blue, dome cracked",
+ "seed": 2,
+ "integer_scale": true,
+ "wreck_soot": 0.35,
+ "wreck_mul": 0.36
+}

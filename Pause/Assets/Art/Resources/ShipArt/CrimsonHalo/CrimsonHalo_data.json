@@ -3,11 +3,11 @@
   "key": "CrimsonHalo",
   "painted": true,
   "rect": {
-    "x": 23,
-    "y": 7,
-    "w": 201,
-    "h": 242,
-    "ppu": 436.9565
+    "x": 68,
+    "y": 57,
+    "w": 120,
+    "h": 141,
+    "ppu": 254.0293
   },
   "hue": [
     "#C8285E",
@@ -16,79 +16,117 @@
   ],
   "nozzles": [
     {
-      "x": 97.5,
-      "y": 12.5,
+      "x": 45.5,
+      "y": 17.5,
       "scale": 0.72,
-      "offsets": [0.0, -0.0, 0, 4, 0, 4, 0, 0, 0, 0, 0, -4, -13, 11, 16, 5, 0, 0]
+      "offsets": [
+        0.0,
+        0.0,
+        0.0,
+        4.0,
+        0.0,
+        4.0,
+        0.0,
+        -0.0,
+        0.0,
+        -0.0,
+        0.0,
+        -4.0,
+        -0.1,
+        -0.3,
+        3.7,
+        0.1,
+        0.0,
+        0.0
+      ]
     },
     {
-      "x": 113.5,
-      "y": 12.5,
+      "x": 73.5,
+      "y": 17.5,
       "scale": 0.72,
-      "offsets": [0.0, -0.0, 0, 4, 0, 4, 0, 0, 0, 0, 0, -4, -14, 7, 16, 7, 0, 0]
+      "offsets": [
+        0.0,
+        0.0,
+        0.0,
+        4.0,
+        0.0,
+        4.0,
+        0.0,
+        -0.0,
+        0.0,
+        -0.0,
+        0.0,
+        -4.0,
+        -3.7,
+        0.1,
+        0.3,
+        -0.3,
+        0.0,
+        0.0
+      ]
     }
   ],
-  "damageNote": "1) left wing panel blown, left halo cracked; tail smoking; 2) right wingtip torn, right halo cracked and arcing, right tail fin bent, canopy cracked",
+  "damageNote": "1) left wing panel blown, sparking wires, right wing scorched; 2) right wing blown and burning, engines on fire, halo ring holed, soot over the hull, canopy cracked",
   "emitters": [
     {
       "state": 1,
       "kind": "Sparks",
-      "u": 38.8,
-      "v": 84.3
+      "u": 46.8,
+      "v": 72.8
     },
     {
       "state": 1,
       "kind": "Smoke",
-      "u": 61.5,
-      "v": 109.4
+      "u": 79.8,
+      "v": 68.8
     },
     {
       "state": 1,
       "kind": "Smolder",
-      "u": 39.7,
-      "v": 84.0
+      "u": 45.2,
+      "v": 71.2
     },
     {
       "state": 2,
       "kind": "Arc",
-      "u": 82.5,
-      "v": 45.7
+      "u": 89.2,
+      "v": 76.2
     },
     {
       "state": 2,
       "kind": "Flame",
-      "u": 97.2,
-      "v": 91.9
+      "u": 59.2,
+      "v": 86.2
     },
     {
       "state": 2,
       "kind": "Leak",
-      "u": 65.7,
-      "v": 103.6
+      "u": 60.2,
+      "v": 48.8
     },
     {
       "state": 2,
       "kind": "Smolder",
-      "u": 99.9,
-      "v": 92.7
+      "u": 79.8,
+      "v": 68.8
     },
     {
       "state": 2,
       "kind": "Smolder",
-      "u": 77.5,
-      "v": 76.3
+      "u": 46.8,
+      "v": 72.8
     },
     {
       "state": 2,
       "kind": "Smolder",
-      "u": 51.0,
-      "v": 71.9
+      "u": 57.8,
+      "v": 87.8
     },
     {
       "state": 2,
       "kind": "Smolder",
-      "u": 51.5,
-      "v": 107.1
+      "u": 87.8,
+      "v": 77.8
     }
   ],
   "skins": [

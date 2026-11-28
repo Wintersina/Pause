@@ -42,7 +42,7 @@ using UnityEngine;
 // planner.Find(...) + Pin(piece, x, gy) and planner.Step(piece) per frame.
 // Nothing here allocates after construction.
 [System.Flags]
-public enum GroundClass : byte
+public enum GroundClass : ushort
 {
     None = 0,
     Water = 1,      // rivers, channels, flooded streets / open water, lava
@@ -51,6 +51,11 @@ public enum GroundClass : byte
     Canopy = 8,     // dense forest / ice sheet / crust: the textured ground
     Trough = 16,    // ZONE flag on top of Water / Open (mask letter T): a Desert dune trough
     Near = 32,      // ZONE flag on top of Water / Open (mask letters N, M): free ground right beside painted props
+    // CONTEXT flags (Desert r1, 2026-11-28: <variant>/ctx.txt beside mask.txt, GroundMask.WithContext): where a living prop makes sense
+    Flat = 64,      // the flattest open ground (a camp, a market, a spaceport pad)
+    Rocky = 128,    // ground beside painted rock / ruins / works (a dig, ruins, an observatory)
+    Shore = 256,    // ground beside painted water (sand skiffs)
+    Plain = 512,    // open, unpainted ground (dunes, pans: crawlers, rigs, wind farms)
     Land = Built | Open | Canopy,
     Any = Water | Land,
 }
@@ -91,8 +96,46 @@ public class GroundMask
     public static GroundMask Load(string world, int variant)
     {
         var t = Resources.Load<TextAsset>(BackdropCatalog.TileFolder(world, variant) + "mask");
-        return t != null ? Parse(t.text) : null;
+        var m = t != null ? Parse(t.text) : null;
+        var ctx = m != null ? Resources.Load<TextAsset>(BackdropCatalog.TileFolder(world, variant) + "ctx") : null;
+        return ctx != null ? m.WithContext(ctx.text) : m;
     }
+
+    // ctx.txt (Desert r1): the same grid as mask.txt, one hex digit a cell -- bit 1 Flat, 2 Rocky, 4 Shore, 8 Plain -- OR-ed onto the
+    // cells' classes. A grid of another size is ignored.
+    public GroundMask WithContext(string text)
+    {
+        if (string.IsNullOrEmpty(text)) return this;
+        var lines = text.Replace("\r", "").Split('\n');
+        int r = 0;
+        foreach (var l in lines)
+        {
+            if (l.Length == 0) continue;
+            if (r >= Rows || l.Length != Cols) return this;
+            r++;
+        }
+        if (r != Rows) return this;
+        r = 0;
+        foreach (var l in lines)
+        {
+            if (l.Length == 0) continue;
+            for (int x = 0; x < Cols; x++)
+            {
+                char ch = l[x];
+                int b = ch >= '0' && ch <= '9' ? ch - '0' : ch >= 'a' && ch <= 'f' ? ch - 'a' + 10 : ch >= 'A' && ch <= 'F' ? ch - 'A' + 10 : 0;
+                var c = cells[r * Cols + x];
+                if ((b & 1) != 0) c |= GroundClass.Flat;
+                if ((b & 2) != 0) c |= GroundClass.Rocky;
+                if ((b & 4) != 0) c |= GroundClass.Shore;
+                if ((b & 8) != 0) c |= GroundClass.Plain;
+                cells[r * Cols + x] = c;
+            }
+            r++;
+        }
+        HasContext = true;
+        return this;
+    }
+    public bool HasContext { get; private set; }
 
     // u across the tile 0..1 (left..right), v up the tile 0..1 (bottom..top),
     // both wrapped / clamped like the drawn tile (repeats vertically only).
@@ -131,12 +174,32 @@ public struct PieceRule
     // piece stands where its map's painted story puts it (a trough, beside a rail or an outpost) and not anywhere clear.
     public GroundClass zone;
     public float zoneNeed;
+    // FOOT (Frost, 2026-11): where the drawing meets the ground -- the centre of the snow / rock slab it is drawn standing on -- as a
+    // share of its drawn width from its centre, y up (a tall drawing's slab is its lower part: -.2 for a tower). The ground rules
+    // (on, near, zone) are read under the slab, so the slab, not the roof above it, is what lands on the right ground; the footprint
+    // kept against overlaps stays on the centre. 0: the centre.
+    public float foot;
+    // RIM (Frost, 2026-11-27): a clear margin round the footprint. `rim` > 0 also samples a ring of RimSamples points at rim x
+    // the footprint's half-sizes (round the slab, at foot), and at least `rimNeed` of them must be `on` too -- so a slab stands
+    // on a flat top with flat ground all round it, not with its edge on a cliff rim or a lead. 0: no rim rule.
+    public float rim, rimNeed;
 
     public PieceRule(GroundClass on, float need, float core = .32f, GroundClass near = GroundClass.None)
     {
         this.on = on; this.need = need; this.core = core; this.near = near;
         endsOn = GroundClass.None; endA = endB = Vector2.zero; endRadius = 0f;
-        zone = GroundClass.None; zoneNeed = 0f;
+        zone = GroundClass.None; zoneNeed = 0f; foot = 0f;
+        rim = 0f; rimNeed = 0f;
+    }
+
+    public PieceRule WithFoot(float y)
+    {
+        var r = this; r.foot = y; return r;
+    }
+
+    public PieceRule WithRim(float scale, float need)
+    {
+        var r = this; r.rim = scale; r.rimNeed = need; return r;
     }
 
     public PieceRule WithZone(GroundClass zone, float need)
@@ -182,12 +245,18 @@ public class GroundPlanner
     // at bottom edges -V/2 + i h - offset (BackdropTile.Tick), so a point at
     // y lies (y + V/2 + offset) / h up its copy; with offset = travel mod h
     // that is (gy + V/2) / h -- constant for a pinned piece.
+    //
+    // A tile drawn narrower than the view (Spec.groundZoom < 1) repeats across
+    // in columns centred on x = k * TileWidth (BackdropTile), so u wraps too:
+    // the ground under x is the same spot of the art in every column.
     public Vector2 UV(float x, double gy)
     {
         float w = tile != null ? tile.TileWidth : 1f;
         float h = tile != null ? Mathf.Max(.01f, tile.TileHeight) : 1f;
         double v = (gy + set.HalfHeight) / h;
-        return new Vector2(x / w + .5f, (float)(v - System.Math.Floor(v)));
+        float u = x / w + .5f;
+        if (tile != null && tile.Columns > 1) u -= Mathf.Floor(u);
+        return new Vector2(u, (float)(v - System.Math.Floor(v)));
     }
 
     public GroundClass ClassAt(float x, double gy)
@@ -226,6 +295,25 @@ public class GroundPlanner
         return false;
     }
 
+    // Share of a ring of RimSamples points at k x the footprint's half-sizes whose ground is one of `on` (PieceRule.rim).
+    public const int RimSamples = 16;
+    public float Ring(float x, double gy, float rx, float ry, float k, GroundClass on)
+    {
+        if (Mask == null) return 1f;
+        int hit = 0;
+        for (int i = 0; i < RimSamples; i++)
+        {
+            float a = i * 2f * Mathf.PI / RimSamples;
+            if ((ClassAt(x + Mathf.Cos(a) * rx * k, gy + Mathf.Sin(a) * ry * k) & on) != 0) hit++;
+        }
+        return hit / (float)RimSamples;
+    }
+
+    public bool Rim(PieceRule r, float x, double fy, float rx, float ry)
+    {
+        return r.rim <= 0f || Mask == null || Ring(x, fy, rx, ry, r.rim, r.on) >= r.rimNeed;
+    }
+
     // A piece's footprint half-sizes (the same everywhere: Find, Accepts,
     // Claim and the tests).
     public static float HalfX(PieceRule r, float size) { return size * Mathf.Max(r.core, MinCore); }
@@ -235,7 +323,8 @@ public class GroundPlanner
     public bool Accepts(PieceRule r, float x, double gy, float size)
     {
         float rx = HalfX(r, size), ry = HalfY(r, size);
-        return Match(x, gy, rx, ry, r.on) >= r.need && InZone(r, x, gy, rx, ry) && Near(x, gy, rx, ry, r.near) && Ends(r, x, gy, size);
+        double fy = gy + r.foot * size;     // the ground under its slab (PieceRule.foot)
+        return Match(x, fy, rx, ry, r.on) >= r.need && Rim(r, x, fy, rx, ry) && InZone(r, x, fy, rx, ry) && Near(x, fy, rx, ry, r.near) && Ends(r, x, gy, size);
     }
 
     public bool InZone(PieceRule r, float x, double gy, float rx, float ry)
@@ -252,9 +341,19 @@ public class GroundPlanner
                Match(x + r.endB.x * size, gy + r.endB.y * size, e, e, r.endsOn) >= .5f;
     }
 
-    // Room for a footprint (half-sizes) at x, gy: no overlap with any remembered one.
+    // LANES kept clear of new footprints: a director's moving pieces whose path relative to the ground is a straight vertical
+    // stretch (Storm's aloft props scroll straight down faster than the ground) set these (screen x, half-width, and the ground
+    // span [LaneLo, LaneHi] it will still pass over), so nothing is placed where one of them would later pass. Unused (0)
+    // by every other world.
+    public readonly float[] LaneX = new float[4], LaneR = new float[4];
+    public readonly double[] LaneLo = new double[4], LaneHi = new double[4];
+    public int Lanes;
+
+    // Room for a footprint (half-sizes) at x, gy: no overlap with any remembered one, outside every lane.
     public bool Free(float x, double gy, float rx, float ry, int ignore = -1)
     {
+        for (int i = 0; i < Lanes; i++)
+            if (Mathf.Abs(LaneX[i] - x) < LaneR[i] + rx && gy + ry > LaneLo[i] && gy - ry < LaneHi[i]) return false;
         for (int i = 0; i < feet.Length; i++)
         {
             if (!feet[i].on || i == ignore) continue;
@@ -303,15 +402,39 @@ public class GroundPlanner
             float cx = xMin + (float)rng.NextDouble() * (xMax - xMin);
             double cy = gyMin + rng.NextDouble() * (gyMax - gyMin);
             if (!Free(cx, cy, rx, ry)) continue;
-            float m = Match(cx, cy, rx, ry, rule.on);
+            double fy = cy + rule.foot * size;
+            float m = Match(cx, fy, rx, ry, rule.on);
             if (m < rule.need || m <= best) continue;
-            if (!InZone(rule, cx, cy, rx, ry)) continue;
-            if (!Near(cx, cy, rx, ry, rule.near)) continue;
+            if (!Rim(rule, cx, fy, rx, ry)) continue;
+            if (!InZone(rule, cx, fy, rx, ry)) continue;
+            if (!Near(cx, fy, rx, ry, rule.near)) continue;
             if (!Ends(rule, cx, cy, size)) continue;
             best = m; x = cx; gy = cy;
             if (m >= .999f) break;
         }
         return best >= 0f;
+    }
+
+    // The exhaustive fallback of Find: the band [gyMin, gyMax] scanned from its bottom up in rows `step` apart, each row across
+    // [xMin, xMax] in steps of `step` from a random start (wrapping), the first free spot `rule` accepts wins. For the rare
+    // piece that must not be missed (a launch site the elite director asked for): ~(width / step) x (height / step) checks.
+    public bool Scan(PieceRule rule, float size, float xMin, float xMax, double gyMin, double gyMax, float step,
+                     System.Random rng, out float x, out double gy)
+    {
+        x = 0f; gy = 0.0;
+        if (step <= 0f || xMax < xMin) return false;
+        float rx = HalfX(rule, size), ry = HalfY(rule, size);
+        int nx = Mathf.Max(1, Mathf.FloorToInt((xMax - xMin) / step) + 1);
+        int start = rng.Next(nx);
+        for (double cy = gyMin; cy <= gyMax; cy += step)
+            for (int i = 0; i < nx; i++)
+            {
+                float cx = xMin + ((start + i) % nx) * step;
+                if (!Free(cx, cy, rx, ry) || !Accepts(rule, cx, cy, size)) continue;
+                x = cx; gy = cy;
+                return true;
+            }
+        return false;
     }
 
     public int Footprints

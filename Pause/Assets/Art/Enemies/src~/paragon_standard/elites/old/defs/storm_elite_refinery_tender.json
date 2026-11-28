@@ -1,0 +1,147 @@
+{
+  "key": "storm_elite_refinery_tender",
+  "codexId": "elite_storm_refinery_tender",
+  "world": "storm",
+  "cells": {
+    "flight": [
+      3,
+      7,
+      8,
+      9
+    ],
+    "parked": 0,
+    "parkedIdle": 1,
+    "liftoff": 2,
+    "bankLeft": 4,
+    "bankRight": 5,
+    "tell": -1,
+    "action": -1,
+    "hit": -1,
+    "damaged": 6,
+    "damagedLoop": [
+      10,
+      11,
+      12,
+      13,
+      14,
+      15
+    ]
+  },
+  "cellWorldSize": 1.776,
+  "noseDeg": 90,
+  "maxBank": 3,
+  "heartColor": "#9CC8FF",
+  "shotColor": "#FFF3A0",
+  "shotCore": "#F2F6FF",
+  "engineColor": "#5FCDFF",
+  "hearts": 5,
+  "heartSize": 0.18,
+  "heartOrbit": 0.576,
+  "heartStyle": "Halo",
+  "exhaustShip": 3,
+  "exhaustScale": 0,
+  "glowScale": 0.09,
+  "cellPixels": 384,
+  "armored": true,
+  "hazardSeconds": 1.0,
+  "hazardSize": 0.4,
+  "displayName": "Refinery Tender",
+  "role": "flare layer",
+  "brain": "airship",
+  "attack": "flare_drop",
+  "lore": "An armoured refinery airship that crosses the whole top of the sky, leaves by the far side and comes back from the other. As it passes it rings a staircase of fused flares down its heading, and each bursts into an X of bolts. A shot defuses a flare; only mines, rails and its own kind crack the hull.",
+  "hullRadius": 0.472,
+  "silhouetteShare": 0.462,
+  "turnsToFace": false,
+  "speed": 1.7,
+  "accel": 3.0,
+  "turnRate": 120,
+  "aggression": 0.5,
+  "tellSeconds": 1.0,
+  "attackGap": 3.0,
+  "avoidance": 0.5,
+  "lookAhead": 0.4,
+  "perception": 2.2,
+  "actionSeconds": 1.2,
+  "shotCount": 3,
+  "shotSpeed": 1.1,
+  "shotSpread": 18,
+  "shotSize": 0.34,
+  "shotInterval": 0.35,
+  "shotKind": "slag",
+  "muzzles": [
+    {
+      "name": "port",
+      "x": 109,
+      "y": 204,
+      "dir": 270.0
+    },
+    {
+      "name": "star",
+      "x": 277,
+      "y": 204,
+      "dir": 270.0
+    },
+    {
+      "name": "canister",
+      "x": 188,
+      "y": 261,
+      "dir": 270.0
+    }
+  ],
+  "nozzles": [
+    {
+      "name": "l",
+      "x": 121,
+      "y": 288,
+      "dir": -1.0,
+      "offsets": [-7, -12, -7, -12, -2, 0, 0, 0, 1, 0, -5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    },
+    {
+      "name": "c",
+      "x": 190,
+      "y": 280,
+      "dir": -1.0,
+      "offsets": [0, 0, 0, 0, 0, 0, 0, 0, 2, 0, -2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    },
+    {
+      "name": "r",
+      "x": 264,
+      "y": 288,
+      "dir": -1.0,
+      "offsets": [0, -12, 0, -11, -1, 0, 0, 0, 2, 0, -4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    }
+  ],
+  "followDistance": 2.2,
+  "followLag": 0.25,
+  "launchFrom": "refinerybay,rigbay",
+  "lobSeconds": 0.8,
+  "hazardSpeed": 1.6,
+  "topMargin": 1.5,
+  "engageSeconds": 55,
+  "script": {
+    "tempo": 1.35, "exitTell": 1.4, "lastExit": "none",
+    "entrance": { "kind": "overshoot", "seconds": 1.8, "amp": 1.6 },
+    "phase1": { "speed": 1.0, "gap": 1.0,
+      "loop": [
+        { "wait": 1.6, "move": "tier:1", "attack": "flares" },
+        { "wait": 1.3, "move": "tier:2", "attack": "-" },
+        { "wait": 1.6, "move": "tier:0", "attack": "flares" },
+        { "wait": 1.3, "move": "tier:1", "attack": "-" } ] },
+    "phase2": { "speed": 1.1, "gap": 0.85,
+      "loop": [
+        { "wait": 1.3, "move": "tier:2", "attack": "flares4" },
+        { "wait": 1.0, "move": "tier:0", "attack": "-" },
+        { "wait": 1.3, "move": "tier:2", "attack": "flares4" },
+        { "wait": 1.0, "move": "tier:1", "attack": "-" } ] },
+    "last": { "speed": 1.2, "gap": 0.7,
+      "loop": [
+        { "wait": 1.0, "move": "tier:1", "attack": "flares4" },
+        { "wait": 0.8, "move": "tier:2", "attack": "flaresWide" } ] },
+    "variants": [
+      { "name": "flares", "set": [{ "key": "shotCount", "value": 3 }, { "key": "lobSpacing", "value": 0.7 }] },
+      { "name": "flares4", "set": [{ "key": "shotCount", "value": 4 }, { "key": "lobSpacing", "value": 0.5 }] },
+      { "name": "flaresWide", "set": [{ "key": "shotCount", "value": 3 }, { "key": "lobSpacing", "value": 0.75 }] } ],
+    "note": "slow racetrack airship: flare staircase on a straight leg, wide U-turn at the rail onto the tier the script names; phase 2 spaces the tiers wider"
+  }
+}

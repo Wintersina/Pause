@@ -7,13 +7,12 @@ using UnityEngine;
 // Loops are flipbooks from the run C atlases (256 px cells), declared below as
 // DATA -- name, atlas, fps, draw alpha, scale, centred or foot-anchored:
 //
-//   smoke    smoke_a (dark refinery smoke), smoke_b (pale puff: pipe vents, dry wells)
+//   smoke    smoke_a (dark smoke), smoke_b (a pale puff: the docks' launch mist)
 //   dust     dustdevil (a free dust devil wandering the dunes), sandplume (a crest plume),
-//            sandfall, grit_gust (a free gust), heat_vent (a vent's heat), sand_slide
-//   shimmer  heat_shimmer (over machine exhaust), mirage_glint (free, salt flats),
-//            glass_sparkle (fused glass, dead solar arrays)
-//   leaks    steam_vent, pipe_drip_sand, grit_rain
-//   lights   beacon_white, beacon_pale_gold, window_lights, strobe_white, work_lamp_flicker
+//            sandfall, grit_gust (a free gust)
+//   shimmer  heat_shimmer, mirage_glint (free, salt flats)
+// (2026-11-28: the round-1 landmark / pipe loops -- heat vents, leaks, lamps, glass sparkle -- retired with their pieces; the
+// living props carry their own lights and smoke in their strips, DesertProps.cs)
 //
 // A loop whose atlas (or frames) is not installed is simply skipped by
 // AmbientEmitters (no frames: nothing shows) and Missing() lists it.
@@ -43,30 +42,19 @@ public static class DesertAmbientCatalog
         ("smoke_a", "smoke", 6f, .66f, 1.3f, false), ("smoke_b", "smoke", 7f, .66f, 1.2f, false),
         ("dustdevil", "dust", 8f, .6f, 1.2f, false), ("sandplume", "dust", 8f, .6f, 1.1f, false),
         ("sandfall", "dust_2", 8f, .68f, 1f, false), ("grit_gust", "dust_2", 10f, .43f, 1f, true),
-        ("heat_vent", "dust_3", 8f, .28f, 1.1f, false),
         ("heat_shimmer", "shimmer", 7f, .2f, 1.2f, false), ("mirage_glint", "shimmer", 6f, .27f, 1f, true),
-        ("glass_sparkle", "shimmer_2", 8f, .55f, 1f, true),
-        ("steam_vent", "leaks", 7f, .65f, 1.2f, false), ("pipe_drip_sand", "leaks", 8f, .66f, 1f, false),
-        ("grit_rain", "leaks", 10f, .45f, 1f, true), ("sand_slide", "leaks", 7f, .68f, 1f, false),
-        ("beacon_white", "lights", 5f, 1f, 1.2f, false), ("beacon_pale_gold", "lights", 5f, 1f, 1.2f, false),
-        ("window_lights", "lights", 5f, 1f, .9f, true),
-        ("strobe_white", "lights_2", 7f, 1f, 1.1f, false), ("work_lamp_flicker", "lights_2", 6f, 1f, 1f, false),
     };
 
-    // The blinking lamp loops (dark / igniting / lit / fading frames): brightest frame vs dimmest >= 4.
-    public static bool Blinks(string loop)
-    {
-        return loop == "beacon_white" || loop == "beacon_pale_gold" || loop == "strobe_white" || loop == "work_lamp_flicker";
-    }
+    // The blinking lamp loops (r1: none -- the props' lamps are baked into their own strips, DesertProps.cs).
+    public static bool Blinks(string loop) { return false; }
 
-    // Sparse glints that twinkle by design (a few pixels flaring and gone): the only non-lamp loops
-    // allowed a large brightest-to-dimmest ratio (DesertBackdropTest holds them to a low draw alpha).
-    public static bool Twinkles(string loop) { return loop == "glass_sparkle"; }
+    // Sparse glints that twinkle by design (r1: none left).
+    public static bool Twinkles(string loop) { return false; }
 
     // Rising plumes: the loops whose base must sit on their emitter point.
     public static bool Plume(string loop)
     {
-        return loop == "smoke_a" || loop == "smoke_b" || loop == "steam_vent" || loop == "sandplume" || loop == "heat_vent" || loop == "heat_shimmer";
+        return loop == "smoke_a" || loop == "smoke_b" || loop == "sandplume" || loop == "heat_shimmer";
     }
 
     // Loops that wander the open ground on their own instead of riding a piece

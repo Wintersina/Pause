@@ -1,44 +1,31 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-// Ember's backdrop: the ship flies at atmosphere level over the forge
-// planet, under an amber-charcoal ash-cloud ceiling, looking down on lava
-// rivers, cracked basalt crust and a dying industrial age: forges, cooling
-// towers and derricks, venting pipework, erupting fissures.
+// Ember's backdrop: the ship flies HIGH (r1, 2026-11-28: GroundZoom .49, as Frost / Desert) over the forge planet, under an
+// amber-charcoal ash-cloud ceiling, looking down on lava rivers, cracked basalt crust, ash plains and calderas, with a dying
+// industrial age standing on them.
 //
-//   GROUND     one of four tile sets per landing (BackdropVariants): v1
-//              caldera fields (lava rivers and lakes through black basalt),
-//              v2 the forge city (a plate maze of pipework and tanks), v3 ash
-//              ridges (furrowed dunes, lava threads, ruined settlements), v4
-//              the cracked-crust NIGHT side (EmberTuning.Night: drawn darker,
-//              lanterns and fire glow emphasised).
-//   PIECES     landmarks (forge towers, refineries, smelters, kilns, cooling
-//              towers, derricks, slag barges, lava falls, viaducts), pipes and
-//              eruption grounds, PINNED to the mid tile and placed where its
-//              affinity mask says they belong (GroundPlanner,
-//              EmberTuning.Rules; lava is GroundClass.Water), grown as
-//              CLUSTERS (EmberDirector.SpawnCluster): a forge with a pipe run
-//              along its flanges to a neighbouring structure; a lava fountain
-//              or eruption scar with coal beds / flare stacks beside it and an
-//              ash pall over it; a slag barge on a lava river with a viaduct
-//              or a lava fall on its bank; lone towers -- then a long calm
-//              gap. Mixes per variant (EmberTuning.ClusterWeights). Their
-//              loops -- stack smoke, flares, eruption smoke, steam and lava
-//              leaks, ember rain, beacons -- sit on MEASURED points
-//              (EmberAmbientCatalog): smoke exactly over the stack mouths and
-//              crater centres, all leaning with the one level wind.
-//   SITES      the elites' launch sites on the same pinned plane (foundry
-//              hangar, magma bay, slag pad, furnace bay, hatch), shut until
-//              the launch tell opens them.
-//   WEATHER    the CEILING of ash cloud, thick at the start (continuing the
-//              planetfall's ash deck), held CeilingHold s, then clearing fast,
-//              gone by CeilingClearSeconds (CloudCover); then only a light
-//              scattering of wisps and low mist drifting with the wind
-//              (EmberTuning.CloudDensity), ASH GUSTS sweeping across now and
-//              then, and drifting embers.
+//   GROUND     one of four PixelLab-repainted tile sets per landing (BackdropVariants), 896 x 4096, drawn at EmberTuning.TileZoom
+//              (two columns side by side): v1 caldera fields (lava rivers and lakes through black basalt), v2 cooled-crust plates,
+//              v3 ash ridges (furrowed ash, lava threads), v4 the cracked-crust NIGHT side (EmberTuning.Night: drawn darker).
+//              Each has its class grid (mask.txt: W lava, B built, O open, C crust) and context grid (ctx.txt: flat, rocky,
+//              shore, plain; GroundMask.WithContext).
+//   PROPS      the living props and the mountains (EmberProps.cs): power plant, foundry, mining rig, stuck ore train over the lava,
+//              bunker, quarry, stilted station in a lava lake, flooded domes, a sinking crawler, basalt columns, hot springs,
+//              flare-stack vents, the MASSIVE crashed starship with its molten scar, and the volcano / caldera / spires. Pinned to
+//              the mid tile, each on the ground its context says (GroundPlanner), keep-out claimed on the planner.
+//   ERUPTIONS  the one ground feature of round 1 that stays: lava fountains, eruption scars with coal beds and flare stacks, lava
+//              pools (the fires atlas), grown as small CLUSTERS (EmberDirector.SpawnCluster) with an ash pall over each. Their loops --
+//              eruption smoke, flares, steam and lava leaks, ember rain -- sit on MEASURED points (EmberAmbientCatalog), all leaning
+//              with the one level wind. They are MOVERS to the props: claimed whole-cell, their palls' drift boxes too.
+//   SITES      the elites' launch sites on the same pinned plane (foundry hangar, magma bay, slag pad, furnace bay, hatch, crucible,
+//              bunker, gantry, kiln mouth), shut until the launch tell opens them.
+//   WEATHER    the CEILING of ash cloud, thick at the start (continuing the planetfall's ash deck), held CeilingHold s, then
+//              clearing fast, gone by CeilingClearSeconds (CloudCover); then only a light scattering of wisps and low mist
+//              drifting with the wind (EmberTuning.CloudDensity), ASH GUSTS sweeping across now and then, and drifting embers.
+//              (weather.png: the soft painted redo under the old sprite names)
 //
-// Everything sits far below gameplay (BackdropCatalog.BaseOrder); the pools
-// are fixed and a frame allocates nothing.
+// Everything sits far below gameplay (BackdropCatalog.BaseOrder); the pools are fixed and a frame allocates nothing.
 public static class EmberTuning
 {
     // ---- brightness ----------------------------------------------------------
@@ -66,79 +53,71 @@ public static class EmberTuning
     public static float LoopBrightness = 1f;
     public static float LightBoostNow = 1f;           // set by the director for its variant
 
-    // ---- ground pieces -------------------------------------------------------
-    public static float LandmarkMin = 1.5f, LandmarkMax = 1.75f;
-    public static float FireMin = 1.4f, FireMax = 1.75f, SatelliteMin = 1.05f, SatelliteMax = 1.35f;
-    public static float PipeMin = .5f, PipeMax = 1.45f;
-    public static float ClusterGapMin = 1.6f, ClusterGapMax = 3.2f;     // scrolled ground distance after a cluster
-    public static float LoneGapMin = .8f, LoneGapMax = 1.5f;             // ... after a lone piece
-    public static float NeighbourGapMin = .1f, NeighbourGapMax = .45f;  // between a forge's plate and its neighbour's
+    // ---- ALTITUDE (2026-11-28, the user-approved r1 ground; as Desert's) ---------------------------------------------------------
+    // The ground is seen from GroundZoom (.49) of the old view; the r1 tiles (896 x 4096, PixelLab repaint of the old layouts) hold TWO
+    // columns side by side, so they are drawn at TileZoom (2 x GroundZoom) of the view's width (BackdropCatalog.Spec.groundZoom).
+    // Everything that stands on it is keyed to GroundZoom (Spec.pieceZoom), never TileZoom: the ground layers' rates, the sites, the
+    // eruptions, the props, the cover boulders; x PieceFit (.7, as Frost) for the pieces' sizes.
+    public const float GroundZoom = .49f, TileZoom = 2f * GroundZoom, PieceFit = .7f;
+    // the SHOT LINE (Desert's): a shot's white-hot core (linear luminance ~1) stands 3:1 over the ground it crosses only while that ground
+    // stays under (1 + .05) / 3 - .05 = .30, so each layout's lit ground keeps its 32 px patches' 99th percentile linear luminance at or
+    // under ShotLine (build_r1.py shot_line exposes a brighter tile down in linear light; grade.json "exposure" keeps the factor)
+    public const float ShotLine = .24f;
+    public const int ShotPatch = 32;
+    public const float PieceScale = GroundZoom * PieceFit;
+    public const float GroundRate = .024f * GroundZoom;               // the mid tile's (and everything pinned to it) parallax rate
+    // where a new piece is looked for: a band SpawnBand tall starting SpawnAbove over the top of the view
+    public static float SpawnAbove = .95f * PieceScale, SpawnBand = .9f * GroundZoom, SpawnRetry = .25f * GroundZoom;
     public static float Wind = 1f;                                        // +1: plumes lean right (as painted)
     public static float PlateFeather = BackdropGrade.PlateFeatherTexels;
 
+    // ---- the eruptions (the fires atlas: lava fountains, eruption scars, coal beds, flare stacks, lava pools) -------------------
+    // The only ground pieces left of the round-1 forge world (the landmarks and pipes retired 2026-11-28: the living props, EmberProps.cs,
+    // replace them). They erupt, smoke and glow (EmberAmbientCatalog loops, ash palls), so every prop keeps out of them: their footprint
+    // is the whole drawn cell (the plume's reach) and the pall's drift box is claimed on the planner while it hangs.
+    public static float FireMin = 1.4f * PieceScale, FireMax = 1.75f * PieceScale, SatelliteMin = 1.05f * PieceScale, SatelliteMax = 1.35f * PieceScale;
+    public static float ClusterGapMin = 9f * GroundZoom, ClusterGapMax = 16f * GroundZoom;     // scrolled ground distance after an eruption cluster
+    public static float LoneGapMin = 5f * GroundZoom, LoneGapMax = 9f * GroundZoom;            // ... after a lava pool
+    public const float FireKeepShare = .5f;                        // the whole cell (its plume rises to the cell's top)
+
     // what each drawing may stand on (GroundPlanner). Lava is GroundClass.Water.
-    static readonly PieceRule Industry = new PieceRule(GroundClass.Land, .85f, .3f);
     static readonly PieceRule Clearing = new PieceRule(GroundClass.Land, .85f, .3f);
     static readonly PieceRule Vent = new PieceRule(GroundClass.Land, .8f, .3f);              // eruptions, beds, flares: through the crust
-    static readonly PieceRule LavaRun = new PieceRule(GroundClass.Water, .45f, .2f);         // barges, pools, channels
-    static readonly PieceRule Span = new PieceRule(GroundClass.Water, .3f, .2f, GroundClass.Land);
-    static readonly PieceRule Bank = new PieceRule(GroundClass.Land, .6f, .28f, GroundClass.Water);
+    static readonly PieceRule LavaRun = new PieceRule(GroundClass.Water, .45f, .2f);         // pools, channels, the magma bay
     // Every launch dock stands on solid crust (forge floor, ash flat, crust): never in the lava, never on its bank line.
     public static readonly PieceRule DockGround = new PieceRule(GroundClass.Land, .85f, .3f);
     public static readonly PieceRule DockGroundRelaxed = new PieceRule(GroundClass.Land, .7f, .3f);
     static readonly PieceRule Anywhere = new PieceRule(GroundClass.Any, 0f, .2f);
-    // SPANS laid alone by a lava channel: both ends come down on the crust
-    // (never mirrored), so the viaduct / pipe crosses the lava from bank to
-    // bank instead of standing as a stub in it. Ends measured on the cells
-    // (share of the drawn width from the centre, y up): the viaduct's
-    // landfalls (Codex landfall repaint, 2026-10-11), the pipe bridges' open
-    // flanges over their feet.
-    public static readonly PieceRule ViaductSpan = Span.WithEnds(new Vector2(-.32f, -.05f), new Vector2(.32f, .18f), GroundClass.Land);
-    static readonly PieceRule PipeSpan0 = Span.WithEnds(new Vector2(-.40f, -.16f), new Vector2(.40f, -.16f), GroundClass.Land);
-    static readonly PieceRule PipeSpan1 = Span.WithEnds(new Vector2(-.40f, -.20f), new Vector2(.40f, -.20f), GroundClass.Land);
 
     public static PieceRule Rule(string piece)
     {
         if (piece == null) return Anywhere;
-        if (piece.StartsWith("slagbarge") || piece.StartsWith("lavapool") || piece.StartsWith("lavachannel") ||
-            piece.StartsWith("firebreak") || piece.StartsWith("magmabay")) return LavaRun;
-        if (piece.StartsWith("viaduct")) return ViaductSpan;
-        if (piece == "pipebridge_00") return PipeSpan0;
-        if (piece == "pipebridge_01") return PipeSpan1;
-        if (piece.StartsWith("lavafall")) return Bank;
-        if (piece.StartsWith("slagpad") || piece.StartsWith("hatch") || piece.StartsWith("crucible") || piece.StartsWith("bunker")) return Clearing;   // (the launch-strip sites: crucible silo, moat bunker; the gantry and the kiln mouth are Industry below)
+        if (piece.StartsWith("lavapool") || piece.StartsWith("lavachannel") || piece.StartsWith("firebreak") || piece.StartsWith("magmabay")) return LavaRun;
+        if (piece.StartsWith("slagpad") || piece.StartsWith("hatch") || piece.StartsWith("crucible") || piece.StartsWith("bunker")) return Clearing;   // (the launch-strip sites: crucible silo, moat bunker; the gantry and the kiln mouth are docks below)
         if (piece.StartsWith("lavafountain") || piece.StartsWith("eruptionscar") || piece.StartsWith("coalbed") ||
             piece.StartsWith("scorched") || piece.StartsWith("flarestack")) return Vent;
-        if (piece.StartsWith("forgetower") || piece.StartsWith("refinery") || piece.StartsWith("smelter") ||
-            piece.StartsWith("kiln") || piece.StartsWith("forgewell") || piece.StartsWith("coolingtower") ||
-            piece.StartsWith("derrick") || piece == "pumphouse_00" || piece.StartsWith("foundryhangar") ||
-            piece.StartsWith("furnacebay") || piece.StartsWith("brassgantry") || piece.StartsWith("kilnmouth")) return Industry;
-        return Anywhere;     // pipes: they connect what they connect
+        if (piece.StartsWith("foundryhangar") || piece.StartsWith("furnacebay") || piece.StartsWith("brassgantry") || piece.StartsWith("kilnmouth")) return DockGround;
+        return Anywhere;
     }
 
     // ---- clusters --------------------------------------------------------------
-    public const int ClForge = 0, ClEruption = 1, ClLava = 2, ClLone = 3, ClPipeline = 4;
+    public const int ClEruption = 0, ClLava = 1;
     public static readonly int[][] ClusterWeights =
     {
-        new[] { 2, 2, 2, 2, 1 },   // (none)
-        new[] { 2, 2, 3, 2, 1 },   // v1 caldera fields: lava rivers, eruptions, barges
-        new[] { 3, 1, 1, 2, 3 },   // v2 forge city: forges, cooling towers, pipe runs
-        new[] { 2, 2, 2, 3, 1 },   // v3 ash ridges: lone derricks, kilns, vents
-        new[] { 1, 3, 1, 3, 1 },   // v4 cracked crust night: eruptions, lit towers
+        new[] { 3, 1 },   // (none)
+        new[] { 3, 2 },   // v1 caldera fields: eruptions, lava pools
+        new[] { 3, 1 },   // v2 forge plates
+        new[] { 3, 1 },   // v3 ash ridges
+        new[] { 4, 1 },   // v4 cracked crust night: eruptions
     };
-    public static readonly string[] Forges = { "forgetower_00", "forgetower_01", "refinery_00", "refinery_01", "refinery_02", "smelter_00", "forgewell_00" };
-    public static readonly string[] Neighbours = { "coolingtower_00", "coolingtower_01", "kiln_00", "derrick_00", "derrick_01", "pumphouse_00" };
     public static readonly string[] Fronts = { "lavafountain_00", "lavafountain_01", "lavafountain_02", "eruptionscar_00", "eruptionscar_01", "eruptionscar_02" };
     public static readonly string[] Satellites = { "coalbed_00", "coalbed_01", "scorched_00", "scorched_01", "flarestack_00", "flarestack_01" };
-    public static readonly string[] Barges = { "slagbarge_00", "slagbarge_01" };
-    public static readonly string[] Banks = { "lavafall_00", "viaduct_00", "pipebridge_00", "pipebridge_01" };
     public static readonly string[] Pools = { "lavapool_00", "lavapool_01", "lavachannel_00", "firebreak_00" };
-    public static readonly string[] Lone = { "forgetower_00", "forgetower_01", "coolingtower_00", "derrick_00", "derrick_01", "kiln_00", "forgewell_00", "smelter_00" };
-    public static readonly string[] HorizontalPipes = { "pipe_straight_00", "manifold_00", "manifold_01", "pipe_lava_00", "pipe_tangle_01", "pipe_leak_01" };
 
     // ---- launch sites ----
-    public static float SiteMin = 1.5f, SiteMax = 1.7f, SiteFirst = 3f, SiteGapMin = 5f, SiteGapMax = 8.5f;
-    public static float SiteCloseDelay = .9f, SiteMinSize = 1.2f;
+    // (x PieceScale / x GroundZoom: the same docks, seen from the new height, as often per ground scrolled)
+    public static float SiteMin = 1.5f * PieceScale, SiteMax = 1.7f * PieceScale, SiteFirst = 3f * GroundZoom, SiteGapMin = 5f * GroundZoom, SiteGapMax = 8.5f * GroundZoom;
+    public static float SiteCloseDelay = .9f, SiteMinSize = 1.2f * PieceScale;
     // Entries 0-4 are the old two-drawing sites (sites atlas); 5-8 the launch-strip ones (docks atlas: <name>_00..05, DocksAtlas), for which
     // SiteClosed / SiteOpen name the idle and the open cell (Rule picks the ground by the name).
     public static readonly string[] SiteNames = { "foundryhangar", "magmabay", "slagpad", "furnacebay", "hatch", "crucible", "bunker", "brassgantry", "kilnmouth" };
@@ -182,7 +161,7 @@ public static class EmberTuning
     }
     public static Vector2 LampsAt = new Vector2(128f, 214f);    // the lamp row's centre on the site's cell
     public static float LampsScale = .5f;
-    public const float EmergeScalePerUnit = .22f, EmergeScaleMin = .26f, EmergeScaleMax = .4f;
+    public const float EmergeScalePerUnit = .22f, EmergeScaleMin = .26f * PieceScale, EmergeScaleMax = .4f;
     public const int SiteIdBase = 700;
 
     // ---- weather (the atlas bakes its translucency in: banks <= 80/255) ----
@@ -210,13 +189,14 @@ public static class EmberTuning
     public static int EmberCount = 5;
     public static float EmberMin = .7f, EmberMax = 1.1f, EmberAlpha = .55f;
     public static float PallAlpha = .5f, PallLife = 22f;
+    public const float PallSweep = .7f;     // the keep-out margin beyond its cell, for the drift (up to .05 x 22 s of rise, .06 x 22 s of lean)
 }
 
-public class EmberDirector : PlanetDirector
+public partial class EmberDirector : PlanetDirector
 {
-    BackdropPool ground, pipes, fires, sites, palls, mist, wisps, ceiling, gusts, embers;
+    BackdropPool fires, sites, palls, mist, wisps, ceiling, gusts, embers;
     readonly SpriteRenderer[] lamps = new SpriteRenderer[3];
-    BackdropAtlas landmarkArt, pipeArt, fireArt, siteArt, dockArt, weather, lights;
+    BackdropAtlas fireArt, siteArt, dockArt, weather, lights;
     Color[] dockTints;                                 // per site kind: its DockGrade colour on this ground set
     Sprite[][] siteLaunch;                             // per site kind: its 6 launch cells (null: an old two-drawing site, or the atlas is missing)
     AmbientEmitters ambient;
@@ -224,7 +204,11 @@ public class EmberDirector : PlanetDirector
     Sprite[] siteClosed, siteOpen, banks, wispArt, mistArt, gustArt, pallArt, emberArt;
     Sprite lampsOff, lampsOn;
     float groundTravel, groundGap, siteTravel, siteGap, ceilingTravel;
-    int lastCluster = -1, lastLone = -1;
+    // per palls slot: the box the pall will sweep over its life (centre, half-size; r 0: none). Not a planner footprint (the pall hangs over
+    // its own eruption and the satellites round it): props are kept out of it by PallsTouch, and a pall that would meet a prop is not drawn
+    float[] pallX, pallR;
+    double[] pallY;
+    int lastCluster = -1;
     bool night;
     float mistIn = 2.5f, wispIn = 6f;
     readonly Timer gustTimer = new Timer(EmberTuning.GustEveryMin, EmberTuning.GustEveryMax, EmberTuning.GustFirst);
@@ -241,11 +225,8 @@ public class EmberDirector : PlanetDirector
     public int Gusts { get; private set; }
     public int SitesSpawned { get; private set; }
     public int Clusters { get; private set; }
-    public int PipeRuns { get; private set; }
     public AmbientEmitters Ambient => ambient;
     public GroundPlanner Planner => planner;
-    public BackdropPool Ground => ground;
-    public BackdropPool Pipes => pipes;
     public BackdropPool Fires => fires;
     public BackdropPool Sites => sites;
     // The six launch cells of a launch-strip site kind (EmberTuning.SiteNames index), null for an old two-drawing site (tests, previews).
@@ -278,8 +259,6 @@ public class EmberDirector : PlanetDirector
 
     protected override void Build()
     {
-        landmarkArt = set.Atlas("landmarks");
-        pipeArt = set.Atlas("pipes");
         fireArt = set.Atlas("fires");
         siteArt = set.Atlas("sites");
         weather = set.Atlas("weather");
@@ -287,7 +266,7 @@ public class EmberDirector : PlanetDirector
         night = set.Spec.Night(set.Variant);
         EmberTuning.LightBoostNow = night ? EmberTuning.NightLightBoost : 1f;
         ambient = new AmbientEmitters(set, EmberAmbientCatalog.Table) { Wind = EmberTuning.Wind };
-        planner = new GroundPlanner(set, "mid", GroundMask.Load("Ember", set.Variant));
+        planner = new GroundPlanner(set, "mid", GroundMask.Load("Ember", set.Variant), 96);
 
         dockArt = set.Atlas(EmberTuning.DocksAtlas);
         siteClosed = Sprites(siteArt, EmberTuning.SiteClosed);
@@ -312,18 +291,13 @@ public class EmberDirector : PlanetDirector
         pallArt = weather.Frames("smokepall");
         emberArt = weather.Frames("embers");
 
-        // ground plane, back to front: pipes tuck under the plates they join
-        pipes = LandmarkPool("ground", 8, -4);
+        // ground plane, back to front: mountains (-6), props (-3), eruptions (-2), sites (0). The landmarks and pipes of round 1 are retired
+        // (2026-11-28): the living props are EmberProps.cs.
         fires = LandmarkPool("ground", 6, -2);
-        ground = LandmarkPool("ground", 8);
         sites = LandmarkPool("ground", 3);
-        // Every pool's loops draw above EVERY pool's plates (pipes -4, fires -2,
-        // ground / sites 0 of the layer's order): a fire's or pipe's plume rises
-        // through the ground, so a landmark plate higher up the screen must not
-        // slice it off flat (the "smoke cut off at the top" report).
-        ambient.Rig(pipes, 5);
+        // Every pool's loops draw above EVERY pool's plates: a fire's plume rises through the ground, so a plate higher up the screen
+        // must not slice it off flat (the "smoke cut off at the top" report).
         ambient.Rig(fires, 3);
-        ambient.Rig(ground, 1);
         ambient.Rig(sites, 1);
         for (int i = 0; i < sites.items.Count; i++)
         {
@@ -342,16 +316,16 @@ public class EmberDirector : PlanetDirector
             go.transform.localScale = new Vector3(k, k, 1f);
         }
         palls = Pool("palls", 4);
+        pallX = new float[palls.items.Count]; pallR = new float[palls.items.Count]; pallY = new double[palls.items.Count];
         mist = Pool("mist", 3);
         wisps = Pool("wisps", 4);
         ceiling = Pool("ceiling", 26);
         gusts = Pool("gusts", EmberTuning.GustSheets + 1);
         embers = Pool("embers", EmberTuning.EmberCount);
 
-        PlateMaterial = Grade(ground, "ground", 1f, EmberTuning.PlateFeather);
-        Grade(fires, "ground", 1f, EmberTuning.PlateFeather);
+        BuildProps();
+        PlateMaterial = Grade(fires, "ground", 1f, EmberTuning.PlateFeather);
         Grade(sites, "ground", 1f, EmberTuning.PlateFeather);
-        Grade(pipes, "ground");
         Grade(palls, "palls");
         Grade(mist, "mist");
         Grade(wisps, "wisps");
@@ -363,8 +337,9 @@ public class EmberDirector : PlanetDirector
         if (planner.Ready)
         {
             double t = planner.Travel;
-            for (float y = -HalfH * .85f; y < HalfH * .8f; y += Rand(2.6f, 3.6f))
-                SpawnCluster(t + y, t + y + 1.2f);
+            OpeningProps();            // (the mountains and props first: the eruptions find their own room among them)
+            for (float y = -HalfH * .85f; y < HalfH * .8f; y += Rand(5.5f, 8f))
+                SpawnCluster(t + y, t + y + 1.2f * EmberTuning.GroundZoom);
         }
         BuildCeiling();
         BuildParticles();
@@ -442,9 +417,8 @@ public class EmberDirector : PlanetDirector
             if (sheetIn <= 0f) { SpawnSheet(); sheetsLeft--; sheetIn = EmberTuning.GustStagger; }
         }
 
-        StepPinned(pipes, dt);
+        StepProps(dt, scrolled);
         StepPinned(fires, dt);
-        StepPinned(ground, dt);
         StepPinned(sites, dt);
         StepSites(dt);
         ambient.Step(1f);
@@ -508,13 +482,13 @@ public class EmberDirector : PlanetDirector
 
     // --------------------------------------------------------------- ground --
 
-    // A cluster (or a launch site, when one is due) entering at the top.
+    // An eruption cluster (or a launch site, when one is due) entering at the top.
     // Returns the scrolled ground distance to wait before the next, 0 when
     // nothing fitted.
     float SpawnGround()
     {
         double t = planner.Travel;
-        double lo = t + HalfH + .95f, hi = lo + .9f;
+        double lo = t + HalfH + EmberTuning.SpawnAbove, hi = lo + EmberTuning.SpawnBand;
         if (siteTravel >= siteGap && SpawnSite(float.NaN))
         {
             siteTravel = 0f;
@@ -542,34 +516,29 @@ public class EmberDirector : PlanetDirector
             r -= w[i];
             if (r < 0) return i;
         }
-        return EmberTuning.ClLone;
+        return EmberTuning.ClEruption;
     }
 
-    // Grows one cluster with its anchor in the ground band [lo, hi]; returns
+    // Grows one eruption cluster (or a lava pool) with its anchor in the ground band [lo, hi]; returns
     // how many pieces it placed (0: nothing fitted).
     public int SpawnCluster(double lo, double hi, int kind = -1)
     {
         if (kind < 0) kind = PickCluster();
-        int n = 0;
-        switch (kind)
-        {
-            case EmberTuning.ClForge: n = Industrial(Pick(EmberTuning.Forges), lo, hi); break;
-            case EmberTuning.ClPipeline: n = Industrial(Pick(EmberTuning.Lone), lo, hi); break;
-            case EmberTuning.ClEruption: n = Eruption(lo, hi); break;
-            case EmberTuning.ClLava: n = LavaScene(lo, hi); break;
-        }
-        if (n == 0) n = LonePiece(lo, hi);
+        int n = kind == EmberTuning.ClLava ? LavaPool(lo, hi) : Eruption(lo, hi);
+        if (n == 0) n = kind == EmberTuning.ClLava ? Eruption(lo, hi) : LavaPool(lo, hi);
         if (n > 0) { lastCluster = kind; Clusters++; }
         return n;
     }
 
-    // Draws `name` from its atlas at x, gy (pinned), claiming its footprint.
+    // Draws `name` from its atlas at x, gy (pinned), claiming its footprint: the WHOLE drawn cell (the plume rises through it), and
+    // never over a prop (the planner holds the props' keep-out boxes too).
     BackdropPiece Put(BackdropPool pool, BackdropAtlas atlas, string name, float size, float x, double gy, bool mirror)
     {
         var sprite = atlas.Get(name);
         if (sprite == null) return null;
         var rule = EmberTuning.Rule(name);
-        float rx = GroundPlanner.HalfX(rule, size), ry = GroundPlanner.HalfY(rule, size);
+        float rx = pool == fires ? size * EmberTuning.FireKeepShare : GroundPlanner.HalfX(rule, size);
+        float ry = pool == fires ? size * EmberTuning.FireKeepShare : GroundPlanner.HalfY(rule, size);
         int foot = planner.Claim(x, gy, rx, ry);
         if (foot < 0) return null;
         var p = pool.Spawn();
@@ -590,96 +559,27 @@ public class EmberDirector : PlanetDirector
         return p;
     }
 
-    bool Spot(string name, float size, double lo, double hi, out float x, out double gy)
+    // The footprint `name` would claim at `size` (a fire: the whole cell; a site: its rule's core).
+    float KeepHalf(string name, float size, bool fire)
     {
-        return planner.Find(EmberTuning.Rule(name), size, XMin(size), XMax(size), lo, hi, rng, out x, out gy);
+        return fire ? size * EmberTuning.FireKeepShare : GroundPlanner.HalfX(EmberTuning.Rule(name), size);
     }
 
-    // A structure (refinery / tower ...) with a neighbour joined by a pipe run.
-    int Industrial(string anchor, double lo, double hi)
+    // A spot for `name` (fire: its whole cell must be free; the ground rule is read on the rule's core).
+    bool Spot(string name, float size, double lo, double hi, bool fire, out float x, out double gy)
     {
-        float sa = Rand(EmberTuning.LandmarkMin, EmberTuning.LandmarkMax);
-        float xa; double ga;
-        if (!Spot(anchor, sa, lo, hi, out xa, out ga)) return 0;
-        var a = Put(ground, landmarkArt, anchor, sa, xa, ga, Chance(.5));
-        if (a == null) return 0;
-        int n = 1;
-        // the neighbour: toward the middle first, then the other side
-        string nb = Pick(EmberTuning.Neighbours);
-        if (nb == anchor) nb = "kiln_00";
-        bool pump = nb == "pumphouse_00";
-        float sb = pump ? Rand(.9f, 1.1f) : Rand(EmberTuning.LandmarkMin * .85f, EmberTuning.LandmarkMax * .9f);
-        float plateA = sa * .4f, plateB = sb * (pump ? .44f : .4f);
-        for (int attempt = 0; attempt < 2; attempt++)
+        var rule = EmberTuning.Rule(name);
+        float k = KeepHalf(name, size, fire);
+        for (int t = 0; t < 28; t++)
         {
-            float side = (xa > 0f) == (attempt == 0) ? -1f : 1f;
-            float gap = Rand(EmberTuning.NeighbourGapMin, EmberTuning.NeighbourGapMax);
-            float xb = xa + side * (plateA + gap + plateB);
-            double gb = ga + Rand(-.12f, .12f);
-            if (xb < XMin(sb) - .2f || xb > XMax(sb) + .2f) continue;
-            var rule = EmberTuning.Rule(nb);
-            if (!planner.Accepts(rule, xb, gb, sb) || !planner.Free(xb, gb, GroundPlanner.HalfX(rule, sb), GroundPlanner.HalfY(rule, sb))) continue;
-            var b = Put(pump ? pipes : ground, pump ? pipeArt : landmarkArt, nb, sb, xb, gb, !pump && Chance(.5));
-            if (b == null) break;
-            n++;
-            if (PipeRun(Mathf.Min(xa, xb) + (xa < xb ? plateA : plateB) * .75f,
-                        Mathf.Max(xa, xb) - (xa < xb ? plateB : plateA) * .75f,
-                        (ga + gb) * .5 - sa * .16f)) n++;
-            break;
+            float cx = Rand(XMin(size), XMax(size));
+            double cy = lo + rng.NextDouble() * (hi - lo);
+            if (!planner.Free(cx, cy, k, k) || !planner.Accepts(rule, cx, cy, size)) continue;
+            x = cx; gy = cy;
+            return true;
         }
-        return n;
-    }
-
-    // A horizontal pipe (or two) whose flange faces land on x0 and x1 at
-    // ground row gy: the measured pipe ends (points.json) set its scale.
-    bool PipeRun(float x0, float x1, double gy)
-    {
-        float len = x1 - x0;
-        if (len < .3f) return false;
-        bool overWater = planner.ClassAt((x0 + x1) * .5f, gy) == GroundClass.Water;
-        string name = overWater ? "pipebridge_00" : Pick(EmberTuning.HorizontalPipes);
-        int pieces = 1;
-        float span = SpanOf(name);
-        float w = len / span;
-        if (w > EmberTuning.PipeMax) { pieces = 2; w = len * .5f / span; }
-        if (w < EmberTuning.PipeMin * .6f) return false;
-        if (!planner.Free((x0 + x1) * .5f, gy, Mathf.Max(.05f, len * .5f - .25f), .1f)) return false;
-        float placed = x0;
-        for (int i = 0; i < pieces; i++)
-        {
-            string n = i == 0 ? name : (overWater ? "pipebridge_00" : "pipe_straight_00");
-            float sp = SpanOf(n);
-            float wi = (len / pieces) / sp;
-            var ends = Ends(n);
-            // the piece's centre: its first flange face on `placed`, its flange line on gy
-            float e0x = ends != null ? ends[0].x : 14f, ey = ends != null ? ends[0].y : 128f;
-            float cx = placed - (e0x - 128f) / 256f * wi;
-            double cy = gy - (128f - ey) / 256f * wi;
-            var p = Put(pipes, pipeArt, n, wi, cx, cy, false);
-            if (p == null) return i > 0;
-            p.kind = RunPipe;
-            placed += len / pieces;
-        }
-        PipeRuns++;
-        return true;
-    }
-
-    // BackdropPiece.kind of a pipe laid by a run between two structures (its
-    // ground is whatever it crosses; a lone pipe bridge keeps its rule).
-    public const int RunPipe = 1;
-
-    // Share of the cell width between a horizontal pipe's two flange faces.
-    static float SpanOf(string pipe)
-    {
-        var e = Ends(pipe);
-        if (e == null || e.Length < 2) return 227f / 256f;
-        return Mathf.Max(.3f, Mathf.Abs(e[1].x - e[0].x) / 256f);
-    }
-
-    static EmberAmbientCatalog.PEnd[] Ends(string pipe)
-    {
-        var p = EmberAmbientCatalog.Piece(pipe);
-        return p != null && p.ends != null && p.ends.Length >= 2 ? p.ends : null;
+        x = 0f; gy = 0.0;
+        return false;
     }
 
     // A lava fountain / eruption scar with coal beds and flare stacks beside
@@ -689,7 +589,7 @@ public class EmberDirector : PlanetDirector
         string front = Pick(EmberTuning.Fronts);
         float sf = Rand(EmberTuning.FireMin, EmberTuning.FireMax);
         float xf; double gf;
-        if (!Spot(front, sf, lo, hi, out xf, out gf)) return 0;
+        if (!Spot(front, sf, lo, hi, true, out xf, out gf)) return 0;
         var f = Put(fires, fireArt, front, sf, xf, gf, false);
         if (f == null) return 0;
         int n = 1, want = 1 + rng.Next(2);
@@ -700,54 +600,24 @@ public class EmberDirector : PlanetDirector
             float ss = Rand(EmberTuning.SatelliteMin, EmberTuning.SatelliteMax);
             float dir = k % 2 == 0 ? wind : -wind;
             float xs = xf + dir * Rand(.75f, 1.15f) * (sf + ss) * .5f;
-            double gs = gf + Rand(-.7f, .5f);
+            double gs = gf + Rand(-.7f, .5f) * EmberTuning.PieceScale;
             if (xs < XMin(ss) || xs > XMax(ss)) continue;
             var rule = EmberTuning.Rule(sat);
-            if (!planner.Accepts(rule, xs, gs, ss) || !planner.Free(xs, gs, GroundPlanner.HalfX(rule, ss), GroundPlanner.HalfY(rule, ss))) continue;
+            float ks = KeepHalf(sat, ss, true);
+            if (!planner.Accepts(rule, xs, gs, ss) || !planner.Free(xs, gs, ks, ks)) continue;
             if (Put(fires, fireArt, sat, ss, xs, gs, Chance(.5)) != null) n++;
         }
         SpawnPall(f);
         return n;
     }
 
-    // A slag barge on a lava river and, nearby on the same lava, a viaduct /
-    // pipe bridge spanning it or a lava fall on its bank -- or a lava pool.
-    int LavaScene(double lo, double hi)
+    // A lava pool, channel or fire break in the lava.
+    int LavaPool(double lo, double hi)
     {
-        int n = 0;
-        string barge = Pick(EmberTuning.Barges);
-        float sb = Rand(EmberTuning.LandmarkMin * .9f, EmberTuning.LandmarkMax);
+        string pool = Pick(EmberTuning.Pools);
+        float sp = Rand(EmberTuning.FireMin, EmberTuning.FireMax);
         float x; double gy;
-        if (Spot(barge, sb, lo - .4f, hi + .4f, out x, out gy) && Put(ground, landmarkArt, barge, sb, x, gy, Chance(.5)) != null) n++;
-        string bank = Pick(EmberTuning.Banks);
-        float sk = Rand(EmberTuning.LandmarkMin, EmberTuning.LandmarkMax);
-        bool pipeBank = bank.StartsWith("pipebridge");
-        var atlas = pipeBank ? pipeArt : landmarkArt;
-        if (Spot(bank, sk, lo - .4f, hi + 1.4f, out x, out gy) &&
-            Put(pipeBank ? pipes : ground, atlas, bank, sk, x, gy, !EmberTuning.Rule(bank).HasEnds && Chance(.5)) != null) n++;
-        if (n == 0 || Chance(.5))
-        {
-            string pool = Pick(EmberTuning.Pools);
-            float sp = Rand(EmberTuning.FireMin, EmberTuning.FireMax);
-            if (Spot(pool, sp, lo - .4f, hi + 1f, out x, out gy) && Put(fires, fireArt, pool, sp, x, gy, Chance(.5)) != null) n++;
-        }
-        return n;
-    }
-
-    int LonePiece(double lo, double hi)
-    {
-        for (int k = 0; k < 3; k++)
-        {
-            int i = rng.Next(EmberTuning.Lone.Length);
-            if (i == lastLone) i = (i + 1) % EmberTuning.Lone.Length;
-            string name = EmberTuning.Lone[i];
-            float s = Rand(EmberTuning.LandmarkMin, EmberTuning.LandmarkMax);
-            float x; double gy;
-            if (!Spot(name, s, lo, hi, out x, out gy)) continue;
-            if (Put(ground, landmarkArt, name, s, x, gy, Chance(.5)) == null) continue;
-            lastLone = i;
-            return 1;
-        }
+        if (Spot(pool, sp, lo - .4f * EmberTuning.GroundZoom, hi + 1f * EmberTuning.GroundZoom, true, out x, out gy) && Put(fires, fireArt, pool, sp, x, gy, Chance(.5)) != null) return 1;
         return 0;
     }
 
@@ -758,18 +628,41 @@ public class EmberDirector : PlanetDirector
         if (pallArt.Length == 0) return;
         var p = palls.Spawn();
         if (p == null) return;
-        SetSprite(p, Pick(pallArt), Rand(2.2f, 3f));
+        SetSprite(p, Pick(pallArt), Rand(2.2f, 3f) * EmberTuning.PieceScale);
         if (Chance(.5)) p.body.localScale = new Vector3(-1f, 1f, 1f);
         p.gy = fire.gy + fire.size * .35f;
         p.x = fire.x + EmberTuning.Wind * fire.size * .3f;
         p.vx = EmberTuning.Wind * Rand(.03f, .06f);
         p.vy = Rand(.02f, .05f);
         p.life = EmberTuning.PallLife;
+        // the pall is a MOVER: it drifts up and downwind over its life, so props keep out of the whole box it will sweep (claimed on
+        // the planner while it hangs); a pall that would meet a prop is not drawn at all
+        float reach = p.size * .5f + EmberTuning.PallSweep;
+        int slot = palls.items.IndexOf(p);
+        double cy = p.gy + p.vy * p.life * .5;
+        float cx = p.x + p.vx * p.life * .5f;
+        if (TouchesProp(cx, cy, reach, reach)) { Despawn(p); return; }
+        pallX[slot] = cx; pallY[slot] = cy; pallR[slot] = reach;
         p.rate = set.Spec.Rate("ground");
         p.phase = EmberTuning.PallAlpha * Rand(.8f, 1f);
         p.y = planner.Y(p.gy);
         Place(p);
         Tinted(p, 0f);
+    }
+
+    void ReleasePall(BackdropPiece p)
+    {
+        int slot = palls.items.IndexOf(p);
+        if (slot >= 0) pallR[slot] = 0f;
+    }
+
+    // Does a live pall's swept box meet the box (x, gy, rx, ry)? (the props' placement)
+    public bool PallsTouch(float x, double gy, float rx, float ry)
+    {
+        if (pallR == null) return false;
+        for (int i = 0; i < pallR.Length; i++)
+            if (pallR[i] > 0f && Mathf.Abs(pallX[i] - x) < pallR[i] + rx && System.Math.Abs(pallY[i] - gy) < pallR[i] + ry) return true;
+        return false;
     }
 
     void StepPalls(float dt)
@@ -782,7 +675,7 @@ public class EmberDirector : PlanetDirector
             p.y = planner.Y(p.gy) + p.vy * p.age;
             Place(p);
             float k = Mathf.Clamp01(p.age / Mathf.Max(.01f, p.life));
-            if (k >= 1f || p.y < -HalfH - p.size) { Despawn(p); continue; }
+            if (k >= 1f || p.y < -HalfH - p.size) { ReleasePall(p); Despawn(p); continue; }
             Tinted(p, p.phase * Mathf.Min(1f, Mathf.Min(k * 6f, (1f - k) * 4f)));
         }
     }
@@ -791,17 +684,27 @@ public class EmberDirector : PlanetDirector
     // screen x, y (pinned there), size `size`, its rule ignored.
     public BackdropPiece Showcase(string name, float size, float x, float y, bool mirror = false)
     {
-        foreach (var pool in new[] { pipes, fires, ground, sites })
+        foreach (var pool in new[] { fires, sites })
             foreach (var q in pool.items)
                 if (q.active) { planner.Release(q.footprint); q.footprint = -1; Despawn(q); }
-        foreach (var q in palls.items) if (q.active) Despawn(q);
-        bool pipe = pipeArt.Has(name), fire = fireArt.Has(name), site = siteArt.Has(name);
-        var atlas = pipe ? pipeArt : fire ? fireArt : site ? siteArt : landmarkArt;
-        var p = Put(pipe ? pipes : fire ? fires : site ? sites : ground, atlas, name, size, x, planner.GroundY(y), mirror);
+        foreach (var q in palls.items) if (q.active) { ReleasePall(q); Despawn(q); }
+        ClearProps();
+        bool fire = fireArt.Has(name), site = siteArt.Has(name);
+        if (!fire && !site) return null;
+        var p = Put(fire ? fires : sites, fire ? fireArt : siteArt, name, size, x, planner.GroundY(y), mirror);
         if (p != null && fire) SpawnPall(p);
         groundTravel = -1000f;     // nothing else spawns while it is shown
         siteTravel = -1000f;
         return p;
+    }
+
+    // Tests: stop dealing eruptions (a gap that never ends); every eruption and ash pall gone, their ground released
+    public void HoldGround(float gap) { groundGap = gap; groundTravel = 0f; }
+    public void ClearEruptions()
+    {
+        foreach (var q in fires.items)
+            if (q.active) { planner.Release(q.footprint); q.footprint = -1; Despawn(q); }
+        foreach (var q in palls.items) if (q.active) { ReleasePall(q); Despawn(q); }
     }
 
     // ----------------------------------------------------------- launch sites --

@@ -1,0 +1,87 @@
+{
+ "drawing": "approved.png",
+ "source": "PixelLab drawing ship_Dove/r6_2.png (160 px), approved Nov 2026 (multi-colour redo: teal armour, pearl-silver feathered wings, gold trim, coral intake rings, violet canopy (hue pulled to blue-violet ~255-263 by hue_remap, clear of the no-pink band), olive branch emblem)",
+ "canopy": [
+  [
+   80,
+   58.5,
+   9,
+   18.5
+  ]
+ ],
+ "nozzles": [
+  [
+   57,
+   104,
+   0.72
+  ],
+  [
+   103,
+   104,
+   0.72
+  ]
+ ],
+ "damageNote": "1) left wing root panel blown, sparking wires, right flank scorched; 2) right tail blown and burning, left nose panel holed, soot over the plumage, canopy cracked",
+ "seed": 14,
+ "integer_scale": true,
+ "wreck_soot": 0.24,
+ "wreck_mul": 0.34,
+ "sites": {
+  "A": [
+   53,
+   80
+  ],
+  "B": [
+   116,
+   84
+  ],
+  "C": [
+   93,
+   129
+  ],
+  "D": [
+   88,
+   137
+  ],
+  "E": [
+   75,
+   33
+  ]
+ },
+ "sites_note": "damage sites (drawing texels) placed by hand on r6_2 to match damageNote: A left wing-root panel, B right flank panel, C right tail feathers, D tail scorch/embers, E left nose panel",
+ "hue_remap": [
+  [
+   255,
+   300,
+   252,
+   266,
+   0.15
+  ],
+  [
+   338,
+   352,
+   355,
+   358,
+   0.15
+  ]
+ ],
+ "skin_ramps": {
+  "Bone": [
+   "#2E2620",
+   "#7E6E58",
+   "#CDBD9C",
+   "#E9DEC5",
+   "#F8F2E4"
+  ]
+ },
+ "skin_tints": {
+  "Bone": [
+   [
+    25,
+    50,
+    0.4,
+    "#B06A3A"
+   ]
+  ]
+ }
+}

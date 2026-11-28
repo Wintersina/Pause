@@ -3,6 +3,10 @@ using UnityEngine;
 
 // The APPROVED per-world weather sheets (Storm and Tide; the other worlds stay staged in Art/Weather~ until approved):
 //   wx_hazard.png   3072 x 1536, 512 px cells, 6 x 3: row 0 hazard A loop, row 1 hazard B loop, row 2 the two warnings (cells 0-1 A, 2-3 B)
+//                   (+ optional wx_hazard.json {"gutter": g}: each cell's drawing lives in its inner (512 - 2g) px, the g px gutter around
+//                   it is transparent (or, for a horizontally tiling strip, the strip's own wrap-around continuation), and the sprite is cut
+//                   from the inner rect, so bilinear filtering never samples a neighbouring cell. Frost's soft sheet, g = 16. Without the
+//                   file the whole 512 cell is the sprite, as before. Either way a cell is one unit across.)
 //   wx_ambient.png  2048 x 512, 256 px cells, 8 x 2: 4 kinds x 4 variants (+ wx_ambient.json: each cell's tight bounds, so a particle's
 //                   size is its drawn size, not its cell's)
 // HazardArt is loaded when an event of the world BEGINS and released when it ends (reference counted); WeatherArt while the
@@ -10,9 +14,15 @@ using UnityEngine;
 public static class HazardArt
 {
     public const string File = "wx_hazard";
+    public const int CellPx = 512;
+    [System.Serializable] class Layout { public int gutter; }
     static Texture2D tex;
     static Sprite[,] cells;
-    static int refs, world = -1;
+    static int refs, world = -1, gutter;
+
+    // the loaded sheet's gutter (px, 0: whole cells) and its sprites' rect side (CellPx - 2 x gutter)
+    public static int Gutter { get { return gutter; } }
+    public static int SpritePx { get { return CellPx - 2 * gutter; } }
 
     public static bool Loaded { get { return cells != null; } }
     public static int Refs { get { return refs; } }
@@ -27,12 +37,22 @@ public static class HazardArt
         world = w;
         var entry = WorldWeatherTable.ForWorld(w);
         if (entry == null) return;
-        tex = Resources.Load<Texture2D>(BackdropCatalog.Folder(entry.world) + File);
+        string folder = BackdropCatalog.Folder(entry.world);
+        tex = Resources.Load<Texture2D>(folder + File);
         if (tex == null) return;                    // not installed (a staged world): the procedural body is drawn
+        gutter = 0;
+        var json = Resources.Load<TextAsset>(folder + File);
+        if (json != null)
+        {
+            var l = JsonUtility.FromJson<Layout>(json.text);
+            if (l != null) gutter = Mathf.Clamp(l.gutter, 0, CellPx / 4);
+            Resources.UnloadAsset(json);
+        }
+        int side = SpritePx;
         cells = new Sprite[3, 6];
         for (int r = 0; r < 3; r++)
             for (int c = 0; c < 6; c++)
-                cells[r, c] = Sprite.Create(tex, new Rect(c * 512, (2 - r) * 512, 512, 512), new Vector2(.5f, .5f), 512f, 0, SpriteMeshType.FullRect);
+                cells[r, c] = Sprite.Create(tex, new Rect(c * CellPx + gutter, (2 - r) * CellPx + gutter, side, side), new Vector2(.5f, .5f), side, 0, SpriteMeshType.FullRect);
     }
 
     public static void Release()
@@ -46,7 +66,7 @@ public static class HazardArt
         if (cells != null) foreach (var s in cells) if (s != null) Kill(s);
         cells = null;
         if (tex != null) Resources.UnloadAsset(tex);
-        tex = null; world = -1;
+        tex = null; world = -1; gutter = 0;
     }
 
     internal static void Kill(Object o) { if (o == null) return; if (Application.isPlaying) Object.Destroy(o); else Object.DestroyImmediate(o); }

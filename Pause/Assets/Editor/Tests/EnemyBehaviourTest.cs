@@ -355,7 +355,7 @@ public static class EnemyBehaviourTest
             Object.DestroyImmediate(brain.gameObject);
         }
         Check("every lunging pilot winds up, dives (or slashes) and recovers to its station, and fires nothing (" + lungers + "; " +
-              string.Join(", ", badLunge) + ")", badLunge.Count == 0 && lungers >= 3);
+              string.Join(", ", badLunge) + ")", badLunge.Count == 0 && lungers >= 2);   // 2 since the Wasp (verdant_fighter_2) fires its flank cannons instead of diving
     }
 
     // ---- 4 -------------------------------------------------------------------

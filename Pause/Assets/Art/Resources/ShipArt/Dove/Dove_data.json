@@ -3,11 +3,11 @@
   "key": "Dove",
   "painted": true,
   "rect": {
-    "x": 31,
-    "y": 7,
-    "w": 194,
-    "h": 242,
-    "ppu": 970.0
+    "x": 48,
+    "y": 36,
+    "w": 160,
+    "h": 182,
+    "ppu": 778.8881
   },
   "hue": [
     "#36C2C2",
@@ -16,85 +16,129 @@
   ],
   "nozzles": [
     {
-      "x": 97.5,
-      "y": 12.5,
-      "scale": 1.0,
-      "offsets": [0.0, -0.0, 0, 4, 0, 4, 0, 0, 0, 0, 0, -4, -6.0, -0.0, 5.0, -0.0, 0, 0]
+      "x": 57.5,
+      "y": 63.5,
+      "scale": 0.72,
+      "offsets": [
+        0.0,
+        0.0,
+        0.0,
+        4.0,
+        0.0,
+        4.0,
+        0.0,
+        -0.0,
+        0.0,
+        -0.0,
+        0.0,
+        -4.0,
+        1.5,
+        -0.4,
+        4.1,
+        0.2,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "x": 103.5,
+      "y": 63.5,
+      "scale": 0.72,
+      "offsets": [
+        0.0,
+        0.0,
+        0.0,
+        4.0,
+        0.0,
+        4.0,
+        0.0,
+        -0.0,
+        0.0,
+        -0.0,
+        0.0,
+        -4.0,
+        -4.2,
+        0.2,
+        -1.7,
+        -0.5,
+        0.0,
+        0.0
+      ]
     }
   ],
-  "damageNote": "1) flank panel blown; tail smoking; 2) right wing torn, left wing bent, belly panel open, canopy cracked",
+  "damageNote": "1) left wing root panel blown, sparking wires, right flank scorched; 2) right tail blown and burning, left nose panel holed, soot over the plumage, canopy cracked",
   "emitters": [
     {
       "state": 1,
       "kind": "Sparks",
-      "u": 47.1,
-      "v": 59.1
+      "u": 50.8,
+      "v": 64.2
     },
     {
       "state": 1,
       "kind": "Smoke",
-      "u": 64.0,
-      "v": 107.2
+      "u": 82.2,
+      "v": 66.2
     },
     {
       "state": 1,
       "kind": "Smolder",
-      "u": 47.1,
-      "v": 59.1
+      "u": 49.2,
+      "v": 62.8
     },
     {
       "state": 2,
       "kind": "Arc",
-      "u": 97.9,
-      "v": 60.1
+      "u": 70.8,
+      "v": 88.8
     },
     {
       "state": 2,
       "kind": "Flame",
-      "u": 72.5,
-      "v": 89.5
+      "u": 68.2,
+      "v": 92.8
     },
     {
       "state": 2,
       "kind": "Leak",
-      "u": 54.6,
-      "v": 87.6
+      "u": 61.8,
+      "v": 40.8
     },
     {
       "state": 2,
       "kind": "Smolder",
-      "u": 99.8,
-      "v": 60.1
+      "u": 82.2,
+      "v": 66.2
     },
     {
       "state": 2,
       "kind": "Smolder",
-      "u": 72.5,
-      "v": 88.6
+      "u": 50.8,
+      "v": 64.2
     },
     {
       "state": 2,
       "kind": "Smolder",
-      "u": 57.9,
-      "v": 16.5
+      "u": 66.8,
+      "v": 91.2
     },
     {
       "state": 2,
       "kind": "Smolder",
-      "u": 82.6,
-      "v": 43.5
+      "u": 69.2,
+      "v": 87.2
     },
     {
       "state": 2,
       "kind": "Smolder",
-      "u": 44.0,
-      "v": 41.3
+      "u": 60.2,
+      "v": 42.0
     },
     {
       "state": 2,
       "kind": "Smolder",
-      "u": 79.3,
-      "v": 19.8
+      "u": 80.8,
+      "v": 67.8
     }
   ],
   "skins": [

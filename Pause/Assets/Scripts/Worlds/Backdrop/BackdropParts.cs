@@ -88,7 +88,11 @@ public class BackdropAtlas
 }
 
 // A seamless vertical tile, leap-frogged: enough copies stacked to cover the
-// view plus one, each wrapped back to the top as it leaves the bottom.
+// view plus one, each wrapped back to the top as it leaves the bottom. A
+// world drawn from higher up (Spec.groundZoom < 1: Frost) draws its tiles
+// narrower than the view, so the stack is repeated side by side as well:
+// columns centred on x = 0, k * TileWidth (the art is seamless across too:
+// frost_redraw/hwrap_tiles.py), all on the one scroll.
 public class BackdropTile
 {
     public readonly BackdropCatalog.Layer layer;
@@ -102,6 +106,7 @@ public class BackdropTile
     readonly Sprite sprite;
     readonly bool halfTurn;
     float tileHeight, tileWidth, wobblePhase;
+    int rows = 1, cols = 1;              // copies in use: rows stacked x cols side by side (copy i: row i / cols, column i % cols)
 
     // `lift` > 1 draws the tile brightened (BackdropGrade; not combined
     // with a wrap cross-fade).
@@ -146,21 +151,27 @@ public class BackdropTile
     }
 
     // Tile width follows the view; a strip is a fixed fraction of the main
-    // tile width (its pixels share the main tiles' scale).
-    public void Layout(float viewWidth, float viewHeight, float mainTileWidth)
+    // tile width (its pixels share the main tiles' scale). `zoom` (the world's
+    // Spec.groundZoom, 1 = the tile spans the view) draws the tile that much
+    // smaller -- seen from higher up -- with as many columns as cover the view.
+    public void Layout(float viewWidth, float viewHeight, float mainTileWidth, float zoom = 1f)
     {
         if (sprite == null) return;
+        zoom = zoom > 0f ? Mathf.Min(zoom, 1f) : 1f;
         Vector2 size = sprite.bounds.size;
-        float scale = layer.kind == BackdropCatalog.Kind.Strip
+        float scale = (layer.kind == BackdropCatalog.Kind.Strip
             ? mainTileWidth / 6f
-            : viewWidth / size.x;
+            : viewWidth / size.x) * zoom;
         tileWidth = size.x * scale;
         // A wrap-blended tile shows only the first (1 - wrapBlend) of its art
         // per copy (BackdropSkyWrap.shader cross-fades the rest into its
         // start), so each copy is squashed to that height.
         float shown = layer.wrapBlend > 0f && wrapMat != null ? 1f - layer.wrapBlend : 1f;
         tileHeight = size.y * scale * shown;
-        int need = Mathf.CeilToInt(viewHeight / tileHeight) + 1;
+        rows = Mathf.CeilToInt(viewHeight / tileHeight) + 1;
+        // a centre column plus enough on each side to reach the view's edges
+        cols = zoom < 1f ? 2 * Mathf.CeilToInt(Mathf.Max(0f, viewWidth * .5f - tileWidth * .5f) / tileWidth) + 1 : 1;
+        int need = rows * cols;
         while (copies.Count < need) AddCopy(copies[0].sortingOrder);
         for (int i = 0; i < copies.Count; i++)
         {
@@ -168,6 +179,8 @@ public class BackdropTile
             copies[i].enabled = i < need;
         }
     }
+
+    public int Columns { get { return cols; } }
 
     public float TileHeight { get { return tileHeight; } }
     public float TileWidth { get { return tileWidth; } }
@@ -193,15 +206,18 @@ public class BackdropTile
         wobblePhase += dt * 7.3f;
         float x = layer.wobble > 0f ? Mathf.Sin(wobblePhase) * layer.wobble : 0f;
 
-        // Copy i sits at bottom + i*h - offset, wrapping as offset grows.
+        // Row r sits at bottom + r*h - offset, wrapping as offset grows; its
+        // columns at x = (c - centre) * w, all on the same scroll.
         float bottom = -viewHeight * 0.5f - tileHeight * 0.5f;
         Color c = layer.tint;
         c.a *= alpha;
+        int centre = cols / 2;
         for (int i = 0; i < copies.Count; i++)
         {
             if (!copies[i].enabled) continue;
-            float y = bottom + i * tileHeight - offset + tileHeight;
-            copies[i].transform.localPosition = new Vector3(x, y, 0f);
+            int r = i / cols, col = i % cols;
+            float y = bottom + r * tileHeight - offset + tileHeight;
+            copies[i].transform.localPosition = new Vector3(x + (col - centre) * tileWidth, y, 0f);
             copies[i].color = c;
         }
     }

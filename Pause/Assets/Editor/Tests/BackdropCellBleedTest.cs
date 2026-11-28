@@ -126,15 +126,9 @@ public static class BackdropCellBleedTest
         var spans = new (string world, string atlas, string piece, PieceRule rule)[]
         {
             ("Frost", "landmarks", "causeway_00", FrostTuning.Rule("causeway_00", 1)),
-            ("Verdant", "pipes", "pipebridge_00", VerdantTuning.Rule("pipebridge_00")),
-            ("Ember", "landmarks", "viaduct_00", EmberTuning.Rule("viaduct_00")),
-            ("Ember", "pipes", "pipebridge_00", EmberTuning.Rule("pipebridge_00")),
-            ("Ember", "pipes", "pipebridge_01", EmberTuning.Rule("pipebridge_01")),
             ("Tide", "landmarks", "bridge_section_00", TideTuning.Rule("bridge_section_00")),
             ("Tide", "pipes", "pipebridge_00", TideTuning.Rule("pipebridge_00")),
             ("Tide", "pipes", "pipebridge_01", TideTuning.Rule("pipebridge_01")),
-            ("Desert", "pipes", "pipe_bridge_00", DesertTuning.Rule("pipe_bridge_00")),
-            ("Desert", "pipes", "pipe_bridge_01", DesertTuning.Rule("pipe_bridge_01")),
         };
         foreach (var s in spans)
         {

@@ -6,10 +6,10 @@ using UnityEngine;
 // The Ember v3 backdrop (EmberDirector, GroundPlanner, EmberAmbientCatalog):
 //   * one of four ground sets per landing, never the same twice running; the
 //     night side (v4) flagged, drawn darker, its lights stronger;
-//   * PINNED pieces: a landmark's spot on the mid tile never changes while
-//     it is in view (60 s of scroll);
-//   * AFFINITY: over 150 seeded runs per variant no piece stands on ground
-//     its rule forbids (slag barges and pools on lava, forges on land ...),
+//   * PINNED pieces (the eruptions, the living props, the launch sites): a piece's spot on the mid tile never changes while
+//     it is in view (60 s of scroll); (the props themselves are EmberPropsTest's);
+//   * AFFINITY: over 150 seeded runs per variant no eruption or site stands on ground
+//     its rule forbids (pools on lava, fountains on crust ...),
 //     and no two pieces' footprints overlap;
 //   * EXACT EMITTERS: every binding draws its loop with the loop's anchor
 //     (plume base) within 3 px of the piece's measured point, mirrored or
@@ -57,6 +57,7 @@ public static class EmberBackdropTest
             Weather();
             Clouds();
             Brightness();
+            ShotLine();
             Sites();
             Allocation();
         }
@@ -102,7 +103,7 @@ public static class EmberBackdropTest
 
     static IEnumerable<BackdropPool> PinnedPools(EmberDirector d)
     {
-        yield return d.Pipes; yield return d.Fires; yield return d.Ground; yield return d.Sites;
+        yield return d.Fires; yield return d.Sites; yield return d.Props; yield return d.Mountains;
     }
 
     // ---- the layer stack -----------------------------------------------------
@@ -112,10 +113,13 @@ public static class EmberBackdropTest
         var spec = BackdropCatalog.For("Ember");
         Check("Ember has its own v3 folder and four variant sets",
               spec.folder == "Worlds/Ember/Backdrop3/" && spec.variantSets == BackdropVariants.MaxVariants);
-        string[] want = { "sky", "far", "mid", "ground", "flow", "palls", "mist", "wisps", "ceiling", "gusts", "embers" };
+        string[] want = { "sky", "far", "mid", "ground", "palls", "mist", "wisps", "ceiling", "gusts", "embers" };
         bool all = true;
         foreach (string n in want) all &= spec.Has(n);
-        Check("Ember layers: ground tiles, pinned ground pieces, flow, palls, mist, wisps, ceiling, gusts, embers", all);
+        Check("Ember layers: ground tiles, pinned ground pieces, palls, mist, wisps, ceiling, gusts, embers (the old flow strip retired with the old ground)", all && !spec.Has("flow"));
+        Check("Ember is flown at the .49 altitude: tiles drawn at " + spec.groundZoom + " (EmberTuning.TileZoom), pieces keyed to " + spec.PieceZoom,
+              Mathf.Approximately(spec.groundZoom, EmberTuning.TileZoom) && Mathf.Approximately(EmberTuning.TileZoom, .98f) && Mathf.Approximately(spec.PieceZoom, EmberTuning.GroundZoom) && Mathf.Approximately(EmberTuning.GroundZoom, .49f) &&
+              Mathf.Approximately(CoverBoulders.GroundZoom("Ember"), .49f));
         var g = spec.Find("ground");
         Check("the ground pieces are PINNED to the mid tile: same rate (" + g.rate + " = " + spec.Rate("mid") + " <= " +
               BackdropCatalog.MaxGroundRate + "), landmark role, right after it",
@@ -131,8 +135,7 @@ public static class EmberBackdropTest
               spec.VariantBrightness(1) > spec.VariantBrightness(4) && spec.VariantBrightness(2) >= .3f);
         Check("the art is dark: Ember is drawn below the bright-world lift (" + EmberTuning.Brightness + " < " + BackdropCatalog.Spec.BrightLift +
               "), so shots keep the thin outline and the hearts the standard one", !spec.Bright);
-        Check("ground pieces stay under the size limit", EmberTuning.LandmarkMax <= BackdropCatalog.MaxLandmarkSize &&
-              EmberTuning.FireMax <= BackdropCatalog.MaxLandmarkSize && EmberTuning.SiteMax <= BackdropCatalog.MaxLandmarkSize);
+        Check("ground pieces stay under the size limit", EmberTuning.FireMax <= BackdropCatalog.MaxLandmarkSize && EmberTuning.SiteMax <= BackdropCatalog.MaxLandmarkSize);
 
         var table = EmberAmbientCatalog.Table;
         bool loops = true;
@@ -156,16 +159,19 @@ public static class EmberBackdropTest
         foreach (var m in EmberAmbientCatalog.MeasuredLoops)
             if (EmberAmbientCatalog.Plume(m.name)) smokeBase &= Mathf.Abs(m.x - 128f) <= 4f && m.y >= 228f && m.spread <= 4f;
         Check("the plume loops' bases sit on their cell's bottom-centre anchor, steady over the frames", smokeBase);
-        string[] smokers = { "refinery_00", "forgetower_00", "coolingtower_00", "smelter_00", "kiln_00", "lavafountain_00", "eruptionscar_00", "coalbed_00", "flarestack_00", "pipe_leak_00" };
+        string[] smokers = { "lavafountain_00", "eruptionscar_00", "coalbed_00", "flarestack_00" };
         bool smokes = true;
         foreach (string s in smokers) smokes &= EmberAmbientCatalog.Table.For(s) != null;
-        Check("forges, cooling towers, fountains, scars, coal beds, flare stacks and venting pipes all carry loops", smokes);
+        Check("fountains, scars, coal beds and flare stacks all carry loops", smokes);
         for (int v = 1; v <= 4; v++)
         {
             var mask = GroundMask.Load("Ember", v);
             Check("v" + v + " has its affinity mask (" + (mask != null ? mask.Cols + "x" + mask.Rows + ", water " +
                   mask.Share(GroundClass.Water).ToString("F2") + ", built " + mask.Share(GroundClass.Built).ToString("F2") : "-") + ")",
-                  mask != null && mask.Cols == 32 && mask.Rows == 64 && mask.Share(GroundClass.Canopy) > .1f);
+                  mask != null && mask.Cols == 64 && mask.Rows == 292 && mask.HasContext && mask.Share(GroundClass.Canopy) + mask.Share(GroundClass.Open) + mask.Share(GroundClass.Built) > .3f &&
+                  mask.Share(GroundClass.Water) > .01f);
+            var mid = Resources.Load<Texture2D>(BackdropCatalog.TileFolder("Ember", v) + "mid");
+            Check("v" + v + " ground tile is the stitched 896 x 4096 repaint", mid != null && mid.width == 896 && mid.height == 4096);
         }
         bool any = true;   // (an elite with no launchFrom: every def names its homes now, so the rule is asked of an empty one)
         foreach (var k in EmberTuning.SiteKinds) any &= LandingSite.Accepts(null, k);
@@ -240,8 +246,8 @@ public static class EmberBackdropTest
         float worst = 0f;
         int tracked = 0;
         var tile = d.Planner.Tile;
-        var midTex = Resources.Load<Texture2D>(BackdropCatalog.TileFolder("Ember", 1) + "mid");   // tile pixel size from the art itself (896x1792 since 2026-10)
-        float tileW = midTex != null ? midTex.width : 896f, tileH = midTex != null ? midTex.height : 1792f;
+        var midTex = Resources.Load<Texture2D>(BackdropCatalog.TileFolder("Ember", 1) + "mid");   // tile pixel size from the art itself (896 x 4096 since 2026-11-28)
+        float tileW = midTex != null ? midTex.width : 896f, tileH = midTex != null ? midTex.height : 4096f;
         Run(wb, 60f, () =>
         {
             foreach (var pool in PinnedPools(d))
@@ -274,7 +280,7 @@ public static class EmberBackdropTest
     {
         for (int v = 1; v <= TestHarness.SweepVariants(4); v++)
         {
-            int pieces = 0, wrong = 0, overlaps = 0, relaxed = 0, clusters = 0, runs = 0, pipes = 0;
+            int pieces = 0, wrong = 0, overlaps = 0, relaxed = 0, clusters = 0, runs = 0, onProps = 0;
             var byClass = new Dictionary<string, int>();
             string bad = "";
             for (int run = 0; run < SeededRuns; run++)
@@ -287,7 +293,7 @@ public static class EmberBackdropTest
                 var seenPieces = new HashSet<BackdropPiece>();
                 System.Action audit = () =>
                 {
-                    foreach (var pool in PinnedPools(d))
+                    foreach (var pool in new[] { d.Fires, d.Sites })
                         foreach (var p in pool.items)
                         {
                             if (!p.active || seenPieces.Contains(p)) continue;
@@ -296,8 +302,8 @@ public static class EmberBackdropTest
                             string name = p.sr.sprite != null ? p.sr.sprite.name : "";
                             var rule = EmberTuning.Rule(name);
                             bool site = pool == d.Sites;
-                            if (pool == d.Pipes) pipes++;
-                            if (pool == d.Pipes && p.kind == EmberDirector.RunPipe) continue;   // a run's pipe crosses whatever lies between its structures
+                            // the eruption's WHOLE drawn cell is its keep-out (its plume rises through it): no prop touches it
+                            if (pool == d.Fires && d.TouchesProp(p.x, p.gy, p.size * EmberTuning.FireKeepShare * .98f, p.size * EmberTuning.FireKeepShare * .98f)) onProps++;
                             if (!d.Planner.Accepts(rule, p.x, p.gy, p.size))
                             {
                                 if (site && d.Planner.Accepts(new PieceRule(GroundClass.Land, .5f), p.x, p.gy, p.size)) relaxed++;
@@ -306,8 +312,7 @@ public static class EmberBackdropTest
                             string k = d.Planner.ClassAt(p.x, p.gy).ToString();
                             int c; byClass.TryGetValue(name.Split('_')[0] + ":" + k, out c); byClass[name.Split('_')[0] + ":" + k] = c + 1;
                         }
-                    // no two non-pipe footprints overlap (pipes tuck under the plates they join)
-                    foreach (var a in d.Ground.items) Overlap(d, a, ref overlaps);
+                    // no two piece footprints overlap
                     foreach (var a in d.Fires.items) Overlap(d, a, ref overlaps);
                     foreach (var a in d.Sites.items) Overlap(d, a, ref overlaps);
                 };
@@ -320,23 +325,28 @@ public static class EmberBackdropTest
             var top = new List<string>();
             foreach (var kv in byClass) if (kv.Value >= runs / 4) top.Add(kv.Key + " " + kv.Value);
             Debug.Log("[EBD] v" + v + " placements by drawing:ground " + string.Join(", ", top));
-            Check("v" + v + ": " + runs + " seeded runs, " + pieces + " pieces (" + pipes + " pipes, " + clusters +
+            Check("v" + v + ": " + runs + " seeded runs, " + pieces + " eruptions and sites (" + clusters +
                   " clusters): none on ground its rule forbids (" + wrong + " " + bad + "; sites on relaxed land " + relaxed + ")",
-                  runs == SeededRuns && pieces > runs * 4 && wrong == 0);
-            Check("v" + v + ": no two piece footprints overlap (" + overlaps + ")", overlaps == 0);
+                  runs == SeededRuns && pieces > runs && wrong == 0);
+            Check("v" + v + ": no two piece footprints overlap, and no eruption stands over a prop (" + overlaps + ", " + onProps + ")", overlaps == 0 && onProps == 0);
         }
+    }
+
+    static float Claimed(EmberDirector d, BackdropPiece p)
+    {
+        return d.Fires.items.Contains(p) ? p.size * EmberTuning.FireKeepShare : GroundPlanner.HalfX(EmberTuning.Rule(p.sr.sprite.name), p.size);
     }
 
     static void Overlap(EmberDirector d, BackdropPiece a, ref int overlaps)
     {
         if (!a.active) return;
-        foreach (var pool in new[] { d.Ground, d.Fires, d.Sites })
+        foreach (var pool in new[] { d.Fires, d.Sites })
             foreach (var b in pool.items)
             {
                 if (!b.active || b == a || b.GetHashCode() < a.GetHashCode()) continue;
-                var ra = EmberTuning.Rule(a.sr.sprite.name); var rb = EmberTuning.Rule(b.sr.sprite.name);
-                if (Mathf.Abs(a.x - b.x) < (GroundPlanner.HalfX(ra, a.size) + GroundPlanner.HalfX(rb, b.size)) * .98f &&
-                    System.Math.Abs(a.gy - b.gy) < (GroundPlanner.HalfY(ra, a.size) + GroundPlanner.HalfY(rb, b.size)) * .98f) overlaps++;
+                // (what each claimed on the planner: an eruption its whole cell, a site its rule's core)
+                float ha = Claimed(d, a), hb = Claimed(d, b);
+                if (Mathf.Abs(a.x - b.x) < (ha + hb) * .98f && System.Math.Abs(a.gy - b.gy) < (ha + hb) * .98f) overlaps++;
             }
     }
 
@@ -390,6 +400,7 @@ public static class EmberBackdropTest
         foreach (var piece in EmberAmbientCatalog.Pieces)
         {
             if (piece.emit == null || piece.emit.Length == 0) continue;
+            if (piece.atlas == "landmarks" || piece.atlas == "pipes") continue;      // (the round-1 forge landmarks and pipes retired 2026-11-28; their points stay in points.json)
             var atlas = set.Atlas(piece.atlas);
             var sprite = atlas.Get(piece.name);
             if (sprite == null) { Check(piece.name + " drawing exists", false); continue; }
@@ -419,7 +430,7 @@ public static class EmberBackdropTest
                 if (AlphaAt(piece.atlas, piece.name, e.x, e.y) < .5f) { offArt++; if (off.Length < 200) off += piece.name + "/" + e.loop + " "; }
         }
         Check("every bound loop draws its anchor within " + EmitterTolerancePx + " px of the piece's measured point, mirrored or not, at any size (" +
-              probes + " probes, worst " + far + ")", probes >= 300 && worst <= EmitterTolerancePx);
+              probes + " probes, worst " + far + ")", probes >= 100 && worst <= EmitterTolerancePx);
         Check("... and every measured point lies on the piece's opaque art (" + offArt + " off: " + off + ")", offArt == 0);
         Check("... loops draw above their piece (" + notAbove + " not) and all lean with the level wind (" + lean + " against)",
               notAbove == 0 && lean == 0);
@@ -457,8 +468,8 @@ public static class EmberBackdropTest
                 }
         });
         Check("over 90 s of flying the live loops (" + live + " samples, peak " + peak + ") stay within " + EmitterTolerancePx +
-              " px of their points (worst " + runWorst.ToString("F2") + ") and animate", live > 1000 && peak >= 6 && runWorst <= EmitterTolerancePx && advanced);
-        Check("the forge world is busy: pipe runs " + d.PipeRuns + ", clusters " + d.Clusters + ", fires seen", d.PipeRuns >= 1 && d.Clusters >= 6);
+              " px of their points (worst " + runWorst.ToString("F2") + ") and animate", live > 150 && peak >= 2 && runWorst <= EmitterTolerancePx && advanced);
+        Check("the forge world still erupts: clusters " + d.Clusters + ", fires seen", d.Clusters >= 3);
         Object.DestroyImmediate(wb.gameObject);
 
         // without the loop atlases (Space has none) the emitters quietly show nothing
@@ -469,7 +480,7 @@ public static class EmberBackdropTest
         amb2.Rig(pool2);
         int shown = -1;
         bool quiet = true;
-        try { shown = amb2.Attach(pool2.Spawn(), "refinery_00", new System.Random(1)); amb2.Step(1f); }
+        try { shown = amb2.Attach(pool2.Spawn(), "lavafountain_00", new System.Random(1)); amb2.Step(1f); }
         catch (System.Exception e) { quiet = false; Debug.LogException(e); }
         Check("without the loop atlases the emitters show nothing, without an error", quiet && shown == 0);
         ember.Destroy();
@@ -649,6 +660,34 @@ public static class EmberBackdropTest
               " and <= .2)", nightMedian <= dayMedian * 1.25f && nightMedian <= .2f);
     }
 
+    // The shot line (Desert's): every layout's ground keeps the 99th percentile of its 32 px patches' linear luminance at or under
+    // EmberTuning.ShotLine, so a shot's core stands 3:1 over it anywhere (Ember's boss shots are fire-coloured by design: lava is the
+    // brightest thing on the ground, so it is the thing to hold).
+    static void ShotLine()
+    {
+        for (int v = 1; v <= 4; v++)
+        {
+            var t = new Texture2D(2, 2);
+            t.LoadImage(File.ReadAllBytes("Assets/Art/Backgrounds/Resources/Worlds/Ember/Backdrop3/v" + v + "/mid.png"));
+            var px = t.GetPixels();
+            int w = t.width, h = t.height, P = EmberTuning.ShotPatch, cols = w / P, rows = h / P;
+            Object.DestroyImmediate(t);
+            var patches = new List<float>(cols * rows);
+            for (int r = 0; r < rows; r++)
+                for (int c = 0; c < cols; c++)
+                {
+                    double sum = 0;
+                    for (int y = r * P; y < (r + 1) * P; y++)
+                        for (int x = c * P; x < (c + 1) * P; x++) sum += RelLum(px[y * w + x]);
+                    patches.Add((float)(sum / (P * P)));
+                }
+            patches.Sort();
+            float p99 = patches[(int)(patches.Count * .99f)];
+            Check("v" + v + " ground under the shot line: 32 px patches' p99 linear luminance " + p99.ToString("F3") + " <= " + EmberTuning.ShotLine.ToString("F2") +
+                  " (a shot's core stands 3:1 over it)", p99 <= EmberTuning.ShotLine + .005f);
+        }
+    }
+
     struct Shot { public float mean, median, p90, laneLum; }
 
     static Shot Rendered(float y0, float y1)
@@ -791,10 +830,10 @@ public static class EmberBackdropTest
         Check("pools never grow over a long run", wb.GetComponentsInChildren<Transform>(true).Length == transforms);
         // pause-safe: dt 0 is a still frame
         var before = new List<Vector3>();
-        foreach (var p in d.Ground.items) before.Add(p.root.localPosition);
+        foreach (var p in d.Props.items) before.Add(p.root.localPosition);
         for (int i = 0; i < 30; i++) wb.Step(0f);
         bool still = true;
-        for (int i = 0; i < d.Ground.items.Count; i++) still &= d.Ground.items[i].root.localPosition == before[i];
+        for (int i = 0; i < d.Props.items.Count; i++) still &= d.Props.items[i].root.localPosition == before[i];
         Check("a paused frame (dt 0) moves nothing", still);
     }
 }

@@ -121,6 +121,10 @@ public static class PlanetfallTimeline
     // ---- the entry ----
 
     public static float ShroudAlpha(float t) { return Ramp(t, ShroudInFrom, ShroudInTo) * (1f - Ramp(t, BreakAt, FxOutTo)); }
+    // How hot the shroud burns (0..1): it builds as the dive bites, peaks,
+    // then dims to about 45% as the ship slows over the cloud deck.
+    public static float HeatInTo = 2.6f, HeatOutFrom = 3.7f, HeatOutTo = 4.95f, HeatOut = .55f;
+    public static float ShroudHeat(float t) { return Ramp(t, ShroudInFrom, HeatInTo) * (1f - HeatOut * Ramp(t, HeatOutFrom, HeatOutTo)); }
     public static float StreakAlpha(float t) { return Ramp(t, StreaksInFrom, StreaksInTo) * (1f - Ramp(t, BreakAt, FxOutTo)); }
     public static float TintAt(float t) { return TintAlpha * Ramp(t, TintInFrom, TintInTo) * (1f - Ramp(t, BreakAt, GradeOutTo)); }
     // 0 the warm entry glow, 1 the cold deep cloud.

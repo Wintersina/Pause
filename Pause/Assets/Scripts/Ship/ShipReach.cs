@@ -101,9 +101,10 @@ public static class ShipReach
     }
     // Sideways: the ship's centre stays within +/- this. It was the constant
     // 2.4 (LegacyHalfWidth), which let a 0.58 u hull poke 0.08 u into the
-    // drawn rails (inner edge 2.61); now the hull's side stops on the rails'
-    // inner edge: 2.21 (16:9) .. 2.45 (19.5:9 and taller, tablets) at the
-    // main game's 1.35x ship, 2.32 .. 2.56 at the normalised size.
+    // drawn rails (inner edge 2.61 then); now the hull's side stops on the
+    // rails' inner edge: 2.38 (16:9) .. 2.57 (19.5:9 and taller, tablets) at
+    // the main game's 1.35x ship, 2.49 .. 2.68 at the normalised size (the 80%
+    // rails: inner edge 3.02 .. 3.21).
     public const float LegacyHalfWidth = 2.4f;
     public static float HalfWidthFor(float railInnerEdge, float hullHalfWidth)
     {

@@ -241,7 +241,7 @@ def build() -> None:
     make_impacts(native, effects)
     make_haze(native, haze)
     atlas = native.resize((768, 768), NEAREST)
-    atlas.save(OUT / "frost_attack_minebeam.png")
+    atlas.save(OUT / "frost_attack_minebeam.png")   # then flip_beam_cells.py on it (point at the muzzle, splash on the far rail)
     preview(atlas)
 
 

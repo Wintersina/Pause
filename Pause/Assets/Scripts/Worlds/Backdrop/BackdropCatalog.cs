@@ -7,7 +7,7 @@ using UnityEngine;
 // so a higher rate reads as closer. Rates must strictly increase with depth;
 // WorldBackdropTest enforces it.
 //
-// Tile layers are seamless 512x1024 PNGs (Storm and Desert grounds 1024x2048; Tide, Verdant, Ember and Frost grounds 896x1792) leap-frogged vertically. Set pieces
+// Tile layers are seamless 512x1024 PNGs (Storm and Desert grounds 1024x2048; Tide and Frost grounds 896x1792; Verdant, Ember and Desert r1 grounds 896x4096) leap-frogged vertically. Set pieces
 // (planets, glaciers, volcanoes...) and particles come from each world's `fx`
 // and `anim` atlases and are driven by that world's BackdropDirector.
 //
@@ -80,6 +80,17 @@ public static class BackdropCatalog
         public Layer[] layers;      // far -> near
         // Where the art lives under Resources (null: Worlds/<world>/Backdrop/).
         public string folder;
+        // ALTITUDE: the on-screen size of the tile layers (sky, far, mid, flow) as a share of the view's width. 1 = a tile spans
+        // the view (every world but Frost); < 1 = the ground seen from higher up, drawn that much smaller and repeated across
+        // as well as down (BackdropTile.Layout; the art must be seamless across). Whatever stands on the ground (pinned pieces,
+        // their placement) and the ground layers' rates are scaled by the world itself, by the same number (FrostTuning.GroundZoom).
+        public float groundZoom = 1f;
+        // The ALTITUDE the pieces on the ground are keyed to, when it differs from the tiles' drawn share (0: groundZoom). Storm draws
+        // its 896 px ground tile at .82 of the view (StormTuning.TileZoom): one tile holds two of the approved .41 columns side by
+        // side, so the ground reads at .41 (StormTuning.GroundZoom) and everything standing on it (pinned pieces, cover boulders) is
+        // scaled by .41, never by .82.
+        public float pieceZoom;
+        public float PieceZoom { get { return pieceZoom > 0f ? pieceZoom : groundZoom; } }
         // The atlas whose presence makes the set complete (null: fx).
         public string keyAtlas;
         // > 0: the tile layers come from one of these many variant folders
@@ -100,6 +111,14 @@ public static class BackdropCatalog
         // The art itself is painted bright (not lifted): what reads over it
         // needs the bold treatment too (HeartOutline's bold outline).
         public bool brightArt;
+        // The art is painted DARK and only lifted for its own depth (Frost's
+        // v3 night redraw: art value ~.1, lifted x1.95 it still reads as a
+        // dark sky / ground): it never counts as bright, whatever its lift.
+        // (Over it the bold near-black keyline barely changes the pixels --
+        // AtomClarityTest measured Frost's small bolts 36-38% soft against
+        // the 36% hard-edge cap -- while the dark worlds' thin trace keeps
+        // their bolts near 20%, Space / Ember.)
+        public bool darkArt;
         // A world's backdrop counts as BRIGHT (drawn lifted by at least
         // BrightLift, or painted bright): what must read over it -- the
         // hearts' outline (HeartOutline), the hostile shots' outline and rim
@@ -107,7 +126,18 @@ public static class BackdropCatalog
         // style. The one predicate for all of them, so a world that is lifted
         // later (Ember) gets every bold treatment at once.
         public const float BrightLift = 1.2f;
-        public bool Bright => brightArt || brightness != null && brightness() >= BrightLift;
+        public bool Bright => !darkArt && (brightArt || brightness != null && brightness() >= BrightLift);
+        // The hearts' outline only goes bold over this world too (HeartOutline.UseBold), its shots keeping their standard trace:
+        // Frost seen from high up (FrostTuning.GroundZoom) is a fine-grained mid-tone ground under the lane, where the standard
+        // trace's thin keyline and light core both lose their 3:1 (BossHeartsTest, 2026-11-28). (Its shots stay standard:
+        // the bold keyline softens Frost's small bolts past AtomClarityTest's hard-edge cap -- darkArt above.)
+        public bool boldHearts;
+        // UNDER THE CLOUD DECK the shots go bold too (BackdropCatalog.CurrentUnderDeck): while the planetfall's pale ceiling is
+        // still thick over the ground (CeilingDensity >= DeckBoldDensity, Frost's first ~9 s), a pale shot over it has only its
+        // dark keyline to stand out by (HostileProjectileTest at 5 s: 12 px at 3:1 with the standard trace, need 16). Shots and
+        // boss rims fired then wear the bold style; once the ceiling has thinned they launch with the standard trace again.
+        public bool boldUnderCeiling;
+        public bool HeartsBold => Bright || boldHearts;
 
         // CLOUD COVER (CloudCover): this world's knobs, read when a set is
         // built and every frame. Null: the shared defaults (CloudCover.*), so
@@ -174,6 +204,8 @@ public static class BackdropCatalog
     public const string AtlasAnimHires = "anim_hires";
 
     static readonly Color W = Color.white;
+    // Frost's ground under the play layer, shaded by FrostTuning.GroundShade (a separate step from the art's own grade)
+    static readonly Color FrostGround = new Color(FrostTuning.GroundShade, FrostTuning.GroundShade, FrostTuning.GroundShade, 1f);
 
     static readonly Spec[] specs =
     {
@@ -206,7 +238,10 @@ public static class BackdropCatalog
         // creep by far below; clouds, haze and particles pass close.
         // Frost (FrostDirector, docs in FrostBackdrop.cs): flown at atmosphere
         // level just under the cloud ceiling, looking down on a frozen ocean,
-        // coast and ice-bound industry. The four ground tiles come from one of
+        // coast and ice-bound industry -- from HIGH up (FrostTuning.GroundZoom:
+        // the tiles drawn at .41 of the view's width, repeated across; the
+        // ground layers' rates scaled by the same number: farther ground
+        // creeps by slower). The four ground tiles come from one of
         // up to four variant sets per landing (FrostBackdropSelection,
         // Backdrop3/v1..v4); landmarks, launch sites, weather and the ambient
         // loops are shared atlases. BRIGHTNESS: the art is painted dark and
@@ -215,21 +250,27 @@ public static class BackdropCatalog
         // the ground and landmarks all of it, the far layers less so the
         // depth haze holds. Tints can only darken (white = as graded).
         new Spec { world = "Frost", folder = "Worlds/Frost/Backdrop3/", keyAtlas = "landmarks",
-                   variantSets = BackdropVariants.MaxVariants,
-                   brightness = () => FrostTuning.Brightness, saturation = () => FrostTuning.Saturation,
+                   variantSets = BackdropVariants.MaxVariants, groundZoom = FrostTuning.GroundZoom,
+                   brightness = () => FrostTuning.Brightness, saturation = () => FrostTuning.Saturation, darkArt = true, boldHearts = true, boldUnderCeiling = true,
                    cloudDensity = () => FrostTuning.CloudDensity, ceilingHold = () => FrostTuning.CeilingHold,
                    ceilingClearSeconds = () => FrostTuning.CeilingClearSeconds, layers = new[] {
-            Layer.Tile("sky", 0.006f, W).Graded(.55f),
-            Layer.Tile("far", 0.014f, W).Graded(.8f),
-            Layer.Tile("mid", 0.024f, W).Graded(1f),
-            Layer.Strip("flow", 0.025f, 0.35f, 0f, W).Graded(1f),
+            Layer.Tile("sky", 0.006f * FrostTuning.GroundZoom, W).Graded(.55f),
+            Layer.Tile("far", 0.014f * FrostTuning.GroundZoom, FrostGround).Graded(.8f),
+            Layer.Tile("mid", FrostTuning.GroundRate, FrostGround).Graded(1f),
+            // The drifting floes / frost streaks strip is PINNED to the mid tile too (same rate, no flow of its own): it used to
+            // run at 0.025 x the scroll + 0.35 u/s, two to three times faster than the ground under it, so the floes slid under
+            // the landmarks and the whole map read as moving while the pieces standing on it did not (user, 2026-11-27).
+            Layer.Strip("flow", FrostTuning.GroundRate, 0f, 0f, FrostGround).PinnedTo("mid", FrostTuning.GroundRate).Graded(1f),
             Layer.Pieces("aurora", 0.027f, Role.Atmosphere).Graded(.3f),
             // Rigs, refineries, icebreakers ... and the elite launch sites
             // (one ground plane: they never slide over each other).
             // PINNED to the mid tile: the pieces stand on the ground, so they
-            // scroll at exactly its rate (0.024; they used to run at 0.030 and
-            // slid 25% faster than the ice they stand on).
-            Layer.Pieces("landmarks", 0.024f, Role.Landmark).PinnedTo("mid", 0.024f).Graded(1f),
+            // scroll at exactly its rate (they used to run at 0.030 against
+            // its 0.024 and slid 25% faster than the ice they stand on).
+            Layer.Pieces("landmarks", FrostTuning.GroundRate, Role.Landmark).PinnedTo("mid", FrostTuning.GroundRate).Graded(1f),
+            // the living props (FrostProps.cs: whales, orcas, an icebreaker, a station, a lab, a crashed plane): rare accents
+            // on the same ground plane, pinned and graded like the landmarks
+            Layer.Pieces(FrostPropsTuning.Layer, FrostTuning.GroundRate, Role.Landmark).PinnedTo("mid", FrostTuning.GroundRate).Graded(1f),
             Layer.Pieces("mist", 0.060f, Role.Atmosphere).Graded(.5f),
             Layer.Pieces("wisps", 0.090f, Role.Cloud).Graded(.5f),
             // The ceiling's banks are also thickened (FrostTuning.CeilingThicken).
@@ -239,29 +280,26 @@ public static class BackdropCatalog
             Layer.Pieces("snow_mid", 0.450f, Role.Atmosphere),
             Layer.Pieces("snow_near", 0.700f, Role.Atmosphere),
         }},
-        // Verdant (VerdantDirector, docs in VerdantBackdrop.cs): flown at
-        // atmosphere level over the jungle planet: canopy sea and rivers, a
-        // swamp delta, an overgrown ruined city, or the NIGHT side's
-        // bioluminescent forest (VerdantTuning.Night; one of four variant
-        // sets per landing). Overgrown industry, pipework, smoking stacks
-        // and wildfires burning in the forest stand on the ground, PINNED to
-        // the mid tile (GroundPlanner: same rate, same scroll) and placed
-        // where its affinity mask says they belong. The art is painted
-        // brighter than Frost's (value p90 ~.47) and drawn as painted on the
-        // day side; the night side is drawn darker (variantBrightness).
-        new Spec { world = "Verdant", folder = "Worlds/Verdant/Backdrop3/", keyAtlas = "landmarks",
-                   variantSets = BackdropVariants.MaxVariants,
+        // Verdant (VerdantDirector, docs in VerdantBackdrop.cs): flown HIGH (r1, 2026-11-28: the user-approved .49 altitude, as Frost /
+        // Desert / Ember) over the jungle planet: a canopy sea with rivers and waterfalls, a swamp delta, an overgrown ruined city, or the
+        // NIGHT side's bioluminescent forest (VerdantTuning.Night; one of four variant sets per landing). The 896 px repainted ground tile
+        // is drawn at 2 x GroundZoom of the view (VerdantTuning.TileZoom: two columns side by side), so everything standing on it is keyed
+        // to VerdantTuning.GroundZoom (.49). The wildfires and the elite launch sites stand on the ground, PINNED to the mid tile
+        // (GroundPlanner: same rate, same scroll) and placed where its affinity mask says they belong; the living props (art installed,
+        // not drawn yet: VerdantTuning.PropsEnabled) will stand on the same plane. The art is painted lit and lush (value p90 ~.5) and
+        // drawn as painted on the day side (the night side is drawn darker, variantBrightness).
+        new Spec { world = "Verdant", folder = "Worlds/Verdant/Backdrop3/", keyAtlas = "sites",
+                   variantSets = BackdropVariants.MaxVariants, groundZoom = VerdantTuning.TileZoom, pieceZoom = VerdantTuning.GroundZoom,
                    brightness = () => VerdantTuning.Brightness, saturation = () => 1f,
                    variantBrightness = VerdantTuning.VariantBrightness, variantNight = VerdantTuning.Night, brightArt = true,
                    cloudDensity = () => VerdantTuning.CloudDensity, ceilingHold = () => VerdantTuning.CeilingHold,
                    ceilingClearSeconds = () => VerdantTuning.CeilingClearSeconds, layers = new[] {
-            Layer.Tile("sky", 0.006f, W).Graded(.6f),
-            Layer.Tile("far", 0.014f, W).Graded(.8f),
-            Layer.Tile("mid", 0.024f, W).Graded(1f),
-            // landmarks, pipes, wildfires and the elite sites: one ground
-            // plane pinned to the mid tile
-            Layer.Pieces("ground", 0.024f, Role.Landmark).PinnedTo("mid", 0.024f).Graded(1f),
-            Layer.Strip("flow", 0.025f, 0.30f, 0f, W).Graded(1f),
+            // (sky / far lie under the opaque mid: the far layer reuses the sky texture, their rates scaled with the altitude)
+            Layer.Tile("sky", 0.006f * VerdantTuning.GroundZoom, W).Graded(.6f),
+            Layer.Tile("far", 0.014f * VerdantTuning.GroundZoom, W).WithTexture("sky").Graded(.8f),
+            Layer.Tile("mid", VerdantTuning.GroundRate, W).Graded(1f),
+            // the wildfires and the elite sites (and, later, the living props): one ground plane pinned to the mid tile
+            Layer.Pieces("ground", VerdantTuning.GroundRate, Role.Landmark).PinnedTo("mid", VerdantTuning.GroundRate).Graded(1f),
             Layer.Pieces("palls", 0.040f, Role.Atmosphere).Graded(.6f),
             Layer.Pieces("mist", 0.060f, Role.Atmosphere).Graded(.6f),
             Layer.Pieces("wisps", 0.090f, Role.Cloud).Graded(.6f),
@@ -271,28 +309,25 @@ public static class BackdropCatalog
             Layer.Pieces("spores", 0.400f, Role.Atmosphere),
             Layer.Pieces("fireflies", 0.550f, Role.Atmosphere),
         }},
-        // Ember (EmberDirector, docs in EmberBackdrop.cs): flown at atmosphere
-        // level over the forge planet: caldera fields and lava rivers, a
-        // forge city's plate maze, ash ridges, or the NIGHT side's cracked
-        // crust (EmberTuning.Night; one of four variant sets per landing).
-        // Forges, cooling towers, pipework, eruptions and slag barges stand on
-        // the ground, PINNED to the mid tile (GroundPlanner) where its
-        // affinity mask says they belong. The art is painted dark and
-        // lava-lit (value p90 ~.40-.47) and drawn as painted (brightness 1:
-        // not Spec.Bright), so the dark worlds' shot outlines apply.
-        new Spec { world = "Ember", folder = "Worlds/Ember/Backdrop3/", keyAtlas = "landmarks",
-                   variantSets = BackdropVariants.MaxVariants,
+        // Ember (EmberDirector, docs in EmberBackdrop.cs): flown HIGH (r1, 2026-11-28: the user-approved .49 altitude, as Frost / Desert) over
+        // the forge planet: caldera fields and lava rivers, cooled-crust plates, ash ridges, or the NIGHT side's cracked crust
+        // (EmberTuning.Night; one of four variant sets per landing). The 896 px repainted ground tile is drawn at 2 x GroundZoom of the
+        // view (EmberTuning.TileZoom: two columns side by side), so everything standing on it is keyed to EmberTuning.GroundZoom (.49).
+        // The living props and the mountains (EmberProps.cs) stand on the ground, PINNED to the mid tile (GroundPlanner) where its mask and
+        // context say they belong, with the eruptions (lava fountains, scars, coal beds, flare stacks, pools) and the elite launch sites.
+        // The art is painted dark and lava-lit (drawn as painted, brightness 1: not Spec.Bright), so the dark worlds' shot outlines apply.
+        new Spec { world = "Ember", folder = "Worlds/Ember/Backdrop3/", keyAtlas = "sites",
+                   variantSets = BackdropVariants.MaxVariants, groundZoom = EmberTuning.TileZoom, pieceZoom = EmberTuning.GroundZoom,
                    brightness = () => EmberTuning.Brightness, saturation = () => 1f,
                    variantBrightness = EmberTuning.VariantBrightness, variantNight = EmberTuning.Night,
                    cloudDensity = () => EmberTuning.CloudDensity, ceilingHold = () => EmberTuning.CeilingHold,
                    ceilingClearSeconds = () => EmberTuning.CeilingClearSeconds, layers = new[] {
-            Layer.Tile("sky", 0.006f, W).Graded(.6f),
-            Layer.Tile("far", 0.014f, W).Graded(.8f),
-            Layer.Tile("mid", 0.024f, W).Graded(1f),
-            // landmarks, pipes, eruptions and the elite sites: one ground
-            // plane pinned to the mid tile
-            Layer.Pieces("ground", 0.024f, Role.Landmark).PinnedTo("mid", 0.024f).Graded(1f),
-            Layer.Strip("flow", 0.025f, 0.25f, 0.01f, new Color(1f, 1f, 1f, 0.85f)).Graded(1f),
+            // (sky / far lie under the opaque mid: the far layer reuses the sky texture, their rates scaled with the altitude)
+            Layer.Tile("sky", 0.006f * EmberTuning.GroundZoom, W).Graded(.6f),
+            Layer.Tile("far", 0.014f * EmberTuning.GroundZoom, W).WithTexture("sky").Graded(.8f),
+            Layer.Tile("mid", EmberTuning.GroundRate, W).Graded(1f),
+            // the mountains, the living props, the eruptions and the elite sites: one ground plane pinned to the mid tile
+            Layer.Pieces("ground", EmberTuning.GroundRate, Role.Landmark).PinnedTo("mid", EmberTuning.GroundRate).Graded(1f),
             Layer.Pieces("palls", 0.040f, Role.Atmosphere).Graded(.6f),
             Layer.Pieces("mist", 0.060f, Role.Atmosphere).Graded(.6f),
             Layer.Pieces("wisps", 0.090f, Role.Cloud).Graded(.6f),
@@ -311,19 +346,22 @@ public static class BackdropCatalog
         // lamps (value p90 ~.38-.47) and drawn as painted (brightness 1: not
         // Spec.Bright), so the dark worlds' shot outlines apply. The ground tiles are 896x1792 (a 1.75x
         // resample of the first 512x1024 art, 149.33 px per unit: WorldBackdropImport.IsTideHdTile).
+        // 2026-11-28: flown at the .49 altitude like every world: the tiles drawn at TideTuning.TileZoom (2 x GroundZoom), everything on the
+        // ground keyed to TideTuning.GroundZoom (pieceZoom); the living props (TideProps.cs) stand on the ground plane too.
         new Spec { world = "Tide", folder = "Worlds/Tide/Backdrop3/", keyAtlas = "landmarks",
-                   variantSets = BackdropVariants.MaxVariants,
+                   variantSets = BackdropVariants.MaxVariants, groundZoom = TideTuning.TileZoom, pieceZoom = TideTuning.GroundZoom,
                    brightness = () => TideTuning.Brightness, saturation = () => 1f,
                    variantBrightness = TideTuning.VariantBrightness, variantNight = TideTuning.Night,
                    cloudDensity = () => TideTuning.CloudDensity, ceilingHold = () => TideTuning.CeilingHold,
                    ceilingClearSeconds = () => TideTuning.CeilingClearSeconds, layers = new[] {
-            Layer.Tile("sky", 0.006f, W).Graded(.6f),
-            Layer.Tile("far", 0.014f, W).Graded(.8f),
-            Layer.Tile("mid", 0.024f, W).Graded(1f),
-            // landmarks, pipes, vents, vessels and the elite sites: one ground
+            Layer.Tile("sky", 0.006f * TideTuning.GroundZoom, W).Graded(.6f),
+            Layer.Tile("far", 0.014f * TideTuning.GroundZoom, W).Graded(.8f),
+            Layer.Tile("mid", TideTuning.GroundRate, W).Graded(1f),
+            // the current streaks: UNDER the pinned plane (user rule 2026-11-28: nothing moving passes through a prop)
+            Layer.Strip("flow", TideTuning.FlowRate, TideTuning.FlowDrift, 0.01f, new Color(1f, 1f, 1f, 0.85f)).Graded(1f),
+            // landmarks, pipes, vents, vessels, the living props and the elite sites: one ground
             // plane pinned to the mid tile
-            Layer.Pieces("ground", 0.024f, Role.Landmark).PinnedTo("mid", 0.024f).Graded(1f),
-            Layer.Strip("flow", 0.025f, 0.30f, 0.01f, new Color(1f, 1f, 1f, 0.85f)).Graded(1f),
+            Layer.Pieces("ground", TideTuning.GroundRate, Role.Landmark).PinnedTo("mid", TideTuning.GroundRate).Graded(1f),
             Layer.Pieces("palls", 0.040f, Role.Atmosphere).Graded(.6f),
             Layer.Pieces("mist", 0.060f, Role.Atmosphere).Graded(.6f),
             Layer.Pieces("wisps", 0.090f, Role.Cloud).Graded(.6f),
@@ -342,17 +380,23 @@ public static class BackdropCatalog
         // The art is painted dark slate with storm-white light (value p90 ~.40-.50) and drawn as
         // painted (brightness 1: not Spec.Bright), so the dark worlds' shot outlines apply.
         new Spec { world = "Storm", folder = "Worlds/Storm/Backdrop3/", keyAtlas = "landmarks",
-                   variantSets = StormTuning.Variants,
+                   variantSets = StormTuning.Variants, groundZoom = StormTuning.TileZoom, pieceZoom = StormTuning.GroundZoom,
                    brightness = () => StormTuning.Brightness, saturation = () => 1f,
                    variantBrightness = StormTuning.VariantBrightness, variantNight = StormTuning.Night,
                    cloudDensity = () => StormTuning.CloudDensity, ceilingHold = () => StormTuning.CeilingHold,
                    ceilingClearSeconds = () => StormTuning.CeilingClearSeconds, layers = new[] {
-            Layer.Tile("sky", 0.006f, W).Graded(.6f),
-            Layer.Tile("far", 0.014f, W).Graded(.8f),
-            Layer.Tile("mid", 0.024f, W).Graded(1f),
-            // masts, towers, skyhooks, refineries and the elite sites: one ground plane pinned to the mid tile
-            Layer.Pieces("ground", 0.024f, Role.Landmark).PinnedTo("mid", 0.024f).Graded(1f),
-            Layer.Strip("flow", 0.025f, 0.30f, 0.01f, new Color(1f, 1f, 1f, 0.85f)).Graded(1f),
+            // (sky / far lie under the opaque mid: kept as they were, their rates scaled with the altitude like Frost's)
+            Layer.Tile("sky", 0.006f * StormTuning.GroundZoom, W).Graded(.6f),
+            Layer.Tile("far", 0.014f * StormTuning.GroundZoom, W).Graded(.8f),
+            Layer.Tile("mid", StormTuning.GroundRate, W).Graded(1f),
+            // soft wind-sheared vapour streaks drifting over the deck (a little faster than the ground: the wind). UNDER the pinned
+            // plane (user rule 2026-11-28: nothing moving passes through a prop): the vapour runs beneath the floating structures
+            Layer.Strip("flow", StormTuning.FlowRate, StormTuning.FlowDrift, 0.004f, new Color(1f, 1f, 1f, 0.85f)).Graded(1f),
+            // masts, towers, skyhooks, refineries, the elite sites and the ground props (StormProps.cs): one ground plane pinned to the mid tile
+            Layer.Pieces("ground", StormTuning.GroundRate, Role.Landmark).PinnedTo("mid", StormTuning.GroundRate).Graded(1f),
+            // the ALOFT props (StormProps.cs: aerostats, convoys, sky jellies, manta rays): closer to the camera than the ground,
+            // drawn larger and scrolling faster (StormPropsTuning.AloftRateK x the ground's), hazed, under every weather layer
+            Layer.Pieces(StormPropsTuning.AloftLayer, StormPropsTuning.AloftRate, Role.Atmosphere).Graded(StormPropsTuning.AloftGrade),
             // lightning's light spilling over the cloud sea, and its bolts
             Layer.Pieces("glow", 0.027f, Role.Atmosphere),
             Layer.Pieces("bolts", 0.030f, Role.Atmosphere),
@@ -366,31 +410,27 @@ public static class BackdropCatalog
             Layer.Pieces("debris", 0.320f, Role.Atmosphere),
             Layer.Pieces("rain", 0.450f, Role.Atmosphere),
         }},
-        // Desert (DesertDirector, docs in DesertBackdrop.cs): flown at atmosphere
-        // level over the dead strip-mined planet: bone-gold dune seas, a dry copper
-        // canyon of buried refineries, a cracked salt flat of toppled solar arrays,
-        // or the NIGHT side's cold moon-lit dunes (DesertTuning.Night; one of four
-        // variant sets per landing) -- with giant sand worms under the sand (ridge
-        // trails and eruptions, DesertDirector). Ruins, pipework, wells, vents and
-        // ground features stand on the ground, PINNED to the mid tile
-        // (GroundPlanner) where its affinity mask says they belong. The art is
-        // painted dark-base with bone crest lights (value p90 ~.40-.49) and drawn
-        // as painted (brightness 1: not Spec.Bright), so the dark worlds' shot
-        // outlines apply.
-        new Spec { world = "Desert", folder = "Worlds/Desert/Backdrop3/", keyAtlas = "landmarks",
-                   variantSets = BackdropVariants.MaxVariants,
+        // Desert (DesertDirector, docs in DesertBackdrop.cs): flown HIGH (r1, 2026-11-28: the user-approved .41 altitude, as Frost
+        // and Storm) over the dead strip-mined planet: a khaki dune sea, a lilac salt mine, a rose dusk oasis in the rock, or the NIGHT
+        // side (DesertTuning.Night; one of four variant sets per landing) -- with giant sand worms under the sand (ridge trails and
+        // eruptions, DesertDirector). The 896 px stitched ground tile is drawn at 2 x GroundZoom of the view (DesertTuning.TileZoom: two
+        // columns side by side), so everything standing on it is keyed to DesertTuning.GroundZoom (.49). The living props and the
+        // mountains (DesertProps.cs) stand on the ground, PINNED to the mid tile (GroundPlanner) where its mask and context say they
+        // belong. Drawn as painted (brightness 1: not Spec.Bright), so the dark worlds' shot outlines apply.
+        new Spec { world = "Desert", folder = "Worlds/Desert/Backdrop3/", keyAtlas = "sites",
+                   variantSets = BackdropVariants.MaxVariants, groundZoom = DesertTuning.TileZoom, pieceZoom = DesertTuning.GroundZoom,
                    brightness = () => DesertTuning.Brightness, saturation = () => 1f,
                    variantBrightness = DesertTuning.VariantBrightness, variantNight = DesertTuning.Night,
                    cloudDensity = () => DesertTuning.CloudDensity, ceilingHold = () => DesertTuning.CeilingHold,
                    ceilingClearSeconds = () => DesertTuning.CeilingClearSeconds, layers = new[] {
-            Layer.Tile("sky", 0.006f, W).Graded(.6f),
-            Layer.Tile("far", 0.014f, W).Graded(.8f),
-            Layer.Tile("mid", 0.024f, W).WithTexture("sky").Graded(1f),
-            // landmarks, pipes, ground features, the worms and the elite sites: one
-            // ground plane pinned to the mid tile
-            Layer.Pieces("ground", 0.024f, Role.Landmark).PinnedTo("mid", 0.024f).Graded(1f),
-            Layer.Strip("flow", 0.025f, 0.30f, 0.01f, new Color(1f, 1f, 1f, 0.85f)).Graded(1f),
-            Layer.Pieces("palls", 0.040f, Role.Atmosphere).Graded(.6f),
+            // (sky / far lie under the opaque mid: the far layer reuses the sky texture, their rates scaled with the altitude)
+            Layer.Tile("sky", 0.006f * DesertTuning.GroundZoom, W).Graded(.6f),
+            Layer.Tile("far", 0.014f * DesertTuning.GroundZoom, W).WithTexture("sky").Graded(.8f),
+            Layer.Tile("mid", DesertTuning.GroundRate, W).Graded(1f),
+            // the blowing sand streaks: UNDER the pinned plane (user rule 2026-11-28: nothing moving passes through a prop)
+            Layer.Strip("flow", DesertTuning.FlowRate, DesertTuning.FlowDrift, 0.01f, new Color(1f, 1f, 1f, 0.85f)).Graded(1f),
+            // the mountains, the living props, the worms, the wanderers and the elite sites: one ground plane pinned to the mid tile
+            Layer.Pieces("ground", DesertTuning.GroundRate, Role.Landmark).PinnedTo("mid", DesertTuning.GroundRate).Graded(1f),
             Layer.Pieces("mist", 0.060f, Role.Atmosphere).Graded(.6f),
             Layer.Pieces("wisps", 0.090f, Role.Cloud).Graded(.6f),
             // the dust-haze ceiling the planetfall drops through
@@ -408,6 +448,29 @@ public static class BackdropCatalog
     public static bool CurrentIsBright
     {
         get { var spec = For(WorldManager.Current.displayName); return spec != null && spec.Bright; }
+    }
+
+    // Is the current world's live backdrop under its thick cloud deck (Spec.boldUnderCeiling)? Read when a shot launches.
+    public const float DeckBoldDensity = .3f;
+    public static bool CurrentUnderDeck
+    {
+        get
+        {
+            var wb = WorldBackdrop.Instance;
+            var set = wb != null && wb.Current != null ? wb.Current : WorldBackdrop.LastShown;
+            if (set == null || set.Root == null || set.Spec == null || !set.Spec.boldUnderCeiling || set.Director == null) return false;
+            if (set.Spec.world != WorldManager.Current.displayName) return false;
+            return set.Spec.CeilingDensity(set.Director.Elapsed) >= DeckBoldDensity;
+        }
+    }
+
+    // Shots and boss rims launched now wear the bold style: a bright world, or under its thick cloud deck.
+    public static bool CurrentBoldShots => CurrentIsBright || CurrentUnderDeck;
+
+    // Do the current world's hearts wear the bold outline (Spec.HeartsBold)?
+    public static bool CurrentHeartsBold
+    {
+        get { var spec = For(WorldManager.Current.displayName); return spec != null && spec.HeartsBold; }
     }
 
     public static Spec For(string displayName)

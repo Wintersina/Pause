@@ -6,11 +6,14 @@ using UnityEngine;
 // The Verdant v3 backdrop (VerdantDirector, GroundPlanner, VerdantAmbientCatalog):
 //   * one of four ground sets per landing, never the same twice running; the
 //     night side (v4) flagged, drawn darker, its lights stronger;
-//   * PINNED pieces: a landmark's spot on the mid tile never changes while
-//     it is in view (60 s of scroll);
+//   * r1 (2026-11-28) the .49 ALTITUDE: the 896 x 4096 ground drawn at TileZoom .98 (the tile covers the view across), everything on it
+//     keyed to GroundZoom .49 (sizes x PieceScale, gaps x GroundZoom); the round-1 landmarks / pipes / clusters retired; the props art
+//     installed but not drawn (PropsEnabled false: VerdantPropsArtTest holds the atlases);
+//   * PINNED pieces: a fire's or a site's spot on the mid tile never changes
+//     while it is in view (60 s of scroll);
 //   * AFFINITY: over 200 seeded runs per variant no piece stands on ground
-//     its rule forbids (barges on water, fires in the forest ...), and no
-//     two pieces' footprints overlap;
+//     its rule forbids (fires in the forest ...), and no two pieces'
+//     footprints overlap;
 //   * EXACT EMITTERS: every binding draws its loop with the loop's anchor
 //     (plume base) within 3 px of the piece's measured point, mirrored or
 //     not, and that point is on the piece's opaque art; plumes lean with the
@@ -49,6 +52,8 @@ public static class VerdantBackdropTest
         {
             Catalog();
             Selection();
+            Altitude();
+            WeatherArt();
             Pinned();
             Affinity();
             Emitters();
@@ -100,7 +105,7 @@ public static class VerdantBackdropTest
 
     static IEnumerable<BackdropPool> PinnedPools(VerdantDirector d)
     {
-        yield return d.Pipes; yield return d.Fires; yield return d.Ground; yield return d.Sites;
+        yield return d.Fires; yield return d.Sites;
     }
 
     // ---- the layer stack -----------------------------------------------------
@@ -110,10 +115,15 @@ public static class VerdantBackdropTest
         var spec = BackdropCatalog.For("Verdant");
         Check("Verdant has its own v3 folder and four variant sets",
               spec.folder == "Worlds/Verdant/Backdrop3/" && spec.variantSets == BackdropVariants.MaxVariants);
-        string[] want = { "sky", "far", "mid", "ground", "flow", "palls", "mist", "wisps", "ceiling", "pollen", "spores", "fireflies" };
-        bool all = true;
+        Check("the r1 ground: its own quilted mid tile (far reuses the sky), drawn at TileZoom " + spec.groundZoom + ", the pieces keyed to " + spec.PieceZoom +
+              " (GroundZoom .49, TileZoom 2 x, sites keyed to the altitude, cover boulders too)",
+              spec.Find("mid").texture == "mid" && spec.Find("far").texture == "sky" && spec.Rate("mid") != spec.Rate("sky") &&
+              spec.groundZoom == VerdantTuning.TileZoom && spec.PieceZoom == VerdantTuning.GroundZoom && VerdantTuning.GroundZoom == .49f &&
+              VerdantTuning.TileZoom == 2f * VerdantTuning.GroundZoom && CoverBoulders.GroundZoom("Verdant") == .49f);
+        string[] want = { "sky", "far", "mid", "ground", "palls", "mist", "wisps", "ceiling", "pollen", "spores", "fireflies" };
+        bool all = !spec.Has("flow");
         foreach (string n in want) all &= spec.Has(n);
-        Check("Verdant layers: ground tiles, pinned ground pieces, flow, palls, mist, wisps, ceiling, pollen, spores, fireflies", all);
+        Check("Verdant layers: ground tiles, pinned ground pieces, palls, mist, wisps, ceiling, pollen, spores, fireflies (the old river flow strip retired: the repainted rivers carry their own water)", all);
         var g = spec.Find("ground");
         Check("the ground pieces are PINNED to the mid tile: same rate (" + g.rate + " = " + spec.Rate("mid") + " <= " +
               BackdropCatalog.MaxGroundRate + "), landmark role, right after it",
@@ -127,8 +137,10 @@ public static class VerdantBackdropTest
         Check("the night side is v4 only, drawn darker (" + spec.VariantBrightness(4) + ")",
               !spec.Night(1) && !spec.Night(2) && !spec.Night(3) && spec.Night(4) && spec.VariantBrightness(4) < 1f &&
               spec.VariantBrightness(1) >= .9f);
-        Check("ground pieces stay under the size limit", VerdantTuning.LandmarkMax <= BackdropCatalog.MaxLandmarkSize &&
-              VerdantTuning.FireMax <= BackdropCatalog.MaxLandmarkSize && VerdantTuning.SiteMax <= BackdropCatalog.MaxLandmarkSize);
+        Check("ground pieces stay under the size limit, scaled to the altitude (sites x PieceScale " + VerdantTuning.PieceScale.ToString("F3") + ")",
+              VerdantTuning.FireMax <= BackdropCatalog.MaxLandmarkSize && VerdantTuning.SiteMax <= BackdropCatalog.MaxLandmarkSize &&
+              Mathf.Approximately(VerdantTuning.SiteMax, 1.7f * VerdantTuning.PieceScale) && Mathf.Approximately(VerdantTuning.FireMax, 1.75f * VerdantTuning.PieceScale) &&
+              Mathf.Approximately(VerdantTuning.SiteGapMin, 5f * VerdantTuning.GroundZoom));
 
         var table = VerdantAmbientCatalog.Table;
         bool loops = true;
@@ -139,7 +151,7 @@ public static class VerdantBackdropTest
             foreach (var e in b.emitters) { loops &= table.LoopIndex(e.loop) >= 0; bound++; }
         }
         Check("points.json binds " + bound + " measured emitters on " + table.bindings.Length + " drawings, every loop known, <= " +
-              table.maxPerPiece + " per piece", loops && table.bindings.Length >= 25 && bound >= 70);
+              table.maxPerPiece + " per piece (r1: the retired landmarks' and pipes' emitters went with them)", loops && table.bindings.Length >= 12 && bound >= 40);
         bool anchors = true;
         foreach (var l in table.loops)
         {
@@ -152,16 +164,22 @@ public static class VerdantBackdropTest
         foreach (var m in VerdantAmbientCatalog.MeasuredLoops)
             if (VerdantAmbientCatalog.Plume(m.name)) smokeBase &= Mathf.Abs(m.x - 128f) <= 4f && m.y >= 228f && m.spread <= 4f;
         Check("the plume loops' bases sit on their cell's bottom-centre anchor, steady over the frames", smokeBase);
-        string[] smokers = { "refinery_00", "refinery_01", "refinery_02", "burnfront_00", "pipe_leak_00", "scorched_00" };
+        string[] smokers = { "burnfront_00", "burnfront_01", "burnpatch_00", "coalbed_00", "scorched_00" };
         bool smokes = true;
         foreach (string s in smokers) smokes &= VerdantAmbientCatalog.Table.For(s) != null;
-        Check("refineries, burn fronts, pipe leaks and burnt industry all carry loops", smokes);
+        Check("burn fronts, burn patches, coal beds and scorched ground all carry loops", smokes);
+        bool retired = VerdantAmbientCatalog.Piece("refinery_00") == null && VerdantAmbientCatalog.Piece("pipe_leak_00") == null && VerdantAmbientCatalog.Piece("tower_00") == null &&
+                       Resources.Load<TextAsset>("Worlds/Verdant/Backdrop3/landmarks") == null && Resources.Load<TextAsset>("Worlds/Verdant/Backdrop3/pipes") == null;
+        Check("the round-1 landmarks and pipes (atlases and measured points) are retired", retired);
         for (int v = 1; v <= 4; v++)
         {
             var mask = GroundMask.Load("Verdant", v);
             Check("v" + v + " has its affinity mask (" + (mask != null ? mask.Cols + "x" + mask.Rows + ", water " +
                   mask.Share(GroundClass.Water).ToString("F2") + ", built " + mask.Share(GroundClass.Built).ToString("F2") : "-") + ")",
-                  mask != null && mask.Cols == 32 && mask.Rows == 64 && mask.Share(GroundClass.Canopy) > .1f);
+                  mask != null && mask.Cols == 64 && mask.Rows == 292 && mask.Share(GroundClass.Canopy) > .1f);
+            var midSprite = Resources.Load<Sprite>(BackdropCatalog.TileFolder("Verdant", v) + "mid");
+            Check("v" + v + "'s mid tile is the 896 x 4096 quilt, a tile 6 units wide at the importer's scale",
+                  midSprite != null && midSprite.texture.width == 896 && midSprite.texture.height == 4096);
         }
         var resin = EliteCatalog.Find("verdant_elite_resin_warden");
         Check("the Resin Warden launches from a hatch (its own pad: the other four Verdant elites have theirs)",
@@ -227,14 +245,14 @@ public static class VerdantBackdropTest
     {
         var wb = Fresh(1, .6f);
         var d = Director(wb);
-        Check("Verdant builds its director on the v3 art", d != null && wb.Current.Complete && d.Planner.Ready && d.Planner.Mask != null);
+        Check("Verdant builds its director on the r1 art", d != null && wb.Current.Complete && d.Planner.Ready && d.Planner.Mask != null);
         if (d == null) return;
         var start = new Dictionary<BackdropPiece, Vector2>();
         float worst = 0f;
         int tracked = 0;
         var tile = d.Planner.Tile;
-        var midTex = Resources.Load<Texture2D>(BackdropCatalog.TileFolder("Verdant", 1) + "mid");   // tile pixel size from the art itself (896x1792 since 2026-10)
-        float tileW = midTex != null ? midTex.width : 896f, tileH = midTex != null ? midTex.height : 1792f;
+        var midTex = Resources.Load<Texture2D>(BackdropCatalog.TileFolder("Verdant", 1) + "mid");   // tile pixel size from the art itself (896 x 4096 since r1)
+        float tileW = midTex != null ? midTex.width : 896f, tileH = midTex != null ? midTex.height : 4096f;
         Run(wb, 60f, () =>
         {
             foreach (var pool in PinnedPools(d))
@@ -252,7 +270,7 @@ public static class VerdantBackdropTest
                 }
         });
         Check("over 60 s of scroll every pinned piece keeps its spot on the mid tile (" + tracked + " pieces, worst drift " +
-              worst.ToString("F3") + " tile px <= .5)", tracked >= 8 && worst <= .5f);
+              worst.ToString("F3") + " tile px <= .5)", tracked >= 3 && worst <= .5f);
         bool gyFixed = true;
         foreach (var pool in PinnedPools(d))
             foreach (var p in pool.items)
@@ -267,7 +285,7 @@ public static class VerdantBackdropTest
     {
         for (int v = 1; v <= TestHarness.SweepVariants(4); v++)
         {
-            int pieces = 0, wrong = 0, overlaps = 0, relaxed = 0, clusters = 0, runs = 0, pipes = 0;
+            int pieces = 0, wrong = 0, overlaps = 0, relaxed = 0, clusters = 0, runs = 0;
             var byClass = new Dictionary<string, int>();
             string bad = "";
             for (int run = 0; run < SeededRuns; run++)
@@ -289,8 +307,6 @@ public static class VerdantBackdropTest
                             string name = p.sr.sprite != null ? p.sr.sprite.name : "";
                             var rule = VerdantTuning.Rule(name);
                             bool site = pool == d.Sites;
-                            if (pool == d.Pipes) pipes++;
-                            if (pool == d.Pipes && p.kind == VerdantDirector.RunPipe) continue;   // a run's pipe crosses whatever lies between its structures
                             if (!d.Planner.Accepts(rule, p.x, p.gy, p.size))
                             {
                                 if (site && d.Planner.Accepts(new PieceRule(GroundClass.Land, .5f), p.x, p.gy, p.size)) relaxed++;
@@ -299,8 +315,7 @@ public static class VerdantBackdropTest
                             string k = d.Planner.ClassAt(p.x, p.gy).ToString();
                             int c; byClass.TryGetValue(name.Split('_')[0] + ":" + k, out c); byClass[name.Split('_')[0] + ":" + k] = c + 1;
                         }
-                    // no two non-pipe footprints overlap (pipes tuck under the plates they join)
-                    foreach (var a in d.Ground.items) Overlap(d, a, ref overlaps);
+                    // no two footprints overlap
                     foreach (var a in d.Fires.items) Overlap(d, a, ref overlaps);
                     foreach (var a in d.Sites.items) Overlap(d, a, ref overlaps);
                 };
@@ -313,9 +328,9 @@ public static class VerdantBackdropTest
             var top = new List<string>();
             foreach (var kv in byClass) if (kv.Value >= runs / 4) top.Add(kv.Key + " " + kv.Value);
             Debug.Log("[VBD] v" + v + " placements by drawing:ground " + string.Join(", ", top));
-            Check("v" + v + ": " + runs + " seeded runs, " + pieces + " pieces (" + pipes + " pipes, " + clusters +
+            Check("v" + v + ": " + runs + " seeded runs, " + pieces + " pieces (" + clusters +
                   " clusters): none on ground its rule forbids (" + wrong + " " + bad + "; sites on relaxed land " + relaxed + ")",
-                  runs == SeededRuns && pieces > runs * 4 && wrong == 0);
+                  runs == SeededRuns && pieces > runs && wrong == 0);
             Check("v" + v + ": no two piece footprints overlap (" + overlaps + ")", overlaps == 0);
         }
     }
@@ -323,7 +338,7 @@ public static class VerdantBackdropTest
     static void Overlap(VerdantDirector d, BackdropPiece a, ref int overlaps)
     {
         if (!a.active) return;
-        foreach (var pool in new[] { d.Ground, d.Fires, d.Sites })
+        foreach (var pool in new[] { d.Fires, d.Sites })
             foreach (var b in pool.items)
             {
                 if (!b.active || b == a || b.GetHashCode() < a.GetHashCode()) continue;
@@ -412,7 +427,7 @@ public static class VerdantBackdropTest
                 if (AlphaAt(piece.atlas, piece.name, e.x, e.y) < .5f) { offArt++; if (off.Length < 200) off += piece.name + "/" + e.loop + " "; }
         }
         Check("every bound loop draws its anchor within " + EmitterTolerancePx + " px of the piece's measured point, mirrored or not, at any size (" +
-              probes + " probes, worst " + far + ")", probes >= 300 && worst <= EmitterTolerancePx);
+              probes + " probes, worst " + far + ")", probes >= 100 && worst <= EmitterTolerancePx);
         Check("... and every measured point lies on the piece's opaque art (" + offArt + " off: " + off + ")", offArt == 0);
         Check("... loops draw above their piece (" + notAbove + " not) and all lean with the level wind (" + lean + " against)",
               notAbove == 0 && lean == 0);
@@ -450,8 +465,8 @@ public static class VerdantBackdropTest
                 }
         });
         Check("over 90 s of flying the live loops (" + live + " samples, peak " + peak + ") stay within " + EmitterTolerancePx +
-              " px of their points (worst " + runWorst.ToString("F2") + ") and animate", live > 1000 && peak >= 6 && runWorst <= EmitterTolerancePx && advanced);
-        Check("the forest is busy: pipe runs " + d.PipeRuns + ", clusters " + d.Clusters + ", fires seen", d.PipeRuns >= 1 && d.Clusters >= 6);
+              " px of their points (worst " + runWorst.ToString("F2") + ") and animate", live > 150 && peak >= 2 && runWorst <= EmitterTolerancePx && advanced);
+        Check("the forest still burns: wildfire clusters " + d.Clusters + ", fires seen", d.Clusters >= 3);
         Object.DestroyImmediate(wb.gameObject);
 
         // without the loop atlases (Space has none) the emitters quietly show nothing
@@ -462,11 +477,100 @@ public static class VerdantBackdropTest
         amb2.Rig(pool2);
         int shown = -1;
         bool quiet = true;
-        try { shown = amb2.Attach(pool2.Spawn(), "refinery_00", new System.Random(1)); amb2.Step(1f); }
+        try { shown = amb2.Attach(pool2.Spawn(), "burnfront_00", new System.Random(1)); amb2.Step(1f); }
         catch (System.Exception e) { quiet = false; Debug.LogException(e); }
         Check("without the loop atlases the emitters show nothing, without an error", quiet && shown == 0);
         ember.Destroy();
         Object.DestroyImmediate(root2.gameObject);
+    }
+
+    // ---- the .49 altitude: the ground tile covers the view across -----------------------------------------------------------
+
+    // r1: the 896 px tile is drawn at TileZoom (.98) of the view's width, in as many columns as it takes: on every ground set the copies
+    // that cross the middle of the view reach both edges with no gap between neighbours, and the tile is the share of the view the
+    // catalog says (the .98 of the width + the 2% overscan, BackdropSet.Layout).
+    static void Altitude()
+    {
+        for (int v = 1; v <= TestHarness.SweepVariants(4); v++)
+        {
+            var wb = Fresh(v);
+            var cam = Camera.main;
+            float halfW = cam.orthographicSize * cam.aspect, cx = cam.transform.position.x, cy = cam.transform.position.y;
+            var root = wb.Current.Root.Find("Tile_mid");
+            var spans = new List<Vector2>();
+            if (root != null)
+                foreach (var sr in root.GetComponentsInChildren<SpriteRenderer>())
+                {
+                    if (!sr.enabled || sr.sprite == null) continue;
+                    Bounds b = sr.bounds;
+                    if (b.min.y > cy || b.max.y < cy) continue;
+                    spans.Add(new Vector2(b.min.x, b.max.x));
+                }
+            spans.Sort((p, q) => p.x.CompareTo(q.x));
+            bool gapless = spans.Count > 0 && spans[0].x <= cx - halfW + .001f;
+            float reach = spans.Count > 0 ? spans[0].y : 0f;
+            for (int i = 1; i < spans.Count; i++)
+            {
+                gapless &= spans[i].x <= reach + .01f;
+                reach = Mathf.Max(reach, spans[i].y);
+            }
+            gapless &= reach >= cx + halfW - .001f;
+            var d = Director(wb);
+            float want = wb.Current.HalfWidth * 2f * 1.02f * VerdantTuning.TileZoom;
+            Check("v" + v + ": the mid tile (drawn " + (d != null ? d.Planner.Tile.TileWidth.ToString("F2") : "-") + " u wide, " + VerdantTuning.TileZoom + " of the view, " +
+                  (d != null ? d.Planner.Tile.Columns.ToString() : "-") + " columns) covers the screen across with no gap (" + spans.Count + " copies at the middle)",
+                  gapless && d != null && Mathf.Abs(d.Planner.Tile.TileWidth - want) < .02f && d.Planner.Tile.Columns >= 3);
+            Object.DestroyImmediate(wb.gameObject);
+        }
+    }
+
+    // ---- the soft painted weather art (weather.png, wx_hazard row 0) --------------------------------------------------------
+
+    const string ArtDir = "Assets/Art/Backgrounds/Resources/Worlds/Verdant/Backdrop3/";
+
+    static Color[] Pixels(string png)
+    {
+        var tex = new Texture2D(2, 2);
+        tex.LoadImage(File.ReadAllBytes(png));
+        var px = tex.GetPixels();
+        Object.DestroyImmediate(tex);
+        return px;
+    }
+
+    // The five soft painting sets (cloud banks, mist, rain curtains, pollen swirls, the humid front) sit under the director's sprite names:
+    // every cell exists and is drawn (banks / wisps / mist / pollen / spore), the sheet and the hazard sheet carry no pink (WorldCue.IsPink),
+    // and the humid front (hazard row 0: six frames, a wall of cloud, not the old leaf strip) is painted across the whole cell width.
+    static void WeatherArt()
+    {
+        var atlas = new BackdropAtlas(Resources.Load<Texture2D>("Worlds/Verdant/Backdrop3/weather"), Resources.Load<TextAsset>("Worlds/Verdant/Backdrop3/weather"));
+        bool names = atlas.Frames("cloud_bank").Length == 4 && atlas.Frames("cloud_wisp").Length == 4 && atlas.Frames("mist").Length == 3 &&
+                     atlas.Frames("pollen").Length == 2 && atlas.Frames("smokepall").Length == 2 && atlas.Get("spore_00") != null;
+        atlas.Destroy();
+        Check("the weather sheet keeps its sprite names (4 banks, 4 wisps = the rain curtains, 3 mist, 2 pollen gusts, 2 palls, a spore)", names);
+        var wx = Pixels(ArtDir + "weather.png");
+        int pink = 0, solid = 0;
+        foreach (var c in wx) { if (c.a > .02f && WorldCue.IsPink(c)) pink++; if (c.a > .3f) solid++; }
+        Check("weather.png: no pink texel (" + pink + "), painted (" + solid + " solid texels)", pink == 0 && solid > 100000);
+        var hz = Pixels(ArtDir + "wx_hazard.png");
+        int hpink = 0;
+        foreach (var c in hz) if (c.a > .02f && WorldCue.IsPink(c)) hpink++;
+        Check("wx_hazard.png: no pink texel (" + hpink + ")", hpink == 0);
+        // row 0 (the top 512 rows of the 3072 x 1536 sheet): each of its six cells carries a wall spanning the full cell width
+        int w = 3072, h = 1536;
+        bool wall = true;
+        for (int cell = 0; cell < 6; cell++)
+        {
+            int cols = 0, rowsMin = h, rowsMax = -1;
+            for (int x = cell * 512; x < (cell + 1) * 512; x++)
+            {
+                bool any = false;
+                for (int y = h - 512; y < h; y++)
+                    if (hz[y * w + x].a > .5f) { any = true; rowsMin = Mathf.Min(rowsMin, y); rowsMax = Mathf.Max(rowsMax, y); }
+                if (any) cols++;
+            }
+            wall &= cols >= 500 && rowsMax - rowsMin >= 120 && rowsMax - rowsMin <= 400;
+        }
+        Check("the humid front (wx_hazard row 0): six cells, each a wall of cloud across the cell's whole width", wall);
     }
 
     // ---- ceiling, gusts, layers behind gameplay ---------------------------------
@@ -779,10 +883,10 @@ public static class VerdantBackdropTest
         Check("pools never grow over a long run", wb.GetComponentsInChildren<Transform>(true).Length == transforms);
         // pause-safe: dt 0 is a still frame
         var before = new List<Vector3>();
-        foreach (var p in d.Ground.items) before.Add(p.root.localPosition);
+        foreach (var p in d.Fires.items) before.Add(p.root.localPosition);
         for (int i = 0; i < 30; i++) wb.Step(0f);
         bool still = true;
-        for (int i = 0; i < d.Ground.items.Count; i++) still &= d.Ground.items[i].root.localPosition == before[i];
+        for (int i = 0; i < d.Fires.items.Count; i++) still &= d.Fires.items[i].root.localPosition == before[i];
         Check("a paused frame (dt 0) moves nothing", still);
     }
 }

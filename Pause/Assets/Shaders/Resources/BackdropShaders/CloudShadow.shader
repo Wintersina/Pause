@@ -7,6 +7,10 @@
 // (_Steps levels, ordered 4x4 Bayer dither on the steps' rims: Quantize in CloudShadows.cs is the same maths) and outputs the
 // world's dark tint with  alpha = level x vertex alpha.  The vertex alpha is the draw cap (fade x peak, <= 0.5), so a pixel is
 // never darker than that; the vertex RGB carries the quad's noise seed (the tint lives on the material).
+//
+// _Soft = 1 (a world whose clouds are soft, CloudShadowLayer.Look.soft: Frost): the same cloud, drawn SMOOTH instead of as pixel
+// art: the mask is read with a smooth (Hermite-weighted) 4-tap interpolation between texel centres, the detail noise at the exact
+// position, and the density turns into a continuous alpha (no steps, no dither), so the shadow is a soft gradient with soft edges.
 Shader "Pause/CloudShadow"
 {
     Properties
@@ -17,6 +21,7 @@ Shader "Pause/CloudShadow"
         _MaskSize ("Mask size (texels)", Vector) = (512, 512, 0, 0)
         _T ("Morph clock (s)", Float) = 0
         _Steps ("Alpha steps", Float) = 5
+        _Soft ("Soft (smooth, no steps)", Float) = 0
     }
 
     SubShader
@@ -44,6 +49,7 @@ Shader "Pause/CloudShadow"
             float4 _MaskSize;
             float _T;
             float _Steps;
+            float _Soft;
 
             v2f vert (appdata v)
             {
@@ -54,11 +60,40 @@ Shader "Pause/CloudShadow"
                 return o;
             }
 
+            // the mask (point-filtered) read smoothly: 4 texel centres, Hermite weights (no bilinear diamonds on the soft rims)
+            float SoftMask (float2 uv)
+            {
+                float2 p = uv * _MaskSize.xy - 0.5;
+                float2 b = floor(p);
+                float2 f = p - b;
+                f = f * f * (3.0 - 2.0 * f);
+                float2 t = 1.0 / _MaskSize.xy;
+                float2 c = (b + 0.5) * t;
+                float m00 = tex2D(_MainTex, c).r;
+                float m10 = tex2D(_MainTex, c + float2(t.x, 0)).r;
+                float m01 = tex2D(_MainTex, c + float2(0, t.y)).r;
+                float m11 = tex2D(_MainTex, c + t).r;
+                return lerp(lerp(m00, m10, f.x), lerp(m01, m11, f.x), f.y);
+            }
+
             fixed4 frag (v2f i) : SV_Target
             {
+                float2 seed = i.color.rg;
+                if (_Soft > 0.5)
+                {
+                    float2 pc = i.uv * _MaskSize.xy;
+                    float ms = SoftMask(i.uv);
+                    float2 dps = pc / 170.0;
+                    float s1 = tex2D(_DetailTex, dps + seed * 7.31 + _T * float2(0.0042, 0.0027)).r;
+                    float s2 = tex2D(_DetailTex, dps * 2.3 + seed.yx * 5.17 - _T * float2(0.0031, 0.0054)).r;
+                    float cSoft = ms * (0.35 + 1.15 * (s1 * 0.62 + s2 * 0.38));
+                    float aSoft = smoothstep(0.12, 0.85, cSoft);
+                    float alphaS = aSoft * i.color.a;
+                    clip(alphaS - 0.002);
+                    return fixed4(_Tint.rgb, alphaS);
+                }
                 float2 ci = floor(i.uv * _MaskSize.xy);                 // the cell
                 float m = tex2D(_MainTex, (ci + 0.5) / _MaskSize.xy).r;
-                float2 seed = i.color.rg;
                 float2 dp = ci / 170.0;                                  // detail texture spans ~170 cells
                 float d1 = tex2D(_DetailTex, dp + seed * 7.31 + _T * float2(0.0042, 0.0027)).r;
                 float d2 = tex2D(_DetailTex, dp * 2.3 + seed.yx * 5.17 - _T * float2(0.0031, 0.0054)).r;

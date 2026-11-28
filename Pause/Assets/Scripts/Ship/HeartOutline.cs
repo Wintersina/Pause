@@ -57,7 +57,7 @@ public static class HeartOutline
         get
         {
             if (Bold.HasValue) return Bold.Value;
-            return BackdropCatalog.CurrentIsBright;
+            return BackdropCatalog.CurrentHeartsBold;     // (bright worlds, and Frost from up high: Spec.boldHearts)
         }
     }
 

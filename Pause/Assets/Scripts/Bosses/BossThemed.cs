@@ -14,7 +14,7 @@ using UnityEngine;
 //   Bloom Queen          stinger thorns, vine lash | spore bloom | acid cannons, trunk toss
 //   Cinder Drake         fire breath, flame sweep | furnace slugs | jaw flamethrower, eruption columns
 //   Iron Kraken          port cluster, thunder strike | beak jet | starboard cluster, surf wave
-//   Tempest Engine       core arc fan, crown lane strike | crown hail | coil beams, chain-lightning sweep
+//   Tempest Engine       coil lightning, crown lane strike | crown hail | eye beam, chain-lightning sweep
 //   Dune-Eater           grit fan, burrower strike | dune lob | lens beam, sandstorm wall
 //
 // A table only fights when BossDef.themedAttacks is on (default off); the default tables are untouched. The
@@ -149,7 +149,7 @@ public static class BossThemed
         // ONE whip from the left flank petal, 1.0 s tell with the dotted sweep drawn from the first frame (measured: two whips armed together hit the dodge bot 37-96 %, one 5.5 %)
         return new BossAttack
         {
-            name = "vine lash", kind = BossAttackKind.Lash, tell = 1, tellSeconds = 1f, emitters = new[] { "PetalL", "PetalR" },
+            name = "vine lash", kind = BossAttackKind.Lash, tell = 1, tellSeconds = 1f, anim = 1, emitters = new[] { "PetalL", "PetalR" },
             lash = LashSpec.Standard(w), spacing = 1.9f, volleys = 1, volleyGap = 1f, cooldown = 1.3f, minPhase = 1,
         };
     }
@@ -161,7 +161,7 @@ public static class BossThemed
         log.rollSeconds = 3f;
         return new BossAttack
         {
-            name = "trunk toss", kind = BossAttackKind.Roll, tell = 1, tellSeconds = 1.2f, emitters = new[] { "PetalLL", "PetalLR" },
+            name = "trunk toss", kind = BossAttackKind.Roll, tell = 1, tellSeconds = 1.2f, anim = 2, emitters = new[] { "PetalLL", "PetalLR" },
             log = log, spacing = 1.9f, heightAbove = 2.6f, volleys = 2, volleyGap = .9f, cooldown = 1.4f, minPhase = 3,
         };
     }

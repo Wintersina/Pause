@@ -643,8 +643,17 @@ public static class WorldHazardsTest
             Check(id + ": its world's hazard sheet loads for the event", HazardArt.Loaded && HazardArt.World == d.world && HazardArt.Refs == 1);
             if (HazardArt.Loaded)
             {
-                bool all = true; for (int r = 0; r < 3; r++) for (int c = 0; c < 6; c++) all &= HazardArt.Cell(r, c) != null && Mathf.Approximately(HazardArt.Cell(r, c).rect.width, 512f);
-                Check(id + ": 18 cells of 512 x 512 (full resolution)", all);
+                // a cell is 512 px; a sheet with transparent gutters (wx_hazard.json, Frost: 16 px) cuts its inner 480 px, never less than 448,
+                // and every sprite is one unit across whatever its rect
+                int side = HazardArt.SpritePx;
+                bool all = side >= 448 && side == HazardArt.CellPx - 2 * HazardArt.Gutter;
+                for (int r = 0; r < 3; r++) for (int c = 0; c < 6; c++)
+                {
+                    var sp = HazardArt.Cell(r, c);
+                    all &= sp != null && Mathf.Approximately(sp.rect.width, side) && Mathf.Approximately(sp.rect.height, side) && Mathf.Abs(sp.bounds.size.x - 1f) < .001f &&
+                           Mathf.Approximately(sp.rect.x, c * HazardArt.CellPx + HazardArt.Gutter);
+                }
+                Check(id + ": 18 cells of 512 x 512 (full resolution; sprite " + side + " px inside a " + HazardArt.Gutter + " px gutter, one unit)", all);
             }
             var seen = new System.Collections.Generic.HashSet<Sprite>();
             for (int i = 0; i < 6 * 60; i++) { m.StepFields(Dt); m.Visuals.Draw(WorldHazards.Fields); if (m.Visuals.ArtDrawn > 0) seen.Add(m.Visuals.ArtRenderers[0].sprite); }

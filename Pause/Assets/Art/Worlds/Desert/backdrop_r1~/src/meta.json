@@ -1,0 +1,1730 @@
+{
+ "oasis_r1_0": {
+  "frames": 8,
+  "cell": 256,
+  "ms": [
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125
+  ],
+  "pink_px": 0,
+  "note": "as painted: terracotta, indigo, saffron and olive awnings, teal domes",
+  "air": false,
+  "lamps": {
+   "window": 30,
+   "lamp": 5
+  }
+ },
+ "oasis_r1_1": {
+  "frames": 8,
+  "cell": 256,
+  "ms": [
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125
+  ],
+  "pink_px": 0,
+  "note": "market day: saffron / terracotta / indigo swapped round",
+  "air": false,
+  "lamps": {
+   "window": 30,
+   "lamp": 5
+  }
+ },
+ "oasis_r1_2": {
+  "frames": 8,
+  "cell": 256,
+  "ms": [
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125
+  ],
+  "pink_px": 0,
+  "note": "indigo and white cloth, green-tiled domes",
+  "air": false,
+  "lamps": {
+   "window": 30,
+   "lamp": 5
+  }
+ },
+ "oasis_r1_3": {
+  "frames": 8,
+  "cell": 256,
+  "ms": [
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125
+  ],
+  "pink_px": 0,
+  "note": "ochre and green awnings, blue domes",
+  "air": false,
+  "lamps": {
+   "window": 30,
+   "lamp": 5
+  }
+ },
+ "caravan_r1_0": {
+  "frames": 8,
+  "cell": 256,
+  "ms": [
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125
+  ],
+  "pink_px": 0,
+  "note": "deep red and indigo saddle blankets, indigo robes",
+  "air": false,
+  "lamps": {
+   "lamp": 3
+  }
+ },
+ "caravan_r1_1": {
+  "frames": 8,
+  "cell": 256,
+  "ms": [
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125
+  ],
+  "pink_px": 0,
+  "note": "ochre and crimson blankets",
+  "air": false,
+  "lamps": {
+   "lamp": 3
+  }
+ },
+ "caravan_r1_2": {
+  "frames": 8,
+  "cell": 256,
+  "ms": [
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125
+  ],
+  "pink_px": 0,
+  "note": "teal-green and saffron blankets",
+  "air": false,
+  "lamps": {
+   "lamp": 3
+  }
+ },
+ "caravan_r1_3": {
+  "frames": 8,
+  "cell": 256,
+  "ms": [
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125
+  ],
+  "pink_px": 0,
+  "note": "olive blankets, white robes",
+  "air": false,
+  "lamps": {
+   "lamp": 3
+  }
+ },
+ "wreck_r1_0": {
+  "frames": 8,
+  "cell": 256,
+  "ms": [
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125
+  ],
+  "pink_px": 0,
+  "note": "as painted: faded white hull, orange stripe",
+  "air": false,
+  "lamps": {
+   "fire": 3
+  }
+ },
+ "wreck_r1_1": {
+  "frames": 8,
+  "cell": 256,
+  "ms": [
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125
+  ],
+  "pink_px": 0,
+  "note": "white hull, red stripe",
+  "air": false,
+  "lamps": {
+   "fire": 3
+  }
+ },
+ "wreck_r1_2": {
+  "frames": 8,
+  "cell": 256,
+  "ms": [
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125
+  ],
+  "pink_px": 0,
+  "note": "white hull, cobalt stripe",
+  "air": false,
+  "lamps": {
+   "fire": 3
+  }
+ },
+ "wreck_r1_3": {
+  "frames": 8,
+  "cell": 256,
+  "ms": [
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125
+  ],
+  "pink_px": 0,
+  "note": "cream hull, green stripe",
+  "air": false,
+  "lamps": {
+   "fire": 3
+  }
+ },
+ "wind_r1_0": {
+  "frames": 8,
+  "cell": 256,
+  "ms": [
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125
+  ],
+  "pink_px": 0,
+  "note": "as painted: white towers, red-banded blade tips, red nacelle beacons (synchronised)",
+  "air": false,
+  "lamps": {
+   "beacon": 3
+  }
+ },
+ "wind_r1_1": {
+  "frames": 8,
+  "cell": 256,
+  "ms": [
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125
+  ],
+  "pink_px": 0,
+  "note": "white towers, international-orange tips",
+  "air": false,
+  "lamps": {
+   "beacon": 3
+  }
+ },
+ "wind_r1_2": {
+  "frames": 8,
+  "cell": 256,
+  "ms": [
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125
+  ],
+  "pink_px": 0,
+  "note": "pale grey towers, red tips",
+  "air": false,
+  "lamps": {
+   "beacon": 3
+  }
+ },
+ "wind_r1_3": {
+  "frames": 8,
+  "cell": 256,
+  "ms": [
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125
+  ],
+  "pink_px": 0,
+  "note": "cream towers, orange tips, green base band",
+  "air": false,
+  "lamps": {
+   "beacon": 3
+  }
+ },
+ "ruins_r1_0": {
+  "frames": 8,
+  "cell": 256,
+  "ms": [
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125
+  ],
+  "pink_px": 0,
+  "note": "as painted: blue-grey and ochre mosaic, faded red banners, four braziers",
+  "air": false,
+  "lamps": {
+   "fire": 4
+  }
+ },
+ "ruins_r1_1": {
+  "frames": 8,
+  "cell": 256,
+  "ms": [
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125
+  ],
+  "pink_px": 0,
+  "note": "green-teal mosaic, indigo banners",
+  "air": false,
+  "lamps": {
+   "fire": 4
+  }
+ },
+ "ruins_r1_2": {
+  "frames": 8,
+  "cell": 256,
+  "ms": [
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125
+  ],
+  "pink_px": 0,
+  "note": "terracotta mosaic, green banners",
+  "air": false,
+  "lamps": {
+   "fire": 4
+  }
+ },
+ "ruins_r1_3": {
+  "frames": 8,
+  "cell": 256,
+  "ms": [
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125
+  ],
+  "pink_px": 0,
+  "note": "lapis mosaic, saffron banners",
+  "air": false,
+  "lamps": {
+   "fire": 4
+  }
+ },
+ "crawler_r1_0": {
+  "frames": 8,
+  "cell": 256,
+  "ms": [
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125
+  ],
+  "pink_px": 0,
+  "note": "as painted: safety-orange lead, olive-drab middle, sand-beige rear with blue stripe",
+  "air": false,
+  "lamps": {
+   "nav_red": 3,
+   "head": 4,
+   "abeacon": 4
+  }
+ },
+ "crawler_r1_1": {
+  "frames": 8,
+  "cell": 256,
+  "ms": [
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125
+  ],
+  "pink_px": 0,
+  "note": "yellow lead, navy middle",
+  "air": false,
+  "lamps": {
+   "nav_red": 3,
+   "head": 4,
+   "abeacon": 4
+  }
+ },
+ "crawler_r1_2": {
+  "frames": 8,
+  "cell": 256,
+  "ms": [
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125
+  ],
+  "pink_px": 0,
+  "note": "red lead, sand middle",
+  "air": false,
+  "lamps": {
+   "nav_red": 3,
+   "head": 4,
+   "abeacon": 4
+  }
+ },
+ "crawler_r1_3": {
+  "frames": 8,
+  "cell": 256,
+  "ms": [
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125
+  ],
+  "pink_px": 0,
+  "note": "white lead, orange middle",
+  "air": false,
+  "lamps": {
+   "nav_red": 3,
+   "head": 4,
+   "abeacon": 4
+  }
+ },
+ "camp_r1_0": {
+  "frames": 8,
+  "cell": 256,
+  "ms": [
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125
+  ],
+  "pink_px": 0,
+  "note": "dark-brown, deep-red and indigo tents, patterned rugs, campfire",
+  "air": false,
+  "lamps": {
+   "fire": 1,
+   "lamp": 3
+  }
+ },
+ "camp_r1_1": {
+  "frames": 8,
+  "cell": 256,
+  "ms": [
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125
+  ],
+  "pink_px": 0,
+  "note": "brown, ochre and crimson tents",
+  "air": false,
+  "lamps": {
+   "fire": 1,
+   "lamp": 3
+  }
+ },
+ "camp_r1_2": {
+  "frames": 8,
+  "cell": 256,
+  "ms": [
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125
+  ],
+  "pink_px": 0,
+  "note": "brown, green and red tents",
+  "air": false,
+  "lamps": {
+   "fire": 1,
+   "lamp": 3
+  }
+ },
+ "camp_r1_3": {
+  "frames": 8,
+  "cell": 256,
+  "ms": [
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125
+  ],
+  "pink_px": 0,
+  "note": "cream, red and saffron tents",
+  "air": false,
+  "lamps": {
+   "fire": 1,
+   "lamp": 3
+  }
+ },
+ "balloon_r1_0": {
+  "frames": 8,
+  "cell": 256,
+  "ms": [
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125
+  ],
+  "pink_px": 0,
+  "note": "as painted: red / cream, royal blue / yellow, green / orange gores",
+  "air": false,
+  "lamps": {
+   "burner": 3
+  }
+ },
+ "balloon_r1_1": {
+  "frames": 8,
+  "cell": 256,
+  "ms": [
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125
+  ],
+  "pink_px": 0,
+  "note": "blue / cream, green / cream, red / yellow",
+  "air": false,
+  "lamps": {
+   "burner": 3
+  }
+ },
+ "balloon_r1_2": {
+  "frames": 8,
+  "cell": 256,
+  "ms": [
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125
+  ],
+  "pink_px": 0,
+  "note": "orange / cream, red / yellow, navy / white",
+  "air": false,
+  "lamps": {
+   "burner": 3
+  }
+ },
+ "balloon_r1_3": {
+  "frames": 8,
+  "cell": 256,
+  "ms": [
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125
+  ],
+  "pink_px": 0,
+  "note": "green / cream, orange / blue, red / cream",
+  "air": false,
+  "lamps": {
+   "burner": 3
+  }
+ },
+ "zeppelin_r1_0": {
+  "frames": 8,
+  "cell": 256,
+  "ms": [
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125
+  ],
+  "pink_px": 0,
+  "note": "as painted: silver envelope, red / white nose bands, dark green fins, moored to a red lattice mast",
+  "air": false,
+  "lamps": {
+   "beacon": 1,
+   "nav_red": 1,
+   "nav_green": 1,
+   "strobe": 1,
+   "window": 3,
+   "head": 1
+  }
+ },
+ "zeppelin_r1_1": {
+  "frames": 8,
+  "cell": 256,
+  "ms": [
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125
+  ],
+  "pink_px": 0,
+  "note": "silver, navy / white bands, red fins",
+  "air": false,
+  "lamps": {
+   "beacon": 1,
+   "nav_red": 1,
+   "nav_green": 1,
+   "strobe": 1,
+   "window": 3,
+   "head": 1
+  }
+ },
+ "zeppelin_r1_2": {
+  "frames": 8,
+  "cell": 256,
+  "ms": [
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125
+  ],
+  "pink_px": 0,
+  "note": "silver, orange / white bands, charcoal fins",
+  "air": false,
+  "lamps": {
+   "beacon": 1,
+   "nav_red": 1,
+   "nav_green": 1,
+   "strobe": 1,
+   "window": 3,
+   "head": 1
+  }
+ },
+ "zeppelin_r1_3": {
+  "frames": 8,
+  "cell": 256,
+  "ms": [
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125
+  ],
+  "pink_px": 0,
+  "note": "silver, green / white bands, navy fins",
+  "air": false,
+  "lamps": {
+   "beacon": 1,
+   "nav_red": 1,
+   "nav_green": 1,
+   "strobe": 1,
+   "window": 3,
+   "head": 1
+  }
+ },
+ "skiffs_r1_0": {
+  "frames": 8,
+  "cell": 256,
+  "ms": [
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125
+  ],
+  "pink_px": 0,
+  "note": "as painted: cream sails with crimson stripes, weathered wood",
+  "air": false,
+  "lamps": {
+   "window": 2,
+   "lamp": 1
+  }
+ },
+ "skiffs_r1_1": {
+  "frames": 8,
+  "cell": 256,
+  "ms": [
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125
+  ],
+  "pink_px": 0,
+  "note": "cream sails, saffron stripes",
+  "air": false,
+  "lamps": {
+   "window": 2,
+   "lamp": 1
+  }
+ },
+ "skiffs_r1_2": {
+  "frames": 8,
+  "cell": 256,
+  "ms": [
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125
+  ],
+  "pink_px": 0,
+  "note": "cream sails, indigo stripes",
+  "air": false,
+  "lamps": {
+   "window": 2,
+   "lamp": 1
+  }
+ },
+ "skiffs_r1_3": {
+  "frames": 8,
+  "cell": 256,
+  "ms": [
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125
+  ],
+  "pink_px": 0,
+  "note": "cream sails, green stripes",
+  "air": false,
+  "lamps": {
+   "window": 2,
+   "lamp": 1
+  }
+ },
+ "spaceport_r1_0": {
+  "frames": 8,
+  "cell": 256,
+  "ms": [
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125
+  ],
+  "pink_px": 0,
+  "note": "as painted: white freighter with an orange stripe, rust and steel-blue tanks, hazard-striped pad",
+  "air": false,
+  "lamps": {
+   "beacon": 1,
+   "chase": 5
+  }
+ },
+ "spaceport_r1_1": {
+  "frames": 8,
+  "cell": 256,
+  "ms": [
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125
+  ],
+  "pink_px": 0,
+  "note": "white freighter, red stripe",
+  "air": false,
+  "lamps": {
+   "beacon": 1,
+   "chase": 5
+  }
+ },
+ "spaceport_r1_2": {
+  "frames": 8,
+  "cell": 256,
+  "ms": [
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125
+  ],
+  "pink_px": 0,
+  "note": "white freighter, cobalt stripe",
+  "air": false,
+  "lamps": {
+   "beacon": 1,
+   "chase": 5
+  }
+ },
+ "spaceport_r1_3": {
+  "frames": 8,
+  "cell": 256,
+  "ms": [
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125
+  ],
+  "pink_px": 0,
+  "note": "white freighter, green stripe",
+  "air": false,
+  "lamps": {
+   "beacon": 1,
+   "chase": 5
+  }
+ },
+ "observatory_r1_0": {
+  "frames": 8,
+  "cell": 256,
+  "ms": [
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125
+  ],
+  "pink_px": 0,
+  "note": "as painted: white telescope domes, silver radio dish, cream lab",
+  "air": false,
+  "lamps": {
+   "beacon": 1,
+   "window": 3,
+   "lamp": 1
+  }
+ },
+ "observatory_r1_1": {
+  "frames": 8,
+  "cell": 256,
+  "ms": [
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125
+  ],
+  "pink_px": 0,
+  "note": "verdigris copper domes",
+  "air": false,
+  "lamps": {
+   "beacon": 1,
+   "window": 3,
+   "lamp": 1
+  }
+ },
+ "observatory_r1_2": {
+  "frames": 8,
+  "cell": 256,
+  "ms": [
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125
+  ],
+  "pink_px": 0,
+  "note": "silver-grey domes, blue panels",
+  "air": false,
+  "lamps": {
+   "beacon": 1,
+   "window": 3,
+   "lamp": 1
+  }
+ },
+ "observatory_r1_3": {
+  "frames": 8,
+  "cell": 256,
+  "ms": [
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125
+  ],
+  "pink_px": 0,
+  "note": "ochre domes",
+  "air": false,
+  "lamps": {
+   "beacon": 1,
+   "window": 3,
+   "lamp": 1
+  }
+ },
+ "solar_r1_0": {
+  "frames": 8,
+  "cell": 256,
+  "ms": [
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125
+  ],
+  "pink_px": 0,
+  "note": "as painted: blue panels, orange control-hut roof",
+  "air": false,
+  "lamps": {
+   "beacon": 7,
+   "nav_green": 3
+  }
+ },
+ "solar_r1_1": {
+  "frames": 8,
+  "cell": 256,
+  "ms": [
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125
+  ],
+  "pink_px": 0,
+  "note": "terracotta roof, black-blue panels",
+  "air": false,
+  "lamps": {
+   "beacon": 7,
+   "nav_green": 3
+  }
+ },
+ "solar_r1_2": {
+  "frames": 8,
+  "cell": 256,
+  "ms": [
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125
+  ],
+  "pink_px": 0,
+  "note": "green roof, steel-blue panels",
+  "air": false,
+  "lamps": {
+   "beacon": 7,
+   "nav_green": 3
+  }
+ },
+ "solar_r1_3": {
+  "frames": 8,
+  "cell": 256,
+  "ms": [
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125
+  ],
+  "pink_px": 0,
+  "note": "blue roof, dusty panels",
+  "air": false,
+  "lamps": {
+   "beacon": 7,
+   "nav_green": 3
+  }
+ },
+ "station_r1_0": {
+  "frames": 8,
+  "cell": 256,
+  "ms": [
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125
+  ],
+  "pink_px": 0,
+  "note": "as painted: white domes with international-orange bands, blue-lit windows, green helipad ring",
+  "air": false,
+  "lamps": {
+   "beacon": 1,
+   "nav_green": 1,
+   "cool": 13
+  }
+ },
+ "station_r1_1": {
+  "frames": 8,
+  "cell": 256,
+  "ms": [
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125
+  ],
+  "pink_px": 0,
+  "note": "white domes, red bands",
+  "air": false,
+  "lamps": {
+   "beacon": 1,
+   "nav_green": 1,
+   "cool": 13
+  }
+ },
+ "station_r1_2": {
+  "frames": 8,
+  "cell": 256,
+  "ms": [
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125
+  ],
+  "pink_px": 0,
+  "note": "white domes, cobalt bands",
+  "air": false,
+  "lamps": {
+   "beacon": 1,
+   "nav_green": 1,
+   "cool": 13
+  }
+ },
+ "station_r1_3": {
+  "frames": 8,
+  "cell": 256,
+  "ms": [
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125
+  ],
+  "pink_px": 0,
+  "note": "white domes, green bands",
+  "air": false,
+  "lamps": {
+   "beacon": 1,
+   "nav_green": 1,
+   "cool": 13
+  }
+ },
+ "rig_r1_0": {
+  "frames": 8,
+  "cell": 256,
+  "ms": [
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125
+  ],
+  "pink_px": 0,
+  "note": "as painted: faded safety-yellow machinery, blue-grey tank",
+  "air": false,
+  "lamps": {
+   "beacon": 3,
+   "strobe": 1,
+   "window": 2
+  }
+ },
+ "rig_r1_1": {
+  "frames": 8,
+  "cell": 256,
+  "ms": [
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125
+  ],
+  "pink_px": 0,
+  "note": "safety orange machinery, white tank",
+  "air": false,
+  "lamps": {
+   "beacon": 3,
+   "strobe": 1,
+   "window": 2
+  }
+ },
+ "rig_r1_2": {
+  "frames": 8,
+  "cell": 256,
+  "ms": [
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125
+  ],
+  "pink_px": 0,
+  "note": "faded green machinery, rust-red tank",
+  "air": false,
+  "lamps": {
+   "beacon": 3,
+   "strobe": 1,
+   "window": 2
+  }
+ },
+ "rig_r1_3": {
+  "frames": 8,
+  "cell": 256,
+  "ms": [
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125
+  ],
+  "pink_px": 0,
+  "note": "red-oxide machinery, yellow tank",
+  "air": false,
+  "lamps": {
+   "beacon": 3,
+   "strobe": 1,
+   "window": 2
+  }
+ },
+ "dig_r1_0": {
+  "frames": 8,
+  "cell": 256,
+  "ms": [
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125
+  ],
+  "pink_px": 0,
+  "note": "as painted: blue tarps, orange and green shade tents, yellow mini excavator",
+  "air": false,
+  "lamps": {
+   "lamp": 6,
+   "abeacon": 1
+  }
+ },
+ "dig_r1_1": {
+  "frames": 8,
+  "cell": 256,
+  "ms": [
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125
+  ],
+  "pink_px": 0,
+  "note": "green tarps, white tents",
+  "air": false,
+  "lamps": {
+   "lamp": 6,
+   "abeacon": 1
+  }
+ },
+ "dig_r1_2": {
+  "frames": 8,
+  "cell": 256,
+  "ms": [
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125
+  ],
+  "pink_px": 0,
+  "note": "orange tarps, blue tents",
+  "air": false,
+  "lamps": {
+   "lamp": 6,
+   "abeacon": 1
+  }
+ },
+ "dig_r1_3": {
+  "frames": 8,
+  "cell": 256,
+  "ms": [
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125
+  ],
+  "pink_px": 0,
+  "note": "grey tarps, red and khaki tents",
+  "air": false,
+  "lamps": {
+   "lamp": 6,
+   "abeacon": 1
+  }
+ },
+ "market_r1_0": {
+  "frames": 8,
+  "cell": 256,
+  "ms": [
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125
+  ],
+  "pink_px": 0,
+  "note": "as painted: red, green, saffron and blue merchant awnings",
+  "air": false,
+  "lamps": {
+   "window": 1,
+   "lamp": 4
+  }
+ },
+ "market_r1_1": {
+  "frames": 8,
+  "cell": 256,
+  "ms": [
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125
+  ],
+  "pink_px": 0,
+  "note": "saffron, red, green, white awnings",
+  "air": false,
+  "lamps": {
+   "window": 1,
+   "lamp": 4
+  }
+ },
+ "market_r1_2": {
+  "frames": 8,
+  "cell": 256,
+  "ms": [
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125
+  ],
+  "pink_px": 0,
+  "note": "indigo, saffron, red, green awnings",
+  "air": false,
+  "lamps": {
+   "window": 1,
+   "lamp": 4
+  }
+ },
+ "market_r1_3": {
+  "frames": 8,
+  "cell": 256,
+  "ms": [
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125
+  ],
+  "pink_px": 0,
+  "note": "green, blue, white, red awnings",
+  "air": false,
+  "lamps": {
+   "window": 1,
+   "lamp": 4
+  }
+ },
+ "mesa_r1_0": {
+  "frames": 8,
+  "cell": 512,
+  "ms": [
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125
+  ],
+  "pink_px": 0,
+  "note": "as painted: rust-red and cream banded sandstone",
+  "air": false,
+  "lamps": {}
+ },
+ "mesa_r1_1": {
+  "frames": 8,
+  "cell": 512,
+  "ms": [
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125
+  ],
+  "pink_px": 0,
+  "note": "buff and cream sandstone",
+  "air": false,
+  "lamps": {}
+ },
+ "mesa_r1_2": {
+  "frames": 8,
+  "cell": 512,
+  "ms": [
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125
+  ],
+  "pink_px": 0,
+  "note": "deep maroon-brown sandstone",
+  "air": false,
+  "lamps": {}
+ },
+ "mesa_r1_3": {
+  "frames": 8,
+  "cell": 512,
+  "ms": [
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125
+  ],
+  "pink_px": 0,
+  "note": "weathered grey-brown rock",
+  "air": false,
+  "lamps": {}
+ },
+ "ridge_r1_0": {
+  "frames": 8,
+  "cell": 512,
+  "ms": [
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125
+  ],
+  "pink_px": 0,
+  "note": "as painted: grey-tan sandstone peaks",
+  "air": false,
+  "lamps": {}
+ },
+ "ridge_r1_1": {
+  "frames": 8,
+  "cell": 512,
+  "ms": [
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125
+  ],
+  "pink_px": 0,
+  "note": "rust-brown peaks",
+  "air": false,
+  "lamps": {}
+ },
+ "ridge_r1_2": {
+  "frames": 8,
+  "cell": 512,
+  "ms": [
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125
+  ],
+  "pink_px": 0,
+  "note": "dark umber peaks",
+  "air": false,
+  "lamps": {}
+ },
+ "ridge_r1_3": {
+  "frames": 8,
+  "cell": 512,
+  "ms": [
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125
+  ],
+  "pink_px": 0,
+  "note": "pale limestone peaks",
+  "air": false,
+  "lamps": {}
+ },
+ "hoodoo_r1_0": {
+  "frames": 8,
+  "cell": 512,
+  "ms": [
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125
+  ],
+  "pink_px": 0,
+  "note": "as painted: orange and cream banded spires, dark caprock",
+  "air": false,
+  "lamps": {}
+ },
+ "hoodoo_r1_1": {
+  "frames": 8,
+  "cell": 512,
+  "ms": [
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125
+  ],
+  "pink_px": 0,
+  "note": "pale buff spires",
+  "air": false,
+  "lamps": {}
+ },
+ "hoodoo_r1_2": {
+  "frames": 8,
+  "cell": 512,
+  "ms": [
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125
+  ],
+  "pink_px": 0,
+  "note": "red-brown spires",
+  "air": false,
+  "lamps": {}
+ },
+ "hoodoo_r1_3": {
+  "frames": 8,
+  "cell": 512,
+  "ms": [
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125
+  ],
+  "pink_px": 0,
+  "note": "grey-ochre spires",
+  "air": false,
+  "lamps": {}
+ },
+ "volcano_r1_0": {
+  "frames": 8,
+  "cell": 512,
+  "ms": [
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125
+  ],
+  "pink_px": 0,
+  "note": "as painted: charcoal basalt, ash-grey slopes",
+  "air": false,
+  "lamps": {}
+ },
+ "volcano_r1_1": {
+  "frames": 8,
+  "cell": 512,
+  "ms": [
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125
+  ],
+  "pink_px": 0,
+  "note": "rust-streaked brown basalt",
+  "air": false,
+  "lamps": {}
+ },
+ "volcano_r1_2": {
+  "frames": 8,
+  "cell": 512,
+  "ms": [
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125
+  ],
+  "pink_px": 0,
+  "note": "blue-black basalt",
+  "air": false,
+  "lamps": {}
+ },
+ "volcano_r1_3": {
+  "frames": 8,
+  "cell": 512,
+  "ms": [
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125
+  ],
+  "pink_px": 0,
+  "note": "ochre-dusted cone",
+  "air": false,
+  "lamps": {}
+ }
+}

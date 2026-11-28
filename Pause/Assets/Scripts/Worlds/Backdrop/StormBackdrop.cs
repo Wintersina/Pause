@@ -9,14 +9,14 @@ using UnityEngine;
 //              (wind-sheared slate bands and cyclone scars), v2 the thunderhead field
 //              (towering lit cumulonimbus tops with lightning in the canyons), v3 the
 //              NIGHT side, v4 gust-front shelf arcs.
-//   PIECES     landmarks pinned to the mid tile (GroundPlanner): anvil thunderhead towers,
-//              lightning-rod masts, skyhook anchors, floating refineries, siphon towers, an
-//              airship dock, a gantry, a turbine raft, a relay dish; clusters (a storm
-//              front of towers, a refinery with its neighbour, a mast with a dish, a
-//              skyhook) with long calm gaps. Elite launch sites on the same plane.
+//   PIECES     landmarks pinned to the mid tile (GroundPlanner): a crane gantry, a turbine raft
+//              and a relay dish, alone or as a pair, far apart -- the living ground PROPS
+//              (StormProps.cs) are the deck's main content. (2026-11-28 the towers, spires,
+//              skyhooks, floating refineries, siphon tower and airship dock were retired: the
+//              new props replace them; pl/storm_keep_retire.txt.) Elite launch sites on the same plane.
 //   LIGHTNING  StormLightning schedules the weather: sheet flashes that light the cloud
 //              layers (soft glow sprites, a faint bloom over the ceiling), forked
-//              cloud-to-cloud bolts and strikes down onto a lightning-rod mast. It is
+//              cloud-to-cloud bolts and strikes down onto a lightning-rod platform (the RODS prop). It is
 //              deliberately gentle (photosensitivity): see StormTuning's limits, held
 //              by StormBackdropTest. No sound: the user authors the world's ambience.
 //   WEATHER    the CEILING of storm cloud (continuing the planetfall deck) held
@@ -35,55 +35,71 @@ public static class StormTuning
     public static readonly float[] VariantBrightness = { 1f, .6f, .6f, .6f, .6f };   // index = variant (0 none)
     public static readonly bool[] Night = { false, false, false, true, false };
 
+    // ---- ALTITUDE (2026-11-28, user-approved r3 ground: "those are good", then "go storm") ----
+    // The ground is seen from Frost's height: GroundZoom of the old view (.41 when approved; 2026-11-28 the user brought every
+    // world 20% closer: .49). The r3 ground tiles (896 x 4096, stitched from the approved painting, pl/storm/r3/stitch.py) hold
+    // TWO ground columns side by side, so they are drawn at TileZoom = 2 x GroundZoom (.98) of the view's width
+    // (BackdropCatalog.Spec.groundZoom): ~1.2 screen px a texel (bilinear), one repeat every ~2 screens down; across, the tile
+    // spans the whole screen (98% of the 1.02-wide layout) with its seam at the screen's edges and a column each side (the art
+    // wraps across: left vs right column ~.017, under its own neighbouring columns'), so the camera sway never shows a gap.
+    // Everything that stands on the ground is keyed to GroundZoom (Spec.pieceZoom), never TileZoom: the ground layers' rates,
+    // the pinned pieces' sizes, gaps and spawn bands, the sites, the cover boulders, the props (StormPropsTuning.ZoomK).
+    public const float GroundZoom = .49f, TileZoom = 2f * GroundZoom;
+    public const float GroundRate = .024f * GroundZoom;               // the mid tile's (and everything pinned to it) parallax rate
+    public const float FlowRate = .025f * GroundZoom, FlowDrift = .30f * GroundZoom;   // the vapour strip: a touch faster than the ground (wind)
+    // Pinned pieces at the zoom, x PieceFit on top: 1 (Frost needs .7 for its plate tops; Storm's pieces float on the deck) keeps
+    // the landmarks (~105 px a 256 cell on a 1080 px phone at .41, ~125 at .49) at the size of the approved ground props (92 - 128
+    // px at .41, x ZoomK since).
+    public const float PieceFit = 1f;
+    public const float PieceScale = GroundZoom * PieceFit;
+
     // ---- ground pieces -----------------------------------------------------------
-    public static float LandmarkMin = 1.5f, LandmarkMax = 1.75f;
-    public static float TowerMin = 1.6f, TowerMax = 1.8f;
-    public static float ClusterGapMin = 1.6f, ClusterGapMax = 3.2f;
-    public static float LoneGapMin = .8f, LoneGapMax = 1.5f;
-    public static float NeighbourGapMin = .1f, NeighbourGapMax = .5f;
+    public static float LandmarkMin = 1.5f * PieceScale, LandmarkMax = 1.75f * PieceScale;
+    // scrolled ground between spawns, x GroundZoom: the same ground of the tile between two tries as before the zoom
+    // (2026-11-28 retirement: the new ground props are the deck's main content now, so the three remaining landmarks come far apart)
+    public static float ClusterGapMin = 3f * GroundZoom, ClusterGapMax = 5f * GroundZoom;
+    public static float LoneGapMin = 2f * GroundZoom, LoneGapMax = 3.5f * GroundZoom;
+    public static float NeighbourGapMin = .1f * PieceScale, NeighbourGapMax = .5f * PieceScale;
+    public const int GroundPool = 24;                                  // landmarks alive at once (~6x the old ground in view)
+    // where a new piece is looked for: a band SpawnBand tall starting SpawnAbove over the top of the view
+    public static float SpawnAbove = .95f * PieceScale, SpawnBand = .9f * GroundZoom, SpawnRetry = .25f * GroundZoom;
+    public static float OpeningStepMin = 2.6f * GroundZoom, OpeningStepMax = 3.6f * GroundZoom, OpeningBand = 1.2f * GroundZoom;
     public static float Wind = 1f;                    // +1: gusts and rain lean right
 
     static readonly PieceRule Platform = new PieceRule(GroundClass.Open, .55f, .3f);
-    static readonly PieceRule Tower = new PieceRule(GroundClass.Any, 0f, .3f);
 
-    public static bool IsTower(string piece) { return piece != null && piece.StartsWith("anvil_tower"); }
-    public static bool IsSpire(string piece) { return piece != null && piece.StartsWith("spire"); }
-    public static PieceRule Rule(string piece) { return IsTower(piece) ? Tower : Platform; }
+    public static PieceRule Rule(string piece) { return Platform; }
+
+    // RETIRED 2026-11-28 (user: "use the new props instead of the old stuff and remove some of the old stuff that doesn't make
+    // sense anymore"; list and reasons: pl/storm_keep_retire.txt): the thunderhead towers (the lightning CELL prop), the lightning-rod
+    // spires (the relay MAST and the RODS platform -- strikes now come down on the rods), the skyhook balloon clusters (the tethered
+    // AEROSTAT), the floating refineries and the siphon tower (the REFINERY prop), the airship dock (the elites' airship-dock launch
+    // site). Kept: the three that have no new equivalent and stand sensibly on the deck -- the crane gantry, the turbine raft (its
+    // fans turn) and the relay dish (it turns).
+    public static readonly string[] Yard = { "gantry_00", "turbine_raft_00", "relay_dish_00" };
+    public static readonly string[] Lone = Yard;
 
     // Every landmark drawing the director may place (tests: they must all exist in the landmarks atlas).
-    public static string[] AllPieces()
-    {
-        var names = new List<string>();
-        foreach (var group in new[] { Towers, Spires, Refineries, Neighbours, Skyhooks, Dishes, Lone })
-            foreach (string n in group) if (!names.Contains(n)) names.Add(n);
-        return names.ToArray();
-    }
+    public static string[] AllPieces() { return (string[])Yard.Clone(); }
 
-    public const int ClFront = 0, ClRefinery = 1, ClMast = 2, ClSkyhook = 3, ClLone = 4;
+    public const int ClYard = 0, ClLone = 1;
     public static readonly int[][] ClusterWeights =
     {
-        new[] { 2, 2, 2, 2, 2 },   // (none)
-        new[] { 2, 3, 2, 2, 2 },   // v1 banded deck: refineries and skyhooks on the bands
-        new[] { 5, 1, 3, 1, 2 },   // v2 thunderhead field: towers and the masts that draw the bolts
-        new[] { 2, 2, 4, 2, 2 },   // v3 night side: masts that draw the bolts
-        new[] { 3, 2, 2, 3, 2 },   // v4 gust-front shelf arcs: skyhooks on the shelves
+        new[] { 1, 3 },   // (none)
+        new[] { 1, 3 },   // v1 banded deck
+        new[] { 1, 3 },   // v2 thunderhead field
+        new[] { 1, 3 },   // v3 night side
+        new[] { 1, 3 },   // v4 gust-front shelf arcs
     };
-    public static readonly string[] Towers = { "anvil_tower_00", "anvil_tower_01", "anvil_tower_02", "anvil_tower_03" };
-    public static readonly string[] Spires = { "spire_00", "spire_01" };
-    public static readonly string[] Refineries = { "refinery_float_00", "refinery_float_01", "refinery_float_02", "siphon_tower_00" };
-    public static readonly string[] Neighbours = { "gantry_00", "airship_dock_00", "turbine_raft_00", "siphon_tower_00", "refinery_float_01" };
-    public static readonly string[] Skyhooks = { "skyhook_00", "skyhook_01" };
-    public static readonly string[] Dishes = { "relay_dish_00", "turbine_raft_00", "gantry_00" };
-    public static readonly string[] Lone = { "spire_00", "spire_01", "skyhook_00", "skyhook_01", "refinery_float_00", "refinery_float_02", "airship_dock_00", "gantry_00", "turbine_raft_00", "relay_dish_00", "anvil_tower_00", "anvil_tower_02" };
 
-    // The lightning rod's tip on a spire's 256 cell (x = 128 from the left, y from the top).
-    public const float RodTipY = 40f;
+    // The tallest lightning rod's tip on the RODS prop's 256 cell (StormPropsTuning.Rods: px from the left / top, measured on the art).
+    public const float RodTipX = 120.5f, RodTipY = 10f;
     // A strike bolt's lower end on its 256 cell (bottom centre, y from the top).
     public const float StrikeEndY = 226f;
 
     // ---- launch sites ------------------------------------------------------------
-    public static float SiteMin = 1.5f, SiteMax = 1.7f, SiteFirst = 3f, SiteGapMin = 5f, SiteGapMax = 8.5f;
-    public static float SiteCloseDelay = .9f, SiteMinSize = 1.2f;
+    public static float SiteMin = 1.5f * PieceScale, SiteMax = 1.7f * PieceScale, SiteFirst = 3f * GroundZoom, SiteGapMin = 5f * GroundZoom, SiteGapMax = 8.5f * GroundZoom;
+    public static float SiteCloseDelay = .9f, SiteMinSize = 1.2f * PieceScale;
     // Entries 0-4 are the old two-drawing sites (sites atlas, kept as the elites' fallback homes); 5-8 the launch-strip ones (docks atlas:
     // <name>_00..05, DocksAtlas), for which SiteClosed / SiteOpen name the idle and the open cell (Rule picks the ground by the name).
     public static readonly string[] SiteNames = { "skyhook_dock", "refinery_pad", "balloon_hangar", "gantry_hatch", "cloud_bay", "airshipdock", "rodsilo", "skyhookcradle", "refinerybay" };
@@ -130,7 +146,8 @@ public static class StormTuning
     }
     public static Vector2 LampsAt = new Vector2(128f, 128f);
     public static float LampsScale = .5f;
-    public const float EmergeScalePerUnit = .22f, EmergeScaleMin = .26f, EmergeScaleMax = .4f;
+    // the elite's size as it comes out of the pad: x the pad's drawn width, its floor x PieceScale (as Frost's)
+    public const float EmergeScalePerUnit = .22f, EmergeScaleMin = .26f * PieceScale, EmergeScaleMax = .4f;
     public const int SiteIdBase = 900;
 
     // ---- weather -------------------------------------------------------------------
@@ -282,7 +299,7 @@ public sealed class StormLightning
     static float Smooth(float x) { x = Mathf.Clamp01(x); return x * x * (3f - 2f * x); }
 }
 
-public class StormDirector : PlanetDirector
+public partial class StormDirector : PlanetDirector
 {
     BackdropPool ground, sites, glow, bloom, bolts, debris, mist, wisps, ceiling, gusts, rain;
     readonly SpriteRenderer[] lamps = new SpriteRenderer[3];
@@ -390,7 +407,7 @@ public class StormDirector : PlanetDirector
         debrisArt = lightning.Frames("debris");
 
         // ground plane
-        ground = LandmarkPool("ground", 12);
+        ground = LandmarkPool("ground", StormTuning.GroundPool);
         sites = LandmarkPool("ground", 3);
         for (int i = 0; i < sites.items.Count; i++)
         {
@@ -411,8 +428,7 @@ public class StormDirector : PlanetDirector
             mists[i].sortingOrder = sites.items[i].sr.sortingOrder + 1;
             mists[i].enabled = false;
         }
-        life = new StormLife(ground, set.Atlas("rotors"), landmarkArt.Get(StormLifeTuning.TurbinePiece),
-                             flashArt.Length > 0 ? flashArt[0] : null, 4242, landmarkArt, set.Atlas(StormLifeTuning.BoltAtlas), landmarkArt.Get(StormLifeTuning.DishPiece));   // own seed: never draws from the director's rng (that would reshuffle the whole backdrop)
+        life = new StormLife(ground, set.Atlas("rotors"), landmarkArt.Get(StormLifeTuning.TurbinePiece), 4242, landmarkArt.Get(StormLifeTuning.DishPiece));   // own seed: never draws from the director's rng (that would reshuffle the whole backdrop)
         glow = Pool("glow", 4);
         bolts = Pool("bolts", 4);
         mist = Pool("mist", 3);
@@ -427,11 +443,13 @@ public class StormDirector : PlanetDirector
 
         groundGap = Rand(StormTuning.LoneGapMin, StormTuning.LoneGapMax);
         siteGap = StormTuning.SiteFirst;
+        BuildProps();
+        OpeningProps();
         if (planner.Ready)
         {
             double t = planner.Travel;
-            for (float y = -HalfH * .85f; y < HalfH * .8f; y += Rand(2.6f, 3.6f))
-                SpawnCluster(t + y, t + y + 1.2f);
+            for (float y = -HalfH * .85f; y < HalfH * .8f; y += Rand(StormTuning.OpeningStepMin, StormTuning.OpeningStepMax))
+                SpawnCluster(t + y, t + y + StormTuning.OpeningBand);
         }
         BuildCeiling();
         BuildRain();
@@ -469,8 +487,11 @@ public class StormDirector : PlanetDirector
 
     // ------------------------------------------------------------------- step --
 
+    float lastV;
+
     protected override void Step(float dt, float v)
     {
+        lastV = v;
         float scrolled = set.Spec.Rate("ground") * v * dt;
         groundTravel += scrolled;
         siteTravel += scrolled;
@@ -479,7 +500,7 @@ public class StormDirector : PlanetDirector
         {
             float gap = SpawnGround();
             if (gap > 0f) { groundTravel = 0f; groundGap = gap; }
-            else groundGap = groundTravel + .25f;
+            else groundGap = groundTravel + StormTuning.SpawnRetry;
         }
         ceilingTravel += set.Spec.Rate("ceiling") * v * dt;
         float density = set.Spec.CeilingDensity(clock);
@@ -504,6 +525,7 @@ public class StormDirector : PlanetDirector
         life.Step(dt);
         StepPinned(sites, dt);
         StepSites(dt);
+        StepProps(dt, v, scrolled);
         StepLightning(dt, v);
 
         foreach (var m in mist.items)
@@ -621,7 +643,7 @@ public class StormDirector : PlanetDirector
             if (!b.active) continue;
             b.age += dt;
             if (b.age >= StormLightning.BoltLife) { Despawn(b); continue; }
-            if (b.parent != null && b.parent.active) { b.x = b.parent.x; b.y = b.parent.y + b.phase; }
+            if (b.parent != null && b.parent.active) { b.x = b.parent.x + b.vx; b.y = b.parent.y + b.phase; }
             else b.y -= b.rate * v * dt;
             Place(b);
             b.sr.color = new Color(1f, 1f, 1f, StormLightning.BoltEnvelope(b.age) * set.Alpha);
@@ -629,34 +651,42 @@ public class StormDirector : PlanetDirector
         FlashLevel = level;
     }
 
-    // Any lightning-rod mast on screen where a strike would read.
+    // A lightning-rod platform (the RODS ground prop) on screen where a strike would read.
     BackdropPiece FindMast()
     {
-        foreach (var p in ground.items)
+        if (Props == null) return null;
+        foreach (var p in Props.items)
         {
-            if (!p.active || p.kind != KindSpire) continue;
+            if (!p.active || p.kind != StormPropsTuning.Rods) continue;
             if (p.y > HalfH * .75f || p.y < -HalfH * .55f) continue;
             return p;
         }
         return null;
     }
 
-    public const int KindSpire = 7;
+    // the rod tip's x offset from a rods piece's centre (mirrored with it)
+    static float RodTipDx(BackdropPiece mast) { return (StormTuning.RodTipX - 128f) / 256f * mast.size * (mast.body.localScale.x < 0f ? -1f : 1f); }
 
     void DrawPulse(StormLightning.Kind kind, float peak, bool fresh)
     {
         Flashes++;
         BackdropPiece mast = kind == StormLightning.Kind.Strike ? FindMast() : null;
+        // a strike comes down on its mast only: its bolt touches no other pinned piece on the way (else it is a fork elsewhere)
+        if (mast != null && !ClearOfPinned(mast.x + RodTipDx(mast), mast.y + StrikeOffset(mast, StormTuning.StrikeSize), StormTuning.StrikeSize * StormPropsTuning.BoltHalfX,
+                                           StormTuning.StrikeSize * StormPropsTuning.BoltHalfY + BoltSlide(), mast)) mast = null;
         if (kind == StormLightning.Kind.Strike && mast == null) kind = StormLightning.Kind.Fork;
         float gx, gy;
-        if (mast != null) { gx = mast.x; gy = mast.y + (128f - StormTuning.RodTipY) / 256f * mast.size; }
-        else
-        {
-            // sheet flashes love a thunderhead tower: light it from inside when one is on screen
-            BackdropPiece tower = kind == StormLightning.Kind.Sheet ? FindTower() : null;
-            if (tower != null) { gx = tower.x + Rand(-.3f, .3f); gy = tower.y + tower.size * Rand(.1f, .3f); life.Strike(tower, Mathf.Clamp01(peak / .8f)); }   // its own bolts flash with the weather
-            else { gx = Rand(-HalfW * .8f, HalfW * .8f); gy = Rand(-HalfH * .1f, HalfH * .85f); }
-        }
+        if (mast != null) { gx = mast.x + RodTipDx(mast); gy = mast.y + (128f - StormTuning.RodTipY) / 256f * mast.size; }
+        else { gx = Rand(-HalfW * .8f, HalfW * .8f); gy = Rand(-HalfH * .1f, HalfH * .85f); }
+        // a fork's bolt keeps clear of every pinned piece: a few spots tried, else no bolt this time (the flash still lights the clouds)
+        float boltSize = Rand(StormTuning.BoltMin, StormTuning.BoltMax);
+        bool forkClear = false;
+        if (kind == StormLightning.Kind.Fork)
+            for (int t = 0; t < 12 && !forkClear; t++)
+            {
+                if (t > 0) { gx = Rand(-HalfW * .8f, HalfW * .8f); gy = Rand(-HalfH * .1f, HalfH * .85f); }
+                forkClear = BoltClear(gx, gy, boltSize);
+            }
         SpawnGlow(glow, gx, gy, Rand(StormTuning.GlowMin, StormTuning.GlowMax), peak, "glow");
         if (kind == StormLightning.Kind.Sheet && Chance(.6)) SpawnGlow(bloom, gx * .5f, gy * .6f, StormTuning.BloomSize, peak, "bloom");
         if (!fresh) return;
@@ -668,23 +698,28 @@ public class StormDirector : PlanetDirector
         else if (kind == StormLightning.Kind.Fork)
         {
             Forks++;
-            if (boltArt.Length > 0) SpawnBolt(Pick(boltArt), Rand(StormTuning.BoltMin, StormTuning.BoltMax), gx, gy, null);
+            if (boltArt.Length > 0 && forkClear) SpawnBolt(Pick(boltArt), boltSize, gx, gy, null);
         }
-        else if (arcArt.Length > 0 && Chance(.5)) SpawnBolt(Pick(arcArt), StormTuning.ArcSize, gx * .3f, gy, null);
+        else if (arcArt.Length > 0 && Chance(.5) && BoltClear(gx * .3f, gy, StormTuning.ArcSize)) SpawnBolt(Pick(arcArt), StormTuning.ArcSize, gx * .3f, gy, null);
     }
 
-    BackdropPiece FindTower()
+    // where a strike bolt's centre sits over its mast (SpawnBolt)
+    static float StrikeOffset(BackdropPiece mast, float size)
     {
-        foreach (var p in ground.items)
-        {
-            if (!p.active || p.kind != KindTower) continue;
-            if (p.y > HalfH * .8f || p.y < -HalfH * .5f) continue;
-            return p;
-        }
-        return null;
+        return (128f - StormTuning.RodTipY) / 256f * mast.size + (StormTuning.StrikeEndY - 128f) / 256f * size;
     }
 
-    public const int KindTower = 6;
+    // how far a bolt slides over the ground in its life (its layer scrolls faster than the pinned one)
+    float BoltSlide()
+    {
+        return Mathf.Max(0f, set.Spec.Rate("bolts") - set.Spec.Rate("ground")) * lastV * StormLightning.BoltLife;
+    }
+
+    bool BoltClear(float x, float y, float size)
+    {
+        float slide = BoltSlide();
+        return ClearOfPinned(x, y - slide * .5f, size * StormPropsTuning.BoltHalfX, size * StormPropsTuning.BoltHalfY + slide * .5f);
+    }
 
     void SpawnGlow(BackdropPool pool, float x, float y, float size, float peak, string layer)
     {
@@ -715,9 +750,10 @@ public class StormDirector : PlanetDirector
             float tip = (128f - StormTuning.RodTipY) / 256f * mast.size;
             float end = (StormTuning.StrikeEndY - 128f) / 256f * size;
             b.phase = tip + end;
-            b.x = mast.x; b.y = mast.y + b.phase;
+            b.vx = RodTipDx(mast);                     // (a parented bolt keeps its x offset here: the rod tip is off the cell's centre)
+            b.x = mast.x + b.vx; b.y = mast.y + b.phase;
         }
-        else { b.x = x; b.y = y; b.phase = 0f; }
+        else { b.parent = null; b.vx = 0f; b.x = x; b.y = y; b.phase = 0f; }
         Place(b);
         b.sr.color = new Color(1f, 1f, 1f, 0f);
     }
@@ -727,7 +763,7 @@ public class StormDirector : PlanetDirector
     float SpawnGround()
     {
         double t = planner.Travel;
-        double lo = t + HalfH + .95f, hi = lo + .9f;
+        double lo = t + HalfH + StormTuning.SpawnAbove, hi = lo + StormTuning.SpawnBand;
         if (siteTravel >= siteGap && SpawnSite(float.NaN))
         {
             siteTravel = 0f;
@@ -764,10 +800,7 @@ public class StormDirector : PlanetDirector
         int n = 0;
         switch (kind)
         {
-            case StormTuning.ClFront: n = Front(lo, hi); break;
-            case StormTuning.ClRefinery: n = Pair(Pick(StormTuning.Refineries), StormTuning.Neighbours, lo, hi); break;
-            case StormTuning.ClMast: n = Pair(Pick(StormTuning.Spires), StormTuning.Dishes, lo, hi); break;
-            case StormTuning.ClSkyhook: n = Pair(Pick(StormTuning.Skyhooks), StormTuning.Neighbours, lo, hi); break;
+            case StormTuning.ClYard: n = Pair(Pick(StormTuning.Yard), StormTuning.Yard, lo, hi); break;
         }
         if (n == 0) n = LonePiece(lo, hi);
         if (n > 0) { lastCluster = kind; Clusters++; }
@@ -787,13 +820,14 @@ public class StormDirector : PlanetDirector
         SetSprite(p, sprite, Mathf.Min(size, BackdropCatalog.MaxLandmarkSize));
         p.body.localScale = mirror ? new Vector3(-1f, 1f, 1f) : Vector3.one;
         p.footprint = foot;
+        p.core = rule.core;
         p.gy = gy;
         p.x = x;
         p.y = planner.Y(gy);
         p.rate = set.Spec.Rate("ground");
         p.color = Color.white;
         p.dockTint = Color.white;
-        p.kind = StormTuning.IsSpire(name) ? KindSpire : StormTuning.IsTower(name) ? KindTower : 0;
+        p.kind = 0;
         Place(p);
         Tinted(p, 1f);
         return p;
@@ -802,21 +836,6 @@ public class StormDirector : PlanetDirector
     bool Spot(string name, float size, double lo, double hi, out float x, out double gy)
     {
         return planner.Find(StormTuning.Rule(name), size, XMin(size), XMax(size), lo, hi, rng, out x, out gy);
-    }
-
-    // A storm front: one to three thunderhead towers side by side.
-    int Front(double lo, double hi)
-    {
-        int n = 0, want = 1 + rng.Next(3);
-        for (int k = 0; k < 6 && n < want; k++)
-        {
-            string name = Pick(StormTuning.Towers);
-            float s = Rand(StormTuning.TowerMin, StormTuning.TowerMax);
-            float x; double gy;
-            if (!Spot(name, s, lo, hi + .6f, out x, out gy)) continue;
-            if (Put(ground, landmarkArt, name, s, x, gy, Chance(.5)) != null) n++;
-        }
-        return n;
     }
 
     // A structure with a neighbour beside it.
@@ -839,8 +858,8 @@ public class StormDirector : PlanetDirector
                 float side = (xa > 0f) == (attempt == 0) ? -1f : 1f;
                 float gap = Rand(StormTuning.NeighbourGapMin, StormTuning.NeighbourGapMax);
                 float xb = xa + side * (plateA + gap + plateB);
-                double gb = ga + Rand(-.12f, .12f);
-                if (xb < XMin(sb) - .2f || xb > XMax(sb) + .2f) continue;
+                double gb = ga + Rand(-.12f, .12f) * StormTuning.PieceScale;
+                if (xb < XMin(sb) - .2f * StormTuning.PieceScale || xb > XMax(sb) + .2f * StormTuning.PieceScale) continue;
                 var rule = StormTuning.Rule(nb);
                 if (!planner.Accepts(rule, xb, gb, sb) || !planner.Free(xb, gb, GroundPlanner.HalfX(rule, sb), GroundPlanner.HalfY(rule, sb))) continue;
                 if (Put(ground, landmarkArt, nb, sb, xb, gb, Chance(.5)) == null) break;
@@ -858,7 +877,7 @@ public class StormDirector : PlanetDirector
             int i = rng.Next(StormTuning.Lone.Length);
             if (i == lastLone) i = (i + 1) % StormTuning.Lone.Length;
             string name = StormTuning.Lone[i];
-            float s = StormTuning.IsTower(name) ? Rand(StormTuning.TowerMin, StormTuning.TowerMax) : Rand(StormTuning.LandmarkMin, StormTuning.LandmarkMax);
+            float s = Rand(StormTuning.LandmarkMin, StormTuning.LandmarkMax);
             float x; double gy;
             if (!Spot(name, s, lo, hi, out x, out gy)) continue;
             if (Put(ground, landmarkArt, name, s, x, gy, Chance(.5)) == null) continue;
@@ -903,8 +922,8 @@ public class StormDirector : PlanetDirector
         var closed = siteClosed[kind];
         if (closed == null || siteOpen[kind] == null) return false;
         float size = Rand(StormTuning.SiteMin, StormTuning.SiteMax) * StormTuning.SiteWidthK[kind];
-        double lo = float.IsNaN(y) ? planner.Travel + HalfH + .95f : planner.GroundY(y) - .3f;
-        double hi = lo + (float.IsNaN(y) ? .9f : .6f);
+        double lo = float.IsNaN(y) ? planner.Travel + HalfH + StormTuning.SpawnAbove : planner.GroundY(y) - .3f;
+        double hi = lo + (float.IsNaN(y) ? StormTuning.SpawnBand : .6f);
         float x; double gy;
         if (!planner.Find(StormTuning.Rule(StormTuning.SiteClosed[kind]), size, XMin(size), XMax(size), lo, hi, rng, out x, out gy) &&
             (DockGrade.Strict || !planner.Find(new PieceRule(GroundClass.Any, 0f), size, XMin(size), XMax(size), lo, hi, rng, out x, out gy))) return false;   // (no 'anywhere' fallback)
@@ -1165,14 +1184,28 @@ public class StormDirector : PlanetDirector
     void SpawnDebris()
     {
         if (debrisArt.Length == 0) return;
+        // its whole tumble, relative to the ground, must pass no pinned piece: a few paths tried, else none this time
+        float size = Rand(StormTuning.DebrisMin, StormTuning.DebrisMax), rel = Mathf.Max(0f, set.Spec.Rate("debris") - set.Spec.Rate("ground")) * lastV;
+        float dir = 1f, x0 = 0f, y0 = SpawnY(size), vx = 0f, vy = 0f;
+        bool clear = false;
+        for (int t = 0; t < 16 && !clear; t++)
+        {
+            dir = Chance(.5) ? 1f : -1f;
+            x0 = -dir * Rand(HalfW * .3f, HalfW * .9f);
+            vx = dir * Rand(.15f, .5f);
+            vy = -Rand(.1f, .4f);
+            float down = -(vy - rel), seconds = down > .01f ? (y0 + HalfH + size * 2f) / down : 0f;
+            float gvx = vx, gvy = vy - rel;
+            clear = seconds > 0f && PathClear(x0, y0, gvx, gvy, Mathf.Min(seconds, 60f), size * StormPropsTuning.BodyShare);
+        }
+        if (!clear) return;
         var d = debris.Spawn();
         if (d == null) return;
-        SetSprite(d, Pick(debrisArt), Rand(StormTuning.DebrisMin, StormTuning.DebrisMax));
-        float dir = Chance(.5) ? 1f : -1f;
-        d.x = -dir * Rand(HalfW * .3f, HalfW * .9f);
-        d.y = SpawnY(d.size);
-        d.vx = dir * Rand(.15f, .5f);
-        d.vy = -Rand(.1f, .4f);
+        SetSprite(d, Pick(debrisArt), size);
+        d.x = x0;
+        d.y = y0;
+        d.vx = vx;
+        d.vy = vy;
         d.spin = Rand(40f, 120f) * (Chance(.5) ? 1f : -1f);
         d.rate = set.Spec.Rate("debris");
         Place(d);

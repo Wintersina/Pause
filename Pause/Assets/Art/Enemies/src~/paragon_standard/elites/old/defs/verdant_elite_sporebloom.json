@@ -1,0 +1,275 @@
+{
+  "key": "verdant_elite_sporebloom",
+  "displayName": "Sporebloom",
+  "world": "verdant",
+  "role": "spore balloon",
+  "codexId": "elite_verdant_sporebloom",
+  "lore": "A slow spore balloon that floats high over the canopy, dips into the leaves in plain sight and rises again at another spot. Its pods burst into rings of spores, the rings drawn first; hurt, it also leaves a lane of lingering spore cloud, outlined before it settles.",
+  "brain": "floater",
+  "attack": "spore_drift",
+  "launchFrom": "podpad",
+  "cells": {
+    "flight": [
+      3,
+      7,
+      8,
+      9
+    ],
+    "parked": 0,
+    "parkedIdle": 1,
+    "liftoff": 2,
+    "bankLeft": 4,
+    "bankRight": 5,
+    "tell": -1,
+    "action": -1,
+    "hit": -1,
+    "damaged": 6
+  },
+  "cellWorldSize": 2.06,
+  "hullRadius": 0.429,
+  "silhouetteShare": 0.4835,
+  "noseDeg": 90,
+  "turnsToFace": false,
+  "maxBank": 3,
+  "speed": 1.6,
+  "accel": 3.0,
+  "turnRate": 120,
+  "followDistance": 2.6,
+  "laneOffset": 1.2,
+  "topMargin": 1.5,
+  "aggression": 0.4,
+  "tellSeconds": 1.0,
+  "attackGap": 4.0,
+  "avoidance": 0.5,
+  "lookAhead": 0.4,
+  "perception": 1.8,
+  "actionSeconds": 0.9,
+  "shotCount": 2,
+  "shotSpeed": 2.0,
+  "shotSpread": 0,
+  "shotInterval": 0.35,
+  "shotSize": 0.32,
+  "shotKind": "shard",
+  "lobSeconds": 0.95,
+  "lobSpacing": 1.6,
+  "lobAhead": 0.3,
+  "poolSeconds": 4.5,
+  "heartColor": "#9C6BFF",
+  "shotColor": "#A6FF3C",
+  "shotCore": "#FFE9A8",
+  "engineColor": "#FFB45A",
+  "hearts": 3,
+  "heartSize": 0.18,
+  "heartOrbit": 0.678,
+  "heartStyle": "Halo",
+  "exhaustShip": 3,
+  "exhaustScale": 0,
+  "glowScale": 0.09,
+  "cellPixels": 384,
+  "muzzles": [
+    {
+      "name": "lvent",
+      "x": 98,
+      "y": 178,
+      "dir": -1.0
+    },
+    {
+      "name": "rvent",
+      "x": 286,
+      "y": 178,
+      "dir": -1.0
+    },
+    {
+      "name": "pod",
+      "x": 192,
+      "y": 136,
+      "dir": -1.0
+    }
+  ],
+  "nozzles": [
+    {
+      "name": "a",
+      "x": 164,
+      "y": 316,
+      "dir": -1.0,
+      "offsets": [0, 0, 0, 0, 0, 0, 0, 0, 6, 1, -6, -2, 0, 0, 0, 0, 0, 0, 0, 0]
+    },
+    {
+      "name": "b",
+      "x": 220,
+      "y": 316,
+      "dir": -1.0,
+      "offsets": [0, 0, 0, 0, 0, 0, 0, 0, 6, -2, -6, 1, 0, 0, 0, 0, 0, 0, 0, 0]
+    }
+  ],
+  "armored": false,
+  "shotMotion": "burst",
+  "followLag": 0.25,
+  "hurtHide": true,
+  "hideSeconds": 3.5,
+  "engageSeconds": 48,
+  "script": {
+    "tempo": 1.1,
+    "exitTell": 1.4,
+    "lastExit": "none",
+    "entrance": {
+      "kind": "swirl",
+      "seconds": 1.8,
+      "amp": 1.6
+    },
+    "phase1": {
+      "speed": 1.0,
+      "gap": 1.0,
+      "loop": [
+        {
+          "wait": 2.0,
+          "move": "col:0",
+          "attack": "pair"
+        },
+        {
+          "wait": 1.8,
+          "move": "col:2",
+          "attack": "pair"
+        },
+        {
+          "wait": 2.4,
+          "move": "dip:1",
+          "attack": "-"
+        },
+        {
+          "wait": 1.8,
+          "move": "col:1",
+          "attack": "trio"
+        }
+      ]
+    },
+    "phase2": {
+      "speed": 1.1,
+      "gap": 0.85,
+      "loop": [
+        {
+          "wait": 1.6,
+          "move": "col:0",
+          "attack": "trio"
+        },
+        {
+          "wait": 1.6,
+          "move": "col:2",
+          "attack": "cloud"
+        },
+        {
+          "wait": 2.4,
+          "move": "dip:1",
+          "attack": "-"
+        },
+        {
+          "wait": 1.4,
+          "move": "col:1",
+          "attack": "quad"
+        }
+      ]
+    },
+    "last": {
+      "speed": 1.2,
+      "gap": 0.7,
+      "loop": [
+        {
+          "wait": 1.4,
+          "move": "col:0",
+          "attack": "cloud4"
+        },
+        {
+          "wait": 2.2,
+          "move": "dip:2",
+          "attack": "-"
+        },
+        {
+          "wait": 1.2,
+          "move": "col:2",
+          "attack": "cloud4"
+        },
+        {
+          "wait": 2.2,
+          "move": "dip:1",
+          "attack": "-"
+        }
+      ]
+    },
+    "variants": [
+      {
+        "name": "pair",
+        "set": [
+          {
+            "key": "shotCount",
+            "value": 2
+          },
+          {
+            "key": "lobSpacing",
+            "value": 1.6
+          }
+        ]
+      },
+      {
+        "name": "trio",
+        "set": [
+          {
+            "key": "shotCount",
+            "value": 3
+          },
+          {
+            "key": "lobSpacing",
+            "value": 1.3
+          }
+        ]
+      },
+      {
+        "name": "quad",
+        "set": [
+          {
+            "key": "shotCount",
+            "value": 4
+          },
+          {
+            "key": "lobSpacing",
+            "value": 1.0
+          },
+          {
+            "key": "shotInterval",
+            "value": 0.3
+          }
+        ]
+      },
+      {
+        "name": "cloud",
+        "set": [
+          {
+            "key": "shotCount",
+            "value": 2
+          },
+          {
+            "key": "lobSpacing",
+            "value": 1.6
+          }
+        ]
+      },
+      {
+        "name": "cloud4",
+        "set": [
+          {
+            "key": "shotCount",
+            "value": 4
+          },
+          {
+            "key": "lobSpacing",
+            "value": 1.0
+          },
+          {
+            "key": "shotInterval",
+            "value": 0.3
+          }
+        ]
+      }
+    ],
+    "note": "summoner / denier: floats over three stations, dips visibly into the canopy and rises; more pods and a lingering cloud as it is hurt"
+  }
+}

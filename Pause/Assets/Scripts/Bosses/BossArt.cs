@@ -490,7 +490,7 @@ public static class BossArt
     public static readonly Color32 ShotRimBoldKey = new Color32(10, 8, 26, 255);
     // Bold rims for the current world? (Tests may force it: ShotRimBold.)
     public static bool? ShotRimBold;
-    public static bool ShotRimUseBold => ShotRimBold.HasValue ? ShotRimBold.Value : BackdropCatalog.CurrentIsBright;
+    public static bool ShotRimUseBold => ShotRimBold.HasValue ? ShotRimBold.Value : BackdropCatalog.CurrentBoldShots;
     public const float ShotRimPulseScale = 0f;    // it never swells (a swelling rim reads as a round glow); only its alpha pulses
 
     sealed class RimSet { public Sprite[] sprites; public Texture2D source; public bool built; }
@@ -667,6 +667,7 @@ public static class BossArt
                 into.Add(ImpactFolder + "attack/" + boss.damageKey.ToLowerInvariant() + "_" + names[c] + "_stage1");
         }
         if (!string.IsNullOrEmpty(boss.deathKey)) into.Add(Folder + boss.deathKey + "_death");
+        BossAnim.WarmPaths(boss, into);
     }
 
     // FirstUseWarm: everything the fight slices or builds on first use, done during the level instead, one small
@@ -678,6 +679,7 @@ public static class BossArt
         if (boss == null || string.IsNullOrEmpty(boss.artKey)) return;
         string k = WarmKey(boss);
         FirstUseWarm.Add(k + "body", Folder + boss.artKey, typeof(Texture2D), () => BodySheet(boss));
+        BossAnim.QueueWarm(boss, k);   // the many-frame animation the fight draws (after the body: its cell size comes from it)
         FirstUseWarm.Add(k + "shots", Folder + boss.artKey + "_shots", typeof(Texture2D), () => Shot(boss, 0));
         FirstUseWarm.Add(k + "attackshots", Folder + boss.artKey + AttackShotsSuffix, typeof(Texture2D), () => AttackShotSheet(boss));
         // (both styles: the level may start under Space's dark sky and reach the boss over a bright backdrop)
@@ -724,8 +726,9 @@ public static class BossArt
             if (tex != null) BossUtil.Kill(tex);
         }
         rims.Clear();
+        BossAnim.Release();
     }
-    public static int CachedSheets { get { return bodies.Count + shots.Count + attackShots.Count + singles.Count + rims.Count; } }
+    public static int CachedSheets { get { return bodies.Count + shots.Count + attackShots.Count + singles.Count + rims.Count + BossAnim.CachedSheets; } }
 
     // Is every sprite the fight opens with already made? (tests, the soak)
     public static bool Warmed(BossDef boss)
@@ -763,5 +766,12 @@ public static class BossArt
         }
         if (HasDeathArt(boss))
             for (int i = 0; i < DeathStripCells; i++) yield return DeathStrip(boss, i);
+        if (BossAnim.Has(boss))
+        {
+            for (int i = 0, n = BossAnim.FramesFor(boss); i < n; i++) yield return BossAnim.Sprite(boss, i);
+            if (HasDamageArt(boss))
+                for (int s = 1; s <= DamageStages; s++)
+                    for (int c = 0; c < DamageColumns; c++) yield return BossAnim.Decal(boss, s, c);
+        }
     }
 }

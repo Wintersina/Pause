@@ -1,0 +1,139 @@
+{
+  "key": "desert_elite_glass_cannon",
+  "codexId": "elite_desert_glass_cannon",
+  "world": "desert",
+  "launchFrom": "mirrorsilo,buriedsilo",
+  "cells": {
+    "flight": [
+      3,
+      7,
+      8
+    ],
+    "parked": 0,
+    "parkedIdle": 1,
+    "liftoff": 2,
+    "bankLeft": 4,
+    "bankRight": 5,
+    "tell": -1,
+    "action": -1,
+    "hit": -1,
+    "damaged": 6,
+    "damagedLoop": [
+      9,
+      10,
+      11,
+      12,
+      13,
+      14
+    ]
+  },
+  "cellWorldSize": 1.786,
+  "noseDeg": 90,
+  "maxBank": 3,
+  "heartColor": "#FFF6DC",
+  "shotColor": "#F4E3B0",
+  "shotCore": "#FFF6DC",
+  "engineColor": "#FFE9A0",
+  "hearts": 3,
+  "heartSize": 0.18,
+  "heartOrbit": 0.53,
+  "heartStyle": "Halo",
+  "exhaustShip": 3,
+  "exhaustScale": 0,
+  "glowScale": 0.09,
+  "cellPixels": 384,
+  "armored": false,
+  "hazardSeconds": 0.4,
+  "hazardSize": 0.6,
+  "displayName": "Glass Cannon",
+  "role": "sun-lens beam cannon",
+  "brain": "lenspost",
+  "attack": "lens_beams",
+  "lore": "A siege gun on a flying deck, its fused-glass sun lens perched on one column of the sky and then another. It draws thin beams either side of you and runs a stream of light down each, outside in. Stand between the beams, not on them.",
+  "hullRadius": 0.391,
+  "silhouetteShare": 0.4704,
+  "turnsToFace": false,
+  "speed": 2.0,
+  "accel": 4.0,
+  "turnRate": 120,
+  "aggression": 0.5,
+  "tellSeconds": 1.35,
+  "attackGap": 3.9,
+  "avoidance": 0.55,
+  "lookAhead": 0.4,
+  "perception": 2.2,
+  "actionSeconds": 0.8,
+  "shotCount": 5,
+  "shotSpeed": 9.0,
+  "shotSpread": 0,
+  "shotSize": 0.2,
+  "shotInterval": 0.08,
+  "shotKind": "bolt",
+  "muzzles": [
+    {
+      "name": "cannon",
+      "x": 192,
+      "y": 38,
+      "dir": -1.0
+    }
+  ],
+  "nozzles": [
+    {
+      "name": "a",
+      "x": 151,
+      "y": 280,
+      "dir": -1.0,
+      "offsets": [0, -5, 0, -5, 0, 0, 0, 0, 8, 3, -4, -3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    },
+    {
+      "name": "b",
+      "x": 232,
+      "y": 280,
+      "dir": -1.0,
+      "offsets": [-1, -5, -1, -5, 0, 0, 0, 0, 4, -3, -7, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    }
+  ],
+  "topMargin": 1.6,
+  "followLag": 0.25,
+  "engageSeconds": 48,
+  "script": {
+    "tempo": 1.2,
+    "exitTell": 1.4,
+    "lastExit": "none",
+    "note": "sniper: perches on fixed columns left, centre, right, centre; a beam fan from each. Wider fan from phase 2; six beams from every column in the last phase.",
+    "entrance": { "kind": "dash", "seconds": 1.2, "amp": 1.4 },
+    "phase1": {
+      "speed": 1.0, "gap": 1.0,
+      "set": [ { "key": "hazardCount", "value": 4 }, { "key": "shotSpread", "value": 11 } ],
+      "loop": [
+        { "wait": 2.2, "move": "perch:0", "attack": "" },
+        { "wait": 2.2, "move": "perch:1", "attack": "" },
+        { "wait": 2.2, "move": "perch:2", "attack": "long" },
+        { "wait": 2.2, "move": "perch:1", "attack": "" }
+      ]
+    },
+    "phase2": {
+      "speed": 1.15, "gap": 0.85,
+      "set": [ { "key": "hazardCount", "value": 4 }, { "key": "shotSpread", "value": 14 } ],
+      "loop": [
+        { "wait": 1.8, "move": "perch:2", "attack": "wide" },
+        { "wait": 1.8, "move": "perch:1", "attack": "" },
+        { "wait": 1.8, "move": "perch:0", "attack": "wide" },
+        { "wait": 1.8, "move": "perch:1", "attack": "long" }
+      ]
+    },
+    "last": {
+      "speed": 1.3, "gap": 0.7,
+      "set": [ { "key": "hazardCount", "value": 6 }, { "key": "shotSpread", "value": 11 } ],
+      "loop": [
+        { "wait": 1.5, "move": "perch:0", "attack": "" },
+        { "wait": 1.5, "move": "perch:1", "attack": "" },
+        { "wait": 1.5, "move": "perch:2", "attack": "" }
+      ]
+    },
+    "variants": [
+      { "name": "wide", "set": [ { "key": "shotSpread", "value": 17 } ] },
+      { "name": "long", "set": [ { "key": "shotCount", "value": 8 }, { "key": "shotInterval", "value": 0.06 } ] }
+    ]
+  }
+}

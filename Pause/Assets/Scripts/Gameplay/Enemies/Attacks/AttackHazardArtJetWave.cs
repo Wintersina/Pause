@@ -5,7 +5,7 @@ using UnityEngine;
 // (AttackHazardArt.cs), with the world's art slot tried first:
 //
 //   <w>_attack_jet.png   Ember 768 x 384, Tide 768 x 448 (any world: 768 x (body + 128)): body x6 (apex at the top centre), nozzle x3, tip x3
-//   tide_attack_wave.png 512 x 480: four tileable 512 x 96 bodies, capL, capR, gap marker a,b
+//   tide_attack_wave.png 512 x 384: three tileable 512 x 96 bodies (looped 0,1,2,1), capL, capR, gap marker a,b
 //
 // The same pink-cue contract (PC1-PC4) as every themed strip:
 //   jet  a 2 px pink-white edge stroke all the way up both flanks, a hot pink-white core that steps between two
@@ -217,12 +217,17 @@ public static partial class AttackHazardArt
         int key = -200 - world;
         bool b;
         if (flags.TryGetValue(key, out b)) return b;
-        b = AttackArt.WaveBody(world, 0) != null;
+        b = OwnWaveFolder(world) && AttackArt.WaveBody(world, 0) != null;
         flags[key] = b;
         return b;
     }
 
-    // The band's tile: art frames (4, 12 fps) or the procedural strip (2 frames of the core's flicker).
+    // AttackArt.PathOf clamps a world past ShotSkins.WorldKeys (Storm 5, Desert 6) to Tide's folder: without this their scan
+    // lines would wear Tide's surf (tide_attack_wave.png). Only a world whose own Attacks/<World> folder is searched uses wave art.
+    static bool OwnWaveFolder(int world) =>
+        world >= 0 && world < EnemyRoster.WorldKeys.Length && AttackArt.KeyOf(world) == EnemyRoster.WorldKeys[world];
+
+    // The band's tile: art frames (4 steps of 3 drawings, 12 fps) or the procedural strip (2 frames of the core's flicker).
     public static Sprite WaveBody(int world, WaveStyle style, int frame, bool bold)
     {
         bool art = WaveArt(world);
@@ -252,7 +257,7 @@ public static partial class AttackHazardArt
         int key = Key(Kind.WaveMarker, world, 0, frame & 1, bold);
         Sprite s;
         if (Cached(key, out s)) return s;
-        s = AttackArt.WaveGapMarker(world, frame & 1) ?? GapProcedural(world, frame, bold);
+        s = (OwnWaveFolder(world) ? AttackArt.WaveGapMarker(world, frame & 1) : null) ?? GapProcedural(world, frame, bold);
         resolved[key] = s;
         return s;
     }

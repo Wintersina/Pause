@@ -48,6 +48,17 @@ public class BossActor : MonoBehaviour, IMusicPatternHost
     LegacyBossBlasts legacyBlasts;
     bool hasDeathArt;      // the outro plays the boss's death strip over the body
 
+    // the many-frame animation (BossAnim): world-time ages of the current turn / volley / recoil, real-time of the flinch
+    bool animated;                 // the boss has its BossAnim atlas and is fighting
+    SpriteRenderer decal;          // its battle damage over the animated body (BossAnim.Decal)
+    float turnAge = 99f, idleFrom, hitAge = 99f, animFireAge = 99f, recoilAge = 99f;
+    int turnDir, moveDir, animPose, recoilPose;
+    float lastSwayX;
+    AttackPhase lastPhase = AttackPhase.Cooldown;
+    // The BossAnim frame on screen (-1: the legacy body frame is drawn: arrival, death, retreat, or no atlas).
+    public int AnimFrame { get; private set; } = -1;
+    public SpriteRenderer DamageDecal => decal;
+
     // movement
     float moveClock;
     Vector3 basePos;
@@ -141,6 +152,9 @@ public class BossActor : MonoBehaviour, IMusicPatternHost
         {
             smoke = Overlay("DamageSmoke", -2);
             arcs = Overlay("DamageArcs", -1);
+            // the damage decal rides over the animated body, under the smoke (same order, a hair farther from the camera)
+            decal = Overlay("DamageDecal", -2);
+            decal.transform.localPosition = new Vector3(0f, 0f, .001f);
         }
 
         for (int i = 0; i < MaxParts; i++)
@@ -186,6 +200,8 @@ public class BossActor : MonoBehaviour, IMusicPatternHost
     {
         BodyFrame = frame;
         if (body == null) return;
+        // fighting with its BossAnim atlas: ApplyAnim draws the body (the legacy damaged poses are never loaded)
+        if (animated && mode == Mode.Fighting) return;
         int cell = BossArt.DamageIdleCell(boss, frame, damageStage, animClock);
         bool cache = Application.isPlaying;
         if (cache && frameSprite != null && ReferenceEquals(frameBoss, boss) && frameKey == frame && frameCell == cell && frameStage == damageStage)
@@ -250,6 +266,7 @@ public class BossActor : MonoBehaviour, IMusicPatternHost
     {
         if (smoke != null) smoke.enabled = false;
         if (arcs != null) arcs.enabled = false;
+        if (decal != null) decal.enabled = false;
     }
 
     // ---- where attacks come from ---------------------------------------
@@ -412,6 +429,9 @@ public class BossActor : MonoBehaviour, IMusicPatternHost
         transform.localScale = Vector3.one;
         if (body != null) { body.sortingOrder = PlayOrder; body.color = Color.white; body.enabled = true; }
         moveClock = 0f;
+        animated = BossAnim.Has(boss);
+        turnAge = hitAge = animFireAge = recoilAge = 99f; idleFrom = animClock; moveDir = 0; lastSwayX = 0f;
+        lastPhase = AttackPhase.Cooldown;
         phase = AttackPhase.Cooldown;
         phaseTimer = BossConfig.FirstAttackDelay;
         attackIndex = -1;
@@ -466,6 +486,7 @@ public class BossActor : MonoBehaviour, IMusicPatternHost
         if (mode != Mode.Fighting) return;
         BossBeat.Tick();
         TickFlash(realDt);
+        hitAge += realDt;
         if (dt <= 0f)
         {
             // Musical cues expire with the song even while gameplay is frozen.
@@ -481,6 +502,7 @@ public class BossActor : MonoBehaviour, IMusicPatternHost
         float x = boss.swayX * Mathf.Sin(moveClock * boss.freqX * Mathf.PI * 2f);
         float y = BossConfig.BossY + boss.swayY * Mathf.Sin(moveClock * boss.freqY * Mathf.PI * 2f);
         transform.position = new Vector3(x, y, 0f);
+        StepAnimClocks(dt, x);
 
         if (bodyHit == null)
         {
@@ -558,7 +580,7 @@ public class BossActor : MonoBehaviour, IMusicPatternHost
                 tellAge += dt;
                 if (current.kind == BossAttackKind.Beam)
                 {
-                    if (tellAge >= current.tellSeconds) phase = AttackPhase.Beams;
+                    if (tellAge >= current.tellSeconds) { phase = AttackPhase.Beams; AnimFire(BossAnim.PoseFor(boss, current)); }
                     return;
                 }
                 if (phaseTimer > 0f) return;
@@ -710,6 +732,7 @@ public class BossActor : MonoBehaviour, IMusicPatternHost
     void Fire()
     {
         fireLeft = BossArt.FireTicks * BossArt.Tick;
+        AnimFire(current != null ? BossAnim.PoseFor(boss, current) : 0);
     }
 
     static Vector2 Heading(float deg)
@@ -767,7 +790,7 @@ public class BossActor : MonoBehaviour, IMusicPatternHost
     {
         // the first part to fire in a frame names the drawing (a wave before an accent on the same sixteenth); a new
         // firing ends the last one's flashes and held drawing
-        if (fireStamp != animClock) { fireStamp = animClock; musicFirePose = BossWaveSources.PoseOf(boss, part); fireLeft = 0f; firedMask = 0; }
+        if (fireStamp != animClock) { fireStamp = animClock; musicFirePose = BossWaveSources.PoseOf(boss, part); fireLeft = 0f; firedMask = 0; AnimFire(BossAnim.TellPose(boss, musicFirePose)); }
         fireLeft = Mathf.Max(fireLeft, Mathf.Max(BossArt.FireTicks * BossArt.Tick, holdSeconds));
         var parts = current != null ? current.parts : null;
         if (parts == null) return;
@@ -996,9 +1019,89 @@ public class BossActor : MonoBehaviour, IMusicPatternHost
         else if ((phase == AttackPhase.Volleys || phase == AttackPhase.Beams || phase == AttackPhase.Hazards || phase == AttackPhase.Pattern) && current != null)
             SetFrame(BossArt.TellFrame(boss, current.tell, 1f));
         else SetFrame(BossArt.IdleFrame(boss, animClock));
+        ApplyAnim();
         RefreshGlows();
         RefreshDamage();
         RefreshWhite();
+    }
+
+    // ---- the many-frame animation (BossAnim) ----------------------------
+
+    // World-time ages, and a turn each time the sway reverses (the limbs trail, swing through and settle).
+    void StepAnimClocks(float dt, float x)
+    {
+        turnAge += dt; animFireAge += dt; recoilAge += dt;
+        float dx = x - lastSwayX;
+        lastSwayX = x;
+        int dir = dx < -1e-5f ? -1 : dx > 1e-5f ? 1 : 0;
+        if (dir != 0 && dir != moveDir)
+        {
+            if (moveDir != 0) { turnAge = 0f; turnDir = dir; }
+            moveDir = dir;
+        }
+        if (turnAge >= BossAnim.TurnSeconds && turnAge - dt < BossAnim.TurnSeconds) idleFrom = animClock;   // the hover picks up where the turn ends
+    }
+
+    void AnimFire(int pose)
+    {
+        if (animFireAge > BossAnim.FireRestartSeconds || pose != animPose) animFireAge = 0f;
+        animPose = pose;
+        recoilPose = pose;
+    }
+
+    // The BossAnim drawing for this instant of the fight.
+    int ChooseAnim()
+    {
+        float fireEnd = BossAnim.FireSeconds, recoilEnd = fireEnd + BossAnim.RecoilSeconds;
+        bool music = musicRunning && !specialRunning && current != null && musicDirector != null;
+        if (music)
+        {
+            if (animFireAge < fireEnd) return BossAnim.FireAt(animPose, animFireAge);
+            // a held stream (the Drake's breath) keeps its release drawings flickering for as long as it pours
+            if (fireLeft > 0f) return BossAnim.Fire(animPose, BossAnim.FireFrames - 2 + (Mathf.FloorToInt(animFireAge / (2f * BossArt.Tick)) & 1));
+            if (musicDirector.Telling) return BossAnim.TellAt(BossAnim.TellPose(boss, musicDirector.TellPose), musicDirector.TellProgress);
+            if (animFireAge < recoilEnd) return BossAnim.RecoilAt(animPose, animFireAge - fireEnd);
+        }
+        else if (current != null && phase != AttackPhase.Cooldown)
+        {
+            int pose = BossAnim.PoseFor(boss, current);
+            if (phase == AttackPhase.Tell) return BossAnim.TellAt(pose, tellAge / Mathf.Max(.01f, current.tellSeconds));
+            if (animFireAge < fireEnd) return BossAnim.FireAt(animPose, animFireAge);
+            // lasers burn and hazards rage on the released drawing; between volleys / pattern waves it is wound up again
+            if (phase == AttackPhase.Beams || phase == AttackPhase.Hazards)
+                return BossAnim.Fire(pose, BossAnim.FireFrames - 2 + (Mathf.FloorToInt(animFireAge / (3f * BossArt.Tick)) & 1));
+            return BossAnim.Tell(pose, BossAnim.TellFrames - 1);
+        }
+        else if (recoilAge < BossAnim.RecoilSeconds) return BossAnim.RecoilAt(recoilPose, recoilAge);
+        if (hitAge < BossAnim.HitSeconds) return BossAnim.HitAt(hitAge);
+        if (turnAge < BossAnim.TurnSeconds) return BossAnim.TurnAt(turnDir, turnAge);
+        return BossAnim.IdleAt(animClock - idleFrom);
+    }
+
+    Sprite animSprite;
+    int animSpriteFrame = -1;
+    BossDef animSpriteBoss;
+
+    void ApplyAnim()
+    {
+        if (!animated || mode != Mode.Fighting || body == null) { AnimFrame = -1; if (decal != null) decal.enabled = false; return; }
+        // an attack that has just ended settles (the recoil), from this very frame
+        if (phase == AttackPhase.Cooldown && lastPhase != AttackPhase.Cooldown) { recoilAge = 0f; recoilPose = animPose; }
+        lastPhase = phase;
+        int f = ChooseAnim();
+        AnimFrame = f;
+        if (f != animSpriteFrame || !ReferenceEquals(animSpriteBoss, boss) || animSprite == null)
+        {
+            animSprite = BossAnim.Sprite(boss, f);
+            animSpriteFrame = f; animSpriteBoss = boss;
+        }
+        body.sprite = animSprite;
+        if (decal != null)
+        {
+            var d = damageStage > 0 ? BossAnim.Decal(boss, damageStage, BossArt.FrameAt(BossArt.DamageIdleTicksFor(boss), animClock, true)) : null;
+            decal.enabled = d != null && body.enabled;
+            if (decal.enabled) decal.sprite = d;
+        }
     }
 
     void RefreshWhite()
@@ -1090,6 +1193,7 @@ public class BossActor : MonoBehaviour, IMusicPatternHost
         }
         HitFrameSwaps++; Pops++; lastPopAt = now;
         flashLeft = BossArt.HitTicks * BossArt.Tick;
+        hitAge = 0f;
         whiteLeft = BossImpact.WhiteSeconds;
         whitePeak = Mathf.Clamp01(strength);
         if (mode == Mode.Fighting) RefreshFrame();
@@ -1123,6 +1227,7 @@ public class BossActor : MonoBehaviour, IMusicPatternHost
         for (int i = 0; i < MaxParts; i++) { charges[i].enabled = false; rings[i].enabled = false; }
         ClearArmed();   // a hazard of the attack in progress goes with the boss
         HideDamage();
+        AnimFrame = -1;   // the death strip / retreat play the legacy drawings
         flashLeft = 0f;
         whiteLeft = 0f;
         if (white != null) white.enabled = false;

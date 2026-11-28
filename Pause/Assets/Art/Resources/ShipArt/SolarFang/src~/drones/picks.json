@@ -1,0 +1,18 @@
+{
+  "heal": {
+    "candidate": "r1_1.png",
+    "pick": "s/drone_SolarFang_heal__nr1.png#1"
+  },
+  "t1": {
+    "candidate": "r1_2.png",
+    "pick": "s/drone_SolarFang_t1__nr1.png#2"
+  },
+  "t2": {
+    "candidate": "r1_0.png",
+    "pick": "s/drone_SolarFang_t2__nr1.png#0"
+  },
+  "t3": {
+    "candidate": "r1_2.png",
+    "pick": "s/drone_SolarFang_t3__nr1.png#2"
+  }
+}

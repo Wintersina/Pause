@@ -73,8 +73,50 @@ public class WorldBackdropImport : AssetPostprocessor
     // Frost's launch-site strips (Backdrop3/docks: four 6-cell strips of 256 px cells, 1578 x 1054): wider than the 1024 atlases, so never clamped
     // (a 1024 cap would shrink the cells by a third and make the cut rects drift).
     public static bool IsFrostLaunchSites(string path) { return path.Contains("/Worlds/Frost/Backdrop3/") && path.EndsWith("/docks.png"); }
+    // Frost's soft weather sheet (Backdrop3/weather: the cloud ceiling, wisps, mist, blizzard sheets, snow fields; 2026-11 rebuilt SOFT at
+    // 2048 x 2048, 512 px cells with 16 px transparent gutters, build_soft_weather.py): drawn 2 - 7 units wide, so it keeps every pixel
+    // (a 1024 cap would halve it back into blur) and stays bilinear (IsSoftAtlas). Its JSON carries sheetW / sheetH, so a clamp could never
+    // make the cut rects drift, only soften.
+    public static bool IsFrostSoftWeather(string path) { return path.Contains("/Worlds/Frost/Backdrop3/") && path.EndsWith("/weather.png"); }
 
     public static bool IsBackdrop3(string path) { return path.Contains("/Backdrop3/"); }
+
+    // Storm's r3 ground (2026-11-28): 896 x 4096 tiles drawn at StormTuning.TileZoom (.98 since the .49 altitude) of the view, ~1.2 screen px a texel:
+    // never clamped (a 2048 cap would halve them), bilinear (a soft painted deck, minified a little on small phones), repeating
+    // across as well as down (BackdropTile columns). The vapour strip (flow, 512 x 2048) is drawn at the same width: 512 / 6 px a unit.
+    // Desert's r1 ground (2026-11-28) is the same format: its v<n>/mid.png (896 x 4096, DesertTuning.TileZoom) takes the same rules.
+    public static bool IsStormR3Tile(string path, bool tile)
+    {
+        // Ember's r1 ground (2026-11-28, the PixelLab repaint, EmberTuning.TileZoom) is the same format, and so is Verdant's (VerdantTuning.TileZoom)
+        return tile && (path.Contains("/Worlds/Storm/Backdrop3/v") || ((path.Contains("/Worlds/Desert/Backdrop3/v") || path.Contains("/Worlds/Ember/Backdrop3/v") || path.Contains("/Worlds/Verdant/Backdrop3/v")) && path.EndsWith("/mid.png")));
+    }
+    public const float StormFlowPixelsPerUnit = 512f / 6f;
+    // Storm's living props (StormProps.cs): props (ground, ASTC 4x4) and aloft (hazed, ASTC 6x6). Painted, soft: bilinear; their
+    // sheets are 2040 / 2016 px wide and up to 2424 tall, never clamped (the JSON carries sheetW / sheetH, so the rects hold).
+    // Desert's living props (DesertProps.cs, Backdrop3/v<n>/props: 4096 x ~2200, one per ground set) take the same rules (ASTC 4x4).
+    // (4096 x 4000 with the landmarks: ASTC 6x6 ~7 MB, not 4x4 ~16 MB, to keep Tide inside its budget)
+    // Ember's props (v<n>/props: 4096 x 5332, one per ground set) and scar decals import ASTC 6x6 (4x4 would be ~22 MB a set)
+    // Verdant's living props (v<n>/props: 4096 wide, one per ground set; art only until the placement lands) import ASTC 6x6 too
+    public static bool IsVerdantProps(string path) { return path.Contains("/Worlds/Verdant/Backdrop3/v") && path.EndsWith("/props.png"); }
+    public static bool IsEmberProps(string path) { return path.Contains("/Worlds/Ember/Backdrop3/") && (path.EndsWith("/props.png") || path.EndsWith("/scar.png")); }
+    public static bool IsTideProps(string path) { return path.Contains("/Worlds/Tide/Backdrop3/props.png"); }
+    public static bool IsStormProps(string path)
+    {
+        if (path.Contains("/Worlds/Desert/Backdrop3/v") && path.EndsWith("/props.png")) return true;
+        if (IsVerdantProps(path)) return true;
+        // Ember's living props (EmberProps.cs, Backdrop3/v<n>/props, one per ground set) and the starship's crash-scar decals (Backdrop3/scar) likewise
+        if (path.Contains("/Worlds/Ember/Backdrop3/") && (path.EndsWith("/props.png") || path.EndsWith("/scar.png"))) return true;
+        // Tide's living props (TideProps.cs, Backdrop3/props: 4096 x 4000, shared by the four ground sets) take the same rules, at ASTC 6x6.
+        if (IsTideProps(path)) return true;
+        if (!path.Contains("/Worlds/Storm/Backdrop3/")) return false;
+        string f = System.IO.Path.GetFileNameWithoutExtension(path);
+        return f == "props" || f == "aloft";
+    }
+
+    // Frost's living props (FrostProps.cs, Backdrop3/props): 47 strips of 8 x 128 px cells, 2048 x 3072 since round 2 (variants):
+    // never clamped (the 1024 cap would halve the cells and break the JSON rects), crisp like the landmarks, ASTC 6x6.
+    // The starship's crash-scar decals (Backdrop3/scar, 1536 x 1536, FrostProps.cs) take the same rules.
+    public static bool IsFrostProps(string path) { return path.Contains("/Worlds/Frost/Backdrop3/") && (path.EndsWith("/props.png") || path.EndsWith("/scar.png")); }
 
     // Backdrop3 art is pixel art drawn near 1:1 (landmarks, sites, lights)
     // or ~2x (tiles): point-sampled so it stays crisp. Its soft atlases
@@ -92,8 +134,9 @@ public class WorldBackdropImport : AssetPostprocessor
         return (path.Contains("/Worlds/Tide/Backdrop3/") || path.Contains("/Worlds/Desert/Backdrop3/")) && file != "weather";
     }
 
-    // Desert's worm sheets (worm, worm_giant): 2048 px sheets of 256 / 512 px cells that are drawn up to
-    // ~1.5x their pixel size, so they keep every pixel (the other atlases cap at 1024).
+    // Desert's worm sheets (worm, worm_giant): authored 2048 px sheets of 256 / 512 px cells. Since the r1 altitude (2026-11-28) they
+    // are drawn at DesertTuning.PieceScale, about half their px, so they are STORED at 1024 (backdrop_r1~/build_r1.py worms) and
+    // import at 1024 like the other atlases (their JSON keeps sheetW / sheetH 2048, so the cut rects scale).
     // Storm's and Desert's painted art is continuous-tone (thousands of colours: smooth cloud / dune gradients), not
     // the small palettes of Frost / Verdant / Ember: ASTC 6x6 bands and blocks it on phones, so these two worlds
     // take ASTC 4x4 (8 bpp). Their sources are never clamped (see maxTextureSize above).
@@ -140,9 +183,14 @@ public class WorldBackdropImport : AssetPostprocessor
         return path.Contains("/Worlds/Ember/Backdrop3/v1/") || path.Contains("/Worlds/Ember/Backdrop3/v2/") || path.Contains("/Worlds/Ember/Backdrop3/v3/") || path.Contains("/Worlds/Ember/Backdrop3/v4/");
     }
 
-    // 2026-10: Frost's four ground variants (v1..v4 sky / far / mid / flow) are crisp, bright pixel-art repaints at 896x1792 (a tile is still
-    // 6 units wide: 149.33 px per unit), same HD import rules as Tide's, Verdant's and Ember's tiles. (docks.png etc. in Backdrop3/ stay as they were.)
-    public const float FrostHdPixelsPerUnit = 896f / 6f;
+    // 2026-10: Frost's four ground variants (v1..v4 sky / far / mid / flow) are crisp, bright pixel-art repaints at 896x1792, same HD
+    // import rules as Tide's, Verdant's and Ember's tiles. (docks.png etc. in Backdrop3/ stay as they were.)
+    // 2026-11-28: Frost is seen from high up (FrostTuning.GroundZoom .41 then .49: a tile ~450, now ~540 screen px wide on a 1080 px phone), so the tiles
+    // are installed HALVED to 448x896 (frost_redraw/install_tiles.py: one texel per 2 px art cell, ~1 texel per screen pixel) and
+    // drawn BILINEAR with U wrapping too (the tiles repeat across): point sampling the 896 tiles at ~2x minification skipped every
+    // other texel and the ground shimmered as it scrolled (no mipmaps: a non-power-of-two mipmapped texture stays uncompressed,
+    // AndroidTextureDiet). A tile is still 6 units wide: 448 / 6 px per unit. The pieces on it (landmarks, sites) stay point-sampled.
+    public const float FrostHdPixelsPerUnit = 448f / 6f;
     public static bool IsFrostHdTile(string path)
     {
         return path.Contains("/Worlds/Frost/Backdrop3/v1/") || path.Contains("/Worlds/Frost/Backdrop3/v2/") || path.Contains("/Worlds/Frost/Backdrop3/v3/") || path.Contains("/Worlds/Frost/Backdrop3/v4/");
@@ -207,13 +255,15 @@ public class WorldBackdropImport : AssetPostprocessor
         ti.mipmapEnabled = planetSheet;
         if (planetSheet) ti.mipmapFilter = TextureImporterMipFilter.KaiserFilter;
         bool crisp = sharpSpaceSky || (IsBackdrop3(assetPath) && (!IsSoftAtlas(file) || IsTidePixelLoop(assetPath, file)));
-        ti.filterMode = sun ? (sunDisc ? FilterMode.Point : FilterMode.Bilinear) : crisp ? FilterMode.Point : planetSheet ? FilterMode.Trilinear : FilterMode.Bilinear;
+        bool frostGround = tile && IsFrostHdTile(assetPath);     // seen from high up: halved, bilinear (FrostHdPixelsPerUnit)
+        bool stormR3 = IsStormR3Tile(assetPath, tile), stormProps = IsStormProps(assetPath);
+        ti.filterMode = sun ? (sunDisc ? FilterMode.Point : FilterMode.Bilinear) : frostGround || stormR3 || stormProps ? FilterMode.Bilinear : crisp ? FilterMode.Point : planetSheet ? FilterMode.Trilinear : FilterMode.Bilinear;
         ti.alphaIsTransparency = true;
         ti.isReadable = false;
         ti.npotScale = TextureImporterNPOTScale.None;
         bool stormHd = IsStormHdTile(assetPath, tile);
-        ti.maxTextureSize = sun ? PlanetSheetMaxSize : planetSheet ? PlanetSheetMaxSize : file == "station_ring_v2" ? 1024 : file == "reference_planet" ? 1024 :
-            sharpSpaceSky || stormHd || (!tile && assetPath.Contains("/Worlds/Space/")) || IsDesertWormSheet(assetPath, file) || IsFrostLaunchSites(assetPath) || file == "docks" ? 2048 : 1024;   // (docks: the launch-strip sites atlas, 1578 px wide, keeps every pixel)
+        ti.maxTextureSize = sun || stormR3 || stormProps || IsFrostProps(assetPath) ? PlanetSheetMaxSize : planetSheet ? PlanetSheetMaxSize : file == "station_ring_v2" ? 1024 : file == "reference_planet" ? 1024 :
+            sharpSpaceSky || stormHd || (!tile && assetPath.Contains("/Worlds/Space/")) || IsFrostLaunchSites(assetPath) || IsFrostSoftWeather(assetPath) || file == "docks" ? 2048 : 1024;   // (docks: the launch-strip sites atlas, 1578 px wide, keeps every pixel)
         ti.textureCompression = sunDisc ? TextureImporterCompression.Uncompressed : TextureImporterCompression.Compressed;
         ti.sRGBTexture = true;
 
@@ -221,13 +271,13 @@ public class WorldBackdropImport : AssetPostprocessor
         {
             ti.textureType = TextureImporterType.Sprite;
             ti.spriteImportMode = SpriteImportMode.Single;
-            ti.spritePixelsPerUnit = IsTideHdTile(assetPath) || IsVerdantHdTile(assetPath) || IsEmberHdTile(assetPath) || IsFrostHdTile(assetPath) ? TideHdPixelsPerUnit : stormHd ? 1024f / 6f : tile ? TilePixelsPerUnit : BackdropAtlas.PixelsPerUnit;
+            ti.spritePixelsPerUnit = stormR3 && file == "flow" ? StormFlowPixelsPerUnit : frostGround ? FrostHdPixelsPerUnit : IsTideHdTile(assetPath) || IsVerdantHdTile(assetPath) || IsEmberHdTile(assetPath) ? TideHdPixelsPerUnit : stormHd ? 1024f / 6f : tile ? TilePixelsPerUnit : BackdropAtlas.PixelsPerUnit;
             var settings = new TextureImporterSettings();
             ti.ReadTextureSettings(settings);
             settings.spriteMeshType = file == "sky" || sharpSpaceSky || stormHd ? SpriteMeshType.FullRect : SpriteMeshType.Tight;
             settings.spriteAlignment = (int)SpriteAlignment.Center;
             settings.spriteExtrude = 1;
-            settings.wrapModeU = TextureWrapMode.Clamp;
+            settings.wrapModeU = frostGround || stormR3 ? TextureWrapMode.Repeat : TextureWrapMode.Clamp;   // (Frost's and Storm's ground repeat across)
             settings.wrapModeV = tile ? TextureWrapMode.Repeat : TextureWrapMode.Clamp;
             ti.SetTextureSettings(settings);
             ti.alphaSource = file == "sky" || sharpSpaceSky ? TextureImporterAlphaSource.None
@@ -254,9 +304,9 @@ public class WorldBackdropImport : AssetPostprocessor
         {
             var ps = ti.GetPlatformTextureSettings(platform);
             ps.overridden = true;
-            ps.maxTextureSize = sun ? PlanetSheetMaxSize : planetSheet ? PlanetSheetMaxSize : file == "station_ring_v2" ? 1024 : file == "reference_planet" ? 1024 :
-                sharpSpaceSky || stormHd || (!tile && assetPath.Contains("/Worlds/Space/")) || IsDesertWormSheet(assetPath, file) || IsFrostLaunchSites(assetPath) || file == "docks" ? 2048 : 1024;   // (docks: the launch-strip sites atlas, 1578 px wide, keeps every pixel)
-            ps.format = sunDisc ? TextureImporterFormat.RGBA32 : stormHd ? TextureImporterFormat.ASTC_6x6 : sun || planetSheet || IsContinuousTone(assetPath) ? TextureImporterFormat.ASTC_4x4 : TextureImporterFormat.ASTC_6x6;
+            ps.maxTextureSize = sun || stormR3 || stormProps || IsFrostProps(assetPath) ? PlanetSheetMaxSize : planetSheet ? PlanetSheetMaxSize : file == "station_ring_v2" ? 1024 : file == "reference_planet" ? 1024 :
+                sharpSpaceSky || stormHd || (!tile && assetPath.Contains("/Worlds/Space/")) || IsFrostLaunchSites(assetPath) || IsFrostSoftWeather(assetPath) || file == "docks" ? 2048 : 1024;   // (docks: the launch-strip sites atlas, 1578 px wide, keeps every pixel)
+            ps.format = sunDisc ? TextureImporterFormat.RGBA32 : stormProps ? (file == "aloft" || IsTideProps(assetPath) || IsEmberProps(assetPath) || IsVerdantProps(assetPath) ? TextureImporterFormat.ASTC_6x6 : TextureImporterFormat.ASTC_4x4) : stormHd ? TextureImporterFormat.ASTC_6x6 : sun || planetSheet || IsContinuousTone(assetPath) ? TextureImporterFormat.ASTC_4x4 : TextureImporterFormat.ASTC_6x6;
             ps.textureCompression = sunDisc ? TextureImporterCompression.Uncompressed : TextureImporterCompression.Compressed;
             ti.SetPlatformTextureSettings(ps);
         }

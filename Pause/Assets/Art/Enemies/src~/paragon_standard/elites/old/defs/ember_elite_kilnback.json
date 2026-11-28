@@ -1,0 +1,224 @@
+{
+  "world": "ember",
+  "heartColor": "#FFC24A",
+  "shotColor": "#FF8A2A",
+  "shotCore": "#FFE9B8",
+  "engineColor": "#FF9A3C",
+  "hearts": 5,
+  "heartSize": 0.18,
+  "heartOrbit": 0.791,
+  "heartStyle": "Halo",
+  "boldHearts": true,
+  "exhaustShip": 3,
+  "cellPixels": 384,
+  "key": "ember_elite_kilnback",
+  "displayName": "Kilnback",
+  "role": "slag kiln",
+  "brain": "kiln",
+  "attack": "kiln_dump",
+  "armored": true,
+  "lore": "A slow armoured kiln that hangs over the board and never chases. It dumps slag blobs down lanes outlined on the board, more of them for every heart it loses, and in between it spills a lane of lava that cools after a few seconds. Keep to the gap.",
+  "cellWorldSize": 1.747,
+  "hullRadius": 0.318,
+  "silhouetteShare": 0.4853,
+  "noseDeg": 90,
+  "turnsToFace": false,
+  "maxBank": 6,
+  "speed": 1.6,
+  "accel": 3,
+  "turnRate": 120,
+  "followDistance": 2.4,
+  "aggression": 0.45,
+  "tellSeconds": 0.7,
+  "attackGap": 2.2,
+  "avoidance": 0.5,
+  "lookAhead": 0.35,
+  "actionSeconds": 1.0,
+  "shotCount": 3,
+  "shotSpeed": 1.0,
+  "shotSpread": 15,
+  "shotInterval": 0.2,
+  "shotSize": 0.4,
+  "shotKind": "slag",
+  "exhaustScale": 0,
+  "muzzles": [
+    {
+      "name": "l",
+      "x": 134,
+      "y": 185,
+      "dir": 270.0
+    },
+    {
+      "name": "r",
+      "x": 249,
+      "y": 185,
+      "dir": 270.0
+    }
+  ],
+  "nozzles": [
+    {
+      "name": "a",
+      "x": 162,
+      "y": 282,
+      "dir": -1.0,
+      "offsets": [0, 0, 0, 0, 0, 4, 0, 0, 0, 0, 3, 0, -1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    },
+    {
+      "name": "b",
+      "x": 224,
+      "y": 282,
+      "dir": -1.0,
+      "offsets": [-1, -9, 0, 0, 0, 4, 0, 0, 0, 0, 1, 0, -3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    }
+  ],
+  "codexId": "elite_ember_kilnback",
+  "followLag": 0.25,
+  "cells": {
+    "flight": [
+      3,
+      4
+    ],
+    "parked": 0,
+    "parkedIdle": 1,
+    "liftoff": 2,
+    "bankLeft": 5,
+    "bankRight": 6,
+    "tell": -1,
+    "action": -1,
+    "hit": -1,
+    "damaged": 7,
+    "damagedLoop": [
+      8,
+      9,
+      10,
+      11,
+      12,
+      13
+    ]
+  },
+  "glowScale": 0.09,
+  "launchFrom": "crucible,furnacebay",
+  "topMargin": 1.6,
+  "laneOffset": 1.7,
+  "lobSeconds": 0.7,
+  "lobSpacing": 1.1,
+  "poolSeconds": 3.2,
+  "hazardCount": 1,
+  "hazardArmour": 0,
+  "engageSeconds": 55,
+  "script": {
+    "tempo": 1.35,
+    "exitTell": 1.4,
+    "lastExit": "none",
+    "lastExitSeconds": 1.6,
+    "note": "anchor: planted at the top centre; slag lanes then lava, hazardArmour is the cast (0 dump, 1 spill)",
+    "entrance": {
+      "kind": "slam",
+      "seconds": 1.7,
+      "amp": 1.4
+    },
+    "phase1": {
+      "speed": 1.0,
+      "gap": 1.0,
+      "loop": [
+        {
+          "wait": 2.0,
+          "move": "C"
+        },
+        {
+          "wait": 2.0,
+          "attack": "lava"
+        }
+      ]
+    },
+    "phase2": {
+      "speed": 1.0,
+      "gap": 0.9,
+      "loop": [
+        {
+          "wait": 1.8,
+          "move": "L",
+          "attack": "slag5"
+        },
+        {
+          "wait": 1.8,
+          "attack": "lava2"
+        },
+        {
+          "wait": 1.8,
+          "move": "R",
+          "attack": "slag5"
+        },
+        {
+          "wait": 1.8,
+          "attack": "lava2"
+        }
+      ]
+    },
+    "last": {
+      "speed": 1.0,
+      "gap": 0.7,
+      "loop": [
+        {
+          "wait": 1.4,
+          "move": "C",
+          "attack": "slag7"
+        },
+        {
+          "wait": 0.8,
+          "attack": "lava2"
+        },
+        {
+          "wait": 1.4,
+          "attack": "slag7"
+        },
+        {
+          "wait": 0.8,
+          "attack": "lava2"
+        }
+      ]
+    },
+    "variants": [
+      {
+        "name": "slag5",
+        "set": [
+          {
+            "key": "shotCount",
+            "value": 5
+          }
+        ]
+      },
+      {
+        "name": "slag7",
+        "set": [
+          {
+            "key": "shotCount",
+            "value": 7
+          }
+        ]
+      },
+      {
+        "name": "lava",
+        "set": [
+          {
+            "key": "hazardArmour",
+            "value": 1
+          }
+        ]
+      },
+      {
+        "name": "lava2",
+        "set": [
+          {
+            "key": "hazardArmour",
+            "value": 1
+          },
+          {
+            "key": "hazardCount",
+            "value": 2
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -5,7 +5,7 @@ using UnityEngine;
 // fights with BossMusicDirector's gap-guaranteed waves -- and every few bars it performs one of its SPECIAL attacks: the
 // non-Pattern slots of its rotation (BossPatternTables' Legacy slots: the Archon's pod lasers, the Leviathan's glare
 // beams, the Bloom Queen's vine lash and trunk toss, the Drake's jaw flamethrower and eruption columns, the Kraken's
-// beak jet and surf wave, the Tempest Engine's coil beams, the Dune-Eater's lens beam), fired by the executors BossActor
+// beak jet and surf wave, the Tempest Engine's eye beam, the Dune-Eater's lens beam), fired by the executors BossActor
 // already has (Tell -> Beams / Hazards), beat-synced:
 //
 //   * a special LANDS ON A BAR LINE: its tell starts tellSeconds before the bar line -- shortened by however late the

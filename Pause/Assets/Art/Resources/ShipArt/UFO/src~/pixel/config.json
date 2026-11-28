@@ -1,0 +1,23 @@
+{
+ "drawing": "approved.png",
+ "source": "PixelLab drawing ship_UFO/r2_2.png (128 px), approved Nov 2026",
+ "spinner": true,
+ "canopy": [
+  [
+   64,
+   62,
+   13,
+   14
+  ]
+ ],
+ "nozzles": [
+  [
+   64,
+   112,
+   1.0
+  ]
+ ],
+ "damageNote": "1) left rim segment blown, sparking wires, right rim scorched; 2) right rim blown and burning, lower vortex vanes on fire, upper rim holed, soot over the saucer, crystal cracked",
+ "seed": 13,
+ "integer_scale": true
+}

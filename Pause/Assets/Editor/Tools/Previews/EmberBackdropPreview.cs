@@ -154,8 +154,8 @@ public static class EmberBackdropPreview
                 wb.Step(Dt);
             }
             Capture(cam, Path.Combine(dir, "handoff-level-" + a.ToString("00") + "s.png"));
-            Debug.Log("[EMBER-PREVIEW] level " + a + " s: ceiling " + d.CeilingCover.ToString("F2") + " ground " + d.Ground.ActiveCount +
-                      " fires " + d.Fires.ActiveCount + " pipes " + d.Pipes.ActiveCount + " loops " + d.Ambient.LiveCount);
+            Debug.Log("[EMBER-PREVIEW] level " + a + " s: ceiling " + d.CeilingCover.ToString("F2") + " props " + d.Props.ActiveCount +
+                      " fires " + d.Fires.ActiveCount + " loops " + d.Ambient.LiveCount);
         }
         Object.DestroyImmediate(wm.gameObject);
         Object.DestroyImmediate(wb.gameObject);
@@ -181,9 +181,8 @@ public static class EmberBackdropPreview
             {
                 while (d.Clock < at) wb.Step(Dt);
                 Capture(cam, Path.Combine(dir, "variant-v" + v + "-" + at.ToString("00") + "s.png"));
-                Debug.Log("[EMBER-PREVIEW] v" + v + " " + at + "s ground " + d.Ground.ActiveCount + " fires " + d.Fires.ActiveCount +
-                          " pipes " + d.Pipes.ActiveCount + " sites " + d.Sites.ActiveCount + " loops " + d.Ambient.LiveCount +
-                          " clusters " + d.Clusters + " runs " + d.PipeRuns);
+                Debug.Log("[EMBER-PREVIEW] v" + v + " " + at + "s props " + d.Props.ActiveCount + " mountains " + d.Mountains.ActiveCount + " fires " + d.Fires.ActiveCount +
+                          " sites " + d.Sites.ActiveCount + " loops " + d.Ambient.LiveCount + " clusters " + d.Clusters);
             }
             if (v == 2) Launch(cam, wb, d, dir);
         }
@@ -407,13 +406,13 @@ public static class EmberBackdropPreview
                 while (d.Clock < at) wb.Step(Dt);
                 Capture(cam, Path.Combine(dir, "occ-v" + v + "-" + at.ToString("00") + "s-normal.png"));
                 var hid = new List<SpriteRenderer>();
-                foreach (var pool in new[] { d.Ground, d.Fires, d.Pipes, d.Sites })
+                foreach (var pool in new[] { d.Mountains, d.Props, d.Fires, d.Sites })
                     foreach (var q in pool.items)
                         if (q.active && q.sr.enabled) { q.sr.enabled = false; hid.Add(q.sr); }
                 Capture(cam, Path.Combine(dir, "occ-v" + v + "-" + at.ToString("00") + "s-plates-hidden.png"));
                 foreach (var sr in hid) sr.enabled = true;
                 var order = new System.Text.StringBuilder();
-                foreach (var pool in new[] { d.Pipes, d.Fires, d.Ground, d.Sites })
+                foreach (var pool in new[] { d.Mountains, d.Props, d.Fires, d.Sites })
                     if (pool.items.Count > 0) order.Append(" " + pool.name + "=" + pool.items[0].sr.sortingOrder);
                 Debug.Log("[OCC] v" + v + " " + at + "s plate sorting orders" + order);
             }

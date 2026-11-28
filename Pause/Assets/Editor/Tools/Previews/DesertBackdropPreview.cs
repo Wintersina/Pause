@@ -37,7 +37,6 @@ public static class DesertBackdropPreview
                 if (only.Contains("motion")) Motion(dir);
                 if (only == "" || only.Contains("worms")) Worms(dir);
                 if (only == "" || only.Contains("sites")) SitesShots(dir);
-                if (only == "" || only.Contains("raze")) Raze(dir);
             }
             catch (System.Exception e) { Debug.LogException(e); failures++; }
             finally
@@ -117,9 +116,8 @@ public static class DesertBackdropPreview
             {
                 while (d.Clock < at) wb.Step(Dt);
                 Capture(cam, Path.Combine(dir, "variant-v" + v + "-" + at.ToString("00") + "s.png"));
-                Debug.Log("[DESERT-PREVIEW] v" + v + " " + at + "s ground " + d.Ground.ActiveCount + " fires " + d.Fires.ActiveCount +
-                          " pipes " + d.Pipes.ActiveCount + " sites " + d.Sites.ActiveCount + " loops " + d.Ambient.LiveCount +
-                          " clusters " + d.Clusters + " runs " + d.PipeRuns);
+                Debug.Log("[DESERT-PREVIEW] v" + v + " " + at + "s props " + d.Props.ActiveCount + " mountains " + d.Mountains.ActiveCount +
+                          " sites " + d.Sites.ActiveCount + " loops " + d.Ambient.LiveCount);
             }
         }
         Object.DestroyImmediate(wb.gameObject);
@@ -189,32 +187,6 @@ public static class DesertBackdropPreview
             EliteSystem.Clear();
             Object.DestroyImmediate(dirGo.gameObject);
         }
-        Object.DestroyImmediate(wb.gameObject);
-    }
-
-    // raze-NNN.png: a medium worm's ridge meets a planted radio mast and a drill head and destroys them (distant blasts, dust)
-    static void Raze(string dir)
-    {
-        var cam = Scene(6, 6);
-        var wb = WorldBackdrop.Create("Desert");
-        BackdropVariants.For("Desert").Force = 1;
-        wb.Show("Space", false);
-        wb.Show("Desert", false);
-        var d = (DesertDirector)wb.Current.Director;
-        while (d.Clock < 15f) wb.Step(Dt);
-        d.ClearWorms();
-        d.ClearItems();
-        d.SpawnWorm(1, 0f, false, 0f, true);
-        var w = d.Worms.items[0];
-        d.Plant("radio_mast", 1.5f, w.x - .2f, w.gy + .9);
-        d.Plant("drill_head_tower", 1.5f, w.x + .3f, w.gy + 2.0);
-        int n = 0;
-        for (int i = 0; i < 60 * 40 && (d.Worms.ActiveCount > 0 || d.Blasts.ActiveCount > 0); i++)
-        {
-            wb.Step(Dt);
-            if (i % 5 == 0 && d.ItemsRazed > 0 || i % 40 == 0) Capture(cam, Path.Combine(dir, "raze-" + (n++).ToString("000") + ".png"), 2);
-        }
-        Debug.Log("[DESERT-PREVIEW] raze: razed " + d.ItemsRazed + " frames " + n);
         Object.DestroyImmediate(wb.gameObject);
     }
 

@@ -110,15 +110,16 @@ public static class LaneWidthTest
                       ", inner edge " + F(LaneMetrics.InnerEdgeFor(s.w, s.h)) + ", density x" + density.ToString("F2"));
             if (s.phone)
             {
-                Check(s.id + ": a phone gets no wide extra, density x1 and the rail shift it always had (" + F(shift) + ")",
-                      extra == 0f && density == 1f && shift == room && view == CameraFit.GameplayHalfWidth &&
-                      (Mathf.Approximately(shift, RailInset.BaseShift + RailInset.MaxShift) || Mathf.Approximately(shift, RailInset.BaseShift)));
+                // (NarrowShift: the 80% rail's inner edge is that much further out on every screen)
+                Check(s.id + ": a phone gets no wide extra, density x1 and the narrow rail's + the room's rail shift (" + F(shift) + ")",
+                      extra == 0f && density == 1f && Mathf.Approximately(shift, RailInset.NarrowShift + room) && view == CameraFit.GameplayHalfWidth &&
+                      (Mathf.Approximately(room, RailInset.BaseShift + RailInset.MaxShift) || Mathf.Approximately(room, RailInset.BaseShift)));
             }
             else
             {
                 Check(s.id + ": the rails move out by the view's extra half-width (" + F(extra) + " = " + F(view) + " - 3.72) on top of the full room shift",
                       Mathf.Abs(extra - (view - CameraFit.GameplayHalfWidth)) < 1e-4f && extra > 0f &&
-                      Mathf.Abs(shift - (RailInset.BaseShift + RailInset.MaxShift + extra)) < 1e-4f);
+                      Mathf.Abs(shift - (RailInset.NarrowShift + RailInset.BaseShift + RailInset.MaxShift + extra)) < 1e-4f);
                 Check(s.id + ": density = 1 + extra / " + F(LaneMetrics.ReferenceLaneHalf) + " = x" + density.ToString("F3"),
                       Mathf.Abs(density - (1f + extra / LaneMetrics.ReferenceLaneHalf)) < 1e-4f && density > 1f && density <= LaneMetrics.MaxDensity);
             }
@@ -134,8 +135,8 @@ public static class LaneWidthTest
         if (Application.isBatchMode)
         {
             ScreenInfo.ClearOverride();
-            Check("the batch editor with no screen override keeps the authored lane (shift " + F(RailInset.Shift) + ", extra " + F(LaneMetrics.WideExtra) + ")",
-                  !LaneMetrics.HasDevice && RailInset.Shift == 0f && LaneMetrics.WideExtra == 0f && LaneMetrics.Density == 1f);
+            Check("the batch editor with no screen override keeps the authored lane: the narrow rail's shift only (shift " + F(RailInset.Shift) + ", extra " + F(LaneMetrics.WideExtra) + ")",
+                  !LaneMetrics.HasDevice && RailInset.Shift == RailInset.NarrowShift && LaneMetrics.WideExtra == 0f && LaneMetrics.Density == 1f);
         }
     }
 
@@ -206,7 +207,7 @@ public static class LaneWidthTest
                           outR >= halfW - .01f && (outR - halfW) / (outR - inR) <= .45f);
                 else
                     Check(tag + ": past the clamp the rails stop at the widest lane, inside the view (" + F(outR) + " < " + F(halfW) + ")",
-                          outR < halfW && Mathf.Abs(inner - (BossRails.ReinforcedInnerEdge + RailInset.BaseShift + RailInset.MaxShift + LaneMetrics.MaxWideExtra)) < .003f);
+                          outR < halfW && Mathf.Abs(inner - (BossRails.ReinforcedInnerEdge + RailInset.NarrowShift + RailInset.BaseShift + RailInset.MaxShift + LaneMetrics.MaxWideExtra)) < .003f);
                 float lampOuter = inR + .45f * (outR - inR);
                 Check(tag + ": the rail's lamp column stays on screen (" + F(lampOuter) + " < " + F(halfW) + ")", lampOuter < halfW - .02f);
 

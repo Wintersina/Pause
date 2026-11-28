@@ -4,8 +4,8 @@ using UnityEngine;
 // Storm's backdrop is ALIVE (StormLife) and its boulder is gone.
 //   * the turbine raft's three fans have rotors cut into their own atlas ("rotors") and a rotation animator: each speed > 0,
 //     they really turn over time, the other landmarks show no rotor;
-//   * thunderhead towers breathe and drift, their heart glow pulses slowly and flickers rarely (<= 3 Hz, one at a time, small
-//     alpha); lightning-rod masts crackle at the tip;
+//   * the kept landmarks hover on the wind (the towers' breathing / glow / lightning and the spires' tip crackle were retired
+//     with those landmarks on 2026-11-28);
 //   * a paused game is a still frame (dt 0); no per-frame allocation;
 //   * the world's boulder is off (CoverBoulderTable) while the other worlds keep theirs.
 public static class StormLifeTest
@@ -28,7 +28,7 @@ public static class StormLifeTest
         try
         {
             Fans();
-            Towers();
+            Hover();
             Boulder();
         }
         finally
@@ -103,56 +103,25 @@ public static class StormLifeTest
         Object.DestroyImmediate(WorldBackdrop.Instance.gameObject);
     }
 
-    static void Towers()
+    // The retired pieces' life is gone (2026-11-28: towers, their lightning layer and the spires' tip crackle went with those
+    // landmarks); what stays: every kept landmark hovers a hair on the wind, a paused game holds still, nothing allocates.
+    static void Hover()
     {
         var d = Fresh(2);
-        var tower = d.Showcase("anvil_tower_00", 1.7f, 0f, 0f);
-        for (int i = 0; i < 5; i++) wb.Step(Dt);
-        Check("a thunderhead tower has a heart glow showing", tower != null && d.Life.HeartAlpha(tower) > .02f);
-        float minA = 9f, maxA = 0f, maxScale = 0f, minScale = 9f, maxPos = 0f, prev = d.Life.HeartAlpha(tower), maxStep = 0f;
-        int flickers = 0; bool wasUp = false;
-        for (int i = 0; i < 60 * 40; i++)
+        var gantry = d.Showcase("gantry_00", 1.7f * StormTuning.PieceScale, 0f, 0f);
+        float maxPos = 0f;
+        for (int i = 0; i < 60 * 10; i++)
         {
             wb.Step(Dt);
-            float a = d.Life.HeartAlpha(tower);
-            minA = Mathf.Min(minA, a); maxA = Mathf.Max(maxA, a);
-            maxStep = Mathf.Max(maxStep, Mathf.Abs(a - prev)); prev = a;
-            float s = Mathf.Abs(tower.body.localScale.x);
-            minScale = Mathf.Min(minScale, s); maxScale = Mathf.Max(maxScale, s);
-            maxPos = Mathf.Max(maxPos, tower.body.localPosition.magnitude);
-            bool up = a > StormLifeTuning.HeartBase + StormLifeTuning.HeartSwing + .06f;
-            if (up && !wasUp) flickers++;
-            wasUp = up;
+            if (gantry != null) maxPos = Mathf.Max(maxPos, gantry.body.localPosition.magnitude);
         }
-        Check("the heart glow pulses (alpha " + minA.ToString("0.00") + " .. " + maxA.ToString("0.00") + ") and stays soft (< .30)", maxA - minA > .03f && maxA < .30f);
-        Check("a glow alpha changes by < " + (.06f) + " per 60 fps frame (no snap): " + maxStep.ToString("0.000"), maxStep < .06f);
-        Check("the tower breathes (scale " + minScale.ToString("0.000") + " .. " + maxScale.ToString("0.000") + ") and drifts a little", maxScale - minScale > .008f && maxScale < 1.05f && maxPos > 0f);
-        Check("a flicker, when it fires, is at most ~3 per 10 s on one tower (" + flickers + " in 40 s)", flickers <= 14);
-        Check("flicker spacing constants keep it under 3 Hz and seconds apart",
-              StormLifeTuning.FlickerSecondAt >= .4f && StormLifeTuning.FlickerGapMin >= 3f && StormLifeTuning.FlickerPeak <= .2f);
-
-        Check("a tower's lightning is its own layer (thunder atlas found)", d.Life.HasBolts);
-        // a tower that stays put (the ground is still), freshly in view: the lightning layer is measured over its whole life
-        moveBackGround.speed = 0f;
-        tower = d.Showcase("anvil_tower_00", 1.7f, 0f, 0f);
-        for (int i = 0; i < 5; i++) wb.Step(Dt);
-        float idleB = 9f, peakB = 0f; int strikesUp = 0; bool boltUp = false;
-        for (int i = 0; i < 60 * 40; i++)
-        {
-            wb.Step(Dt);
-            float b = d.Life.BoltAlpha(tower);
-            idleB = Mathf.Min(idleB, b); peakB = Mathf.Max(peakB, b);
-            bool up = b > .4f;
-            if (up && !boltUp) strikesUp++;
-            boltUp = up;
-        }
-        Check("the bolts idle dim (" + idleB.ToString("0.00") + ") and strike bright (" + peakB.ToString("0.00") + ")", idleB < .15f && peakB > .5f);
-        Check("bolt strikes happen, but never more than 2.5 per second (" + strikesUp + " in 40 s)", strikesUp >= 1 && strikesUp <= 40 * 2.5f && StormLifeTuning.BoltMinGap >= .4f);
-
-        moveBackGround.speed = .25f;
-        var mast = d.Showcase("spire_00", 1.7f, 0f, 0f);
-        for (int i = 0; i < 30; i++) wb.Step(Dt);
-        Check("a lightning-rod mast crackles a faint glow at its tip", mast != null && d.Life.TipAlpha(mast) > .05f && d.Life.TipAlpha(mast) < .5f);
+        Check("a kept landmark hovers a hair on the wind (" + maxPos.ToString("0.000") + " body units)", gantry != null && maxPos > 0f);
+        Vector3 at = gantry != null ? gantry.body.localPosition : Vector3.zero;
+        for (int i = 0; i < 30; i++) wb.Step(0f);
+        Check("paused (dt 0): it holds still", gantry != null && gantry.body.localPosition == at);
+        Check("the retired landmarks are gone from the atlas and the placement lists (" + string.Join(", ", StormTuning.AllPieces()) + ")",
+              string.Join(",", StormTuning.AllPieces()) == "gantry_00,turbine_raft_00,relay_dish_00" &&
+              d.Showcase("anvil_tower_00", 1f, 0f, 0f) == null && d.Showcase("spire_00", 1f, 0f, 0f) == null);
 
         // no allocation over many frames
         System.GC.Collect();

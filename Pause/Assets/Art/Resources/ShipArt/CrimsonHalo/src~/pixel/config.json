@@ -1,0 +1,34 @@
+{
+ "drawing": "approved.png",
+ "source": "PixelLab drawing ship_CrimsonHalo/r2_1.png (128 px), approved Nov 2026",
+ "canopy": [
+  [
+   63,
+   48,
+   7.5,
+   15
+  ]
+ ],
+ "nozzles": [
+  [
+   49,
+   114,
+   0.72
+  ],
+  [
+   77,
+   114,
+   0.72
+  ]
+ ],
+ "damageNote": "1) left wing panel blown, sparking wires, right wing scorched; 2) right wing blown and burning, engines on fire, halo ring holed, soot over the hull, canopy cracked",
+ "seed": 4,
+ "fill_holes": [
+  34,
+  12,
+  28
+ ],
+ "integer_scale": true,
+ "wreck_soot": 0.12,
+ "wreck_mul": 0.25
+}

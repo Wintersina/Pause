@@ -3,11 +3,11 @@
   "key": "SolarFang",
   "painted": true,
   "rect": {
-    "x": 11,
-    "y": 12,
-    "w": 235,
-    "h": 227,
-    "ppu": 810.3449
+    "x": 6,
+    "y": 10,
+    "w": 244,
+    "h": 236,
+    "ppu": 842.1179
   },
   "hue": [
     "#F07A1E",
@@ -16,85 +16,104 @@
   ],
   "nozzles": [
     {
-      "x": 117.5,
-      "y": 11.5,
+      "x": 121.5,
+      "y": 14.5,
       "scale": 1.0,
-      "offsets": [0.0, -0.0, 0, 4, 0, 4, 0, 0, 0, 0, 0, -4, -28, 17, 19, 1, 0, 0]
+      "offsets": [
+        0.0,
+        0.0,
+        0.0,
+        4.0,
+        0.0,
+        4.0,
+        0.0,
+        -0.0,
+        0.0,
+        -0.0,
+        0.0,
+        -4.0,
+        -2.9,
+        -0.0,
+        3.0,
+        0.0,
+        0.0,
+        0.0
+      ]
     }
   ],
-  "damageNote": "1) left flank panel blown, reactor cracked; nozzle smoking; 2) left fang bent, reactor housing open and arcing, right tip torn, canopy cracked",
+  "damageNote": "1) left fang wing blown, sparking vents, right flank scorched; 2) right fang blown and smouldering, nose horns holed, soot over the gold, canopy cracked",
   "emitters": [
     {
       "state": 1,
       "kind": "Sparks",
-      "u": 46.3,
-      "v": 91.5
+      "u": 54.5,
+      "v": 59.0
     },
     {
       "state": 1,
       "kind": "Smoke",
-      "u": 65.0,
-      "v": 104.8
+      "u": 78.5,
+      "v": 55.0
     },
     {
       "state": 1,
       "kind": "Smolder",
-      "u": 46.8,
-      "v": 91.0
+      "u": 53.0,
+      "v": 57.5
     },
     {
       "state": 2,
       "kind": "Arc",
-      "u": 69.9,
-      "v": 76.2
+      "u": 78.5,
+      "v": 83.0
     },
     {
       "state": 2,
       "kind": "Flame",
-      "u": 103.3,
-      "v": 106.8
+      "u": 80.5,
+      "v": 108.0
     },
     {
       "state": 2,
       "kind": "Leak",
-      "u": 83.6,
-      "v": 102.7
+      "u": 57.5,
+      "v": 43.0
     },
     {
       "state": 2,
       "kind": "Smolder",
-      "u": 105.3,
-      "v": 107.8
+      "u": 78.5,
+      "v": 55.0
     },
     {
       "state": 2,
       "kind": "Smolder",
-      "u": 70.4,
-      "v": 76.2
+      "u": 54.5,
+      "v": 59.0
     },
     {
       "state": 2,
       "kind": "Smolder",
-      "u": 82.9,
-      "v": 63.1
+      "u": 79.0,
+      "v": 106.5
     },
     {
       "state": 2,
       "kind": "Smolder",
-      "u": 53.3,
-      "v": 46.4
+      "u": 77.0,
+      "v": 81.5
     },
     {
       "state": 2,
       "kind": "Smolder",
-      "u": 78.4,
-      "v": 106.3
+      "u": 56.0,
+      "v": 41.5
     },
     {
       "state": 2,
       "kind": "Smolder",
-      "u": 22.3,
-      "v": 94.8
+      "u": 77.0,
+      "v": 53.5
     }
   ],
   "skins": [

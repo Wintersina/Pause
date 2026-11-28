@@ -1,0 +1,140 @@
+{
+  "world": "desert",
+  "launchFrom": "buriedbunker,ruindock",
+  "heartColor": "#FFF6DC",
+  "shotColor": "#F4E3B0",
+  "shotCore": "#FFF6DC",
+  "engineColor": "#FFC060",
+  "hearts": 3,
+  "heartSize": 0.18,
+  "heartOrbit": 0.713,
+  "heartStyle": "Halo",
+  "exhaustShip": 3,
+  "cellPixels": 384,
+  "key": "desert_elite_scorpion_walker",
+  "displayName": "Scorpion Skiff",
+  "role": "boulder-rolling flanker",
+  "brain": "flanker",
+  "attack": "boulder_roll",
+  "lore": "A black-armoured skiff that guards a flank and scuttles across the top after every throw. It hurls rolling boulders along a drawn path that glances off the far rail and out the bottom. Step off the lane; shoot the boulder if it is in your way.",
+  "cellWorldSize": 1.617,
+  "hullRadius": 0.327,
+  "silhouetteShare": 0.4888,
+  "noseDeg": 90,
+  "turnsToFace": true,
+  "speed": 2.6,
+  "accel": 7,
+  "turnRate": 280,
+  "circleRadius": 2.0,
+  "aggression": 0.55,
+  "tellSeconds": 1.0,
+  "attackGap": 3.3,
+  "avoidance": 0.6,
+  "lookAhead": 0.5,
+  "actionSeconds": 0.7,
+  "dashSpeed": 7.875,
+  "shotCount": 2,
+  "shotSpeed": 5.0,
+  "shotSpread": 18,
+  "shotSize": 0.2,
+  "shotKind": "shard",
+  "exhaustScale": 0,
+  "muzzles": [
+    {
+      "name": "claw",
+      "x": 192,
+      "y": 38,
+      "dir": -1.0
+    }
+  ],
+  "nozzles": [
+    {
+      "name": "a",
+      "x": 164,
+      "y": 284,
+      "dir": -1.0,
+      "offsets": [0, 0, 0, 0, 0, 0, 0, 0, 11, 2, -9, -4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    },
+    {
+      "name": "b",
+      "x": 220,
+      "y": 284,
+      "dir": -1.0,
+      "offsets": [0, 0, 0, 0, 0, 0, 0, 0, 9, -4, -11, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    }
+  ],
+  "codexId": "elite_desert_scorpion_walker",
+  "cells": {
+    "flight": [
+      3,
+      7,
+      8
+    ],
+    "parked": 0,
+    "parkedIdle": 1,
+    "liftoff": 2,
+    "bankLeft": 4,
+    "bankRight": 5,
+    "tell": -1,
+    "action": -1,
+    "hit": -1,
+    "damaged": 6,
+    "damagedLoop": [
+      9,
+      10,
+      11,
+      12,
+      13,
+      14
+    ]
+  },
+  "followLag": 0.3,
+  "hurtHide": true,
+  "hazardSize": 0.6,
+  "hazardArmour": 3,
+  "skidSpeed": 3.2,
+  "topMargin": 1.7,
+  "engageSeconds": 48,
+  "script": {
+    "tempo": 1.1,
+    "exitTell": 1.4,
+    "lastExit": "right",
+    "lastExitSeconds": 1.2,
+    "note": "flanker: holds a flank, throws a boulder, scuttles across (a script beat), throws from the other flank. Two boulders from phase 2, boulders back to back from both flanks at the last heart.",
+    "entrance": { "kind": "swirl", "seconds": 1.6, "amp": 1.6 },
+    "phase1": {
+      "speed": 1.0, "gap": 1.0,
+      "set": [ { "key": "hazardCount", "value": 1 } ],
+      "loop": [
+        { "wait": 2.2, "attack": "" },
+        { "wait": 1.4, "move": "cross", "attack": "-" },
+        { "wait": 1.8, "attack": "fast" },
+        { "wait": 1.4, "move": "cross", "attack": "-" }
+      ]
+    },
+    "phase2": {
+      "speed": 1.15, "gap": 0.85,
+      "set": [ { "key": "hazardCount", "value": 2 } ],
+      "loop": [
+        { "wait": 1.8, "attack": "fast" },
+        { "wait": 1.2, "move": "cross", "attack": "-" },
+        { "wait": 1.8, "attack": "slow" },
+        { "wait": 1.2, "move": "cross", "attack": "-" }
+      ]
+    },
+    "last": {
+      "speed": 1.3, "gap": 0.7,
+      "set": [ { "key": "hazardCount", "value": 2 } ],
+      "loop": [
+        { "wait": 1.2, "attack": "fast" },
+        { "wait": 0.8, "move": "cross", "attack": "-" },
+        { "wait": 1.0, "attack": "fast" },
+        { "wait": 0.8, "move": "cross", "attack": "-" }
+      ]
+    },
+    "variants": [
+      { "name": "fast", "set": [ { "key": "skidSpeed", "value": 4.2 } ] },
+      { "name": "slow", "set": [ { "key": "skidSpeed", "value": 2.6 } ] }
+    ]
+  }
+}

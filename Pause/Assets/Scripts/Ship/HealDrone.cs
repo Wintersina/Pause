@@ -11,8 +11,9 @@ using UnityEngine;
 //     banked atom spent on a hit calls it in at once, at any heart count; at 1 heart it stays tucked.
 //   * This class is the body: Firefight orders in, the pose and nozzle out (the same contract UltimateGun
 //     gives the retardant).
-// Art: the ship's own companion drone drawing (UltimateGun.CompanionSprite) tinted green, with the damage-FX
-// atlas's nozzle -- a placeholder until Codex draws a proper green mini-drone.
+// Art: the ship's own healing-drone drawing (DroneArt, tier Heal, in the ship's shown skin, with its idle light pulse),
+// drawn un-tinted; a ship without one uses its companion drone drawing (UltimateGun.CompanionSprite) tinted green.
+// Either way the nozzle is the damage-FX atlas's.
 // Scaled time (Step(dt) with the world's dt): it holds still while the world is frozen. Built once per ship, no
 // per-frame allocation.
 [DefaultExecutionOrder(55)]   // after the hull pose (lifeControler) and the hearts (50), BEFORE ShipDamageFx (60): the spray starts at this frame's nozzle
@@ -34,7 +35,7 @@ public class HealDrone : MonoBehaviour
     int shipId;
     float nozzleSize;
     float deploy, clock, lean, nozzleAngle, nozzleOpen, nozzleClock;
-    bool dutyWanted, dutySpraying, haveStation;
+    bool dutyWanted, dutySpraying, haveStation, ownArt;
     Vector3 dutySpot, stationNow;
 
     public static HealDrone For(Transform ship)
@@ -69,8 +70,10 @@ public class HealDrone : MonoBehaviour
         bodyGo.transform.SetParent(transform, false);
         bodyT = bodyGo.transform;
         body = bodyGo.GetComponent<SpriteRenderer>();
-        body.sprite = UltimateGun.CompanionSprite(shipId);
-        body.color = Green;
+        var own = UltimateGun.HealSprite(shipId);
+        ownArt = own != null;
+        body.sprite = ownArt ? own : UltimateGun.CompanionSprite(shipId);
+        body.color = ownArt ? Color.white : Green;
         body.enabled = false;
         var nozzleGo = new GameObject("Nozzle", typeof(SpriteRenderer));
         nozzleGo.transform.SetParent(bodyT, false);
@@ -114,6 +117,8 @@ public class HealDrone : MonoBehaviour
     public bool OnStation { get { return deploy >= .9f; } }
     public bool Shown { get { return body != null && body.enabled; } }
     public bool NozzleShown { get { return nozzleRenderer != null && nozzleRenderer.enabled; } }
+    // True when it wears the ship's own healing-drone drawing (un-tinted), false for the green-tinted fallback.
+    public bool OwnArt { get { return ownArt; } }
     public SpriteRenderer BodyRenderer { get { return body; } }
     public SpriteRenderer NozzleRenderer { get { return nozzleRenderer; } }
     public Transform Ship { get { return ship; } }
@@ -173,6 +178,11 @@ public class HealDrone : MonoBehaviour
 
         bool shown = deploy > .02f && alive;
         body.enabled = shown;
+        if (shown && ownArt)
+        {
+            var frame = UltimateGun.HealSprite(shipId);   // the idle light pulse, same rect every frame
+            if (frame != null) body.sprite = frame;
+        }
         // under the hull while it slides out, over it once it is clear
         int order = (hull != null ? hull.sortingOrder : 0) + (deploy > .55f ? 1 : -1);
         body.sortingOrder = order;

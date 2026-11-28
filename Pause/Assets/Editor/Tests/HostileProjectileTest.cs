@@ -243,7 +243,10 @@ public static class HostileProjectileTest
             float wantDrawn = (s.Skin.motion & ShotMotion.Slash) != 0 ? ShotMotions.SlashLength : d.shotSize * s.Skin.drawScale;
             string hug;
             bool hugs = OutlineHugsArt(art.sprite, g.sprite, out hug);
-            bool ok = g != null && g.enabled && g.sprite != null && g.sprite == ShotOutline.For(art.sprite, drawn) &&
+            // the def may force the bold keyline (EliteDef.boldShots: a pale shot over its own pale world, the Whiteout Sentinel's
+            // shard): then it is the bold trace, still hugging the drawing within the same reach
+            bool wantBold = ShotOutline.UseBold || d.boldShots;
+            bool ok = g != null && g.enabled && g.sprite != null && g.sprite == ShotOutline.For(art.sprite, drawn, wantBold) &&
                       g.sortingOrder < 30 && g.GetComponent<Collider2D>() == null &&
                       g.transform.localScale == Vector3.one && DrawnAtItsSize(s, drawn, d.shotSize) &&
                       Mathf.Abs(WorldRadius(col) - s.Radius) < 1e-4f && past <= .06f && hugs &&
@@ -426,11 +429,11 @@ public static class HostileProjectileTest
 
     // ---- 2b. the bold outline on bright worlds ---------------------------------
     //
-    // The bright backdrops (BackdropCatalog.Spec.Bright: Frost's lifted ice
-    // and cloud ceiling, Verdant's lit jungle) switch the hostile shots'
-    // outline and the boss shots' rim to the bold style -- a solid dark
-    // keyline -- by the same predicate as the hearts (HeartOutline.UseBold);
-    // Space and Ember keep the standard trace.
+    // The bright backdrops (BackdropCatalog.Spec.Bright: Verdant's lit
+    // jungle; Frost's lifted ice until its dark v3 night redraw, Spec.darkArt)
+    // switch the hostile shots' outline and the boss shots' rim to the bold
+    // style -- a solid dark keyline -- by the same predicate as the hearts
+    // (HeartOutline.UseBold); Space, Frost and Ember keep the standard trace.
     static void BoldOnBrightWorlds()
     {
         string[] worlds = { "Space", "Frost", "Verdant", "Ember" };
@@ -438,11 +441,16 @@ public static class HostileProjectileTest
         {
             Fresh(w);
             bool bright = BackdropCatalog.For(worlds[w]).Bright;
+            // (the hearts also go bold where the world asks for it alone: Frost from up high, Spec.boldHearts)
+            bool heartsBold = BackdropCatalog.For(worlds[w]).HeartsBold;
             Check(worlds[w] + ": the shots' outline and the boss rims are " + (bright ? "BOLD" : "standard") +
-                  " by the hearts' own predicate (bright " + bright + ", hearts bold " + HeartOutline.UseBold + ")",
-                  ShotOutline.UseBold == bright && BossArt.ShotRimUseBold == bright && HeartOutline.UseBold == bright);
-            if (w == 0 || w == 3) Check(worlds[w] + " is not brightened: its shots keep the standard look", !bright);
-            if (w == 1 || w == 2) Check(worlds[w] + " is brightened: its shots wear the bold keyline", bright);
+                  " by the bright predicate, the hearts bold where bright or the world asks (bright " + bright + ", hearts bold " + HeartOutline.UseBold + ")",
+                  ShotOutline.UseBold == bright && BossArt.ShotRimUseBold == bright && HeartOutline.UseBold == heartsBold && (!bright || heartsBold));
+            // (Frost was a bright world -- lifted ice, a pale cloud ceiling -- until its v3 night redraw: the art is painted dark and,
+            //  even lifted x1.95, reads dark (Spec.darkArt), so it keeps the standard look like Space and Ember; the bold keyline over
+            //  it measured 36-38% soft in AtomClarityTest, over the 36% hard-edge cap)
+            if (w == 0 || w == 1 || w == 3) Check(worlds[w] + " is not brightened: its shots keep the standard look", !bright);
+            if (w == 2) Check(worlds[w] + " is brightened: its shots wear the bold keyline", bright);
         }
         // the bold outline: the same light trace at the drawing, a wider dark keyline, within the reach rule
         var art = EliteFxArt.Bolt;

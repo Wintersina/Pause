@@ -123,17 +123,25 @@ public static class BossAttackShotArtTest
         for (int w = 0; w < Worlds.Length; w++)
         {
             var slots = BossPatternTables.For(w);
-            int max = 0, painted = 0, streams = 0;
+            int max = 0, painted = 0, streams = 0, bombs = 0, paintedBursts = 0;
             var used = new HashSet<int>();
             if (slots != null)
                 foreach (var sl in slots)
                     if (sl.pattern != null)
-                        foreach (var st in sl.pattern.streams) { streams++; max = Mathf.Max(max, st.art); if (st.art > 0) { painted++; used.Add(st.art); } }
+                        foreach (var st in sl.pattern.streams)
+                        {
+                            streams++; max = Mathf.Max(max, Mathf.Max(st.art, st.burstArt)); if (st.art > 0) { painted++; used.Add(st.art); }
+                            if (st.burstArt > 0) used.Add(st.burstArt);
+                            // a bomb's burst ring wears a painted shard of its own world where one is wired (Ember: its cinders)
+                            if (st.kind == StreamKind.Bomb) { bombs++; if (st.burstArt > 0) paintedBursts++; }
+                        }
             foreach (var st in BossMusicVoices.For(w, BossCatalog.ForWorld(w))) { max = Mathf.Max(max, st.art); used.Add(st.art); }
             max = Mathf.Max(max, WaveMoves.For(w).art);
             used.Add(WaveMoves.For(w).art);
             Check(Worlds[w] + ": " + painted + " of " + streams + " pattern streams carry an art id, ids 0.." + max + ", " + used.Count + " distinct in use across patterns, waves, voices",
                   max <= 4 && used.Count >= 2);
+            if (Worlds[w] == "Ember")
+                Check("Ember: every magma-bomb stream bursts into its painted cinder shards (" + paintedBursts + " of " + bombs + " carry a burstArt)", bombs > 0 && paintedBursts == bombs);
             string file = "Assets/Art/Resources/Bosses/" + Worlds[w] + BossArt.AttackShotsSuffix + ".png";
             if (File.Exists(file))
             {

@@ -1,0 +1,130 @@
+{
+  "key": "storm_elite_anvil_cloud",
+  "codexId": "elite_storm_anvil_cloud",
+  "world": "storm",
+  "cells": {
+    "flight": [
+      3,
+      7,
+      8,
+      9
+    ],
+    "parked": 0,
+    "parkedIdle": 1,
+    "liftoff": 2,
+    "bankLeft": 4,
+    "bankRight": 5,
+    "tell": -1,
+    "action": -1,
+    "hit": -1,
+    "damaged": 6,
+    "damagedLoop": [
+      10,
+      11,
+      12,
+      13,
+      14,
+      15
+    ]
+  },
+  "cellWorldSize": 1.745,
+  "noseDeg": 90,
+  "maxBank": 3,
+  "heartColor": "#FFF3A0",
+  "shotColor": "#F2F6FF",
+  "shotCore": "#FFF3A0",
+  "engineColor": "#FFD77A",
+  "hearts": 3,
+  "heartSize": 0.18,
+  "heartOrbit": 0.53,
+  "heartStyle": "Halo",
+  "exhaustShip": 3,
+  "exhaustScale": 0,
+  "glowScale": 0.09,
+  "cellPixels": 384,
+  "armored": false,
+  "boldHearts": true,
+  "hazardSeconds": 0.4,
+  "hazardSize": 0.6,
+  "displayName": "Anvil Cloud",
+  "role": "static field",
+  "brain": "thunderhead",
+  "attack": "static_field",
+  "lore": "A flat-topped thunderhead that drifts along the top of the sky and never comes down. It rings four charged patches in a diamond ahead of you and spits a cloud onto each; every cloud lies there crackling. Go round the diamond, not through it.",
+  "hullRadius": 0.42,
+  "silhouetteShare": 0.4888,
+  "turnsToFace": false,
+  "speed": 1.7,
+  "accel": 4.0,
+  "turnRate": 120,
+  "aggression": 0.5,
+  "tellSeconds": 1.3,
+  "attackGap": 3.4,
+  "avoidance": 0.55,
+  "lookAhead": 0.4,
+  "perception": 2.2,
+  "actionSeconds": 1.0,
+  "shotCount": 4,
+  "shotSpeed": 10.5,
+  "shotSpread": 0,
+  "shotSize": 0.46,
+  "shotInterval": 0.22,
+  "shotKind": "shell",
+  "muzzles": [
+    {
+      "name": "cannon",
+      "x": 192,
+      "y": 41,
+      "dir": -1.0
+    }
+  ],
+  "nozzles": [
+    {
+      "name": "l",
+      "x": 153,
+      "y": 301,
+      "dir": -1.0,
+      "offsets": [0, -8, 0, -7, 0, 0, 0, 0, 2, 0, -4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    },
+    {
+      "name": "r",
+      "x": 229,
+      "y": 301,
+      "dir": -1.0,
+      "offsets": [0, -8, 0, -7, 0, 0, 0, 0, 3, 0, -3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    }
+  ],
+  "topMargin": 1.6,
+  "followLag": 0.25,
+  "launchFrom": "airshipdock,hangar",
+  "lobSeconds": 0.8,
+  "poolSeconds": 3.2,
+  "lobAhead": 1.6,
+  "laneOffset": 1.3,
+  "engageSeconds": 48,
+  "script": {
+    "tempo": 1.1, "exitTell": 1.4, "lastExit": "none",
+    "entrance": { "kind": "arc", "seconds": 1.7, "amp": 1.5 },
+    "phase1": { "speed": 1.0, "gap": 1.0,
+      "loop": [
+        { "wait": 1.8, "move": "L", "attack": "diamond" },
+        { "wait": 1.8, "move": "C", "attack": "diamond" },
+        { "wait": 1.8, "move": "R", "attack": "diamond" },
+        { "wait": 1.2, "move": "C", "attack": "-" } ] },
+    "phase2": { "speed": 1.15, "gap": 0.8,
+      "loop": [
+        { "wait": 1.4, "move": "L", "attack": "wide" },
+        { "wait": 1.4, "move": "R", "attack": "wide" },
+        { "wait": 1.4, "move": "C", "attack": "diamond" },
+        { "wait": 1.0, "move": "C", "attack": "-" } ] },
+    "last": { "speed": 1.3, "gap": 0.65, "set": [{ "key": "poolSeconds", "value": 4.4 }],
+      "loop": [
+        { "wait": 1.1, "move": "C", "attack": "wide" },
+        { "wait": 1.1, "move": "L", "attack": "wide" },
+        { "wait": 1.1, "move": "R", "attack": "wide" } ] },
+    "variants": [
+      { "name": "diamond", "set": [{ "key": "laneOffset", "value": 1.3 }] },
+      { "name": "wide", "set": [{ "key": "laneOffset", "value": 1.7 }] } ],
+    "note": "stationary caster: holds station L/C/R, one diamond of static fields per station; fifth field from phase 2; wide diamond and long pools at the last heart"
+  }
+}

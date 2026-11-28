@@ -80,7 +80,8 @@ public static class CoverBoulders
         for (int i = 0; i < v.circles.Length && i < CoverBoulder.MaxCircles; i++)
             boundPx = Mathf.Max(boundPx, new Vector2(v.circles[i].x, v.circles[i].y).magnitude + v.circles[i].r);
         // huge and slow (far below the ship), anywhere across the view
-        float width = Mathf.Min(e.widths[variant] * DecorScale, Edge * 2f * DecorMaxShare);
+        // (a world seen from higher up draws its ground smaller, Spec.groundZoom: a landform on it too)
+        float width = Mathf.Min(e.widths[variant] * DecorScale * GroundZoom(e.world), Edge * 2f * DecorMaxShare);
         float bound = boundPx * width / v.artWidth;
         float x = Random.Range(-Edge * .55f, Edge * .55f);
         float y = CameraFit.ViewTop + bound + SpawnMargin;
@@ -98,6 +99,13 @@ public static class CoverBoulders
         if (set == null || set.Spec.world != world) return null;
         foreach (var t in set.Tiles) if (t.layer.name == "mid") return t;
         return null;
+    }
+
+    // How much smaller the world's ground is drawn (BackdropCatalog.Spec.groundZoom: Frost is seen from higher up), 1 = as painted.
+    public static float GroundZoom(string world)
+    {
+        var spec = BackdropCatalog.For(world);
+        return spec != null && spec.PieceZoom > 0f ? Mathf.Min(spec.PieceZoom, 1f) : 1f;   // (the pieces' altitude: Storm's tiles are drawn at .82, its ground reads at .41)
     }
 
     // How fast the world's ground scrolls (u/s) -- the pace of a landform with no backdrop to be pinned to.

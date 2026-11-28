@@ -1,0 +1,223 @@
+{
+  "world": "ember",
+  "heartColor": "#FFC24A",
+  "shotColor": "#FF8A2A",
+  "shotCore": "#FFE9B8",
+  "engineColor": "#7FD8FF",
+  "hearts": 3,
+  "heartSize": 0.18,
+  "heartOrbit": 1.0,
+  "heartStyle": "Halo",
+  "boldHearts": true,
+  "exhaustShip": 3,
+  "cellPixels": 384,
+  "key": "ember_elite_ash_wraith",
+  "displayName": "Ash Wraith",
+  "role": "ember ghost",
+  "brain": "ashling",
+  "attack": "ember_veil",
+  "lore": "A crescent of soot that blinks between perches high above you and never comes close. Each blink leaves a drifting cloud of embers where it stood, ringed first, and a fan of shards from where it lands. Hurt it and it fades out and returns from another side.",
+  "cellWorldSize": 1.707,
+  "hullRadius": 0.295,
+  "silhouetteShare": 0.4805,
+  "noseDeg": 90,
+  "turnsToFace": true,
+  "speed": 2.8,
+  "accel": 8,
+  "turnRate": 300,
+  "keepDistance": 4.0,
+  "aggression": 0.55,
+  "tellSeconds": 0.7,
+  "attackGap": 2.2,
+  "avoidance": 0.9,
+  "lookAhead": 0.5,
+  "actionSeconds": 0.5,
+  "blinkDistance": 1.5,
+  "hazardCount": 1,
+  "shotCount": 3,
+  "shotSpeed": 6,
+  "shotSpread": 16,
+  "shotSize": 0.2,
+  "shotKind": "shard",
+  "exhaustScale": 0,
+  "muzzles": [
+    {
+      "name": "beak",
+      "x": 192,
+      "y": 14,
+      "dir": -1.0
+    }
+  ],
+  "nozzles": [
+    {
+      "name": "a",
+      "x": 167,
+      "y": 244,
+      "dir": -1.0,
+      "offsets": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    },
+    {
+      "name": "b",
+      "x": 217,
+      "y": 244,
+      "dir": -1.0,
+      "offsets": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    }
+  ],
+  "codexId": "elite_ember_ash_wraith",
+  "followLag": 0.25,
+  "cells": {
+    "flight": [
+      3,
+      4
+    ],
+    "parked": 0,
+    "parkedIdle": 1,
+    "liftoff": 2,
+    "bankLeft": 5,
+    "bankRight": 6,
+    "tell": -1,
+    "action": -1,
+    "hit": -1,
+    "damaged": 7,
+    "damagedLoop": [
+      8,
+      9,
+      10,
+      11,
+      12,
+      13
+    ]
+  },
+  "glowScale": 0.09,
+  "maxBank": 3,
+  "launchFrom": "kiln,hatch",
+  "hurtHide": true,
+  "hideSeconds": 3.5,
+  "hazardSize": 0.75,
+  "hazardSeconds": 2.6,
+  "hazardSpeed": 0.4,
+  "engageSeconds": 42,
+  "script": {
+    "tempo": 0.8,
+    "exitTell": 1.2,
+    "lastExit": "top",
+    "lastExitSeconds": 1.6,
+    "note": "sniper/blinker: perches 0 left, 1 middle, 2 right in the script's order; a cloud where it stood (phase 2: and where it lands)",
+    "entrance": {
+      "kind": "arc",
+      "seconds": 1.5,
+      "amp": 1.8
+    },
+    "phase1": {
+      "speed": 1.0,
+      "gap": 1.0,
+      "loop": [
+        {
+          "wait": 2.4,
+          "move": "perch:2"
+        },
+        {
+          "wait": 2.4,
+          "move": "perch:1"
+        },
+        {
+          "wait": 2.4,
+          "move": "perch:0"
+        },
+        {
+          "wait": 2.4,
+          "move": "perch:1"
+        }
+      ]
+    },
+    "phase2": {
+      "speed": 1.2,
+      "gap": 0.85,
+      "set": [
+        {
+          "key": "hazardCount",
+          "value": 2
+        }
+      ],
+      "loop": [
+        {
+          "wait": 2.2,
+          "move": "perch:0",
+          "attack": "fan5"
+        },
+        {
+          "wait": 2.2,
+          "move": "perch:2"
+        },
+        {
+          "wait": 2.2,
+          "move": "perch:1",
+          "attack": "fan5"
+        }
+      ]
+    },
+    "last": {
+      "speed": 1.35,
+      "gap": 0.7,
+      "set": [
+        {
+          "key": "hazardCount",
+          "value": 2
+        },
+        {
+          "key": "shotCount",
+          "value": 5
+        },
+        {
+          "key": "shotSpread",
+          "value": 22
+        }
+      ],
+      "loop": [
+        {
+          "wait": 1.8,
+          "move": "perch:2",
+          "attack": "fan7"
+        },
+        {
+          "wait": 1.8,
+          "move": "perch:0",
+          "attack": "fan7"
+        },
+        {
+          "wait": 1.8,
+          "move": "perch:1"
+        }
+      ]
+    },
+    "variants": [
+      {
+        "name": "fan5",
+        "set": [
+          {
+            "key": "shotCount",
+            "value": 5
+          },
+          {
+            "key": "shotSpread",
+            "value": 16
+          }
+        ]
+      },
+      {
+        "name": "fan7",
+        "set": [
+          {
+            "key": "shotCount",
+            "value": 7
+          },
+          {
+            "key": "shotSpread",
+            "value": 20
+          }
+        ]
+      }
+    ]
+  }
+}

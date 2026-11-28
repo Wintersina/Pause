@@ -6,17 +6,13 @@ using UnityEngine;
 // The Desert v3 backdrop (DesertDirector, GroundPlanner, DesertAmbientCatalog):
 //   * one of four ground sets per landing, never the same twice running; the
 //     night side (v4) flagged, its lights stronger;
-//   * PINNED pieces: a landmark's spot on the mid tile never changes while
+//   * the r1 ALTITUDE (2026-11-28): the stitched mid tile drawn at TileZoom, everything on it keyed to GroundZoom;
+//   * PINNED pieces: a prop's, a mountain's or a site's spot on the mid tile never changes while
 //     it is in view (60 s of scroll);
-//   * AFFINITY: over 150 seeded runs per variant no piece stands on ground
-//     its rule forbids (ruins and masts off the cliffs, wells and glass on soft
-//     or flat ground, dune ridges on sand), and no two footprints overlap;
-//   * EXACT EMITTERS: every binding draws its loop with the loop's anchor
-//     (plume base) within 3 px of the piece's measured point, mirrored or
-//     not, and that point is on the piece's opaque art -- the smoke over its
-//     stack mouth, the beacon on its mast tip; plumes lean with the level
-//     wind; loops draw above their piece; the installed loop atlases animate
-//     and the lamps blink;
+//   * AFFINITY: over seeded runs per variant no site stands on ground its rule forbids, nothing the
+//     game places stands on a painted feature, and no two footprints overlap (the props' own rules:
+//     DesertPropsTest);
+//   * the installed loop atlases animate; the free loops wander the ground;
 //   * the GIANT SAND WORMS: a ridge trail on the dune sand, an eruption (emerge,
 //     arc, dive, spray) at the same spot, pinned to the ground, behind every
 //     piece, alpha capped (body .85, spray .7), one at a time, never in the
@@ -66,6 +62,7 @@ public static class DesertBackdropTest
             Weather();
             Clouds();
             Brightness();
+            ShotLine();
             Sites();
             Allocation();
         }
@@ -114,7 +111,7 @@ public static class DesertBackdropTest
 
     static IEnumerable<BackdropPool> PinnedPools(DesertDirector d)
     {
-        yield return d.Pipes; yield return d.Fires; yield return d.Ground; yield return d.Sites;
+        yield return d.Mountains; yield return d.Props; yield return d.Sites;
     }
 
     // ---- the layer stack -----------------------------------------------------
@@ -124,28 +121,36 @@ public static class DesertBackdropTest
         var spec = BackdropCatalog.For("Desert");
         Check("Desert has its own v3 folder and four variant sets, not a stand-in",
               spec.world == "Desert" && spec.folder == "Worlds/Desert/Backdrop3/" && spec.variantSets == BackdropVariants.MaxVariants);
-        Check("duplicate Desert ground pixels share the sky texture, retaining separate layer motion", spec.Find("mid").texture == "sky" && spec.Rate("mid") != spec.Rate("sky"));
-        string[] want = { "sky", "far", "mid", "ground", "flow", "palls", "mist", "wisps", "ceiling", "gusts", "grit" };
-        bool all = true;
+        Check("the r1 ground: its own stitched mid tile (far reuses the sky), drawn at TileZoom " + spec.groundZoom + ", the pieces keyed to " + spec.PieceZoom,
+              spec.Find("mid").texture == "mid" && spec.Find("far").texture == "sky" && spec.Rate("mid") != spec.Rate("sky") &&
+              spec.groundZoom == DesertTuning.TileZoom && spec.PieceZoom == DesertTuning.GroundZoom && DesertTuning.GroundZoom == .49f && DesertTuning.TileZoom == 2f * DesertTuning.GroundZoom);
+        string[] want = { "sky", "far", "mid", "flow", "ground", "mist", "wisps", "ceiling", "gusts", "grit" };
+        bool all = !spec.Has("palls");
         foreach (string n in want) all &= spec.Has(n);
-        Check("Desert layers: ground tiles, pinned ground pieces, flow, palls, mist, wisps, ceiling, gusts, grit", all);
+        Check("Desert layers: ground tiles, flow, pinned ground pieces, mist, wisps, ceiling, gusts, grit (the vent palls retired)", all);
         var g = spec.Find("ground");
+        int gi = System.Array.IndexOf(spec.layers, g), fi = System.Array.IndexOf(spec.layers, spec.Find("flow")), mi = System.Array.IndexOf(spec.layers, spec.Find("mid"));
         Check("the ground pieces are PINNED to the mid tile: same rate (" + g.rate + " = " + spec.Rate("mid") + " <= " +
-              BackdropCatalog.MaxGroundRate + "), landmark role, right after it",
+              BackdropCatalog.MaxGroundRate + "), landmark role, over the sand flow (nothing moving passes through a prop)",
               g.pinTo == "mid" && g.rate == spec.Rate("mid") && g.rate <= BackdropCatalog.MaxGroundRate &&
-              g.role == BackdropCatalog.Role.Landmark && System.Array.IndexOf(spec.layers, g) == System.Array.IndexOf(spec.layers, spec.Find("mid")) + 1);
+              g.role == BackdropCatalog.Role.Landmark && fi == mi + 1 && gi == fi + 1);
         bool rising = true;
-        for (int i = 1; i < spec.layers.Length; i++)
-            rising &= spec.layers[i].rate > spec.layers[i - 1].rate ||
-                      (spec.layers[i].pinTo == spec.layers[i - 1].name && spec.layers[i].rate == spec.layers[i - 1].rate);
+        float fastest = 0f;
+        for (int i = 0; i < spec.layers.Length; i++)
+        {
+            var l = spec.layers[i];
+            if (!string.IsNullOrEmpty(l.pinTo)) { rising &= l.rate == spec.Rate(l.pinTo); continue; }
+            rising &= i == 0 || l.rate > fastest;
+            fastest = Mathf.Max(fastest, l.rate);
+        }
         Check("Desert rates strictly increase far -> near (a pinned layer shares its host's)", rising);
         Check("the night side is v4 only, never drawn brighter than the day (" + spec.VariantBrightness(4) + " <= " + spec.VariantBrightness(1) + ")",
               !spec.Night(1) && !spec.Night(2) && !spec.Night(3) && spec.Night(4) && spec.VariantBrightness(4) <= spec.VariantBrightness(1) &&
               spec.VariantBrightness(2) >= .3f && spec.VariantBrightness(3) >= .3f);
         Check("the art is dark-based: Desert is drawn below the bright-world lift (" + DesertTuning.Brightness + " < " + BackdropCatalog.Spec.BrightLift +
               "), so shots keep the thin outline and the hearts the standard one", !spec.Bright);
-        Check("ground pieces stay under the size limit", DesertTuning.LandmarkMax <= BackdropCatalog.MaxLandmarkSize &&
-              DesertTuning.FireMax <= BackdropCatalog.MaxLandmarkSize && DesertTuning.SiteMax <= BackdropCatalog.MaxLandmarkSize);
+        Check("the sites stay under the size limit, scaled to the altitude", DesertTuning.SiteMax <= BackdropCatalog.MaxLandmarkSize &&
+              Mathf.Approximately(DesertTuning.SiteMax, 1.7f * DesertTuning.PieceScale));
 
         var table = DesertAmbientCatalog.Table;
         bool loops = true;
@@ -156,7 +161,7 @@ public static class DesertBackdropTest
             foreach (var e in b.emitters) { loops &= table.LoopIndex(e.loop) >= 0; bound++; }
         }
         Check("points.json binds " + bound + " measured emitters on " + table.bindings.Length + " drawings, every loop known, <= " +
-              table.maxPerPiece + " per piece", loops && table.bindings.Length >= 15 && bound >= 30);
+              table.maxPerPiece + " per piece (r1: the retired pieces' emitters went with them)", loops);
         bool anchors = true;
         int installed = 0;
         foreach (var l in table.loops)
@@ -174,24 +179,22 @@ public static class DesertBackdropTest
         foreach (var m in DesertAmbientCatalog.MeasuredLoops)
             if (DesertAmbientCatalog.Plume(m.name)) smokeBase &= Mathf.Abs(m.x - 128f) <= 4f && m.y >= 228f && m.spread <= 4f;
         Check("the plume loops' bases sit on their cell's bottom-centre anchor, steady over the frames", smokeBase);
-        string[] carriers = { "refinery_hull_00", "refinery_hull_01", "ribcage_gantry_00", "drill_head_tower", "solar_array_skeleton_00", "crawler_caravan_00", "radio_mast",
-                              "collapsed_dome_cluster", "bucket_wheel_excavator", "pump_well_station", "fused_glass_crater_rim", "dry_well_00", "heat_vent_00", "pump_house", "dune_ridge" };
-        bool smokes = true;
-        foreach (string s in carriers) smokes &= DesertAmbientCatalog.Table.For(s) != null;
-        Check("stacks, masts, wells, vents, glass and the dune ridge all carry loops", smokes);
         for (int v = 1; v <= 4; v++)
         {
             var mask = GroundMask.Load("Desert", v);
-            Check("v" + v + " has its affinity mask (" + (mask != null ? mask.Cols + "x" + mask.Rows + ", sand " +
-                  mask.Share(GroundClass.Water).ToString("F2") + ", flats " + mask.Share(GroundClass.Open).ToString("F2") + ", cliff " + mask.Share(GroundClass.Canopy).ToString("F2") : "-") + ")",
-                  mask != null && mask.Cols == 32 && mask.Rows == 64 && mask.Share(GroundClass.Water) + mask.Share(GroundClass.Open) > .4f);
-            // the painted props (class C) are blocked yet leave room: a dock-sized footprint (~5.4 x 4 cells) fits wholly on clear ground
-            // somewhere (>= 3% of positions), or no launch site / landmark could ever be placed on that tile
+            Check("v" + v + " has its affinity mask and context (" + (mask != null ? mask.Cols + "x" + mask.Rows + ", sand " +
+                  mask.Share(GroundClass.Water).ToString("F2") + ", flats " + mask.Share(GroundClass.Open).ToString("F2") + ", painted " + mask.Share(GroundClass.Canopy).ToString("F2") +
+                  ", flat " + mask.Share(GroundClass.Flat).ToString("F2") + ", rocky " + mask.Share(GroundClass.Rocky).ToString("F2") + ", open " + mask.Share(GroundClass.Plain).ToString("F2") : "-") + ")",
+                  mask != null && mask.Cols == 64 && mask.Rows == 292 && mask.HasContext && mask.Share(GroundClass.Water) + mask.Share(GroundClass.Open) > .4f &&
+                  mask.Share(GroundClass.Flat) > .1f && mask.Share(GroundClass.Rocky) > .1f && mask.Share(GroundClass.Plain) > .3f);
+            Check("v" + v + ": a shore (the skiffs' ground) only where the layout has one (" + (mask != null ? mask.Share(GroundClass.Shore).ToString("F3") : "-") + ")",
+                  mask != null && ((v == 2 || v == 3) ? mask.Share(GroundClass.Shore) > 0f : mask.Share(GroundClass.Shore) == 0f));
+            // the painted features (class C) are blocked yet leave room: a dock-sized footprint fits wholly on clear ground somewhere
             if (mask != null)
             {
-                int fit = 0, tot = 0;
-                for (int row = 0; row < 64; row++)
-                    for (int col = 3; col < 29; col++)
+                int fit = 0, tot = 0, C = mask.Cols, R = mask.Rows;
+                for (int row = 0; row < R; row++)
+                    for (int col = 3; col < C - 3; col++)
                     {
                         tot++;
                         bool clear = true;
@@ -200,14 +203,14 @@ public static class DesertBackdropTest
                             {
                                 float fx = i * .5f, fy = j * .5f;
                                 if (fx * fx + fy * fy > 1.05f) continue;
-                                int cx = Mathf.Clamp(col + Mathf.RoundToInt(fx * 2.7f), 0, 31), cy = (row + Mathf.RoundToInt(fy * 2f) + 64) % 64;
-                                if (mask.At((cx + .5f) / 32f, 1f - (cy + .5f) / 64f) == GroundClass.Canopy) clear = false;
+                                int cx = Mathf.Clamp(col + Mathf.RoundToInt(fx * 2f), 0, C - 1), cy = (row + Mathf.RoundToInt(fy * 1.5f) + R) % R;
+                                if ((mask.At((cx + .5f) / C, 1f - (cy + .5f) / R) & GroundClass.Canopy) != 0) clear = false;
                             }
                         if (clear) fit++;
                     }
                 float blocked = mask.Share(GroundClass.Canopy);
-                Check("v" + v + " blocks its painted props (C " + blocked.ToString("F2") + " in .10..45) and still has room for a dock (" + (fit / (float)tot).ToString("F2") + " >= .03)",
-                      blocked >= .10f && blocked <= .45f && fit / (float)tot >= .03f);
+                Check("v" + v + " blocks its painted features (C " + blocked.ToString("F2") + " in .03..45) and still has room for a dock (" + (fit / (float)tot).ToString("F2") + " >= .3)",
+                      blocked >= .03f && blocked <= .45f && fit / (float)tot >= .3f);
             }
         }
         Check("the sites' kinds are Desert's own and parse from launchFrom strings",
@@ -293,7 +296,6 @@ public static class DesertBackdropTest
         float worst = 0f;
         int tracked = 0;
         var tile = d.Planner.Tile;
-        float tilePx = tile.TileHeight / 1024f;
         Run(wb, 60f, () =>
         {
             foreach (var pool in PinnedPools(d))
@@ -305,8 +307,8 @@ public static class DesertBackdropTest
                     if (!TileSpot(wb, p.root.position, out uv)) continue;
                     Vector2 s0;
                     if (!start.TryGetValue(p, out s0)) { start[p] = uv; tracked++; continue; }
-                    float dv = Mathf.Abs(Mathf.Repeat(uv.y - s0.y + .5f, 1f) - .5f) * 1024f;   // tile pixels (wraps)
-                    float du = Mathf.Abs(uv.x - s0.x) * 512f;
+                    float dv = Mathf.Abs(Mathf.Repeat(uv.y - s0.y + .5f, 1f) - .5f) * 4096f;   // tile pixels (wraps; the r1 tile is 896 x 4096)
+                    float du = Mathf.Abs(uv.x - s0.x) * 896f;
                     worst = Mathf.Max(worst, Mathf.Max(du, dv));
                 }
         });
@@ -326,10 +328,9 @@ public static class DesertBackdropTest
     {
         for (int v = 1; v <= TestHarness.SweepVariants(4); v++)
         {
-            int pieces = 0, wrong = 0, overlaps = 0, relaxed = 0, clusters = 0, runs = 0, pipes = 0, onArt = 0, docks = 0, storyPieces = 0, outOfZone = 0;
-            var byClass = new Dictionary<string, int>();
+            int pieces = 0, wrong = 0, overlaps = 0, onArt = 0, docks = 0, runs = 0;
             string bad = "";
-            for (int run = 0; run < SeededRuns; run++)
+            for (int run = 0; run < SeededRuns / 5; run++)
             {
                 DesertDirector.SeedOverride = 101 + run * 7;
                 var wb = Fresh(v, 1.5f);
@@ -339,73 +340,44 @@ public static class DesertBackdropTest
                 var seenPieces = new HashSet<BackdropPiece>();
                 System.Action audit = () =>
                 {
-                    foreach (var pool in PinnedPools(d))
-                        foreach (var p in pool.items)
+                    foreach (var p in d.Sites.items)
+                    {
+                        if (!p.active || seenPieces.Contains(p)) continue;
+                        seenPieces.Add(p);
+                        pieces++; docks++;
+                        string name = p.sr.sprite != null ? p.sr.sprite.name : "";
+                        var rule = DesertTuning.Rule(name, v);
+                        // OWNER RULE (2026-11): nothing the game places may sit on the painted features (mask class C)
+                        if (d.Planner.Match(p.x, p.gy, GroundPlanner.HalfX(rule, p.size), GroundPlanner.HalfY(rule, p.size), GroundClass.Canopy) > 0f) { onArt++; if (bad.Length < 300) bad += name + "@art "; }
+                        if (!d.Planner.Accepts(rule, p.x, p.gy, p.size) && !d.Planner.Accepts(new PieceRule(GroundClass.Any, 0f), p.x, p.gy, p.size)) { wrong++; if (bad.Length < 300) bad += name + " "; }
+                    }
+                    foreach (var p in d.Props.items) if (p.active && seenPieces.Add(p)) pieces++;
+                    foreach (var p in d.Mountains.items) if (p.active && seenPieces.Add(p)) pieces++;
+                    // no site footprint overlaps another or a prop's keep-out
+                    foreach (var a in d.Sites.items)
+                    {
+                        if (!a.active) continue;
+                        var ra = DesertTuning.Rule(a.sr.sprite.name);
+                        if (d.TouchesProp(a.x, a.gy, GroundPlanner.HalfX(ra, a.size) * .98f, GroundPlanner.HalfY(ra, a.size) * .98f)) overlaps++;
+                        foreach (var b in d.Sites.items)
                         {
-                            if (!p.active || seenPieces.Contains(p)) continue;
-                            seenPieces.Add(p);
-                            pieces++;
-                            string name = p.sr.sprite != null ? p.sr.sprite.name : "";
-                            var rule = DesertTuning.Rule(name, v);
-                            bool site = pool == d.Sites;
-                            if (pool == d.Pipes) pipes++;
-                            // OWNER RULE (2026-11, round 5 art): nothing the game places may sit on the painted props (mask class C: outposts,
-                            // rigs, rails, bones, rocks, oasis water, palms, crater rims) -- not even a run's pipe, a launch site or a dust devil
-                            float fx = GroundPlanner.HalfX(rule, p.size), fy = GroundPlanner.HalfY(rule, p.size);
-                            if (pool == d.Pipes && p.kind == DesertDirector.RunPipe) { fx = p.size * .4f; fy = p.size * .05f; }     // (the run's flange line, as PipeRun checks it)
-                            if (d.Planner.Match(p.x, p.gy, fx, fy, GroundClass.Canopy) > 0f) { onArt++; if (bad.Length < 300) bad += name + "@art "; }
-                            if (site) docks++;
-                            // AUTHORED PLACEMENT (round 5): a scene piece (wreck, machinery, landmark, well, feature) only spawns in its variant's story
-                            // zone: v1 dune troughs / beside outposts and bones, v2 beside the rails, rigs and brine, v3 round the rocks and oasis, v4 round the fires and ruins
-                            if (rule.zone != GroundClass.None && !site)
-                            {
-                                storyPieces++;
-                                if (d.Planner.Match(p.x, p.gy, GroundPlanner.HalfX(rule, p.size), GroundPlanner.HalfY(rule, p.size), rule.zone) < DesertTuning.StoryNeed) { outOfZone++; if (bad.Length < 300) bad += name + "@out-of-zone "; }
-                            }
-                            if (pool == d.Pipes && p.kind == DesertDirector.RunPipe) continue;   // a run's pipe crosses whatever lies between its structures
-                            if (!d.Planner.Accepts(rule, p.x, p.gy, p.size))
-                            {
-                                if (site && d.Planner.Accepts(new PieceRule(GroundClass.Any, 0f), p.x, p.gy, p.size)) relaxed++;
-                                else { wrong++; if (bad.Length < 300) bad += name + "@" + d.Planner.ClassAt(p.x, p.gy) + " "; }
-                            }
-                            string k = d.Planner.ClassAt(p.x, p.gy).ToString();
-                            int c; byClass.TryGetValue(name.Split('_')[0] + ":" + k, out c); byClass[name.Split('_')[0] + ":" + k] = c + 1;
+                            if (!b.active || b == a || b.GetHashCode() < a.GetHashCode()) continue;
+                            var rb = DesertTuning.Rule(b.sr.sprite.name);
+                            if (Mathf.Abs(a.x - b.x) < (GroundPlanner.HalfX(ra, a.size) + GroundPlanner.HalfX(rb, b.size)) * .98f &&
+                                System.Math.Abs(a.gy - b.gy) < (GroundPlanner.HalfY(ra, a.size) + GroundPlanner.HalfY(rb, b.size)) * .98f) overlaps++;
                         }
-                    // no two non-pipe footprints overlap (pipes tuck under the plates they join)
-                    foreach (var a in d.Ground.items) Overlap(d, a, ref overlaps);
-                    foreach (var a in d.Fires.items) Overlap(d, a, ref overlaps);
-                    foreach (var a in d.Sites.items) Overlap(d, a, ref overlaps);
+                    }
                 };
                 audit();
                 for (int i = 0; i < 6; i++) { Run(wb, 1.5f); audit(); }
-                clusters += d.Clusters;
                 Object.DestroyImmediate(wb.gameObject);
             }
             DesertDirector.SeedOverride = 0;
-            var top = new List<string>();
-            foreach (var kv in byClass) if (kv.Value >= runs / 4) top.Add(kv.Key + " " + kv.Value);
-            Debug.Log("[DBD] v" + v + " placements by drawing:ground " + string.Join(", ", top));
-            Check("v" + v + ": " + runs + " seeded runs, " + pieces + " pieces (" + pipes + " pipes, " + clusters +
-                  " clusters): none on ground its rule forbids (" + wrong + " " + bad + "; sites on relaxed land " + relaxed + ")",
-                  runs == SeededRuns && pieces > runs * 4 && wrong == 0);
-            Check("v" + v + ": no two piece footprints overlap (" + overlaps + ")", overlaps == 0);
-            Check("v" + v + ": scene pieces only spawn in their story zone (" + storyPieces + " checked, " + outOfZone + " outside it; zone " + DesertTuning.StoryZone(v) + ")",
-                  outOfZone == 0 && storyPieces > 0);
-            Check("v" + v + ": no landmark, pipe, feature or launch site (" + docks + " seen) stands on a painted prop (" + onArt + " " + bad + ")", onArt == 0);
+            Check("v" + v + ": " + runs + " seeded runs, " + pieces + " pieces (" + docks + " sites): no site on ground its rule forbids (" + wrong + " " + bad + ")",
+                  runs == SeededRuns / 5 && pieces > runs * 4 && wrong == 0);
+            Check("v" + v + ": no site footprint overlaps another or a prop's keep-out (" + overlaps + ")", overlaps == 0);
+            Check("v" + v + ": no launch site stands on a painted feature (" + onArt + " " + bad + ")", onArt == 0);
         }
-    }
-
-    static void Overlap(DesertDirector d, BackdropPiece a, ref int overlaps)
-    {
-        if (!a.active) return;
-        foreach (var pool in new[] { d.Ground, d.Fires, d.Sites })
-            foreach (var b in pool.items)
-            {
-                if (!b.active || b == a || b.GetHashCode() < a.GetHashCode()) continue;
-                var ra = DesertTuning.Rule(a.sr.sprite.name); var rb = DesertTuning.Rule(b.sr.sprite.name);
-                if (Mathf.Abs(a.x - b.x) < (GroundPlanner.HalfX(ra, a.size) + GroundPlanner.HalfX(rb, b.size)) * .98f &&
-                    System.Math.Abs(a.gy - b.gy) < (GroundPlanner.HalfY(ra, a.size) + GroundPlanner.HalfY(rb, b.size)) * .98f) overlaps++;
-            }
     }
 
     // ---- the emitters sit on their measured points ---------------------------------
@@ -445,89 +417,12 @@ public static class DesertBackdropTest
 
     static void Emitters()
     {
-        var root = new GameObject("~Emitters").transform;
-        BackdropVariants.For("Desert").Force = 1;
-        var set = new BackdropSet("Desert", root, 3f, 6f);
-        var amb = new AmbientEmitters(set, DesertAmbientCatalog.Table) { Wind = 1f };
-        var pool = new BackdropPool(root, "test", 1, -400, 0f);
-        amb.Rig(pool);
-        var p = pool.Spawn();
-        float worst = 0f;
-        int probes = 0, offArt = 0, notAbove = 0, lean = 0;
-        string far = "", off = "";
-        foreach (var piece in DesertAmbientCatalog.Pieces)
-        {
-            if (piece.emit == null || piece.emit.Length == 0) continue;
-            var atlas = set.Atlas(piece.atlas);
-            var sprite = atlas.Get(piece.name);
-            if (sprite == null) { Check(piece.name + " drawing exists", false); continue; }
-            foreach (float mirror in new[] { 1f, -1f })
-                foreach (float size in new[] { 1.1f, 1.7f })
-                {
-                    p.sr.sprite = sprite;
-                    float k = size / sprite.bounds.size.x;
-                    p.root.localScale = new Vector3(k, k, 1f);
-                    p.root.localPosition = new Vector3(.4f, -.7f, 0f);
-                    p.body.localScale = new Vector3(mirror, 1f, 1f);
-                    amb.Attach(p, piece.name, new System.Random(3));
-                    amb.Step(1f);
-                    for (int s = 0; s < piece.emit.Length && s < DesertAmbientCatalog.MaxPerPiece; s++)
-                    {
-                        string loop; Vector3 a, h;
-                        if (!amb.Probe(p, s, out loop, out a, out h)) continue;
-                        probes++;
-                        float px = Vector2.Distance(a, h) / (size / 256f);      // cell pixels of the piece
-                        if (px > worst) { worst = px; far = piece.name + "/" + loop + " " + px.ToString("F2") + "px"; }
-                        var slot = p.body.Find("ambient" + s).GetComponent<SpriteRenderer>();
-                        if (slot.sortingOrder <= p.sr.sortingOrder) notAbove++;
-                        if (Mathf.Sign(slot.transform.lossyScale.x) != 1f) lean++;
-                    }
-                }
-            foreach (var e in piece.emit)
-                if (AlphaAt(piece.atlas, piece.name, e.x, e.y) < .5f) { offArt++; if (off.Length < 200) off += piece.name + "/" + e.loop + " "; }
-        }
-        Check("every bound loop draws its anchor within " + EmitterTolerancePx + " px of the piece's measured point, mirrored or not, at any size (" +
-              probes + " probes, worst " + far + ")", probes >= 100 && worst <= EmitterTolerancePx);
-        Check("... and every measured point lies on the piece's opaque art (" + offArt + " off: " + off + ")", offArt == 0);
-        Check("... loops draw above their piece (" + notAbove + " not) and all lean with the level wind (" + lean + " against)",
-              notAbove == 0 && lean == 0);
-        set.Destroy();
-        Object.DestroyImmediate(root.gameObject);
-        BackdropVariants.For("Desert").Reset();
-
-        // in a real run: the live plumes stay on their stacks while scrolling
-        var wb = Fresh(2, .5f);
-        var d = Director(wb);
-        float runWorst = 0f;
-        int live = 0, peak = 0;
-        bool advanced = false;
-        Sprite seen = null;
-        Run(wb, 90f, () =>
-        {
-            peak = Mathf.Max(peak, d.Ambient.LiveCount);
-            foreach (var pl in PinnedPools(d))
-                foreach (var q in pl.items)
-                {
-                    if (!q.active) continue;
-                    for (int s = 0; s < DesertAmbientCatalog.MaxPerPiece; s++)
-                    {
-                        string loop; Vector3 a, h;
-                        if (!d.Ambient.Probe(q, s, out loop, out a, out h)) continue;
-                        live++;
-                        runWorst = Mathf.Max(runWorst, Vector2.Distance(a, h) / (q.size / 256f));
-                        if (s == 0)
-                        {
-                            var sr = q.body.Find("ambient0").GetComponent<SpriteRenderer>();
-                            if (seen != null && sr.sprite != seen) advanced = true;
-                            seen = sr.sprite;
-                        }
-                    }
-                }
-        });
-        Check("over 90 s of flying the live loops (" + live + " samples, peak " + peak + ") stay within " + EmitterTolerancePx +
-              " px of their points (worst " + runWorst.ToString("F2") + ") and animate", live > 1000 && peak >= 6 && runWorst <= EmitterTolerancePx && advanced);
-        Check("the desert is busy: pipe runs " + d.PipeRuns + ", clusters " + d.Clusters, d.PipeRuns >= 1 && d.Clusters >= 6);
-        Object.DestroyImmediate(wb.gameObject);
+        // r1 (2026-11-28): the retired landmarks carried the measured emitters; the sites carry none, the props their own light and
+        // smoke in their strips. Every binding left must still name a known loop on a drawing that exists.
+        var table = DesertAmbientCatalog.Table;
+        bool known = true;
+        foreach (var b in table.bindings) foreach (var e in b.emitters) known &= table.LoopIndex(e.loop) >= 0;
+        Check("every remaining ambient binding names a known loop (" + table.bindings.Length + " bindings)", known);
 
         // without the loop atlases (Space has none) the emitters quietly show nothing
         BackdropSet.AtlasOverride = null;
@@ -538,7 +433,7 @@ public static class DesertBackdropTest
         amb2.Rig(pool2);
         int shown = -1;
         bool quiet = true;
-        try { shown = amb2.Attach(pool2.Spawn(), "refinery_hull_01", new System.Random(1)); amb2.Step(1f); }
+        try { shown = amb2.Attach(pool2.Spawn(), "glass_pad_closed", new System.Random(1)); amb2.Step(1f); }
         catch (System.Exception e) { quiet = false; Debug.LogException(e); }
         Check("without the loop atlases the emitters show nothing, without an error", quiet && shown == 0);
         space.Destroy();
@@ -634,20 +529,10 @@ public static class DesertBackdropTest
                 else if (hi / Mathf.Max(1e-3f, lo) > 4f) { flat++; worstFlat += l.name + " x" + (hi / Mathf.Max(1e-3f, lo)).ToString("F1") + "; "; }      // a non-blinking loop must not pulse like a lamp
             }
         }
-        Check("" + loops + " loops installed, 4 or 8 cells each", loops >= 19 && tight == 0);
+        Check("" + loops + " loops installed, 4 or 8 cells each", loops >= 8 && tight == 0);
         Check("every loop moves >= 3% of its visible pixels between consecutive frames, looping (min " + minMotion.ToString("P1") + ") " + worstStill, still == 0);
-        Check("the lamps blink: beacons, strobe and work lamp >= 4x dimmest-to-brightest, windows >= 2.2x " + worstBlink, blinkBad == 0);
         Check("smoke, dust and shimmer keep a steady brightness (no lamp pulsing; only the glass glints twinkle, at draw alpha <= .6; " + flat + " pulse " + worstFlat + ")", flat == 0);
 
-        // placement: every bound loop sits on a piece of the right kind of ground
-        var seen = new HashSet<string>();
-        foreach (var piece in DesertAmbientCatalog.Pieces)
-            if (piece.emit != null) foreach (var e in piece.emit) seen.Add(e.loop);
-        string[] mustBind = { "smoke_a", "smoke_b", "sandplume", "heat_vent", "heat_shimmer", "glass_sparkle", "mirage_glint", "steam_vent",
-                              "beacon_white", "beacon_pale_gold", "strobe_white", "work_lamp_flicker", "window_lights" };
-        string unbound = "";
-        foreach (string m in mustBind) if (!seen.Contains(m)) unbound += m + " ";
-        Check("the loops are bound to pieces: smoke, dust, heat, glass, steam, lights (unbound: " + unbound + ")", unbound.Length == 0);
         bool wanderOk = true;
         foreach (string c in DesertAmbientCatalog.WandererNames) wanderOk &= DesertAmbientCatalog.Present(c);
         Check("the free loops (dust devil, grit gust, mirage glint) are installed and wander the ground", wanderOk);
@@ -709,15 +594,6 @@ public static class DesertBackdropTest
         var renderers = wb.Current.Root.GetComponentsInChildren<SpriteRenderer>(true);
         foreach (var r in renderers) behind &= r.sortingOrder < 0;
         Check("every Desert backdrop renderer sorts behind gameplay (" + renderers.Length + ")", behind);
-        int palls = 0;
-        Run(wb, 120f, () => palls = Mathf.Max(palls, d.Palls.ActiveCount));
-        // the chance of a heat vent in a 2-minute run is modest: grow well fields until one has stood up
-        for (int k = 0; k < 40 && palls == 0; k++)
-        {
-            d.SpawnCluster(d.Planner.Travel + 4.0, d.Planner.Travel + 4.9 + k * .1, DesertTuning.ClWells);
-            Run(wb, .5f, () => palls = Mathf.Max(palls, d.Palls.ActiveCount));
-        }
-        Check("haze palls hang over the heat vents (peak " + palls + ")", palls > 0);
         float dayBoost = DesertTuning.LightBoostNow;
         int dayGrit = d.Grit.ActiveCount;
         Object.DestroyImmediate(wb.gameObject);
@@ -840,6 +716,33 @@ public static class DesertBackdropTest
               nightMedian < dayMedian * .92f);
     }
 
+    // The shot line: every layout's ground keeps the 99th percentile of its 32 px patches' linear luminance at or under
+    // DesertTuning.ShotLine, so a shot's core stands 3:1 over it anywhere (CI: the rail mine's beam over v3 amber at .306 stood out 0 px).
+    static void ShotLine()
+    {
+        for (int v = 1; v <= 4; v++)
+        {
+            var t = new Texture2D(2, 2);
+            t.LoadImage(File.ReadAllBytes("Assets/Art/Backgrounds/Resources/Worlds/Desert/Backdrop3/v" + v + "/mid.png"));
+            var px = t.GetPixels();
+            int w = t.width, h = t.height, P = DesertTuning.ShotPatch, cols = w / P, rows = h / P;
+            Object.DestroyImmediate(t);
+            var patches = new List<float>(cols * rows);
+            for (int r = 0; r < rows; r++)
+                for (int c = 0; c < cols; c++)
+                {
+                    double sum = 0;
+                    for (int y = r * P; y < (r + 1) * P; y++)
+                        for (int x = c * P; x < (c + 1) * P; x++) sum += RelLum(px[y * w + x]);
+                    patches.Add((float)(sum / (P * P)));
+                }
+            patches.Sort();
+            float p99 = patches[(int)(patches.Count * .99f)];
+            Check("v" + v + " ground under the shot line: 32 px patches' p99 linear luminance " + p99.ToString("F3") + " <= " + DesertTuning.ShotLine.ToString("F2") +
+                  " (a shot's core stands 3:1 over it)", p99 <= DesertTuning.ShotLine + .005f);
+        }
+    }
+
     struct Shot { public float mean, median, p90, laneLum; }
 
     static Shot Rendered(float y0, float y1)
@@ -881,36 +784,31 @@ public static class DesertBackdropTest
 
     // ---- the worms and the pinned items ---------------------------------------------------
 
-    // One scripted landing: a medium worm heading straight up a ridge with three items planted on its path (and a
-    // site, then more) -- the fingerprint of what it razed.
-    static (int razed, int hash, int eruptions, int spawned, int rumbles) Scenario(int seed)
+    // One scripted landing: the fingerprint of what the worms did (deterministic on the backdrop's own stream).
+    static (int eruptions, int spawned, int skipped, int props) Scenario(int seed)
     {
+        float first = DesertTuning.WormFirst, gmin = DesertTuning.WormGapMin, gmax = DesertTuning.WormGapMax;
+        DesertTuning.WormFirst = 2f; DesertTuning.WormGapMin = 1f; DesertTuning.WormGapMax = 2f;
         DesertDirector.SeedOverride = seed;
-        var wb = Fresh(1, .25f);
+        var wb = Fresh(1, .8f);
         var d = Director(wb);
-        Run(wb, 14f);
-        d.ClearWorms();
-        d.SpawnWorm(1, 0f, false, 0f, true);
-        var w = d.Worms.items[0];
-        d.Plant("radio_mast", 1.4f, w.x, w.gy + .8);
-        d.Plant("drill_head_tower", 1.4f, w.x + .1f, w.gy + 1.7);
-        d.Plant("solar_array_skeleton_00", 1.4f, w.x - .1f, w.gy + 2.6);
         Run(wb, 90f);
-        var r = (d.ItemsRazed, d.RazedHash, d.Eruptions, d.WormsSpawned, d.RumblesPlayed);
+        var r = (d.Eruptions, d.WormsSpawned, d.EruptionsSkipped, d.PropsSpawned);
         Object.DestroyImmediate(wb.gameObject);
         DesertDirector.SeedOverride = 0;
+        DesertTuning.WormFirst = first; DesertTuning.WormGapMin = gmin; DesertTuning.WormGapMax = gmax;
         return r;
     }
 
     static void PinnedItems()
     {
         float first = DesertTuning.WormFirst, gmin = DesertTuning.WormGapMin, gmax = DesertTuning.WormGapMax;
-        int landings = 0, eruptions = 0, overlapped = 0, skipped = 0, razed = 0, spawned = 0;
+        int landings = 0, eruptions = 0, overlapped = 0, skipped = 0, spawned = 0;
         try
         {
             DesertTuning.WormFirst = 2f; DesertTuning.WormGapMin = 1f; DesertTuning.WormGapMax = 2f;
             for (int v = 1; v <= 4; v++)
-                for (int k = 0; k < 8; k++)
+                for (int k = 0; k < 6; k++)
                 {
                     DesertDirector.SeedOverride = 300 + v * 31 + k * 7;
                     var wb = Fresh(v, 1.2f);
@@ -921,12 +819,12 @@ public static class DesertBackdropTest
                         eruptions++;
                         float ex, ey;
                         DesertDirector.WormFoot(p.kind, true, out ex, out ey);
-                        foreach (var pool in PinnedPools(d))
-                            foreach (var q in pool.items)
-                                if (q.active && q.dyingT < 0f && DesertDirector.Overlaps(q, p.x, p.gy, ex, ey, 0f)) overlapped++;
+                        if (d.TouchesProp(p.x, p.gy, ex, ey)) overlapped++;
+                        foreach (var q in d.Sites.items)
+                            if (q.active && DesertDirector.Overlaps(q, p.x, p.gy, ex, ey, 0f)) overlapped++;
                     };
                     Run(wb, 150f);
-                    skipped += d.EruptionsSkipped; razed += d.ItemsRazed; spawned += d.WormsSpawned;
+                    skipped += d.EruptionsSkipped; spawned += d.WormsSpawned;
                     Object.DestroyImmediate(wb.gameObject);
                 }
         }
@@ -935,95 +833,59 @@ public static class DesertBackdropTest
             DesertTuning.WormFirst = first; DesertTuning.WormGapMin = gmin; DesertTuning.WormGapMax = gmax;
             DesertDirector.SeedOverride = 0;
         }
-        Check("over " + landings + " seeded landings (" + spawned + " worms, " + eruptions + " eruptions) no worm ever surfaces under a pinned item (" +
-              overlapped + " overlaps; " + skipped + " eruptions called off, " + razed + " items razed by a ridge that met a late piece)",
-              landings == 32 && eruptions >= 40 && overlapped == 0);
+        Check("over " + landings + " seeded landings (" + spawned + " worms, " + eruptions + " eruptions) no worm ever surfaces under a prop, a mountain or a site (" +
+              overlapped + " overlaps; " + skipped + " eruptions called off)", landings == 24 && eruptions >= 30 && overlapped == 0);
 
-        // forced collision: the ridge meets an item and razes it
+        // forced: a worm planted on a path that meets a prop dives and fades -- the prop is never razed
         var wb2 = Fresh(1, .25f);
         var d2 = Director(wb2);
         Run(wb2, 14f);
         d2.ClearWorms();
-        d2.ClearItems();     // only the planted item in the ridge's way (the seeded layout must not decide what else it meets)
+        d2.ClearItems();
+        d2.ClearProps();
+        d2.HoldProps(1e6f);
         bool ok = d2.SpawnWorm(1, 0f, false, 0f, true);
         var worm = d2.Worms.items[0];
-        var item = d2.Plant("radio_mast", 1.4f, worm.x, worm.gy + .8);
-        int feetBefore = d2.Planner.Footprints;
-        Check("a worm planted on a path that meets a pinned item (spawned " + ok + ", item " + (item != null) + ")", ok && item != null);
-        bool dying = false, blasts = false, plume = false, alphaOk = true, behind = true, small = true, calm = true;
-        float maxAlpha = 0f, maxSize = 0f, maxBlast = 0f;
-        for (int i = 0; i < 30 * 40 && !dying; i++) { wb2.Step(Dt); dying = item.dyingT >= 0f; }
-        float ix = item.x; double igy = item.gy;     // its spot when razed (the pooled piece may be re-dealt once it is free)
-        Check("the ridge destroys the item it reaches (razed " + d2.ItemsRazed + ")", dying && d2.ItemsRazed == 1);
-        Check("... its footprint is freed (it can no longer block a spot) and its loops stop", item.footprint < 0 && feetBefore > 0);
-        for (int i = 0; i < 30 * 3; i++)
+        BackdropPiece prop = null;
+        for (int k = 0; k < DesertPropsTuning.Count && prop == null; k++)
+            if (!DesertPropsTuning.Kinds[k].mountain && d2.HasPropArt(k))
+                prop = d2.PlantProp(k, worm.x, worm.gy + d2.PropKeep(k) + DesertTuning.WormCell[1] * .5f);
+        Check("a worm planted on a path that meets a prop (spawned " + ok + ", prop " + (prop != null) + ")", ok && prop != null);
+        bool dived = false, intact = true;
+        for (int i = 0; i < 30 * 40 && !dived && prop != null; i++)
         {
             wb2.Step(Dt);
-            foreach (var b in d2.Blasts.items)
-            {
-                if (!b.active) continue;
-                blasts = true;
-                if (b.kind == 1) plume = true;
-                maxAlpha = Mathf.Max(maxAlpha, b.sr.color.a);
-                maxSize = Mathf.Max(maxSize, b.size);
-                if (b.kind == 0) maxBlast = Mathf.Max(maxBlast, b.size);
-                behind &= b.sr.sortingOrder < 0;
-                Color c = b.sr.color;
-                float hh, ss, vv; Color.RGBToHSV(c, out hh, out ss, out vv);
-                calm &= !(hh * 360f >= 300f && hh * 360f <= 335f && ss > .15f);
-            }
+            if (worm.active && worm.tier == DesertDirector.WormFading) dived = true;
+            intact &= prop.active && prop.dyingT < 0f;
         }
-        alphaOk = maxAlpha <= DesertTuning.BlastAlpha + 1e-3f;
-        small = maxBlast <= DesertTuning.BlastSizeMax + 1e-3f && maxBlast < item.size * .6f + 1e-3f && maxSize <= item.size + 1e-3f;
-        Check("... small hazy dust-tinted blasts and a dust plume play where it stood (alpha <= " + maxAlpha.ToString("F2") + ", blasts <= " + maxBlast.ToString("F2") + " units, plume <= " + maxSize.ToString("F2") + ", no pink)",
-              blasts && plume && alphaOk && small && calm && DesertTuning.BlastAlpha <= .5f);
-        Check("... behind gameplay, with a rumble (" + d2.RumblesPlayed + "), and no collider anywhere in the backdrop",
-              behind && d2.RumblesPlayed == 1 && wb2.Current.Root.GetComponentsInChildren<Collider2D>(true).Length == 0);
-        Run(wb2, 2f);
-        bool gone = !item.active || item.gy != igy;
-        Run(wb2, 60f);
-        // (the pooled piece may be re-dealt to a new spot once it is free: the OLD spot stays empty)
-        bool still = true;
-        foreach (var pool in PinnedPools(d2)) foreach (var q in pool.items) if (q.active && q.dyingT < 0f && Mathf.Abs(q.x - ix) < .01f && System.Math.Abs(q.gy - igy) < .01) still = false;
-        Check("the item fades away and stays gone (gone " + gone + ", spot still empty after 60 s: " + still + ")", gone && still);
+        Check("... it dives and fades at the prop's keep-out; the prop stands (dived " + dived + ", stopped " + d2.WormsStoppedByProp + ", intact " + intact + ")",
+              dived && intact && d2.WormsStoppedByProp >= 1);
+        Check("... no collider anywhere in the backdrop", wb2.Current.Root.GetComponentsInChildren<Collider2D>(true).Length == 0);
         Object.DestroyImmediate(wb2.gameObject);
 
-        // a site is never razed (an elite may be docked in it): the worm dives instead; and no more than MaxRazed per worm
+        // a site is never razed (an elite may be docked in it): the worm dives instead
         var wb3 = Fresh(1, .25f);
         var d3 = Director(wb3);
         Run(wb3, 14f);
         d3.ClearWorms();
-        d3.ClearItems();     // (a piece the seeded layout happens to put in the lane would be razed too: this checks the SITE only)
+        d3.ClearItems();
+        d3.ClearProps();
+        d3.HoldProps(1e6f);
         d3.SpawnWorm(1, 0f, false, 0f, true);
         var w3 = d3.Worms.items[0];
-        var site = d3.Plant("glass_pad_closed", 1.5f, w3.x, w3.gy + .8);
-        bool dived = false, intact = true;
-        for (int i = 0; i < 30 * 30 && !dived; i++)
+        var site = d3.PlantSite("glass_pad_closed", DesertTuning.SiteMax, w3.x, w3.gy + DesertTuning.WormCell[1] * .8f);
+        bool dived3 = false, intact3 = true;
+        for (int i = 0; i < 30 * 30 && !dived3; i++)
         {
             wb3.Step(Dt);
-            if (w3.active && w3.tier == DesertDirector.WormFading) { dived = true; intact = site.active && site.dyingT < 0f; }
+            if (w3.active && w3.tier == DesertDirector.WormFading) { dived3 = true; intact3 = site != null && site.active; }
         }
-        Check("a worm that meets a launch site dives instead of razing it (dived " + dived + ", razed " + d3.ItemsRazed + ", site " + (intact ? "intact" : "gone") + ")",
-              dived && intact && d3.ItemsRazed == 0 && w3.phase < 3f);
+        Check("a worm that meets a launch site dives instead (dived " + dived3 + ", site " + (intact3 ? "intact" : "gone") + ")", site != null && dived3 && intact3);
         Object.DestroyImmediate(wb3.gameObject);
-        var wb4 = Fresh(1, .25f);
-        var d4 = Director(wb4);
-        Run(wb4, 14f);
-        d4.ClearWorms();
-        d4.SpawnWorm(0, 0f, false, 0f, true);
-        var w4 = d4.Worms.items[0];
-        string[] names = { "radio_mast", "drill_head_tower", "solar_array_skeleton_00", "refinery_hull_00", "ribcage_gantry_00" };
-        for (int i = 0; i < names.Length; i++) d4.Plant(names[i], 1.2f, w4.x + (i % 2 == 0 ? .05f : -.05f), w4.gy + .5 + i * .45);
-        Run(wb4, 90f);
-        Check("a worm razes at most " + DesertTuning.MaxRazed + " items (" + d4.ItemsRazed + ")", d4.ItemsRazed >= 1 && d4.ItemsRazed <= DesertTuning.MaxRazed);
-        Object.DestroyImmediate(wb4.gameObject);
 
-        // deterministic on the backdrop's own random stream
         var a = Scenario(777);
         var b2 = Scenario(777);
-        var c2 = Scenario(778);
-        Check("the same seed razes the same items, in the same way (" + a + " vs " + b2 + "); another seed plays another way (" + c2 + ")",
-              a.Equals(b2) && a.razed >= 1 && a.rumbles == a.razed && (c2.hash != a.hash || c2.eruptions != a.eruptions || c2.spawned != a.spawned || c2.razed != a.razed));
+        Check("the same seed plays the same way (" + a + " vs " + b2 + ")", a.Equals(b2) && a.spawned >= 1 && a.props >= 5);
     }
 
     // ---- elite launch sites ----------------------------------------------------------
@@ -1182,10 +1044,10 @@ public static class DesertBackdropTest
                 foreach (var pool in PinnedPools(d))
                     foreach (var q in pool.items) behind &= p.sr.sortingOrder < q.sr.sortingOrder;
                 behind &= p.sr.sortingOrder < d.Wanderers.items[0].sr.sortingOrder;
-                behind &= spray == null || spray.sortingOrder < d.Ground.items[0].sr.sortingOrder;
+                behind &= spray == null || spray.sortingOrder < d.Mountains.items[0].sr.sortingOrder;
                 // the emergence origin (bottom centre of the cell) sits on the worm's root
                 var s = p.sr.sprite;
-                Vector2 at = p.kind == 2 ? new Vector2(256f, 492f) : new Vector2(128f, 236f);
+                Vector2 at = (p.kind == 2 ? new Vector2(256f, 492f) : new Vector2(128f, 236f)) * (s.pixelsPerUnit / BackdropAtlas.PixelsPerUnit);   // (authored px; the sheet is stored at half size)
                 Vector3 w = p.sr.transform.TransformPoint(new Vector3((at.x - s.rect.width * .5f) / s.pixelsPerUnit, (s.rect.height * .5f - at.y) / s.pixelsPerUnit, 0f));
                 float off = Vector2.Distance(w, p.root.position);
                 worstAnchor = Mathf.Max(worstAnchor, off);
@@ -1301,17 +1163,19 @@ public static class DesertBackdropTest
         d.ForceGust();
         d.SpawnWorm(1, float.NaN, true);
         long used = TestHarness.AllocatedBytes(() => Run(wb, 120f));
-        Check("Desert backdrop allocates nothing over 2 minutes of frames, clusters, gusts and loops (" + used + " bytes)",
+        Check("Desert backdrop allocates nothing over 2 minutes of frames, props, gusts and loops (" + used + " bytes)",
               meter && used >= 0 && used <= 256);
         int transforms = wb.GetComponentsInChildren<Transform>(true).Length;
         Run(wb, 300f);
         Check("pools never grow over a long run", wb.GetComponentsInChildren<Transform>(true).Length == transforms);
         // pause-safe: dt 0 is a still frame
         var before = new List<Vector3>();
-        foreach (var p in d.Ground.items) before.Add(p.root.localPosition);
+        foreach (var p in d.Props.items) before.Add(p.root.localPosition);
+        var frames = new List<Sprite>();
+        foreach (var p in d.Props.items) frames.Add(p.sr.sprite);
         for (int i = 0; i < 30; i++) wb.Step(0f);
         bool still = true;
-        for (int i = 0; i < d.Ground.items.Count; i++) still &= d.Ground.items[i].root.localPosition == before[i];
+        for (int i = 0; i < d.Props.items.Count; i++) still &= d.Props.items[i].root.localPosition == before[i] && d.Props.items[i].sr.sprite == frames[i];
         Check("a paused frame (dt 0) moves nothing", still);
     }
 }

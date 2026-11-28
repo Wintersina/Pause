@@ -1,0 +1,204 @@
+{
+  "key": "frost_elite_rimebreaker",
+  "displayName": "Rimebreaker",
+  "world": "frost",
+  "role": "icebreaker runs",
+  "codexId": "elite_frost_rimebreaker",
+  "lore": "A compact icebreaker in rime-steel plate that clears shipping lanes by ramming straight through them. It draws a crack down one lane of the ice, then ploughs the whole board along it, rocks and all, and swings back up the rail to come round on the next. Hurt it and it runs in pairs.",
+  "brain": "icebreaker",
+  "attack": "ice_run",
+  "launchFrom": "icebreaker,hangar",
+  "cells": {
+    "flight": [
+      3,
+      4,
+      5,
+      6
+    ],
+    "parked": 0,
+    "parkedIdle": 1,
+    "liftoff": 2,
+    "bankLeft": 7,
+    "bankRight": 8,
+    "tell": -1,
+    "action": -1,
+    "hit": -1,
+    "damaged": 9,
+    "damagedLoop": [
+      9,
+      10,
+      11,
+      12,
+      13,
+      14
+    ]
+  },
+  "cellWorldSize": 1.927,
+  "hullRadius": 0.309,
+  "silhouetteShare": 0.4179,
+  "noseDeg": 90,
+  "turnsToFace": true,
+  "maxBank": 4,
+  "speed": 2.8,
+  "accel": 6,
+  "turnRate": 220,
+  "followDistance": 2.6,
+  "laneOffset": 1.2,
+  "aggression": 0.6,
+  "tellSeconds": 1.0,
+  "attackGap": 1.0,
+  "avoidance": 0.75,
+  "lookAhead": 0.45,
+  "perception": 2.2,
+  "actionSeconds": 0.75,
+  "dashSpeed": 7.0,
+  "shotCount": 2,
+  "shotSpeed": 4.5,
+  "shotSpread": 50,
+  "shotSize": 0.2,
+  "shotKind": "shard",
+  "shotBounces": 1,
+  "heartColor": "#5CE8FF",
+  "shotColor": "#4FE6FF",
+  "shotCore": "#F2FCFF",
+  "engineColor": "#6FD8FF",
+  "hearts": 3,
+  "heartSize": 0.18,
+  "heartOrbit": 0.85,
+  "heartStyle": "Halo",
+  "exhaustShip": 3,
+  "exhaustScale": 0,
+  "glowScale": 0.08,
+  "cellPixels": 384,
+  "muzzles": [
+    {
+      "name": "prow",
+      "x": 193,
+      "y": 43,
+      "dir": -1.0
+    }
+  ],
+  "nozzles": [
+    {
+      "name": "l",
+      "x": 164,
+      "y": 233,
+      "dir": -1.0,
+      "offsets": [0, -5, 1, 12, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -13, 2, 7, -3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    },
+    {
+      "name": "r",
+      "x": 219,
+      "y": 233,
+      "dir": -1.0,
+      "offsets": [1, -5, 0, 12, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -14, -2, 1, -5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    }
+  ],
+  "followLag": 0.3,
+  "hurtHide": true,
+  "hideSeconds": 3.5,
+  "engageSeconds": 42,
+  "script": {
+    "tempo": 0.8,
+    "exitTell": 1.4,
+    "lastExit": "none",
+    "note": "rammer: lanes 1,3,2 each cycle, U-turn up the nearer rail between runs; hurt: pairs; last: a triple",
+    "entrance": {
+      "kind": "dash",
+      "seconds": 1.4,
+      "amp": 1.6
+    },
+    "phase1": {
+      "speed": 1.0,
+      "gap": 1.0,
+      "loop": [
+        {
+          "wait": 4.5,
+          "move": "lane:1",
+          "attack": ""
+        },
+        {
+          "wait": 4.5,
+          "move": "lane:3",
+          "attack": ""
+        },
+        {
+          "wait": 4.5,
+          "move": "lane:2",
+          "attack": ""
+        }
+      ]
+    },
+    "phase2": {
+      "speed": 1.15,
+      "gap": 1.0,
+      "loop": [
+        {
+          "wait": 4.5,
+          "move": "lane:2",
+          "attack": ""
+        },
+        {
+          "wait": 1.2,
+          "move": "lane:3",
+          "attack": "swift"
+        },
+        {
+          "wait": 4.5,
+          "move": "lane:1",
+          "attack": ""
+        },
+        {
+          "wait": 1.2,
+          "move": "lane:2",
+          "attack": "swift"
+        }
+      ]
+    },
+    "last": {
+      "speed": 1.3,
+      "gap": 1.0,
+      "loop": [
+        {
+          "wait": 4.5,
+          "move": "lane:1",
+          "attack": "rush"
+        },
+        {
+          "wait": 1.0,
+          "move": "lane:2",
+          "attack": "rush"
+        },
+        {
+          "wait": 1.0,
+          "move": "lane:3",
+          "attack": "rush"
+        }
+      ]
+    },
+    "variants": [
+      {
+        "name": "swift",
+        "set": [
+          {
+            "key": "dashSpeed",
+            "value": 9
+          }
+        ]
+      },
+      {
+        "name": "rush",
+        "set": [
+          {
+            "key": "dashSpeed",
+            "value": 10.5
+          },
+          {
+            "key": "shotSpread",
+            "value": 75
+          }
+        ]
+      }
+    ]
+  }
+}

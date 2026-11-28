@@ -11,6 +11,9 @@ using UnityEngine;
 //   The shader reads each cell's density, multiplies it by two slowly scrolling noise samples (the cloud morphs while it drifts),
 //   and draws it as a stepped alpha (5 levels, ordered 4x4 dither on the rims). One mask texel is one 4-art-pixel cell (the ground
 //   tiles are 896 px wide, so a cell is mainWidth / 896 * 4 world units) and the quad is snapped to that grid: pixel art, no blur.
+//   A SOFT world (Look.soft: Frost, 2026-11, the user: "all the clouds ... too ugly and pixile ... fix this in frost") draws the same
+//   clouds smooth: the shader's _Soft path (smooth mask interpolation, continuous alpha, no steps or dither) and the quad glides
+//   (no grid snap).
 //
 // HOW BIG  A shape is up to 384 x 320 cells (about 1.45 screen widths x 0.7 screen heights). Spawns are gated by the world's
 //   `budget`: a new shadow starts only while the shadows already out leave room, so roughly 30-45% of the view is shadowed at a
@@ -75,17 +78,26 @@ public sealed class CloudShadowLayer
         public float budget;         // spawn budget: the sum of the out shadows' full ink shares of the view (gates spawns; coverage measured in tests)
         public float speed;          // own drift, world units / s
         public float dir;
+        public bool soft;            // drawn smooth (no steps, no dither, no grid snap): Frost
     }
 
     public static readonly Look[] Looks =
     {
-        new Look { world = "Frost",   color = new Color(.01f, .04f, .12f), cap = .50f, nightCapMul = .6f,  count = 3, big = true, budget = 1.3f, speed = .08f, dir = 200f },
-        new Look { world = "Verdant", color = new Color(.00f, .07f, .02f), cap = .48f, nightCapMul = .5f,  count = 3, budget = .95f, speed = .07f, dir = 330f },
+        // Frost's budget 1.3 -> 1.4 (2026-11-28): seen from high up (FrostTuning.GroundZoom, then .41) the ground, and the shadows riding
+        // it, creep by slower, so each shadow spends longer half out of the view while still holding its full share of the budget:
+        // the mean cover in view fell .37 -> .33 (CloudShadowTest wants >= .34 for Frost); the peak stays under the .6 veil line.
+        new Look { world = "Frost",   color = new Color(.01f, .04f, .12f), cap = .50f, nightCapMul = .6f,  count = 3, big = true, budget = 1.4f, speed = .08f, dir = 200f, soft = true },
+        // Verdant at the .49 altitude (2026-11-28): seen from high up the ground, and the shadows riding it, creep by slower and the view spans more
+        // of it (Desert's / Ember's finding: the small shapes held only ~.25 of the view), so its three shadows are the big shapes, budget as Ember's.
+        new Look { world = "Verdant", color = new Color(.00f, .07f, .02f), cap = .48f, nightCapMul = .5f,  count = 3, big = true, budget = 1.2f, speed = .07f, dir = 330f },
         // Ember: no baked centre band in the ground any more (2026-10-27), so its clouds carry the shade: big shapes only, Frost-like cover,
         // a very dark red-brown umber core up to .55 (the layer sorts below every enemy, shot, the ship and the HUD), night side a bit dimmer.
         new Look { world = "Ember",   color = new Color(.07f, .025f, .012f), cap = .55f, nightCapMul = .7f,  count = 3, big = true, budget = 1.2f, speed = .09f, dir = 155f },
         new Look { world = "Tide",    color = new Color(.00f, .05f, .11f), cap = .50f, nightCapMul = .6f,  count = 3, budget = .95f, speed = .10f, dir = 25f },
-        new Look { world = "Desert",  color = new Color(.11f, .045f, .01f), cap = .50f, nightCapMul = .55f, count = 3, budget = .95f, speed = .08f, dir = 20f },
+        // Desert at the .49 altitude (2026-11-28): the view spans more ground, so its three shadows are the big shapes (as Frost and
+        // Ember, also seen from high up): with the small ones the mean cover in view fell to .24 / .27 even at budget 1.2 (the budget
+        // was not the limit, the shapes were; CloudShadowTest wants >= .30), budget as Ember's.
+        new Look { world = "Desert",  color = new Color(.11f, .045f, .01f), cap = .50f, nightCapMul = .55f, count = 3, big = true, budget = 1.2f, speed = .08f, dir = 20f },
     };
     public const float LowEndCoverMul = .55f;
 
@@ -138,6 +150,7 @@ public sealed class CloudShadowLayer
     public int Count { get { return count; } }
     public float Peak { get { return peak; } }
     public float Budget { get { return cover; } }
+    public bool Soft { get { return look.soft; } }
     public int Order { get; private set; }
     public Transform Root { get { return root; } }
     public Material SharedMaterial { get { return material; } }
@@ -201,6 +214,7 @@ public sealed class CloudShadowLayer
         material.SetColor("_Tint", new Color(look.color.r, look.color.g, look.color.b, 1f));
         material.SetVector("_MaskSize", new Vector4(CloudShadowArt.Size, CloudShadowArt.Height, 0f, 0f));
         material.SetFloat("_Steps", CloudShadowArt.Steps);
+        material.SetFloat("_Soft", look.soft ? 1f : 0f);
 
         root = new GameObject("CloudShadows").transform;
         root.SetParent(set.Root, false);
@@ -375,7 +389,9 @@ public sealed class CloudShadowLayer
 
     void Place(ref Slot s)
     {
-        s.tr.localPosition = new Vector3(Mathf.Round(s.x / cell) * cell, Mathf.Round(s.y / cell) * cell, 0f);
+        // pixel-art shadows step on their cell grid; soft ones glide (a 4-art-pixel step reads as a stutter on a smooth cloud)
+        if (look.soft) s.tr.localPosition = new Vector3(s.x, s.y, 0f);
+        else s.tr.localPosition = new Vector3(Mathf.Round(s.x / cell) * cell, Mathf.Round(s.y / cell) * cell, 0f);
     }
 
     // The draw alpha: peak x fade-in x fade-out x suppress x the set's cross-fade, each in 0..1.

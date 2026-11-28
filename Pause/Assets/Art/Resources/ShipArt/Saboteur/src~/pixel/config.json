@@ -1,0 +1,31 @@
+{
+ "drawing": "approved.png",
+ "source": "PixelLab drawing ship_Saboteur/r1_2.png (128 px), approved Nov 2026",
+ "canopy": [
+  [
+   63,
+   76,
+   6,
+   9
+  ]
+ ],
+ "nozzles": [
+  [
+   40,
+   110,
+   0.8
+  ],
+  [
+   86,
+   110,
+   0.8
+  ]
+ ],
+ "damageNote": "1) left wing pod panel blown, sparking ducts, right claw scorched; 2) right claw blown and burning, hull plate holed, soot over the violet, core cracked",
+ "seed": 12,
+ "integer_scale": true,
+ "aspect_mul": 0.914,
+ "wreck_soot": 0.15,
+ "wreck_mul": 0.26,
+ "fill_holes": "nearest"
+}

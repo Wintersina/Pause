@@ -1,0 +1,147 @@
+{
+  "key": "desert_elite_dune_stalker",
+  "codexId": "elite_desert_dune_stalker",
+  "world": "desert",
+  "launchFrom": "canyondock,wormburrow",
+  "cells": {
+    "flight": [
+      3,
+      7,
+      8
+    ],
+    "parked": 0,
+    "parkedIdle": 1,
+    "liftoff": 2,
+    "bankLeft": 4,
+    "bankRight": 5,
+    "tell": -1,
+    "action": -1,
+    "hit": -1,
+    "damaged": 6,
+    "damagedLoop": [
+      9,
+      10,
+      11,
+      12,
+      13,
+      14
+    ]
+  },
+  "cellWorldSize": 1.696,
+  "noseDeg": 90,
+  "maxBank": 3,
+  "heartColor": "#FFF6DC",
+  "shotColor": "#F4E3B0",
+  "shotCore": "#FFF6DC",
+  "engineColor": "#BFE3FF",
+  "hearts": 3,
+  "heartSize": 0.18,
+  "heartOrbit": 0.746,
+  "heartStyle": "Halo",
+  "exhaustShip": 3,
+  "exhaustScale": 0,
+  "glowScale": 0.09,
+  "cellPixels": 384,
+  "armored": false,
+  "hazardSeconds": 0.4,
+  "hazardSize": 0.6,
+  "displayName": "Dune Stalker",
+  "role": "sand-burst trail burrower",
+  "brain": "burrower",
+  "attack": "worm_churn",
+  "lore": "A cobalt lance-fighter that hunts under the dunes and never stays to fight. It rises out of its worm-burrow, ripples across the top of the sky, and churns a trail of sand bursts toward you that erupt one after another. Read the rings and step off the trail.",
+  "hullRadius": 0.321,
+  "silhouetteShare": 0.4674,
+  "turnsToFace": true,
+  "speed": 2.4,
+  "accel": 6.5,
+  "turnRate": 240,
+  "aggression": 0.5,
+  "tellSeconds": 1.0,
+  "attackGap": 3.4,
+  "avoidance": 0.6,
+  "lookAhead": 0.4,
+  "perception": 2.2,
+  "actionSeconds": 1.2,
+  "shotCount": 4,
+  "shotSpeed": 5.0,
+  "shotSpread": 0,
+  "shotSize": 0.4,
+  "shotInterval": 0.26,
+  "shotKind": "glob",
+  "muzzles": [
+    {
+      "name": "hook",
+      "x": 192,
+      "y": 38,
+      "dir": -1.0
+    }
+  ],
+  "nozzles": [
+    {
+      "name": "a",
+      "x": 162,
+      "y": 279,
+      "dir": -1.0,
+      "offsets": [0, 0, 0, 0, 0, 0, 0, 0, 2, 2, 0, -2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    },
+    {
+      "name": "b",
+      "x": 221,
+      "y": 279,
+      "dir": -1.0,
+      "offsets": [0, 0, 0, 0, 0, 0, 0, 0, 0, -4, -4, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    }
+  ],
+  "followDistance": 2.0,
+  "dashSpeed": 8.4,
+  "followLag": 0.35,
+  "hurtHide": true,
+  "lobSeconds": 0.7,
+  "lobAhead": 1.6,
+  "poolSeconds": 2.4,
+  "engageSeconds": 48,
+  "script": {
+    "tempo": 1.1,
+    "exitTell": 1.4,
+    "lastExit": "left",
+    "lastExitSeconds": 1.2,
+    "note": "diver: circles a low rippling stadium mid-board (low run left to right, up the right rail, top run back, dive down the left rail); casts at the start of the low run. Twin trails from phase 2.",
+    "entrance": { "kind": "slam", "seconds": 1.5, "amp": 2.0 },
+    "phase1": {
+      "speed": 1.0, "gap": 1.0,
+      "set": [ { "key": "hazardCount", "value": 4 } ],
+      "loop": [
+        { "wait": 1.6, "move": "steady", "attack": "trail" },
+        { "wait": 1.2, "move": "fast", "attack": "-" },
+        { "wait": 1.2, "move": "steady", "attack": "long" },
+        { "wait": 1.2, "attack": "-" }
+      ]
+    },
+    "phase2": {
+      "speed": 1.15, "gap": 0.85,
+      "set": [ { "key": "hazardCount", "value": 4 } ],
+      "loop": [
+        { "wait": 1.2, "move": "fast", "attack": "twin" },
+        { "wait": 1.0, "attack": "-" },
+        { "wait": 1.0, "attack": "long" },
+        { "wait": 1.0, "move": "steady", "attack": "-" }
+      ]
+    },
+    "last": {
+      "speed": 1.3, "gap": 0.7,
+      "set": [ { "key": "hazardCount", "value": 8 } ],
+      "loop": [
+        { "wait": 1.0, "move": "fast", "attack": "quick" },
+        { "wait": 0.9, "attack": "-" },
+        { "wait": 1.0, "attack": "quick" }
+      ]
+    },
+    "variants": [
+      { "name": "trail", "set": [ { "key": "shotInterval", "value": 0.26 } ] },
+      { "name": "long", "set": [ { "key": "lobAhead", "value": 2.8 }, { "key": "shotInterval", "value": 0.2 } ] },
+      { "name": "twin", "set": [ { "key": "hazardCount", "value": 8 }, { "key": "shotInterval", "value": 0.2 } ] },
+      { "name": "quick", "set": [ { "key": "shotInterval", "value": 0.15 } ] }
+    ]
+  }
+}

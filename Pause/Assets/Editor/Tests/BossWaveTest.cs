@@ -83,6 +83,22 @@ public static class BossWaveTest
         float a = pin.Choose(0f, 0f, 1f, 1f, .2f, 1.9f, 1f);
         float b = pin.Choose(0f, .5f, 1.02f, 1f, .2f, 1.9f, 1f);
         Check("waves squeezed together by slow motion keep (almost) the same gap (" + a.ToString("F2") + " -> " + b.ToString("F2") + ")", Mathf.Abs(b - a) <= (1f - WaveGaps.ShipWidth) + .01f);
+
+        // out of order: a fast wave fired AFTER a slow one but reaching the ship first is planned between its neighbours in
+        // arrival order -- from where the ship is now, and so the ship can still make the slow wave's gap after it (planned
+        // after the slow one alone, its gap went where the ship would be a wave later: out of reach in time)
+        var oo = new WaveGaps();
+        const float ooW = 1f, ooThick = .2f, ooLim = 1.95f, ship0 = -1.5f;
+        float room = (ooW - 2f * PatternSim.ShipRadius) * .5f;      // the ship's centre fits this far either side of a gap's centre
+        float slow = oo.Choose(ship0, 0f, 2.5f, ooW, ooThick, ooLim, 1f);     // a slow wall, its gap as far right as is fair
+        float fast = oo.Choose(ship0, .3f, .8f, ooW, ooThick, ooLim, 1f);     // a fast fan fired after it, in .5 s, also wanting the right
+        float with = oo.Choose(ship0, .4f, 2.5f, ooW, ooThick, ooLim, -1f);   // and a wave reaching the ship with the slow one
+        bool reachFast = Mathf.Abs(fast - ship0) - room <= 5f * (.8f - .3f);
+        bool thenSlow = Mathf.Abs(slow - fast) - 2f * room <= 5f * (2.5f - .8f - ooThick);
+        bool together = Mathf.Abs(with - slow) <= 2f * room + 1e-3f;
+        Check("a wave arriving before one already planned gets a gap the ship makes in time (" + ship0.ToString("F2") + " -> " + fast.ToString("F2") +
+              " in .5 s) and leaves it the later one's (" + slow.ToString("F2") + "); one arriving WITH it shares that gap (" + with.ToString("F2") + ")",
+              reachFast && thenSlow && together);
     }
 
     static void Rhythm()
@@ -607,18 +623,19 @@ public static class BossWaveTest
             sides &= l.x < -.4f && r.x > .4f && Mathf.Abs(l.y - r.y) < .25f && l.y > j.y;
         }
         Check("Cinder Drake: fire cells 28 / 31 / 34 (breath / slugs / brow) and the twin cannons measured either side of the head in every tell, fire and idle cell", cells && sides);
-        // by pixel (384 reference px): the brow on the gem in the breath cell (the matcher had it ~20 px above), the
-        // maw on the flame's root, and the cannon bores where they are drawn in the breath and slug cells
+        // by pixel (384 reference px), on the v3 "scarier" redraw (Art/Bosses~/redraw-v3, rig_Ember.json): the brow on the gem
+        // between the skull's eyes in the breath cell, the maw below it, and the vent cannons on the exhaust stacks where
+        // they are drawn, the same in the breath and slug cells (the redraw keeps one registration in every drawing)
         int brow = BossEmitters.Part(boss, "Brow");
         var b28 = BossEmitters.Pixel(boss, brow, 28); var j28 = BossEmitters.Pixel(boss, jaw, 28);
         var l20 = BossEmitters.Pixel(boss, cl, 20); var r20 = BossEmitters.Pixel(boss, cr, 20);
-        bool pixels = Mathf.Abs(b28.x - 191) <= 3 && Mathf.Abs(b28.y - 129) <= 3 && Mathf.Abs(j28.x - 192) <= 4 && j28.y > b28.y + 15;
+        bool pixels = Mathf.Abs(b28.x - 193) <= 3 && Mathf.Abs(b28.y - 236) <= 3 && Mathf.Abs(j28.x - 193) <= 4 && j28.y > b28.y + 15;
         foreach (int f in new[] { 28, 31 })
         {
             var l = BossEmitters.Pixel(boss, cl, f); var r = BossEmitters.Pixel(boss, cr, f);
             pixels &= (l - l20).magnitude <= 12f && (r - r20).magnitude <= 12f;
         }
-        pixels &= Mathf.Abs(l20.x - 108) <= 3 && Mathf.Abs(r20.x - 270) <= 3 && Mathf.Abs(l20.y - 141) <= 3;
+        pixels &= Mathf.Abs(l20.x - 126) <= 3 && Mathf.Abs(r20.x - 257) <= 3 && Mathf.Abs(l20.y - 119) <= 3;
         Check("Cinder Drake: brow on its gem in the breath cell 28 (" + b28 + "), maw at the flame root (" + j28 + "), cannon bores at " + l20 + " / " + r20 + " and still on them in cells 28 and 31", pixels);
     }
 

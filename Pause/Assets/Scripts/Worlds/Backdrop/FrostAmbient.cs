@@ -197,39 +197,63 @@ public static class FrostAmbientCatalog
         L("geyser", "steam", 8f, .70f, 1f),
         L("flare", "fire_lights", 12f, .78f, 1f),
         L("searchlight", "fire_lights", 8f, .30f, 1f),   // manifest .52; the re-drawn beam is far stronger
-        L("beacon_magenta", "beacons", 4f, .70f, 1f),
-        L("beacon_cyan", "beacons", 4f, .68f, 1f),
-        L("strobe_white", "beacons", 8f, .55f, 1f),
+        // the redrawn lamps stand on a 44 px post at 1: drawn at .5 they sit on the
+        // drawings' 4 px painted lamp dots at the buildings' own scale
+        L("beacon_magenta", "beacons", 4f, .70f, .5f),
+        L("beacon_cyan", "beacons", 4f, .68f, .5f),
+        L("strobe_white", "beacons", 8f, .55f, .5f),
         L("window_lights", "beacons", 5f, .60f, 1f),
         new Loop { name = AuroraLoop, atlas = "aurora", fps = 3f, alpha = .46f, scale = 1f, anchor = new Vector2(128, 128) },
     };
 
     // Emitter points measured on landmarks.png / sites.png (cell pixels from
-    // the top-left of each 256 cell).
+    // the top-left of each 256 cell): re-measured on the 2026-11 PixelLab redraw
+    // (frost_redraw/build_atlases.py) on the features the new drawings really
+    // have, overlaid cell by cell (placement audit, 2026-11-27). The redrawn
+    // loops are whole objects standing on their foot (the loop anchor, 128, 236):
+    // a lamp on its post, a brazier with its fire, an arched lit doorway, a
+    // searchlight beam from its lamp, a puff growing out of its stack. So:
+    //   - a beacon / strobe stands on a lamp the drawing paints (its 4 px
+    //     amber / cyan / white dot: amber -> beacon_magenta, whose art is
+    //     amber), its post's foot on the dot;
+    //   - window_lights sits on a painted lit window at .2 (the doorway is
+    //     72 px wide at 1, the painted windows 12);
+    //   - smoke only from a drawn stack top (refinery_01), at .5-.6;
+    //   - a searchlight's beam rises from a painted white lamp;
+    //   - a fire (flare: now a brazier, no flare stack) only stands on the
+    //     drawing's own snow skirt beside the building, never on a roof.
+    // Dropped where the anchor is gone from the new drawing: the rigs' and
+    // derrick's roof flares (no flare boom: a bonfire floated over the roof),
+    // every steam vent / geyser on the icebreakers, cliffs, convoy, crawler
+    // bay and hatch (no funnel, vent or chimney drawn: the puffs hung free),
+    // refinery_00's smoke (tanks, no stack), the causeway's beacons (now a rail
+    // embankment, no lamps), platform_01's beacon on its hovering drone, the
+    // rig bay's strobe (mid-air) and doorway (its pad marker is no window).
+    // Re-measured again on the HD rebuild (sources_hd: 128 px cells x2; the
+    // drawings moved and changed proportion in their cells, not just sharpened).
     public static readonly Binding[] Bindings =
     {
-        B("rig_00", E("flare", 102, 36), E("beacon_magenta", 108, 104), E("strobe_white", 172, 128)),
-        B("rig_01", E("flare", 127, 36), E("beacon_magenta", 104, 104), E("strobe_white", 184, 142)),
-        B("platform_00", E("searchlight", 128, 150), E("beacon_magenta", 148, 70), E("window_lights", 112, 160)),
-        B("platform_01", E("searchlight", 130, 150), E("beacon_cyan", 72, 48), E("beacon_magenta", 152, 48), E("window_lights", 100, 172)),
-        B("platform_02", E("searchlight", 110, 150), E("beacon_magenta", 142, 40), E("window_lights", 96, 160)),
-        B("refinery_00", E("smoke_a", 55, 72), E("smoke_b", 100, 66), E("window_lights", 100, 170)),
-        B("refinery_01", E("smoke_a", 130, 30), E("smoke_b", 74, 90), E("smoke_b", 184, 96, .8f), E("window_lights", 110, 190)),
-        B("relay_00", E("beacon_cyan", 98, 84), E("beacon_magenta", 193, 96), E("strobe_white", 160, 28)),
-        B("relay_01", E("beacon_cyan", 72, 82), E("beacon_magenta", 137, 60), E("strobe_white", 120, 28)),
-        B("causeway_00", E("beacon_cyan", 76, 46), E("beacon_magenta", 184, 111)),     // lamp heads of the landfall causeway (Codex, 2026-10-11)
-        B("icebreaker_00", E("steam_vent", 134, 48, .7f), E("beacon_magenta", 144, 73)),
-        B("icebreaker_01", E("steam_vent", 128, 50, .7f), E("beacon_cyan", 147, 61)),
-        B("cliff_00", E("geyser", 70, 182), E("steam_vent", 190, 200, .8f)),
-        B("cliff_01", E("steam_vent", 60, 190, .8f), E("geyser", 200, 205, .8f), E("beacon_cyan", 139, 30)),
-        B("derrick_00", E("flare", 129, 36), E("beacon_magenta", 77, 106)),
-        B("convoy_00", E("steam_vent", 193, 62, .55f), E("steam_vent", 73, 137, .55f)),
+        B("rig_00", E("beacon_magenta", 147, 50), E("strobe_white", 173, 81), E("flare", 60, 218, .45f)),
+        B("rig_01", E("beacon_magenta", 143, 46), E("strobe_white", 193, 67)),
+        B("platform_00", E("searchlight", 149, 159), E("beacon_magenta", 199, 62), E("window_lights", 133, 198, .2f)),
+        B("platform_01", E("searchlight", 132, 145), E("beacon_cyan", 110, 109), E("window_lights", 130, 184, .2f)),   // the cyan lamp atop the dome
+        B("platform_02", E("searchlight", 125, 119), E("beacon_magenta", 79, 47), E("window_lights", 181, 102, .2f)),
+        B("refinery_00", E("window_lights", 105, 186, .2f), E("beacon_magenta", 131, 60), E("strobe_white", 178, 104)),   // warning lamps on the tank caps
+        B("refinery_01", E("smoke_a", 147, 42, .6f), E("smoke_b", 162, 38, .6f), E("smoke_b", 87, 72, .5f), E("window_lights", 133, 178, .2f)),
+        B("relay_00", E("beacon_cyan", 141, 62), E("beacon_magenta", 177, 109), E("strobe_white", 117, 59)),
+        B("relay_01", E("beacon_cyan", 117, 38), E("beacon_magenta", 191, 60), E("strobe_white", 141, 22)),
+        B("icebreaker_00", E("beacon_magenta", 145, 78), E("flare", 84, 196, .45f)),     // a fire on the ice beside the wreck
+        B("icebreaker_01", E("beacon_cyan", 137, 37), E("strobe_white", 206, 72)),   // + the aft mast head
+        B("cliff_01", E("beacon_cyan", 175, 34)),
+        B("causeway_00", E("window_lights", 181, 116, .2f)),        // the locomotive's lit cab window
+        B("convoy_00", E("beacon_magenta", 184, 88), E("window_lights", 90, 72, .2f)),   // the lamp post by the gun, the car's lit windows
+        B("derrick_00", E("beacon_magenta", 117, 22), E("beacon_magenta", 89, 102), E("flare", 52, 186, .45f)),
         // launch sites (keyed by their closed drawing)
-        B("hangar_closed", E("searchlight", 128, 196), E("beacon_magenta", 75, 42), E("beacon_cyan", 190, 52)),
-        B("rigbay_closed", E("beacon_cyan", 62, 42), E("strobe_white", 214, 58), E("window_lights", 128, 112)),
-        B("padring_idle", E("beacon_magenta", 128, 44), E("strobe_white", 128, 214)),
-        B("crawlerbay_closed", E("steam_vent", 90, 52, .6f), E("window_lights", 200, 70), E("beacon_cyan", 128, 60)),
-        B("hatch_closed", E("steam_vent", 60, 70, .6f), E("beacon_cyan", 128, 40)),
+        B("hangar_closed", E("searchlight", 119, 181), E("beacon_magenta", 87, 34), E("beacon_cyan", 147, 34)),
+        B("rigbay_closed", E("beacon_cyan", 88, 33)),               // the cyan lamp on the crane jib
+        B("padring_idle", E("beacon_magenta", 69, 72), E("strobe_white", 178, 72), E("beacon_cyan", 70, 162), E("beacon_cyan", 175, 162)),   // + the near rim posts
+        B("crawlerbay_closed", E("window_lights", 209, 78, .2f), E("beacon_cyan", 79, 42)),
+        B("hatch_closed", E("beacon_cyan", 137, 43)),
     };
 
     static Loop L(string name, string atlas, float fps, float alpha, float scale)

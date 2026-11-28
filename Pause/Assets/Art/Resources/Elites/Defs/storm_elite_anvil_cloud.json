@@ -27,7 +27,7 @@
       15
     ]
   },
-  "cellWorldSize": 1.745,
+  "cellWorldSize": 2.001,
   "noseDeg": 90,
   "maxBank": 3,
   "heartColor": "#FFF3A0",
@@ -52,7 +52,7 @@
   "attack": "static_field",
   "lore": "A flat-topped thunderhead that drifts along the top of the sky and never comes down. It rings four charged patches in a diamond ahead of you and spits a cloud onto each; every cloud lies there crackling. Go round the diamond, not through it.",
   "hullRadius": 0.42,
-  "silhouetteShare": 0.4888,
+  "silhouetteShare": 0.4318,
   "turnsToFace": false,
   "speed": 1.7,
   "accel": 4.0,
@@ -73,25 +73,25 @@
   "muzzles": [
     {
       "name": "cannon",
-      "x": 192,
-      "y": 41,
+      "x": 193,
+      "y": 80,
       "dir": -1.0
     }
   ],
   "nozzles": [
     {
       "name": "l",
-      "x": 153,
-      "y": 301,
+      "x": 159,
+      "y": 277,
       "dir": -1.0,
-      "offsets": [0, -8, 0, -7, 0, 0, 0, 0, 2, 0, -4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+      "offsets": [0, 0, 0, 0, 0, 0, 0, 0, 4, 0, -2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
     },
     {
       "name": "r",
-      "x": 229,
-      "y": 301,
+      "x": 228,
+      "y": 277,
       "dir": -1.0,
-      "offsets": [0, -8, 0, -7, 0, 0, 0, 0, 3, 0, -3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+      "offsets": [0, 0, 0, 0, 0, 0, 0, 0, 2, 0, -4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
     }
   ],
   "topMargin": 1.6,

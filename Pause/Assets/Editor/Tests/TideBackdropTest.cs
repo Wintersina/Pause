@@ -120,19 +120,28 @@ public static class TideBackdropTest
         var spec = BackdropCatalog.For("Tide");
         Check("Tide has its own v3 folder and four variant sets",
               spec.folder == "Worlds/Tide/Backdrop3/" && spec.variantSets == BackdropVariants.MaxVariants);
+        Check("Tide's ground is seen at the .49 altitude: tiles drawn at " + spec.groundZoom + " of the view (2 x GroundZoom), pieces keyed to " + spec.PieceZoom,
+              spec.groundZoom == TideTuning.TileZoom && spec.PieceZoom == TideTuning.GroundZoom && TideTuning.GroundZoom == .49f && TideTuning.TileZoom == 2f * TideTuning.GroundZoom);
         string[] want = { "sky", "far", "mid", "ground", "flow", "palls", "mist", "wisps", "ceiling", "gusts", "rain" };
         bool all = true;
         foreach (string n in want) all &= spec.Has(n);
         Check("Tide layers: ground tiles, pinned ground pieces, flow, palls, mist, wisps, ceiling, gusts, rain", all);
         var g = spec.Find("ground");
         Check("the ground pieces are PINNED to the mid tile: same rate (" + g.rate + " = " + spec.Rate("mid") + " <= " +
-              BackdropCatalog.MaxGroundRate + "), landmark role, right after it",
+              BackdropCatalog.MaxGroundRate + "), landmark role, over the current flow (nothing moving passes through a prop)",
               g.pinTo == "mid" && g.rate == spec.Rate("mid") && g.rate <= BackdropCatalog.MaxGroundRate &&
-              g.role == BackdropCatalog.Role.Landmark && System.Array.IndexOf(spec.layers, g) == System.Array.IndexOf(spec.layers, spec.Find("mid")) + 1);
+              g.role == BackdropCatalog.Role.Landmark &&
+              System.Array.IndexOf(spec.layers, spec.Find("flow")) == System.Array.IndexOf(spec.layers, spec.Find("mid")) + 1 &&
+              System.Array.IndexOf(spec.layers, g) == System.Array.IndexOf(spec.layers, spec.Find("flow")) + 1);
         bool rising = true;
-        for (int i = 1; i < spec.layers.Length; i++)
-            rising &= spec.layers[i].rate > spec.layers[i - 1].rate ||
-                      (spec.layers[i].pinTo == spec.layers[i - 1].name && spec.layers[i].rate == spec.layers[i - 1].rate);
+        float fastest = 0f;
+        for (int i = 0; i < spec.layers.Length; i++)
+        {
+            var l = spec.layers[i];
+            if (!string.IsNullOrEmpty(l.pinTo)) { rising &= l.rate == spec.Rate(l.pinTo); continue; }
+            rising &= i == 0 || l.rate > fastest;
+            fastest = Mathf.Max(fastest, l.rate);
+        }
         Check("Tide rates strictly increase far -> near (a pinned layer shares its host's)", rising);
         Check("the night side is v4 only, never drawn brighter than the day (" + spec.VariantBrightness(4) + " <= " + spec.VariantBrightness(1) + ")",
               !spec.Night(1) && !spec.Night(2) && !spec.Night(3) && spec.Night(4) && spec.VariantBrightness(4) <= spec.VariantBrightness(1) &&

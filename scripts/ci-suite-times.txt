@@ -83,6 +83,7 @@ DesertBackdropTest 23.1
 DesertEliteTest 2.8
 DesertEmberFrameTest 0.2
 DesertFramingTest 0.3
+DesertPropsTest 40.0
 DesertRosterTest 0.4
 DesertSoundTest 0.0
 DeveloperModeTest 0.1
@@ -119,6 +120,8 @@ FrameStillsTest 0.2
 FriendlyFireCoverageTest 12.5
 FrostBackdropTest 8.1
 FrostEliteTest 3.9
+FrostGroundLightsTest 2.0
+FrostPropsTest 12.0
 FrostVerdantEliteFramesTest 0.2
 GameMediaTest 0.7
 GateAudioTest 0.7
@@ -225,6 +228,7 @@ StartGlideTest 0.1
 StormBackdropTest 5.7
 StormFramingTest 0.3
 StormLifeTest 0.4
+StormPropsTest 30.0
 StormSoundTest 0.2
 TallScreenTest 3.5
 TeleportKillTest 3.4
@@ -267,3 +271,4 @@ ShipRotorsTest 0.3
 PerfSoakTest 40
 EngineModuleGuardTest 1
 PerfHitchTest 8
+BossAnimTest 160.0

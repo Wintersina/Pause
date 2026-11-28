@@ -1,0 +1,185 @@
+{
+"tile": [
+896,
+4096
+],
+"note": "tile texels, origin top-left, y down; pivot = the prop cell centre; kinds spawn at (x, y + pass*4096); opt props are present on ~60% of passes (their pad stays); roads/pads are already painted into v1/mid.png",
+"props": [
+{
+"kind": "bunker",
+"x": 400,
+"y": 489,
+"cluster": 0,
+"opt": false
+},
+{
+"kind": "domes",
+"x": 185,
+"y": 544,
+"cluster": 0,
+"opt": false
+},
+{
+"kind": "geoplant",
+"x": 625,
+"y": 509,
+"cluster": 0,
+"opt": false
+},
+{
+"kind": "vents",
+"x": 420,
+"y": 704,
+"cluster": 0,
+"opt": true
+},
+{
+"kind": "volcano",
+"x": 380,
+"y": 1308,
+"cluster": 1,
+"opt": false
+},
+{
+"kind": "springs",
+"x": 130,
+"y": 1578,
+"cluster": 1,
+"opt": false
+},
+{
+"kind": "vents",
+"x": 530,
+"y": 1608,
+"cluster": 1,
+"opt": true
+},
+{
+"kind": "stilts",
+"x": 380,
+"y": 2204,
+"cluster": 2,
+"opt": false
+},
+{
+"kind": "crawler",
+"x": 524,
+"y": 2148,
+"cluster": 2,
+"opt": false
+},
+{
+"kind": "orehauler",
+"x": 340,
+"y": 2396,
+"cluster": 2,
+"opt": false
+},
+{
+"kind": "miningrig",
+"x": 160,
+"y": 2244,
+"cluster": 2,
+"opt": false
+},
+{
+"kind": "foundry",
+"x": 380,
+"y": 2987,
+"cluster": 3,
+"opt": false
+},
+{
+"kind": "quarry",
+"x": 605,
+"y": 2997,
+"cluster": 3,
+"opt": false
+},
+{
+"kind": "starship",
+"x": 560,
+"y": 3766,
+"cluster": 4,
+"opt": false
+}
+],
+"pads": [
+{
+"kind": "bunker",
+"x": 400,
+"y": 497,
+"r": 81
+},
+{
+"kind": "domes",
+"x": 185,
+"y": 553,
+"r": 91
+},
+{
+"kind": "geoplant",
+"x": 625,
+"y": 519,
+"r": 96
+},
+{
+"kind": "vents",
+"x": 420,
+"y": 712,
+"r": 76
+},
+{
+"kind": "springs",
+"x": 130,
+"y": 1586,
+"r": 81
+},
+{
+"kind": "vents",
+"x": 530,
+"y": 1616,
+"r": 76
+},
+{
+"kind": "miningrig",
+"x": 160,
+"y": 2253,
+"r": 86
+},
+{
+"kind": "foundry",
+"x": 380,
+"y": 2996,
+"r": 91
+},
+{
+"kind": "quarry",
+"x": 605,
+"y": 3006,
+"r": 86
+}
+],
+"hubs": [
+[
+460,
+600
+],
+[
+380,
+1369
+],
+[
+160,
+2284
+],
+[
+440,
+3097
+],
+[
+560,
+3826
+]
+]
+}

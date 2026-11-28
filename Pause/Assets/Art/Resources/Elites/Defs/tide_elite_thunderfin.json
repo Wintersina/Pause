@@ -27,7 +27,7 @@
       15
     ]
   },
-  "cellWorldSize": 1.92,
+  "cellWorldSize": 1.997,
   "noseDeg": 90,
   "maxBank": 3,
   "heartColor": "#7FD8FF",
@@ -53,7 +53,7 @@
   "launchFrom": "lighthouse,ventstack",
   "lore": "A storm ray that loiters high over the board and never chases. A glyph marks every column it calls, then the thunder strikes them one after another, sweeping the way it is flying. Hurt, it flees the sky and comes back.",
   "hullRadius": 0.34,
-  "silhouetteShare": 0.4318,
+  "silhouetteShare": 0.4105,
   "turnsToFace": false,
   "speed": 2.6,
   "accel": 5.5,
@@ -77,37 +77,37 @@
   "muzzles": [
     {
       "name": "rod",
-      "x": 192,
-      "y": 39,
+      "x": 193,
+      "y": 44,
       "dir": -1.0
     },
     {
       "name": "coilp",
-      "x": 156,
-      "y": 156,
+      "x": 153,
+      "y": 166,
       "dir": -1.0
     },
     {
       "name": "coils",
-      "x": 228,
-      "y": 156,
+      "x": 223,
+      "y": 166,
       "dir": -1.0
     }
   ],
   "nozzles": [
     {
       "name": "l",
-      "x": 170,
-      "y": 278,
+      "x": 158,
+      "y": 256,
       "dir": -1.0,
-      "offsets": [0, -8, -1, 1, 0, 0, 0, 0, 4, 0, -2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+      "offsets": [0, 0, 0, 0, 0, 0, 0, 0, 4, 0, -2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
     },
     {
       "name": "r",
-      "x": 212,
-      "y": 278,
+      "x": 219,
+      "y": 256,
       "dir": -1.0,
-      "offsets": [0, -8, -1, 1, 0, 0, 0, 0, 2, 0, -4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+      "offsets": [0, 0, 0, 0, 0, 0, 0, 0, 2, 0, -3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
     }
   ],
   "followLag": 0.3,

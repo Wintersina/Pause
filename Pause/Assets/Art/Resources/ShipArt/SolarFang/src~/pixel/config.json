@@ -1,0 +1,23 @@
+{
+ "drawing": "approved.png",
+ "source": "PixelLab drawing ship_SolarFang/r1_3.png (128 px), approved Nov 2026",
+ "canopy": [
+  [
+   63,
+   45,
+   5,
+   12
+  ]
+ ],
+ "nozzles": [
+  [
+   63,
+   112,
+   1.0
+  ]
+ ],
+ "damageNote": "1) left fang wing blown, sparking vents, right flank scorched; 2) right fang blown and smouldering, nose horns holed, soot over the gold, canopy cracked",
+ "seed": 3,
+ "integer_scale": true,
+ "rect_pad": 6
+}

@@ -207,7 +207,7 @@ public static class BossEncounterTest
               string.Join(",", BossEmitterTable.Parts[5]) == "Core,Rods,CoilL,CoilR" && BossEmitterTable.FrameCount(5) == BossEmitterTable.Frames);
         bool parts = storm.DefaultAttacks.Length == 3 && storm.themed != null && storm.themed.Length == 5;
         foreach (var a in storm.themed) foreach (int part in a.parts) parts &= part >= 0;
-        Check("three default attacks (core arc fan, crown hail, coil beams) and a themed table of five that ends in the chain-lightning sweep", parts &&
+        Check("three default attacks (coil lightning, crown hail, eye beam) and a themed table of five that ends in the chain-lightning sweep", parts &&
               storm.themed[1].kind == BossAttackKind.Strike && storm.themed[4].kind == BossAttackKind.Wave && storm.themed[4].minPhase == 3);
         Check("it does not fight themed yet (Storm is not live)", !storm.themedAttacks);
         Check("a pale-yellow flash and an accent of its own, the player's hearts", storm.heartColor == ShipLivesIndicator.HeartTint && BossWarningConfig.Accent(5) != BossWarningConfig.Accent(4));

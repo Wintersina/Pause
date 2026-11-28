@@ -27,7 +27,7 @@
       14
     ]
   },
-  "cellWorldSize": 1.862,
+  "cellWorldSize": 1.796,
   "noseDeg": 90,
   "maxBank": 3,
   "heartColor": "#FFF6DC",
@@ -51,7 +51,7 @@
   "attack": "dust_wall",
   "lore": "A shielded warship ringed in overlapping glass-mirror plates that crawls along the top of the sky. It sends walls of dust sweeping sideways across the board, each with a gap in it. Find the gap and slide into it.",
   "hullRadius": 0.376,
-  "silhouetteShare": 0.4428,
+  "silhouetteShare": 0.4634,
   "turnsToFace": false,
   "speed": 1.8,
   "accel": 3.5,
@@ -72,44 +72,37 @@
   "muzzles": [
     {
       "name": "core",
-      "x": 192,
-      "y": 38,
+      "x": 199,
+      "y": 42,
       "dir": -1.0
     },
     {
       "name": "portcap",
-      "x": 129,
-      "y": 61,
+      "x": 140,
+      "y": 45,
       "dir": -1.0
     },
     {
       "name": "starcap",
-      "x": 254,
-      "y": 61,
+      "x": 246,
+      "y": 45,
       "dir": -1.0
     }
   ],
   "nozzles": [
     {
       "name": "a",
-      "x": 138,
-      "y": 270,
+      "x": 156,
+      "y": 291,
       "dir": -1.0,
-      "offsets": [0, -8, 0, -8, 0, 0, 0, 0, 10, 4, -5, -5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+      "offsets": [0, 0, 0, 0, 0, 0, 0, 0, 5, 0, -2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
     },
     {
       "name": "b",
-      "x": 192,
-      "y": 270,
+      "x": 230,
+      "y": 291,
       "dir": -1.0,
-      "offsets": [0, -11, 0, -11, 0, 0, 0, 0, 8, 0, -8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
-    },
-    {
-      "name": "c",
-      "x": 246,
-      "y": 270,
-      "dir": -1.0,
-      "offsets": [-1, -8, -1, -8, 0, 0, 0, 0, 6, -4, -8, 6, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+      "offsets": [0, 0, 0, 0, 0, 0, 0, 0, 2, 0, -5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
     }
   ],
   "followDistance": 3.0,

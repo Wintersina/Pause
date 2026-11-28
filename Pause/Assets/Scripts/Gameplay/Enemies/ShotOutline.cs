@@ -71,7 +71,7 @@ public static class ShotOutline
 
     // Bold outlines for the current world? (Tests may force it: Bold.)
     public static bool? Bold;
-    public static bool UseBold => Bold.HasValue ? Bold.Value : BackdropCatalog.CurrentIsBright;
+    public static bool UseBold => Bold.HasValue ? Bold.Value : BackdropCatalog.CurrentBoldShots;   // (a bright world, or under Frost's thick cloud deck)
 
     sealed class Entry { public Sprite art; public Sprite rim; public bool bold; }
     static readonly Dictionary<long, Entry> cache = new Dictionary<long, Entry>();

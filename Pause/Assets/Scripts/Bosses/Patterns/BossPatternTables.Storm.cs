@@ -8,13 +8,13 @@ public static partial class BossPatternTables
     {
         return new[]
         {
-            Slot("core arc fan", 1, 0, 0.7f, 1.2f, P("core arc fan", new PatternStream
-            { kind = StreamKind.Fan, emitters = E("Core"), duration = 1.3f, interval = .65f, count = 5, spread = 84f, amp = 10f, speed = 2.6f, art = 1, style = BossShotStyle.Bolt, rail = BossRailMode.Bounce, bounces = 1 }), true),
+            Slot("coil lightning", 1, 2, 0.7f, 1.2f, P("coil lightning", new PatternStream
+            { kind = StreamKind.Fan, emitters = E("CoilL", "CoilR"), duration = 1.3f, interval = .65f, count = 3, spread = 54f, amp = 10f, speed = 2.6f, art = 1, style = BossShotStyle.Bolt, rail = BossRailMode.Bounce, bounces = 1 }), true),
             Slot("crown fan", 1, 1, .9f, 1.3f, P("crown fan", new PatternStream
             { kind = StreamKind.Fan, emitters = E("Rods"), duration = 1.2f, interval = .6f, count = 6, spread = 100f, amp = 6f, speed = 2.9f, art = 2, style = BossShotStyle.Shard })),
             Slot("storm rain", 2, 1, 1.0f, 1.3f, P("storm rain", new PatternStream
             { kind = StreamKind.Rain, emitters = E("Rods"), duration = 4.6f, interval = .27f, count = 4, pitch = .75f, free = 3, speed = 3.7f, speedJitter = 1.8f, art = 2, style = BossShotStyle.Shard })),
-            Legacy("coil beams", "beam", 2, 2.3f, 1f),
+            Legacy("eye beam", "beam", 2, 2.3f, 1f),
             Slot("lightning lattice", 3, 2, 1.0f, 1.3f, P("lightning lattice", new PatternStream
             { kind = StreamKind.Lattice, emitters = E("Core"), duration = 5.2f, interval = .3f, count = 4, pitch = 2.5f, angle = 10f, speed = 3.4f, art = 3, style = BossShotStyle.Bolt })),
             Slot("thunderhead", 3, 1, 1.0f, 1.3f, P("thunderhead",

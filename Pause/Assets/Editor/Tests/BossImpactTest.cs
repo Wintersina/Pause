@@ -131,7 +131,14 @@ public static class BossImpactTest
                     e.Step(1f / 60f, 1f);
                     if (BossArt.AttackDamageColumn(a.Boss, a.BodyFrame) < 0 || a.DamageStage <= 0) continue;
                     poseFrames++;
-                    if (body.sprite == BossArt.AttackDamageBody(a.Boss, a.BodyFrame, a.DamageStage)) damaged++;
+                    // an animated boss (BossAnim) wears its stage's damage decal over its animated pose
+                    if (a.AnimFrame >= 0)
+                    {
+                        var d = a.DamageDecal;
+                        if (body.sprite == BossAnim.Sprite(a.Boss, a.AnimFrame) && d != null && d.enabled &&
+                            (d.sprite == BossAnim.Decal(a.Boss, a.DamageStage, 0) || d.sprite == BossAnim.Decal(a.Boss, a.DamageStage, 1))) damaged++;
+                    }
+                    else if (body.sprite == BossArt.AttackDamageBody(a.Boss, a.BodyFrame, a.DamageStage)) damaged++;
                 }
             }
             Check(def.artKey + ": tell / fire frames in a fight show the damage stage (" + damaged + "/" + poseFrames + ")", poseFrames > 0 && damaged == poseFrames);

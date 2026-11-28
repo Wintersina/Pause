@@ -2,26 +2,31 @@ using System.Collections.Generic;
 using UnityEngine;
 
 // Frost's backdrop: the ship flies at atmosphere level just under the cloud
-// ceiling, looking down on a frozen ocean, its coast and ice-bound industry.
-// Nothing space-like: no stars, planets, stations or rocks.
+// ceiling, HIGH over a frozen ocean, its coast and ice-bound industry
+// (FrostTuning.GroundZoom: the ground drawn at .49 of the view's width and
+// repeated across, creeping by at .49 of its old rate). Nothing space-like:
+// no stars, planets, stations or rocks.
 //
 //   GROUND     one of four tile sets per landing (FrostBackdropSelection):
-//              sky / far / mid tiles and the drifting-floe flow strip.
+//              sky / far / mid tiles and the floe / frost-streak flow strip,
+//              which is pinned to the mid tile like everything on it.
 //   LANDMARKS  rigs, platforms, refineries, relays, causeways, icebreakers,
 //              cliffs, derricks, convoys (landmarks atlas) on one ground
 //              plane PINNED to the mid tile and placed where its affinity
-//              mask says they belong (GroundPlanner, FrostTuning.Rule): each
-//              drawing stands on its own skirt of floes, so rigs, platforms
-//              and icebreakers sit in the open-water leads, refineries,
-//              relays and derricks in a lead or on a snow flat (never stacked
-//              on a painted ice sheet or quay), the convoy drives on the sheet
-//              ice, a cliff falls into water and a causeway spans water with
-//              both deck ends on land; on the glacier (v4) everything stands
-//              on the plateau tops, never over a crevasse. Footprints never
+//              mask says they belong (GroundPlanner, FrostTuning.Rule): the
+//              2026-11 redraw draws each on its own slab of snow / rock, so
+//              each stands with its whole slab, and a clear rim round it, on
+//              a FLAT TOP -- an ice plate, a snow flat, a plateau (mask O,
+//              frost_redraw/flat_masks.py) -- never on a cliff face, the
+//              floe rubble, across a gorge or a lead, never on the painted
+//              quays, plants or props (mask B); a cliff stands on a flat top
+//              with open water just beyond it; on the glacier (v4) nothing
+//              hangs over a crevasse. Footprints never
 //              overlap; never the same family twice running, mixed per
-//              variant (FrostTuning.FamilyWeights). Their ambient loops -- smoke,
-//              flares, beacons, searchlights, windows, steam, geysers -- are
-//              FrostAmbientCatalog's emitters.
+//              variant (FrostTuning.FamilyWeights). Their ambient loops --
+//              beacons and strobes on the drawn lamps, searchlights, lit
+//              windows, smoke from drawn stacks, a fire on a slab's snow
+//              beside the building -- are FrostAmbientCatalog's emitters.
 //   SITES      the elites' launch sites on the same ground plane (sites
 //              atlas): ice-shelf hangar, rig lift bay, relay pad ring,
 //              crawler garage, silo hatch. Drawn shut; the launch tell opens
@@ -42,6 +47,8 @@ using UnityEngine;
 //              scattering of cloud wisps and low mist drifting with the wind
 //              (FrostTuning.CloudDensity), snow fields at three depths, and BLIZZARD gusts:
 //              translucent diagonal sheets sweeping across every so often.
+//   PROPS      rare living accents on the same ground plane (FrostProps.cs): whales and orcas surfacing in the leads, an
+//              icebreaker churning through, a research station, an abandoned lab, a crashed plane, their lamps lit.
 //   AURORA     a faint animated overlay; strong only over the glacier night.
 //
 // Everything sits far below gameplay (BackdropCatalog.BaseOrder), so no
@@ -72,17 +79,53 @@ public static class FrostTuning
     // ... and pales them toward the deck's white-blue (saturation x this).
     public static float CeilingSaturation = .7f;
 
+    // ---- ALTITUDE: THE zoom knob ----------------------------------------
+    // How big the ground is drawn: the tiles (sky / far / mid / flow) at this share of the view's width
+    // (BackdropCatalog.Spec.groundZoom; BackdropTile repeats them across as well as down). User, 2026-11-27: "too zoomed in,
+    // the player needs to be at atmosphere level ... much higher"; at .55: "if we can zoom out about 25% more that be great".
+    // .41 = .55 x .75: the ground seen from ~2.4x the old height, ~6x the ground area in view. 2026-11-28 the user brought every
+    // world 20% closer: .49 (~2x the old height, ~4.2x the ground area in view). A tile is then ~540 screen px wide on a 1080 px
+    // phone; the tiles are installed near the size they are seen at -- the 896 px masters halved to 448 px (cut for .41: ~1.2
+    // screen px a texel at .49), one texel per 2 px art cell, drawn bilinear (frost_redraw/install_tiles.py, WorldBackdropImport.IsFrostHdTile):
+    // point sampling the 896 px art at ~2x minification would skip every other texel and the ground would shimmer as it
+    // scrolls. Everything on the ground scales with the zoom so it stays registered: the ground layers' rates (farther
+    // ground creeps by slower: the same ground distance per second in tile terms), the pinned pieces' sizes, gaps and spawn
+    // bands, the sites' launch size, the cover boulders (CoverBoulders.GroundZoom).
+    public const float GroundZoom = .49f;
+    // The ground (far / mid tiles, the floe strip) drawn this much darker than graded: a tint, a step of its own on top of the
+    // art and its grade (FrostTuning.Brightness), so a colour regrade of the tiles can drop or retune it. .85 (2026-11-28) did
+    // not rescue the pale shots over the finer ground (HostileProjectileTest's worst moved 8 -> 4 px) and the render read
+    // dim / muddy: the shots and hearts are fixed on their own side now (EliteDef.boldShots on the whiteout sentinel's
+    // shard, Spec.boldHearts), and the ground is only a touch shaded.
+    public const float GroundShade = .92f;
+    public const float GroundRate = .024f * GroundZoom;                // the mid tile's (and everything pinned to it) parallax rate
+    // The pieces standing on the ground (landmarks, launch sites, with their lamps and loops, which ride them) are drawn at
+    // this share of their old size against the ground art on top of the zoom: a slab must fit a flat plate top of the redrawn
+    // tiles with a clear rim round it (PieceRule.rim, flat_masks.py). .6 at zoom .55; from .41 on it is .7 so they stay readable
+    // (~65 screen px a 256 cell at .41, ~78 at .49): the flat plates still hold them -- in tile terms ~75-85% of the
+    // pieces .6 placed (v2's busy harbour ~65%), the audit's frost_fix/compare_v*.png.
+    public const float PieceFit = .7f;
+    public const float PieceScale = GroundZoom * PieceFit;             // a pinned piece's world size vs. before the zoom
+
     // ---- ground plane ----
-    public static float LandmarkMin = 1.45f, LandmarkMax = 1.75f;     // world units (a 256 cell, ~1:1 on a phone)
-    // scrolled ground distance between spawns. (The old spacing-only spawn also waited for the top
-    // of the view to clear; the planner only keeps footprints apart, so the gap carries the density:
-    // ~ the same number of landmarks in view as before, 2026-10-11.)
-    public static float GapMin = .8f, GapMax = 2.4f;
-    public static float SiteMin = 1.5f, SiteMax = 1.7f;
-    public static float SiteFirst = 3.2f;                              // ground distance before the first site
-    public static float SiteGapMin = 5f, SiteGapMax = 8.5f;
+    // world units: a 256 cell at its old 1.45..1.75 (~1:1 on a phone) x PieceScale
+    public static float LandmarkMin = 1.45f * PieceScale, LandmarkMax = 1.75f * PieceScale;
+    // scrolled ground distance between spawns, in world units (x GroundZoom: the same ground of the tile between two tries
+    // as before; the pool, not the gap, caps how many stand in view). (The old spacing-only spawn also waited for the top
+    // of the view to clear; the planner only keeps footprints apart, so the gap carries the density.)
+    public static float GapMin = .8f * GroundZoom, GapMax = 2.4f * GroundZoom;
+    public const int GroundPool = 24;                                  // landmarks alive at once (in view and just under it: ~6x the old ground)
+    public static float SiteMin = 1.5f * PieceScale, SiteMax = 1.7f * PieceScale;
+    public static float SiteFirst = 3.2f * GroundZoom;                // ground distance before the first site
+    public static float SiteGapMin = 5f * GroundZoom, SiteGapMax = 8.5f * GroundZoom;
     public static float SiteCloseDelay = .9f;                         // seconds a site stays open after its elite left
-    public static float SiteMinSize = 1.2f;
+    public static float SiteMinSize = 1.2f * PieceScale;
+    // where a new piece is looked for: a band SpawnBand tall starting SpawnAbove over the top of the view (just out of sight
+    // for the small pieces), and how much further on the next look is when nothing fitted
+    public static float SpawnAbove = .95f * PieceScale, SpawnBand = .9f * GroundZoom, SpawnRetry = .25f * GroundZoom;
+    // a launch site that finds no flat top in SiteTries random tries scans a band SiteScanBand tall in SiteScanStep steps
+    public const int SiteTries = 64;
+    public static float SiteScanBand = 2.7f * GroundZoom, SiteScanStep = .15f * GroundZoom;
     // landmark families and their mix per variant (index 0 = no variant)
     public static readonly string[][] Families =
     {
@@ -109,73 +152,112 @@ public static class FrostTuning
         new[] { 0, 0, 1, 3, 1, 0, 3, 2, 2 },   // v4 glacier / crevasse night
     };
 
-    // ---- WHERE A PIECE MAY STAND (GroundPlanner; masks from
-    // Art/Worlds/Frost/backdrop_v3/src~/ground_masks.py, letters: W open
-    // water / harbour basin / frozen pond / crevasse, B painted quays, roads,
-    // plants, O snow flats / glacier plateau tops, C ice sheet / pack /
-    // ridge). Every landmark is drawn on its own skirt of floes and snow, an
-    // island: it reads right with water round it, never stacked on top of a
-    // painted ice sheet or quay. Variant v4 (Glacier) has no sea: its "water"
-    // is the crevasse depths, so there the islands stand on the plateau tops.
+    // ---- WHERE A PIECE MAY STAND (GroundPlanner; mask.txt per variant from
+    // Art/Worlds/Frost/backdrop_v3/src~/frost_redraw/flat_masks.py: 64 x 128
+    // cells of 14 px read off the drawing itself. O = FLAT open ground: the lit
+    // tops of the ice plates, snow flats and glacier plateaus; C = everything
+    // else that is land: cliff faces, floe rubble, ridges, slopes; W open
+    // water / harbour basin / gorge / crevasse; B painted quays, roads, plant
+    // and the props painted on the ice -- crates, tents, braziers).
+    // The 2026-11 redraw draws EVERY landmark as a building / wreck / spire
+    // standing on its own slab of snow or rock, so every one stands on a FLAT
+    // TOP: its whole slab (PieceRule.foot: the rules are read under the slab,
+    // not under the roof) on O -- every one of its footprint samples -- with a
+    // clear rim of O round it (PieceRule.rim: RimScale x the footprint, all
+    // but one of its 16 samples), so no slab hangs over a cliff edge, a
+    // gorge, a lead or the rubble between plates. (2026-11-27, user: "still
+    // placed randomly over cliffs and stuff": the old rule took O or C at
+    // .95, and C held the cliff faces and rubble.) Fewer pieces where the
+    // ground has few flat tops (v2's busy harbour) rather than bad ones.
     public static readonly bool[] Glacier = { false, false, false, false, true };   // index = variant (0 none)
-    static readonly PieceRule Floating = new PieceRule(GroundClass.Water, .8f, .26f);                         // icebreakers: open water
-    static readonly PieceRule Offshore = new PieceRule(GroundClass.Water, .6f, .34f);                         // rigs, platforms, rig bay
-    static readonly PieceRule Island = new PieceRule(GroundClass.Water | GroundClass.Open, .72f, .34f);       // refinery, relay, derrick, sites: in a lead or on a snow flat, never on a sheet / quay
-    static readonly PieceRule IceRoad = new PieceRule(GroundClass.Canopy | GroundClass.Open, .72f, .26f);     // the convoy drives over the sheet ice
-    static readonly PieceRule Shore = new PieceRule(GroundClass.Open | GroundClass.Canopy, .55f, .28f, GroundClass.Water);   // an ice cliff: ice / snow falling into water (never on a quay)
-    static readonly PieceRule Flats = new PieceRule(GroundClass.Open, .72f, .34f);                            // a cryo silo: squat on a snow flat
-    static readonly PieceRule Ridge = new PieceRule(GroundClass.Canopy, .7f, .34f);                           // a glacier cave hangar: cut into the ridge / pack ice
-    static readonly PieceRule Plateau = new PieceRule(GroundClass.Open | GroundClass.Canopy, .85f, .34f);     // v4: on the plateau, never over a crevasse
-    // the causeway: over water, both landfalls on land. Its two landfalls (the
-    // snow shelves its abutments stand on) as a share of its drawn width from
-    // the centre, y up (the landfall causeway_00, Codex 2026-10-11: shelves
-    // centred ~(45, 80) and ~(205, 156) of the 256 cell). Never mirrored.
-    public static readonly PieceRule Span = new PieceRule(GroundClass.Water, .3f, .34f, GroundClass.Land)
-        .WithEnds(new Vector2(-.32f, .19f), new Vector2(.30f, -.11f), GroundClass.Land, .12f);
+    public const float LandNeed = 1f;        // of the footprint samples: every one (21 samples)
+    public const float RimScale = 1.15f, RimNeed = .9f, RimRelaxed = .75f;   // the clear rim: its ring's size and share
+    static readonly PieceRule Land = new PieceRule(GroundClass.Open, LandNeed, .34f).WithRim(RimScale, RimNeed);                    // every landmark
+    static readonly PieceRule IceRoad = new PieceRule(GroundClass.Open, LandNeed, .3f).WithRim(RimScale, RimNeed);                  // the convoy (a gun / crane depot on its slab)
+    static readonly PieceRule Shore = new PieceRule(GroundClass.Open, LandNeed, .3f, GroundClass.Water).WithRim(RimScale, RimNeed); // an ice cliff / berg: on a flat top, open water just beyond it
+    static readonly PieceRule Plateau = Land;                                                                                        // v4: on a plateau top, never over a crevasse
+    // the causeway (redrawn: a rail embankment with its train, drawn on its own
+    // snow slab): on a flat top like the rest, its two ends too (they keep it
+    // from being mirrored: the train runs from the upper-left to the
+    // lower-right end). Ends as a share of its drawn width from the centre, y up.
+    public static readonly PieceRule Span = new PieceRule(GroundClass.Open, LandNeed, .34f).WithRim(RimScale, RimNeed)
+        .WithEnds(new Vector2(-.32f, .19f), new Vector2(.30f, -.11f), GroundClass.Open, .12f);
     static readonly PieceRule Anywhere = new PieceRule(GroundClass.Any, 0f, .2f);
+    // Where each landmark's slab sits (PieceRule.foot: its centre from the
+    // drawing's centre, share of the drawn width, y up), measured on
+    // landmarks.png (the rows at least 70% of the drawing's widest); re-measured
+    // on the HD rebuild (sources_hd), whose drawings sit differently in their cells.
+    static readonly string[] FootNames = { "rig_00", "rig_01", "platform_00", "platform_01", "platform_02", "refinery_00", "refinery_01", "relay_00",
+                                           "relay_01", "causeway_00", "icebreaker_00", "icebreaker_01", "cliff_00", "cliff_01", "derrick_00", "convoy_00" };
+    static readonly float[] Feet = { -.25f, -.12f, -.22f, -.24f, -.11f, -.14f, -.06f, -.33f, -.18f, -.03f, -.21f, -.05f, -.14f, -.08f, -.17f, -.02f };
+    public static float FootOf(string piece)
+    {
+        for (int i = 0; i < FootNames.Length; i++) if (FootNames[i] == piece) return Feet[i];
+        return 0f;
+    }
 
-    // v3 (inland tundra) is mostly painted plant and roads with frozen ponds
-    // and snow fields between: there an island may stand on any ground that is
-    // not painted industry (its snow skirt on the snow field).
+    // v3 (inland tundra) is mostly painted plant and roads with snow flats
+    // between: its flats are O like everywhere else (flat_masks.py reads them
+    // off the drawing; the plant, the tank roofs and the canyon walls are not).
     public static readonly bool[] Inland = { false, false, false, true, false };
-    static readonly PieceRule Unbuilt = new PieceRule(GroundClass.Water | GroundClass.Open | GroundClass.Canopy, .8f, .34f);
-    // a launch site that finds no ground of its own kind: anywhere not painted industry
-    // Every launch dock stands on solid ground only: snow flat, ice sheet or painted quay -- never in a lead of open water.
-    public static readonly PieceRule SiteSolid = new PieceRule(GroundClass.Open | GroundClass.Canopy | GroundClass.Built, .8f, .34f);
-    public static readonly PieceRule SiteRelaxed = new PieceRule(GroundClass.Open | GroundClass.Canopy | GroundClass.Built, .6f, .3f);
+    static readonly PieceRule Unbuilt = Land;
+    // Every launch pad stands like a landmark: its whole footprint on a flat top with a clear rim round it -- never in a lead,
+    // on a cliff face, on rubble, a painted quay, plant or prop. Relaxed (nothing fitted in the band): the rim may be broken
+    // at a quarter of its samples, the footprint itself still all flat.
+    public static readonly PieceRule SiteSolid = new PieceRule(GroundClass.Open, LandNeed, .34f).WithRim(RimScale, RimNeed);
+    public static readonly PieceRule SiteRelaxed = new PieceRule(GroundClass.Open, LandNeed, .34f).WithRim(RimScale, RimRelaxed);
+    public static PieceRule SiteRule(int variant, bool relaxed) { return relaxed ? SiteRelaxed : SiteSolid; }
     public static readonly PieceRule SiteRelaxedOld = new PieceRule(GroundClass.Water | GroundClass.Open | GroundClass.Canopy, .6f, .3f);   // (suites only: DockGrade.Strict off)
 
     public static bool IsGlacier(int variant) { return variant >= 0 && variant < Glacier.Length && Glacier[variant]; }
     public static bool IsInland(int variant) { return variant >= 0 && variant < Inland.Length && Inland[variant]; }
 
+    // A landmark's rule (landmarks atlas names).
     public static PieceRule Rule(string piece, int variant = 1)
     {
         if (piece == null) return Anywhere;
-        if (piece.StartsWith("causeway")) return Span;
-        if (piece.StartsWith("cliff")) return Shore;
-        if (piece.StartsWith("convoy")) return IceRoad;
+        float foot = FootOf(piece);
+        if (piece.StartsWith("causeway")) return Span.WithFoot(foot);
+        if (piece.StartsWith("cliff")) return Shore.WithFoot(foot);
+        if (piece.StartsWith("convoy")) return IceRoad.WithFoot(foot);
+        if (IsGlacier(variant)) return Plateau.WithFoot(foot);
+        return (IsInland(variant) ? Unbuilt : Land).WithFoot(foot);
+    }
+
+    // A launch site's own rule (SiteKinds index), for DockGrade.Strict off (suites): the docks' rig and icebreaker deck share their
+    // names (rig_00, icebreaker_00) with the landmarks, so they are looked up by kind. The rig stands on its legs in a lead.
+    static readonly PieceRule Offshore = new PieceRule(GroundClass.Water, .6f, .34f);
+    static readonly PieceRule Floating = new PieceRule(GroundClass.Water, .8f, .26f);
+    static readonly PieceRule Flats = new PieceRule(GroundClass.Open, .72f, .34f);                            // a cryo silo: squat on a snow flat
+    static readonly PieceRule Ridge = new PieceRule(GroundClass.Canopy, .7f, .34f);                           // a glacier cave hangar: cut into the ridge / pack ice
+    static readonly PieceRule Island = new PieceRule(GroundClass.Water | GroundClass.Open, .72f, .34f);
+    public static PieceRule DockRule(int kind, int variant = 1)
+    {
         if (IsGlacier(variant)) return Plateau;
-        if (piece.StartsWith("icebreaker")) return Floating;       // (the icebreaker deck site's cells too: icebreaker_00..05)
-        if (piece.StartsWith("rig_") || piece.StartsWith("platform") || piece.StartsWith("rigbay")) return Offshore;   // (the offshore rig site: rig_00..05)
-        if (piece.StartsWith("silo_")) return Flats;
-        if (piece.StartsWith("cave_")) return Ridge;
-        return IsInland(variant) ? Unbuilt : Island;     // refinery, relay, derrick and the other launch sites
+        var k = SiteKinds[Mathf.Clamp(kind, 0, SiteKinds.Length - 1)];
+        if (k == LandingKind.Rig || k == LandingKind.RigBay) return Offshore;
+        if (k == LandingKind.Icebreaker) return Floating;
+        if (k == LandingKind.Silo) return Flats;
+        if (k == LandingKind.Cave) return Ridge;
+        return IsInland(variant) ? Unbuilt : Island;
     }
 
     // launch sites: drawings (closed, open) and how often each comes
     // Entries 0-4 are the old two-drawing sites (sites atlas); 5-8 the launch-strip ones (docks atlas: <name>_00..05, DocksAtlas), for which
-    // SiteClosed / SiteOpen name the idle and the open cell (the rule is picked by the name: Rule).
+    // SiteClosed / SiteOpen name the idle and the open cell (the rule: SiteRule, or DockRule by kind with DockGrade.Strict off).
     public static readonly string[] SiteNames = { "hangar", "rigbay", "padring", "crawlerbay", "hatch", "rig", "silo", "cave", "icebreaker" };
     public static readonly string[] SiteClosed = { "hangar_closed", "rigbay_closed", "padring_idle", "crawlerbay_closed", "hatch_closed", "rig_00", "silo_00", "cave_00", "icebreaker_00" };
     public static readonly string[] SiteOpen = { "hangar_open", "rigbay_open", "padring_active", "crawlerbay_open", "hatch_open", "rig_03", "silo_03", "cave_03", "icebreaker_03" };
     public static readonly LandingKind[] SiteKinds = { LandingKind.Hangar, LandingKind.RigBay, LandingKind.PadRing, LandingKind.CrawlerBay, LandingKind.Hatch,
                                                        LandingKind.Rig, LandingKind.Silo, LandingKind.Cave, LandingKind.Icebreaker };
     public static readonly int[] SiteWeights = { 3, 2, 2, 3, 2, 2, 2, 2, 2 };
-    // where the elite comes out: fractions of the drawing's bounds from its centre (y up). The launch-strip sites' are the pad pixels of
-    // Codex's masters (build_art.py: .5 across; .5 / .519 / .4375 / .514 down the 768 px cell): the dark bay the elite rises from.
+    // where the elite comes out: fractions of the drawing's bounds from its centre (y up); the first five re-measured on the 2026-11
+    // sites redraw (the open drawing's bay / ring centre), again on the HD rebuild (sources_hd). The launch-strip sites' are the pad pixels of
+    // Codex's masters (build_art.py: .5 across; .5 / .519 / .4375 / .514 down the 768 px cell): the dark bay the elite rises from; kept for
+    // the 2026-11 docks redraw, whose bays (rig / icebreaker: the scripted iris at the pad) hold them (frost_redraw/check_atlases.py).
     public static readonly Vector2[] SitePads =
     {
-        new Vector2(0f, -.05f), new Vector2(0f, -.03f), new Vector2(0f, 0f), new Vector2(0f, -.04f), new Vector2(0f, -.02f),
+        new Vector2(-.02f, 0f), new Vector2(0f, .11f), new Vector2(0f, 0f), new Vector2(0f, -.02f), new Vector2(-.05f, -.01f),
         new Vector2(0f, 0f), new Vector2(0f, -.0195f), new Vector2(0f, .0625f), new Vector2(0f, -.0143f),
     };
 
@@ -207,10 +289,13 @@ public static class FrostTuning
         }
         return ph - 1f < LaunchOpenShare ? LaunchOpen : LaunchHold;
     }
-    // the lamp row (lights_off / lights_on) under the door: cell point and scale
-    public static Vector2 LampsAt = new Vector2(128f, 226f);
+    // the lamp row (lights_off / lights_on) under the door: cell point and scale (y 204: on the drawing in all five HD
+    // site drawings; the rig bay and hatch end at y 217)
+    public static Vector2 LampsAt = new Vector2(128f, 204f);
     public static float LampsScale = .6f;
-    public const float EmergeScalePerUnit = .22f, EmergeScaleMin = .26f, EmergeScaleMax = .4f;
+    // the elite's size as it comes out of the pad: x the pad's drawn width (so it fits the bay), its floor x PieceScale (the
+    // pads are drawn that much smaller from up here)
+    public const float EmergeScalePerUnit = .22f, EmergeScaleMin = .26f * PieceScale, EmergeScaleMax = .4f;
     public const int SiteIdBase = 500;
 
     // The weather atlas bakes its translucency into the art (cloud banks
@@ -252,7 +337,7 @@ public static class FrostTuning
     public static float BlizzardWind = 1.6f;       // sideways push given to the snow while a gust blows
 }
 
-public class FrostDirector : PlanetDirector
+public partial class FrostDirector : PlanetDirector
 {
     BackdropPool ground, sites, auroraPool, mist, wisps, ceiling, blizzard;
     readonly BackdropPool[] snow = new BackdropPool[3];
@@ -261,6 +346,7 @@ public class FrostDirector : PlanetDirector
     Color[] dockTints;                                 // per site kind: its DockGrade colour on this ground set
     Sprite[][] siteLaunch;                             // per site kind: its 6 launch cells (null: an old two-drawing site, or the atlas is missing)
     AmbientEmitters ambient;
+    FrostGroundLights groundLights;                    // the tile's own painted lamps, glowing / blinking (FrostGroundLights.cs)
     Sprite[] auroraFrames;
     Sprite[] siteClosed, siteOpen, banks, wispArt, mistArt, gustArt, snowArt;
     Sprite lampsOff, lampsOn;
@@ -289,6 +375,8 @@ public class FrostDirector : PlanetDirector
         foreach (var m in grades) BackdropAtlas.Kill(m);
         grades.Clear();
         if (ambient != null) ambient.Destroy();
+        if (groundLights != null) groundLights.Destroy();
+        TeardownProps();
     }
 
     // Draws `pool` brightened by its layer's share of FrostTuning.Brightness
@@ -328,6 +416,7 @@ public class FrostDirector : PlanetDirector
     public int Gusts { get; private set; }
     public int SitesSpawned { get; private set; }
     public AmbientEmitters Ambient => ambient;
+    public FrostGroundLights GroundLights => groundLights;
     public BackdropPool Ground => ground;
     public BackdropPool Sites => sites;
     public GroundPlanner Planner => planner;
@@ -378,6 +467,7 @@ public class FrostDirector : PlanetDirector
         planner = new GroundPlanner(set, "mid", GroundMask.Load("Frost", set.Variant));
         weather = set.Atlas("weather");
         ambient = new AmbientEmitters(set);
+        groundLights = new FrostGroundLights(set, planner.Tile, set.Variant, set.Spec.Order("flow") + 1);
         var spec = set.Spec;
         tintGround = spec.Tint("landmarks");
         tintAurora = spec.Tint("aurora");
@@ -412,7 +502,7 @@ public class FrostDirector : PlanetDirector
         auroraAlpha = FrostAmbientCatalog.AuroraAlpha[v];
 
         auroraPool = Pool("aurora", 2);
-        ground = LandmarkPool("landmarks", 7);
+        ground = LandmarkPool("landmarks", FrostTuning.GroundPool);
         sites = LandmarkPool("landmarks", 3, 3);
         groundRules = new PieceRule[ground.items.Count];
         siteRules = new PieceRule[sites.items.Count];
@@ -452,6 +542,7 @@ public class FrostDirector : PlanetDirector
         Grade(wisps, "wisps");
         CeilingMaterial = Grade(ceiling, "ceiling", FrostTuning.CeilingThicken, FrostTuning.CeilingSaturation);
         if (!FrostTuning.BlizzardAdditive) Grade(blizzard, "blizzard");
+        BuildProps();     // the living props (FrostProps.cs): whales, orcas, an icebreaker, a station, a lab, a crashed plane
         if (FrostTuning.BlizzardAdditive)
         {
             var shader = Resources.Load<Shader>(SpaceAsteroidDrift.AdditiveShader);
@@ -468,8 +559,9 @@ public class FrostDirector : PlanetDirector
         if (planner.Ready)
         {
             double t = planner.Travel;
-            for (float y = -HalfH * .85f; y < HalfH * .8f; y += GRand(2.6f, 3.4f))
-                SpawnLandmark(t + y, t + y + 1f);
+            OpeningProp();
+            for (float y = -HalfH * .85f; y < HalfH * .8f; y += GRand(FrostTuning.GapMin, FrostTuning.GapMax))
+                SpawnLandmark(t + y, t + y + FrostTuning.SpawnBand);
         }
         BuildCeiling();
         BuildSnow();
@@ -493,7 +585,7 @@ public class FrostDirector : PlanetDirector
         if (planner.Ready && groundTravel >= groundGap)
         {
             if (SpawnGround()) { groundTravel = 0f; groundGap = GRand(FrostTuning.GapMin, FrostTuning.GapMax); }
-            else groundGap = groundTravel + .25f;     // nothing fitted: look again a little further on
+            else groundGap = groundTravel + FrostTuning.SpawnRetry;     // nothing fitted: look again a little further on
         }
         ceilingTravel += set.Spec.Rate("ceiling") * v * dt;
         float density = set.Spec.CeilingDensity(clock);
@@ -524,8 +616,10 @@ public class FrostDirector : PlanetDirector
         }
         StepPinned(ground, groundRules, dt);
         StepPinned(sites, siteRules, dt);
+        StepProps(dt, scrolled);
         StepSites(dt);
         ambient.Step(1f);
+        groundLights.Step(dt);
 
         foreach (var m in mist.items)
             if (m.active && Drift(m, dt, v)) Tinted(m, tintMist, m.phase);
@@ -579,7 +673,7 @@ public class FrostDirector : PlanetDirector
             p.age += dt;
             p.y = planner.Y(p.gy);
             Place(p);
-            if (p.y < GroundDespawnY(p, ambient))
+            if (p.y < GroundDespawnY(p, ambient) - PinnedTail(pool, i))     // (the starship's scar trails far above it: FrostProps)
             {
                 planner.Release(p.footprint);
                 p.footprint = -1;
@@ -598,7 +692,7 @@ public class FrostDirector : PlanetDirector
     // A landmark (or, when one is due, a launch site) entering at the top.
     bool SpawnGround()
     {
-        double lo = planner.Travel + HalfH + .95f, hi = lo + .9f;
+        double lo = planner.Travel + HalfH + FrostTuning.SpawnAbove, hi = lo + FrostTuning.SpawnBand;
         if (siteTravel >= siteGap && SpawnSite(float.NaN))
         {
             siteTravel = 0f;
@@ -642,6 +736,7 @@ public class FrostDirector : PlanetDirector
             bool mirror = !rule.HasEnds && GChance(.5);
             float x; double gy;
             if (!Spot(rule, size, lo, hi, out x, out gy)) continue;
+            if (PlumeHitsProp(name, size, mirror, x, gy)) continue;     // its smoke / steam column would rise through a prop (FrostProps keep-out)
             var p = Put(ground, groundRules, landmarkArt.Get(name), rule, size, x, gy, mirror);
             if (p == null) return false;
             lastFamily = fam;
@@ -655,10 +750,11 @@ public class FrostDirector : PlanetDirector
     }
 
     // A spot for `rule` in the band (a causeway's rule also wants both
-    // landfalls on land: PieceRule ends, checked by the planner).
+    // landfalls on land: PieceRule ends, checked by the planner). 48 tries for
+    // every piece: a whole slab on land is rarer than the old shares were.
     bool Spot(PieceRule rule, float size, double lo, double hi, out float x, out double gy)
     {
-        return planner.Find(rule, size, XMin(size), XMax(size), lo, hi, groundRng, out x, out gy, rule.HasEnds ? 48 : 28);
+        return planner.Find(rule, size, XMin(size), XMax(size), lo, hi, groundRng, out x, out gy, 48);
     }
 
     // Draws `sprite` at x, gy (pinned), claiming its footprint.
@@ -713,14 +809,34 @@ public class FrostDirector : PlanetDirector
         var closed = siteClosed[kind];
         if (closed == null || siteOpen[kind] == null) return false;
         float size = GRand(FrostTuning.SiteMin, FrostTuning.SiteMax) * FrostTuning.SiteWidthK[kind];
-        double lo = float.IsNaN(y) ? planner.Travel + HalfH + .95f : planner.GroundY(y) - .3f;
-        double hi = lo + (float.IsNaN(y) ? .9f : .6f);
-        var rule = DockGrade.Strict ? FrostTuning.SiteSolid : FrostTuning.Rule(FrostTuning.SiteClosed[kind], set.Variant);
-        float x; double gy;
-        if (!planner.Find(rule, size, XMin(size), XMax(size), lo, hi, groundRng, out x, out gy) &&
-            !planner.Find(rule = DockGrade.Strict ? FrostTuning.SiteRelaxed : FrostTuning.SiteRelaxedOld, size, XMin(size), XMax(size), lo, hi, groundRng, out x, out gy) &&
-            (DockGrade.Strict || !planner.Find(rule = new PieceRule(GroundClass.Any, 0f, FrostTuning.SiteRelaxed.core), size, XMin(size), XMax(size), lo, hi, groundRng, out x, out gy)))
-            return false;
+        double lo = float.IsNaN(y) ? planner.Travel + HalfH + FrostTuning.SpawnAbove : planner.GroundY(y) - .3f;
+        double hi = lo + (float.IsNaN(y) ? FrostTuning.SpawnBand : .6f);
+        var rule = DockGrade.Strict ? FrostTuning.SiteRule(set.Variant, false) : FrostTuning.DockRule(kind, set.Variant);
+        float x = 0f; double gy = 0.0;
+        // a dock keeps its margin clear of the living props (FrostPropsTuning.SiteKeepOut): a spot inside one is searched again
+        bool placed = false;
+        for (int attempt = 0; attempt < 4 && !placed; attempt++)
+        {
+            rule = DockGrade.Strict ? FrostTuning.SiteRule(set.Variant, false) : FrostTuning.DockRule(kind, set.Variant);
+            if (DockGrade.Strict)
+            {
+                // a flat top with its rim clear, else with the rim a little broken: random tries first, then a scan of a taller band
+                // (flat tops big enough for a pad are few: a site the elite director asks for must not be missed by bad luck)
+                var relaxed = FrostTuning.SiteRule(set.Variant, true);
+                double far = lo + (float.IsNaN(y) ? FrostTuning.SiteScanBand : .6f);
+                if (!planner.Find(rule, size, XMin(size), XMax(size), lo, hi, groundRng, out x, out gy, FrostTuning.SiteTries) &&
+                    !planner.Find(rule = relaxed, size, XMin(size), XMax(size), lo, hi, groundRng, out x, out gy, FrostTuning.SiteTries) &&
+                    !planner.Scan(rule = FrostTuning.SiteRule(set.Variant, false), size, XMin(size), XMax(size), lo, far, FrostTuning.SiteScanStep, groundRng, out x, out gy) &&
+                    !planner.Scan(rule = relaxed, size, XMin(size), XMax(size), lo, far, FrostTuning.SiteScanStep, groundRng, out x, out gy))
+                    return false;
+            }
+            else if (!planner.Find(rule, size, XMin(size), XMax(size), lo, hi, groundRng, out x, out gy) &&
+                     !planner.Find(rule = FrostTuning.SiteRelaxedOld, size, XMin(size), XMax(size), lo, hi, groundRng, out x, out gy) &&
+                     !planner.Find(rule = new PieceRule(GroundClass.Any, 0f, FrostTuning.SiteRelaxed.core), size, XMin(size), XMax(size), lo, hi, groundRng, out x, out gy))
+                return false;
+            placed = !SiteHitsProp(x, gy, size, rule.core);
+        }
+        if (!placed) return false;
         var p = Put(sites, siteRules, closed, rule, size, x, gy, false);     // doors face the viewer: never mirrored
         if (p == null) return false;
         p.dockTint = dockTints[kind];

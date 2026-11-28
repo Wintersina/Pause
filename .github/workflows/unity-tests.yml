@@ -36,6 +36,10 @@ on:
         description: "Max parallel shards (empty = repo variable UNITY_CI_SHARDS, else 4). 1 = serial through the global seat queue"
         required: false
         default: ""
+      preview:
+        description: "Editor capture to run instead of the tests (e.g. FrostLevelShowcase.Run): one job, PNGs uploaded as the showcase artifact. Empty = run the tests"
+        required: false
+        default: ""
 
 permissions:
   contents: read
@@ -91,11 +95,17 @@ jobs:
           FORK: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name != github.repository }}
           INPUT_SUITES: ${{ inputs.suites }}
           INPUT_GRAPHICS: ${{ inputs.graphics }}
+          INPUT_PREVIEW: ${{ inputs.preview }}
         run: |
           set -euo pipefail
           if [ "$FORK" = "true" ]; then
             echo "::notice::Fork PR: repository secrets are not available, skipping Unity tests."
             echo "run=false" >> "$GITHUB_OUTPUT"; echo 'matrix={"include":[]}' >> "$GITHUB_OUTPUT"; exit 0
+          fi
+          # A manual run with `preview`: one job runs that editor method instead of the test shards.
+          if [ -n "$INPUT_PREVIEW" ]; then
+            echo "### Preview capture: \`$INPUT_PREVIEW\` (tests not run)" >> "$GITHUB_STEP_SUMMARY"
+            echo "run=true" >> "$GITHUB_OUTPUT"; echo 'matrix={"include":[{"shard":0,"suites":""}]}' >> "$GITHUB_OUTPUT"; exit 0
           fi
           : > changed.txt
           if [ "$EVENT" = "pull_request" ]; then
@@ -165,6 +175,9 @@ jobs:
           # Full lane for the nightly and for a manual run with `full`; empty (gate lane) for every other event,
           # PRs and master pushes included, so their behaviour is unchanged.
           PAUSE_TEST_FULL: ${{ (github.event_name == 'schedule' || inputs.full) && '1' || '' }}
+          # Manual `preview` runs only: the editor method to run instead of the suites, and where it writes its PNGs.
+          PREVIEW: ${{ inputs.preview }}
+          SHOWCASE_DIR: ${{ inputs.preview && '/workspace/ci-out/showcase' || '' }}
         run: |
           set -uo pipefail
           mkdir -p ci-out
@@ -172,6 +185,15 @@ jobs:
           echo "Shard $SHARD: $(wc -l < ci-out/suites.txt) suites"
           method=AllTests.RunSuites
           extra=(-suites "$SUITES")
+          envs=()
+          if [ -n "${PREVIEW:-}" ]; then
+            if ! [[ "$PREVIEW" =~ ^[A-Za-z_][A-Za-z0-9_.]*$ ]]; then echo "::error::preview must be Class.Method"; exit 2; fi
+            echo "Preview capture: $PREVIEW -> ci-out/showcase"
+            method="$PREVIEW"
+            extra=()
+            envs=(-e SHOWCASE_DIR)
+            mkdir -p ci-out/showcase
+          fi
 
           echo "::add-mask::$UNITY_EMAIL"
           echo "::add-mask::$UNITY_PASSWORD"
@@ -223,7 +245,7 @@ jobs:
           touch ci-out/unity.log
           ( tail -n +1 -F ci-out/unity.log 2>/dev/null & echo $! > ci-out/tail.pid )
           docker run --rm \
-            -e HOST_UID="$(id -u)" -e HOST_GID="$(id -g)" -e UNITY_EMAIL -e UNITY_PASSWORD -e GITHUB_ACTIONS -e PAUSE_TEST_FULL \
+            -e HOST_UID="$(id -u)" -e HOST_GID="$(id -g)" -e UNITY_EMAIL -e UNITY_PASSWORD -e GITHUB_ACTIONS -e PAUSE_TEST_FULL "${envs[@]}" \
             -v "$PWD:/workspace" -v "$PWD/ci-out/home:/ci-home" \
             "unityci/editor:${UNITY_IMAGE_TAG}" \
             bash /workspace/ci-out/run.sh "$method" "${extra[@]}"
@@ -249,7 +271,7 @@ jobs:
           sudo rm -rf ci-out/home || true
 
       - name: Summary
-        if: always()
+        if: always() && !inputs.preview
         run: |
           log=ci-out/unity.log
           {
@@ -277,6 +299,41 @@ jobs:
             ci-out/suites.txt
             ci-out/exit-code.txt
           if-no-files-found: ignore
+
+      # Manual `preview` runs only: each <name>_frames/ folder of PNGs becomes <name>.gif (15 fps), then everything is uploaded.
+      - name: Assemble preview GIFs
+        if: always() && inputs.preview
+        run: |
+          shopt -s nullglob
+          dirs=(ci-out/showcase/*_frames)
+          [ ${#dirs[@]} -gt 0 ] || { echo "No frame folders to assemble."; exit 0; }
+          python3 -c 'import PIL' 2>/dev/null || sudo apt-get install -y -qq python3-pil >/dev/null 2>&1 \
+            || python3 -m pip install --quiet --user --break-system-packages pillow \
+            || { echo "::warning::Pillow unavailable; uploading the frames only"; exit 0; }
+          python3 - <<'PY' || echo "::warning::GIF assembly failed; uploading the frames only"
+          import glob, os
+          from PIL import Image
+          for d in sorted(glob.glob("ci-out/showcase/*_frames")):
+              files = sorted(glob.glob(os.path.join(d, "*.png")))
+              if not files:
+                  continue
+              frames = []
+              for f in files:
+                  im = Image.open(f).convert("RGB")
+                  frames.append(im.resize((im.width // 2, im.height // 2), Image.LANCZOS))
+              out = d[: -len("_frames")] + ".gif"
+              frames[0].save(out, save_all=True, append_images=frames[1:], duration=67, loop=0)
+              print(out, len(frames), "frames")
+          PY
+          find ci-out/showcase -maxdepth 1 -type f | sort | tee -a "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload showcase
+        if: always() && inputs.preview
+        uses: actions/upload-artifact@v4
+        with:
+          name: showcase
+          path: ci-out/showcase/**
+          if-no-files-found: warn
 
       # Saved even when tests failed, by shard 0 only, and only when the exact key was not restored.
       - name: Save Library cache

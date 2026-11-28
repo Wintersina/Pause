@@ -495,22 +495,23 @@ public static class FrostDockTest
     static void Rules()
     {
         // which ground each new site stands on (GroundPlanner classes: W water / leads, O snow flats, C sheet / ridge)
-        var rig = FrostTuning.Rule("rig_00");
-        var ice = FrostTuning.Rule("icebreaker_00");
-        var silo = FrostTuning.Rule("silo_00");
-        var cave = FrostTuning.Rule("cave_00");
+        // (by kind: the dock rig / deck share their names with the landmarks rig_00 / icebreaker_00, which stand on land: FrostTuning.Rule)
+        var rig = FrostTuning.DockRule(5);
+        var ice = FrostTuning.DockRule(8);
+        var silo = FrostTuning.DockRule(6);
+        var cave = FrostTuning.DockRule(7);
         Check("the offshore rig stands in the water (leads)", rig.on == GroundClass.Water);
         Check("the icebreaker deck floats on open water", ice.on == GroundClass.Water);
         Check("the cryo silo stands on snow flats", silo.on == GroundClass.Open);
         Check("the glacier cave hangar is cut into the ridge / pack ice", cave.on == GroundClass.Canopy);
         Check("on the glacier (no sea) they all take the plateau, never over a crevasse",
-              FrostTuning.Rule("rig_00", 4).on == FrostTuning.Rule("silo_00", 4).on && FrostTuning.Rule("cave_00", 4).on == FrostTuning.Rule("icebreaker_00", 4).on &&
-              (FrostTuning.Rule("rig_00", 4).on & GroundClass.Water) == 0);
+              FrostTuning.DockRule(5, 4).on == FrostTuning.DockRule(6, 4).on && FrostTuning.DockRule(7, 4).on == FrostTuning.DockRule(8, 4).on &&
+              (FrostTuning.DockRule(5, 4).on & GroundClass.Water) == 0);
         Check("the rig and icebreaker never come to the glacier (no sea there); everything else does",
               !FrostTuning.SiteFits(5, 4) && !FrostTuning.SiteFits(8, 4) && FrostTuning.SiteFits(6, 4) && FrostTuning.SiteFits(7, 4) && FrostTuning.SiteFits(0, 4) &&
               FrostTuning.SiteFits(5, 1) && FrostTuning.SiteFits(8, 1));
-        Check("the old sites keep their rules (rig bay offshore, hangar an island)", FrostTuning.Rule("rigbay_closed").on == GroundClass.Water &&
-              (FrostTuning.Rule("hangar_closed").on & GroundClass.Open) != 0);
+        Check("the old sites keep their rules (rig bay offshore, hangar an island)", FrostTuning.DockRule(1).on == GroundClass.Water &&
+              (FrostTuning.DockRule(0).on & GroundClass.Open) != 0);
     }
 
     static int CellOf(Sprite s) { return s == null ? -1 : int.Parse(s.name.Substring(s.name.Length - 2)); }
@@ -545,7 +546,19 @@ public static class FrostDockTest
         return false;
     }
 
-    static void SitesAndLaunch()
+    // The backdrop's own docks are held off while a check places one (one dock on the ground at a time: a random one that
+    // scrolled in first would block the kind under test, and from up here it takes a long time to scroll out).
+    static void NoOwnDocks(System.Action check)
+    {
+        float siteFirst = FrostTuning.SiteFirst;
+        FrostTuning.SiteFirst = 1e6f;
+        try { check(); }
+        finally { FrostTuning.SiteFirst = siteFirst; }
+    }
+
+    static void SitesAndLaunch() { NoOwnDocks(SitesAndLaunchChecks); }
+
+    static void SitesAndLaunchChecks()
     {
         var seen = new HashSet<int>();
         foreach (var x in Elites)
@@ -715,7 +728,9 @@ public static class FrostDockTest
         EliteSystem.Clear();
     }
 
-    static void HomesBroughtIntoView()
+    static void HomesBroughtIntoView() { NoOwnDocks(HomesBroughtIntoViewChecks); }
+
+    static void HomesBroughtIntoViewChecks()
     {
         // (a fresh backdrop for each: the site pool holds three, and a launch site stays in the pool until it scrolls off)
         foreach (var x in Elites)

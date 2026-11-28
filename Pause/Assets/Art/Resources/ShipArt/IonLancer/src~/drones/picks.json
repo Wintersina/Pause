@@ -1,0 +1,18 @@
+{
+  "heal": {
+    "candidate": "r1_1.png",
+    "pick": "s/drone_IonLancer_heal__nr1.png#1"
+  },
+  "t1": {
+    "candidate": "r1_1.png",
+    "pick": "s/drone_IonLancer_t1__nr1.png#1"
+  },
+  "t2": {
+    "candidate": "r1_2.png",
+    "pick": "s/drone_IonLancer_t2__nr1.png#2"
+  },
+  "t3": {
+    "candidate": "r1_0.png",
+    "pick": "s/drone_IonLancer_t3__nr1.png#0"
+  }
+}

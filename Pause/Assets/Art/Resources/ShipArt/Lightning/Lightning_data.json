@@ -3,11 +3,11 @@
   "key": "Lightning",
   "painted": true,
   "rect": {
-    "x": 11,
-    "y": 11,
-    "w": 237,
-    "h": 234,
-    "ppu": 846.4285
+    "x": 50,
+    "y": 53,
+    "w": 157,
+    "h": 151,
+    "ppu": 559.9863
   },
   "hue": [
     "#EEDC32",
@@ -16,91 +16,129 @@
   ],
   "nozzles": [
     {
-      "x": 73.5,
-      "y": 8.5,
+      "x": 57.5,
+      "y": 11.5,
       "scale": 0.72,
-      "offsets": [0.0, -0.0, 0, 4, 0, 4, 0, 0, 0, 0, 0, -4, -19.0, 16.0, 8.0, 3.0, 0, 0]
+      "offsets": [
+        0.0,
+        0.0,
+        0.0,
+        4.0,
+        0.0,
+        4.0,
+        0.0,
+        -0.0,
+        0.0,
+        -0.0,
+        0.0,
+        -4.0,
+        1.1,
+        -0.4,
+        4.0,
+        0.2,
+        0.0,
+        0.0
+      ]
     },
     {
-      "x": 161.5,
-      "y": 8.5,
+      "x": 98.5,
+      "y": 12.5,
       "scale": 0.72,
-      "offsets": [0.0, -0.0, 0, 4, 0, 4, 0, 0, 0, 0, 0, -4, -14.0, -3.0, 13.0, 10.0, 0, 0]
+      "offsets": [
+        0.0,
+        0.0,
+        0.0,
+        4.0,
+        0.0,
+        4.0,
+        0.0,
+        -0.0,
+        0.0,
+        -0.0,
+        0.0,
+        -4.0,
+        -4.0,
+        0.2,
+        -1.1,
+        -0.4,
+        0.0,
+        0.0
+      ]
     }
   ],
-  "damageNote": "1) left pod panel blown; left pod engine smoking; 2) right wingtip torn, right pod nose bent, right pod on fire, canopy cracked",
+  "damageNote": "1) left wing panel blown beside the bolt, sparking conduit, right prong scorched; 2) right wing root blown and burning, nose prong holed, soot over the gold, canopy cracked",
   "emitters": [
     {
       "state": 1,
       "kind": "Sparks",
-      "u": 43.1,
-      "v": 68.1
+      "u": 54.8,
+      "v": 55.8
     },
     {
       "state": 1,
       "kind": "Smoke",
-      "u": 31.1,
-      "v": 98.7
+      "u": 72.2,
+      "v": 64.8
     },
     {
       "state": 1,
       "kind": "Smolder",
-      "u": 43.1,
-      "v": 68.1
+      "u": 53.2,
+      "v": 54.2
     },
     {
       "state": 2,
       "kind": "Arc",
-      "u": 109.5,
-      "v": 94.1
+      "u": 94.2,
+      "v": 85.8
     },
     {
       "state": 2,
       "kind": "Flame",
-      "u": 89.9,
-      "v": 104.7
+      "u": 57.8,
+      "v": 82.8
     },
     {
       "state": 2,
       "kind": "Leak",
-      "u": 62.1,
-      "v": 92.0
+      "u": 57.2,
+      "v": 42.8
     },
     {
       "state": 2,
       "kind": "Smolder",
-      "u": 110.4,
-      "v": 94.1
+      "u": 72.2,
+      "v": 64.8
     },
     {
       "state": 2,
       "kind": "Smolder",
-      "u": 62.6,
-      "v": 48.4
+      "u": 54.8,
+      "v": 55.8
     },
     {
       "state": 2,
       "kind": "Smolder",
-      "u": 31.7,
-      "v": 96.2
+      "u": 56.2,
+      "v": 81.2
     },
     {
       "state": 2,
       "kind": "Smolder",
-      "u": 64.3,
-      "v": 24.0
+      "u": 92.8,
+      "v": 84.2
     },
     {
       "state": 2,
       "kind": "Smolder",
-      "u": 94.5,
-      "v": 61.4
+      "u": 55.8,
+      "v": 41.2
     },
     {
       "state": 2,
       "kind": "Smolder",
-      "u": 34.7,
-      "v": 55.9
+      "u": 70.8,
+      "v": 63.2
     }
   ],
   "skins": [

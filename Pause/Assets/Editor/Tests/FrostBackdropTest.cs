@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.IO;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 
@@ -15,7 +16,12 @@ using UnityEngine;
 // water for rigs and icebreakers, never an island stacked on a painted ice
 // sheet or quay, a causeway landing on land at both ends, nothing over the
 // glacier's crevasses), pinned and never overlapping; and no per-frame
-// allocation.
+// allocation. ALTITUDE (user, 2026-11-27: "too zoomed in ... the player
+// needs to be much higher"; "the overlay items are not pinned ... placed over
+// cliffs"): the ground drawn at FrostTuning.GroundZoom of the view's width,
+// repeated across on art seamless across, creeping by at the same share of
+// its old rate; the floe strip pinned to the mid tile like the landmarks; and
+// every piece's whole footprint with a clear rim on FLAT ground (mask O).
 // (The tiles' seams / darkness / contrast are WorldBackdropTest's.)
 //
 //   Unity -batchmode -quit -projectPath <abs>/Pause -executeMethod FrostBackdropTest.Run
@@ -40,6 +46,7 @@ public static class FrostBackdropTest
         try
         {
             Catalog();
+            Altitude();
             Selection();
             Weather();
             Clouds();
@@ -96,11 +103,11 @@ public static class FrostBackdropTest
         var spec = BackdropCatalog.For("Frost");
         Check("Frost has its own v3 folder and four variant sets",
               spec.folder == "Worlds/Frost/Backdrop3/" && spec.variantSets == FrostBackdropSelection.MaxVariants);
-        string[] want = { "sky", "far", "mid", "flow", "aurora", "landmarks", "mist", "wisps", "ceiling",
+        string[] want = { "sky", "far", "mid", "flow", "aurora", "landmarks", "props", "mist", "wisps", "ceiling",
                           "snow_far", "blizzard", "snow_mid", "snow_near" };
         bool all = true;
         foreach (string n in want) all &= spec.Has(n);
-        Check("Frost layers: ground tiles + flow, aurora, landmarks, mist, wisps, ceiling, snow x3, blizzard", all);
+        Check("Frost layers: ground tiles + flow, aurora, landmarks, living props, mist, wisps, ceiling, snow x3, blizzard", all);
         bool rising = true;
         float prev = float.MinValue;
         foreach (var l in spec.layers)
@@ -125,6 +132,96 @@ public static class FrostBackdropTest
             foreach (var e in b.emitters) loops &= FrostAmbientCatalog.LoopIndex(e.loop) >= 0;
         }
         Check("every ambient emitter names a known loop and no piece carries more than " + FrostAmbientCatalog.MaxPerPiece, loops);
+    }
+
+    // ---- seen from high up: the ground zoomed out, everything on it with it ----------------
+
+    // Left / right edge seam of a tile (premultiplied mean |first column - last column|, WorldBackdropTest's vertical measure
+    // turned sideways); the tiles' own neighbouring columns measure up to ~.026 (frost_redraw/hwrap_tiles.py --check).
+    public const float AcrossSeam = .025f;
+
+    static void Altitude()
+    {
+        var spec = BackdropCatalog.For("Frost");
+        float z = FrostTuning.GroundZoom;
+        Check("Frost's ground is seen from high up: drawn at groundZoom " + spec.groundZoom + " of the view's width (FrostTuning.GroundZoom)",
+              spec.groundZoom == z && z >= .4f && z <= .7f);
+        Check("... and creeps by slower by the same share (mid " + spec.Rate("mid") + " = .024 x " + z + ", far " + spec.Rate("far") + ", sky " + spec.Rate("sky") + ")",
+              Mathf.Approximately(spec.Rate("mid"), .024f * z) && Mathf.Approximately(spec.Rate("far"), .014f * z) && Mathf.Approximately(spec.Rate("sky"), .006f * z) &&
+              spec.Rate("landmarks") == spec.Rate("mid"));
+        var flow = spec.Find("flow");
+        Check("the floe / frost-streak strip is pinned to the mid tile: its rate, no flow of its own (it slid under the landmarks at 2-3x the ground)",
+              flow.pinTo == "mid" && flow.flow == 0f && flow.rate == spec.Rate("mid"));
+        Check("the pinned pieces are drawn PieceScale (" + FrostTuning.PieceScale + ") of their old size, sites and their launch size too",
+              Mathf.Approximately(FrostTuning.LandmarkMax, 1.75f * FrostTuning.PieceScale) && Mathf.Approximately(FrostTuning.SiteMax, 1.7f * FrostTuning.PieceScale) &&
+              Mathf.Approximately(FrostTuning.SiteMinSize, 1.2f * FrostTuning.PieceScale) && FrostTuning.SiteMinSize < FrostTuning.SiteMin &&
+              FrostTuning.EmergeScaleMin <= FrostTuning.SiteMin * FrostTuning.EmergeScalePerUnit);
+
+        // the tiles laid out: narrower than the view, repeated across in columns a tile apart, all on one scroll
+        for (int v = 1; v <= 4; v++)
+        {
+            var wb = Fresh(v);
+            var set = wb.Current;
+            var d = Director(wb);
+            bool laid = set != null && set.Tiles.Count == 4;
+            string bad = "";
+            foreach (var t in set.Tiles)
+            {
+                float want = set.HalfWidth * 2f * 1.02f * z;
+                bool ok = Mathf.Abs(t.TileWidth - want) < .01f && t.Columns >= 3 && t.Columns % 2 == 1 && t.Columns * t.TileWidth >= set.HalfWidth * 2f;
+                // the first row's copies: one tile width apart, centred on x = 0, at one height
+                for (int c = 1; c < t.Columns; c++)
+                {
+                    Vector3 a = t.CopyTransform(c - 1).localPosition, b = t.CopyTransform(c).localPosition;
+                    ok &= Mathf.Abs(b.x - a.x - t.TileWidth) < 1e-3f && Mathf.Abs(b.y - a.y) < 1e-4f;
+                }
+                ok &= Mathf.Abs(t.CopyTransform(t.Columns / 2).localPosition.x) < 1e-3f;
+                if (!ok) bad += t.layer.name + " ";
+                laid &= ok;
+            }
+            Check("v" + v + ": every tile drawn at " + z + " x the view, in odd columns a tile apart centred on the view " + bad, laid);
+            // the ground mask repeats across with the tile
+            bool wraps = d != null && d.Planner != null && d.Planner.Mask != null;
+            if (wraps)
+            {
+                var rng = new System.Random(v);
+                float w = d.Planner.Tile.TileWidth;
+                for (int i = 0; i < 400; i++)
+                {
+                    float x = (float)(rng.NextDouble() * 2 - 1) * 2.5f;
+                    double gy = rng.NextDouble() * 40.0;
+                    wraps &= d.Planner.ClassAt(x, gy) == d.Planner.ClassAt(x + w, gy) && d.Planner.ClassAt(x, gy) == d.Planner.ClassAt(x - w, gy);
+                }
+            }
+            Check("v" + v + ": the ground mask repeats across with the tile (the same ground one tile width over)", wraps);
+            Object.DestroyImmediate(wb.gameObject);
+
+            // the art meets itself across: no seam where the columns meet
+            foreach (string layer in new[] { "sky", "far", "mid", "flow" })
+            {
+                string path = "Assets/Art/Backgrounds/Resources/" + BackdropCatalog.TileFolder("Frost", v) + layer + ".png";
+                var tex = new Texture2D(2, 2, TextureFormat.RGBA32, false);
+                tex.LoadImage(File.ReadAllBytes(path));
+                int W = tex.width, H = tex.height;
+                var px = tex.GetPixels32();
+                Object.DestroyImmediate(tex);
+                double sum = 0;
+                for (int y = 0; y < H; y++)
+                {
+                    Color32 l = px[y * W], r = px[y * W + W - 1];
+                    float la = l.a / 255f, ra = r.a / 255f;
+                    sum += Mathf.Abs(l.r * la - r.r * ra) / 255f + Mathf.Abs(l.g * la - r.g * ra) / 255f + Mathf.Abs(l.b * la - r.b * ra) / 255f + Mathf.Abs(la - ra);
+                }
+                float seam = (float)(sum / (H * 4.0));
+                // installed at the size it is seen at (install_tiles.py: the 896 masters halved), drawn bilinear, still 6 u wide
+                var imp = UnityEditor.AssetImporter.GetAtPath(path) as UnityEditor.TextureImporter;
+                var sprite = Resources.Load<Sprite>(BackdropCatalog.TileFolder("Frost", v) + layer);
+                Check("v" + v + "/" + layer + ": " + W + "x" + H + ", bilinear, no mipmaps, repeating across, 6 u wide (one texel per art cell, ~1 per screen pixel from up here)",
+                      W == 448 && H == 896 && imp != null && imp.filterMode == FilterMode.Bilinear && !imp.mipmapEnabled &&
+                      imp.wrapModeU == TextureWrapMode.Repeat && sprite != null && Mathf.Abs(sprite.bounds.size.x - 6f) < .01f);
+                Check("v" + v + "/" + layer + ": seamless across (left vs right column " + seam.ToString("0.0000") + " <= " + AcrossSeam + ")", seam <= AcrossSeam);
+            }
+        }
     }
 
     // ---- four ground sets, random per landing ----------------------------------
@@ -269,7 +366,17 @@ public static class FrostBackdropTest
     // under way never leaves the ground its rule allows.
     const int SeededRuns = 6;
 
+    // Run under the GAME's dock rules (DockGrade.Strict: the suites switch them off to place any dock kind anywhere, and a dock
+    // placed that way -- a rig in a lead, a hangar on anything -- is no evidence of where the game puts one).
     static void Affinity()
+    {
+        bool strict = DockGrade.Strict;
+        DockGrade.Strict = true;
+        try { AffinityChecks(); }
+        finally { DockGrade.Strict = strict; }
+    }
+
+    static void AffinityChecks()
     {
         var wanted = new Dictionary<string, int>();
         for (int v = 1; v <= 4; v++)
@@ -291,7 +398,9 @@ public static class FrostBackdropTest
                         {
                             if (!p.active || p.sr.sprite == null) continue;
                             string name = p.sr.sprite.name;
-                            var rule = FrostTuning.Rule(name, v);
+                            bool site = pool == d.Sites;
+                            // a launch site by the site rule it was placed with (its dock names rig_00 / icebreaker_00 are landmark names too)
+                            var rule = site ? FrostTuning.SiteRule(v, false) : FrostTuning.Rule(name, v);
                             // pinned: y + travel is its ground coordinate, always
                             if (Mathf.Abs((float)(p.y + d.Planner.Travel - p.gy)) > 1e-3f) drift++;
                             bool moving = p.vx != 0f || p.vy != 0f;
@@ -302,10 +411,10 @@ public static class FrostBackdropTest
                             seen[p] = p.gy;
                             pieces++;
                             int c; wanted.TryGetValue(name.Split('_')[0], out c); wanted[name.Split('_')[0]] = c + 1;
-                            bool site = pool == d.Sites;
                             if (!d.Planner.Accepts(rule, p.x, p.gy, p.size))
                             {
-                                if (site && d.Planner.Accepts(new PieceRule(GroundClass.Any, 0f), p.x, p.gy, p.size)) relaxed++;
+                                // a site may stand on its relaxed rule (its rim a little broken), never anywhere
+                                if (site && d.Planner.Accepts(FrostTuning.SiteRule(v, true), p.x, p.gy, p.size)) relaxed++;
                                 else { wrong++; if (bad.Length < 300) bad += name + "@" + d.Planner.ClassAt(p.x, p.gy) + " "; }
                             }
                             if (name.StartsWith("causeway"))
@@ -318,7 +427,10 @@ public static class FrostBackdropTest
                     overlaps += Overlaps(d);
                 };
                 audit();
-                for (int i = 0; i < 14; i++) { Run(wb, 2f); audit(); }
+                // as much ground as before the zoom went by (it creeps by at GroundZoom of its old rate)
+                // (v2's busy harbour has few flat tops: it flies on, up to 3x as far, until this run has dealt its 4 pieces)
+                int before = pieces, steps = Mathf.CeilToInt(14 / FrostTuning.GroundZoom);
+                for (int i = 0; i < steps * 3 && (i < steps || pieces - before < 4); i++) { Run(wb, 2f); audit(); }
                 Object.DestroyImmediate(wb.gameObject);
             }
             FrostDirector.SeedOverride = 0;
@@ -571,10 +683,10 @@ public static class FrostBackdropTest
         var pool2 = new BackdropPool(root2, "test", 1, -400, 0f);
         amb2.Rig(pool2);
         var p2 = pool2.Spawn();
-        int shown2 = amb2.Attach(p2, "refinery_00", new System.Random(1));
+        int shown2 = amb2.Attach(p2, "refinery_01", new System.Random(1));     // (the stacked refinery: refinery_00 is tanks, no stack)
         amb2.Step(1f);
         Check("with them, a refinery gets its smoke plumes and windows (" + shown2 + " loops, " + amb2.LiveCount + " live)",
-              shown2 == FrostAmbientCatalog.For("refinery_00").Length && amb2.LiveCount == shown2);
+              shown2 == FrostAmbientCatalog.For("refinery_01").Length && amb2.LiveCount == shown2 && amb2.HasRisingPlume(p2));
         frost.Destroy();
         Object.DestroyImmediate(root2.gameObject);
     }
@@ -591,7 +703,9 @@ public static class FrostBackdropTest
         bool shape = true;
         string bad = "";
         int samples = 0;
-        Run(wb, 420f, () =>      // landmarks ride the ground (0.024, was 0.030): a longer flight so the random kinds still show up
+        // landmarks ride the ground, which creeps by at .024 x GroundZoom (was .030, then .024): a longer flight so the random kinds
+        // still show up (one dock on the ground at a time, and from up here one crosses the view in 1 / GroundZoom the time)
+        Run(wb, 420f / FrostTuning.GroundZoom, () =>
         {
             if (LandingSites.Collect(sites) == 0) return;
             samples++;
@@ -625,12 +739,12 @@ public static class FrostBackdropTest
         pilot.position = new Vector3(0f, -2.5f, 0f);
         EliteSystem.PlayerOverride = pilot;
         bool found = false;
-        for (int i = 0; i < 30 * 240 && !found; i++)
+        for (int i = 0; i < 30 * 240 / FrostTuning.GroundZoom && !found; i++)
         {
             wb.Step(Dt);
             LandingSites.Collect(sites);
             foreach (var s in sites) if (s.kind == LandingKind.Hangar || s.kind == LandingKind.CrawlerBay) found = true;
-            if (!found && i % 60 == 59) d.SpawnSite(float.NaN, 0);   // the ground is slower now (0.024): retry often, the top is busy longer
+            if (!found && i % 60 == 59) d.SpawnSite(float.NaN, 0);   // the ground is slower now (.024 x GroundZoom): retry often, the top is busy longer
         }
         Check("a hangar or crawler bay comes into view", found);
         if (!found) return;

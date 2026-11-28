@@ -3,11 +3,11 @@
   "key": "IonLancer",
   "painted": true,
   "rect": {
-    "x": 28,
-    "y": 7,
-    "w": 200,
-    "h": 241,
-    "ppu": 425.5319
+    "x": 14,
+    "y": 2,
+    "w": 228,
+    "h": 252,
+    "ppu": 471.4519
   },
   "hue": [
     "#3A5BE0",
@@ -16,91 +16,154 @@
   ],
   "nozzles": [
     {
-      "x": 82.5,
-      "y": 8.5,
-      "scale": 0.72,
-      "offsets": [0.0, -0.0, 0, 4, 0, 4, 0, 0, 0, 0, 0, -4, 0.0, -0.0, 4.0, -0.0, 0, 0]
+      "x": 74.5,
+      "y": 27.5,
+      "scale": 0.85,
+      "offsets": [
+        0.0,
+        0.0,
+        0.0,
+        4.0,
+        0.0,
+        4.0,
+        0.0,
+        -0.0,
+        0.0,
+        -0.0,
+        0.0,
+        -4.0,
+        4.9,
+        -0.8,
+        5.0,
+        0.4,
+        0.0,
+        0.0
+      ]
     },
     {
-      "x": 116.5,
-      "y": 8.5,
-      "scale": 0.72,
-      "offsets": [0.0, -0.0, 0, 4, 0, 4, 0, 0, 0, 0, 0, -4, -4.0, -0.0, -1.0, -0.0, 0, 0]
+      "x": 114.5,
+      "y": 41.5,
+      "scale": 0.6,
+      "offsets": [
+        0.0,
+        0.0,
+        0.0,
+        4.0,
+        0.0,
+        4.0,
+        0.0,
+        -0.0,
+        0.0,
+        -0.0,
+        0.0,
+        -4.0,
+        -3.0,
+        0.0,
+        2.9,
+        -0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "x": 155.5,
+      "y": 27.5,
+      "scale": 0.85,
+      "offsets": [
+        0.0,
+        0.0,
+        0.0,
+        4.0,
+        0.0,
+        4.0,
+        0.0,
+        -0.0,
+        0.0,
+        -0.0,
+        0.0,
+        -4.0,
+        -5.1,
+        0.4,
+        -5.3,
+        -0.8,
+        0.0,
+        0.0
+      ]
     }
   ],
-  "damageNote": "1) left wing panel blown; left pod smoking; 2) right canard bent, right wingtip torn, right wing wiring arcing, canopy cracked",
+  "damageNote": "1) left engine pod panel blown, sparking wires, right prong scorched; 2) right engine pod blown and burning, centre engine on fire, left prong holed, soot over the hull, canopy cracked",
   "emitters": [
     {
       "state": 1,
       "kind": "Sparks",
-      "u": 36.5,
-      "v": 99.0
+      "u": 52.0,
+      "v": 80.5
     },
     {
       "state": 1,
       "kind": "Smoke",
-      "u": 60.4,
-      "v": 108.0
+      "u": 75.9,
+      "v": 62.4
     },
     {
       "state": 1,
       "kind": "Smolder",
-      "u": 36.5,
-      "v": 99.2
+      "u": 50.5,
+      "v": 79.0
     },
     {
       "state": 2,
       "kind": "Arc",
-      "u": 88.1,
-      "v": 93.0
+      "u": 99.0,
+      "v": 81.2
     },
     {
       "state": 2,
       "kind": "Flame",
-      "u": 69.6,
-      "v": 110.0
+      "u": 79.5,
+      "v": 90.6
     },
     {
       "state": 2,
       "kind": "Leak",
-      "u": 64.0,
-      "v": 99.0
+      "u": 52.0,
+      "v": 46.5
     },
     {
       "state": 2,
       "kind": "Smolder",
-      "u": 105.3,
-      "v": 112.0
+      "u": 75.9,
+      "v": 62.4
     },
     {
       "state": 2,
       "kind": "Smolder",
-      "u": 88.1,
-      "v": 93.0
+      "u": 52.0,
+      "v": 80.5
     },
     {
       "state": 2,
       "kind": "Smolder",
-      "u": 51.6,
-      "v": 96.9
+      "u": 78.0,
+      "v": 89.2
     },
     {
       "state": 2,
       "kind": "Smolder",
-      "u": 74.7,
-      "v": 72.5
+      "u": 97.6,
+      "v": 82.7
     },
     {
       "state": 2,
       "kind": "Smolder",
-      "u": 49.4,
-      "v": 76.5
+      "u": 50.5,
+      "v": 45.0
     },
     {
       "state": 2,
       "kind": "Smolder",
-      "u": 31.5,
-      "v": 105.8
+      "u": 74.4,
+      "v": 60.9
     }
   ],
   "skins": [

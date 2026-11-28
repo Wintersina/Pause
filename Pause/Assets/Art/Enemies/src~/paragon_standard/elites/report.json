@@ -1,0 +1,80 @@
+{
+ "storm_elite_rod_dancer": {
+  "L": 21.7,
+  "mouths": [
+   [
+    156,
+    300,
+    7,
+    3
+   ],
+   [
+    188,
+    285,
+    9,
+    4
+   ],
+   [
+    229,
+    298,
+    7,
+    3
+   ]
+  ],
+  "muzzles": [
+   [
+    "fan",
+    193,
+    54
+   ],
+   [
+    "portrod",
+    168,
+    72
+   ],
+   [
+    "starrod",
+    218,
+    72
+   ]
+  ],
+  "nozzles": [
+   [
+    "l",
+    156,
+    300
+   ],
+   [
+    "c",
+    188,
+    285
+   ],
+   [
+    "r",
+    229,
+    298
+   ]
+  ],
+  "silhouetteShare": 0.4581,
+  "old_share": 0.4671,
+  "drawn_u": 1.55,
+  "hr_ratio": 0.486,
+  "new_hullRadius": null,
+  "glow_px": 688,
+  "files": [
+   "Resources/Elites/Storm/storm_elite_rod_dancer.png",
+   "Enemies/Elite/Storm/storm_elite_rod_dancer.png",
+   "Resources/Elites/Storm/storm_elite_rod_dancer_damaged.png",
+   "Enemies/Elite/Storm/storm_elite_rod_dancer_damaged.png",
+   "Enemies/Elite/Storm/new_docks_lights~/damaged/storm_elite_rod_dancer_damaged.png",
+   "Resources/Elites/Storm/storm_elite_rod_dancer_death.png",
+   "Enemies/Elite/Storm/storm_elite_rod_dancer_death.png",
+   "Resources/Elites/Storm/storm_elite_rod_dancer_lights.png",
+   "Enemies/Elite/Storm/storm_elite_rod_dancer_lights.png",
+   "Enemies/Elite/Storm/new_docks_lights~/storm_elite_rod_dancer_lights.png",
+   "Resources/Elites/Storm/storm_elite_rod_dancer_lights_damaged.png",
+   "Enemies/Elite/Storm/storm_elite_rod_dancer_lights_damaged.png",
+   "Enemies/Elite/Storm/new_docks_lights~/damaged/storm_elite_rod_dancer_damaged_lights.png"
+  ]
+ }
+}

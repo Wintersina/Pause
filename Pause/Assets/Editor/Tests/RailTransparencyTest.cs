@@ -109,10 +109,19 @@ public static class RailTransparencyTest
         cam.clearFlags = CameraClearFlags.SolidColor;
         cam.backgroundColor = Color.black; var gameK = Render(cam);
         cam.backgroundColor = Color.white; var gameW = Render(cam);
-        foreach (var m in mats) { m.SetFloat("_EdgeDark", 0f); m.SetFloat("_EdgeShadow", 0f); m.SetFloat("_OuterDark", 0f); }
+        // the ART pass reads the PNG's own alpha: edge treatments off and the game-wide rail fade
+        // (WorldPainter.RailOpacity, in the tint alpha) undone; the game pass above keeps both
+        var tints = new Color[mats.Length];
+        for (int k = 0; k < mats.Length; k++)
+        {
+            var m = mats[k];
+            m.SetFloat("_EdgeDark", 0f); m.SetFloat("_EdgeShadow", 0f); m.SetFloat("_OuterDark", 0f);
+            tints[k] = m.color;
+            var c = tints[k]; c.a = Mathf.Min(1f, c.a / WorldPainter.RailOpacity); m.color = c;
+        }
         cam.backgroundColor = Color.black; var artK = Render(cam);
         cam.backgroundColor = Color.white; var artW = Render(cam);
-        foreach (var m in mats) WorldPainter.ApplyEdge(m, theme.displayName);
+        for (int k = 0; k < mats.Length; k++) { mats[k].color = tints[k]; WorldPainter.ApplyEdge(mats[k], theme.displayName); }
         cam.clearFlags = flags; cam.backgroundColor = bg;
         foreach (var rr in others) if (rr != null) rr.enabled = true;
 

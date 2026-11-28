@@ -17,9 +17,11 @@ using UnityEngine;
 // creep over the ice at up to 0.3 u in 6 s: they are pinned like the rest),
 // and the host tile itself must be drawn from the same travel (its copies keep
 // a constant ground phase through every wrap) at the size its current art
-// gives (no hard-coded 512 / 1024 / 896 sizes). Free-floating ambient layers
-// (snow, mist, wisps, aurora, gusts, cloud shadows, the flow strip) and the
-// Desert worms (creatures under the sand) are deliberately not anchored.
+// and the world's altitude give (the view's width x Spec.groundZoom: Frost
+// is seen from higher up; no hard-coded 512 / 1024 / 896 sizes). Free-floating
+// ambient layers (snow, mist, wisps, aurora, gusts, cloud shadows, the flow
+// strip -- but Frost's, whose floes slid under its landmarks, is pinned) and
+// the Desert worms (creatures under the sand) are deliberately not anchored.
 //
 //   Unity -batchmode -quit -projectPath <abs>/Pause -executeMethod BackdropAnchorTest.Run
 public static class BackdropAnchorTest
@@ -140,9 +142,13 @@ public static class BackdropAnchorTest
             int selfMoving = 0;
             double phase0 = double.NaN, worstPhase = 0;
             {
-                // the tile's size comes from its current sprite and the view, never from a constant
-                Check(world + " v" + v + ": mid tile drawn at width " + (mid != null ? mid.TileWidth : 0f).ToString("F2") + " = the view plus overscan (" + (set.HalfWidth * 2f * 1.02f).ToString("F2") + ")",
-                      mid != null && Mathf.Abs(mid.TileWidth - set.HalfWidth * 2f * 1.02f) < .01f);
+                // the tile's size comes from its current sprite, the view and the world's altitude, never from a constant
+                float want = set.HalfWidth * 2f * 1.02f * spec.groundZoom;
+                Check(world + " v" + v + ": mid tile drawn at width " + (mid != null ? mid.TileWidth : 0f).ToString("F2") + " = the view plus overscan x its ground zoom " +
+                      spec.groundZoom + " (" + want.ToString("F2") + ")", mid != null && Mathf.Abs(mid.TileWidth - want) < .01f);
+                // ... and a narrower tile is repeated across, covering the whole view
+                Check(world + " v" + v + ": mid tile columns cover the view (" + (mid != null ? mid.Columns : 0) + " x " + (mid != null ? mid.TileWidth : 0f).ToString("F2") + ")",
+                      mid != null && mid.Columns * mid.TileWidth >= set.HalfWidth * 2f - .01f && (spec.groundZoom < 1f) == (mid.Columns > 1));
             }
             double loop = mid != null && mid.TileHeight > 0 ? mid.TileHeight : 12;
             int steps = Mathf.CeilToInt((float)(loop / (30f * (WorldBackdrop.BaseSpeed + Speed) * spec.Rate("mid"))) * 1.2f / Dt) + 30;

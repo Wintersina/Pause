@@ -27,7 +27,7 @@
       15
     ]
   },
-  "cellWorldSize": 1.826,
+  "cellWorldSize": 1.89,
   "noseDeg": 90,
   "maxBank": 3,
   "heartColor": "#FFF3A0",
@@ -51,7 +51,7 @@
   "attack": "cable_rake",
   "lore": "A skyhook raider that swoops across the top on a dipping arc, off one side and back from the other. It hooks in, draws the cables it will drop as thin lines, then rakes them down one after another. Hurt, it flees off the screen and returns.",
   "hullRadius": 0.344,
-  "silhouetteShare": 0.4541,
+  "silhouetteShare": 0.4874,
   "turnsToFace": true,
   "speed": 2.6,
   "accel": 6.5,
@@ -72,25 +72,25 @@
   "muzzles": [
     {
       "name": "hook",
-      "x": 191,
-      "y": 38,
+      "x": 193,
+      "y": 82,
       "dir": -1.0
     }
   ],
   "nozzles": [
     {
       "name": "l",
-      "x": 168,
-      "y": 298,
+      "x": 171,
+      "y": 273,
       "dir": -1.0,
-      "offsets": [0, 0, 0, 0, 0, 0, 0, 0, 4, 0, -2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+      "offsets": [0, 0, 0, 0, 0, 0, 0, 0, 3, 0, -2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
     },
     {
       "name": "r",
-      "x": 211,
-      "y": 297,
+      "x": 215,
+      "y": 273,
       "dir": -1.0,
-      "offsets": [0, 0, 0, 0, 0, 0, 0, 0, 2, 0, -4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+      "offsets": [0, 0, 0, 0, 0, 0, 0, 0, 2, 0, -3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
     }
   ],
   "followDistance": 2.0,

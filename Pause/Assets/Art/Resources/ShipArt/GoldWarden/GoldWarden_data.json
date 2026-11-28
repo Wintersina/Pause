@@ -3,11 +3,11 @@
   "key": "GoldWarden",
   "painted": true,
   "rect": {
-    "x": 20,
-    "y": 11,
-    "w": 216,
-    "h": 233,
-    "ppu": 423.5294
+    "x": 53,
+    "y": 51,
+    "w": 150,
+    "h": 153,
+    "ppu": 286.0388
   },
   "hue": [
     "#D99A1A",
@@ -16,97 +16,129 @@
   ],
   "nozzles": [
     {
-      "x": 108.5,
-      "y": 12.5,
-      "scale": 1.0,
-      "offsets": [0.0, -0.0, 0, 4, 0, 4, 0, 0, 0, 0, 0, -4, -3, 0, 3, 0, 0, 0]
+      "x": 56.5,
+      "y": 10.5,
+      "scale": 0.9,
+      "offsets": [
+        0.0,
+        0.0,
+        0.0,
+        4.0,
+        0.0,
+        4.0,
+        0.0,
+        -0.0,
+        0.0,
+        -0.0,
+        0.0,
+        -4.0,
+        0.7,
+        -0.4,
+        3.9,
+        0.2,
+        0.0,
+        0.0
+      ]
     },
     {
-      "x": 77.5,
-      "y": 52.5,
-      "scale": 0.5,
-      "offsets": [0.0, -0.0, 0, 4, 0, 4, 0, 0, 0, 0, 0, -4, 0, 0, 3, 0, 0, 0]
-    },
-    {
-      "x": 140.5,
-      "y": 52.5,
-      "scale": 0.5,
-      "offsets": [0.0, -0.0, 0, 4, 0, 4, 0, 0, 0, 0, 0, -4, -3, 0, 0, 0, 0, 0]
+      "x": 92.5,
+      "y": 10.5,
+      "scale": 0.9,
+      "offsets": [
+        0.0,
+        0.0,
+        0.0,
+        4.0,
+        0.0,
+        4.0,
+        0.0,
+        -0.0,
+        0.0,
+        -0.0,
+        0.0,
+        -4.0,
+        -3.9,
+        0.2,
+        -0.5,
+        -0.3,
+        0.0,
+        0.0
+      ]
     }
   ],
-  "damageNote": "1) right wing panel blown; left engine smoking; 2) left gun barrel bent, left wingtip torn, belly panel open and arcing, canopy cracked",
+  "damageNote": "1) left shoulder pod blown, sparking wires, right flank scorched; 2) right wing plate blown and burning, engine block on fire, left cannon housing holed, soot everywhere, reactor glass cracked",
   "emitters": [
     {
       "state": 1,
       "kind": "Sparks",
-      "u": 87.4,
-      "v": 67.1
+      "u": 43.2,
+      "v": 65.2
     },
     {
       "state": 1,
       "kind": "Smoke",
-      "u": 46.5,
-      "v": 97.5
+      "u": 87.2,
+      "v": 76.8
     },
     {
       "state": 1,
       "kind": "Smolder",
-      "u": 87.4,
-      "v": 66.6
+      "u": 41.8,
+      "v": 66.8
     },
     {
       "state": 2,
       "kind": "Arc",
-      "u": 63.0,
-      "v": 98.2
+      "u": 71.8,
+      "v": 72.2
     },
     {
       "state": 2,
       "kind": "Flame",
-      "u": 80.5,
-      "v": 97.5
+      "u": 55.8,
+      "v": 88.2
     },
     {
       "state": 2,
       "kind": "Leak",
-      "u": 19.1,
-      "v": 83.8
+      "u": 57.2,
+      "v": 48.2
     },
     {
       "state": 2,
       "kind": "Smolder",
-      "u": 20.1,
-      "v": 84.3
+      "u": 87.2,
+      "v": 76.8
     },
     {
       "state": 2,
       "kind": "Smolder",
-      "u": 63.0,
-      "v": 97.7
+      "u": 43.2,
+      "v": 65.2
     },
     {
       "state": 2,
       "kind": "Smolder",
-      "u": 44.8,
-      "v": 78.4
+      "u": 54.2,
+      "v": 86.8
     },
     {
       "state": 2,
       "kind": "Smolder",
-      "u": 88.5,
-      "v": 79.9
+      "u": 70.2,
+      "v": 70.8
     },
     {
       "state": 2,
       "kind": "Smolder",
-      "u": 65.0,
-      "v": 17.5
+      "u": 55.8,
+      "v": 49.8
     },
     {
       "state": 2,
       "kind": "Smolder",
-      "u": 82.9,
-      "v": 51.8
+      "u": 85.8,
+      "v": 75.2
     }
   ],
   "skins": [

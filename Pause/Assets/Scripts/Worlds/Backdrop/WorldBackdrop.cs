@@ -44,6 +44,9 @@ public class WorldBackdrop : MonoBehaviour
     }
 
     public BackdropSet Current { get; private set; }
+    // The set shown last by any WorldBackdrop (Instance is only set by Awake / Create: a backdrop added in edit mode, as the
+    // tests and previews do, never registers); its Root is gone once it is destroyed. Read by BackdropCatalog.CurrentUnderDeck.
+    public static BackdropSet LastShown { get; private set; }
     BackdropSet outgoing;
     float fade = 1f;
     Renderer[] hiddenStarfields;
@@ -115,6 +118,7 @@ public class WorldBackdrop : MonoBehaviour
             Current.Destroy();
         }
         Current = next;
+        LastShown = next;
         BackdropPieceStock.Learn(next.Spec.world, next);   // remembers the piece count; the stock's leftovers drain a few a frame
         WorldArtPreload.Swapped(next.Spec.world);   // the swap used what was preloaded (or fell back to loading): let go of the hold
         // The codex BACKDROPS tab: this backdrop was shown in play (the tutorial and developer mode record nothing).

@@ -579,7 +579,10 @@ public static class CoverBoulderTest
             var times = new List<float>();
             int spawnedBefore = CoverBoulders.Spawned, maxAlive = 0;
             bool onScreenShort = true;
-            float aliveSince = -1f;
+            float aliveSince = -1f, longest = 0f;
+            // a boulder rides the ground: where the ground creeps by slower (a world seen from higher up, Spec.groundZoom) it
+            // stays in view that much longer, and the next one waits for it (one at a time)
+            float zoom = CoverBoulders.GroundZoom(e.world), onScreenMax = 140f / zoom;
             for (float t = 0f; t < total; t += dt)
             {
                 int n = CoverBoulders.Spawned;
@@ -588,16 +591,19 @@ public static class CoverBoulderTest
                 CoverBoulders.Step(dt);
                 maxAlive = Mathf.Max(maxAlive, CoverBoulders.AliveAny);
                 if (CoverBoulders.AliveAny > 0 && aliveSince < 0f) aliveSince = t;
-                if (CoverBoulders.AliveAny == 0 && aliveSince >= 0f) { if (t - aliveSince > 140f) onScreenShort = false; aliveSince = -1f; }
+                if (CoverBoulders.AliveAny == 0 && aliveSince >= 0f) { longest = Mathf.Max(longest, t - aliveSince); if (t - aliveSince > onScreenMax) onScreenShort = false; aliveSince = -1f; }
             }
             float first = times.Count > 0 ? times[0] : -1f;
             float minGap = float.MaxValue, maxGap = 0f;
             for (int i = 1; i < times.Count; i++) { float g = times[i] - times[i - 1]; minGap = Mathf.Min(minGap, g); maxGap = Mathf.Max(maxGap, g); }
-            Check(e.world + ": 30 min -> " + times.Count + " boulders, first at " + first.ToString("F0") + " s, gaps " + minGap.ToString("F0") + "-" + maxGap.ToString("F0") + " s (table " + e.gap.x + "-" + e.gap.y + ")",
-                  times.Count >= 1800f / (e.gap.y + 3f) * .85f && times.Count <= 1800f / e.gap.x + 1 &&
+            // the longest gap: the table's, or (zoomed-out ground only) the last boulder's crossing plus the 1 s re-check
+            float gapMax = zoom < 1f ? Mathf.Max(e.gap.y, longest + 1f) : e.gap.y;
+            Check(e.world + ": 30 min -> " + times.Count + " boulders, first at " + first.ToString("F0") + " s, gaps " + minGap.ToString("F0") + "-" + maxGap.ToString("F0") + " s (table " + e.gap.x + "-" + e.gap.y +
+                  (zoom < 1f ? ", ground zoom " + zoom + ": up to " + gapMax.ToString("F0") + " s" : "") + ")",
+                  times.Count >= 1800f / (gapMax + 3f) * .85f && times.Count <= 1800f / e.gap.x + 1 &&
                   first >= CoverBoulders.FirstSeconds && first <= CoverBoulders.FirstSeconds + 16f &&
-                  (times.Count < 2 || (minGap >= e.gap.x - .25f && maxGap <= e.gap.y + 3f)));
-            Check(e.world + ": never more than one at a time, and each is on screen under " + 140 + " s (max " + maxAlive + ")", maxAlive == 1 && onScreenShort);
+                  (times.Count < 2 || (minGap >= e.gap.x - .25f && maxGap <= gapMax + 3f)));
+            Check(e.world + ": never more than one at a time, and each is on screen under " + onScreenMax.ToString("F0") + " s (max " + maxAlive + ", longest " + longest.ToString("F0") + " s)", maxAlive == 1 && onScreenShort);
             Check(e.world + ": none in the first 8 s calm start", times.Count == 0 || times[0] > 8f);
             // a world change takes the boulder away
             CoverBoulders.Clear();
