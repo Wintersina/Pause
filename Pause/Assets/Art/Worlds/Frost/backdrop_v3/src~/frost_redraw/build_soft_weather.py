@@ -209,27 +209,94 @@ def clean_cell(a, fam):
     return a
 
 
+def still(name):
+    """An approved painted still (480 x 480, straight RGBA) -> premultiplied float."""
+    return premul(np.asarray(Image.open(HERE / "sources" / f"{name}.png").convert("RGBA")).astype(np.float64) / 255.0)
+
+
+def variant(p, flip=False, transpose=False, rot=0.0, scale=1.0, dx=0, dy=0):
+    """One frame of a family made from its single approved still: mirrored / transposed / turned / shrunk / shifted, same size."""
+    H, W = p.shape[:2]
+    if flip:
+        p = p[:, ::-1]
+    if transpose:
+        p = p.transpose(1, 0, 2)
+    if scale != 1.0:
+        n = int(round(W * scale))
+        p = place_centre(resize(p, n, n), H, W)
+    if rot:
+        p = rotate(p, rot)
+    if dx or dy:
+        p = np.clip(ndimage.shift(p, (dy, dx, 0), order=1, mode="constant"), 0, 1)
+    return np.ascontiguousarray(p)
+
+
+# The user-approved painted weather (2026-11; scratchpad provenance wxp/made.json): ONE still per family (sources/wxp_<fam>.png <-
+# out2/bd_frost_wxp_<fam>/<pick>.png: cloudbank r1_0, cloudwisp r1_2, mist r1_3, blizzard r1_0, flakes r1_0). Each family's 2 - 4 frames
+# are that still mirrored / turned / shrunk / shifted, so every variant is the approved drawing (no unapproved option mixed in). Every
+# still is first framed at WEATHER_FIT of the content (the paintings run to ~17 px of their edges; edge_window fades the outer 18 px).
+# The blizzard's streaks lean "/" (they fall down-left): its variants keep that lean (180 degree turn, transpose), never a mirror.
+WEATHER_STILL = {"cloud_bank": "wxp_cloudbank", "cloud_wisp": "wxp_cloudwisp", "mist": "wxp_mist", "blizzard": "wxp_blizzard"}
+WEATHER_FIT = .94
+WEATHER_VARIANTS = {
+    "cloud_bank": [dict(), dict(flip=True), dict(rot=-6, scale=.88, dx=-8), dict(flip=True, rot=7, scale=.88, dx=10)],
+    "cloud_wisp": [dict(), dict(flip=True), dict(rot=12, scale=.86), dict(flip=True, rot=-12, scale=.86)],
+    "mist":       [dict(), dict(flip=True), dict(rot=180, scale=.92)],
+    "blizzard":   [dict(), dict(rot=180), dict(transpose=True, scale=.92)],
+}
+# the paintings are drawn at full resolution: only a light blur (it removes the stills' last pixel-art stair steps), no smear
+PAINTED_SIGMA = {"cloud_bank": 1.0, "cloud_wisp": 1.0, "mist": 1.5, "blizzard": .7, "snow": .6}
+
+
+def flake_cells():
+    """The six approved dendrite crystals (sources/wxp_flakes.png: 6 cells of 256 px), straight RGBA float, each its own cell."""
+    a = np.asarray(Image.open(HERE / "sources" / "wxp_flakes.png").convert("RGBA")).astype(np.float64) / 255.0
+    n = a.shape[1] // a.shape[0]
+    return [a[:, k * a.shape[0]:(k + 1) * a.shape[0]] for k in range(n)]
+
+
+def snow_field(C, seed):
+    """A snow field frame (the old pick's snow cells: a scatter of flakes over the cell) made from the approved crystals: each
+    flake turned at random, drawn 14 - 52 px, never overlapping, clear of the content's edges. Premultiplied."""
+    rng = np.random.default_rng(seed)
+    flakes = [tight_premul(premul(f)) for f in flake_cells()]
+    out = np.zeros((C, C, 4))
+    placed = []
+    tries = 0
+    while len(placed) < 34 and tries < 4000:
+        tries += 1
+        s = int(rng.choice([14, 16, 18, 20, 22, 26, 30, 36, 44, 52], p=[.16, .14, .13, .12, .1, .1, .08, .07, .05, .05]))
+        x, y = rng.uniform(28 + s / 2, C - 28 - s / 2, 2)
+        if any(np.hypot(x - px, y - py) < (s + ps) / 2 + 8 for px, py, ps in placed):
+            continue
+        f = flakes[int(rng.integers(len(flakes)))]
+        side = max(f.shape[:2])
+        sq = place_centre(f, side, side)
+        sq = rotate(sq, float(rng.uniform(0, 60)))
+        piece = resize(sq, s, s) * rng.uniform(.6, 1.0)
+        y0, x0 = int(round(y - s / 2)), int(round(x - s / 2))
+        out[y0:y0 + s, x0:x0 + s] = np.maximum(out[y0:y0 + s, x0:x0 + s], piece)
+        placed.append((x, y, s))
+    return out
+
+
 def build_weather():
-    pick = src("weather")
     P, C, g = 512, 512 - 2 * GUTTER, GUTTER
     S = 2048
     sheet = np.zeros((S, S, 4))
     sprites = []
+    stills = {fam: variant(still(n), scale=WEATHER_FIT) for fam, n in WEATHER_STILL.items()}
+    seen = {}
     for i, (name, r, c) in enumerate(WEATHER_CELLS):
         fam = name.rsplit("_", 1)[0]
         look = WEATHER_LOOK[fam]
-        cell = clean_cell(pick[r * 64:(r + 1) * 64, c * 64:(c + 1) * 64], fam)
-        scale = C / 64.0                                   # the 64 px pick cell -> the 480 px content area (same framing as before)
-        p = premul(cell)
-        p = resize(p, C, C)
-        p = blur(p, look["sigma"])
-        if fam == "blizzard":
-            # the sheets streak down-left: smear along the 45 degree streaks (motion), keep them thin across
-            k = 9
-            acc = np.zeros_like(p)
-            for t in range(-k, k + 1):
-                acc += ndimage.shift(p, (t * .7, -t * .7, 0), order=1, mode="constant")
-            p = acc / (2 * k + 1)
+        j = seen.get(fam, 0)
+        seen[fam] = j + 1
+        if fam == "snow":
+            p = snow_field(C, seed=31 + j)
+        else:
+            p = variant(stills[fam], **WEATHER_VARIANTS[fam][j])
+        p = blur(p, PAINTED_SIGMA[fam])
         d = ice(p, look["peak"], lo=look["lo"], hi=look["hi"], lift=look["lift"])
         d[..., 3] *= edge_window(C, C, 18)
         row, col = divmod(i, 4)
@@ -517,30 +584,48 @@ def complete(a, clipped_top):
     return np.where(take, flip, out)
 
 
+def ambient_pick_drawing(pick, r, c, idx):
+    """A wx_ambient pick cell's drawing (every group of it: a flake and its sparkles), tight, completed / faded where the pick cut it."""
+    cell = pick[r * 64:(r + 1) * 64, c * 64:(c + 1) * 64].copy()
+    ds = drawings(cell, dilate=3, min_px=6)
+    if not ds:
+        raise ValueError(f"ambient cell r{r} c{c} is empty")
+    m = np.zeros(cell.shape[:2], bool)
+    for d in ds:
+        m |= d[4]
+    cell[~m] = 0
+    ys, xs = np.nonzero(m)
+    a = cell[ys.min():ys.max() + 1, xs.min():xs.max() + 1]
+    cut_top, cut_bottom = r == 0 and ys.min() == 0, r == 1 and ys.max() == 63
+    if (cut_top or cut_bottom) and idx in AMBIENT_MIRROR:
+        a = complete(a, cut_top)
+    elif cut_top or cut_bottom:
+        fade = smoothstep(0, 5, np.arange(a.shape[0]).astype(float))
+        a = a * (fade if cut_top else fade[::-1])[:, None, None]
+    return a
+
+
+# The approved dendrite crystals (sources/wxp_flakes.png) replace the pick's snowflakes: Frost's two falling-snow kinds (kind 0, cells 0-3,
+# the big flakes; kind 1, cells 4-7, the small ones) are cells (crystal, turn in degrees) of it; kinds 2 - 3 stay the pick's.
+AMBIENT_FLAKES = {0: (0, 0), 1: (1, 0), 2: (2, 0), 3: (3, 0), 4: (4, 0), 5: (5, 0), 6: (0, 30), 7: (2, 30)}
+
+
 def build_wx_ambient():
     pick = src("wx_ambient")
+    crystals = flake_cells()
     sheet = np.zeros((512, 2048, 4))
     cells = []
     for r in range(2):
         for c in range(8):
             idx = r * 8 + c
-            cell = pick[r * 64:(r + 1) * 64, c * 64:(c + 1) * 64].copy()
-            ds = drawings(cell, dilate=3, min_px=6)
-            if not ds:
-                raise ValueError(f"ambient cell r{r} c{c} is empty")
-            # the cell's drawing: every group of it (a flake and its sparkles)
-            m = np.zeros(cell.shape[:2], bool)
-            for d in ds:
-                m |= d[4]
-            cell[~m] = 0
-            ys, xs = np.nonzero(m)
-            a = cell[ys.min():ys.max() + 1, xs.min():xs.max() + 1]
-            cut_top, cut_bottom = r == 0 and ys.min() == 0, r == 1 and ys.max() == 63
-            if (cut_top or cut_bottom) and idx in AMBIENT_MIRROR:
-                a = complete(a, cut_top)
-            elif cut_top or cut_bottom:
-                fade = smoothstep(0, 5, np.arange(a.shape[0]).astype(float))
-                a = a * (fade if cut_top else fade[::-1])[:, None, None]
+            if idx in AMBIENT_FLAKES:
+                k, turn = AMBIENT_FLAKES[idx]
+                f = premul(crystals[k])
+                if turn:
+                    f = rotate(f, turn)
+                a = unpremul(tight_premul(f))
+            else:
+                a = ambient_pick_drawing(pick, r, c, idx)
             # no dark pixel outlines on falling snow: the drawing's darkest values fade out, its lights stay
             lum = .2126 * a[..., 0] + .7152 * a[..., 1] + .0722 * a[..., 2]
             a = a.copy()
