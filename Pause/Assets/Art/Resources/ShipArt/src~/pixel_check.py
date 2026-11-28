@@ -196,12 +196,66 @@ def run(key):
     Sg[4:-4, 4:-4] = S
     body = bake.body_of(Sg).sum()
     check("hull polygon area >= .80 body, 3..32 points", area >= .8 * body and 3 <= len(hull) <= 32, "%.2f, %d pts" % (area / body, len(hull)))
+    # ShieldFitTest: the contour the game cuts from the bake
+    shield_fit(key, S, sw, shh, sppu)
     # rotors
     rp = os.path.join(d, key + "_rotors.json")
     if os.path.exists(rp):
         import json
         rot = json.load(open(rp))["rotors"]
         check("rotor hubs inside the rect", all(rx <= q["x"] <= rx + w and ry <= CELL - q["y"] <= ry + h and .2 < q["scale"] < 4 for q in rot))
+
+
+def shield_fit(key, S, w, h, ppu):
+    """ShieldFitTest.ContourShield: covers every hull pixel, hugs it (padding, gaps), smaller than the old bubble,
+    has >= 6 plates."""
+    F = np.float32
+    pivot = (F(F(w) * F(.5)), F(F(h) * F(.5)))
+    poly = bake.contour_polygon(S, w, h, pivot, F(ppu))
+    P = np.array([(float(x), float(y)) for x, y in poly])
+    ppu = float(ppu)
+    piv = (float(pivot[0]), float(pivot[1]))
+    U = max(w, h) / 30.0
+    unit = U / ppu
+    ys, xs = np.nonzero(S)
+    # 4 inset corners of every opaque pixel inside the polygon
+    unc = np.zeros(len(xs), bool)
+    for cx, cy in ((.02, .02), (.98, .02), (.02, .98), (.98, .98)):
+        qx = ((xs + cx - piv[0]) / ppu).astype(np.float32)
+        qy = ((ys + cy - piv[1]) / ppu).astype(np.float32)
+        unc |= ~bake.point_in_polygon_grid(poly, qx, qy)
+    check("shield covers every hull pixel", not unc.any(), "%d outside" % unc.sum())
+    vb = ((xs.min() - piv[0]) / ppu, (ys.min() - piv[1]) / ppu, (xs.max() + 1 - piv[0]) / ppu, (ys.max() + 1 - piv[1]) / ppu)
+    ob = (P[:, 0].min(), P[:, 1].min(), P[:, 0].max(), P[:, 1].max())
+    md = max(w, h) / ppu
+    worst = max(vb[0] - ob[0], ob[2] - vb[2], vb[1] - ob[1], ob[3] - vb[3])
+    check("shield outline within 18% padding", 0 < worst <= .18 * md, "%.1f%%" % (worst / md * 100))
+    n = len(P)
+    E = np.roll(P, -1, 0) - P
+    L = np.hypot(E[:, 0], E[:, 1])
+    samples = []
+    for i in range(n):
+        k = max(1, int(math.ceil(L[i] / (.6 * unit))))
+        for j in range(k):
+            samples.append(P[i] + E[i] * (j / k))
+    samples = np.array(samples)
+    hull = np.c_[(xs + .5 - piv[0]) / ppu, (ys + .5 - piv[1]) / ppu]
+    from scipy.spatial import cKDTree
+    dist, _ = cKDTree(hull).query(samples)
+    gaps = dist / unit
+    check("shield follows the hull (mean <= 5.7U, max <= 9.2U)", gaps.mean() <= 5.7 and gaps.max() <= 9.2,
+          "mean %.1fU max %.1fU" % (gaps.mean(), gaps.max()))
+    area = abs(np.sum(P[:, 0] * np.roll(P[:, 1], -1) - np.roll(P[:, 0], -1) * P[:, 1])) / 2
+    R = max(vb[2] - vb[0], vb[3] - vb[1]) * .5 * 1.35
+    check("shield area under the old bubble", area < math.pi * R * R, "%.2f of bubble" % (area / (math.pi * R * R)))
+    plen, gap = 3.4 * unit, .6 * unit
+    plates = 0
+    for l in L:
+        c = int(math.floor((l + gap) / (plen + gap)))
+        if c == 0 and l > 1.1 * unit:
+            c = 1
+        plates += c
+    check("shield has >= 6 plates", plates >= 6, str(plates))
 
 
 def main():

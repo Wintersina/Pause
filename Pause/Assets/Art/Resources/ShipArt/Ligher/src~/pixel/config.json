@@ -1,0 +1,29 @@
+{
+ "drawing": "approved.png",
+ "source": "PixelLab drawing ship_Ligher/r3_1.png (160 px), approved Nov 2026",
+ "canopy": [
+  [
+   80,
+   71,
+   7,
+   13
+  ]
+ ],
+ "nozzles": [
+  [
+   63,
+   141,
+   0.85
+  ],
+  [
+   97,
+   141,
+   0.85
+  ]
+ ],
+ "damageNote": "1) left delta panel blown, sparking cables, right flank scorched; 2) right engine housing blown and burning, nose plate holed, soot over the hull, core cracked",
+ "seed": 9,
+ "integer_scale": true,
+ "wreck_soot": 0.28,
+ "wreck_mul": 0.36
+}

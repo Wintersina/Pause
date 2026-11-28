@@ -106,7 +106,13 @@ class Drawing:
             # hull polygon >= 80 % of the body): close them with a dark recessed field instead
             a = self.rgba[..., 3] > 0
             hole = ndimage.binary_fill_holes(a) & ~a
-            self.rgba[hole] = (*cfg["fill_holes"], 255)
+            if cfg["fill_holes"] == "nearest":
+                # pinholes in the drawing: take the colour of the nearest painted texel
+                _, (iy, ix) = ndimage.distance_transform_edt(~a, return_indices=True)
+                self.rgba[hole] = self.rgba[iy[hole], ix[hole]]
+                self.rgba[hole, 3] = 255
+            else:
+                self.rgba[hole] = (*cfg["fill_holes"], 255)
         self.N = self.rgba.shape[0]
         self.sil = self.rgba[..., 3] > 0
         ys, xs = np.nonzero(self.sil)
@@ -334,8 +340,8 @@ class Damage:
             m = sil & ~d.canopy & (soot > .80)
             mul[m] = np.minimum(mul[m], .62)
         else:
-            m = sil & (soot > .6)
-            mul[m] = np.minimum(mul[m], .48 + (1 - soot[m]) * .3)
+            m = sil & (soot > d.cfg.get("wreck_soot", .6))   # lower = more of the hull sooted (small 1x drawings)
+            mul[m] = np.minimum(mul[m], d.cfg.get("wreck_mul", .48) + (1 - soot[m]) * .3)
             edge = sil & (d.dist <= 2.2) & (self._noise(77, 3) > .45)
             mul[edge] = np.minimum(mul[edge], .45)
 
@@ -380,8 +386,11 @@ class Geometry:
         a = ow / oh
         x0, y0, x1, y1 = d.bbox
         bw, bh = x1 - x0, y1 - y0
-        self.R = a * (ASPECT_SLACK if a < .97 else 1.0)
+        self.R = a * (ASPECT_SLACK if a < .97 else 1.0) * cfg.get("aspect_mul", 1.0)
         s = min(cfg.get("max_scale", 2.0), (CELL * self.R - 6) / bw, (CELL - 14) / bh)
+        if cfg.get("integer_scale"):
+            # whole-number nearest-neighbour factor only (crisp texels); the rect pads out to the balanced aspect
+            s = max(1, int(math.floor(min(cfg.get("max_scale", 4), (CELL * min(self.R, 1.0) - 6) / bw, (CELL * min(1.0, 1.0 / self.R) - 14) / bh) + 1e-9)))
         self.s = s
         self.ox = int(round(128 - (x0 + bw / 2.0) * s))
         self.oy = int(round(128 - (y0 + bh / 2.0) * s))
@@ -518,7 +527,8 @@ def measure_rect(sheet, geo):
         for c in range(COLS):
             ys, xs = np.nonzero(al[st * CELL:(st + 1) * CELL, c * CELL:(c + 1) * CELL])
             x0, y0, x1, y1 = min(x0, xs.min()), min(y0, ys.min()), max(x1, xs.max() + 1), max(y1, ys.max() + 1)
-    w0, h0 = x1 - x0 + 2, y1 - y0 + 2
+    pad = geo.d.cfg.get("rect_pad", 0)              # extra room so the hull stays clear of the rails
+    w0, h0 = x1 - x0 + 2 + pad, y1 - y0 + 2 + pad
     R = geo.R
     if w0 / h0 > R:
         w, h = w0, int(math.ceil(w0 / R))

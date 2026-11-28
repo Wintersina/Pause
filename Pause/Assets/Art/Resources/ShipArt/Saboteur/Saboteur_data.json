@@ -3,11 +3,11 @@
   "key": "Saboteur",
   "painted": true,
   "rect": {
-    "x": 35,
-    "y": 8,
-    "w": 186,
-    "h": 240,
-    "ppu": 775.0
+    "x": 49,
+    "y": 35,
+    "w": 158,
+    "h": 187,
+    "ppu": 640.5943
   },
   "hue": [
     "#B83CC0",
@@ -16,85 +16,129 @@
   ],
   "nozzles": [
     {
-      "x": 93.5,
-      "y": 7.5,
-      "scale": 1.0,
-      "offsets": [0.0, -0.0, 0, 4, 0, 4, 0, 0, 0, 0, 0, -4, -3.0, -0.0, 2.0, -0.0, 0, 0]
+      "x": 54.5,
+      "y": 20.5,
+      "scale": 0.8,
+      "offsets": [
+        0.0,
+        0.0,
+        0.0,
+        4.0,
+        0.0,
+        4.0,
+        0.0,
+        -0.0,
+        0.0,
+        -0.0,
+        0.0,
+        -4.0,
+        1.9,
+        -0.5,
+        4.2,
+        0.2,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "x": 103.5,
+      "y": 20.5,
+      "scale": 0.8,
+      "offsets": [
+        0.0,
+        0.0,
+        0.0,
+        4.0,
+        0.0,
+        4.0,
+        0.0,
+        -0.0,
+        0.0,
+        -0.0,
+        0.0,
+        -4.0,
+        -4.2,
+        0.2,
+        -1.9,
+        -0.5,
+        0.0,
+        0.0
+      ]
     }
   ],
-  "damageNote": "1) left horn panel blown, core cracked; tail smoking; 2) right horn tip torn and bent, cradle panel open and arcing, canopy cracked",
+  "damageNote": "1) left outrigger panel blown, sparking ducts, right wing scorched; 2) right outrigger blown and burning, nose cone holed, soot over the hull, canopy cracked",
   "emitters": [
     {
       "state": 1,
       "kind": "Sparks",
-      "u": 33.3,
-      "v": 36.5
+      "u": 32.2,
+      "v": 86.2
     },
     {
       "state": 1,
       "kind": "Smoke",
-      "u": 64.0,
-      "v": 107.2
+      "u": 82.2,
+      "v": 75.2
     },
     {
       "state": 1,
       "kind": "Smolder",
-      "u": 33.9,
-      "v": 36.5
+      "u": 30.8,
+      "v": 87.8
     },
     {
       "state": 2,
       "kind": "Arc",
-      "u": 40.1,
-      "v": 84.6
+      "u": 94.2,
+      "v": 78.8
     },
     {
       "state": 2,
       "kind": "Flame",
-      "u": 89.0,
-      "v": 87.6
+      "u": 52.8,
+      "v": 78.8
     },
     {
       "state": 2,
       "kind": "Leak",
-      "u": 98.1,
-      "v": 16.9
+      "u": 56.8,
+      "v": 59.2
     },
     {
       "state": 2,
       "kind": "Smolder",
-      "u": 98.8,
-      "v": 13.9
+      "u": 82.2,
+      "v": 75.2
     },
     {
       "state": 2,
       "kind": "Smolder",
-      "u": 40.1,
-      "v": 84.6
+      "u": 32.2,
+      "v": 86.2
     },
     {
       "state": 2,
       "kind": "Smolder",
-      "u": 40.9,
-      "v": 60.5
+      "u": 51.2,
+      "v": 77.2
     },
     {
       "state": 2,
       "kind": "Smolder",
-      "u": 64.0,
-      "v": 52.5
+      "u": 92.8,
+      "v": 77.2
     },
     {
       "state": 2,
       "kind": "Smolder",
-      "u": 92.5,
-      "v": 32.5
+      "u": 55.2,
+      "v": 57.8
     },
     {
       "state": 2,
       "kind": "Smolder",
-      "u": 60.6,
-      "v": 82.3
+      "u": 80.8,
+      "v": 76.8
     }
   ],
   "skins": [

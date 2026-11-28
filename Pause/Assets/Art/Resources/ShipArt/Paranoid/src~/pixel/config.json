@@ -1,0 +1,30 @@
+{
+ "drawing": "approved.png",
+ "source": "PixelLab drawing ship_Paranoid/r3_1.png (160 px), approved Nov 2026",
+ "canopy": [
+  [
+   80,
+   79,
+   10,
+   20
+  ]
+ ],
+ "nozzles": [
+  [
+   16,
+   139,
+   0.72
+  ],
+  [
+   144,
+   139,
+   0.72
+  ]
+ ],
+ "damageNote": "1) left pod casing blown, sparking conduit, shell plate scorched; 2) right pod blown and burning, shell holed, soot over the green, crystal cracked",
+ "seed": 10,
+ "integer_scale": true,
+ "aspect_mul": 0.915,
+ "wreck_soot": 0.35,
+ "wreck_mul": 0.36
+}

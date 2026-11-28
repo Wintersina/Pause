@@ -1,0 +1,29 @@
+{
+ "drawing": "approved.png",
+ "source": "PixelLab drawing ship_Saboteur/hr_0.png (256 px), approved Nov 2026",
+ "canopy": [
+  [
+   128,
+   112,
+   9,
+   20
+  ]
+ ],
+ "nozzles": [
+  [
+   103,
+   200,
+   0.8
+  ],
+  [
+   152,
+   200,
+   0.8
+  ]
+ ],
+ "damageNote": "1) left outrigger panel blown, sparking ducts, right wing scorched; 2) right outrigger blown and burning, nose cone holed, soot over the hull, canopy cracked",
+ "seed": 12,
+ "integer_scale": true,
+ "wreck_soot": 0.35,
+ "wreck_mul": 0.36
+}

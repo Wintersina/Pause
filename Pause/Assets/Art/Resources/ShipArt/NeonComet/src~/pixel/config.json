@@ -1,0 +1,30 @@
+{
+ "drawing": "approved.png",
+ "source": "PixelLab drawing ship_NeonComet/r3_1.png (160 px), approved Nov 2026",
+ "canopy": [
+  [
+   80,
+   55,
+   6,
+   15
+  ]
+ ],
+ "nozzles": [
+  [
+   62,
+   144,
+   0.72
+  ],
+  [
+   98,
+   144,
+   0.72
+  ]
+ ],
+ "damageNote": "1) left wing panel blown, sparking circuits, right fin scorched; 2) right engine nacelle blown and burning, nose plate holed, soot over the red, canopy cracked",
+ "seed": 1,
+ "integer_scale": true,
+ "wreck_soot": 0.22,
+ "wreck_mul": 0.3,
+ "fill_holes": "nearest"
+}

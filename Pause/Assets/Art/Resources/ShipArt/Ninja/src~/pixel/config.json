@@ -1,0 +1,23 @@
+{
+ "drawing": "approved.png",
+ "source": "PixelLab drawing ship_Ninja/r3_1.png (128 px), approved Nov 2026",
+ "canopy": [
+  [
+   63,
+   63,
+   12,
+   12
+  ]
+ ],
+ "nozzles": [
+  [
+   64,
+   80,
+   1.0
+  ]
+ ],
+ "damageNote": "1) one blade edge chipped, sparking hub bolt, opposite blade scorched; 2) a blade root blown and burning, second blade holed, soot across the star, core cracked",
+ "seed": 11,
+ "integer_scale": true,
+ "spinner": true
+}

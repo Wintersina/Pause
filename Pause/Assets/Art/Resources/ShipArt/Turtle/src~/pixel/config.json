@@ -1,10 +1,48 @@
 {
-  "drawing": "approved.png",
-  "source": "PixelLab drawing ship_Turtle/r2_0.png (160 px), approved Nov 2026",
-  "canopy": [[80, 90, 11, 11]],
-  "nozzles": [[54, 141, 0.85], [106, 141, 0.85]],
-  "rotors": [[25, 72], [135, 72], [27, 110], [133, 110]],
-  "rotor_scale": 0.5,
-  "damageNote": "1) left shell plate blown, sparking wires, right shell scorched; 2) right shell blown and burning, tail on fire, upper dome holed, soot over the shell, core lens cracked",
-  "seed": 15
+ "drawing": "approved.png",
+ "source": "PixelLab drawing ship_Turtle/r2_0.png (160 px), approved Nov 2026",
+ "canopy": [
+  [
+   80,
+   90,
+   11,
+   11
+  ]
+ ],
+ "nozzles": [
+  [
+   54,
+   141,
+   0.85
+  ],
+  [
+   106,
+   141,
+   0.85
+  ]
+ ],
+ "rotors": [
+  [
+   25,
+   72
+  ],
+  [
+   135,
+   72
+  ],
+  [
+   27,
+   110
+  ],
+  [
+   133,
+   110
+  ]
+ ],
+ "rotor_scale": 0.5,
+ "damageNote": "1) left shell plate blown, sparking wires, right shell scorched; 2) right shell blown and burning, tail on fire, upper dome holed, soot over the shell, core lens cracked",
+ "seed": 15,
+ "integer_scale": true,
+ "wreck_soot": 0.3,
+ "wreck_mul": 0.34
 }

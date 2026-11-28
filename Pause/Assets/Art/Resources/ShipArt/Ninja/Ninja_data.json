@@ -3,11 +3,11 @@
   "key": "Ninja",
   "painted": true,
   "rect": {
-    "x": 7,
-    "y": 2,
-    "w": 243,
-    "h": 251,
-    "ppu": 810.0
+    "x": 16,
+    "y": 16,
+    "w": 224,
+    "h": 224,
+    "ppu": 746.6667
   },
   "hue": [
     "#4A58C8",
@@ -16,78 +16,98 @@
   ],
   "nozzles": [
     {
-      "x": 121.5,
-      "y": 53.5,
-      "scale": 1.0
+      "x": 113.5,
+      "y": 68.5,
+      "scale": 1.0,
+      "offsets": [
+        0.0,
+        0.0,
+        0.0,
+        4.0,
+        0.0,
+        4.0,
+        0.0,
+        -0.0,
+        0.0,
+        -0.0,
+        0.0,
+        -4.0,
+        0.0,
+        -0.0,
+        0.0,
+        -0.0,
+        0.0,
+        0.0
+      ]
     }
   ],
-  "damageNote": "1) top blade panel blown; hub smoking; 2) right blade tip torn, bottom blade bent, left blade wiring arcing, canopy cracked",
+  "damageNote": "1) one blade edge chipped, sparking hub bolt, opposite blade scorched; 2) a blade root blown and burning, second blade holed, soot across the star, core cracked",
   "emitters": [
     {
       "state": 1,
       "kind": "Sparks",
-      "u": 64.0,
-      "v": 31.9
+      "u": 45.5,
+      "v": 83.0
     },
     {
       "state": 1,
       "kind": "Smoke",
-      "u": 75.9,
-      "v": 75.9
+      "u": 80.5,
+      "v": 53.0
     },
     {
       "state": 1,
       "kind": "Smolder",
-      "u": 63.8,
-      "v": 31.9
+      "u": 44.0,
+      "v": 81.5
     },
     {
       "state": 2,
       "kind": "Arc",
-      "u": 38.3,
-      "v": 64.0
+      "u": 81.5,
+      "v": 75.0
     },
     {
       "state": 2,
       "kind": "Flame",
-      "u": 64.0,
-      "v": 95.2
+      "u": 56.5,
+      "v": 77.0
     },
     {
       "state": 2,
       "kind": "Leak",
-      "u": 102.5,
-      "v": 64.0
+      "u": 21.5,
+      "v": 27.0
     },
     {
       "state": 2,
       "kind": "Smolder",
-      "u": 103.0,
-      "v": 64.0
+      "u": 80.5,
+      "v": 53.0
     },
     {
       "state": 2,
       "kind": "Smolder",
-      "u": 37.9,
-      "v": 63.5
+      "u": 45.5,
+      "v": 83.0
     },
     {
       "state": 2,
       "kind": "Smolder",
-      "u": 74.7,
-      "v": 80.0
+      "u": 55.0,
+      "v": 75.5
     },
     {
       "state": 2,
       "kind": "Smolder",
-      "u": 75.3,
-      "v": 47.6
+      "u": 80.0,
+      "v": 73.5
     },
     {
       "state": 2,
       "kind": "Smolder",
-      "u": 55.9,
-      "v": 91.2
+      "u": 20.0,
+      "v": 25.5
     }
   ],
   "skins": [

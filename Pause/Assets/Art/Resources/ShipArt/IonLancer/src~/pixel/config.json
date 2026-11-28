@@ -1,8 +1,37 @@
 {
-  "drawing": "approved.png",
-  "source": "PixelLab drawing ship_IonLancer/r2_1.png (160 px), approved Nov 2026",
-  "canopy": [[80, 64, 4.5, 9.5], [80, 96, 3.5, 11]],
-  "nozzles": [[52, 144, 0.85], [80, 134, 0.6], [108, 144, 0.85]],
-  "damageNote": "1) left engine pod panel blown, sparking wires, right prong scorched; 2) right engine pod blown and burning, centre engine on fire, left prong holed, soot over the hull, canopy cracked",
-  "seed": 5
+ "drawing": "approved.png",
+ "source": "PixelLab drawing ship_IonLancer/r2_1.png (160 px), approved Nov 2026",
+ "canopy": [
+  [
+   80,
+   64,
+   4.5,
+   9.5
+  ],
+  [
+   80,
+   96,
+   3.5,
+   11
+  ]
+ ],
+ "nozzles": [
+  [
+   52,
+   144,
+   0.85
+  ],
+  [
+   80,
+   134,
+   0.6
+  ],
+  [
+   108,
+   144,
+   0.85
+  ]
+ ],
+ "damageNote": "1) left engine pod panel blown, sparking wires, right prong scorched; 2) right engine pod blown and burning, centre engine on fire, left prong holed, soot over the hull, canopy cracked",
+ "seed": 5
 }

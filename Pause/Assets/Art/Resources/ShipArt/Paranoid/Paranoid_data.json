@@ -3,11 +3,11 @@
   "key": "Paranoid",
   "painted": true,
   "rect": {
-    "x": 6,
-    "y": 34,
-    "w": 244,
-    "h": 188,
-    "ppu": 813.3333
+    "x": 42,
+    "y": 59,
+    "w": 173,
+    "h": 138,
+    "ppu": 601.4377
   },
   "hue": [
     "#5DBB3A",
@@ -16,91 +16,129 @@
   ],
   "nozzles": [
     {
-      "x": 29.5,
-      "y": 15.5,
+      "x": 22.5,
+      "y": 6.5,
       "scale": 0.72,
-      "offsets": [0.0, -0.0, 0, 4, 0, 3, 0, 0, 0, -1, 0, -4, 8, 2, 20, -2, 0, 0]
+      "offsets": [
+        0.0,
+        0.0,
+        0.0,
+        4.0,
+        0.0,
+        4.0,
+        0.0,
+        -0.0,
+        0.0,
+        -0.0,
+        0.0,
+        -4.0,
+        9.7,
+        -1.3,
+        6.2,
+        0.6,
+        0.0,
+        0.0
+      ]
     },
     {
-      "x": 216.5,
-      "y": 15.5,
+      "x": 150.5,
+      "y": 6.5,
       "scale": 0.72,
-      "offsets": [0.0, -0.0, 0, 4, 0, 3, 0, 0, 0, -1, 0, -4, -20, -2, -9, 2, 0, 0]
+      "offsets": [
+        0.0,
+        0.0,
+        0.0,
+        4.0,
+        0.0,
+        4.0,
+        0.0,
+        -0.0,
+        0.0,
+        -0.0,
+        0.0,
+        -4.0,
+        -6.2,
+        0.6,
+        -9.9,
+        -1.3,
+        0.0,
+        0.0
+      ]
     }
   ],
-  "damageNote": "1) disc rim panel blown; left pod smoking; 2) right pod torn open, right strut bent, disc wiring arcing, canopy cracked",
+  "damageNote": "1) left pod casing blown, sparking conduit, shell plate scorched; 2) right pod blown and burning, shell holed, soot over the green, crystal cracked",
   "emitters": [
     {
       "state": 1,
       "kind": "Sparks",
-      "u": 45.7,
-      "v": 39.8
+      "u": 44.8,
+      "v": 58.8
     },
     {
       "state": 1,
       "kind": "Smoke",
-      "u": 17.7,
-      "v": 92.8
+      "u": 75.2,
+      "v": 75.2
     },
     {
       "state": 1,
       "kind": "Smolder",
-      "u": 45.7,
-      "v": 39.8
+      "u": 43.2,
+      "v": 57.2
     },
     {
       "state": 2,
       "kind": "Arc",
-      "u": 90.1,
-      "v": 65.2
+      "u": 88.8,
+      "v": 70.8
     },
     {
       "state": 2,
       "kind": "Flame",
-      "u": 110.3,
-      "v": 92.8
+      "u": 58.2,
+      "v": 90.8
     },
     {
       "state": 2,
       "kind": "Leak",
-      "u": 64.0,
-      "v": 97.4
+      "u": 51.8,
+      "v": 46.8
     },
     {
       "state": 2,
       "kind": "Smolder",
-      "u": 107.4,
-      "v": 61.7
+      "u": 75.2,
+      "v": 75.2
     },
     {
       "state": 2,
       "kind": "Smolder",
-      "u": 90.1,
-      "v": 65.2
+      "u": 44.8,
+      "v": 58.8
     },
     {
       "state": 2,
       "kind": "Smolder",
-      "u": 16.9,
-      "v": 81.3
+      "u": 56.8,
+      "v": 89.2
     },
     {
       "state": 2,
       "kind": "Smolder",
-      "u": 114.0,
-      "v": 80.2
+      "u": 87.2,
+      "v": 69.2
     },
     {
       "state": 2,
       "kind": "Smolder",
-      "u": 46.7,
-      "v": 73.9
+      "u": 50.2,
+      "v": 45.2
     },
     {
       "state": 2,
       "kind": "Smolder",
-      "u": 114.2,
-      "v": 33.5
+      "u": 73.8,
+      "v": 76.8
     }
   ],
   "skins": [
