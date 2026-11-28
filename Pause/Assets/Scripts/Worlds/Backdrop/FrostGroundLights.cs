@@ -3,7 +3,7 @@ using UnityEngine;
 // Frost's ground is ALIVE: the lamps the mid tiles paint (quay posts, plant windows, camp braziers, crane tops) glow,
 // flicker, pulse and blink (user, 2026-11-27: "blinking lights and things in the backdrop that make it feel more alive").
 //
-// Seen from up here (FrostTuning.GroundZoom .41) the painted plant / harbour / camps are mostly IN the tile art, not the
+// Seen from up here (FrostTuning.GroundZoom .49) the painted plant / harbour / camps are mostly IN the tile art, not the
 // landmark pieces, so these lights are pinned to the mid tile itself: every point is a spot of the tile (master pixels of
 // the 896 x 1792 drawing, frost_redraw/ground_lights.py finds the painted lamp dots: warm, lit, standing out of their
 // neighbourhood) and is drawn on every copy of the tile in view, from the tile's own scroll (BackdropTile.travel), so it

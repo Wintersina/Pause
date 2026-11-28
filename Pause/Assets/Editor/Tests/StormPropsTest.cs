@@ -42,7 +42,10 @@ public static class StormPropsTest
             Table();
             Art();
             Flashes();
+            AllKinds.Clear();
             for (int v = 1; v <= StormTuning.Variants; v++) Live(v);
+            // the feel at any altitude: over a flight of every layout most kinds turn up (closer up, fewer stand in view at once)
+            Check("Storm over every layout: " + AllKinds.Count + " prop kinds seen, ground and aloft (>= 10: " + string.Join(", ", AllKinds) + ")", AllKinds.Count >= 10);
             Forced();
             Aloft();
             Clear(2);
@@ -140,15 +143,16 @@ public static class StormPropsTest
         float gmin = float.MaxValue, gmax = 0f;
         for (int k = 0; k < StormPropsTuning.Ground.Length; k++) { gmin = Mathf.Min(gmin, StormPropsTuning.GroundSize(k)); gmax = Mathf.Max(gmax, StormPropsTuning.GroundSize(k)); }
         Check("ground props at the zoomed ground's scale (" + gmin.ToString("F2") + " .. " + gmax.ToString("F2") + " u; landmarks " +
-              StormTuning.LandmarkMin.ToString("F2") + " .. " + StormTuning.LandmarkMax.ToString("F2") + ", cap " + BackdropCatalog.MaxLandmarkSize + ")",
-              gmin >= .5f * StormTuning.LandmarkMin && gmax <= BackdropCatalog.MaxLandmarkSize);
+              StormTuning.LandmarkMin.ToString("F2") + " .. " + StormTuning.LandmarkMax.ToString("F2") + ", cap " + StormPropsTuning.MaxSize.ToString("F2") + ", px at .41 x " + StormPropsTuning.ZoomK.ToString("F2") + ")",
+              gmin >= .5f * StormTuning.LandmarkMin && gmax <= StormPropsTuning.MaxSize &&
+              Mathf.Approximately(StormPropsTuning.GroundSize(StormPropsTuning.Vortex), 284f / StormPropsTuning.PxPerUnit * StormTuning.GroundZoom / .41f));
         bool aloftSize = true;
         string sizes = "";
         for (int k = 0; k < StormPropsTuning.Aloft.Length; k++)
         {
-            float ratio = StormPropsTuning.AloftSize(k) / (StormPropsTuning.AloftBasePx[k] / StormPropsTuning.PxPerUnit);
+            float ratio = StormPropsTuning.AloftSize(k) / StormPropsTuning.AloftGroundSize(k);
             sizes += StormPropsTuning.Aloft[k] + " x" + ratio.ToString("F2") + " (" + StormPropsTuning.AloftSize(k).ToString("F2") + " u) ";
-            aloftSize &= ratio >= 1.6f && ratio <= 2.5f && StormPropsTuning.AloftSize(k) * (1f + StormPropsTuning.SizeJitter) <= 2.3f;
+            aloftSize &= ratio >= 1.6f && ratio <= 2.5f && StormPropsTuning.AloftSize(k) * (1f + StormPropsTuning.SizeJitter) <= StormPropsTuning.AloftMaxSize;
         }
         Check("aloft pieces drawn 1.6 - 2.5x their ground size: " + sizes, aloftSize);
 
@@ -348,6 +352,8 @@ public static class StormPropsTest
         return p.y + p.size * .5f > -halfH && p.y - p.size * .5f < halfH && Mathf.Abs(p.x) - p.size * .5f < halfW;
     }
 
+    static readonly HashSet<string> AllKinds = new HashSet<string>();
+
     static void Live(int v)
     {
         const int Runs = 2;
@@ -383,7 +389,7 @@ public static class StormPropsTest
                         dealt++;
                         int k = p.kind;
                         if (k < 0 || k >= StormPropsTuning.Ground.Length) { wrong++; continue; }
-                        kinds.Add(StormPropsTuning.Ground[k]);
+                        kinds.Add(StormPropsTuning.Ground[k]); AllKinds.Add(StormPropsTuning.Ground[k]);
                         if (!d.Planner.Accepts(StormPropsTuning.GroundRule(k), p.x, p.gy, p.size)) { wrong++; if (bad.Length < 200) bad += StormPropsTuning.Ground[k] + "@" + d.Planner.ClassAt(p.x, p.gy) + " "; }
                         if (StormPropsTuning.Claims(k)) overlaps += Overlaps(d, p);
                     }
@@ -393,6 +399,7 @@ public static class StormPropsTest
                 {
                     if (!p.active) continue;
                     if (aloftSeen.Add(p) || p.age < Dt * 1.5f) aloftDealt++;
+                    if (p.kind >= 0 && p.kind < StormPropsTuning.Aloft.Length) AllKinds.Add(StormPropsTuning.Aloft[p.kind]);
                     if (InView(p, set.HalfWidth, set.HalfHeight)) up++;
                     if (!Mathf.Approximately(p.rate, aloftRate)) badRate++;
                 }
@@ -410,7 +417,9 @@ public static class StormPropsTest
               runs == Runs && dealt >= Runs * 3 && wrong == 0);
         Check("v" + v + ": no ground prop overlaps a landmark, a dock or another prop (" + overlaps + "), never two vortices in view (" + twoVortex + ")", overlaps == 0 && twoVortex == 0);
         Check("v" + v + ": every ground prop stays pinned to its spot of the ground (" + drift + " frames drifted)", drift == 0);
-        Check("v" + v + ": ground props are accents -- at most 8 in view (moorings come in pairs; max " + maxInView + "), " + mean.ToString("F2") + " on average (<= 4.5)", maxInView <= 8 && mean <= 4.5f);
+        // (4.5 on average at .41: from closer up the same ground spacing is ZoomK further apart on screen, so fewer in view)
+        float meanCap = 4.5f / StormPropsTuning.ZoomK;
+        Check("v" + v + ": ground props are accents -- at most 8 in view (moorings come in pairs; max " + maxInView + "), " + mean.ToString("F2") + " on average (<= " + meanCap.ToString("F2") + ")", maxInView <= 8 && mean <= meanCap);
         Check("v" + v + ": aloft -- at most one in view (max " + maxAloft + "), in view " + (aloftShare * 100f).ToString("F0") + "% of the time (often none: <= 60%), " +
               aloftDealt + " came by, at the aloft rate (" + badRate + " off)", maxAloft <= 1 && aloftShare <= .6f && aloftDealt >= 1 && badRate == 0);
     }
@@ -647,7 +656,7 @@ public static class StormPropsTest
             Check(name + ": spawns aloft", placed && p != null && p.kind == k);
             if (p == null) { Object.DestroyImmediate(wb.gameObject); continue; }
             float ground = BackdropCatalog.For("Storm").Rate("ground");
-            float ratio = p.size / (StormPropsTuning.AloftBasePx[k] / StormPropsTuning.PxPerUnit);
+            float ratio = p.size / StormPropsTuning.AloftGroundSize(k);
             Check(name + ": drawn " + ratio.ToString("F2") + "x its ground size (1.6 - 2.5x), at " + (p.rate / ground).ToString("F2") + "x the ground's rate (1.3 - 1.6x), not pinned",
                   ratio >= 1.5f && ratio <= 2.6f && p.rate / ground >= 1.3f && p.rate / ground <= 1.6f && p.footprint < 0);
             // its motion over 3 s against what the parallax alone would do

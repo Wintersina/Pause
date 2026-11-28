@@ -11,7 +11,7 @@ using UnityEngine;
 //   * PLACED where they make sense (the user, 2026-11-28): whales, orcas, narwhals and the icebreaker on open water (mask W,
 //     whole footprint and a clear rim); bears and seals on an ice edge (water with ice beside); the fishing camp on a flat top
 //     by open water; the tanker frozen into the ice by a lead; the crashed heli on a snow field with little water near; the
-//     starship's crater mostly on ice (a broken edge allowed), placed ahead of the landmarks and drawn ~400 px wide;
+//     starship's crater mostly on ice (a broken edge allowed), placed ahead of the landmarks and drawn ~480 px wide;
 //     the snowcat, radar and sonde only beside a station or lab; the structures on a flat top like the landmarks; nothing
 //     wet on the glacier (v4); pinned to their spot of the ground;
 //   * KEEP-OUT / OVERLAP: no prop overlaps a landmark, a dock or another prop, nor their keep-out margins (KeepOut); no
@@ -47,7 +47,10 @@ public static class FrostPropsTest
         {
             Table();
             Art();
+            AllKinds.Clear();
             for (int v = 1; v <= 4; v++) Live(v);
+            // the feel at any altitude: over a flight of every layout most kinds turn up (closer up, fewer stand in view at once)
+            Check("Frost over every layout: " + AllKinds.Count + " prop kinds seen (>= 10: " + string.Join(", ", AllKinds) + ")", AllKinds.Count >= 10);
             Forced();
             ForcedOverlap();
             StarshipAhead();
@@ -171,14 +174,15 @@ public static class FrostPropsTest
         Check("drawn at the landmarks' scale (" + min.ToString("F2") + " .. " + max.ToString("F2") + " u, landmarks " + FrostTuning.LandmarkMin.ToString("F2") +
               " .. " + FrostTuning.LandmarkMax.ToString("F2") + ", scaled by the ground zoom)",
               min >= .7f * FrostTuning.LandmarkMin && max <= FrostTuning.LandmarkMax && Mathf.Approximately(FrostPropsTuning.Size(0), FrostPropsTuning.SizeK[0] * FrostTuning.PieceScale));
-        // MASSIVE: the starship ~1/3 .. 1/2 of a 1080 px phone's width (the view ~2 x 3.71 u wide), far bigger than the station /
-        // tanker, under its own cap (above the landmarks'), from a 256 px cell (~1.5 px a texel: crisp, point-sampled)
+        // MASSIVE: the starship ~.35 .. .53 of a 1080 px phone's width at .49 (the view ~2 x 3.71 u wide; 320 .. 480 px at .41, x .49 / .41),
+        // far bigger than the station / tanker, under its own cap (above the landmarks', growing with the ground: never clamped), from a
+        // 256 px cell (~1.9 px a texel: crisp, point-sampled)
         {
             int s = FrostPropsTuning.Starship;
             float pxu = 1080f / (2f * 3.71f), lo = FrostPropsTuning.Size(s) * (1f - FrostPropsTuning.SizeJitter) * pxu, hi = FrostPropsTuning.Size(s) * (1f + FrostPropsTuning.SizeJitter) * pxu;
-            Check("the starship is MASSIVE: " + lo.ToString("F0") + " .. " + hi.ToString("F0") + " px on a 1080 px phone (320 .. 480), >= 4 x the station / tanker, " +
+            Check("the starship is MASSIVE: " + lo.ToString("F0") + " .. " + hi.ToString("F0") + " px on a 1080 px phone (380 .. 575), >= 4 x the station / tanker, " +
                   "capped at " + FrostPropsTuning.MaxSize(s) + " u (> the landmarks' " + BackdropCatalog.MaxLandmarkSize + "), 256 px cells",
-                  lo >= 320f && hi <= 480f && FrostPropsTuning.Size(s) >= 4f * FrostPropsTuning.Size(FrostPropsTuning.Tanker) &&
+                  lo >= 380f && hi <= 575f && FrostPropsTuning.Size(s) >= 4f * FrostPropsTuning.Size(FrostPropsTuning.Tanker) &&
                   FrostPropsTuning.Size(s) * (1f + FrostPropsTuning.SizeJitter) <= FrostPropsTuning.MaxSize(s) && FrostPropsTuning.MaxSize(s) > BackdropCatalog.MaxLandmarkSize &&
                   Mathf.Approximately(FrostPropsTuning.Cell(s), 256f) && FrostPropsTuning.Massive(s) && !FrostPropsTuning.Wet(s));
         }
@@ -338,6 +342,8 @@ public static class FrostPropsTest
         return p.y + p.size * .5f > -halfH && p.y - p.size * .5f < halfH && Mathf.Abs(p.x) - p.size * .5f < halfW;
     }
 
+    static readonly HashSet<string> AllKinds = new HashSet<string>();
+
     static void Live(int v)
     {
         const int Runs = 3;
@@ -372,7 +378,7 @@ public static class FrostPropsTest
                     dealt++;
                     int k = d.PropKind(i);
                     if (k < 0) { wrong++; continue; }
-                    kinds.Add(FrostPropsTuning.Names[k]);
+                    kinds.Add(FrostPropsTuning.Names[k]); AllKinds.Add(FrostPropsTuning.Names[k]);
                     var rule = FrostPropsTuning.Rule(k);
                     if (!d.Planner.Accepts(rule, p.x, p.gy, p.size)) { wrong++; if (bad.Length < 200) bad += FrostPropsTuning.Names[k] + "@" + d.Planner.ClassAt(p.x, p.gy) + " "; }
                     if (FrostPropsTuning.Wet(k) && FrostTuning.IsGlacier(v)) floaters++;
@@ -536,7 +542,7 @@ public static class FrostPropsTest
 
     // MASSIVE, placed first: the starship dealt the regular way (SpawnProp ahead) on every layout lands above the landmarks'
     // spawn band (out of sight, its keep-out clear of it), mostly on ice, and as it scrolls into view the landmarks, docks and
-    // other props are dealt round it: nothing in its keep-out, no plume through it, no dock by it; drawn 320 .. 480 px wide.
+    // other props are dealt round it: nothing in its keep-out, no plume through it, no dock by it; drawn 380 .. 575 px wide (at .49).
     static void StarshipAhead()
     {
         const int Seeds = 4;
@@ -598,8 +604,8 @@ public static class FrostPropsTest
         Check("STARSHIP placed ahead on every layout (" + per + "), above the landmarks' band out of sight (" + notAhead + " not), " + seen + " scrolled into view",
               every && total >= 2 * Seeds && notAhead == 0 && seen == total);
         Check("STARSHIP: the ground is dealt round its keep-out as it scrolls in (" + bad + " keep-out / plume / dock violations), drawn " +
-              minPx.ToString("F0") + " .. " + maxPx.ToString("F0") + " px wide on a 1080 px phone (320 .. 480)",
-              bad == 0 && total > 0 && minPx >= 320f && maxPx <= 480f);
+              minPx.ToString("F0") + " .. " + maxPx.ToString("F0") + " px wide on a 1080 px phone (380 .. 575)",
+              bad == 0 && total > 0 && minPx >= 380f && maxPx <= 575f);
         Check("STARSHIP CRASH SCAR: every copy lies on a decal under it (the furrow, banks, cracks, debris, soot; wet by water), " + scarWrong +
               " wrong, ~" + scarPx.ToString("F0") + " px across; nothing dealt onto its furrow's keep-out (" + scarBad + " crossings)",
               scarWrong == 0 && scarBad == 0 && scarPx >= 900f);
@@ -713,7 +719,7 @@ public static class FrostPropsTest
                 Check(name + ": loops through its cells (" + framesSeen.Count + "/8 in 3 s)", framesSeen.Count == 8);
             if (!FrostPropsTuning.OneShot[k] && FrostPropsTuning.HasLights(k))
                 Check(name + ": its lamps light up (peak alpha " + maxA.ToString("F2") + ", " + minPx.ToString("F1") + " .. " + maxPx.ToString("F1") +
-                      " px on a 1080 px phone), never pink, alpha <= .9", maxA >= .5f && maxA <= .9f + 1e-4f && !pink && minPx >= 3f && maxPx <= 16f);
+                      " px on a 1080 px phone, 3 .. 20: they grow with their drawing, 16 at .41), never pink, alpha <= .9", maxA >= .5f && maxA <= .9f + 1e-4f && !pink && minPx >= 3f && maxPx <= 20f);
 
             // dt 0 is a still frame
             var sprite = p.sr.sprite;

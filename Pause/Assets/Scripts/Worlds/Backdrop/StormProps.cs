@@ -34,14 +34,20 @@ public static class StormPropsTuning
     public const int Frames = 8;
     // screen px (on a 1080 px wide phone, the approved composites) -> world units: a ~6.75 u wide view
     public const float PxPerUnit = 160f;
+    // the px below were approved at the .41 altitude; everything on (and over) the ground follows the ground's zoom since
+    // (2026-11-28: .49, every world 20% closer), so sizes, caps, gaps and reaches are x ZoomK
+    public const float ApprovedZoom = .41f;
+    public const float ZoomK = StormTuning.GroundZoom / ApprovedZoom;
+    // a ground prop's drawn-size cap: BackdropCatalog.MaxLandmarkSize at .41 (the vortex), x ZoomK
+    public const float MaxSize = BackdropCatalog.MaxLandmarkSize * ZoomK;
 
     // ---- ground ----
     public static readonly string[] Ground = { "refinery", "mast", "wreck", "vortex", "cell", "gunship", "tug", "rods", "buoys", "skimmer" };
     public const int Refinery = 0, Mast = 1, Wreck = 2, Vortex = 3, Cell = 4, Gunship = 5, Tug = 6, Rods = 7, Buoys = 8, Skimmer = 9;
     public static readonly int[] GroundVariants = { 4, 4, 4, 3, 3, 4, 4, 4, 4, 4 };
-    // drawn cell width, screen px (pl/storm/r3/composite.py RULES, user-approved)
-    public static readonly float[] GroundPx = { 124f, 92f, 128f, 284f, 250f, 240f, 200f, 110f, 120f, 128f };   // (the vortex at BackdropCatalog.MaxLandmarkSize; the gunship "nice and large")
-    public static float GroundSize(int kind) { return GroundPx[kind] / PxPerUnit; }
+    // drawn cell width, screen px at .41 (pl/storm/r3/composite.py RULES, user-approved); drawn x ZoomK
+    public static readonly float[] GroundPx = { 124f, 92f, 128f, 284f, 250f, 240f, 200f, 110f, 120f, 128f };   // (the vortex at MaxSize; the gunship "nice and large")
+    public static float GroundSize(int kind) { return GroundPx[kind] * ZoomK / PxPerUnit; }
     // where each may stand (r3 masks: O lit cloud tops, C textured deck, W dark lanes) and how much of its footprint must match
     public static readonly GroundClass[] GroundOn = { GroundClass.Open, GroundClass.Open, GroundClass.Water, GroundClass.Water | GroundClass.Canopy, GroundClass.Open, GroundClass.Water | GroundClass.Canopy, GroundClass.Water | GroundClass.Canopy, GroundClass.Open, GroundClass.Water | GroundClass.Canopy, GroundClass.Water | GroundClass.Canopy };
     public static readonly float[] GroundNeed = { .6f, .5f, .6f, .75f, .45f, .6f, .6f, .55f, .6f, .6f };
@@ -61,7 +67,7 @@ public static class StormPropsTuning
     public static readonly float[] KeepK = { 1.15f, 1.15f, 1.15f, 1.2f, 1.1f, 1.45f, 1.15f, 1.1f, 1.1f, 1.15f };
     public const float BodyShare = .4f;                              // a moving piece's drawn half-extent, x its cell size
     public const float BoltHalfX = .18f, BoltHalfY = .45f;           // a bolt's (thin, tall) drawn half-extents, x its cell size
-    public static float MoorReach = .5f;                             // a companion's footprint edge at most this far from its anchor's (u)
+    public static float MoorReach = .5f * ZoomK;                             // a companion's footprint edge at most this far from its anchor's (u)
     // the companion a kind must stand beside (-1 none); `coin` picks between two
     public static int Companion(int kind, bool coin)
     {
@@ -94,7 +100,8 @@ public static class StormPropsTuning
         new[] { 125, 125, 125, 125, 125, 125, 125, 125 },          // the skimmer on its mooring lines: nav lamps, idling intake glow
     };
     public const int GroundPool = 8, CellPool = 2;
-    public static float GroundGapMin = 4.2f, GroundGapMax = 6.8f;   // scrolled ground (world units) between two ground props
+    public static float GroundGapMin = 4.2f * ZoomK, GroundGapMax = 6.8f * ZoomK;   // scrolled ground (world units) between two ground props
+    public const float SpawnAhead = 1f * ZoomK;                      // a ground prop is dealt this far above the landmarks' band (out of sight)
     public const float SizeJitter = .06f;
     public const float VortexSpin = 7f;                              // degrees / s about its eye
     public const float CellAlpha = .8f;                              // the cell's light, at most (additive)
@@ -104,10 +111,12 @@ public static class StormPropsTuning
     public static readonly string[] Aloft = { "aerostat", "convoy", "jelly", "rays" };
     public const int Aerostat = 0, Convoy = 1, Jelly = 2, Rays = 3;
     public static readonly int[] AloftVariants = { 4, 3, 7, 4 };
-    // their ground size (px, as above) x AloftSizeK: 1.6 - 2.5x (user: "closer and larger")
+    // their ground size (px at .41 x ZoomK, as above) x AloftSizeK: 1.6 - 2.5x (user: "closer and larger")
     public static readonly float[] AloftBasePx = { 100f, 176f, 116f, 124f };
+    public static float AloftGroundSize(int kind) { return AloftBasePx[kind] * ZoomK / PxPerUnit; }
+    public const float AloftMaxSize = 2.3f * ZoomK;                  // the largest an aloft piece is drawn (u)
     public static readonly float[] AloftSizeK = { 2.0f, 1.82f, 2.0f, 1.9f };
-    public static float AloftSize(int kind) { return AloftBasePx[kind] * AloftSizeK[kind] / PxPerUnit; }
+    public static float AloftSize(int kind) { return AloftGroundSize(kind) * AloftSizeK[kind]; }
     public const float AloftRateK = 1.45f;                           // x the ground's parallax: closer to the camera
     public const float AloftRate = StormTuning.GroundRate * AloftRateK;
     public const float AloftGrade = .8f;                             // of the world's lift (BackdropCatalog: Graded)
@@ -123,15 +132,15 @@ public static class StormPropsTuning
     };
     public static readonly int[] AloftMs = { 125, 125, 180, 160 };
     public const int AloftPool = 1;                                  // at most one in view
-    public static float AloftGapMin = 16f, AloftGapMax = 34f;        // aloft-layer travel (world units) between two (a view is ~15 u tall)
-    public static float AloftFirst = 9f;
+    public static float AloftGapMin = 16f * ZoomK, AloftGapMax = 34f * ZoomK;   // aloft-layer travel (world units) between two (a view is ~15 u tall)
+    public static float AloftFirst = 9f * ZoomK;
     // own motion: NO vehicle travels (the user's rule). The tethered aerostats and the moored convoy only bob on their
     // lines (amplitude x their size, period s) and sway (degrees, period s); the jellies and rays, living creatures, also drift slowly.
     public static readonly float[] BobAmp = { .03f, .01f, .045f, .03f };
     public static readonly float[] BobPeriod = { 5.5f, 6.5f, 3.6f, 4.6f };
     public static readonly float[] SwayDeg = { 2.5f, 1f, 0f, 0f };
     public static readonly float[] SwayPeriod = { 7f, 8f, 1f, 1f };
-    public const float JellyDrift = .05f;                           // straight DOWN with the wind only (no sideways drift)
+    public const float JellyDrift = .05f * ZoomK;                          // straight DOWN with the wind only (no sideways drift)
     public static bool Drifts(int aloftKind) { return aloftKind == Jelly || aloftKind == Rays; }
 
     public static string Strip(string kind, int variant) { return kind + "_" + variant; }
@@ -322,7 +331,7 @@ public partial class StormDirector
         if (groundStrips[kd][v] == null) v = 0;
         lastGroundVariant[kd] = v;
         p.frames = groundStrips[kd][v];
-        SetSprite(p, p.frames[0], Mathf.Min(size, BackdropCatalog.MaxLandmarkSize));
+        SetSprite(p, p.frames[0], Mathf.Min(size, StormPropsTuning.MaxSize));
         p.frames = groundStrips[kd][v];
         p.body.localScale = kd != StormPropsTuning.Cell && propRng.NextDouble() < .5 ? new Vector3(-1f, 1f, 1f) : Vector3.one;
         p.footprint = foot;
@@ -596,7 +605,7 @@ public partial class StormDirector
         propTravel += scrolled;
         if (planner.Ready && propTravel >= propGap)
         {
-            double lo = planner.Travel + HalfH + StormTuning.SpawnAbove + 1f, hi = lo + StormTuning.SpawnBand;
+            double lo = planner.Travel + HalfH + StormTuning.SpawnAbove + StormPropsTuning.SpawnAhead, hi = lo + StormTuning.SpawnBand;
             if (SpawnProp(-1, lo, hi)) { propTravel = 0f; propGap = PRand(StormPropsTuning.GroundGapMin, StormPropsTuning.GroundGapMax); }
             else propGap = propTravel + StormTuning.SpawnRetry;
         }

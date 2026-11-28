@@ -3,8 +3,8 @@ using UnityEngine;
 
 // Frost's backdrop: the ship flies at atmosphere level just under the cloud
 // ceiling, HIGH over a frozen ocean, its coast and ice-bound industry
-// (FrostTuning.GroundZoom: the ground drawn at .41 of the view's width and
-// repeated across, creeping by at .41 of its old rate). Nothing space-like:
+// (FrostTuning.GroundZoom: the ground drawn at .49 of the view's width and
+// repeated across, creeping by at .49 of its old rate). Nothing space-like:
 // no stars, planets, stations or rocks.
 //
 //   GROUND     one of four tile sets per landing (FrostBackdropSelection):
@@ -83,14 +83,15 @@ public static class FrostTuning
     // How big the ground is drawn: the tiles (sky / far / mid / flow) at this share of the view's width
     // (BackdropCatalog.Spec.groundZoom; BackdropTile repeats them across as well as down). User, 2026-11-27: "too zoomed in,
     // the player needs to be at atmosphere level ... much higher"; at .55: "if we can zoom out about 25% more that be great".
-    // .41 = .55 x .75: the ground seen from ~2.4x the old height, ~6x the ground area in view. A tile is then ~450 screen px
-    // wide on a 1080 px phone, so the tiles are installed at the size they are seen at -- the 896 px masters halved to
-    // 448 px, one texel per 2 px art cell, drawn bilinear (frost_redraw/install_tiles.py, WorldBackdropImport.IsFrostHdTile):
+    // .41 = .55 x .75: the ground seen from ~2.4x the old height, ~6x the ground area in view. 2026-11-28 the user brought every
+    // world 20% closer: .49 (~2x the old height, ~4.2x the ground area in view). A tile is then ~540 screen px wide on a 1080 px
+    // phone; the tiles are installed near the size they are seen at -- the 896 px masters halved to 448 px (cut for .41: ~1.2
+    // screen px a texel at .49), one texel per 2 px art cell, drawn bilinear (frost_redraw/install_tiles.py, WorldBackdropImport.IsFrostHdTile):
     // point sampling the 896 px art at ~2x minification would skip every other texel and the ground would shimmer as it
     // scrolls. Everything on the ground scales with the zoom so it stays registered: the ground layers' rates (farther
     // ground creeps by slower: the same ground distance per second in tile terms), the pinned pieces' sizes, gaps and spawn
     // bands, the sites' launch size, the cover boulders (CoverBoulders.GroundZoom).
-    public const float GroundZoom = .41f;
+    public const float GroundZoom = .49f;
     // The ground (far / mid tiles, the floe strip) drawn this much darker than graded: a tint, a step of its own on top of the
     // art and its grade (FrostTuning.Brightness), so a colour regrade of the tiles can drop or retune it. .85 (2026-11-28) did
     // not rescue the pale shots over the finer ground (HostileProjectileTest's worst moved 8 -> 4 px) and the render read
@@ -100,8 +101,8 @@ public static class FrostTuning
     public const float GroundRate = .024f * GroundZoom;                // the mid tile's (and everything pinned to it) parallax rate
     // The pieces standing on the ground (landmarks, launch sites, with their lamps and loops, which ride them) are drawn at
     // this share of their old size against the ground art on top of the zoom: a slab must fit a flat plate top of the redrawn
-    // tiles with a clear rim round it (PieceRule.rim, flat_masks.py). .6 at zoom .55; at .41 it is .7 so they stay readable
-    // (~65 screen px a 256 cell, .87 of their size at .55): the flat plates still hold them -- in tile terms ~75-85% of the
+    // tiles with a clear rim round it (PieceRule.rim, flat_masks.py). .6 at zoom .55; from .41 on it is .7 so they stay readable
+    // (~65 screen px a 256 cell at .41, ~78 at .49): the flat plates still hold them -- in tile terms ~75-85% of the
     // pieces .6 placed (v2's busy harbour ~65%), the audit's frost_fix/compare_v*.png.
     public const float PieceFit = .7f;
     public const float PieceScale = GroundZoom * PieceFit;             // a pinned piece's world size vs. before the zoom

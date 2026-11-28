@@ -24,7 +24,7 @@ using UnityEngine;
 //   heli                   crashed on a snow field well away from water (mostly ice inside FarRim)
 //   starship               (user-approved 2026-11-28, replacing the belly-landed airlift: "the starship crashed in is good as
 //                          long as they are massive in the backdrop as a prop") a MOUNTAIN-SIZED wreck ploughed into the ice:
-//                          256 px cells (Cell), drawn ~400 px wide on a 1080 px phone (over a third of the view; MaxSize lifts
+//                          256 px cells (Cell), drawn ~480 px wide on a 1080 px phone (~45% of the view at .49; MaxSize lifts
 //                          it past BackdropCatalog.MaxLandmarkSize), on ice / snow with up to a third of its crater over a broken
 //                          edge (a lead beside it is preferred), PLACED AHEAD of the ground being dealt (above the landmarks'
 //                          spawn band) so the landmarks, docks and smaller props are dealt round its keep-out afterwards;
@@ -39,7 +39,8 @@ using UnityEngine;
 // would rise through a prop; a prop also keeps SiteKeepOut of a launch site's width clear round a dock (the elite lifts off
 // from it). The floe strip (flow) is pinned to the mid tile: nothing drifts.
 // RARE: an accent, not clutter. At most Pool (2) stand on the ground at once (in view or just above it), one every
-// GapMin..GapMax of scrolled ground (the view is ~16.5 u tall), so one or two are in view and often none. Nothing that
+// GapMin..GapMax of scrolled ground (x GroundZoom: the same ground between two at any altitude; the view is ~16.5 u tall),
+// so one or two are in view and often none. Nothing that
 // floats comes to the glacier (v4: its dark mask class is the crevasses).
 // Art: Backdrop3/props (128 px cells -- the starship's 256 --, <name>_00..07 or <name>_<v>_00..07 for a variant, 2048 x 3840;
 // frost_redraw/props/build_props_atlas.py from the approved strips).
@@ -58,12 +59,13 @@ public static class FrostPropsTuning
     public static string Strip(int kind, int v) { return Variants[kind] <= 1 ? Names[kind] : Names[kind] + "_" + v; }
     public const int Frames = 8;
     public const float CellPx = 128f;
-    // a kind's cell size in the atlas (px): the starship's drawing is 256 px, so it stays crisp drawn ~400 px wide
+    // a kind's cell size in the atlas (px): the starship's drawing is 256 px, so it stays crisp drawn ~480 px wide
     public static float Cell(int kind) { return kind == Starship ? 256f : CellPx; }
     // MASSIVE kinds (the starship): drawn far past the landmarks' cap, placed ahead of the ground being dealt
     public static bool Massive(int kind) { return kind == Starship; }
-    // a kind's drawn-size cap (world units): BackdropCatalog.MaxLandmarkSize, the starship's own above it
-    public const float MassiveMax = 3.2f;
+    // a kind's drawn-size cap (world units): BackdropCatalog.MaxLandmarkSize, the starship's own above it -- x GroundZoom, so it
+    // grows with the ground instead of clamping it (3.2 u at .41, ~3.82 at .49)
+    public const float MassiveMax = 7.8f * FrostTuning.GroundZoom;
     public static float MaxSize(int kind) { return Massive(kind) ? MassiveMax : BackdropCatalog.MaxLandmarkSize; }
 
     // ---- the starship's CRASH SCAR (a decal child of its body: scrolls, scales and mirrors with it, drawn just under it) ----
@@ -142,10 +144,11 @@ public static class FrostPropsTuning
     };
     public static float WaitMin = 3f, WaitMax = 8f;
 
-    // Drawn width (a 128 cell) x FrostTuning.PieceScale: the approved previews' sizes on a 1080 px phone (whale 54 px,
-    // orca 46, station 62, lab 58, icebreaker 58, plane 56; a 256 landmark cell is ~65 px), ~.75-1 x the landmarks' range.
-    // round 2 (px on a 1080 px phone / 41.6): snowcat 60, radar 62, fishcamp 64, flares 64, tanker 68 (capped: max <= LandmarkMax),
-    // bears 50, narwhal 52, sonde 66, seals 48, heli 64; the starship 400 (a 256 cell: ~1.56 px a texel, point-sampled)
+    // Drawn width (a 128 cell) x FrostTuning.PieceScale: the approved previews' sizes on a 1080 px phone at the .41 altitude
+    // (whale 54 px, orca 46, station 62, lab 58, icebreaker 58, plane 56; a 256 landmark cell is ~65 px), ~.75-1 x the landmarks'
+    // range. round 2 (px at .41 / 41.6): snowcat 60, radar 62, fishcamp 64, flares 64, tanker 68 (capped: max <= LandmarkMax),
+    // bears 50, narwhal 52, sonde 66, seals 48, heli 64; the starship 400 (a 256 cell). At .49 every one is .49 / .41 (~1.2x)
+    // that: the starship ~480 px (~1.9 px a texel, point-sampled)
     public static readonly float[] SizeK = { 1.30f, 1.10f, 1.49f, 1.39f, 1.39f, 1.34f,
                                              1.44f, 1.49f, 1.54f, 1.54f, 1.64f, 1.20f, 1.25f, 1.58f, 1.15f, 1.54f, 9.6f };
     public const float SizeJitter = .06f;
@@ -170,12 +173,12 @@ public static class FrostPropsTuning
     public const float CraterNeed = .65f, CraterCore = .3f;
     // a massive kind is looked for in a band this tall just above the landmarks' spawn band (its keep-out clear of it), in
     // MassiveTries tries, the best ice match with a lead beside it preferred
-    public const float MassiveBand = 2.5f;
+    public const float MassiveBand = 6.1f * FrostTuning.GroundZoom;   // (2.5 u at .41)
     public const int MassiveTries = 80;
     public static readonly int[] Weights = { 3, 2, 2, 2, 2, 2,
                                              2, 2, 2, 2, 2, 2, 2, 1, 1, 2, 5 };
     public const int Pool = 2;
-    public static float GapMin = 9f, GapMax = 16f;        // scrolled ground (world units) between two props
+    public static float GapMin = 22f * FrostTuning.GroundZoom, GapMax = 39f * FrostTuning.GroundZoom;   // scrolled ground (world units) between two props (9 .. 16 u at .41)
     public const int Tries = 40;
 
     const GroundClass Ice = GroundClass.Open | GroundClass.Canopy;
