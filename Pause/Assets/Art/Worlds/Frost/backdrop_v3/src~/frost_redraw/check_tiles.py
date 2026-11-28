@@ -330,13 +330,13 @@ def mask_check(base, v):
 
 def main():
     args = [a for a in sys.argv[1:]]
-    variants = [1, 2]
+    variants = [1, 2, 3, 4]
     if "--variants" in args:
         i = args.index("--variants")
         variants = [int(x) for x in args[i + 1:]]
         args = args[:i]
     base = Path(args[0]) if args else DEFAULT
-    layers = {1: ("sky", "far", "mid", "flow"), 2: ("far", "mid")}
+    layers = {1: ("sky", "far", "mid", "flow"), 2: ("far", "mid", "flow"), 3: ("far", "mid", "flow"), 4: ("far",)}
     for v in variants:
         for layer in layers.get(v, ("sky", "far", "mid", "flow")):
             tile(base, v, layer)

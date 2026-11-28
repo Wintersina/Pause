@@ -171,11 +171,13 @@ public static class FrostTuning
     public static readonly LandingKind[] SiteKinds = { LandingKind.Hangar, LandingKind.RigBay, LandingKind.PadRing, LandingKind.CrawlerBay, LandingKind.Hatch,
                                                        LandingKind.Rig, LandingKind.Silo, LandingKind.Cave, LandingKind.Icebreaker };
     public static readonly int[] SiteWeights = { 3, 2, 2, 3, 2, 2, 2, 2, 2 };
-    // where the elite comes out: fractions of the drawing's bounds from its centre (y up). The launch-strip sites' are the pad pixels of
-    // Codex's masters (build_art.py: .5 across; .5 / .519 / .4375 / .514 down the 768 px cell): the dark bay the elite rises from.
+    // where the elite comes out: fractions of the drawing's bounds from its centre (y up); the first five re-measured on the 2026-11
+    // sites redraw (the open drawing's bay / ring centre). The launch-strip sites' are the pad pixels of
+    // Codex's masters (build_art.py: .5 across; .5 / .519 / .4375 / .514 down the 768 px cell): the dark bay the elite rises from; kept for
+    // the 2026-11 docks redraw, whose bays (rig / icebreaker: the scripted iris at the pad) hold them (frost_redraw/check_atlases.py).
     public static readonly Vector2[] SitePads =
     {
-        new Vector2(0f, -.05f), new Vector2(0f, -.03f), new Vector2(0f, 0f), new Vector2(0f, -.04f), new Vector2(0f, -.02f),
+        new Vector2(0f, -.06f), new Vector2(0f, 0f), new Vector2(0f, 0f), new Vector2(0f, -.03f), new Vector2(0f, -.08f),
         new Vector2(0f, 0f), new Vector2(0f, -.0195f), new Vector2(0f, .0625f), new Vector2(0f, -.0143f),
     };
 

@@ -8,7 +8,7 @@ Installs (overwrites the PNG bytes in place, the .meta files are untouched):
 The other v2 layers and v3 / v4 are not part of this redraw.
 
 Per layer, all in the 224-wide source grid (one source pixel = one 4 x 4 cell of the 896 x 1792 tile):
-  1. CROP   a 224 x 224 drawing letterboxed in white (none now: v1_mid is the full-height r1_2) would have its band cut
+  1. CROP   a 224 x 224 drawing letterboxed in white (none now: v1_mid is the full-height r1_2; v3_mid's 415-row band is lengthened by extend()) would have its band cut
             out and repeated twice down the tile after step 2. flow: the faintest wisps are dropped to FLOW_COVER.
   2. SEAM   two-cut quilt (seamless()): a 2 x O row strip found elsewhere in the same drawing is spliced over the
             wrap, cut in and out along minimum-error paths (hard cuts where the pieces already agree: no mirror, no
@@ -46,8 +46,11 @@ TARGET = {
     "v1/mid": (.160, .280, .35),
     "v2/far": (.140, .250, .32),
     "v2/mid": (.165, .290, .36),
+    "v3/far": (.140, .250, .32),
+    "v3/mid": (.160, .280, .35),
+    "v4/far": (.140, .250, .32),
 }
-FLOW_TARGET = {"v1/flow": (.30, .40, .42)}   # value of the wisps' own colour (median, p90, max)
+FLOW_TARGET = {"v1/flow": (.30, .40, .42), "v2/flow": (.30, .40, .42), "v3/flow": (.30, .40, .42)}   # value of the wisps' own colour (median, p90, max)
 FLOW_COVER = .245                             # share of flow texels that may show (skill verifier: <= .25)
 FLOW_ALPHA = .55                              # their peak straight alpha
 GAMMA_RANGE = (.6, 1.4)              # flatter than .6 washes the darks out, steeper than 1.4 crushes them
@@ -133,6 +136,33 @@ def seamless(a):
     out[h - O:] = np.where((rows >= r1[None, :])[..., None], a[k:k + O], bottom)
     out[:O] = np.where((rows < r2[None, :])[..., None], a[k + O:k + 2 * O], top)
     return out, k
+
+
+def extend(a, h_out, O=12):
+    """A drawing band shorter than the tile (v3_mid: 415 of 448 rows between white pads) is lengthened by quilting:
+    a strip src[k : k + n] (n = the missing rows) is appended below it, joined along a min-error cut over an O-row
+    overlap where src[k - O : k] agrees with the band's bottom; k is the offset with the least cut error plus the
+    detail penalty, at least 3 O away from the band's ends. The tile's wrap is then made seamless as usual."""
+    h = a.shape[0]
+    n = h_out - h
+    if n <= 0:
+        return a, None
+    f = a.astype(np.float32)
+    detail = (np.abs(np.diff(f[..., :3], axis=0)).sum(-1) * (f[1:, :, 3] + 1) / 256).sum(1)
+    bottom = a[h - O:]
+    best = None
+    for k in range(3 * O + O, h - n - 3 * O):
+        e = pair_err(bottom, a[k - O:k])
+        penalty = DETAIL_WEIGHT * detail[k - O:k + n - 1].sum() / (n + O)
+        if best is not None and e.min(0).sum() + penalty >= best[0]:
+            continue
+        r, c = cut(e, 2, O)
+        if best is None or c + penalty < best[0]:
+            best = (c + penalty, k, r)
+    _, k, r = best
+    rows = np.arange(O)[:, None]
+    joint = np.where((rows >= r[None, :])[..., None], a[k - O:k], bottom)
+    return np.concatenate([a[:h - O], joint, a[k:k + n]], 0), k
 
 
 def trim_flow(a, cover):
@@ -241,7 +271,10 @@ def build(key):
         y0, y1 = content_rows(a)
         if y1 - y0 < a.shape[0]:                   # a letterboxed square drawing: its band, repeated twice
             a = a[y0:y1]
-            if a.shape[0] != 224:
+            if a.shape[0] > 224:                   # a nearly full-height drawing between white pads: quilt it to 448
+                a, ek = extend(a, 448)
+                print(f"{key}: content rows {y0}..{y1} lengthened to 448 by a strip from row {ek}")
+            elif a.shape[0] != 224:
                 raise SystemExit(f"{key}: content band is {a.shape[0]} rows, expected 224 or 448")
     a, k = seamless(a)
     if layer == "flow":
@@ -260,7 +293,7 @@ def build(key):
     return out, info
 
 
-ALL = ["v1/sky", "v1/far", "v1/mid", "v1/flow", "v2/far", "v2/mid"]
+ALL = ["v1/sky", "v1/far", "v1/mid", "v1/flow", "v2/far", "v2/mid", "v2/flow", "v3/far", "v3/mid", "v3/flow", "v4/far"]
 
 
 def main():

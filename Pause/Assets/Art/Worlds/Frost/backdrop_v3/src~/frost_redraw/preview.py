@@ -63,7 +63,7 @@ def main():
     out = Path(sys.argv[1])
     base = Path(sys.argv[2]) if len(sys.argv) > 2 else ct.DEFAULT
     out.mkdir(parents=True, exist_ok=True)
-    for v in (1, 2):
+    for v in (1, 2, 3, 4):
         new_dir = base / f"v{v}"
         old_dir = HERE / "old" / f"v{v}"
         # old/ holds only the replaced layers; the rest is shared with the installed set

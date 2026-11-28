@@ -205,31 +205,32 @@ public static class FrostAmbientCatalog
     };
 
     // Emitter points measured on landmarks.png / sites.png (cell pixels from
-    // the top-left of each 256 cell).
+    // the top-left of each 256 cell): re-measured on the 2026-11 PixelLab redraw
+    // (frost_redraw/build_atlases.py) at the roofs, stacks, masts and lamp pods.
     public static readonly Binding[] Bindings =
     {
-        B("rig_00", E("flare", 102, 36), E("beacon_magenta", 108, 104), E("strobe_white", 172, 128)),
-        B("rig_01", E("flare", 127, 36), E("beacon_magenta", 104, 104), E("strobe_white", 184, 142)),
-        B("platform_00", E("searchlight", 128, 150), E("beacon_magenta", 148, 70), E("window_lights", 112, 160)),
-        B("platform_01", E("searchlight", 130, 150), E("beacon_cyan", 72, 48), E("beacon_magenta", 152, 48), E("window_lights", 100, 172)),
-        B("platform_02", E("searchlight", 110, 150), E("beacon_magenta", 142, 40), E("window_lights", 96, 160)),
-        B("refinery_00", E("smoke_a", 55, 72), E("smoke_b", 100, 66), E("window_lights", 100, 170)),
-        B("refinery_01", E("smoke_a", 130, 30), E("smoke_b", 74, 90), E("smoke_b", 184, 96, .8f), E("window_lights", 110, 190)),
-        B("relay_00", E("beacon_cyan", 98, 84), E("beacon_magenta", 193, 96), E("strobe_white", 160, 28)),
-        B("relay_01", E("beacon_cyan", 72, 82), E("beacon_magenta", 137, 60), E("strobe_white", 120, 28)),
-        B("causeway_00", E("beacon_cyan", 76, 46), E("beacon_magenta", 184, 111)),     // lamp heads of the landfall causeway (Codex, 2026-10-11)
-        B("icebreaker_00", E("steam_vent", 134, 48, .7f), E("beacon_magenta", 144, 73)),
-        B("icebreaker_01", E("steam_vent", 128, 50, .7f), E("beacon_cyan", 147, 61)),
+        B("rig_00", E("flare", 148, 44), E("beacon_magenta", 96, 104), E("strobe_white", 176, 96)),
+        B("rig_01", E("flare", 128, 42), E("beacon_magenta", 100, 96), E("strobe_white", 184, 82)),
+        B("platform_00", E("searchlight", 128, 150), E("beacon_magenta", 176, 40), E("window_lights", 112, 170)),
+        B("platform_01", E("searchlight", 130, 150), E("beacon_cyan", 72, 84), E("beacon_magenta", 184, 52), E("window_lights", 100, 172)),
+        B("platform_02", E("searchlight", 128, 150), E("beacon_magenta", 72, 90), E("window_lights", 176, 112)),
+        B("refinery_00", E("smoke_a", 80, 72), E("smoke_b", 156, 40), E("window_lights", 100, 170)),
+        B("refinery_01", E("smoke_a", 112, 62), E("smoke_b", 140, 66), E("smoke_b", 64, 84, .8f), E("window_lights", 110, 190)),
+        B("relay_00", E("beacon_cyan", 128, 36), E("beacon_magenta", 176, 120), E("strobe_white", 100, 60)),
+        B("relay_01", E("beacon_cyan", 100, 56), E("beacon_magenta", 176, 80), E("strobe_white", 128, 28)),
+        B("causeway_00", E("beacon_cyan", 60, 80), E("beacon_magenta", 200, 150)),     // the span's two ends (FrostTuning.Span)
+        B("icebreaker_00", E("steam_vent", 110, 90, .7f), E("beacon_magenta", 144, 58)),
+        B("icebreaker_01", E("steam_vent", 96, 80, .7f), E("beacon_cyan", 150, 72)),
         B("cliff_00", E("geyser", 70, 182), E("steam_vent", 190, 200, .8f)),
-        B("cliff_01", E("steam_vent", 60, 190, .8f), E("geyser", 200, 205, .8f), E("beacon_cyan", 139, 30)),
-        B("derrick_00", E("flare", 129, 36), E("beacon_magenta", 77, 106)),
-        B("convoy_00", E("steam_vent", 193, 62, .55f), E("steam_vent", 73, 137, .55f)),
+        B("cliff_01", E("steam_vent", 60, 190, .8f), E("geyser", 200, 205, .8f), E("beacon_cyan", 176, 44)),
+        B("derrick_00", E("flare", 128, 36), E("beacon_magenta", 90, 120)),
+        B("convoy_00", E("steam_vent", 100, 100, .55f), E("steam_vent", 180, 130, .55f)),
         // launch sites (keyed by their closed drawing)
-        B("hangar_closed", E("searchlight", 128, 196), E("beacon_magenta", 75, 42), E("beacon_cyan", 190, 52)),
-        B("rigbay_closed", E("beacon_cyan", 62, 42), E("strobe_white", 214, 58), E("window_lights", 128, 112)),
-        B("padring_idle", E("beacon_magenta", 128, 44), E("strobe_white", 128, 214)),
-        B("crawlerbay_closed", E("steam_vent", 90, 52, .6f), E("window_lights", 200, 70), E("beacon_cyan", 128, 60)),
-        B("hatch_closed", E("steam_vent", 60, 70, .6f), E("beacon_cyan", 128, 40)),
+        B("hangar_closed", E("searchlight", 128, 200), E("beacon_magenta", 100, 40), E("beacon_cyan", 180, 40)),
+        B("rigbay_closed", E("beacon_cyan", 60, 80), E("strobe_white", 196, 28), E("window_lights", 128, 112)),
+        B("padring_idle", E("beacon_magenta", 64, 54), E("strobe_white", 196, 54)),
+        B("crawlerbay_closed", E("steam_vent", 100, 60, .6f), E("window_lights", 200, 70), E("beacon_cyan", 64, 42)),
+        B("hatch_closed", E("steam_vent", 60, 90, .6f), E("beacon_cyan", 128, 52)),
     };
 
     static Loop L(string name, string atlas, float fps, float alpha, float scale)
