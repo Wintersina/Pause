@@ -1,23 +1,27 @@
 {
- "drawing": "approved.png",
- "source": "PixelLab drawing ship_Ninja/r3_1.png (128 px), approved Nov 2026",
+ "drawing": "approved_plus.png",
+ "source": "PixelLab drawing ship_Ninja/r3_1.png (128 px), approved Nov 2026; turned 45 deg to a \"+\" (RotSprite: Scale2x x3, nearest rotate, block-centre sample, palette kept) so the spinning hull sweeps no wider than its sprite (SpawnLane gap rule)",
  "canopy": [
   [
-   63,
-   63,
+   80,
+   79,
    12,
    12
   ]
  ],
  "nozzles": [
   [
-   64,
    80,
+   100,
    1.0
   ]
  ],
  "damageNote": "1) one blade edge chipped, sparking hub bolt, opposite blade scorched; 2) a blade root blown and burning, second blade holed, soot across the star, core cracked",
  "seed": 11,
  "integer_scale": true,
- "spinner": true
+ "spinner": true,
+ "max_scale": 1,
+ "wreck_soot": 0.1,
+ "wreck_mul": 0.25,
+ "fill_holes": "nearest"
 }

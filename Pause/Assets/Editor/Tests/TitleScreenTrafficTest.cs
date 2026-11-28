@@ -332,6 +332,9 @@ public static class TitleScreenTrafficTest
             spawnShips.ApplyHull(reference, f.id);
             var want = reference.transform.Find("Boost" + f.id);
             if (want == null) return f.boost == null ? null : "gameplay has no boost root";
+            // gameplay remounts the plumes on every hull frame (ShipThruster.Remount): compare on the
+            // drawing this flyer is showing, not only the rest frame
+            if (f.hull != null) ShipExhaust.RemountBoost(want, f.hull.sprite, f.id);
             if (f.boost == null) return "no boost root";
             if (f.boost.childCount != want.childCount) return "plume count " + f.boost.childCount + " vs " + want.childCount;
             for (int i = 0; i < want.childCount; i++)
@@ -375,6 +378,13 @@ public static class TitleScreenTrafficTest
         t.NextCrashAt = 1e9f;
         TitleScreenTraffic.Flyer f = null;
         foreach (var c in t.Pool) if (c.active && !c.wind) { f = c; break; }
+        // the opening launch can draw a spinner (the random draw shifts with the roster's nozzle count)
+        for (int tries = 0; f == null && tries < 400; tries++)
+        {
+            var cand = t.Launch(TitleScreenTraffic.Depth.Mid, true, false, null);
+            if (cand != null && !cand.wind) f = cand;
+            else if (cand != null) { cand.active = false; cand.go.SetActive(false); }
+        }
         Check("a ship to zip", f != null);
         if (f == null) { Done(t); return; }
         f.pos = new Vector2(t.Safe.center.x + .8f, t.Safe.yMin + 2.2f);
@@ -561,6 +571,8 @@ public static class TitleScreenTrafficTest
             spinners++;
             string who = ShipId.KeyOf(f.id) + ": ";
             var d = f.drift;
+            // a formation launch during the previous spinner's run may already have it in the air
+            if (f.active) { f.active = false; f.go.SetActive(false); }
             var g = Place(t, TitleScreenTraffic.Depth.Mid, at, .3f);
             int guard = 0;
             while (g != f && guard++ < 400)

@@ -191,6 +191,15 @@ def run(key):
     hull = [(float(x) * ppu + w / 2, float(y) * ppu + h / 2) for x, y in geo["hull"]]
     xs = [p[0] for p in hull]
     check("hull hitbox width / max(w,h) < .963 (rails)", (max(xs) - min(xs)) / max(w, h) < .963, "%.3f" % ((max(xs) - min(xs)) / max(w, h)))
+    # ShipHitboxTest: SpawnLane.ShipGap (ReferenceHullSize x 1.3) clears this hull with >= 30% to spare; the sprite's
+    # longest side is normalised to ReferenceHullSize, and a spinner sweeps its farthest hull point all the way round
+    cx_, cy_ = w / 2.0, h / 2.0
+    if key in ("Ninja", "UFO"):
+        span = 2 * max(math.hypot(px_ - cx_, py_ - cy_) for px_, py_ in hull)
+    else:
+        span = max(xs) - min(xs)
+    check("hull (spin sweep for spinners) fits SpawnLane's gap with 30% spare", span / max(w, h) * 1.3 <= 1.3 - 1e-4 / .58,
+          "%.3f u of 0.580" % (span / max(w, h) * .58))
     area = abs(sum(hull[i - 1][0] * hull[i][1] - hull[i][0] * hull[i - 1][1] for i in range(len(hull)))) / 2
     Sg = np.zeros((shh + 8, sw + 8), bool)
     Sg[4:-4, 4:-4] = S

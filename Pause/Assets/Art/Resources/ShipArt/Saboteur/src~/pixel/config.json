@@ -25,5 +25,6 @@
  "seed": 12,
  "integer_scale": true,
  "wreck_soot": 0.35,
- "wreck_mul": 0.36
+ "wreck_mul": 0.36,
+ "aspect_mul": 0.914
 }
