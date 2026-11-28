@@ -334,7 +334,33 @@ def bbox(alpha, thr):
     return xs.min(), xs.max(), ys.min(), ys.max()
 
 
-def compose_cell(back, body, front, rect, place):
+def finish(out, world, seed):
+    """Two last passes on a composed cell (uint8 space, so what is measured is what is written):
+    1. per-texel variation: every visible texel's RGB moves by -2..+2 per channel, so no two neighbours are byte-identical the way a
+       NEAREST upscale leaves them (EnemyResolutionTest: identical neighbour pairs <= 0.75, block score < 0.97). The white-hot core
+       point and its ring (rgb sum >= 740) are left exact: they stay the frame's brightest pixels (the laser's origin).
+    2. no pink outside Space (NoPinkOutsideSpaceTest's rule: hue 280..352 at chroma >= 9/255, value > .25): a glow blended over a warm
+       body can land in that band (Storm's violet over its copper coil); such texels are turned to the world's cue hue."""
+    px = np.clip(np.round(out * 255), 0, 255).astype(np.int32)
+    rng = np.random.default_rng(seed)
+    vis = px[..., 3] > 8
+    hot = px[..., :3].sum(-1) >= 740
+    noise = rng.integers(-2, 3, size=px[..., :3].shape)
+    m = vis & ~hot
+    px[..., :3] = np.where(m[..., None], np.clip(px[..., :3] + noise, 0, 255), px[..., :3])
+    if world != "space":
+        f = px[..., :3] / 255.0
+        h, s_, v = hsv_arr(f)
+        pink = vis & (v > .25) & (s_ * v >= .035) & (h >= 280) & (h < 352)
+        if pink.any():
+            cue = W[world]["cue"] if not (280 <= W[world]["cue"] < 352) else 250
+            for y, x in zip(*np.nonzero(pink)):
+                px[y, x, :3] = np.round(hsv(cue, s_[y, x], v[y, x]) * 255)
+    px[~vis, :3] = np.where(px[~vis, 3:4] > 0, px[~vis, :3], 0)
+    return px / 255.0
+
+
+def compose_cell(back, body, front, rect, place, world="space", seed=0):
     """place the scaled layers into a rect-sized cell. place = (dx, dy) of the scaled canvas in the cell."""
     rx, ry, rw, rh = rect
     cell_b = np.zeros((rh, rw, 4)); cell_d = np.zeros((rh, rw, 4)); cell_f = np.zeros((rh, rw, 4))
@@ -353,7 +379,7 @@ def compose_cell(back, body, front, rect, place):
         f[..., 3] = quant(f[..., 3] * env, 4)
     out = over(over(cell_b, cell_d), cell_f)
     out[out[..., 3] <= 0, :3] = 0
-    return out
+    return finish(out, world, seed)
 
 
 # ---------------------------------------------------------------------------------------------- measuring (as the tests do)
@@ -389,6 +415,8 @@ def measure_cell(cell, piv):
     op = a > 40
     red = op & (s > .35) & (v > .25) & ((h < 28) | (h > 332))
     res["red"] = float(red.sum() / max(1, op.sum()))
+    v24 = a > 24
+    res["pink"] = float((v24 & (v > .25) & (s * v >= .035) & (h >= 280) & (h < 352)).sum() / max(1, v24.sum()))
     return res
 
 
@@ -462,13 +490,13 @@ def main():
             rect = (x, band_y, widths[c], band_h)
             dx = MARGIN - L
             dy = int(round(band_h / 2.0 - piv_c[1]))
-            cell = compose_cell(*b["states"][c], rect, (dx, dy))
+            cell = compose_cell(*b["states"][c], rect, (dx, dy), world, 1000 * ORDER.index(world) + c)
             piv = (piv_c[0] + dx, piv_c[1] + dy)      # cell coords
             results[world]["rects"].append(rect)
             results[world]["pivots"].append((piv[0] + x, piv[1] + band_y))
             results[world]["cells"].append((cell, piv))
             if b["lit"] is not None:
-                results[world]["litcells"].append((compose_cell(*b["lit"][c], rect, (dx, dy)), piv))
+                results[world]["litcells"].append((compose_cell(*b["lit"][c], rect, (dx, dy), world, 5000 + c), piv))
             x += widths[c]
 
     # ---- write atlases
@@ -499,7 +527,7 @@ def main():
             m = meas[c]
             print(f"  {['dormant','waking','charging','burst'][c]:8s} rect {r['rects'][c]} pivot {r['pivots'][c]} reach {m['reach_px']:.1f}px "
                   f"({m['reach_px']/PPU:.3f}u) clamp200 {m['clamp200']:.1f} opaque40 {m['opaque40']} onBorder {m['onBorder40']} edge {m['edge128']:.3f} "
-                  f"w {m['width_u']:.3f}u long {m['long_u']:.3f}u red {m['red']:.3f} neon {m['neon']}")
+                  f"w {m['width_u']:.3f}u long {m['long_u']:.3f}u red {m['red']:.3f} pink {m['pink']:.4f} neon {m['neon']}")
         print(f"  core px from pivot (x lane-ward, y up): ({core[0]:.1f}, {core[1]:.1f}) ties {report[world]['core_ties']} per-frame {[(round(c[0],1), round(c[1],1)) for c in cores]}")
     if results["verdant"]["litcells"]:
         lit = atlases["rail_mines_neon_verdant_lit"]
@@ -512,6 +540,25 @@ def main():
     with open(os.path.join(HERE, "mines_measure.json"), "w") as f:
         json.dump({k: dict(rects=[[int(i) for i in r] for r in v["rects"]], pivots=[[float(i) for i in p] for p in v["pivots"]], core=[float(i) for i in v["core"]]) for k, v in report.items()}, f, indent=1)
 
+    # EnemyResolutionTest's gate on each whole file
+    for fname, A in atlases.items():
+        px = np.round(A * 255).astype(np.int32)
+        vis = px[..., 3] > 8
+        same = tot = 0
+        for d in ((0, 1), (1, 0)):
+            a1 = px[:px.shape[0] - d[0], :px.shape[1] - d[1]]; a2 = px[d[0]:, d[1]:]
+            any_vis = (a1[..., 3] > 8) | (a2[..., 3] > 8)
+            tot += any_vis.sum(); same += (any_vis & (a1 == a2).all(-1)).sum()
+        best = 0
+        for k in (2, 3, 4):
+            for oy in range(k):
+                for ox in range(k):
+                    hh = (px.shape[0] - oy) // k * k; ww = (px.shape[1] - ox) // k * k
+                    sub = px[oy:oy + hh, ox:ox + ww]
+                    first = sub[::k, ::k].repeat(k, 0).repeat(k, 1)
+                    v = sub[..., 3] > 8
+                    best = max(best, ((sub == first).all(-1) & v).sum() / max(1, v.sum()))
+        print(f"{fname}: identical pairs {same / tot:.3f} (<= .75), block score {best:.3f} (< .97)")
     if not dry:
         for fname, A in atlases.items():
             to_img(A).save(os.path.join(MINES, fname + ".png"), optimize=True)

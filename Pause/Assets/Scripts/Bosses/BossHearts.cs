@@ -41,19 +41,19 @@ public class BossHearts : HeartOrbit
     // centre, in world units at BossWorldSize 3.3: its centre and
     // half-axes, as a rect. Measured from the atlases (the silhouette's box,
     // grown to the ellipse through its furthest pixel); BossHeartsTest
-    // re-measures them from the source files. Space / Frost / Verdant / Ember / Tide: the v3 redraws
+    // re-measures them from the source files. Space / Frost / Verdant / Ember / Tide / Desert: the v3 redraws
     // (Art/Bosses~/redraw-v3/build.py prints them).
     public static Rect Body(BossDef boss)
     {
         switch (boss != null ? boss.artKey : null)
         {
-            case "Space": return Around(0f, .12f, 1.84f, 1.92f);
-            case "Frost": return Around(0f, 0f, 1.59f, 1.56f);
-            case "Verdant": return Around(0f, .06f, 1.70f, 1.78f);
-            case "Ember": return Around(0f, 0f, 1.55f, 1.51f);
-            case "Tide": return Around(0f, .03f, 1.71f, 1.74f);
+            case "Space": return Around(0f, .11f, 1.84f, 1.90f);
+            case "Frost": return Around(0f, .05f, 1.61f, 1.64f);
+            case "Verdant": return Around(0f, .07f, 1.69f, 1.78f);
+            case "Ember": return Around(0f, .02f, 1.53f, 1.51f);
+            case "Tide": return Around(0f, .02f, 1.72f, 1.73f);
             case "Storm": return Around(0f, .01f, 1.61f, 1.57f);
-            case "Desert": return Around(-.06f, -.06f, 1.82f, 1.74f);
+            case "Desert": return Around(0f, .08f, 1.71f, 1.79f);
             default:
                 float h = BossConfig.BossWorldSize * .5f * 1.42f;
                 return Around(0f, 0f, h, h);

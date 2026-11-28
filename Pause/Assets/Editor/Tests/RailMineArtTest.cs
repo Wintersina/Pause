@@ -46,7 +46,7 @@ public static class RailMineArtTest
     // 5ce92c375e467f39c839c3fcc6a060c2185840b8). Every other row is pixel-identical, so the pin moved to the recoloured file.
     // 2026-11-27: all four rows are the Paragon-standard redraws (Art/Enemies/src~/paragon_standard/mines/build_mines.py; the
     // previous file, sha1 33e2b29ad364b814874d70ad60a2382eb2fc0d1e, is archived there in old/), so the pin moved to the redrawn file.
-    public const string OriginalSha1 = "381933bae76fa77c3b17f7b736b8fa6c9e98571c";
+    public const string OriginalSha1 = "22ddec5d5029b544ea41be2d343a77538a21f23e";
 
     public static int Execute()
     {

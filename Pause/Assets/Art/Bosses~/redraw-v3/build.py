@@ -874,7 +874,9 @@ def main():
         report[w] = dict(cell=b.C, scale=round(b.f, 3), old_edge=int(b.old_edge), hearts=b.hearts(),
                          points={n: p[20 if w in EXPANDED else 0] for n, p in pts.items()})
         print(json.dumps({w: report[w]}))
-    (HERE / "report.json").write_text(json.dumps(report, indent=1))
+    old = json.loads((HERE / "report.json").read_text()) if (HERE / "report.json").exists() else {}
+    old.update(report)
+    (HERE / "report.json").write_text(json.dumps(old, indent=1))
 
 
 if __name__ == "__main__":

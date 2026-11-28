@@ -117,8 +117,9 @@ def check(key):
         if not on_hull(f0, m["x"], m["y"], r): F(key, f"muzzle {m['name']} off the art")
         lx = (m["x"] - S / 2) * d["cellWorldSize"] / S; ly = (S / 2 - m["y"]) * d["cellWorldSize"] / S
         if math.hypot(lx, ly) >= d["cellWorldSize"] * .42: F(key, f"muzzle {m['name']} too far out")
-        if math.hypot(lx, ly) <= .2: F(key, f"muzzle {m['name']} only {math.hypot(lx, ly):.2f} u from the centre (EliteTest wants shots > .15 u out)")
         if not (.04 * S <= m["x"] <= .96 * S and .04 * S <= m["y"] <= .96 * S): F(key, f"muzzle {m['name']} near the edge")
+    far = max(math.hypot((m["x"] - S / 2), (S / 2 - m["y"])) * d["cellWorldSize"] / S for m in d["muzzles"])
+    if far <= .2: F(key, f"every muzzle within {far:.2f} u of the centre (EliteTest wants a shot > .15 u out)")
     total = len(allc)
     for nz in d["nozzles"]:
         if not on_hull(f0, nz["x"], nz["y"], r): F(key, f"nozzle {nz['name']} off the art")
