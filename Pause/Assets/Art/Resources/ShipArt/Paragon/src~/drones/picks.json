@@ -1,0 +1,18 @@
+{
+  "heal": {
+    "candidate": "r1_2.png",
+    "pick": "s/drone_Paragon_heal__nr1.png#2"
+  },
+  "t1": {
+    "candidate": "r1_2.png",
+    "pick": "s/drone_Paragon_t1__nr1.png#2"
+  },
+  "t2": {
+    "candidate": "r1_3.png",
+    "pick": "s/drone_Paragon_t2__nr1.png#3"
+  },
+  "t3": {
+    "candidate": "r1_2.png",
+    "pick": "s/drone_Paragon_t3__nr1.png#2"
+  }
+}

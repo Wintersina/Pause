@@ -27,7 +27,8 @@ Usage:
     python3 build_drones.py --contact OUT.png       also write a contact sheet (ships x skins x tiers + frames)
 
 Skins: the same approach as the hull skins' scripted recolour (build_restyle.recolour): the ship's main
-armour hue family (hue near the stock `hue` of <Key>_data.json, saturated) is gradient-mapped onto the
+armour hue family (hue near the stock `hue` of <Key>_data.json, or `armourHue` / `hueTol` of an optional
+<Key>/src~/drones/config.json when the drones' armour is another hue, e.g. Paragon; saturated) is gradient-mapped onto the
 skin's shadow / base / highlight; lights, cores, glass, metal and emblems (other hues, greys) are kept.
 A Special skin keeps the stock armour and paints its livery pattern (racing / chevrons / diagonal /
 split) in the accent colours over the armour.
@@ -59,6 +60,7 @@ PIVOT = (0.5, 0.12)   # the roster tiles' pivot (UltimateGun.GunSpriteFor)
 FRAMES = 4
 FPS = 6.0
 PULSE = [0.0, 0.3, 0.55, 0.3]
+HUE_TOL = 17          # armour = hue within this of the armour hue (PIL 0-255 hue); per ship: src~/drones/config.json
 MIN_SPECK = 6         # opaque islands smaller than this (px) are stray pixels and removed
 
 
@@ -109,7 +111,7 @@ def armour_mask(a, stock_hue):
     h, s, v = hsv_of(a[..., :3])
     d = np.abs(h - stock_hue)
     d = np.minimum(d, 255 - d)
-    return (a[..., 3] > 0) & (d < 17) & (s > 70) & (v > 35) & ~core_mask(a, stock_hue)
+    return (a[..., 3] > 0) & (d < HUE_TOL) & (s > 70) & (v > 35) & ~core_mask(a, stock_hue)
 
 
 def light_mask(a, armour):
@@ -251,8 +253,15 @@ def build_ship(key):
     tiers = [t for t in TIERS if os.path.exists(os.path.join(src, t + ".png"))]
     if not tiers:
         return None
+    global HUE_TOL
     data = json.load(open(os.path.join(SHIPART, key, key + "_data.json")))
-    stock_hue = hue_of(data["hue"][0])
+    # optional per-ship override when the drones' armour is not the data file's stock hue (Paragon: its painted
+    # hull and drones are indigo / violet, its data hue is the old blue):  {"armourHue": 180, "hueTol": 26}
+    cfgp = os.path.join(src, "config.json")
+    cfg = json.load(open(cfgp)) if os.path.exists(cfgp) else {}
+    ah = cfg.get("armourHue")
+    stock_hue = hue_of(ah) if isinstance(ah, str) else float(ah) if ah is not None else hue_of(data["hue"][0])
+    HUE_TOL = cfg.get("hueTol", 17)
     skins = [s for s in data.get("skins", []) if s.get("kind") != "Stock"]
 
     rows = len(tiers)

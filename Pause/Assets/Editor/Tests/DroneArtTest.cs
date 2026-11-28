@@ -19,18 +19,17 @@ public static class DroneArtTest
     public static void Run() { TestHarness.Exit(Execute()); }
 
     // Ships whose t1, t2, t3 and heal drawings are all approved and installed. Add a ship here once its last
-    // drawing lands (GoldWarden t1/t2, Paranoid t1, Ninja t3/heal, Saboteur, UFO, Dove, Turtle, Paragon pending).
+    // drawing lands (UFO heal pending).
     static readonly string[] Complete =
     {
-        "NeonComet", "VoltViper", "SolarFang", "CrimsonHalo", "IonLancer", "JadePhantom", "Lightning", "Ligher",
+        "NeonComet", "VoltViper", "SolarFang", "CrimsonHalo", "IonLancer", "JadePhantom", "GoldWarden",
+        "Lightning", "Ligher", "Paranoid", "Ninja", "Saboteur", "Dove", "Turtle", "Paragon",
     };
 
     // Ships with only some drawings so far: the tiers they must have (the rest fall back to the roster tile).
     static readonly Dictionary<string, DroneTier[]> Partial = new Dictionary<string, DroneTier[]>
     {
-        { "GoldWarden", new[] { DroneTier.T3, DroneTier.Heal } },
-        { "Paranoid", new[] { DroneTier.T2, DroneTier.T3, DroneTier.Heal } },
-        { "Ninja", new[] { DroneTier.T1, DroneTier.T2 } },
+        { "UFO", new[] { DroneTier.T1, DroneTier.T2, DroneTier.T3 } },
     };
 
     public static int Execute()

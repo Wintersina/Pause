@@ -1,0 +1,5 @@
+{
+  "armourHue": 180,
+  "hueTol": 26,
+  "note": "Paragon's painted hull and drones are indigo/violet (PIL hue ~156-206); its data file's stock hue (#2E9BE6) is the old blue"
+}
