@@ -65,7 +65,8 @@ public static class RailMineArt
     // whatever the rail art or the camera is (enmiesOnBoard.WorldRailX).
     public const float ClampReach = .33f, ClampBite = .16f;
     // Without the reinforced rail art (headless tests, a plain wall): the
-    // authored lane edge the mines always used.
+    // authored lane edge the mines always used (enmiesOnBoard.WorldRailX adds
+    // RailInset.NarrowShift: the 80% rails' inner edge is that much further out).
     public const float FallbackRailX = 2.35f;
 
     // A mine's centre x (as a distance from the centre line) on a rail whose

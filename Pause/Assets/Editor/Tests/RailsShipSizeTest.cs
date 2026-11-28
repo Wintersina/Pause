@@ -319,7 +319,7 @@ public static class RailsShipSizeTest
         TestHarness.Send(scroller, "Update");
         float after = lane.transform.position.x;
         Check("a rail-mine lane re-anchors when the rails move out mid-run (" + F(before) + " -> " + F(after) + ", rail mount " + F(enmiesOnBoard.WorldRailX(false)) + ")",
-              Mathf.Abs(after - enmiesOnBoard.WorldRailX(false)) < 1e-4f && after > before + .2f);
+              Mathf.Abs(after - enmiesOnBoard.WorldRailX(false)) < 1e-4f && after > before + RailInset.MaxShift - .01f);   // (16:9 -> 21:9: the room shift, MaxShift)
         Object.DestroyImmediate(lane);
         score.pauseCounter = 0;
     }

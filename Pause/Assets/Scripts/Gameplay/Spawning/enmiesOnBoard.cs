@@ -143,6 +143,10 @@ public class enmiesOnBoard : MonoBehaviour {
     void StaggerAfterCalm()
     {
         railDelayTimer = Mathf.Max(railDelayTimer, .5f);
+        // the opening heavy and enemy (PrimeOpeningEncounter caps them at .75 / 1.5 s): a timer already
+        // nearly due must not fire them the instant the window ends either
+        bigEnmDelayTimer = Mathf.Max(bigEnmDelayTimer, .75f);
+        smEnmDelayTimer = Mathf.Max(smEnmDelayTimer, 1.5f);
         mineDelayTimer = Mathf.Max(mineDelayTimer, 4f);
         midAstroidDelayTimer = Mathf.Max(midAstroidDelayTimer, 5f);
         spawnAnimatedEnimeOneDelayTimer = Mathf.Max(spawnAnimatedEnimeOneDelayTimer, 6f);
@@ -644,7 +648,7 @@ public class enmiesOnBoard : MonoBehaviour {
         float wallX = wall != null ? wall.transform.position.x : (left ? -3.15f : 3.15f);
         float inner, outer;
         float railX = wall != null && WorldPainter.VisibleRailEdges(wall, out inner, out outer)
-            ? RailMineArt.MountX(inner, world) : LaneMetrics.Widen(RailMineArt.FallbackRailX);
+            ? RailMineArt.MountX(inner, world) : LaneMetrics.Widen(RailMineArt.FallbackRailX + RailInset.NarrowShift);
         var cam = CameraFit.Main;
         float visibleLimit = cam != null && cam.orthographic
             ? cam.orthographicSize * cam.aspect - .30f : railX;

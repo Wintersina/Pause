@@ -113,10 +113,11 @@ public static class NextFeatures0907Test
 
     static void AtomsStayInsideSideRails()
     {
+        // (2.13: the atoms' 2.35 lane less a .22 half-width, out by the 80% rails' NarrowShift)
         Check("atom clamp keeps its visible edge inside the left rail",
-              AtomSpin.ClampAtomX(-4f, .22f) >= -2.13f);
+              AtomSpin.ClampAtomX(-4f, .22f) >= -(2.13f + RailInset.NarrowShift) - 1e-4f);
         Check("atom clamp keeps its visible edge inside the right rail",
-              AtomSpin.ClampAtomX(4f, .22f) <= 2.13f);
+              AtomSpin.ClampAtomX(4f, .22f) <= 2.13f + RailInset.NarrowShift + 1e-4f);
     }
 
     // ---- 2: rails cover the camera -----------------------------------------
@@ -483,7 +484,8 @@ public static class NextFeatures0907Test
         // punch-holes: a 6.5%-wide camera a little down from the top
         float d = w * .065f;
         var hole = new Rect(w * .5f - d * .5f, h - h * .012f - d, d, d);
-        var corner = new Rect(w * .055f, h - h * .012f - d, d, d);
+        // (in the corner, over the rail: the 80% rails cover 12% of the width at the authored layout)
+        var corner = new Rect(w * .03f, h - h * .012f - d, d, d);
         // waterfall: both long edges curve away
         float fall = w * .03f;
         var fallL = new Rect(0f, 0f, fall, h);
@@ -555,7 +557,9 @@ public static class NextFeatures0907Test
                 float railL = size.x * .5f - painted / halfW * size.x * .5f, railR = size.x - railL;
                 float minTap = shape.ios ? 44f : 48f;
 
-                // the band without any floor (the editor's plain pixel scaling)
+                // the band without any floor (the editor's plain pixel scaling: no override, so the floor is
+                // off -- not the scaler the previous shape's floored pass left behind)
+                UiScaleFloor.ApplyAll();
                 var plainCase = CutoutCases(size)[0];
                 Rect plainRead = HudStyler.HudScreenRect(TopBand.FrameFor(plainCase.safe, size, painted, plainCase.cutouts), size,
                                                          HudStyler.HudCanvasScale(canvas, scaler, size), hudSize);
