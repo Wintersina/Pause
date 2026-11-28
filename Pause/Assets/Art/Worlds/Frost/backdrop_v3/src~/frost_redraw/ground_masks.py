@@ -38,7 +38,7 @@ def main():
         dbg = args[i + 1]
         del args[i:i + 2]
     base = Path(args[0]) if args else DEFAULT
-    for v in (1, 2, 3):
+    for v in (1, 2, 3, 4):
         cfg = dict(gm.VARIANTS[v])
         cfg.update(OVERRIDES.get(v, {}))
         mid = Image.open(base / f"v{v}" / "mid.png").convert("RGB").resize((512, 1024), Image.LANCZOS)

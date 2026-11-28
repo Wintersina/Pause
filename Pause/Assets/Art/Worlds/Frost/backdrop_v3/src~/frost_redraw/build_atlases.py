@@ -283,8 +283,98 @@ def site_lamps():
     return cells
 
 
+AMBIENT = HERE.parents[5] / "Scripts/Worlds/Backdrop/FrostAmbient.cs"
+LIT = {"beacon_cyan": (110, 242, 238), "beacon_magenta": (255, 196, 96), "strobe_white": (205, 244, 248),
+       "window_lights": (236, 178, 84), "flare": (255, 196, 96), "searchlight": (205, 244, 248)}
+LANDMARK_CONTRAST, LANDMARK_SAT = 1.4, 1.3
+
+
+def bindings():
+    """FrostAmbientCatalog.Bindings: piece -> [(loop, x, y)] (cell pixels from the top-left)."""
+    import re
+    src = AMBIENT.read_text()
+    out = {}
+    for piece, body in re.findall(r'B\("(\w+)",(.*?)\)\),?\n', src):
+        out[piece] = [(l, int(x), int(y)) for l, x, y in re.findall(r'E\("(\w+)", (\d+), (\d+)', body)]
+    return out
+
+
+def cool(cells, old_sheet, old_js):
+    """Lift contrast and saturation (about the family's mean), then take the old atlas's cool blue: the family's
+    mean RGB is matched to the old drawings' (per channel)."""
+    o = np.asarray(Image.open(old_sheet).convert("RGBA")).astype(np.float64)
+    H = o.shape[0]
+    fam_old = {}
+    for sp in json.loads(Path(old_js).read_text())["sprites"]:
+        c = o[H - sp["y"] - sp["h"]:H - sp["y"], sp["x"]:sp["x"] + sp["w"]]
+        fam_old.setdefault(family(sp["n"]), []).append(c[..., :3][c[..., 3] > 0])
+    groups = {}
+    for n in cells:
+        groups.setdefault(family(n), []).append(n)
+    for fam, names in groups.items():
+        allp = np.concatenate([cells[n][..., :3][cells[n][..., 3] > 0] for n in names]).astype(np.float64)
+        mv = allp.max(-1).mean()
+        tmp = {}
+        for n in names:
+            f = cells[n][..., :3].astype(np.float64)
+            v = f.max(-1)
+            v2 = np.clip(mv + (v - mv) * LANDMARK_CONTRAST, 0, 255)
+            f = f * (v2 / np.maximum(v, 1))[..., None]
+            l = f.mean(-1, keepdims=True)
+            tmp[n] = np.clip(l + (f - l) * LANDMARK_SAT, 0, 255)
+        cur = np.concatenate([tmp[n][cells[n][..., 3] > 0] for n in names]).mean(0)
+        ratio = np.concatenate(fam_old[fam]).mean(0) / np.maximum(cur, 1)
+        for n in names:
+            on = cells[n][..., 3] > 0
+            cells[n][..., :3] = np.where(on[..., None], np.clip(np.rint(tmp[n] * ratio), 0, 255), 0).astype(np.uint8)
+    return cells
+
+
+def light_up(cells, pick, table):
+    """A few lit lamp pixels (one 4 x 4 source pixel each, on the drawing's grid): at each of the piece's
+    beacon / strobe emitter points (the topmost drawn pixel within 20 px), a short row of three at its window
+    point, and the pick's own lamp-pod texels (green in the drawing) turned cyan. Returns {frame: count}."""
+    bind = bindings()
+    count = {}
+    for n, (r, c) in table.items():
+        cell = cells[n]
+        on = cell[..., 3] > 0
+        lit = []
+        src_cell = pick[r * 64:(r + 1) * 64, c * 64:(c + 1) * 64]
+        f = src_cell[..., :3].astype(np.float64) / 255
+        mx, mn = f.max(-1), f.min(-1)
+        green = (src_cell[..., 3] > 0) & (f[..., 1] == mx) & (mx - mn > .3) & (f[..., 1] - f[..., 2] > .1)
+        for y, x in zip(*np.nonzero(green)):
+            lit.append((x * 4, y * 4, LIT["beacon_cyan"]))
+        for loop, x, y in bind.get(n, []):
+            if loop not in LIT:
+                continue
+            gx, gy = x // 4 * 4, y // 4 * 4
+            if loop == "window_lights":
+                for dx in (-4, 0, 4):
+                    lit.append((gx + dx, gy, LIT[loop]))
+                continue
+            best = None
+            for yy in range(max(0, gy - 20), min(252, gy + 21), 4):
+                for xx in range(max(0, gx - 20), min(252, gx + 21), 4):
+                    if on[yy:yy + 4, xx:xx + 4].all() and (best is None or (yy, abs(xx - gx)) < (best[1], abs(best[0] - gx))):
+                        best = (xx, yy)
+            if best:
+                lit.append((best[0], best[1], LIT[loop]))
+        k = 0
+        for x, y, col in lit:
+            if on[y:y + 4, x:x + 4].all():
+                cell[y:y + 4, x:x + 4, :3] = col
+                k += 1
+        count[n] = k
+    return count
+
+
 def build_landmarks():
     cells = ground_atlas("landmarks", LANDMARKS)
+    cells = cool(cells, OLD / "landmarks.png", OLD / "landmarks.json")
+    lit = light_up(cells, src("landmarks"), LANDMARKS)
+    print("landmarks lit lamp pixels:", lit)
     sheet, js = sheet_from_cells("landmarks", cells, (1024, 1024))
     return save("landmarks", sheet, js, 101)
 

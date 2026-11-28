@@ -49,8 +49,12 @@ TARGET = {
     "v3/far": (.140, .250, .32),
     "v3/mid": (.160, .280, .35),
     "v4/far": (.140, .250, .32),
+    "v2/sky": (.110, .185, .27),
+    "v3/sky": (.110, .185, .27),
+    "v4/sky": (.110, .185, .27),
+    "v4/mid": (.160, .280, .35),
 }
-FLOW_TARGET = {"v1/flow": (.30, .40, .42), "v2/flow": (.30, .40, .42), "v3/flow": (.30, .40, .42)}   # value of the wisps' own colour (median, p90, max)
+FLOW_TARGET = {"v1/flow": (.30, .40, .42), "v2/flow": (.30, .40, .42), "v3/flow": (.30, .40, .42), "v4/flow": (.30, .40, .42)}   # value of the wisps' own colour (median, p90, max)
 FLOW_COVER = .245                             # share of flow texels that may show (skill verifier: <= .25)
 FLOW_ALPHA = .55                              # their peak straight alpha
 GAMMA_RANGE = (.6, 1.4)              # flatter than .6 washes the darks out, steeper than 1.4 crushes them
@@ -58,6 +62,26 @@ GAMMA_RANGE = (.6, 1.4)              # flatter than .6 washes the darks out, ste
 
 def load(name):
     return np.asarray(Image.open(HERE / "sources" / name).convert("RGBA")).copy()
+
+
+def border(a, max_band=24):
+    """A frame band on any edge: consecutive edge lines (rows or columns) that are uniform (value spread < 6) or
+    light (mean value > 200 and 60 above the drawing's median). Returns (top, bottom, left, right) band widths."""
+    v = a[..., :3].max(-1).astype(np.float64)
+    med = np.median(v)
+    def bad(line, alpha):
+        if alpha.mean() == 0:
+            return False                               # a transparent edge (flow) is no frame
+        l = line[alpha > 0]
+        return l.std() < 6 or (l.mean() > 200 and l.mean() > med + 60)
+    out = []
+    for lines in ((lambda i: (v[i], a[i, :, 3])), (lambda i: (v[-1 - i], a[-1 - i, :, 3])),
+                  (lambda i: (v[:, i], a[:, i, 3])), (lambda i: (v[:, -1 - i], a[:, -1 - i, 3]))):
+        n = 0
+        while n < max_band and bad(*lines(n)):
+            n += 1
+        out.append(n)
+    return tuple(out)
 
 
 def content_rows(a):
@@ -267,6 +291,12 @@ def pixel_pass(a, seed):
 def build(key):
     v, layer = key.split("/")
     a = load(f"{v}_{layer}.png")
+    t, b, l, r = border(a) if layer != "flow" else (0, 0, 0, 0)   # a flow's edges are transparent or wisps
+    if l or r:
+        raise SystemExit(f"{key}: a {l} / {r} px frame on the left / right: crop it and re-pick (columns can't be quilted)")
+    if t or b:                                         # a frame band top or bottom: cut off, the rows quilted back
+        print(f"{key}: frame band cropped: {t} rows top, {b} bottom")
+        a, ek = extend(a[t:a.shape[0] - b], 448)
     if layer != "flow":
         y0, y1 = content_rows(a)
         if y1 - y0 < a.shape[0]:                   # a letterboxed square drawing: its band, repeated twice
@@ -293,7 +323,8 @@ def build(key):
     return out, info
 
 
-ALL = ["v1/sky", "v1/far", "v1/mid", "v1/flow", "v2/far", "v2/mid", "v2/flow", "v3/far", "v3/mid", "v3/flow", "v4/far"]
+ALL = ["v1/sky", "v1/far", "v1/mid", "v1/flow", "v2/far", "v2/mid", "v2/flow", "v3/far", "v3/mid", "v3/flow", "v4/far",
+       "v2/sky", "v3/sky", "v4/sky", "v4/mid", "v4/flow"]
 
 
 def main():
