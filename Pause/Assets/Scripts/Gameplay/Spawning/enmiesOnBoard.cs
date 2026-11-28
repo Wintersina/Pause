@@ -1227,6 +1227,11 @@ public class RailMineMount : MonoBehaviour, IMovementFootprint
         lockedX = targetRail != null ? targetRail.position.x : transform.position.x;
         mounted = targetRail != null;
         if (mounted) railOffsetY = transform.position.y - targetRail.position.y;
+        // Face the lane: the drawings put the clamp (the T) on the LEFT, the eye the beam leaves from on the right, so a
+        // right-hand mine is mirrored (RailMineArt; RailMineLaser.MuzzleOf mirrors its core the same way). Done here so
+        // every path that mounts a mine -- the spawner, previews, the level showcase -- grips the rail with its clamp.
+        var art = GetComponent<SpriteRenderer>();
+        if (art != null && mounted) art.flipX = lockedX > 0f;
         Board(targetRail);
 
         // EnemyFactory retains the legacy straight-line mover so prefab and

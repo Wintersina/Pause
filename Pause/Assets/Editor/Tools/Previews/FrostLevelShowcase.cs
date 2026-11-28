@@ -171,7 +171,7 @@ public static class FrostLevelShowcase
             var fb = go.GetComponent<EnemyFlipbook>();
             if (fb != null) fb.Advance(dt);
         }
-        if (mount != null) mount.SendMessage("LateUpdate", SendMessageOptions.DontRequireReceiver);
+        foreach (var m in Object.FindObjectsByType<RailMineMount>(FindObjectsSortMode.None)) if (m != null) m.SendMessage("LateUpdate", SendMessageOptions.DontRequireReceiver);
         EliteSystem.Step(dt);
         var live = EliteShip.Live;
         for (int i = 0; i < live.Count; i++)
@@ -267,18 +267,20 @@ public static class FrostLevelShowcase
         Spawn(Def("frost_rock_chunk", EnemyRole.Rock), new Vector2(.2f, -top * .05f));
         Spawn(Def("frost_chaser", EnemyRole.Chaser), new Vector2(1.4f, -top * .25f));
 
-        // the rail mine, clamped to the right rail (as enmiesOnBoard mounts it)
+        // a rail mine on each rail, clamped as enmiesOnBoard mounts them (MountTo turns its clamp to the rail, eye to the lane)
         var mdef = Def("frost_mine", EnemyRole.Mine);
-        float x = enmiesOnBoard.WorldRailX(false, Frost);
-        var rail = new GameObject("RailMineLane");
-        rail.transform.position = new Vector3(x, top * .05f, 0f);
-        rail.AddComponent<RailLaneScroller>();
-        var mgo = Spawn(mdef, new Vector2(x, top * .05f));
-        if (mgo != null)
+        foreach (bool left in new[] { false, true })
         {
-            mount = mgo.AddComponent<RailMineMount>();
-            mount.MountTo(rail.transform);
-            mount.brain = mgo.GetComponent<EnemyBrain>();
+            float x = enmiesOnBoard.WorldRailX(left, Frost), y = top * (left ? -.35f : .05f);
+            var rail = new GameObject("RailMineLane");
+            rail.transform.position = new Vector3(x, y, 0f);
+            rail.AddComponent<RailLaneScroller>();
+            var mgo = Spawn(mdef, new Vector2(x, y));
+            if (mgo == null) continue;
+            var m = mgo.AddComponent<RailMineMount>();
+            m.MountTo(rail.transform);
+            m.brain = mgo.GetComponent<EnemyBrain>();
+            if (!left) mount = m;
         }
         foreach (var go in wave)
         {
