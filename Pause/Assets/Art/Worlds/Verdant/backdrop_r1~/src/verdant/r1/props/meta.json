@@ -1,0 +1,1256 @@
+{
+ "logging_r1_0": {
+  "frames": 8,
+  "cell": 256,
+  "ms": [
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125
+  ],
+  "pink_px": 0,
+  "note": "as painted: orange truck, blue roof, green cabin",
+  "air": false,
+  "lamps": {
+   "window": 6
+  }
+ },
+ "logging_r1_1": {
+  "frames": 8,
+  "cell": 256,
+  "ms": [
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125
+  ],
+  "pink_px": 0,
+  "note": "yellow machines, red-oxide roof",
+  "air": false,
+  "lamps": {
+   "window": 6
+  }
+ },
+ "logging_r1_2": {
+  "frames": 8,
+  "cell": 256,
+  "ms": [
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125
+  ],
+  "pink_px": 0,
+  "note": "red machines, green roof",
+  "air": false,
+  "lamps": {
+   "window": 6
+  }
+ },
+ "logging_r1_3": {
+  "frames": 8,
+  "cell": 256,
+  "ms": [
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125
+  ],
+  "pink_px": 0,
+  "note": "blue-grey machines, rusty roof",
+  "air": false,
+  "lamps": {
+   "window": 6
+  }
+ },
+ "temple_r1_0": {
+  "frames": 8,
+  "cell": 256,
+  "ms": [
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125
+  ],
+  "pink_px": 0,
+  "note": "as painted: ochre-grey stone, red and blue banners",
+  "air": false,
+  "lamps": {
+   "fire": 2
+  }
+ },
+ "temple_r1_1": {
+  "frames": 8,
+  "cell": 256,
+  "ms": [
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125
+  ],
+  "pink_px": 0,
+  "note": "pale cream limestone, teal banners",
+  "air": false,
+  "lamps": {
+   "fire": 2
+  }
+ },
+ "temple_r1_2": {
+  "frames": 8,
+  "cell": 256,
+  "ms": [
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125
+  ],
+  "pink_px": 0,
+  "note": "dark basalt-grey stone, golden banners",
+  "air": false,
+  "lamps": {
+   "fire": 2
+  }
+ },
+ "temple_r1_3": {
+  "frames": 8,
+  "cell": 256,
+  "ms": [
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125
+  ],
+  "pink_px": 0,
+  "note": "red-brown laterite stone, white banners",
+  "air": false,
+  "lamps": {
+   "fire": 2
+  }
+ },
+ "barge_r1_0": {
+  "frames": 8,
+  "cell": 256,
+  "ms": [
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125
+  ],
+  "pink_px": 0,
+  "note": "as painted: red hull, blue tarpaulin, green cabin roof",
+  "air": false,
+  "lamps": {}
+ },
+ "barge_r1_1": {
+  "frames": 8,
+  "cell": 256,
+  "ms": [
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125
+  ],
+  "pink_px": 0,
+  "note": "navy hull, yellow tarpaulin",
+  "air": false,
+  "lamps": {}
+ },
+ "barge_r1_2": {
+  "frames": 8,
+  "cell": 256,
+  "ms": [
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125
+  ],
+  "pink_px": 0,
+  "note": "forest-green hull, orange tarpaulin",
+  "air": false,
+  "lamps": {}
+ },
+ "barge_r1_3": {
+  "frames": 8,
+  "cell": 256,
+  "ms": [
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125
+  ],
+  "pink_px": 0,
+  "note": "mustard hull, white tarpaulin",
+  "air": false,
+  "lamps": {}
+ },
+ "treehouse_r1_0": {
+  "frames": 8,
+  "cell": 256,
+  "ms": [
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125
+  ],
+  "pink_px": 0,
+  "note": "as painted: golden thatch, red / teal / yellow walls",
+  "air": false,
+  "lamps": {
+   "window": 20
+  }
+ },
+ "treehouse_r1_1": {
+  "frames": 8,
+  "cell": 256,
+  "ms": [
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125
+  ],
+  "pink_px": 0,
+  "note": "grey-green thatch, blue walls, dry-season gold crown",
+  "air": false,
+  "lamps": {
+   "window": 20
+  }
+ },
+ "treehouse_r1_2": {
+  "frames": 8,
+  "cell": 256,
+  "ms": [
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125
+  ],
+  "pink_px": 0,
+  "note": "dark brown thatch, teal walls",
+  "air": false,
+  "lamps": {
+   "window": 20
+  }
+ },
+ "treehouse_r1_3": {
+  "frames": 8,
+  "cell": 256,
+  "ms": [
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125
+  ],
+  "pink_px": 0,
+  "note": "straw thatch, white-washed walls, deep green crown",
+  "air": false,
+  "lamps": {
+   "window": 20
+  }
+ },
+ "waterfall_r1_0": {
+  "frames": 8,
+  "cell": 512,
+  "ms": [
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125
+  ],
+  "pink_px": 0,
+  "note": "as painted: ochre and rust strata, emerald forest",
+  "air": false,
+  "lamps": {}
+ },
+ "waterfall_r1_1": {
+  "frames": 8,
+  "cell": 512,
+  "ms": [
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125
+  ],
+  "pink_px": 0,
+  "note": "grey granite cliff",
+  "air": false,
+  "lamps": {}
+ },
+ "waterfall_r1_2": {
+  "frames": 8,
+  "cell": 512,
+  "ms": [
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125
+  ],
+  "pink_px": 0,
+  "note": "dark basalt cliff, golden-brown autumn crown",
+  "air": false,
+  "lamps": {}
+ },
+ "waterfall_r1_3": {
+  "frames": 8,
+  "cell": 512,
+  "ms": [
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125
+  ],
+  "pink_px": 0,
+  "note": "pale limestone cliff",
+  "air": false,
+  "lamps": {}
+ },
+ "karst_r1_0": {
+  "frames": 8,
+  "cell": 512,
+  "ms": [
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125
+  ],
+  "pink_px": 0,
+  "note": "as painted: cream and ochre limestone towers",
+  "air": false,
+  "lamps": {}
+ },
+ "karst_r1_1": {
+  "frames": 8,
+  "cell": 512,
+  "ms": [
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125
+  ],
+  "pink_px": 0,
+  "note": "grey-blue limestone",
+  "air": false,
+  "lamps": {}
+ },
+ "karst_r1_2": {
+  "frames": 8,
+  "cell": 512,
+  "ms": [
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125
+  ],
+  "pink_px": 0,
+  "note": "warm rust-orange towers",
+  "air": false,
+  "lamps": {}
+ },
+ "karst_r1_3": {
+  "frames": 8,
+  "cell": 512,
+  "ms": [
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125
+  ],
+  "pink_px": 0,
+  "note": "dark slate towers, lush deep green crowns",
+  "air": false,
+  "lamps": {}
+ },
+ "ridge_r1_0": {
+  "frames": 8,
+  "cell": 512,
+  "ms": [
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125
+  ],
+  "pink_px": 0,
+  "note": "as painted: emerald rainforest, grey crest",
+  "air": false,
+  "lamps": {}
+ },
+ "ridge_r1_1": {
+  "frames": 8,
+  "cell": 512,
+  "ms": [
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125
+  ],
+  "pink_px": 0,
+  "note": "autumn gold-orange forest",
+  "air": false,
+  "lamps": {}
+ },
+ "ridge_r1_2": {
+  "frames": 8,
+  "cell": 512,
+  "ms": [
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125
+  ],
+  "pink_px": 0,
+  "note": "blue-green pine-like forest",
+  "air": false,
+  "lamps": {}
+ },
+ "ridge_r1_3": {
+  "frames": 8,
+  "cell": 512,
+  "ms": [
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125
+  ],
+  "pink_px": 0,
+  "note": "dry olive forest",
+  "air": false,
+  "lamps": {}
+ },
+ "beastwalk_r1_0": {
+  "frames": 8,
+  "cell": 96,
+  "ms": [
+   110,
+   110,
+   110,
+   110,
+   110,
+   110,
+   110,
+   110
+  ],
+  "w": 47,
+  "h": 41,
+  "note": "walk cycle (mirror to face heading)"
+ },
+ "beastwalk_r1_1": {
+  "frames": 8,
+  "cell": 96,
+  "ms": [
+   110,
+   110,
+   110,
+   110,
+   110,
+   110,
+   110,
+   110
+  ],
+  "w": 36,
+  "h": 35,
+  "note": "walk cycle (mirror to face heading)"
+ },
+ "beastwalk_r1_2": {
+  "frames": 8,
+  "cell": 96,
+  "ms": [
+   110,
+   110,
+   110,
+   110,
+   110,
+   110,
+   110,
+   110
+  ],
+  "w": 52,
+  "h": 28,
+  "note": "walk cycle (mirror to face heading)"
+ },
+ "beastwalk_r1_3": {
+  "frames": 8,
+  "cell": 96,
+  "ms": [
+   110,
+   110,
+   110,
+   110,
+   110,
+   110,
+   110,
+   110
+  ],
+  "w": 49,
+  "h": 38,
+  "note": "walk cycle (mirror to face heading)"
+ },
+ "beastwalk_r1_4": {
+  "frames": 8,
+  "cell": 96,
+  "ms": [
+   110,
+   110,
+   110,
+   110,
+   110,
+   110,
+   110,
+   110
+  ],
+  "w": 57,
+  "h": 40,
+  "note": "walk cycle (mirror to face heading)"
+ },
+ "beastwalk_r1_5": {
+  "frames": 8,
+  "cell": 96,
+  "ms": [
+   110,
+   110,
+   110,
+   110,
+   110,
+   110,
+   110,
+   110
+  ],
+  "w": 59,
+  "h": 49,
+  "note": "walk cycle (mirror to face heading)"
+ },
+ "crashplane_r1_0": {
+  "frames": 8,
+  "cell": 256,
+  "ms": [
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125
+  ],
+  "pink_px": 0,
+  "note": "as painted: white-blue fuselage, orange stripe",
+  "air": false,
+  "lamps": {
+   "fire": 2
+  }
+ },
+ "crashplane_r1_1": {
+  "frames": 8,
+  "cell": 256,
+  "ms": [
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125
+  ],
+  "pink_px": 0,
+  "note": "white fuselage, red stripe",
+  "air": false,
+  "lamps": {
+   "fire": 2
+  }
+ },
+ "crashplane_r1_2": {
+  "frames": 8,
+  "cell": 256,
+  "ms": [
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125
+  ],
+  "pink_px": 0,
+  "note": "olive-green military fuselage, yellow stripe",
+  "air": false,
+  "lamps": {
+   "fire": 2
+  }
+ },
+ "crashplane_r1_3": {
+  "frames": 8,
+  "cell": 256,
+  "ms": [
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125
+  ],
+  "pink_px": 0,
+  "note": "cream and teal airliner livery",
+  "air": false,
+  "lamps": {
+   "fire": 2
+  }
+ },
+ "outpost_r1_0": {
+  "frames": 8,
+  "cell": 256,
+  "ms": [
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125
+  ],
+  "pink_px": 0,
+  "note": "as painted: white domes, orange bands, brick lab roof",
+  "air": false,
+  "lamps": {
+   "cool": 8
+  }
+ },
+ "outpost_r1_1": {
+  "frames": 8,
+  "cell": 256,
+  "ms": [
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125
+  ],
+  "pink_px": 0,
+  "note": "white domes, teal bands, grey lab",
+  "air": false,
+  "lamps": {
+   "cool": 8
+  }
+ },
+ "outpost_r1_2": {
+  "frames": 8,
+  "cell": 256,
+  "ms": [
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125
+  ],
+  "pink_px": 0,
+  "note": "white domes, yellow bands, blue lab roof",
+  "air": false,
+  "lamps": {
+   "cool": 8
+  }
+ },
+ "outpost_r1_3": {
+  "frames": 8,
+  "cell": 256,
+  "ms": [
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125
+  ],
+  "pink_px": 0,
+  "note": "white domes, green bands, red lab roof",
+  "air": false,
+  "lamps": {
+   "cool": 8
+  }
+ },
+ "terraces_r1_0": {
+  "frames": 8,
+  "cell": 256,
+  "ms": [
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125
+  ],
+  "pink_px": 0,
+  "note": "as painted: green paddies, yellow ripe plots, turquoise water",
+  "air": false,
+  "lamps": {
+   "window": 4
+  }
+ },
+ "terraces_r1_1": {
+  "frames": 8,
+  "cell": 256,
+  "ms": [
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125
+  ],
+  "pink_px": 0,
+  "note": "golden harvest: all paddies ripe",
+  "air": false,
+  "lamps": {
+   "window": 4
+  }
+ },
+ "terraces_r1_2": {
+  "frames": 8,
+  "cell": 256,
+  "ms": [
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125
+  ],
+  "pink_px": 0,
+  "note": "young pale-green rice, flooded blue water",
+  "air": false,
+  "lamps": {
+   "window": 4
+  }
+ },
+ "terraces_r1_3": {
+  "frames": 8,
+  "cell": 256,
+  "ms": [
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125
+  ],
+  "pink_px": 0,
+  "note": "deep tea green, bronze soil",
+  "air": false,
+  "lamps": {
+   "window": 4
+  }
+ },
+ "flowers_r1_0": {
+  "frames": 8,
+  "cell": 256,
+  "ms": [
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125
+  ],
+  "pink_px": 0,
+  "note": "as painted: orange-and-cream blossom, red-spotted mushrooms",
+  "air": false,
+  "lamps": {}
+ },
+ "flowers_r1_1": {
+  "frames": 8,
+  "cell": 256,
+  "ms": [
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125
+  ],
+  "pink_px": 0,
+  "note": "scarlet blossom, golden-yellow mushroom caps",
+  "air": false,
+  "lamps": {}
+ },
+ "flowers_r1_2": {
+  "frames": 8,
+  "cell": 256,
+  "ms": [
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125
+  ],
+  "pink_px": 0,
+  "note": "golden-yellow blossom, brown mushroom caps",
+  "air": false,
+  "lamps": {}
+ },
+ "flowers_r1_3": {
+  "frames": 8,
+  "cell": 256,
+  "ms": [
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125
+  ],
+  "pink_px": 0,
+  "note": "white blossom, orange mushroom caps",
+  "air": false,
+  "lamps": {}
+ },
+ "beasts_r1_0": {
+  "frames": 8,
+  "cell": 256,
+  "ms": [
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125
+  ],
+  "pink_px": 0,
+  "note": "as painted: grey-brown beasts, green clearing",
+  "air": false,
+  "lamps": {}
+ },
+ "beasts_r1_1": {
+  "frames": 8,
+  "cell": 256,
+  "ms": [
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125
+  ],
+  "pink_px": 0,
+  "note": "lush deep-green grass, dark beasts",
+  "air": false,
+  "lamps": {}
+ },
+ "beasts_r1_2": {
+  "frames": 8,
+  "cell": 256,
+  "ms": [
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125
+  ],
+  "pink_px": 0,
+  "note": "dry golden savanna grass",
+  "air": false,
+  "lamps": {}
+ },
+ "beasts_r1_3": {
+  "frames": 8,
+  "cell": 256,
+  "ms": [
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125
+  ],
+  "pink_px": 0,
+  "note": "bright spring grass, pale tan beasts",
+  "air": false,
+  "lamps": {}
+ },
+ "stilt_r1_0": {
+  "frames": 8,
+  "cell": 256,
+  "ms": [
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125
+  ],
+  "pink_px": 0,
+  "note": "as painted: golden thatch, brown planks, canoes",
+  "air": false,
+  "lamps": {
+   "window": 8
+  }
+ },
+ "stilt_r1_1": {
+  "frames": 8,
+  "cell": 256,
+  "ms": [
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125
+  ],
+  "pink_px": 0,
+  "note": "silver-grey thatch, blue-painted planks",
+  "air": false,
+  "lamps": {
+   "window": 8
+  }
+ },
+ "stilt_r1_2": {
+  "frames": 8,
+  "cell": 256,
+  "ms": [
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125
+  ],
+  "pink_px": 0,
+  "note": "green palm thatch, red-oxide planks",
+  "air": false,
+  "lamps": {
+   "window": 8
+  }
+ },
+ "stilt_r1_3": {
+  "frames": 8,
+  "cell": 256,
+  "ms": [
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125
+  ],
+  "pink_px": 0,
+  "note": "dark thatch, teal planks",
+  "air": false,
+  "lamps": {
+   "window": 8
+  }
+ },
+ "ropebridge_r1_0": {
+  "frames": 8,
+  "cell": 256,
+  "ms": [
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125
+  ],
+  "pink_px": 0,
+  "note": "as painted: ochre sandstone gorge, red pennants",
+  "air": false,
+  "lamps": {
+   "beacon": 1
+  }
+ },
+ "ropebridge_r1_1": {
+  "frames": 8,
+  "cell": 256,
+  "ms": [
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125
+  ],
+  "pink_px": 0,
+  "note": "grey granite gorge, yellow pennants",
+  "air": false,
+  "lamps": {
+   "beacon": 1
+  }
+ },
+ "ropebridge_r1_2": {
+  "frames": 8,
+  "cell": 256,
+  "ms": [
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125
+  ],
+  "pink_px": 0,
+  "note": "red-brown gorge, white pennants",
+  "air": false,
+  "lamps": {
+   "beacon": 1
+  }
+ },
+ "ropebridge_r1_3": {
+  "frames": 8,
+  "cell": 256,
+  "ms": [
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125
+  ],
+  "pink_px": 0,
+  "note": "pale limestone gorge, blue pennants",
+  "air": false,
+  "lamps": {
+   "beacon": 1
+  }
+ },
+ "starship_r1_0": {
+  "frames": 8,
+  "cell": 256,
+  "ms": [
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125
+  ],
+  "pink_px": 0,
+  "note": "as painted: gunmetal hull, navy and orange trim",
+  "air": false,
+  "lamps": {
+   "fire": 42
+  }
+ },
+ "starship_r1_1": {
+  "frames": 8,
+  "cell": 256,
+  "ms": [
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125
+  ],
+  "pink_px": 0,
+  "note": "white hull, red trim",
+  "air": false,
+  "lamps": {
+   "fire": 42
+  }
+ },
+ "starship_r1_2": {
+  "frames": 8,
+  "cell": 256,
+  "ms": [
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125
+  ],
+  "pink_px": 0,
+  "note": "navy hull, yellow trim",
+  "air": false,
+  "lamps": {
+   "fire": 42
+  }
+ },
+ "starship_r1_3": {
+  "frames": 8,
+  "cell": 256,
+  "ms": [
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125,
+   125
+  ],
+  "pink_px": 0,
+  "note": "olive-drab hull, teal trim",
+  "air": false,
+  "lamps": {
+   "fire": 42
+  }
+ }
+}

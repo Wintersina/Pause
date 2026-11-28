@@ -126,7 +126,6 @@ public static class BackdropCellBleedTest
         var spans = new (string world, string atlas, string piece, PieceRule rule)[]
         {
             ("Frost", "landmarks", "causeway_00", FrostTuning.Rule("causeway_00", 1)),
-            ("Verdant", "pipes", "pipebridge_00", VerdantTuning.Rule("pipebridge_00")),
             ("Tide", "landmarks", "bridge_section_00", TideTuning.Rule("bridge_section_00")),
             ("Tide", "pipes", "pipebridge_00", TideTuning.Rule("pipebridge_00")),
             ("Tide", "pipes", "pipebridge_01", TideTuning.Rule("pipebridge_01")),

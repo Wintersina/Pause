@@ -7,7 +7,7 @@ using UnityEngine;
 // so a higher rate reads as closer. Rates must strictly increase with depth;
 // WorldBackdropTest enforces it.
 //
-// Tile layers are seamless 512x1024 PNGs (Storm and Desert grounds 1024x2048; Tide, Verdant, Ember and Frost grounds 896x1792) leap-frogged vertically. Set pieces
+// Tile layers are seamless 512x1024 PNGs (Storm and Desert grounds 1024x2048; Tide and Frost grounds 896x1792; Verdant, Ember and Desert r1 grounds 896x4096) leap-frogged vertically. Set pieces
 // (planets, glaciers, volcanoes...) and particles come from each world's `fx`
 // and `anim` atlases and are driven by that world's BackdropDirector.
 //
@@ -280,29 +280,26 @@ public static class BackdropCatalog
             Layer.Pieces("snow_mid", 0.450f, Role.Atmosphere),
             Layer.Pieces("snow_near", 0.700f, Role.Atmosphere),
         }},
-        // Verdant (VerdantDirector, docs in VerdantBackdrop.cs): flown at
-        // atmosphere level over the jungle planet: canopy sea and rivers, a
-        // swamp delta, an overgrown ruined city, or the NIGHT side's
-        // bioluminescent forest (VerdantTuning.Night; one of four variant
-        // sets per landing). Overgrown industry, pipework, smoking stacks
-        // and wildfires burning in the forest stand on the ground, PINNED to
-        // the mid tile (GroundPlanner: same rate, same scroll) and placed
-        // where its affinity mask says they belong. The art is painted
-        // brighter than Frost's (value p90 ~.47) and drawn as painted on the
-        // day side; the night side is drawn darker (variantBrightness).
-        new Spec { world = "Verdant", folder = "Worlds/Verdant/Backdrop3/", keyAtlas = "landmarks",
-                   variantSets = BackdropVariants.MaxVariants,
+        // Verdant (VerdantDirector, docs in VerdantBackdrop.cs): flown HIGH (r1, 2026-11-28: the user-approved .49 altitude, as Frost /
+        // Desert / Ember) over the jungle planet: a canopy sea with rivers and waterfalls, a swamp delta, an overgrown ruined city, or the
+        // NIGHT side's bioluminescent forest (VerdantTuning.Night; one of four variant sets per landing). The 896 px repainted ground tile
+        // is drawn at 2 x GroundZoom of the view (VerdantTuning.TileZoom: two columns side by side), so everything standing on it is keyed
+        // to VerdantTuning.GroundZoom (.49). The wildfires and the elite launch sites stand on the ground, PINNED to the mid tile
+        // (GroundPlanner: same rate, same scroll) and placed where its affinity mask says they belong; the living props (art installed,
+        // not drawn yet: VerdantTuning.PropsEnabled) will stand on the same plane. The art is painted lit and lush (value p90 ~.5) and
+        // drawn as painted on the day side (the night side is drawn darker, variantBrightness).
+        new Spec { world = "Verdant", folder = "Worlds/Verdant/Backdrop3/", keyAtlas = "sites",
+                   variantSets = BackdropVariants.MaxVariants, groundZoom = VerdantTuning.TileZoom, pieceZoom = VerdantTuning.GroundZoom,
                    brightness = () => VerdantTuning.Brightness, saturation = () => 1f,
                    variantBrightness = VerdantTuning.VariantBrightness, variantNight = VerdantTuning.Night, brightArt = true,
                    cloudDensity = () => VerdantTuning.CloudDensity, ceilingHold = () => VerdantTuning.CeilingHold,
                    ceilingClearSeconds = () => VerdantTuning.CeilingClearSeconds, layers = new[] {
-            Layer.Tile("sky", 0.006f, W).Graded(.6f),
-            Layer.Tile("far", 0.014f, W).Graded(.8f),
-            Layer.Tile("mid", 0.024f, W).Graded(1f),
-            // landmarks, pipes, wildfires and the elite sites: one ground
-            // plane pinned to the mid tile
-            Layer.Pieces("ground", 0.024f, Role.Landmark).PinnedTo("mid", 0.024f).Graded(1f),
-            Layer.Strip("flow", 0.025f, 0.30f, 0f, W).Graded(1f),
+            // (sky / far lie under the opaque mid: the far layer reuses the sky texture, their rates scaled with the altitude)
+            Layer.Tile("sky", 0.006f * VerdantTuning.GroundZoom, W).Graded(.6f),
+            Layer.Tile("far", 0.014f * VerdantTuning.GroundZoom, W).WithTexture("sky").Graded(.8f),
+            Layer.Tile("mid", VerdantTuning.GroundRate, W).Graded(1f),
+            // the wildfires and the elite sites (and, later, the living props): one ground plane pinned to the mid tile
+            Layer.Pieces("ground", VerdantTuning.GroundRate, Role.Landmark).PinnedTo("mid", VerdantTuning.GroundRate).Graded(1f),
             Layer.Pieces("palls", 0.040f, Role.Atmosphere).Graded(.6f),
             Layer.Pieces("mist", 0.060f, Role.Atmosphere).Graded(.6f),
             Layer.Pieces("wisps", 0.090f, Role.Cloud).Graded(.6f),

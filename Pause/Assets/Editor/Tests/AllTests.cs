@@ -428,6 +428,7 @@ public static class AllTests
         ("FrameStillsTest", FrameStillsTest.Execute),
         ("CalmIdleTest", CalmIdleTest.Execute),
         ("VerdantBackdropTest", VerdantBackdropTest.Execute),
+        ("VerdantPropsArtTest", VerdantPropsArtTest.Execute),
         ("EmberBackdropTest", EmberBackdropTest.Execute),
         ("EmberPropsTest", EmberPropsTest.Execute),
         ("TideBackdropTest", TideBackdropTest.Execute),

@@ -300,7 +300,7 @@ public static class WorldArtPreload
         {
             case "Space": return new[] { "extras", "neon_frames", "asteroid_fx", "twinkle", "nebula", "debris", "wrecks", "outposts", "docks" };
             case "Frost": return new[] { "landmarks", "sites", "weather", "smoke", "steam", "fire_lights", "beacons", "aurora", "docks", "props", FrostPropsTuning.ScarAtlas };
-            case "Verdant": return new[] { "landmarks", "pipes", "fires", "sites", "weather", "lights", "smoke", "wildfire", "firesmoke", "leaks" };
+            case "Verdant": return new[] { "fires", "sites", "weather", "lights", "smoke", "wildfire", "firesmoke", "leaks" };   // (the round-1 landmarks and pipes retired 2026-11-28)
             case "Ember": return new[] { "fires", "sites", "weather", "lights", "smoke", "lavafire", "eruption", "leaks", "docks", EmberPropsTuning.ScarAtlas };
             case "Tide": return new[] { "landmarks", "pipes", "fires", "sites", "weather", "smoke", "smoke_2", "flames", "flames_2", "leaks", "leaks_2", "lights", "lights_2", "surf", "surf_2", "surf_3", "surf_4", "docks", TidePropsTuning.Atlas };
             case "Storm": return new[] { "landmarks", "sites", "weather", "lightning", "docks", "rotors", StormPropsTuning.Atlas, StormPropsTuning.AloftAtlas };
@@ -312,7 +312,7 @@ public static class WorldArtPreload
     // The atlases a world keeps PER GROUND SET (<folder>v<n>/<name>, BackdropSet.VariantAtlas), queued from the reserved set's folder.
     public static string[] VariantAtlasesOf(string world)
     {
-        return world == "Desert" ? new[] { DesertPropsTuning.Atlas } : world == "Ember" ? new[] { EmberPropsTuning.Atlas } : new string[0];
+        return world == "Desert" ? new[] { DesertPropsTuning.Atlas } : world == "Ember" ? new[] { EmberPropsTuning.Atlas } : world == "Verdant" && VerdantTuning.PropsEnabled ? new[] { VerdantPropsArt.Atlas } : new string[0];
     }
 
     public static void QueuePlanetfall(PlanetfallDef def, bool staticPlanet = false)

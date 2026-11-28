@@ -87,7 +87,9 @@ public sealed class CloudShadowLayer
         // it, creep by slower, so each shadow spends longer half out of the view while still holding its full share of the budget:
         // the mean cover in view fell .37 -> .33 (CloudShadowTest wants >= .34 for Frost); the peak stays under the .6 veil line.
         new Look { world = "Frost",   color = new Color(.01f, .04f, .12f), cap = .50f, nightCapMul = .6f,  count = 3, big = true, budget = 1.4f, speed = .08f, dir = 200f, soft = true },
-        new Look { world = "Verdant", color = new Color(.00f, .07f, .02f), cap = .48f, nightCapMul = .5f,  count = 3, budget = .95f, speed = .07f, dir = 330f },
+        // Verdant at the .49 altitude (2026-11-28): seen from high up the ground, and the shadows riding it, creep by slower and the view spans more
+        // of it (Desert's / Ember's finding: the small shapes held only ~.25 of the view), so its three shadows are the big shapes, budget as Ember's.
+        new Look { world = "Verdant", color = new Color(.00f, .07f, .02f), cap = .48f, nightCapMul = .5f,  count = 3, big = true, budget = 1.2f, speed = .07f, dir = 330f },
         // Ember: no baked centre band in the ground any more (2026-10-27), so its clouds carry the shade: big shapes only, Frost-like cover,
         // a very dark red-brown umber core up to .55 (the layer sorts below every enemy, shot, the ship and the HUD), night side a bit dimmer.
         new Look { world = "Ember",   color = new Color(.07f, .025f, .012f), cap = .55f, nightCapMul = .7f,  count = 3, big = true, budget = 1.2f, speed = .09f, dir = 155f },

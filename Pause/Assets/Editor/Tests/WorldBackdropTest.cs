@@ -29,7 +29,10 @@ public static class WorldBackdropTest
     // variant set: two atlases more than Frost. Measured 5488 KB (ASTC 6x6
     // sizes); 7 MB leaves room for one more sheet.
     // 2026-10: Verdant's sky / far / mid / flow tiles are 896x1792 (ASTC 6x6, ~0.72 MB each, was ~0.24 MB at 512x1024): the variant set grew ~1.9 MB (~7.4 MB), 7 -> 9 MB (estimate, CI measures).
-    public const long VerdantTextureBudgetBytes = 9L * 1024 * 1024;
+    // 2026-11-28 r1 (the .49 altitude): the landmarks and pipes atlases and the far / flow tiles retired (-1.7 MB resident, -.7 MB a set); a set
+    // gains the repainted mid (896 x 4096, ASTC 6x6, ~1.6 MB), a half-size sky (448 x 2048, ~.4 MB) and its living props atlas (v<n>/props,
+    // 4096 x 2552 ASTC 6x6, ~4.7 MB; art only until the placement lands): ~10.9 MB (estimate, CI measures).
+    public const long VerdantTextureBudgetBytes = 12L * 1024 * 1024;
     // Ember carries the same ten shared 1024 atlases (landmarks, pipes, fires,
     // sites, weather and five ambient-loop sheets) as Verdant besides one
     // 4-tile variant set (~5.5 MB measured, ASTC 6x6 sizes).
@@ -71,12 +74,17 @@ public static class WorldBackdropTest
     static float SeamLimit(string asset)
     {
         if (System.Text.RegularExpressions.Regex.IsMatch(asset.Replace('\\', '/'), "/(Storm|Desert|Ember)/Backdrop3/v[1234]/mid\\.png$")) return StormR3SeamTolerance;   // (Desert / Ember r1: the same stitched format)
+        if (System.Text.RegularExpressions.Regex.IsMatch(asset.Replace('\\', '/'), "/Verdant/Backdrop3/v[1234]/(mid|sky)\\.png$")) return VerdantR1SeamTolerance;   // (Verdant r1: the quilted ground and its half-size copy)
         return System.Text.RegularExpressions.Regex.IsMatch(asset.Replace('\\', '/'), "/Desert/Backdrop3/v[1234]/(sky|far|mid)\\.png$") ? PixelGridSeamTolerance : SeamTolerance;
     }
     // 2026-11-28 Storm's r3 ground (896 x 4096, quilted from the approved painting and wrapped by construction, pl/storm/r3/stitch.py):
     // a fine-grained cloud deck whose OWN neighbouring rows differ by .024 - .031 on average (p95 .037 - .045); the wrap rows differ
     // .012 - .032, inside that. The limit is the worst interior p95.
     const float StormR3SeamTolerance = .045f;
+    // 2026-11-28 Verdant's r1 ground (896 x 4096, PixelLab repaints quilted along minimum-error cuts and wrapped both ways, pl/verdant/r1/ground.py)
+    // is a fine-grained canopy whose OWN neighbouring rows differ by .033 - .046 on average (p95 .043 - .057); the wrap rows differ .027 - .044 (its
+    // half-size sky .031 - .042), inside that. The limit is the worst interior p95.
+    const float VerdantR1SeamTolerance = .06f;
     // The guide's sky ramps (docs/art-style.md 1.3) peak at ~#123248 / #143430,
     // so the opaque sky averages up to ~0.12 relative luminance.
     const float SkyMaxLuminance = 0.13f;        // opaque far layer
@@ -230,7 +238,7 @@ public static class WorldBackdropTest
     static Color[] VerdantAtlasAsDrawn(BackdropCatalog.Spec spec, string atlas, Color[] px)
     {
         float lift = 1f, alphaLift = 1f, sat = 1f;
-        if (atlas == "landmarks" || atlas == "sites" || atlas == "pipes" || atlas == "fires") lift = BackdropGrade.Lift(spec, spec.Find("ground"), 1);
+        if (atlas == "sites" || atlas == "fires" || atlas == VerdantPropsArt.Atlas) lift = BackdropGrade.Lift(spec, spec.Find("ground"), 1);
         else if (atlas == "smoke" || atlas == "firesmoke") lift = VerdantTuning.PlumeLift;
         else if (atlas == "weather") { alphaLift = VerdantTuning.CeilingThicken; lift = VerdantTuning.CeilingLift; sat = VerdantTuning.CeilingSaturation; }
         return BackdropGrade.Apply(px, lift, sat, alphaLift);
@@ -349,8 +357,6 @@ public static class WorldBackdropTest
     // Verdant's shared atlases and the drawings the director relies on.
     static readonly Dictionary<string, string[]> VerdantAtlases = new Dictionary<string, string[]>
     {
-        { "landmarks", VerdantPieces("landmarks") },
-        { "pipes", VerdantPieces("pipes") },
         { "fires", VerdantPieces("fires") },
         { "sites", new[] { "roothangar_closed", "roothangar_open", "riverbay_closed", "riverbay_open", "podpad_idle", "podpad_active",
                            "towerbay_closed", "towerbay_open", "hatch_closed", "hatch_open", "lights_off", "lights_on" } },
@@ -440,19 +446,13 @@ public static class WorldBackdropTest
         return names.ToArray();
     }
 
-    // Every drawing of a Verdant piece atlas the director names.
+    // Every drawing of a Verdant piece atlas the director names (the wildfires: the round-1 landmarks and pipes retired 2026-11-28).
     static string[] VerdantPieces(string atlas)
     {
         var names = new List<string>();
-        foreach (var group in new[] { VerdantTuning.Refineries, VerdantTuning.Neighbours, VerdantTuning.Fronts, VerdantTuning.Satellites,
-                                      VerdantTuning.Barges, VerdantTuning.Banks, VerdantTuning.Lone, VerdantTuning.HorizontalPipes })
+        foreach (var group in new[] { VerdantTuning.Fronts, VerdantTuning.Satellites })
             foreach (string n in group)
-            {
-                bool pipe = n.StartsWith("pipe") || n.StartsWith("manifold") || n == "pumphouse_00";
-                bool fire = n.StartsWith("burn") || n.StartsWith("coal") || n.StartsWith("scorched") || n.StartsWith("firebreak");
-                string a = pipe ? "pipes" : fire ? "fires" : "landmarks";
-                if (a == atlas && !names.Contains(n)) names.Add(n);
-            }
+                if (atlas == "fires" && !names.Contains(n)) names.Add(n);
         return names.ToArray();
     }
 

@@ -1,40 +1,28 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-// Verdant's backdrop: the ship flies at atmosphere level over the jungle
-// planet, just under a lime-white spore-cloud ceiling, looking down on a
-// forest full of overgrown pipework, smoking stacks and wildfires.
+// Verdant's backdrop: the ship flies HIGH (r1, 2026-11-28: GroundZoom .49, as Frost / Desert / Ember) over the jungle planet, just
+// under a lime-white spore-cloud ceiling, looking down on a forest full of rivers, wildfires and (soon) its living props.
 //
-//   GROUND     one of four tile sets per landing (BackdropVariants): v1 AUTUMN canopy
-//              sea with rivers and waterfalls, v2 swamp delta, v3 overgrown
-//              ruined city, v4 the NIGHT side's bioluminescent forest
-//              (VerdantTuning.Night: drawn darker, lamps / fireflies /
-//              fire glow emphasised).
-//   PIECES     landmarks (refineries, towers, relays, silos, domes, derricks,
-//              barges, bridges, waterfalls), pipes and wildfire grounds,
-//              PINNED to the mid tile and placed where its affinity mask
-//              says they belong (GroundPlanner, VerdantTuning.Rules), grown
-//              as CLUSTERS (VerdantDirector.SpawnCluster): a refinery with a
-//              pipe run along its flanges to a neighbouring structure; a burn
-//              front with burn patches / coal beds downwind and a smoke pall
-//              over it; a barge on a river with a bridge or a waterfall on
-//              its bank; lone towers and domes -- then a long calm gap. Mixes
-//              per variant (VerdantTuning.ClusterWeights). Their loops --
-//              stack smoke, flames, wildfire smoke, steam and sap leaks,
-//              beacons, spore bursts -- sit on MEASURED points
-//              (VerdantAmbientCatalog), all leaning with the one level wind.
-//   SITES      the elites' launch sites on the same pinned plane (root
-//              hangar, river bay, pod pad, tower bay, hatch), shut until the
+//   GROUND     one of four PixelLab-repainted tile sets per landing (BackdropVariants), 896 x 4096, drawn at VerdantTuning.TileZoom
+//              (two .49 columns side by side): v1 AUTUMN canopy sea with rivers and waterfalls, v2 swamp delta, v3 overgrown ruined
+//              city, v4 the NIGHT side's bioluminescent forest (VerdantTuning.Night: drawn darker, lamps / fireflies / fire glow
+//              emphasised). Each set's v<n>/mask.txt is its 64 x 292 affinity grid (W water, B built, O open, C canopy).
+//   PIECES     the WILDFIRE grounds (the fires atlas: burn fronts, burn patches, coal beds, burnt forest, firebreaks) with their smoke
+//              palls, PINNED to the mid tile and placed where its mask says they belong (GroundPlanner, VerdantTuning.Rules), grown as
+//              clusters (SpawnCluster: a burn front with patches / beds downwind and a smoke pall over it). Their loops -- flames,
+//              wildfire smoke, beacons, spore bursts -- sit on MEASURED points (VerdantAmbientCatalog), all leaning with the one wind.
+//              The round-1 landmarks, pipes and their clusters (refineries, towers, relays, silos, domes, barges, bridges, pipe runs)
+//              RETIRED 2026-11-28: the new living props replace them (art: Backdrop3/v<n>/props, VerdantPropsArt; NOT drawn yet:
+//              VerdantTuning.PropsEnabled, the placement is another agent's).
+//   SITES      the elites' launch sites on the same pinned plane (root hangar, river bay, pod pad, tower bay, hatch), shut until the
 //              launch tell opens them.
-//   WEATHER    the CEILING of spore cloud, thick at the start (continuing
-//              the planetfall's cloud break), held CeilingHold s, then
-//              clearing fast, gone by CeilingClearSeconds (CloudCover); then
-//              only a light scattering of wisps and low mist drifting with the
-//              wind (VerdantTuning.CloudDensity), POLLEN GUSTS sweeping across now and then,
-//              drifting spores, and fireflies (many on the night side).
+//   WEATHER    the CEILING of spore cloud (soft painted banks), thick at the start (continuing the planetfall's cloud break), held
+//              CeilingHold s, then clearing fast, gone by CeilingClearSeconds (CloudCover); then only a light scattering of wisps
+//              (rain-curtain paintings drifting with the wind) and low mist, POLLEN GUSTS sweeping across now and then, drifting
+//              spores, and fireflies (many on the night side). The humid FRONT wall is the weather hazard (wx_hazard row 0).
 //
-// Everything sits far below gameplay (BackdropCatalog.BaseOrder); the pools
-// are fixed and a frame allocates nothing.
+// Everything sits far below gameplay (BackdropCatalog.BaseOrder); the pools are fixed and a frame allocates nothing.
 public static class VerdantTuning
 {
     // ---- brightness ----------------------------------------------------------
@@ -43,10 +31,11 @@ public static class VerdantTuning
     // in VariantBrightness (k < 1 is a darkening curve, BackdropGrade) while
     // its lights are drawn stronger (NightLightBoost). One number each.
     public static float Brightness = 1f;
-    // v2 / v3 are painted a little brighter in the lane (swamp channels,
-    // pale streets): drawn at .8, v1 at .95, so bright bullets keep their
-    // 7:1 against the lane (WorldBackdropTest / VerdantBackdropTest).
-    public static readonly float[] VariantBrightness = { 1f, .95f, .8f, .8f, .72f };   // index = variant (0 none)
+    // r1 (2026-11-28): the repainted grounds measure (as drawn at 1: lane median linear luminance over the 49% of the tile one screen
+    // shows, worst window; the bright shots' 7:1 against the lane needs <= .077): v1 .051, v2 .074 (the swamp's pale channels), v3 .061,
+    // v4 .029 (the night side). v1 is drawn at .95 (its value p90 .51 under the tile cap .52), v2 at .9 (.062), v3 at .95 (.056) and the
+    // night side at .85 (value median .19 against the day's .27: well under the .92 rule).
+    public static readonly float[] VariantBrightness = { 1f, .95f, .9f, .95f, .85f };   // index = variant (0 none)
     public static readonly bool[] Night = { false, false, false, false, true };
     public static float NightLightBoost = 1.45f;
     public static float PlumeShare = 1f;
@@ -56,75 +45,63 @@ public static class VerdantTuning
     public static float LoopBrightness = 1f;
     public static float LightBoostNow = 1f;           // set by the director for its variant
 
-    // ---- ground pieces -------------------------------------------------------
-    public static float LandmarkMin = 1.5f, LandmarkMax = 1.75f;
-    public static float FireMin = 1.4f, FireMax = 1.75f, SatelliteMin = 1.05f, SatelliteMax = 1.35f;
-    public static float PipeMin = .5f, PipeMax = 1.45f;
-    public static float ClusterGapMin = 1.6f, ClusterGapMax = 3.2f;     // scrolled ground distance after a cluster
-    public static float LoneGapMin = .8f, LoneGapMax = 1.5f;             // ... after a lone piece
-    public static float NeighbourGapMin = .1f, NeighbourGapMax = .45f;  // between a refinery's plate and its neighbour's
+    // ---- ALTITUDE (2026-11-28, the user-approved r1 ground; as Desert's / Ember's) ----------------------------------------------
+    // The ground is seen from GroundZoom (.49) of the old view; the r1 tiles (896 x 4096, PixelLab repaints of the old layouts, quilted)
+    // hold TWO columns side by side, so they are drawn at TileZoom (2 x GroundZoom) of the view's width (BackdropCatalog.Spec.groundZoom).
+    // Everything that stands on it is keyed to GroundZoom (Spec.pieceZoom), never TileZoom: the ground layers' rates, the sites, the
+    // fires, the props, the cover boulders; x PieceFit (.7, as Frost) for the pieces' sizes.
+    public const float GroundZoom = .49f, TileZoom = 2f * GroundZoom, PieceFit = .7f;
+    public const float PieceScale = GroundZoom * PieceFit;
+    public const float GroundRate = .024f * GroundZoom;               // the mid tile's (and everything pinned to it) parallax rate
+    // where a new piece is looked for: a band SpawnBand tall starting SpawnAbove over the top of the view
+    public static float SpawnAbove = .95f * PieceScale, SpawnBand = .9f * GroundZoom, SpawnRetry = .25f * GroundZoom;
+
+    // The LIVING PROPS (11 kinds x 4 variants x 8 frames + the beast walkers, Backdrop3/v<n>/props, VerdantPropsArt) are installed as ART
+    // only. Nothing draws them until the placement lands (it flips this flag): the director does not even load the atlas (and
+    // WorldArtPreload does not queue it) while it is false.
+    public static bool PropsEnabled = false;
+
+    // ---- ground pieces (the wildfires: the only round-1 pieces kept besides the sites) -------------------------------------------
+    public static float FireMin = 1.4f * PieceScale, FireMax = 1.75f * PieceScale, SatelliteMin = 1.05f * PieceScale, SatelliteMax = 1.35f * PieceScale;
+    public static float ClusterGapMin = 9f * GroundZoom, ClusterGapMax = 16f * GroundZoom;     // scrolled ground distance after a wildfire cluster
+    public static float LoneGapMin = 5f * GroundZoom, LoneGapMax = 9f * GroundZoom;            // ... after a lone burn piece
     public static float Wind = 1f;                                        // +1: plumes lean right (as painted)
     public static float PlateFeather = BackdropGrade.PlateFeatherTexels;
 
     // what each drawing may stand on (GroundPlanner)
-    static readonly PieceRule Industry = new PieceRule(GroundClass.Land, .85f, .3f);
     static readonly PieceRule Clearing = new PieceRule(GroundClass.Open | GroundClass.Canopy | GroundClass.Built, .85f, .3f);
+    static readonly PieceRule Industry = new PieceRule(GroundClass.Land, .85f, .3f);
     static readonly PieceRule Fire = new PieceRule(GroundClass.Canopy | GroundClass.Open, .8f, .3f);
-    static readonly PieceRule River = new PieceRule(GroundClass.Water, .45f, .2f);
-    static readonly PieceRule Span = new PieceRule(GroundClass.Water, .3f, .2f, GroundClass.Land);
     static readonly PieceRule Bank = new PieceRule(GroundClass.Land, .6f, .28f, GroundClass.Water);
     static readonly PieceRule Anywhere = new PieceRule(GroundClass.Any, 0f, .2f);
-    // a lone pipe bridge (pipebridge_00 laid by a river): its open flanges
-    // (cell x ~30 / ~230, over the drawn banks) both come down on land, so the
-    // pipe runs from bank to bank instead of standing as a stub in the water.
-    // (bridge_00 is drawn whole, jungle on both banks: Span is enough.)
-    static readonly PieceRule PipeSpan = Span.WithEnds(new Vector2(-.38f, -.08f), new Vector2(.38f, -.08f), GroundClass.Land);
 
     public static PieceRule Rule(string piece)
     {
         if (piece == null) return Anywhere;
-        if (piece.StartsWith("barge")) return River;
-        if (piece == "pipebridge_00") return PipeSpan;
-        if (piece.StartsWith("bridge")) return Span;
-        if (piece.StartsWith("waterfall") || piece == "canopy_intake_00" || piece.StartsWith("riverbay")) return Bank;
-        if (piece.StartsWith("dome") || piece.StartsWith("silo") || piece.StartsWith("podpad") || piece.StartsWith("hatch")) return Clearing;
+        if (piece.StartsWith("riverbay")) return Bank;
+        if (piece.StartsWith("towerbay")) return Industry;
+        if (piece.StartsWith("podpad") || piece.StartsWith("hatch")) return Clearing;
         if (piece.StartsWith("burn") || piece.StartsWith("coal") || piece.StartsWith("scorched") ||
             piece.StartsWith("firebreak") || piece.StartsWith("roothangar")) return Fire;
-        if (piece.StartsWith("refinery") || piece.StartsWith("tower") || piece.StartsWith("relay") ||
-            piece.StartsWith("derrick") || piece == "pumphouse_00") return Industry;
-        return Anywhere;     // pipes: they connect what they connect
+        return Anywhere;
     }
 
     // ---- clusters --------------------------------------------------------------
-    public const int ClRefinery = 0, ClWildfire = 1, ClRiver = 2, ClLone = 3, ClPipeline = 4;
-    public static readonly int[][] ClusterWeights =
-    {
-        new[] { 2, 2, 2, 2, 1 },   // (none)
-        new[] { 2, 2, 3, 2, 1 },   // v1 canopy sea: rivers, waterfalls, towers
-        new[] { 3, 1, 3, 1, 2 },   // v2 swamp delta: refineries, pipes over water, barges
-        new[] { 2, 1, 1, 3, 3 },   // v3 ruined city: towers, relays, bridges, pipes
-        new[] { 1, 2, 1, 3, 1 },   // v4 night: lit lamps / beacons, wildfire glow
-    };
-    public static readonly string[] Refineries = { "refinery_00", "refinery_01", "refinery_02" };
-    public static readonly string[] Neighbours = { "tower_00", "tower_01", "silo_00", "relay_00", "dome_00", "derrick_00", "pumphouse_00" };
     public static readonly string[] Fronts = { "burnfront_00", "burnfront_01", "burnfront_02", "burnfront_03", "firebreak_00" };
     public static readonly string[] Satellites = { "burnpatch_00", "burnpatch_01", "burnpatch_02", "burnpatch_03", "burnpatch_04",
                                                    "coalbed_00", "coalbed_01", "burntforest_00", "burntforest_01", "scorched_00", "scorched_01" };
-    public static readonly string[] Barges = { "barge_00", "barge_01" };
-    public static readonly string[] Banks = { "waterfall_00", "waterfall_01", "canopy_intake_00", "bridge_00", "pipebridge_00" };
-    public static readonly string[] Lone = { "tower_00", "tower_01", "relay_00", "relay_01", "silo_00", "dome_00", "derrick_00" };
-    public static readonly string[] HorizontalPipes = { "pipe_straight_00", "manifold_00", "pipe_leak_00", "pipe_tangle_00", "pipe_loop_00", "pipe_leak_00" };
 
     // ---- launch sites ----
-    public static float SiteMin = 1.5f, SiteMax = 1.7f, SiteFirst = 3f, SiteGapMin = 5f, SiteGapMax = 8.5f;
-    public static float SiteCloseDelay = .9f, SiteMinSize = 1.2f;
+    // (x PieceScale / x GroundZoom: the same docks, seen from the new height, as often per ground scrolled)
+    public static float SiteMin = 1.5f * PieceScale, SiteMax = 1.7f * PieceScale, SiteFirst = 3f * GroundZoom, SiteGapMin = 5f * GroundZoom, SiteGapMax = 8.5f * GroundZoom;
+    public static float SiteCloseDelay = .9f, SiteMinSize = 1.2f * PieceScale;
     public static readonly string[] SiteClosed = { "roothangar_closed", "riverbay_closed", "podpad_idle", "towerbay_closed", "hatch_closed" };
     public static readonly string[] SiteOpen = { "roothangar_open", "riverbay_open", "podpad_active", "towerbay_open", "hatch_open" };
     public static readonly LandingKind[] SiteKinds = { LandingKind.RootHangar, LandingKind.RiverBay, LandingKind.PodPad, LandingKind.TowerBay, LandingKind.Hatch };
     public static readonly int[] SiteWeights = { 3, 2, 2, 3, 2 };
     public static Vector2 LampsAt = new Vector2(128f, 224f);    // the lamp row's centre on the site's cell
     public static float LampsScale = .5f;
-    public const float EmergeScalePerUnit = .22f, EmergeScaleMin = .26f, EmergeScaleMax = .4f;
+    public const float EmergeScalePerUnit = .22f, EmergeScaleMin = .26f * PieceScale, EmergeScaleMax = .4f;
     public const int SiteIdBase = 600;
 
     // ---- weather (the atlas bakes its translucency in: banks <= 80/255) ----
@@ -156,18 +133,17 @@ public static class VerdantTuning
     public static float PallAlpha = .5f, PallLife = 22f;
 }
 
-public class VerdantDirector : PlanetDirector
+public partial class VerdantDirector : PlanetDirector
 {
-    BackdropPool ground, pipes, fires, sites, palls, mist, wisps, ceiling, pollen, spores, flies;
+    BackdropPool fires, sites, palls, mist, wisps, ceiling, pollen, spores, flies;
     readonly SpriteRenderer[] lamps = new SpriteRenderer[3];
     Color[] dockTints;                                 // per site kind: its DockGrade colour on this ground set
-    BackdropAtlas landmarkArt, pipeArt, fireArt, siteArt, weather, lights;
+    BackdropAtlas fireArt, siteArt, weather, lights;
     AmbientEmitters ambient;
     GroundPlanner planner;
     Sprite[] siteClosed, siteOpen, banks, wispArt, mistArt, pollenArt, pallArt, sporeArt, flyFrames;
     Sprite lampsOff, lampsOn;
     float groundTravel, groundGap, siteTravel, siteGap, ceilingTravel;
-    int lastCluster = -1, lastLone = -1;
     bool night;
     float mistIn = 2.5f, wispIn = 6f;
     readonly Timer gustTimer = new Timer(VerdantTuning.PollenEveryMin, VerdantTuning.PollenEveryMax, VerdantTuning.PollenFirst);
@@ -184,11 +160,8 @@ public class VerdantDirector : PlanetDirector
     public int Gusts { get; private set; }
     public int SitesSpawned { get; private set; }
     public int Clusters { get; private set; }
-    public int PipeRuns { get; private set; }
     public AmbientEmitters Ambient => ambient;
     public GroundPlanner Planner => planner;
-    public BackdropPool Ground => ground;
-    public BackdropPool Pipes => pipes;
     public BackdropPool Fires => fires;
     public BackdropPool Sites => sites;
     public BackdropPool Ceiling => ceiling;
@@ -219,8 +192,6 @@ public class VerdantDirector : PlanetDirector
 
     protected override void Build()
     {
-        landmarkArt = set.Atlas("landmarks");
-        pipeArt = set.Atlas("pipes");
         fireArt = set.Atlas("fires");
         siteArt = set.Atlas("sites");
         weather = set.Atlas("weather");
@@ -228,7 +199,7 @@ public class VerdantDirector : PlanetDirector
         night = set.Spec.Night(set.Variant);
         VerdantTuning.LightBoostNow = night ? VerdantTuning.NightLightBoost : 1f;
         ambient = new AmbientEmitters(set, VerdantAmbientCatalog.Table) { Wind = VerdantTuning.Wind };
-        planner = new GroundPlanner(set, "mid", GroundMask.Load("Verdant", set.Variant));
+        planner = new GroundPlanner(set, "mid", GroundMask.Load("Verdant", set.Variant), 96);
 
         siteClosed = Sprites(siteArt, VerdantTuning.SiteClosed);
         dockTints = DockGrade.Tints("Verdant", set.Variant, VerdantTuning.SiteClosed);
@@ -243,18 +214,13 @@ public class VerdantDirector : PlanetDirector
         sporeArt = weather.Frames("spore");
         flyFrames = lights.Frames("fireflies");
 
-        // ground plane, back to front: pipes tuck under the plates they join
-        pipes = LandmarkPool("ground", 8, -4);
+        // ground plane, back to front: (the living props: a placement pool belongs here, VerdantPropsArt), fires (-2), sites (0). The
+        // landmarks and pipes of round 1 are retired (2026-11-28).
         fires = LandmarkPool("ground", 6, -2);
-        ground = LandmarkPool("ground", 8);
         sites = LandmarkPool("ground", 3);
-        // Every pool's loops draw above EVERY pool's plates (pipes -4, fires -2,
-        // ground / sites 0 of the layer's order): a fire's or pipe's plume rises
-        // through the ground, so a landmark plate higher up the screen must not
-        // slice it off flat (the "smoke cut off at the top" report).
-        ambient.Rig(pipes, 5);
+        // Every pool's loops draw above EVERY pool's plates: a fire's plume rises through the ground, so a plate higher up the screen
+        // must not slice it off flat (the "smoke cut off at the top" report).
         ambient.Rig(fires, 3);
-        ambient.Rig(ground, 1);
         ambient.Rig(sites, 1);
         for (int i = 0; i < sites.items.Count; i++)
         {
@@ -280,10 +246,9 @@ public class VerdantDirector : PlanetDirector
         spores = Pool("spores", VerdantTuning.SporeCount);
         flies = Pool("fireflies", Mathf.Max(VerdantTuning.FirefliesDay, VerdantTuning.FirefliesNight));
 
-        PlateMaterial = Grade(ground, "ground", 1f, VerdantTuning.PlateFeather);
-        Grade(fires, "ground", 1f, VerdantTuning.PlateFeather);
+        BuildProps();
+        PlateMaterial = Grade(fires, "ground", 1f, VerdantTuning.PlateFeather);
         Grade(sites, "ground", 1f, VerdantTuning.PlateFeather);
-        Grade(pipes, "ground");
         Grade(palls, "palls");
         Grade(mist, "mist");
         Grade(wisps, "wisps");
@@ -295,8 +260,8 @@ public class VerdantDirector : PlanetDirector
         if (planner.Ready)
         {
             double t = planner.Travel;
-            for (float y = -HalfH * .85f; y < HalfH * .8f; y += Rand(2.6f, 3.6f))
-                SpawnCluster(t + y, t + y + 1.2f);
+            for (float y = -HalfH * .85f; y < HalfH * .8f; y += Rand(5.5f, 8f))
+                SpawnCluster(t + y, t + y + 1.2f * VerdantTuning.GroundZoom);
         }
         BuildCeiling();
         BuildParticles();
@@ -355,7 +320,7 @@ public class VerdantDirector : PlanetDirector
         {
             float gap = SpawnGround();
             if (gap > 0f) { groundTravel = 0f; groundGap = gap; }
-            else groundGap = groundTravel + .25f;     // nothing fitted: look again a little further on
+            else groundGap = groundTravel + VerdantTuning.SpawnRetry;     // nothing fitted: look again a little further on
         }
         ceilingTravel += set.Spec.Rate("ceiling") * v * dt;
         float density = set.Spec.CeilingDensity(clock);
@@ -374,9 +339,8 @@ public class VerdantDirector : PlanetDirector
             if (sheetIn <= 0f) { SpawnSheet(); sheetsLeft--; sheetIn = VerdantTuning.PollenStagger; }
         }
 
-        StepPinned(pipes, dt);
+        StepProps(dt, scrolled);
         StepPinned(fires, dt);
-        StepPinned(ground, dt);
         StepPinned(sites, dt);
         StepSites(dt);
         ambient.Step(1f);
@@ -455,7 +419,7 @@ public class VerdantDirector : PlanetDirector
     float SpawnGround()
     {
         double t = planner.Travel;
-        double lo = t + HalfH + .95f, hi = lo + .9f;
+        double lo = t + HalfH + VerdantTuning.SpawnAbove, hi = lo + VerdantTuning.SpawnBand;
         if (siteTravel >= siteGap && SpawnSite(float.NaN))
         {
             siteTravel = 0f;
@@ -471,36 +435,12 @@ public class VerdantDirector : PlanetDirector
     float XMin(float size) { return -EdgeX + size * .3f; }
     float XMax(float size) { return EdgeX - size * .3f; }
 
-    int PickCluster()
+    // Grows one wildfire cluster with its anchor in the ground band [lo, hi]; returns how many pieces it placed (0: nothing fitted).
+    // (The round-1 refinery / pipeline / river / lone-landmark clusters retired 2026-11-28; the living props are placed elsewhere.)
+    public int SpawnCluster(double lo, double hi)
     {
-        var w = VerdantTuning.ClusterWeights[Mathf.Clamp(set.Variant, 0, VerdantTuning.ClusterWeights.Length - 1)];
-        int total = 0;
-        for (int i = 0; i < w.Length; i++) if (i != lastCluster) total += w[i];
-        int r = rng.Next(Mathf.Max(1, total));
-        for (int i = 0; i < w.Length; i++)
-        {
-            if (i == lastCluster || w[i] <= 0) continue;
-            r -= w[i];
-            if (r < 0) return i;
-        }
-        return VerdantTuning.ClLone;
-    }
-
-    // Grows one cluster with its anchor in the ground band [lo, hi]; returns
-    // how many pieces it placed (0: nothing fitted).
-    public int SpawnCluster(double lo, double hi, int kind = -1)
-    {
-        if (kind < 0) kind = PickCluster();
-        int n = 0;
-        switch (kind)
-        {
-            case VerdantTuning.ClRefinery: n = Industrial(Pick(VerdantTuning.Refineries), lo, hi); break;
-            case VerdantTuning.ClPipeline: n = Industrial(Pick(VerdantTuning.Lone), lo, hi); break;
-            case VerdantTuning.ClWildfire: n = Wildfire(lo, hi); break;
-            case VerdantTuning.ClRiver: n = RiverScene(lo, hi); break;
-        }
-        if (n == 0) n = LonePiece(lo, hi);
-        if (n > 0) { lastCluster = kind; Clusters++; }
+        int n = Wildfire(lo, hi);
+        if (n > 0) Clusters++;
         return n;
     }
 
@@ -536,93 +476,6 @@ public class VerdantDirector : PlanetDirector
         return planner.Find(VerdantTuning.Rule(name), size, XMin(size), XMax(size), lo, hi, rng, out x, out gy);
     }
 
-    // A structure (refinery / tower ...) with a neighbour joined by a pipe run.
-    int Industrial(string anchor, double lo, double hi)
-    {
-        float sa = Rand(VerdantTuning.LandmarkMin, VerdantTuning.LandmarkMax);
-        float xa; double ga;
-        if (!Spot(anchor, sa, lo, hi, out xa, out ga)) return 0;
-        var a = Put(ground, landmarkArt, anchor, sa, xa, ga, Chance(.5));
-        if (a == null) return 0;
-        int n = 1;
-        // the neighbour: toward the middle first, then the other side
-        string nb = Pick(VerdantTuning.Neighbours);
-        if (nb == anchor) nb = "silo_00";
-        bool pump = nb == "pumphouse_00";
-        float sb = pump ? Rand(.9f, 1.1f) : Rand(VerdantTuning.LandmarkMin * .85f, VerdantTuning.LandmarkMax * .9f);
-        float plateA = sa * .4f, plateB = sb * (pump ? .44f : .4f);
-        for (int attempt = 0; attempt < 2; attempt++)
-        {
-            float side = (xa > 0f) == (attempt == 0) ? -1f : 1f;
-            float gap = Rand(VerdantTuning.NeighbourGapMin, VerdantTuning.NeighbourGapMax);
-            float xb = xa + side * (plateA + gap + plateB);
-            double gb = ga + Rand(-.12f, .12f);
-            if (xb < XMin(sb) - .2f || xb > XMax(sb) + .2f) continue;
-            var rule = VerdantTuning.Rule(nb);
-            if (!planner.Accepts(rule, xb, gb, sb) || !planner.Free(xb, gb, GroundPlanner.HalfX(rule, sb), GroundPlanner.HalfY(rule, sb))) continue;
-            var b = Put(pump ? pipes : ground, pump ? pipeArt : landmarkArt, nb, sb, xb, gb, !pump && Chance(.5));
-            if (b == null) break;
-            n++;
-            if (PipeRun(Mathf.Min(xa, xb) + (xa < xb ? plateA : plateB) * .75f,
-                        Mathf.Max(xa, xb) - (xa < xb ? plateB : plateA) * .75f,
-                        (ga + gb) * .5 - sa * .16f)) n++;
-            break;
-        }
-        return n;
-    }
-
-    // A horizontal pipe (or two) whose flange faces land on x0 and x1 at
-    // ground row gy: the measured pipe ends (points.json) set its scale.
-    bool PipeRun(float x0, float x1, double gy)
-    {
-        float len = x1 - x0;
-        if (len < .3f) return false;
-        bool overWater = planner.ClassAt((x0 + x1) * .5f, gy) == GroundClass.Water;
-        string name = overWater ? "pipebridge_00" : Pick(VerdantTuning.HorizontalPipes);
-        int pieces = 1;
-        float span = SpanOf(name);
-        float w = len / span;
-        if (w > VerdantTuning.PipeMax) { pieces = 2; w = len * .5f / span; }
-        if (w < VerdantTuning.PipeMin * .6f) return false;
-        if (!planner.Free((x0 + x1) * .5f, gy, Mathf.Max(.05f, len * .5f - .25f), .1f)) return false;
-        float placed = x0;
-        for (int i = 0; i < pieces; i++)
-        {
-            string n = i == 0 ? name : (overWater ? "pipebridge_00" : "pipe_straight_00");
-            float sp = SpanOf(n);
-            float wi = (len / pieces) / sp;
-            var ends = Ends(n);
-            // the piece's centre: its first flange face on `placed`, its flange line on gy
-            float e0x = ends != null ? ends[0].x : 14f, ey = ends != null ? ends[0].y : 128f;
-            float cx = placed - (e0x - 128f) / 256f * wi;
-            double cy = gy - (128f - ey) / 256f * wi;
-            var p = Put(pipes, pipeArt, n, wi, cx, cy, false);
-            if (p == null) return i > 0;
-            p.kind = RunPipe;
-            placed += len / pieces;
-        }
-        PipeRuns++;
-        return true;
-    }
-
-    // BackdropPiece.kind of a pipe laid by a run between two structures (its
-    // ground is whatever it crosses; a lone pipe bridge keeps its rule).
-    public const int RunPipe = 1;
-
-    // Share of the cell width between a horizontal pipe's two flange faces.
-    static float SpanOf(string pipe)
-    {
-        var e = Ends(pipe);
-        if (e == null || e.Length < 2) return 227f / 256f;
-        return Mathf.Max(.3f, Mathf.Abs(e[1].x - e[0].x) / 256f);
-    }
-
-    static VerdantAmbientCatalog.PEnd[] Ends(string pipe)
-    {
-        var p = VerdantAmbientCatalog.Piece(pipe);
-        return p != null && p.ends != null && p.ends.Length >= 2 ? p.ends : null;
-    }
-
     // A burn front with its burn patches / coal beds downwind and a smoke
     // pall hanging over it.
     int Wildfire(double lo, double hi)
@@ -641,7 +494,7 @@ public class VerdantDirector : PlanetDirector
             float ss = Rand(VerdantTuning.SatelliteMin, VerdantTuning.SatelliteMax);
             float dir = k % 2 == 0 ? wind : -wind;
             float xs = xf + dir * Rand(.75f, 1.15f) * (sf + ss) * .5f;
-            double gs = gf + Rand(-.7f, .5f);
+            double gs = gf + Rand(-.7f, .5f) * VerdantTuning.PieceScale;
             if (xs < XMin(ss) || xs > XMax(ss)) continue;
             var rule = VerdantTuning.Rule(sat);
             if (!planner.Accepts(rule, xs, gs, ss) || !planner.Free(xs, gs, GroundPlanner.HalfX(rule, ss), GroundPlanner.HalfY(rule, ss))) continue;
@@ -651,40 +504,6 @@ public class VerdantDirector : PlanetDirector
         return n;
     }
 
-    // A barge on a river and, nearby on the same water, a bridge / pipe
-    // bridge spanning it or a waterfall on its bank.
-    int RiverScene(double lo, double hi)
-    {
-        int n = 0;
-        string barge = Pick(VerdantTuning.Barges);
-        float sb = Rand(VerdantTuning.LandmarkMin * .9f, VerdantTuning.LandmarkMax);
-        float x; double gy;
-        if (Spot(barge, sb, lo - .4f, hi + .4f, out x, out gy) && Put(ground, landmarkArt, barge, sb, x, gy, Chance(.5)) != null) n++;
-        string bank = Pick(VerdantTuning.Banks);
-        float sk = Rand(VerdantTuning.LandmarkMin, VerdantTuning.LandmarkMax);
-        var atlas = bank == "pipebridge_00" ? pipeArt : landmarkArt;
-        if (Spot(bank, sk, lo - .4f, hi + 1.4f, out x, out gy) &&
-            Put(bank == "pipebridge_00" ? pipes : ground, atlas, bank, sk, x, gy, bank.StartsWith("bridge") && Chance(.5)) != null) n++;
-        return n;
-    }
-
-    int LonePiece(double lo, double hi)
-    {
-        for (int k = 0; k < 3; k++)
-        {
-            int i = rng.Next(VerdantTuning.Lone.Length);
-            if (i == lastLone) i = (i + 1) % VerdantTuning.Lone.Length;
-            string name = VerdantTuning.Lone[i];
-            float s = Rand(VerdantTuning.LandmarkMin, VerdantTuning.LandmarkMax);
-            float x; double gy;
-            if (!Spot(name, s, lo, hi, out x, out gy)) continue;
-            if (Put(ground, landmarkArt, name, s, x, gy, Chance(.5)) == null) continue;
-            lastLone = i;
-            return 1;
-        }
-        return 0;
-    }
-
     // A smoke pall over a fire: rides the fire's ground spot (pinned),
     // rising slowly and drifting downwind as it ages, fading in and out.
     void SpawnPall(BackdropPiece fire)
@@ -692,7 +511,7 @@ public class VerdantDirector : PlanetDirector
         if (pallArt.Length == 0) return;
         var p = palls.Spawn();
         if (p == null) return;
-        SetSprite(p, Pick(pallArt), Rand(2.2f, 3f));
+        SetSprite(p, Pick(pallArt), Rand(2.2f, 3f) * VerdantTuning.PieceScale);
         if (Chance(.5)) p.body.localScale = new Vector3(-1f, 1f, 1f);
         p.gy = fire.gy + fire.size * .35f;
         p.x = fire.x + VerdantTuning.Wind * fire.size * .3f;
@@ -721,17 +540,16 @@ public class VerdantDirector : PlanetDirector
         }
     }
 
-    // Preview / tests: clears the ground plane and shows `name` alone at
-    // screen x, y (pinned there), size `size`, its rule ignored.
+    // Preview / tests: clears the ground plane and shows `name` alone at screen x, y (pinned there), size `size`, its rule ignored.
     public BackdropPiece Showcase(string name, float size, float x, float y, bool mirror = false)
     {
-        foreach (var pool in new[] { pipes, fires, ground, sites })
+        foreach (var pool in new[] { fires, sites })
             foreach (var q in pool.items)
                 if (q.active) { planner.Release(q.footprint); q.footprint = -1; Despawn(q); }
         foreach (var q in palls.items) if (q.active) Despawn(q);
-        bool pipe = pipeArt.Has(name), fire = fireArt.Has(name), site = siteArt.Has(name);
-        var atlas = pipe ? pipeArt : fire ? fireArt : site ? siteArt : landmarkArt;
-        var p = Put(pipe ? pipes : fire ? fires : site ? sites : ground, atlas, name, size, x, planner.GroundY(y), mirror);
+        bool fire = fireArt.Has(name), site = siteArt.Has(name);
+        var atlas = fire ? fireArt : siteArt;
+        var p = Put(fire ? fires : sites, atlas, name, size, x, planner.GroundY(y), mirror);
         if (p != null && fire) SpawnPall(p);
         groundTravel = -1000f;     // nothing else spawns while it is shown
         siteTravel = -1000f;
