@@ -433,6 +433,7 @@ public static class AllTests
         ("StormPropsTest", StormPropsTest.Execute),
         ("StormLifeTest", StormLifeTest.Execute),
         ("DesertBackdropTest", DesertBackdropTest.Execute),
+        ("DesertPropsTest", DesertPropsTest.Execute),
         ("WorldGatingTest", WorldGatingTest.Execute),
         ("WorldLeakTest", WorldLeakTest.Execute),
         ("PerfSoakTest", PerfSoakTest.Execute),

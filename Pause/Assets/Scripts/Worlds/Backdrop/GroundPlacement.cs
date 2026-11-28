@@ -42,7 +42,7 @@ using UnityEngine;
 // planner.Find(...) + Pin(piece, x, gy) and planner.Step(piece) per frame.
 // Nothing here allocates after construction.
 [System.Flags]
-public enum GroundClass : byte
+public enum GroundClass : ushort
 {
     None = 0,
     Water = 1,      // rivers, channels, flooded streets / open water, lava
@@ -51,6 +51,11 @@ public enum GroundClass : byte
     Canopy = 8,     // dense forest / ice sheet / crust: the textured ground
     Trough = 16,    // ZONE flag on top of Water / Open (mask letter T): a Desert dune trough
     Near = 32,      // ZONE flag on top of Water / Open (mask letters N, M): free ground right beside painted props
+    // CONTEXT flags (Desert r1, 2026-11-28: <variant>/ctx.txt beside mask.txt, GroundMask.WithContext): where a living prop makes sense
+    Flat = 64,      // the flattest open ground (a camp, a market, a spaceport pad)
+    Rocky = 128,    // ground beside painted rock / ruins / works (a dig, ruins, an observatory)
+    Shore = 256,    // ground beside painted water (sand skiffs)
+    Plain = 512,    // open, unpainted ground (dunes, pans: crawlers, rigs, wind farms)
     Land = Built | Open | Canopy,
     Any = Water | Land,
 }
@@ -91,8 +96,46 @@ public class GroundMask
     public static GroundMask Load(string world, int variant)
     {
         var t = Resources.Load<TextAsset>(BackdropCatalog.TileFolder(world, variant) + "mask");
-        return t != null ? Parse(t.text) : null;
+        var m = t != null ? Parse(t.text) : null;
+        var ctx = m != null ? Resources.Load<TextAsset>(BackdropCatalog.TileFolder(world, variant) + "ctx") : null;
+        return ctx != null ? m.WithContext(ctx.text) : m;
     }
+
+    // ctx.txt (Desert r1): the same grid as mask.txt, one hex digit a cell -- bit 1 Flat, 2 Rocky, 4 Shore, 8 Plain -- OR-ed onto the
+    // cells' classes. A grid of another size is ignored.
+    public GroundMask WithContext(string text)
+    {
+        if (string.IsNullOrEmpty(text)) return this;
+        var lines = text.Replace("\r", "").Split('\n');
+        int r = 0;
+        foreach (var l in lines)
+        {
+            if (l.Length == 0) continue;
+            if (r >= Rows || l.Length != Cols) return this;
+            r++;
+        }
+        if (r != Rows) return this;
+        r = 0;
+        foreach (var l in lines)
+        {
+            if (l.Length == 0) continue;
+            for (int x = 0; x < Cols; x++)
+            {
+                char ch = l[x];
+                int b = ch >= '0' && ch <= '9' ? ch - '0' : ch >= 'a' && ch <= 'f' ? ch - 'a' + 10 : ch >= 'A' && ch <= 'F' ? ch - 'A' + 10 : 0;
+                var c = cells[r * Cols + x];
+                if ((b & 1) != 0) c |= GroundClass.Flat;
+                if ((b & 2) != 0) c |= GroundClass.Rocky;
+                if ((b & 4) != 0) c |= GroundClass.Shore;
+                if ((b & 8) != 0) c |= GroundClass.Plain;
+                cells[r * Cols + x] = c;
+            }
+            r++;
+        }
+        HasContext = true;
+        return this;
+    }
+    public bool HasContext { get; private set; }
 
     // u across the tile 0..1 (left..right), v up the tile 0..1 (bottom..top),
     // both wrapped / clamped like the drawn tile (repeats vertically only).

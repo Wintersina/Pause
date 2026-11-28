@@ -146,8 +146,8 @@ public static class DesertWireCapture
             }
         }
         Capture(cam, Path.Combine(dir, "v" + v + "-late.png"));
-        Debug.Log("[DESERT-WIRE] v" + v + " ground " + d.Ground.ActiveCount + " fires " + d.Fires.ActiveCount + " pipes " + d.Pipes.ActiveCount +
-                  " sites " + d.Sites.ActiveCount + " clusters " + d.Clusters + " runs " + d.PipeRuns);
+        Debug.Log("[DESERT-WIRE] v" + v + " props " + d.Props.ActiveCount + " mountains " + d.Mountains.ActiveCount +
+                  " sites " + d.Sites.ActiveCount);
         foreach (var go in gos) if (go != null) Object.DestroyImmediate(go);
         EnemyThreat.ForceShooting = false;
 

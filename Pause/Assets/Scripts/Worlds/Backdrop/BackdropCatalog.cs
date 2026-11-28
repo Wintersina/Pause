@@ -413,31 +413,27 @@ public static class BackdropCatalog
             Layer.Pieces("debris", 0.320f, Role.Atmosphere),
             Layer.Pieces("rain", 0.450f, Role.Atmosphere),
         }},
-        // Desert (DesertDirector, docs in DesertBackdrop.cs): flown at atmosphere
-        // level over the dead strip-mined planet: bone-gold dune seas, a dry copper
-        // canyon of buried refineries, a cracked salt flat of toppled solar arrays,
-        // or the NIGHT side's cold moon-lit dunes (DesertTuning.Night; one of four
-        // variant sets per landing) -- with giant sand worms under the sand (ridge
-        // trails and eruptions, DesertDirector). Ruins, pipework, wells, vents and
-        // ground features stand on the ground, PINNED to the mid tile
-        // (GroundPlanner) where its affinity mask says they belong. The art is
-        // painted dark-base with bone crest lights (value p90 ~.40-.49) and drawn
-        // as painted (brightness 1: not Spec.Bright), so the dark worlds' shot
-        // outlines apply.
-        new Spec { world = "Desert", folder = "Worlds/Desert/Backdrop3/", keyAtlas = "landmarks",
-                   variantSets = BackdropVariants.MaxVariants,
+        // Desert (DesertDirector, docs in DesertBackdrop.cs): flown HIGH (r1, 2026-11-28: the user-approved .41 altitude, as Frost
+        // and Storm) over the dead strip-mined planet: a khaki dune sea, a lilac salt mine, a rose dusk oasis in the rock, or the NIGHT
+        // side (DesertTuning.Night; one of four variant sets per landing) -- with giant sand worms under the sand (ridge trails and
+        // eruptions, DesertDirector). The 896 px stitched ground tile is drawn at .82 of the view (DesertTuning.TileZoom: two .41
+        // columns side by side), so everything standing on it is keyed to .41 (DesertTuning.GroundZoom). The living props and the
+        // mountains (DesertProps.cs) stand on the ground, PINNED to the mid tile (GroundPlanner) where its mask and context say they
+        // belong. Drawn as painted (brightness 1: not Spec.Bright), so the dark worlds' shot outlines apply.
+        new Spec { world = "Desert", folder = "Worlds/Desert/Backdrop3/", keyAtlas = "sites",
+                   variantSets = BackdropVariants.MaxVariants, groundZoom = DesertTuning.TileZoom, pieceZoom = DesertTuning.GroundZoom,
                    brightness = () => DesertTuning.Brightness, saturation = () => 1f,
                    variantBrightness = DesertTuning.VariantBrightness, variantNight = DesertTuning.Night,
                    cloudDensity = () => DesertTuning.CloudDensity, ceilingHold = () => DesertTuning.CeilingHold,
                    ceilingClearSeconds = () => DesertTuning.CeilingClearSeconds, layers = new[] {
-            Layer.Tile("sky", 0.006f, W).Graded(.6f),
-            Layer.Tile("far", 0.014f, W).Graded(.8f),
-            Layer.Tile("mid", 0.024f, W).WithTexture("sky").Graded(1f),
-            // landmarks, pipes, ground features, the worms and the elite sites: one
-            // ground plane pinned to the mid tile
-            Layer.Pieces("ground", 0.024f, Role.Landmark).PinnedTo("mid", 0.024f).Graded(1f),
-            Layer.Strip("flow", 0.025f, 0.30f, 0.01f, new Color(1f, 1f, 1f, 0.85f)).Graded(1f),
-            Layer.Pieces("palls", 0.040f, Role.Atmosphere).Graded(.6f),
+            // (sky / far lie under the opaque mid: the far layer reuses the sky texture, their rates scaled with the altitude)
+            Layer.Tile("sky", 0.006f * DesertTuning.GroundZoom, W).Graded(.6f),
+            Layer.Tile("far", 0.014f * DesertTuning.GroundZoom, W).WithTexture("sky").Graded(.8f),
+            Layer.Tile("mid", DesertTuning.GroundRate, W).Graded(1f),
+            // the blowing sand streaks: UNDER the pinned plane (user rule 2026-11-28: nothing moving passes through a prop)
+            Layer.Strip("flow", DesertTuning.FlowRate, DesertTuning.FlowDrift, 0.01f, new Color(1f, 1f, 1f, 0.85f)).Graded(1f),
+            // the mountains, the living props, the worms, the wanderers and the elite sites: one ground plane pinned to the mid tile
+            Layer.Pieces("ground", DesertTuning.GroundRate, Role.Landmark).PinnedTo("mid", DesertTuning.GroundRate).Graded(1f),
             Layer.Pieces("mist", 0.060f, Role.Atmosphere).Graded(.6f),
             Layer.Pieces("wisps", 0.090f, Role.Cloud).Graded(.6f),
             // the dust-haze ceiling the planetfall drops through

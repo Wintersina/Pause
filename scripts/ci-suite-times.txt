@@ -83,6 +83,7 @@ DesertBackdropTest 23.1
 DesertEliteTest 2.8
 DesertEmberFrameTest 0.2
 DesertFramingTest 0.3
+DesertPropsTest 40.0
 DesertRosterTest 0.4
 DesertSoundTest 0.0
 DeveloperModeTest 0.1

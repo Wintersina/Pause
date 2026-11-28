@@ -166,6 +166,19 @@ public class BackdropSet
         return a;
     }
 
+    // A layout's OWN atlas (<folder>v<n>/<name>: Desert's living props, cut per ground set -- v4's carries the night grade and only
+    // the layouts with a shore carry the skiffs), cached like the shared ones; WorldArtPreload.VariantAtlasesOf queues it.
+    public BackdropAtlas VariantAtlas(string name)
+    {
+        BackdropAtlas a;
+        string key = "v:" + name;
+        if (atlases.TryGetValue(key, out a)) return a;
+        a = AtlasOverride != null ? AtlasOverride(Spec.world, key) : null;
+        if (a == null) a = LoadAtlas(BackdropCatalog.TileFolder(Spec.world, Variant), name);
+        atlases[key] = a;
+        return a;
+    }
+
     BackdropAtlas LoadAtlas(string folder, string name)
     {
         var tex = WorldArtPreload.Load<Texture2D>(folder + name);

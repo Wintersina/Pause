@@ -133,8 +133,6 @@ public static class BackdropCellBleedTest
             ("Tide", "landmarks", "bridge_section_00", TideTuning.Rule("bridge_section_00")),
             ("Tide", "pipes", "pipebridge_00", TideTuning.Rule("pipebridge_00")),
             ("Tide", "pipes", "pipebridge_01", TideTuning.Rule("pipebridge_01")),
-            ("Desert", "pipes", "pipe_bridge_00", DesertTuning.Rule("pipe_bridge_00")),
-            ("Desert", "pipes", "pipe_bridge_01", DesertTuning.Rule("pipe_bridge_01")),
         };
         foreach (var s in spans)
         {

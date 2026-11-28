@@ -46,6 +46,9 @@ public static class WorldBackdropTest
     // Since 1f0d8e87 (2026-10-13) Desert's continuous-tone art is ASTC 4x4 on phones (WorldBackdropImport.IsContinuousTone; 6x6 bands the
     // dune gradients), 2.25x the old 6x6 size: 24 MB measured on the Android target (the worm sheets alone ~6 MB).
     // 2026-10 painted salt flat: its sky / far / mid / flow are 1024x2048 (ASTC 6x6, ~7.5 MB with mips, was ~2.7 MB at 512x1024), so the largest variant set grew ~5 MB: 26 -> 32 MB.
+    // 2026-11-28 r1 (the .41 altitude): the landmarks, pipes, fires, leaks, lights, lights_2, shimmer_2 and dust_3 sheets and the far tiles
+    // retired; the worm sheets capped at 1024 (drawn at under half their px now); a set gains the stitched mid (896 x 4096) and its living
+    // props atlas (v<n>/props, 4096 x ~2200 ASTC 4x4, ~8.9 MB): ~26 MB, inside the old cap.
     public const long DesertTextureBudgetBytes = 32L * 1024 * 1024;   // (+1 MB for the docks atlas: four 6-cell launch strips, ~0.7 MB ASTC 4x4)
     // Storm's HD tiles use ASTC 6x6; its painted atlases use 4x4. The launch-strip docks
     // added in cd2db99ec are 1578x1054 (1,668,480 bytes at 4x4): the existing ~8049 KiB
@@ -62,7 +65,7 @@ public static class WorldBackdropTest
     const float PixelGridSeamTolerance = 0.06f;
     static float SeamLimit(string asset)
     {
-        if (System.Text.RegularExpressions.Regex.IsMatch(asset.Replace('\\', '/'), "/Storm/Backdrop3/v[1234]/mid\\.png$")) return StormR3SeamTolerance;
+        if (System.Text.RegularExpressions.Regex.IsMatch(asset.Replace('\\', '/'), "/(Storm|Desert)/Backdrop3/v[1234]/mid\\.png$")) return StormR3SeamTolerance;   // (Desert r1: the same stitched format)
         return System.Text.RegularExpressions.Regex.IsMatch(asset.Replace('\\', '/'), "/Desert/Backdrop3/v[1234]/(sky|far|mid)\\.png$") ? PixelGridSeamTolerance : SeamTolerance;
     }
     // 2026-11-28 Storm's r3 ground (896 x 4096, quilted from the approved painting and wrapped by construction, pl/storm/r3/stitch.py):
@@ -248,7 +251,7 @@ public static class WorldBackdropTest
     static Color[] DesertAtlasAsDrawn(BackdropCatalog.Spec spec, string atlas, Color[] px)
     {
         float lift = 1f, alphaLift = 1f, sat = 1f;
-        if (atlas == "landmarks" || atlas == "sites" || atlas == "pipes" || atlas == "fires") lift = BackdropGrade.Lift(spec, spec.Find("ground"), 1);
+        if (atlas == "sites" || atlas == DesertPropsTuning.Atlas) lift = BackdropGrade.Lift(spec, spec.Find("ground"), 1);
         else if (atlas == "weather") { alphaLift = DesertTuning.CeilingThicken; lift = DesertTuning.CeilingLift; sat = DesertTuning.CeilingSaturation; }
         return BackdropGrade.Apply(px, lift, sat, alphaLift);
     }
@@ -390,38 +393,16 @@ public static class WorldBackdropTest
         { StormPropsTuning.AloftAtlas, new[] { "aerostat_0_00", "aerostat_3_07", "convoy_0_00", "convoy_2_07", "jelly_0_00", "jelly_6_07", "rays_0_00", "rays_3_07" } },
     };
 
-    // Desert's shared atlases and the drawings the director relies on (ordered like the art:
-    // landmarks, pipes, fires, sites, weather; the loop sheets and the worms are checked by name below).
+    // Desert's shared atlases and the drawings the director relies on (the r1 living props live per ground set, v<n>/props:
+    // DesertPropsTest; the round-1 landmarks, pipes and features retired 2026-11-28; the loop sheets and the worms are checked by name below).
     static readonly Dictionary<string, string[]> DesertAtlases = new Dictionary<string, string[]>
     {
-        { "landmarks", DesertPieces("landmarks") },
-        { "pipes", DesertPieces("pipes") },
-        { "fires", DesertPieces("fires") },
         { "sites", new[] { "worm_burrow_closed", "worm_burrow_open", "crawler_bay_closed", "crawler_bay_open", "glass_pad_closed", "glass_pad_open",
                            "buried_silo_closed", "buried_silo_open", "ruin_dock_closed", "ruin_dock_open" } },
         { "weather", new[] { "cloud_bank_00", "cloud_bank_03", "cloud_wisp_00", "cloud_wisp_03", "mist_00", "mist_02", "gust_00", "gust_01", "pall_00", "pall_01", "particle_00" } },
         { "worm", new[] { "worm_s_ridge_00", "worm_s_emerge_01", "worm_s_arc_00", "worm_s_dive_00", "worm_s_spray_00", "worm_m_ridge_00", "worm_m_emerge_01", "worm_m_arc_00", "worm_m_dive_00", "worm_m_spray_00" } },
         { "worm_giant", new[] { "worm_l_ridge_00", "worm_l_emerge_01", "worm_l_arc_00", "worm_l_dive_00", "worm_l_spray_00" } },
     };
-
-    // Every drawing of a Desert piece atlas the director names.
-    static string[] DesertPieces(string atlas)
-    {
-        var names = new List<string>();
-        foreach (var group in new[] { DesertTuning.Ruins, DesertTuning.Neighbours, DesertTuning.Fronts, DesertTuning.Satellites,
-                                      DesertTuning.Caravans, DesertTuning.Banks, DesertTuning.Lone, DesertTuning.HorizontalPipes })
-            foreach (string n in group)
-            {
-                bool pipe = n.StartsWith("straight") || n.StartsWith("manifold") || n.StartsWith("tangle") || n.StartsWith("leak") ||
-                            n == "pump_house" || n == "half_buried_pipe" || n.StartsWith("pipe_bridge");
-                bool fire = n.StartsWith("rock_fin") || n.StartsWith("wall_drift") || n.StartsWith("fulgurite") || n.StartsWith("dry_well") ||
-                            n.StartsWith("machine_ribs") || n.StartsWith("heat_vent") || n == "crack_scar" || n == "dune_ridge" ||
-                            n == "wreckage" || n == "lone_crawler";
-                string a = pipe ? "pipes" : fire ? "fires" : "landmarks";
-                if (a == atlas && !names.Contains(n)) names.Add(n);
-            }
-        return names.ToArray();
-    }
 
     // Every drawing of a Tide piece atlas the director names.
     static string[] TidePieces(string atlas)
@@ -1258,7 +1239,8 @@ public static class WorldBackdropTest
             Check("Desert v" + v + " keeps out of the player's red, star-dust amber and violet (" + (forbidden / (float)n).ToString("F4") + " <= " + DesertMaxForbiddenShareFor(v) + ")",
                   forbidden <= DesertMaxForbiddenShareFor(v) * n);
         }
-        foreach (string atlas in new[] { "landmarks", "pipes", "fires", "sites", "weather" })
+        // (the r1 props carry their own approved lamps -- the zeppelin's red port light, the beacons -- held by DesertPropsTest instead)
+        foreach (string atlas in new[] { "sites", "weather" })
         {
             int bad = 0;
             foreach (var c in ReadPixels(ArtDir("Desert") + atlas + ".png"))
