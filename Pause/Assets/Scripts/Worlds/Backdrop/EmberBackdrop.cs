@@ -204,7 +204,10 @@ public partial class EmberDirector : PlanetDirector
     Sprite[] siteClosed, siteOpen, banks, wispArt, mistArt, gustArt, pallArt, emberArt;
     Sprite lampsOff, lampsOn;
     float groundTravel, groundGap, siteTravel, siteGap, ceilingTravel;
-    int[] pallFeet;                                     // per palls slot: the pall's claimed drift box (planner footprint)
+    // per palls slot: the box the pall will sweep over its life (centre, half-size; r 0: none). Not a planner footprint (the pall hangs over
+    // its own eruption and the satellites round it): props are kept out of it by PallsTouch, and a pall that would meet a prop is not drawn
+    float[] pallX, pallR;
+    double[] pallY;
     int lastCluster = -1;
     bool night;
     float mistIn = 2.5f, wispIn = 6f;
@@ -313,8 +316,7 @@ public partial class EmberDirector : PlanetDirector
             go.transform.localScale = new Vector3(k, k, 1f);
         }
         palls = Pool("palls", 4);
-        pallFeet = new int[palls.items.Count];
-        for (int i = 0; i < pallFeet.Length; i++) pallFeet[i] = -1;
+        pallX = new float[palls.items.Count]; pallR = new float[palls.items.Count]; pallY = new double[palls.items.Count];
         mist = Pool("mist", 3);
         wisps = Pool("wisps", 4);
         ceiling = Pool("ceiling", 26);
@@ -639,9 +641,8 @@ public partial class EmberDirector : PlanetDirector
         int slot = palls.items.IndexOf(p);
         double cy = p.gy + p.vy * p.life * .5;
         float cx = p.x + p.vx * p.life * .5f;
-        if (!planner.Free(cx, cy, reach, reach)) { Despawn(p); return; }
-        pallFeet[slot] = planner.Claim(cx, cy, reach, reach);
-        if (pallFeet[slot] < 0) { Despawn(p); return; }
+        if (TouchesProp(cx, cy, reach, reach)) { Despawn(p); return; }
+        pallX[slot] = cx; pallY[slot] = cy; pallR[slot] = reach;
         p.rate = set.Spec.Rate("ground");
         p.phase = EmberTuning.PallAlpha * Rand(.8f, 1f);
         p.y = planner.Y(p.gy);
@@ -652,9 +653,16 @@ public partial class EmberDirector : PlanetDirector
     void ReleasePall(BackdropPiece p)
     {
         int slot = palls.items.IndexOf(p);
-        if (slot < 0 || pallFeet[slot] < 0) return;
-        planner.Release(pallFeet[slot]);
-        pallFeet[slot] = -1;
+        if (slot >= 0) pallR[slot] = 0f;
+    }
+
+    // Does a live pall's swept box meet the box (x, gy, rx, ry)? (the props' placement)
+    public bool PallsTouch(float x, double gy, float rx, float ry)
+    {
+        if (pallR == null) return false;
+        for (int i = 0; i < pallR.Length; i++)
+            if (pallR[i] > 0f && Mathf.Abs(pallX[i] - x) < pallR[i] + rx && System.Math.Abs(pallY[i] - gy) < pallR[i] + ry) return true;
+        return false;
     }
 
     void StepPalls(float dt)

@@ -306,7 +306,7 @@ public partial class EmberDirector
                 float cx = PRand(XMin(keep), XMax(keep));
                 double cy = lo + off + propRng.NextDouble() * (hi - lo);
                 if (above && cy - (scar ? EmberPropsTuning.ScarBelow * size : CellHalf(kd)) < planner.Travel + HalfH) continue;
-                if (!planner.Free(cx, cy, keep, keep)) continue;
+                if (!planner.Free(cx, cy, keep, keep) || PallsTouch(cx, cy, keep, keep)) continue;
                 if (!EmberPropsTuning.OnContext(planner, kd, cx, cy, HalfW)) continue;
                 if (scar && !ScarClear(variant, size, cx, cy)) continue;
                 x = cx; gy = cy; found = true;
@@ -529,7 +529,7 @@ public partial class EmberDirector
     // Tests: a prop of `kind` put exactly at (x, gy) -- no context rule, its keep-out still claimed. Null: no room.
     public BackdropPiece PlantProp(int kind, float x, double gy, int variant = 0)
     {
-        if (!HasPropArt(kind) || !planner.Free(x, gy, PropKeep(kind), PropKeep(kind))) return null;
+        if (!HasPropArt(kind) || !planner.Free(x, gy, PropKeep(kind), PropKeep(kind)) || PallsTouch(x, gy, PropKeep(kind), PropKeep(kind))) return null;
         return Commit(kind, x, gy, variant);
     }
 
