@@ -677,29 +677,35 @@ public static partial class AttackFairnessTest
         AttackHazardArt.Forget();
         EliteSystem.Clear();
 
-        // The installed Ember atlas (Resources/Attacks/Ember/ember_attack_strike.png, Art/Attacks/Ember~/src~/build_strike.py): the
-        // Cinder Drake's eruption column wears it, and its 3 u art tiles are cut at the geyser's top -- the flame never draws past
-        // the hit rectangle (a 4.35 u column = one whole tile + one cropped one).
+        // Ember's eruption column (no sheet of its own: AttackArt.KitStrike assembles it from the resident ember_attack_laserbody /
+        // ember_attack_mineflame, the attack-art memory budget): the Cinder Drake's column wears the laserbody's 2 u beam tiles, cut at
+        // the geyser's top -- the flame never draws past the hit rectangle (a 4.2 u column = two whole tiles + one cropped one).
         Fresh();
         var ember = AttackArt.StrikeBody(3, 0);
+        var laserbody = AttackArt.Atlas(3, "laserbody");
         var er = AttackStrike.Arm(StrikeSpec.Standard(3), 0f, -1.5f, 1f, null);
         er.Ignite();
         Advance(.05f);
         float topDrawn = -99f, footDrawn = 99f;
-        bool fromAtlas = ember != null;
+        bool fromKit = ember != null && laserbody != null && ember.texture == laserbody && Mathf.Abs(ember.bounds.size.y - 2f) < .01f;
         for (int i = 0; i < AttackStrike.MaxTiles; i++)
         {
             var sr = er.BodyRenderer(i);
             if (!sr.enabled) continue;
             topDrawn = Mathf.Max(topDrawn, sr.bounds.max.y);
             footDrawn = Mathf.Min(footDrawn, sr.bounds.min.y);
-            fromAtlas &= sr.sprite != null && ember != null && sr.sprite.texture == ember.texture;
+            fromKit &= sr.sprite != null && ember != null && sr.sprite.texture == ember.texture;
         }
         var eh = er.Footprint.Bounds();
-        Check("Ember's installed strike atlas draws the eruption column (" + er.TilesShown + " tiles), from its foot (" + footDrawn.ToString("F2") + " vs " + eh.yMin.ToString("F2") +
+        float pinch, ws4; Color tint0, tint5;
+        bool looks = AttackArt.StrikeFrameLook(3, 0, out pinch, out tint0) & AttackArt.StrikeFrameLook(3, 5, out ws4, out tint5) && !AttackArt.StrikeFrameLook(1, 0, out _, out _);
+        var g0 = AttackArt.StrikeGlyph(3, 0); var b2 = AttackArt.StrikeBurst(3, 2); var mine = AttackArt.Atlas(3, "mineflame");
+        Check("Ember's eruption column is drawn from its resident laser body (" + er.TilesShown + " tiles), from its foot (" + footDrawn.ToString("F2") + " vs " + eh.yMin.ToString("F2") +
               ") exactly to the geyser's top (" + topDrawn.ToString("F3") + " vs " + eh.yMax.ToString("F3") + ", within one texel), never past it",
-              AttackHazardArt.StrikeArt(3) && fromAtlas && er.TilesShown == 2 && Mathf.Abs(footDrawn - eh.yMin) < .02f &&
+              !AttackArt.Has(3, "strike") && AttackHazardArt.StrikeArt(3) && fromKit && er.TilesShown == 3 && Mathf.Abs(footDrawn - eh.yMin) < .02f &&
               topDrawn >= eh.yMax - .01f && topDrawn <= eh.yMax + 1f / AttackArt.PixelsPerUnit + .01f);
+        Check("... igniting pinched (" + pinch.ToString("F2") + " width) and dying faded (" + tint5.a.ToString("F2") + " alpha); its glyph and burst are the mineflame's cells (no look for other worlds)",
+              looks && pinch < .7f && tint0 == Color.white && tint5.a < .5f && ws4 == 1f && mine != null && g0 != null && g0.texture == mine && b2 != null && b2.texture == mine);
         er.Cancel();
         EliteSystem.Clear();
     }

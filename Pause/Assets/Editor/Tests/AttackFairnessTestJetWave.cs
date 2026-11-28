@@ -333,7 +333,7 @@ public static partial class AttackFairnessTest
         var installedWave = AttackArt.Atlas(4, "wave");
         var emberJet = Atlas(768, 384, new Color32(255, 120, 220, 255));
         var tideJet = Atlas(768, 448, new Color32(255, 120, 220, 255));
-        var tideWave = Atlas(512, 480, new Color32(255, 120, 220, 255));
+        var tideWave = Atlas(512, 384, new Color32(255, 120, 220, 255));
         AttackArt.Inject(3, "jet", emberJet);
         AttackArt.Inject(4, "jet", tideJet);
         AttackArt.Inject(4, "wave", tideWave);
@@ -387,12 +387,13 @@ public static partial class AttackFairnessTest
     {
         Fresh();
         var tex = AttackArt.Atlas(4, "wave");
-        Check("tide_attack_wave.png is 512 x 480 (four 512 x 96 band frames, then the 96 x 96 caps and gap markers)", tex != null && tex.width == 512 && tex.height == 480);
+        Check("tide_attack_wave.png is 512 x 384 (three 512 x 96 band frames, then the 96 x 96 caps and gap markers)", tex != null && tex.width == 512 && tex.height == 384);
         if (tex == null) return;
-        // the band: four frames, 4 x .75 u at 128 ppu, all different (the 12 fps loop moves), each seamless left-right
+        // the band: three drawings, 4 x .75 u at 128 ppu, all different (the 12 fps loop moves), each seamless left-right; the
+        // loop's fourth step is the ping-pong back through frame 1
         int seamBad = 0, alike = 0;
         Color32[] prev = null;
-        for (int i = 0; i < 4; i++)
+        for (int i = 0; i < 3; i++)
         {
             var b = AttackArt.WaveBody(4, i);
             if (b == null || Mathf.Abs(b.bounds.size.x - 4f) > .01f || Mathf.Abs(b.bounds.size.y - .75f) > .01f) { seamBad++; continue; }
@@ -410,7 +411,8 @@ public static partial class AttackFairnessTest
             if (prev != null) { int d = 0; for (int k = 0; k < px.Length; k++) if (!px[k].Equals(prev[k])) d++; if (d < 200) alike++; }
             prev = px;
         }
-        Check("the four band frames are 4 x .75 u tiles, each seamless left-right (" + seamBad + " bad) and each a different drawing (" + alike + " too alike)", seamBad == 0 && alike == 0);
+        Check("the three band frames are 4 x .75 u tiles, each seamless left-right (" + seamBad + " bad) and each a different drawing (" + alike + " too alike); the loop plays 0, 1, 2, 1",
+              seamBad == 0 && alike == 0 && AttackArt.WaveBody(4, 3) == AttackArt.WaveBody(4, 1) && AttackArt.WaveBody(4, 4) == AttackArt.WaveBody(4, 0));
         // the caps: AttackWave centres a cap on the gap edge, so a cap's pixels all sit on the band's side of its middle
         var capL = AttackArt.WaveCapL(4); var capR = AttackArt.WaveCapR(4);
         int intoGap = 0, capPaint = 0;

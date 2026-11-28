@@ -20,7 +20,7 @@ using UnityEngine;
 //   fx      8 x 2 cells of 128
 //   strike  6 x 128x384 + 6 x 128x128 (Frost, Ember, Tide)
 //   jet     Ember 6 x 128x256 + 6 x 128; Tide 6 x 128x320 + 6 x 128
-//   wave    512 x 480 (four 512x96 bodies, one 96 cell row)
+//   wave    512 x 384 (three 512x96 bodies looped 0,1,2,1, one 96 cell row)
 //   ring    8 x 128 (Frost)
 //   beam    8 x 128 (every themed world): the mine laser's skin
 //   lash    8 x 128 (Verdant, Tide)
@@ -253,10 +253,43 @@ public static class AttackArt
     public static Sprite RingGapMarker(int world, int i) => Cell(world, "ring", 4 + Mathf.Clamp(i, 0, 1), 0);
     public static Sprite RingGlyph(int world, int i) => Cell(world, "ring", 6 + Mathf.Clamp(i, 0, 1), 0);
     // <w>_attack_strike.png (768 x 512): row 0 six 128 x 384 column frames (24 fps over the live window); row 1 (from y 384)
-    // 128 x 128: glyph a,b then burst x3 then one reserved
-    public static Sprite StrikeBody(int world, int i) => Cell(world, "strike", ((i % 6) + 6) % 6, 0, 128, 384);
-    public static Sprite StrikeGlyph(int world, int i) => Cell(world, "strike", Mathf.Clamp(i, 0, 1), 3, 128, 128);
-    public static Sprite StrikeBurst(int world, int i) => Cell(world, "strike", 2 + Mathf.Clamp(i, 0, 2), 3, 128, 128);
+    // 128 x 128: glyph a,b then burst x3 then one reserved. (Ember: KitStrike below, no sheet.)
+    public static Sprite StrikeBody(int world, int i)
+    {
+        i = ((i % 6) + 6) % 6;
+        return KitStrike(world) ? Cell(world, "laserbody", KitStrikeBody[i], 0, 128, 256) : Cell(world, "strike", i, 0, 128, 384);
+    }
+    public static Sprite StrikeGlyph(int world, int i)
+    {
+        i = Mathf.Clamp(i, 0, 1);
+        return KitStrike(world) ? CellAt(world, "mineflame", 256 + i * 128, 384, 128, 128) : Cell(world, "strike", i, 3, 128, 128);
+    }
+    public static Sprite StrikeBurst(int world, int i)
+    {
+        i = Mathf.Clamp(i, 0, 2);
+        if (!KitStrike(world)) return Cell(world, "strike", 2 + i, 3, 128, 128);
+        return i < 2 ? CellAt(world, "mineflame", 512 + i * 128, 512, 128, 128) : CellAt(world, "mineflame", 0, 640, 128, 128);
+    }
+
+    // Ember's eruption column ships no strike sheet of its own: it is assembled from the kit already resident for the fight (the
+    // attack-art memory budget, MineFlameArtTest, has no room for a 768 x 512 copy of it). Body = ember_attack_laserbody's four
+    // 128 x 256 beam frames (2 u tiles, seamless top to bottom) played 0, 1, 2, 3, 0, 1 with StrikeFrameLook's ignite pinch and
+    // cooling fade; glyph a,b = ember_attack_mineflame's pilot flames c,d (y 384, x 256 / 384); burst = its impact a,b (y 512,
+    // x 512 / 640) and c (y 640, x 0). A delivered ember_attack_strike.png would take over (the generic layout above).
+    static readonly int[] KitStrikeBody = { 0, 1, 2, 3, 0, 1 };
+    static bool KitStrike(int world) => world == 3 && !Has(world, "strike") && Has(world, "laserbody") && Has(world, "mineflame");
+
+    // The per-frame look of a kit-assembled strike body (Ember): frame 0 ignites pinched to 55 % width, frames 4-5 die out
+    // cooled toward red at 62 % / 30 % alpha. False (identity) for a world drawing its own strike sheet.
+    public static bool StrikeFrameLook(int world, int i, out float widthScale, out Color tint)
+    {
+        widthScale = 1f; tint = Color.white;
+        if (!KitStrike(world)) return false;
+        i = ((i % 6) + 6) % 6;
+        if (i == 0) widthScale = .55f;
+        else if (i >= 4) { float k = i == 4 ? .62f : .3f, v = .55f + .45f * k; tint = new Color(v, .8f * v, .7f * v, k); }
+        return true;
+    }
 
     // <w>_attack_lash.png (1024 x 128, 8 cells; Verdant vine, Tide tentacle; phase 1e): link a,b (one 128 px section of the whip pointing down,
     // tiled end to end), tip a,b (the thorn / barnacled tip), root a,b (the bud / hatch collar), dash a,b (a dotted arc-preview segment)
@@ -279,12 +312,15 @@ public static class AttackArt
     public static Sprite JetNozzle(int world, int i) { int h = JetBodyPx(world); return h < 128 ? null : CellAt(world, "jet", Mathf.Clamp(i, 0, 2) * 128, h, 128, 128); }
     public static Sprite JetTip(int world, int i) { int h = JetBodyPx(world); return h < 128 ? null : CellAt(world, "jet", (3 + Mathf.Clamp(i, 0, 2)) * 128, h, 128, 128); }
 
-    // tide_attack_wave.png (512 x 480): four 512 x 96 body frames (seamless left-right, 12 fps) then row 4 (y 384) of 96 x 96 cells:
-    // capL, capR, gapMarker a, b
-    public static Sprite WaveBody(int world, int i) { return CellAt(world, "wave", 0, (((i % 4) + 4) % 4) * 96, 512, 96); }
-    public static Sprite WaveCapL(int world) { return CellAt(world, "wave", 0, 384, 96, 96); }
-    public static Sprite WaveCapR(int world) { return CellAt(world, "wave", 96, 384, 96, 96); }
-    public static Sprite WaveGapMarker(int world, int i) { return CellAt(world, "wave", 192 + Mathf.Clamp(i, 0, 1) * 96, 384, 96, 96); }
+    // tide_attack_wave.png (512 x 384): three 512 x 96 body frames (seamless left-right) played as a 4-step 12 fps ping-pong
+    // 0, 1, 2, 1 (WaveLoop: a fourth band would not fit the attack-art memory budget, MineFlameArtTest), then row 3 (y 288) of
+    // 96 x 96 cells: capL, capR, gapMarker a, b
+    public const int WaveFrames = 4, WaveAuxY = 288;
+    static readonly int[] WaveLoop = { 0, 1, 2, 1 };
+    public static Sprite WaveBody(int world, int i) { return CellAt(world, "wave", 0, WaveLoop[((i % 4) + 4) % 4] * 96, 512, 96); }
+    public static Sprite WaveCapL(int world) { return CellAt(world, "wave", 0, WaveAuxY, 96, 96); }
+    public static Sprite WaveCapR(int world) { return CellAt(world, "wave", 96, WaveAuxY, 96, 96); }
+    public static Sprite WaveGapMarker(int world, int i) { return CellAt(world, "wave", 192 + Mathf.Clamp(i, 0, 1) * 96, WaveAuxY, 96, 96); }
 
     // ---- tests --------------------------------------------------------------------
 

@@ -5,10 +5,12 @@ from the two user-approved drawings (2026-11-27), no repaint and no generation:
     approved_wave_band.png   512 x 128, the surf band (meant to tile left-right; as drawn its ends do NOT meet)
     approved_wave_gap.png    96 x 96, the gap marker (a brass ring round two water arrows)
 
-Layout the game reads (AttackArt.WaveBody / WaveCapL / WaveCapR / WaveGapMarker; AttackWave), 512 x 480 RGBA, 128 ppu:
-    rows 0-3   four 512 x 96 band frames (y 0, 96, 192, 288), seamless left-right, a 12 fps loop. AttackWave tiles them
-               across each segment (SpriteDrawMode.Tiled) at .75 u thick on its .4 u hit (1.875 x, under the 2 x cap).
-    row 4      (y 384) 96 x 96 cells: capL (x 0), capR (x 96), gap marker a (x 192), b (x 288), the rest empty.
+Layout the game reads (AttackArt.WaveBody / WaveCapL / WaveCapR / WaveGapMarker; AttackWave), 512 x 384 RGBA, 128 ppu:
+    rows 0-2   three 512 x 96 band frames (y 0, 96, 192), seamless left-right, played 0, 1, 2, 1 as a 12 fps ping-pong loop
+               (AttackArt.WaveBody maps the loop's fourth step back onto frame 1: the attack-art memory budget,
+               MineFlameArtTest, has no room for a fourth band). AttackWave tiles them across each segment
+               (SpriteDrawMode.Tiled) at .75 u thick on its .4 u hit (1.875 x, under the 2 x cap).
+    row 3      (y 288) 96 x 96 cells: capL (x 0), capR (x 96), gap marker a (x 192), b (x 288), the rest empty.
 
 Steps
   * seamless   the band and a copy rolled half its width are quilted (Efros-Freeman): in a strip near each end a
@@ -19,9 +21,9 @@ Steps
                top, spray, crest lines, the white foam bulk on the lower, leading edge).
   * palette    no pink (none in the drawings); saturated pixels in the shield-cyan band (hue 172-186, s*v >= .1) are
                turned to hue 190 (Tide's cue 188 side), same s / v; pale sea-foam whites (hue ~168) stay.
-  * loop       4 frames, ping-pong offsets so frame 3 -> 0 is one step like every other: the foam bulk (lower rows)
-               slides 0, 3, 6, 3 px, the crest band 0, -2, -4, -2 px, the top wash stays; whole rows are rolled, so the
-               tile stays seamless; isolated spray specks twinkle (frames 1 and 3 drop opposite halves), so all four drawings differ.
+  * loop       a 4-step ping-pong (0, 1, 2, 1) so the last step back to 0 is one step like every other: the foam bulk
+               (lower rows) slides 0, 3, 6 px, the crest band 0, -2, -4 px, the top wash stays; whole rows are rolled, so the
+               tile stays seamless; half the isolated spray specks twinkle out on frame 1, so all three drawings differ.
   * caps       a breaking-foam lip made from the band's own end: the band's last 48 columns with a foam wall drawn
                over their gap-side 10-14 px (rows where the band has paint), a ragged inner profile and a few drops
                thrown back over the band. AttackWave centres a cap ON the gap edge, so every cap pixel sits on the
@@ -42,6 +44,8 @@ HERE = Path(__file__).resolve().parent
 ART = HERE.parents[2]
 OUT = ART / "Resources/Attacks/Tide/tide_attack_wave.png"
 BAND_H, CELL = 96, 96
+BANDS = 3                   # stored band frames; the loop plays 0, 1, 2, 1
+AUX = BANDS * BAND_H        # the caps / markers row
 FOAM_DX = (0, 3, 6, 3)
 CREST_DX = (0, -2, -4, -2)
 
@@ -195,28 +199,28 @@ def build():
     band = recolor(squash(seamless(load("approved_wave_band.png"))))
     fr, crest0, foam0 = frames(band)
     gap = recolor(load("approved_wave_gap.png"))
-    atlas = np.zeros((480, 512, 4), np.uint8)
-    for i, f in enumerate(fr):
+    atlas = np.zeros((AUX + CELL, 512, 4), np.uint8)
+    for i, f in enumerate(fr[:BANDS]):                 # (frame 3 equals frame 1 but for its specks: played as frame 1)
         atlas[i * BAND_H:(i + 1) * BAND_H] = f
     capL = cap_left(fr[0], crest0, foam0)
-    atlas[384:480, 0:96] = capL
-    atlas[384:480, 96:192] = capL[:, ::-1]
-    atlas[384:480, 192:288] = gap
-    atlas[384:480, 288:384] = lit(gap)
+    atlas[AUX:, 0:96] = capL
+    atlas[AUX:, 96:192] = capL[:, ::-1]
+    atlas[AUX:, 192:288] = gap
+    atlas[AUX:, 288:384] = lit(gap)
     return atlas, (crest0, foam0)
 
 
 def checks(atlas):
     bad = []
-    for i in range(4):
+    for i in range(BANDS):
         f = atlas[i * BAND_H:(i + 1) * BAND_H].astype(int)
         seam = np.abs(f[:, 0] - f[:, -1]).sum(-1)
         # the tile meets itself: its last column continues into its first like any two neighbouring columns do
         inner = np.mean([np.abs(f[:, x] - f[:, x + 1]).sum(-1).mean() for x in range(0, 511, 7)])
         if seam.mean() > inner * 1.6: bad.append(f"frame {i} seam {seam.mean():.0f} vs neighbours {inner:.0f}")
-    caps = atlas[384:480, :192]
+    caps = atlas[AUX:, :192]
     if (caps[:, 48:96, 3] > 0).any() or (caps[:, 96:144, 3] > 0).any(): bad.append("a cap draws into the gap half")
-    for i in range(3):
+    for i in range(BANDS - 1):
         if (atlas[i * BAND_H:(i + 1) * BAND_H] == atlas[(i + 1) * BAND_H:(i + 2) * BAND_H]).all(): bad.append(f"frames {i}, {i+1} equal")
     return bad
 
@@ -232,22 +236,23 @@ def main():
     for b in checks(atlas): print("CHECK FAILED:", b)
     if prev:
         p = prev
-        bg = Image.new("RGBA", (1024 + 40, 480 * 2 + 420), (24, 26, 40, 255))
-        im = Image.fromarray(atlas, "RGBA").resize((1024, 960), Image.NEAREST)
+        H = atlas.shape[0]
+        bg = Image.new("RGBA", (1024 + 40, H * 2 + 420), (24, 26, 40, 255))
+        im = Image.fromarray(atlas, "RGBA").resize((1024, H * 2), Image.NEAREST)
         bg.alpha_composite(im, (20, 0))
         # the band tiled twice (the seam in the middle) and a gap with both caps, at 2x
         f0i = Image.fromarray(atlas[:96], "RGBA").resize((1024, 192), Image.NEAREST)
         strip = Image.new("RGBA", (1024, 192))
         strip.alpha_composite(f0i.crop((512, 0, 1024, 192)), (0, 0)); strip.alpha_composite(f0i.crop((0, 0, 512, 192)), (512, 0))
-        bg.alpha_composite(strip, (20, 980))
+        bg.alpha_composite(strip, (20, H * 2 + 20))
         # a gap between two band ends with their caps, at 2x: [band end][capL] gap [capR][band start]
         g = Image.new("RGBA", (1024, 192))
         endL = Image.fromarray(atlas[:96, -144:], "RGBA").resize((288, 192), Image.NEAREST)
         startR = Image.fromarray(atlas[:96, :144], "RGBA").resize((288, 192), Image.NEAREST)
         g.alpha_composite(endL, (0, 0)); g.alpha_composite(startR, (736, 0))
-        g.alpha_composite(Image.fromarray(atlas[384:480, 0:96], "RGBA").resize((192, 192), Image.NEAREST), (288 - 96, 0))
-        g.alpha_composite(Image.fromarray(atlas[384:480, 96:192], "RGBA").resize((192, 192), Image.NEAREST), (736 - 96, 0))
-        bg.alpha_composite(g, (20, 1190 - 20))
+        g.alpha_composite(Image.fromarray(atlas[AUX:, 0:96], "RGBA").resize((192, 192), Image.NEAREST), (288 - 96, 0))
+        g.alpha_composite(Image.fromarray(atlas[AUX:, 96:192], "RGBA").resize((192, 192), Image.NEAREST), (736 - 96, 0))
+        bg.alpha_composite(g, (20, H * 2 + 230))
         bg.convert("RGB").save(p)
         print("preview", p)
 

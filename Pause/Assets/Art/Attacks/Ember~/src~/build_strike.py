@@ -15,12 +15,11 @@ Layout the game reads (AttackArt.StrikeBody / StrikeGlyph / StrikeBurst; docs wo
 The body frames are the 256 px beam tiles stretched NEAREST to 384 (every other row doubled): the stretch keeps the tile
 seamless (row 383 meets row 0 exactly as row 255 met row 0). The hit is the middle 46 px; the beam's flame is ~88 px wide.
 
-INSTALLED (2026-11-27) as Resources/Attacks/Ember/ember_attack_strike.png (.meta copied from ember_attack_laserbody.png.meta,
-new GUID: Point filter, no mips, not readable, ASTC on Android / iOS). The column tiles at 3 u (384 px at 128 ppu); AttackStrike.DrawBody
-cuts the last tile at the column's top (AttackStrike.Cropped), so the 4.2 u geyser never draws past its hitbox
-(AttackFairnessTest.ArtSlots checks it). Rebuild + reinstall:
-
-    python3 build_strike.py ../../../Resources/Attacks/Ember/ember_attack_strike.png
+NOT INSTALLED (2026-11-28): a 768 x 512 sheet put Resources/Attacks over its memory budget (MineFlameArtTest), so the game
+assembles the same column at runtime from the two resident sheets above (AttackArt.KitStrike: laserbody frames as 2 u tiles,
+played 0,1,2,3,0,1; the ignite pinch and the cooling fade via AttackArt.StrikeFrameLook as width scale / tint -- the
+white-hot lift of frame 0 is not reproduced; glyph and burst from the mineflame cells listed below). This script only
+writes candidate_strike.png, a preview of those pixels; AttackStrike.DrawBody cuts the last tile at the geyser's top.
 
     python3 build_strike.py [OUT.png]
 """
