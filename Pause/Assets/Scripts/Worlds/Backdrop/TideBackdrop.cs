@@ -885,7 +885,8 @@ public partial class TideDirector : PlanetDirector
     {
         if (pallArt.Length == 0) return;
         float size = Rand(2.2f, 3f) * TideTuning.PieceScale;
-        float px = fire.x + TideTuning.Wind * fire.size * .3f, pgy = fire.gy + fire.size * .35f;
+        float px = fire.x + TideTuning.Wind * fire.size * .3f;
+        double pgy = fire.gy + fire.size * .35f;
         float pvx = TideTuning.Wind * Rand(.03f, .06f) * TideTuning.PieceScale, pvy = Rand(.02f, .05f) * TideTuning.PieceScale;
         // a smoke pall drifts: it is only raised where its whole straight drift (rising and downwind) stays clear of every prop
         for (float a = 0f; a <= TideTuning.PallLife; a += 1f)
