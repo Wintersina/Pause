@@ -58,6 +58,10 @@ SPEC = {
     "storm_elite_skyhook_harrier": dict(engines=[(54, 4), (74, 4)], flames=False, muzzles={"hook": (64, 22)}),
     "storm_elite_rod_dancer": dict(engines=[(48, 4), (62, 5), (80, 4)], flames=False,
                                    muzzles={"fan": (64, 8), "portrod": (53, 16), "starrod": (75, 16)}),
+    "storm_elite_refinery_tender": dict(L=27, engines=[(53, 4), (74, 4)], flames=True,
+                                        muzzles={"port": (14, 40), "star": (114, 40), "canister": (64, 70)}),
+    "storm_elite_static_bastion": dict(engines=[(52, 4), (64, 4), (75, 4)], flames=False,
+                                       muzzles={"core": (64, 26), "portcap": (40, 6), "starcap": (88, 6)}),
     # ---- Tide ------------------------------------------------------------------------------------------------------------
     "tide_elite_bathyscaphe": dict(engines=[(36, 5), (92, 5)], flames=False,
                                    muzzles={"portclaw": (14, 44), "starclaw": (114, 44), "rack": (64, 100)}),

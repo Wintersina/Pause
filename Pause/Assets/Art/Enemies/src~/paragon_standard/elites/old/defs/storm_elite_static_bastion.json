@@ -1,0 +1,159 @@
+{
+  "key": "storm_elite_static_bastion",
+  "codexId": "elite_storm_static_bastion",
+  "world": "storm",
+  "cells": {
+    "flight": [
+      3,
+      7,
+      8,
+      9
+    ],
+    "parked": 0,
+    "parkedIdle": 1,
+    "liftoff": 2,
+    "bankLeft": 4,
+    "bankRight": 5,
+    "tell": -1,
+    "action": -1,
+    "hit": -1,
+    "damaged": 6,
+    "damagedLoop": [
+      10,
+      11,
+      12,
+      13,
+      14,
+      15
+    ]
+  },
+  "cellWorldSize": 1.812,
+  "noseDeg": 90,
+  "maxBank": 3,
+  "heartColor": "#9CC8FF",
+  "shotColor": "#9CC8FF",
+  "shotCore": "#F2F6FF",
+  "engineColor": "#96EBFF",
+  "hearts": 5,
+  "heartSize": 0.18,
+  "heartOrbit": 0.593,
+  "heartStyle": "Halo",
+  "exhaustShip": 3,
+  "exhaustScale": 0,
+  "glowScale": 0.09,
+  "cellPixels": 384,
+  "armored": true,
+  "hazardSeconds": 0.4,
+  "hazardSize": 0.6,
+  "displayName": "Static Bastion",
+  "role": "hail wall",
+  "brain": "citadel",
+  "attack": "hail_wall",
+  "lore": "An armoured floating fortress that crawls along the top of the sky. It marks the gap of a hail wall with two thin lines, then lets the hail fall in staggered waves while the gap slides, and it is never where you stand. Only mines, rails and its own kind crack it.",
+  "hullRadius": 0.385,
+  "silhouetteShare": 0.4595,
+  "turnsToFace": false,
+  "speed": 1.7,
+  "accel": 3.5,
+  "turnRate": 140,
+  "aggression": 0.5,
+  "tellSeconds": 1.1,
+  "attackGap": 3.6,
+  "avoidance": 0.5,
+  "lookAhead": 0.4,
+  "perception": 2.2,
+  "actionSeconds": 0.6,
+  "shotCount": 2,
+  "shotSpeed": 3.4,
+  "shotSpread": 0,
+  "shotSize": 0.24,
+  "shotInterval": 0.9,
+  "shotKind": "shard",
+  "muzzles": [
+    {
+      "name": "core",
+      "x": 192,
+      "y": 132,
+      "dir": 270.0
+    },
+    {
+      "name": "portcap",
+      "x": 97,
+      "y": 68,
+      "dir": 270.0
+    },
+    {
+      "name": "starcap",
+      "x": 286,
+      "y": 67,
+      "dir": 270.0
+    }
+  ],
+  "nozzles": [
+    {
+      "name": "a",
+      "x": 124,
+      "y": 286,
+      "dir": -1.0,
+      "offsets": [0, 0, 0, 0, 0, 0, 0, 0, 2, 0, -2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    },
+    {
+      "name": "b",
+      "x": 188,
+      "y": 298,
+      "dir": -1.0,
+      "offsets": [0, 0, 0, 0, 0, 0, 0, 0, 3, 0, -3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    },
+    {
+      "name": "c",
+      "x": 255,
+      "y": 286,
+      "dir": -1.0,
+      "offsets": [0, 0, 0, 0, 0, 0, 0, 0, 2, 0, -2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    },
+    {
+      "name": "d",
+      "x": 150,
+      "y": 287,
+      "dir": -1.0,
+      "offsets": [0, 0, 0, 0, 0, 0, 0, 0, 2, 0, -2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    },
+    {
+      "name": "e",
+      "x": 231,
+      "y": 287,
+      "dir": -1.0,
+      "offsets": [0, 0, 0, 0, 0, 0, 0, 0, 2, 0, -2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    }
+  ],
+  "followDistance": 3.0,
+  "laneOffset": 0.9,
+  "lobSpacing": 0.5,
+  "followLag": 0.25,
+  "launchFrom": "airshipdock,hatch",
+  "topMargin": 1.5,
+  "engageSeconds": 55,
+  "script": {
+    "tempo": 1.35, "exitTell": 1.4, "lastExit": "none",
+    "entrance": { "kind": "slam", "seconds": 1.9, "amp": 1.5 },
+    "phase1": { "speed": 1.0, "gap": 1.0,
+      "loop": [
+        { "wait": 2.2, "move": "R", "attack": "wall" },
+        { "wait": 2.2, "move": "L", "attack": "wall" } ] },
+    "phase2": { "speed": 1.25, "gap": 0.85,
+      "loop": [
+        { "wait": 1.6, "move": "R", "attack": "wall3" },
+        { "wait": 1.2, "move": "C", "attack": "wall3" },
+        { "wait": 1.6, "move": "L", "attack": "wall3" },
+        { "wait": 1.2, "move": "C", "attack": "wall3" } ] },
+    "last": { "speed": 1.4, "gap": 0.7,
+      "loop": [
+        { "wait": 1.2, "move": "R", "attack": "close" },
+        { "wait": 1.2, "move": "L", "attack": "close" } ] },
+    "variants": [
+      { "name": "wall", "set": [{ "key": "shotCount", "value": 2 }, { "key": "shotSpeed", "value": 3.4 }] },
+      { "name": "wall3", "set": [{ "key": "shotCount", "value": 3 }, { "key": "shotSpeed", "value": 3.8 }] },
+      { "name": "close", "set": [{ "key": "shotCount", "value": 3 }, { "key": "shotInterval", "value": 0.55 }, { "key": "shotSpeed", "value": 4.2 }] } ],
+    "note": "crawls to a rail end and plants; the gap slides a hand per wave; phase 2 also plants mid-board with three waves; the last heart closes the gap in"
+  }
+}

@@ -1,244 +1,147 @@
 {
- "desert_elite_scorpion_walker": {
-  "L": 23.4,
+ "storm_elite_refinery_tender": {
+  "L": 22.0,
   "mouths": [
    [
-    149,
-    291,
-    11,
+    163,
+    296,
+    9,
     4
    ],
    [
-    235,
-    294,
-    11,
+    220,
+    299,
+    9,
     4
    ]
   ],
   "muzzles": [
    [
-    "claw",
-    194,
-    32
+    "port",
+    56,
+    106
+   ],
+   [
+    "star",
+    327,
+    106
+   ],
+   [
+    "canister",
+    193,
+    188
+   ]
+  ],
+  "nozzles": [
+   [
+    "l",
+    163,
+    296
+   ],
+   [
+    "r",
+    220,
+    299
+   ]
+  ],
+  "silhouetteShare": 0.4845,
+  "old_share": 0.462,
+  "drawn_u": 1.674,
+  "hr_ratio": 0.564,
+  "new_hullRadius": null,
+  "glow_px": 1123,
+  "files": [
+   "Resources/Elites/Storm/storm_elite_refinery_tender.png",
+   "Enemies/Elite/Storm/storm_elite_refinery_tender.png",
+   "Resources/Elites/Storm/storm_elite_refinery_tender_damaged.png",
+   "Enemies/Elite/Storm/storm_elite_refinery_tender_damaged.png",
+   "Enemies/Elite/Storm/new_docks_lights~/damaged/storm_elite_refinery_tender_damaged.png",
+   "Resources/Elites/Storm/storm_elite_refinery_tender_death.png",
+   "Enemies/Elite/Storm/storm_elite_refinery_tender_death.png",
+   "Resources/Elites/Storm/storm_elite_refinery_tender_lights.png",
+   "Enemies/Elite/Storm/storm_elite_refinery_tender_lights.png",
+   "Enemies/Elite/Storm/new_docks_lights~/storm_elite_refinery_tender_lights.png",
+   "Resources/Elites/Storm/storm_elite_refinery_tender_lights_damaged.png",
+   "Enemies/Elite/Storm/storm_elite_refinery_tender_lights_damaged.png",
+   "Enemies/Elite/Storm/new_docks_lights~/damaged/storm_elite_refinery_tender_damaged_lights.png"
+  ]
+ },
+ "storm_elite_static_bastion": {
+  "L": 24.4,
+  "mouths": [
+   [
+    165,
+    291,
+    7,
+    3
+   ],
+   [
+    192,
+    275,
+    7,
+    3
+   ],
+   [
+    217,
+    291,
+    7,
+    3
+   ]
+  ],
+  "muzzles": [
+   [
+    "core",
+    192,
+    89
+   ],
+   [
+    "portcap",
+    136,
+    45
+   ],
+   [
+    "starcap",
+    246,
+    44
    ]
   ],
   "nozzles": [
    [
     "a",
-    149,
+    165,
     291
    ],
    [
     "b",
-    235,
-    294
-   ]
-  ],
-  "silhouetteShare": 0.5115,
-  "old_share": 0.4888,
-  "drawn_u": 1.499,
-  "hr_ratio": 0.436,
-  "new_hullRadius": null,
-  "glow_px": 3059,
-  "files": [
-   "Resources/Elites/Desert/desert_elite_scorpion_walker.png",
-   "Enemies/Elite/Desert/desert_elite_scorpion_walker.png",
-   "Resources/Elites/Desert/desert_elite_scorpion_walker_damaged.png",
-   "Enemies/Elite/Desert/new_docks_lights~/damaged/desert_elite_scorpion_walker_damaged.png",
-   "Resources/Elites/Desert/desert_elite_scorpion_walker_death.png",
-   "Enemies/Elite/Desert/desert_elite_scorpion_walker_death.png",
-   "Resources/Elites/Desert/desert_elite_scorpion_walker_lights.png",
-   "Enemies/Elite/Desert/new_docks_lights~/desert_elite_scorpion_walker_lights.png",
-   "Resources/Elites/Desert/desert_elite_scorpion_walker_lights_damaged.png",
-   "Enemies/Elite/Desert/new_docks_lights~/damaged/desert_elite_scorpion_walker_damaged_lights.png"
-  ]
- },
- "storm_elite_rod_dancer": {
-  "L": 21.7,
-  "mouths": [
-   [
-    156,
-    300,
-    7,
-    3
-   ],
-   [
-    188,
-    285,
-    9,
-    4
-   ],
-   [
-    229,
-    298,
-    7,
-    3
-   ]
-  ],
-  "muzzles": [
-   [
-    "fan",
-    193,
-    54
-   ],
-   [
-    "portrod",
-    168,
-    72
-   ],
-   [
-    "starrod",
-    218,
-    72
-   ]
-  ],
-  "nozzles": [
-   [
-    "l",
-    156,
-    300
+    192,
+    275
    ],
    [
     "c",
-    188,
-    285
-   ],
-   [
-    "r",
-    229,
-    298
+    217,
+    291
    ]
   ],
-  "silhouetteShare": 0.4581,
-  "old_share": 0.4671,
-  "drawn_u": 1.436,
-  "hr_ratio": 0.525,
+  "silhouetteShare": 0.4473,
+  "old_share": 0.4595,
+  "drawn_u": 1.501,
+  "hr_ratio": 0.513,
   "new_hullRadius": null,
-  "glow_px": 688,
+  "glow_px": 748,
   "files": [
-   "Resources/Elites/Storm/storm_elite_rod_dancer.png",
-   "Enemies/Elite/Storm/storm_elite_rod_dancer.png",
-   "Resources/Elites/Storm/storm_elite_rod_dancer_damaged.png",
-   "Enemies/Elite/Storm/storm_elite_rod_dancer_damaged.png",
-   "Enemies/Elite/Storm/new_docks_lights~/damaged/storm_elite_rod_dancer_damaged.png",
-   "Resources/Elites/Storm/storm_elite_rod_dancer_death.png",
-   "Enemies/Elite/Storm/storm_elite_rod_dancer_death.png",
-   "Resources/Elites/Storm/storm_elite_rod_dancer_lights.png",
-   "Enemies/Elite/Storm/storm_elite_rod_dancer_lights.png",
-   "Enemies/Elite/Storm/new_docks_lights~/storm_elite_rod_dancer_lights.png",
-   "Resources/Elites/Storm/storm_elite_rod_dancer_lights_damaged.png",
-   "Enemies/Elite/Storm/storm_elite_rod_dancer_lights_damaged.png",
-   "Enemies/Elite/Storm/new_docks_lights~/damaged/storm_elite_rod_dancer_damaged_lights.png"
-  ]
- },
- "tide_elite_riptide": {
-  "L": 26.0,
-  "mouths": [
-   [
-    162,
-    284,
-    7,
-    3
-   ],
-   [
-    224,
-    284,
-    7,
-    3
-   ]
-  ],
-  "muzzles": [
-   [
-    "lance",
-    198,
-    50
-   ]
-  ],
-  "nozzles": [
-   [
-    "l",
-    162,
-    284
-   ],
-   [
-    "r",
-    224,
-    284
-   ]
-  ],
-  "silhouetteShare": 0.4508,
-  "old_share": 0.4405,
-  "drawn_u": 1.568,
-  "hr_ratio": 0.438,
-  "new_hullRadius": null,
-  "glow_px": 1408,
-  "files": [
-   "Resources/Elites/Tide/tide_elite_riptide.png",
-   "Enemies/Elite/Tide/tide_elite_riptide.png",
-   "Resources/Elites/Tide/tide_elite_riptide_damaged.png",
-   "Enemies/Elite/Tide/tide_elite_riptide_damaged.png",
-   "Enemies/Elite/Tide/new_docks_lights~/damaged/tide_elite_riptide_damaged.png",
-   "Resources/Elites/Tide/tide_elite_riptide_death.png",
-   "Enemies/Elite/Tide/tide_elite_riptide_death.png",
-   "Resources/Elites/Tide/tide_elite_riptide_lights.png",
-   "Enemies/Elite/Tide/tide_elite_riptide_lights.png",
-   "Enemies/Elite/Tide/new_docks_lights~/tide_elite_riptide_lights.png",
-   "Resources/Elites/Tide/tide_elite_riptide_lights_damaged.png",
-   "Enemies/Elite/Tide/tide_elite_riptide_lights_damaged.png",
-   "Enemies/Elite/Tide/new_docks_lights~/damaged/tide_elite_riptide_damaged_lights.png"
-  ]
- },
- "verdant_elite_resin_warden": {
-  "L": 26.0,
-  "mouths": [
-   [
-    152,
-    271,
-    9,
-    4
-   ],
-   [
-    235,
-    271,
-    9,
-    4
-   ]
-  ],
-  "muzzles": [
-   [
-    "lpod",
-    115,
-    175
-   ],
-   [
-    "rpod",
-    272,
-    175
-   ]
-  ],
-  "nozzles": [
-   [
-    "l",
-    152,
-    271
-   ],
-   [
-    "r",
-    235,
-    271
-   ]
-  ],
-  "silhouetteShare": 0.4517,
-  "old_share": 0.5042,
-  "drawn_u": 1.697,
-  "hr_ratio": 0.503,
-  "new_hullRadius": null,
-  "glow_px": 180,
-  "files": [
-   "Resources/Elites/Verdant/verdant_elite_resin_warden.png",
-   "Enemies/Elite/Verdant/verdant_elite_resin_warden.png",
-   "Resources/Elites/Verdant/verdant_elite_resin_warden_death.png",
-   "Enemies/Elite/Verdant/verdant_elite_resin_warden_death.png"
+   "Resources/Elites/Storm/storm_elite_static_bastion.png",
+   "Enemies/Elite/Storm/storm_elite_static_bastion.png",
+   "Resources/Elites/Storm/storm_elite_static_bastion_damaged.png",
+   "Enemies/Elite/Storm/storm_elite_static_bastion_damaged.png",
+   "Enemies/Elite/Storm/new_docks_lights~/damaged/storm_elite_static_bastion_damaged.png",
+   "Resources/Elites/Storm/storm_elite_static_bastion_death.png",
+   "Enemies/Elite/Storm/storm_elite_static_bastion_death.png",
+   "Resources/Elites/Storm/storm_elite_static_bastion_lights.png",
+   "Enemies/Elite/Storm/storm_elite_static_bastion_lights.png",
+   "Enemies/Elite/Storm/new_docks_lights~/storm_elite_static_bastion_lights.png",
+   "Resources/Elites/Storm/storm_elite_static_bastion_lights_damaged.png",
+   "Enemies/Elite/Storm/storm_elite_static_bastion_lights_damaged.png",
+   "Enemies/Elite/Storm/new_docks_lights~/damaged/storm_elite_static_bastion_damaged_lights.png"
   ]
  }
 }

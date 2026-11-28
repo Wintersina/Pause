@@ -42,8 +42,8 @@ OLD = HERE / "old"; OUT = HERE / "out"; APPROVED = HERE / "approved"
 COLS = 5
 PAD = 24                                                # source canvas padding (room for flames / blasts)
 
-CUE = {"Space": 318, "Frost": 195, "Verdant": 135, "Ember": 32, "Tide": 188}
-EXPANDED = {"Space", "Ember", "Tide"}
+CUE = {"Space": 318, "Frost": 195, "Verdant": 135, "Ember": 32, "Tide": 188, "Desert": 45}
+EXPANDED = {"Space", "Ember", "Tide", "Desert"}
 
 # Per boss, in the approved drawing's own pixels (x right, y down):
 #   engines: (x, y, dirx, diry, half width, length)  flames drawn behind the hull
@@ -85,11 +85,20 @@ RIG = {
                 (12, 78, 7), (148, 78, 7), (22, 132, 7), (140, 132, 7), (56, 150, 7), (102, 150, 7)],
         parts={"Beak": (80, 99), "LeftA": (14, 78), "LeftB": (22, 131), "RightA": (146, 78), "RightB": (138, 131)},
         tells={0: ["Beak"], 1: ["LeftA", "LeftB"], 2: ["RightA", "RightB"]}),
+    # The Dune-Eater: a sand-bleached skull carrier. The crown furnace's flame is its engine, the brass lamp below it the
+    # lens (beam, sandstorm wall), the fanged maw the grit fan, the right claw the crane that drops its mines.
+    "Desert": dict(
+        core=(80, 50),
+        engines=[(80, 9, 0, -1, 3.4, 6)],
+        lights=[(80, 20, 12), (80, 50, 9), (62, 82, 5), (98, 82, 5), (58, 99, 3), (102, 99, 3), (71, 108, 4), (89, 108, 4)],
+        light_sv=(.55, .72),
+        parts={"Maw": (80, 122), "Boom": (135, 130), "Lens": (80, 50)},
+        tells={0: ["Maw"], 1: ["Boom"], 2: ["Lens"]}),
 }
 # Smoke tint per world (steam for Frost, spore haze for Verdant).
 SMOKE = {"Space": ((58, 52, 66), (104, 96, 112), (150, 142, 156)), "Frost": ((120, 140, 160), (176, 198, 214), (226, 240, 248)),
          "Verdant": ((52, 64, 46), (92, 108, 80), (140, 156, 122)), "Ember": ((50, 44, 42), (92, 82, 76), (140, 128, 116)),
-         "Tide": ((52, 66, 76), (96, 114, 124), (150, 170, 178))}
+         "Tide": ((52, 66, 76), (96, 114, 124), (150, 170, 178)), "Desert": ((66, 54, 40), (118, 100, 76), (176, 156, 120))}
 
 
 # ------------------------------------------------------------------------------------------------ colour helpers
@@ -223,7 +232,8 @@ class Boss:
         h, s, v = hsv_arrays(self.base)
         cue = CUE[self.w]
         dh = np.abs((h - cue + 180) % 360 - 180)
-        band = self.hull & (dh <= 32) & (s > .35) & (v > .5)
+        smin, vmin = self.rig.get("light_sv", (.35, .5))
+        band = self.hull & (dh <= 32) & (s > smin) & (v > vmin)
         H, W = band.shape
         yy, xx = np.mgrid[:H, :W]
         near = np.zeros_like(band)
@@ -240,8 +250,14 @@ class Boss:
         a[..., :3] = rgb.astype(np.uint8)
         return a
 
+    # Idle engine flames (user, 2026-11-27: "bigger and clearly animated"): FLAME_LONG x the rig length, FLAME_WIDE x its
+    # width, a length cycle that swings ~2:1 between idle drawings, a forked / spitting tip on alternate drawings, and a
+    # white-hot cue-tinted core. Capped so a flame never reaches the 8 px band at the cell's edge.
+    FLAME_LONG, FLAME_WIDE = 1.75, 1.3
+    FLAME_CYCLE = (1.0, .58, .88, .5, 1.12, .7)
+
     def flames(self, a, t, scale=1.0):
-        """Engine flames behind the hull: a tapered tongue per engine; length and wobble step with t."""
+        """Engine flames behind the hull: a tapered tongue per engine; length, wobble and tip step with t."""
         out = a.copy()
         hull = a[..., 3] > 0
         P = self.pal
@@ -250,19 +266,34 @@ class Boss:
             n = math.hypot(dx, dy); dx, dy = dx / n, dy / n
             px, py = self.P(x, y)
             ph = (t + i * 2) % 6
-            Lt = L * scale * (1.0, .82, .94, .74, 1.08, .88)[ph]
-            wob = (0, .5, 0, -.5, .3, -.3)[ph]
-            for s in np.arange(0, Lt + 3.0, .25):
-                k = s / (Lt + 3.0)
-                half = hw * (1 - k) ** .7
+            Lt = L * scale * self.FLAME_LONG * self.FLAME_CYCLE[ph]
+            hw = hw * self.FLAME_WIDE * (1.0 if ph % 2 == 0 else .85)
+            # the cell's 8 px margin, in source px along the flame
+            cap = 1e9
+            for c0, d, lim in ((px, dx, (self.C - 8 - self.ox) / self.f), (py, dy, (self.C - 8 - self.oy) / self.f)):
+                o0 = (8 - (self.ox if c0 is px else self.oy)) / self.f
+                if d < -1e-6: cap = min(cap, (c0 - o0) / -d)
+                if d > 1e-6: cap = min(cap, (lim - c0) / d)
+            Lt = min(Lt, max(1.0, cap - 3.5))
+            wob = (0, .7, 0, -.7, .4, -.4)[ph]
+            fork = ph % 2 == 1
+            tot = Lt + 3.0
+            for s in np.arange(0, tot, .25):
+                k = s / tot
+                half = hw * (1 - k) ** .6
                 cx = px + dx * s - dy * wob * k * 2
                 cy = py + dy * s + dx * wob * k * 2
                 for o in np.arange(-half, half + .01, .25):
+                    if fork and k > .72 and abs(o) < half * .35: continue          # a forked tip
                     X, Y = int(round(cx - dy * o)), int(round(cy + dx * o))
                     if not (0 <= X < W and 0 <= Y < H) or hull[Y, X]: continue
                     edge = abs(o) / max(half, .01)
-                    col = P["core"] if (k < .35 and edge < .45) else P["light"] if (k < .7 and edge < .75) else P["mid"] if k < .9 else P["dark"]
+                    col = (P["core"] if (k < .5 and edge < .55) else P["light"] if (k < .8 and edge < .85)
+                           else P["mid"] if k < .94 else P["dark"])
                     out[Y, X] = (*col, 255)
+            if fork:                                                             # a spark spat off the tip
+                X = int(round(px + dx * (tot + 1.5))); Y = int(round(py + dy * (tot + 1.5)))
+                if 0 <= X < W and 0 <= Y < H and not hull[Y, X] and cap > tot + 2: out[Y, X] = (*P["light"], 255)
         return out
 
     def part_mask(self, parts, r=9):
