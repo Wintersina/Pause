@@ -92,9 +92,10 @@ public sealed class CloudShadowLayer
         // a very dark red-brown umber core up to .55 (the layer sorts below every enemy, shot, the ship and the HUD), night side a bit dimmer.
         new Look { world = "Ember",   color = new Color(.07f, .025f, .012f), cap = .55f, nightCapMul = .7f,  count = 3, big = true, budget = 1.2f, speed = .09f, dir = 155f },
         new Look { world = "Tide",    color = new Color(.00f, .05f, .11f), cap = .50f, nightCapMul = .6f,  count = 3, budget = .95f, speed = .10f, dir = 25f },
-        // Desert's budget .95 -> 1.2 (2026-11-28): seen from high up (DesertTuning.GroundZoom) the ground and the shadows riding it creep by
-        // slower, so each spends longer half out of the view: the mean cover in view fell to .24 (CloudShadowTest wants >= .30)
-        new Look { world = "Desert",  color = new Color(.11f, .045f, .01f), cap = .50f, nightCapMul = .55f, count = 3, budget = 1.2f, speed = .08f, dir = 20f },
+        // Desert at the .49 altitude (2026-11-28): the view spans more ground, so its three shadows are the big shapes (as Frost and
+        // Ember, also seen from high up): with the small ones the mean cover in view fell to .24 / .27 even at budget 1.2 (the budget
+        // was not the limit, the shapes were; CloudShadowTest wants >= .30), budget as Ember's.
+        new Look { world = "Desert",  color = new Color(.11f, .045f, .01f), cap = .50f, nightCapMul = .55f, count = 3, big = true, budget = 1.2f, speed = .08f, dir = 20f },
     };
     public const float LowEndCoverMul = .55f;
 

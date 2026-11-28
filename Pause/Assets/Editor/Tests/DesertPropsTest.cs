@@ -254,6 +254,8 @@ public static class DesertPropsTest
             all.Clear();
             foreach (var p in d.Mountains.items) if (p.active) all.Add(p);
             foreach (var p in d.Props.items) if (p.active) all.Add(p);
+            // the pools recycle their pieces: a slot that went idle is a new prop the next time it shows
+            known.RemoveWhere(p => !p.active);
             foreach (var p in all)
             {
                 float keep = d.PropKeep(p.kind);
@@ -305,7 +307,7 @@ public static class DesertPropsTest
         };
         audit();
         Run(wb, 240f, audit);
-        Check("v" + v + ": " + seen + " props over 240 s (" + kinds.Count + " kinds, " + mountains + " mountains, " + d.WormsSpawned + " worms)",
+        Check("v" + v + ": " + seen + " props over 240 s (" + kinds.Count + " kinds, " + mountains + " mountains, " + d.WormsSpawned + " worms; " + d.PropsSpawned + " spawned, " + d.PropsBlockedByWorm + " spots off a worm's path)",
               seen >= 30 && kinds.Count >= 10 && mountains >= 1 && d.WormsSpawned >= 5);
         Check("v" + v + ": every prop on its own ground (flat / rocky / shore / open), none on a painted feature (" + offContext + " off, " + onArt + " on art) " + bad,
               offContext == 0 && onArt == 0);
@@ -404,12 +406,13 @@ public static class DesertPropsTest
         bool still = true;
         for (int i = 0; i < d.Props.items.Count; i++) still &= d.Props.items[i].root.localPosition == pos[i] && d.Props.items[i].sr.sprite == spr[i];
         Check("a paused frame (dt 0) is a still frame: props keep their spot and cell", still);
-        int animated = 0;
+        // (sampled every step: the 8 frames at FrameMs 125 loop once a second, so a prop is back on its first cell after exactly 1 s)
         var before = new Dictionary<BackdropPiece, Sprite>();
+        var moved = new HashSet<BackdropPiece>();
         foreach (var p in d.Props.items) if (p.active) before[p] = p.sr.sprite;
-        Run(wb, 1f);
-        foreach (var kv in before) if (kv.Key.active && kv.Key.sr.sprite != kv.Value) animated++;
-        Check("the props animate from their age (" + animated + " changed cell in 1 s)", animated >= 1);
+        Run(wb, 1f, () => { foreach (var kv in before) if (kv.Key.active && kv.Key.sr.sprite != kv.Value) moved.Add(kv.Key); });
+        int animated = moved.Count;
+        Check("the props animate from their age (" + animated + " of " + before.Count + " changed cell within 1 s)", animated >= 1);
         long control;
         bool meter = TestHarness.AllocMeterWorks(out control);
         long used = TestHarness.AllocatedBytes(() => Run(wb, 60f));

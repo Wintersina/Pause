@@ -137,6 +137,36 @@ def depink(path):
     return int(pk.sum())
 
 
+def guard(path, low=.18):
+    """ASTC drifts a texel's hue / value a few steps, so a texel just outside WorldCue.IsPink (hue 285-352, s > .25, v > .3) can
+    come out of the importer inside it (CI read 2 / 6 such texels in the v1 / v2 props). Keep a margin round the band: any texel
+    (any alpha) with hue 270-360, saturation > .2 and value > `low` is moved out -- 340-360 (the reds of the lamps' rims) turned
+    to pure red, the rest (dusky violet shadow) brought to saturation .18 at its own value. Idempotent."""
+    im = np.asarray(Image.open(path).convert('RGBA')).copy()
+    a = im[..., :3].astype(float) / 255
+    r, g, b = a[..., 0], a[..., 1], a[..., 2]
+    mx = a.max(-1); mn = a.min(-1); d = mx - mn
+    h = np.zeros_like(mx); m = d > 1e-6
+    rr = m & (mx == r); gg = m & (mx == g) & ~rr; bb = m & ~rr & ~gg
+    h[rr] = (60 * ((g - b)[rr] / d[rr])) % 360
+    h[gg] = 60 * ((b - r)[gg] / d[gg]) + 120
+    h[bb] = 60 * ((r - g)[bb] / d[bb]) + 240
+    s = np.where(mx > 0, d / np.maximum(mx, 1e-6), 0)
+    sel = (h >= 270) & (s > .2) & (mx > low) & (im[..., 3] > 0)
+    if not sel.any(): return 0
+    red = sel & (h >= 340)
+    vio = sel & ~red
+    out = a.copy()
+    # red: hue 0 at the same value / saturation -> (v, v(1-s), v(1-s))
+    out[red] = np.stack([mx[red], (mx * (1 - s))[red], (mx * (1 - s))[red]], -1)
+    # violet: pull every channel toward the value so the saturation is .18 (hue kept)
+    k = (.18 / s[vio])[:, None]
+    out[vio] = mx[vio][:, None] - (mx[vio][:, None] - a[vio]) * k
+    im[..., :3] = np.clip(np.round(out * 255), 0, 255).astype(np.uint8)
+    Image.fromarray(im).save(path, optimize=True)
+    return int(sel.sum())
+
+
 def regrade_layers():
     for v, g in LAYER_GRADE.items():
         gp = f'{D}/v{v}/grade.json'
@@ -272,6 +302,7 @@ def pack(v):
     pink = int((is_pink(sheet[..., :3]) & (sheet[..., 3] > 0)).sum())
     Image.fromarray((sheet * 255 + .5).astype(np.uint8), 'RGBA').save(f'{D}/v{v}/props.png', optimize=True)
     depink(f'{D}/v{v}/props.png')        # (8-bit rounding of a faint edge texel can land in the pink band: WorldCue.IsPink, any alpha)
+    guard(f'{D}/v{v}/props.png')         # and a margin round the band, which the ASTC import would otherwise cross
     json.dump(dict(sheetW=width, sheetH=H, sprites=sprites), open(f'{D}/v{v}/props.json', 'w'), indent=0)
     print(f'v{v} props: {len(sprites)} sprites, {len(uniq)} unique cells, {width} x {H}, ASTC 4x4 {width * H / 1048576:.2f} MB, pink {pink}')
 
@@ -356,7 +387,9 @@ def worms():
 
 
 if __name__ == '__main__':
-    what = [a for a in sys.argv[1:] if a in ('ground', 'props', 'weather', 'regrade_layers', 'worms')] or ['ground', 'regrade_layers', 'props', 'weather', 'worms']
+    what = [a for a in sys.argv[1:] if a in ('ground', 'props', 'weather', 'regrade_layers', 'worms', 'guard')] or ['ground', 'regrade_layers', 'props', 'weather', 'worms']
+    if 'guard' in what:
+        for v in (1, 2, 3, 4): print(f'v{v} props guard: {guard(f"{D}/v{v}/props.png")} texels moved out of the pink margin')
     if 'worms' in what: worms()
     if 'ground' in what: ground()
     if 'regrade_layers' in what: regrade_layers()
