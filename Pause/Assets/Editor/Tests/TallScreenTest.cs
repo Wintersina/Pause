@@ -166,29 +166,38 @@ public static class TallScreenTest
         }
     }
 
-    // The enabled copies under `layerName` cover the rect (x by each copy,
-    // y by their union).
+    // The layer's copies cover the rectangle: at every x across it (sampled finely, the copies' edges included) the copies
+    // spanning that x cover it from bottom to top. A world seen from higher up (Spec.groundZoom < 1: Frost) lays its tiles in
+    // columns, so no single copy spans the width.
     static bool Covers(Transform root, string layerName, float xMin, float xMax, float yMin, float yMax)
     {
         Transform layer = null;
         foreach (var t in root.GetComponentsInChildren<Transform>(true))
             if (t.name == layerName) { layer = t; break; }
         if (layer == null) return false;
-        var spans = new List<Vector2>();
+        var bounds = new List<Bounds>();
         foreach (var r in layer.GetComponentsInChildren<SpriteRenderer>(false))
+            if (r.enabled && r.sprite != null) bounds.Add(r.bounds);
+        if (bounds.Count == 0) return false;
+        var xs = new List<float>();
+        for (int i = 0; i <= 64; i++) xs.Add(Mathf.Lerp(xMin + .001f, xMax - .001f, i / 64f));
+        foreach (var b in bounds) { xs.Add(b.min.x); xs.Add(b.max.x); }
+        var spans = new List<Vector2>();
+        foreach (float x in xs)
         {
-            if (!r.enabled || r.sprite == null) continue;
-            var b = r.bounds;
-            if (b.min.x > xMin + .001f || b.max.x < xMax - .001f) return false;
-            spans.Add(new Vector2(b.min.y, b.max.y));
+            if (x < xMin + .001f || x > xMax - .001f) continue;
+            spans.Clear();
+            foreach (var b in bounds)
+                if (b.min.x <= x + .001f && b.max.x >= x - .001f) spans.Add(new Vector2(b.min.y, b.max.y));
+            spans.Sort((a, c) => a.x.CompareTo(c.x));
+            float reached = yMin;
+            foreach (var sp in spans)
+            {
+                if (sp.x > reached + .002f) break;
+                reached = Mathf.Max(reached, sp.y);
+            }
+            if (reached < yMax - .002f) return false;
         }
-        spans.Sort((a, b) => a.x.CompareTo(b.x));
-        float reached = yMin;
-        foreach (var sp in spans)
-        {
-            if (sp.x > reached + .002f) break;
-            reached = Mathf.Max(reached, sp.y);
-        }
-        return reached >= yMax - .002f;
+        return true;
     }
 }

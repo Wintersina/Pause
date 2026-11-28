@@ -3,8 +3,8 @@ using UnityEngine;
 
 // Frost's backdrop: the ship flies at atmosphere level just under the cloud
 // ceiling, HIGH over a frozen ocean, its coast and ice-bound industry
-// (FrostTuning.GroundZoom: the ground drawn at .55 of the view's width and
-// repeated across, creeping by at .55 of its old rate). Nothing space-like:
+// (FrostTuning.GroundZoom: the ground drawn at .41 of the view's width and
+// repeated across, creeping by at .41 of its old rate). Nothing space-like:
 // no stars, planets, stations or rocks.
 //
 //   GROUND     one of four tile sets per landing (FrostBackdropSelection):
@@ -78,20 +78,29 @@ public static class FrostTuning
     public static float CeilingSaturation = .7f;
 
     // ---- ALTITUDE: THE zoom knob ----------------------------------------
-    // How big the ground is drawn: the tiles (sky / far / mid / flow, 896 x 1792 px, 2 px cells) at this share of the view's
-    // width (BackdropCatalog.Spec.groundZoom; BackdropTile repeats them across as well as down). User, 2026-11-27: "too
-    // zoomed in, the player needs to be at atmosphere level ... much higher". .55 = the ground seen from ~1.8x the old height:
-    // ~3.3x the ground area in view, while one art cell still lands on >= 1.3 screen pixels on a 1080 px wide phone (2.5
-    // before), so the pixel art stays legible rather than shimmering (at .4 a cell would fall under one pixel). Everything on
-    // the ground scales with it so it stays registered: the ground layers' rates (farther ground creeps by slower: the same
-    // ground distance per second in tile terms), the pinned pieces' sizes, gaps and spawn bands, the sites' launch size.
-    public const float GroundZoom = .55f;
+    // How big the ground is drawn: the tiles (sky / far / mid / flow) at this share of the view's width
+    // (BackdropCatalog.Spec.groundZoom; BackdropTile repeats them across as well as down). User, 2026-11-27: "too zoomed in,
+    // the player needs to be at atmosphere level ... much higher"; at .55: "if we can zoom out about 25% more that be great".
+    // .41 = .55 x .75: the ground seen from ~2.4x the old height, ~6x the ground area in view. A tile is then ~450 screen px
+    // wide on a 1080 px phone, so the tiles are installed at the size they are seen at -- the 896 px masters halved to
+    // 448 px, one texel per 2 px art cell, drawn bilinear (frost_redraw/install_tiles.py, WorldBackdropImport.IsFrostHdTile):
+    // point sampling the 896 px art at ~2x minification would skip every other texel and the ground would shimmer as it
+    // scrolls. Everything on the ground scales with the zoom so it stays registered: the ground layers' rates (farther
+    // ground creeps by slower: the same ground distance per second in tile terms), the pinned pieces' sizes, gaps and spawn
+    // bands, the sites' launch size, the cover boulders (CoverBoulders.GroundZoom).
+    public const float GroundZoom = .41f;
+    // The ground (far / mid tiles, the floe strip) drawn this much darker than graded: a tint, a step of its own on top of the
+    // art and its grade (FrostTuning.Brightness), so a colour regrade of the tiles can drop or retune it. Seen from up here the
+    // ground is finer and busier behind the play layer: the light elite shots (the whiteout sentinel's shard) and the boss
+    // hearts' outlines lost their 3:1 against it (HostileProjectileTest, BossHeartsTest). The pieces on it are not shaded.
+    public const float GroundShade = .85f;
     public const float GroundRate = .024f * GroundZoom;                // the mid tile's (and everything pinned to it) parallax rate
     // The pieces standing on the ground (landmarks, launch sites, with their lamps and loops, which ride them) are drawn at
     // this share of their old size against the ground art on top of the zoom: a slab must fit a flat plate top of the redrawn
-    // tiles with a clear rim round it (PieceRule.rim, flat_masks.py), and at their old size there was no such plate anywhere
-    // (the largest flat top holds a footprint ~45-70 px across the 896 px tile; the old slab needed ~130 + its rim).
-    public const float PieceFit = .6f;
+    // tiles with a clear rim round it (PieceRule.rim, flat_masks.py). .6 at zoom .55; at .41 it is .7 so they stay readable
+    // (~65 screen px a 256 cell, .87 of their size at .55): the flat plates still hold them -- in tile terms ~75-85% of the
+    // pieces .6 placed (v2's busy harbour ~65%), the audit's frost_fix/compare_v*.png.
+    public const float PieceFit = .7f;
     public const float PieceScale = GroundZoom * PieceFit;             // a pinned piece's world size vs. before the zoom
 
     // ---- ground plane ----
@@ -101,7 +110,7 @@ public static class FrostTuning
     // as before; the pool, not the gap, caps how many stand in view). (The old spacing-only spawn also waited for the top
     // of the view to clear; the planner only keeps footprints apart, so the gap carries the density.)
     public static float GapMin = .8f * GroundZoom, GapMax = 2.4f * GroundZoom;
-    public const int GroundPool = 14;                                  // landmarks alive at once (in view and just under it)
+    public const int GroundPool = 24;                                  // landmarks alive at once (in view and just under it: ~6x the old ground)
     public static float SiteMin = 1.5f * PieceScale, SiteMax = 1.7f * PieceScale;
     public static float SiteFirst = 3.2f * GroundZoom;                // ground distance before the first site
     public static float SiteGapMin = 5f * GroundZoom, SiteGapMax = 8.5f * GroundZoom;
@@ -112,7 +121,7 @@ public static class FrostTuning
     public static float SpawnAbove = .95f * PieceScale, SpawnBand = .9f * GroundZoom, SpawnRetry = .25f * GroundZoom;
     // a launch site that finds no flat top in SiteTries random tries scans a band SiteScanBand tall in SiteScanStep steps
     public const int SiteTries = 64;
-    public static float SiteScanBand = 2.7f * GroundZoom, SiteScanStep = .08f;
+    public static float SiteScanBand = 2.7f * GroundZoom, SiteScanStep = .15f * GroundZoom;
     // landmark families and their mix per variant (index 0 = no variant)
     public static readonly string[][] Families =
     {

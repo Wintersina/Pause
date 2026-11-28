@@ -187,6 +187,8 @@ public static class BackdropCatalog
     public const string AtlasAnimHires = "anim_hires";
 
     static readonly Color W = Color.white;
+    // Frost's ground under the play layer, shaded by FrostTuning.GroundShade (a separate step from the art's own grade)
+    static readonly Color FrostGround = new Color(FrostTuning.GroundShade, FrostTuning.GroundShade, FrostTuning.GroundShade, 1f);
 
     static readonly Spec[] specs =
     {
@@ -220,7 +222,7 @@ public static class BackdropCatalog
         // Frost (FrostDirector, docs in FrostBackdrop.cs): flown at atmosphere
         // level just under the cloud ceiling, looking down on a frozen ocean,
         // coast and ice-bound industry -- from HIGH up (FrostTuning.GroundZoom:
-        // the tiles drawn at .55 of the view's width, repeated across; the
+        // the tiles drawn at .41 of the view's width, repeated across; the
         // ground layers' rates scaled by the same number: farther ground
         // creeps by slower). The four ground tiles come from one of
         // up to four variant sets per landing (FrostBackdropSelection,
@@ -236,12 +238,12 @@ public static class BackdropCatalog
                    cloudDensity = () => FrostTuning.CloudDensity, ceilingHold = () => FrostTuning.CeilingHold,
                    ceilingClearSeconds = () => FrostTuning.CeilingClearSeconds, layers = new[] {
             Layer.Tile("sky", 0.006f * FrostTuning.GroundZoom, W).Graded(.55f),
-            Layer.Tile("far", 0.014f * FrostTuning.GroundZoom, W).Graded(.8f),
-            Layer.Tile("mid", FrostTuning.GroundRate, W).Graded(1f),
+            Layer.Tile("far", 0.014f * FrostTuning.GroundZoom, FrostGround).Graded(.8f),
+            Layer.Tile("mid", FrostTuning.GroundRate, FrostGround).Graded(1f),
             // The drifting floes / frost streaks strip is PINNED to the mid tile too (same rate, no flow of its own): it used to
             // run at 0.025 x the scroll + 0.35 u/s, two to three times faster than the ground under it, so the floes slid under
             // the landmarks and the whole map read as moving while the pieces standing on it did not (user, 2026-11-27).
-            Layer.Strip("flow", FrostTuning.GroundRate, 0f, 0f, W).PinnedTo("mid", FrostTuning.GroundRate).Graded(1f),
+            Layer.Strip("flow", FrostTuning.GroundRate, 0f, 0f, FrostGround).PinnedTo("mid", FrostTuning.GroundRate).Graded(1f),
             Layer.Pieces("aurora", 0.027f, Role.Atmosphere).Graded(.3f),
             // Rigs, refineries, icebreakers ... and the elite launch sites
             // (one ground plane: they never slide over each other).

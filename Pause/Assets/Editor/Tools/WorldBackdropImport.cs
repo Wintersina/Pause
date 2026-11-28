@@ -145,9 +145,14 @@ public class WorldBackdropImport : AssetPostprocessor
         return path.Contains("/Worlds/Ember/Backdrop3/v1/") || path.Contains("/Worlds/Ember/Backdrop3/v2/") || path.Contains("/Worlds/Ember/Backdrop3/v3/") || path.Contains("/Worlds/Ember/Backdrop3/v4/");
     }
 
-    // 2026-10: Frost's four ground variants (v1..v4 sky / far / mid / flow) are crisp, bright pixel-art repaints at 896x1792 (a tile is still
-    // 6 units wide: 149.33 px per unit), same HD import rules as Tide's, Verdant's and Ember's tiles. (docks.png etc. in Backdrop3/ stay as they were.)
-    public const float FrostHdPixelsPerUnit = 896f / 6f;
+    // 2026-10: Frost's four ground variants (v1..v4 sky / far / mid / flow) are crisp, bright pixel-art repaints at 896x1792, same HD
+    // import rules as Tide's, Verdant's and Ember's tiles. (docks.png etc. in Backdrop3/ stay as they were.)
+    // 2026-11-28: Frost is seen from high up (FrostTuning.GroundZoom .41: a tile ~450 screen px wide on a 1080 px phone), so the tiles
+    // are installed HALVED to 448x896 (frost_redraw/install_tiles.py: one texel per 2 px art cell, ~1 texel per screen pixel) and
+    // drawn BILINEAR with U wrapping too (the tiles repeat across): point sampling the 896 tiles at ~2x minification skipped every
+    // other texel and the ground shimmered as it scrolled (no mipmaps: a non-power-of-two mipmapped texture stays uncompressed,
+    // AndroidTextureDiet). A tile is still 6 units wide: 448 / 6 px per unit. The pieces on it (landmarks, sites) stay point-sampled.
+    public const float FrostHdPixelsPerUnit = 448f / 6f;
     public static bool IsFrostHdTile(string path)
     {
         return path.Contains("/Worlds/Frost/Backdrop3/v1/") || path.Contains("/Worlds/Frost/Backdrop3/v2/") || path.Contains("/Worlds/Frost/Backdrop3/v3/") || path.Contains("/Worlds/Frost/Backdrop3/v4/");
@@ -212,7 +217,8 @@ public class WorldBackdropImport : AssetPostprocessor
         ti.mipmapEnabled = planetSheet;
         if (planetSheet) ti.mipmapFilter = TextureImporterMipFilter.KaiserFilter;
         bool crisp = sharpSpaceSky || (IsBackdrop3(assetPath) && (!IsSoftAtlas(file) || IsTidePixelLoop(assetPath, file)));
-        ti.filterMode = sun ? (sunDisc ? FilterMode.Point : FilterMode.Bilinear) : crisp ? FilterMode.Point : planetSheet ? FilterMode.Trilinear : FilterMode.Bilinear;
+        bool frostGround = tile && IsFrostHdTile(assetPath);     // seen from high up: halved, bilinear (FrostHdPixelsPerUnit)
+        ti.filterMode = sun ? (sunDisc ? FilterMode.Point : FilterMode.Bilinear) : frostGround ? FilterMode.Bilinear : crisp ? FilterMode.Point : planetSheet ? FilterMode.Trilinear : FilterMode.Bilinear;
         ti.alphaIsTransparency = true;
         ti.isReadable = false;
         ti.npotScale = TextureImporterNPOTScale.None;
@@ -226,13 +232,13 @@ public class WorldBackdropImport : AssetPostprocessor
         {
             ti.textureType = TextureImporterType.Sprite;
             ti.spriteImportMode = SpriteImportMode.Single;
-            ti.spritePixelsPerUnit = IsTideHdTile(assetPath) || IsVerdantHdTile(assetPath) || IsEmberHdTile(assetPath) || IsFrostHdTile(assetPath) ? TideHdPixelsPerUnit : stormHd ? 1024f / 6f : tile ? TilePixelsPerUnit : BackdropAtlas.PixelsPerUnit;
+            ti.spritePixelsPerUnit = frostGround ? FrostHdPixelsPerUnit : IsTideHdTile(assetPath) || IsVerdantHdTile(assetPath) || IsEmberHdTile(assetPath) ? TideHdPixelsPerUnit : stormHd ? 1024f / 6f : tile ? TilePixelsPerUnit : BackdropAtlas.PixelsPerUnit;
             var settings = new TextureImporterSettings();
             ti.ReadTextureSettings(settings);
             settings.spriteMeshType = file == "sky" || sharpSpaceSky || stormHd ? SpriteMeshType.FullRect : SpriteMeshType.Tight;
             settings.spriteAlignment = (int)SpriteAlignment.Center;
             settings.spriteExtrude = 1;
-            settings.wrapModeU = TextureWrapMode.Clamp;
+            settings.wrapModeU = frostGround ? TextureWrapMode.Repeat : TextureWrapMode.Clamp;   // (Frost's ground repeats across)
             settings.wrapModeV = tile ? TextureWrapMode.Repeat : TextureWrapMode.Clamp;
             ti.SetTextureSettings(settings);
             ti.alphaSource = file == "sky" || sharpSpaceSky ? TextureImporterAlphaSource.None

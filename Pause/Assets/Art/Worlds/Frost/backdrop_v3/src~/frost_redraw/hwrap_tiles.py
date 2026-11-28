@@ -15,8 +15,9 @@ neighbours in the drawing: the wrap is invisible. The cuts follow the art's pixe
 for the sky / far), so nothing is resampled or blurred, and each path is CYCLIC (its first and last rows are at most one
 cell apart), so the vertical wrap stays exactly as seamless as before (check_tiles.py: top vs bottom row).
 
-Run it after build_tiles.py (which rebuilds the tiles from the drawings, seamless down only), then frost_redraw/
-flat_masks.py (the masks are read off the final mid). --check only reports each tile's left / right seam.
+Run it on the 896 masters (tiles_hd/, the default) after build_tiles.py (which rebuilds the tiles from the drawings,
+seamless down only; copy its output into tiles_hd/), then flat_masks.py (the masks are read off the final mid) and
+install_tiles.py (installs them halved). --check only reports each tile's left / right seam.
 """
 import sys
 from pathlib import Path
@@ -26,7 +27,7 @@ from PIL import Image
 
 sys.dont_write_bytecode = True
 HERE = Path(__file__).resolve().parent
-DEFAULT = HERE.parents[4] / "Backgrounds/Resources/Worlds/Frost/Backdrop3"
+DEFAULT = HERE / "tiles_hd"      # the 896 masters (install_tiles.py installs them halved); its quilt() is reused there
 LAYERS = ("sky", "far", "mid", "flow")
 BAND = 8                 # the band is 1/BAND of the tile's width on each side
 # A wrap counts as seamless when its premultiplied mean |left column - right column| (check_tiles.py's vertical seam

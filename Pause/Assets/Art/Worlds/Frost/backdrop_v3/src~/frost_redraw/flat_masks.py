@@ -3,6 +3,9 @@
 
     python3 flat_masks.py [<Resources/Worlds/Frost/Backdrop3>] [--debug DIR]
 
+Reads the 896 x 1792 masters (tiles_hd/v*/mid.png: the installed tiles are those halved, install_tiles.py) and writes
+mask.txt into the installed folders.
+
 Why: the first masks (ground_masks.py, 32 x 64 cells of 28 px) counted every textured light surface as land (C: "ice
 sheet / pack / ridge"), and the landmarks / launch sites were allowed on it -- so a slab landed on cliff faces, on the
 broken floe rubble between the plates, across gorges and crevasse rims (user, 2026-11-27: "still placed randomly over
@@ -35,6 +38,7 @@ from scipy import ndimage as nd
 sys.dont_write_bytecode = True
 HERE = Path(__file__).resolve().parent
 DEFAULT = HERE.parents[4] / "Backgrounds/Resources/Worlds/Frost/Backdrop3"
+MASTERS = HERE / "tiles_hd"                  # the 896 x 1792 mid tiles the masks are read off (install_tiles.py halves them)
 
 _spec = importlib.util.spec_from_file_location("frost_redraw_ground_masks", HERE / "ground_masks.py")
 gmr = importlib.util.module_from_spec(_spec)
@@ -115,12 +119,12 @@ def main():
         del args[i:i + 2]
     base = Path(args[0]) if args else DEFAULT
     for v in (1, 2, 3, 4):
-        g, top = classify(v, Image.open(base / f"v{v}" / "mid.png"))
+        g, top = classify(v, Image.open(MASTERS / f"v{v}" / "mid.png"))
         (base / f"v{v}" / "mask.txt").write_text("\n".join("".join(r) for r in g) + "\n")
         print(f"v{v} " + " ".join(f"{c} {(g == c).mean():.2f}" for c in "WBOC"))
         if dbg:
             dbg.mkdir(parents=True, exist_ok=True)
-            im = np.asarray(Image.open(base / f"v{v}" / "mid.png").convert("RGB")).astype(np.float64)
+            im = np.asarray(Image.open(MASTERS / f"v{v}" / "mid.png").convert("RGB")).astype(np.float64)
             im = np.minimum(255, im * 2.0)
             col = {"W": (0, 120, 255), "B": (255, 50, 0), "O": (255, 255, 0), "C": (0, 200, 120)}
             over = np.zeros_like(im)

@@ -24,8 +24,10 @@ Per layer, all in the 224-wide source grid (one source pixel = one 4 x 4 cell of
             upscales at >= .97) while the look stays the crisp 4 px pixel art. The tile is rolled down by half a
             cell (2 px) so its top and bottom rows are the two halves of one cell row, and the grain of the last
             row copies the first: WorldBackdropTest's seam (top row vs bottom row) measures ~0.
-Then run hwrap_tiles.py (makes every tile seamless ACROSS as well: the ground is drawn narrower than the view and repeated
-side by side, FrostTuning.GroundZoom) and flat_masks.py (regenerates the 64 x 128 mask.txt off the final mid tiles).
+Then copy the result into frost_redraw/tiles_hd/ (the 896 masters) and run hwrap_tiles.py (makes every tile seamless
+ACROSS as well: the ground is drawn narrower than the view and repeated side by side, FrostTuning.GroundZoom),
+flat_masks.py (the 64 x 128 mask.txt off the final mid) and install_tiles.py (installs the masters halved to 448 x 896:
+one texel per art cell, the size the ground is seen at from up there).
 check_tiles.py holds the installed files to the ported test rules. (ground_masks.py's old 32 x 64 masks are superseded.)
 """
 import argparse

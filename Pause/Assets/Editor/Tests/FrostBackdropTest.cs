@@ -213,6 +213,12 @@ public static class FrostBackdropTest
                     sum += Mathf.Abs(l.r * la - r.r * ra) / 255f + Mathf.Abs(l.g * la - r.g * ra) / 255f + Mathf.Abs(l.b * la - r.b * ra) / 255f + Mathf.Abs(la - ra);
                 }
                 float seam = (float)(sum / (H * 4.0));
+                // installed at the size it is seen at (install_tiles.py: the 896 masters halved), drawn bilinear, still 6 u wide
+                var imp = UnityEditor.AssetImporter.GetAtPath(path) as UnityEditor.TextureImporter;
+                var sprite = Resources.Load<Sprite>(BackdropCatalog.TileFolder("Frost", v) + layer);
+                Check("v" + v + "/" + layer + ": " + W + "x" + H + ", bilinear, no mipmaps, repeating across, 6 u wide (one texel per art cell, ~1 per screen pixel from up here)",
+                      W == 448 && H == 896 && imp != null && imp.filterMode == FilterMode.Bilinear && !imp.mipmapEnabled &&
+                      imp.wrapModeU == TextureWrapMode.Repeat && sprite != null && Mathf.Abs(sprite.bounds.size.x - 6f) < .01f);
                 Check("v" + v + "/" + layer + ": seamless across (left vs right column " + seam.ToString("0.0000") + " <= " + AcrossSeam + ")", seam <= AcrossSeam);
             }
         }
@@ -360,7 +366,17 @@ public static class FrostBackdropTest
     // under way never leaves the ground its rule allows.
     const int SeededRuns = 6;
 
+    // Run under the GAME's dock rules (DockGrade.Strict: the suites switch them off to place any dock kind anywhere, and a dock
+    // placed that way -- a rig in a lead, a hangar on anything -- is no evidence of where the game puts one).
     static void Affinity()
+    {
+        bool strict = DockGrade.Strict;
+        DockGrade.Strict = true;
+        try { AffinityChecks(); }
+        finally { DockGrade.Strict = strict; }
+    }
+
+    static void AffinityChecks()
     {
         var wanted = new Dictionary<string, int>();
         for (int v = 1; v <= 4; v++)
@@ -382,7 +398,9 @@ public static class FrostBackdropTest
                         {
                             if (!p.active || p.sr.sprite == null) continue;
                             string name = p.sr.sprite.name;
-                            var rule = FrostTuning.Rule(name, v);
+                            bool site = pool == d.Sites;
+                            // a launch site by the site rule it was placed with (its dock names rig_00 / icebreaker_00 are landmark names too)
+                            var rule = site ? FrostTuning.SiteRule(v, false) : FrostTuning.Rule(name, v);
                             // pinned: y + travel is its ground coordinate, always
                             if (Mathf.Abs((float)(p.y + d.Planner.Travel - p.gy)) > 1e-3f) drift++;
                             bool moving = p.vx != 0f || p.vy != 0f;
@@ -393,7 +411,6 @@ public static class FrostBackdropTest
                             seen[p] = p.gy;
                             pieces++;
                             int c; wanted.TryGetValue(name.Split('_')[0], out c); wanted[name.Split('_')[0]] = c + 1;
-                            bool site = pool == d.Sites;
                             if (!d.Planner.Accepts(rule, p.x, p.gy, p.size))
                             {
                                 // a site may stand on its relaxed rule (its rim a little broken), never anywhere

@@ -5,7 +5,7 @@
 
 Ported (each from Pause/Assets/Editor/Tests/):
   BackdropResolutionTest   block score (k = 2, 3, 4, every grid phase) < .97; identical adjacent pairs <= .85
-  WorldBackdropTest        size 896 x 1792 RGBA (the importer's PPU contract); vertical seam (premultiplied mean
+  WorldBackdropTest        size 448 x 896 RGBA (install_tiles.py; WorldBackdropImport.FrostHdPixelsPerUnit 448 / 6); vertical seam (premultiplied mean
                            |bottom row - top row|) <= .02 on every tile; as drawn through BackdropGrade (Frost lift
                            1.95 x layer share, saturation 1.05): value p90 <= .55 (sky / far / mid), sky luminance
                            <= .18, tile luminance <= .24, chroma <= .26; CheckReadability on the composite (sky, far,
@@ -242,7 +242,8 @@ def tile(base, v, layer):
     p = base / f"v{v}" / f"{layer}.png"
     im = Image.open(p)
     tag = f"v{v}/{layer}"
-    check(f"{tag}: {im.mode} {im.size[0]}x{im.size[1]} == RGBA 896x1792", im.mode == "RGBA" and im.size == (896, 1792))
+    check(f"{tag}: {im.mode} {im.size[0]}x{im.size[1]} == RGBA 448x896 (install_tiles.py: the 896 masters halved, one texel per art cell)",
+          im.mode == "RGBA" and im.size == (448, 896))
     a = read(p)
     ks = {k: block_score(a, k) for k in (2, 3, 4)}
     worst = max(ks, key=ks.get)
